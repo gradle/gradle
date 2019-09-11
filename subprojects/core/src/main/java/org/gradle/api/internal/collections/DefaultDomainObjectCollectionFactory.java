@@ -29,6 +29,7 @@ import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.ReflectiveNamedDomainObjectFactory;
 import org.gradle.internal.Cast;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
@@ -47,9 +48,18 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     }
 
     @Override
+    public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainerUndecorated(Class<T> elementType) {
+        // Do not decorate the elements, for backwards compatibility
+        return container(elementType, instantiatorFactory.injectLenient(servicesToInject));
+    }
+
+    @Override
     public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> elementType) {
-        // TODO - this should also be using the decorating instantiator but cannot for backwards compatibility
-        ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(elementType, instantiatorFactory.injectLenient(servicesToInject));
+        return container(elementType, instantiatorFactory.injectAndDecorateLenient(servicesToInject));
+    }
+
+    private <T> NamedDomainObjectContainer<T> container(Class<T> elementType, InstanceGenerator elementInstantiator) {
+        ReflectiveNamedDomainObjectFactory<T> objectFactory = new ReflectiveNamedDomainObjectFactory<T>(elementType, elementInstantiator);
         Instantiator instantiator = instantiatorFactory.decorateLenient();
         return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, elementType, instantiator, new DynamicPropertyNamer(), objectFactory, mutationGuard, collectionCallbackActionDecorator));
     }

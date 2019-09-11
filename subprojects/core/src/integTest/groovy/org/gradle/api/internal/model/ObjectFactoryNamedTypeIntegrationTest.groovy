@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api
+package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -22,7 +22,7 @@ import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
 
-class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
+class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can create named instances of interface using injected factory"() {
         buildFile << """
             interface Thing extends Named { }
@@ -193,7 +193,7 @@ class ModelObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("No such field: name for class: Thing\$Impl")
     }
 
-    def "cannot create instance with fields"() {
+    def "cannot create named instance with fields"() {
         buildFile << """
             class Thing implements Named { 
                 String name
