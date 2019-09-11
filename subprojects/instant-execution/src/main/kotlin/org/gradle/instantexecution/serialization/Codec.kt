@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
@@ -375,7 +376,7 @@ inline fun <T> ReadContext.decodePreservingIdentity(identities: ReadIdentities, 
     val id = readSmallInt()
     val previousValue = identities.getInstance(id)
     return when {
-        previousValue != null -> previousValue as T
+        previousValue != null -> previousValue.uncheckedCast()
         else -> decode(id).also {
             require(identities.getInstance(id) === it) {
                 "`decode(id)` should register the decoded instance"

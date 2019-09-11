@@ -30,6 +30,7 @@ import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Provider
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -52,27 +53,24 @@ suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
 
 
 private
-suspend fun ReadContext.readProvider(): ProviderInternal<Any> {
-    return if (readBoolean()) {
-        BeanCodec().run { decode() } as AbstractMappingProvider<Any, Any>
+suspend fun ReadContext.readProvider(): ProviderInternal<Any> =
+    if (readBoolean()) {
+        BeanCodec().run { decode() }!!.uncheckedCast()
     } else {
-        val value = read()
-        when (value) {
-            is BrokenValue -> DefaultProvider<Any> { value.rethrow() }
+        when (val value = read()) {
+            is BrokenValue -> DefaultProvider<Any> { value.rethrow() }.uncheckedCast()
             else -> Providers.ofNullable(value)
         }
     }
-}
 
 
 private
-fun unpack(value: Provider<*>): Any? {
+fun unpack(value: Provider<*>): Any? =
     try {
-        return value.orNull
+        value.orNull
     } catch (e: Exception) {
-        return BrokenValue(e)
+        BrokenValue(e)
     }
-}
 
 
 object
@@ -107,7 +105,7 @@ DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory) : C
     }
 
     override suspend fun ReadContext.decode(): DefaultDirectoryVar {
-        val provider = readProvider() as Provider<Directory>
+        val provider: Provider<Directory> = readProvider().uncheckedCast()
         return filePropertyFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
     }
 }
@@ -120,7 +118,7 @@ RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory) :
     }
 
     override suspend fun ReadContext.decode(): DefaultRegularFileVar {
-        val provider = readProvider() as Provider<RegularFile>
+        val provider: Provider<RegularFile> = readProvider().uncheckedCast()
         return filePropertyFactory.newFileProperty().value(provider) as DefaultRegularFileVar
     }
 }
@@ -134,8 +132,10 @@ ListPropertyCodec : Codec<DefaultListProperty<*>> {
     }
 
     override suspend fun ReadContext.decode(): DefaultListProperty<*> {
-        val providers = readList { readProvider() } as List<ProviderInternal<List<Any>>>
-        return DefaultListProperty(Any::class.java).apply { providers(providers) }
+        val providers = readList { readProvider() }
+        return DefaultListProperty(Any::class.java).apply {
+            providers(providers.uncheckedCast())
+        }
     }
 }
 
@@ -148,8 +148,10 @@ SetPropertyCodec : Codec<DefaultSetProperty<*>> {
     }
 
     override suspend fun ReadContext.decode(): DefaultSetProperty<*> {
-        val providers = readList { readProvider() } as List<ProviderInternal<List<Any>>>
-        return DefaultSetProperty(Any::class.java).apply { providers(providers) }
+        val providers = readList { readProvider() }
+        return DefaultSetProperty(Any::class.java).apply {
+            providers(providers.uncheckedCast())
+        }
     }
 }
 
@@ -162,7 +164,9 @@ MapPropertyCodec : Codec<DefaultMapProperty<*, *>> {
     }
 
     override suspend fun ReadContext.decode(): DefaultMapProperty<*, *> {
-        val providers = readList { readProvider() } as List<ProviderInternal<Map<Any, Any>>>
-        return DefaultMapProperty(Any::class.java, Any::class.java).apply { providers(providers) }
+        val providers = readList { readProvider() }
+        return DefaultMapProperty(Any::class.java, Any::class.java).apply {
+            providers(providers.uncheckedCast())
+        }
     }
 }

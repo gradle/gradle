@@ -21,6 +21,7 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.provider.Property
 import org.gradle.instantexecution.InstantExecutionException
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
@@ -61,7 +62,7 @@ class BeanPropertyWriter(
                 // TODO - disallow using convention mapping + property types
                 val convention = conventionalValueOf(bean, fieldName)
                 if (convention != null) {
-                    (fieldValue as Property<Any>).convention(convention)
+                    (fieldValue.uncheckedCast<Property<Any>>()).convention(convention)
                 }
             }
             fieldValue
