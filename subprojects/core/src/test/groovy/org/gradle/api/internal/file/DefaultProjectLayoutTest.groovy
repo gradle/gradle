@@ -279,4 +279,20 @@ class DefaultProjectLayoutTest extends Specification {
         provider.get().getAsFile() == file1
         provider.get().getAsFile() == file2
     }
+
+    def "resolves relative dir given by File provider"() {
+        def dirProvider = Stub(ProviderInternal)
+        def dir1 = projectDir.file("dir1")
+        def dir2 = projectDir.file("dir2")
+
+        _ * dirProvider.present >> true
+        _ * dirProvider.get() >>> [new File("dir1"), new File("dir2")]
+
+        expect:
+        def provider = layout.file(dirProvider)
+        provider.present
+
+        provider.get().getAsFile() == dir1
+        provider.get().getAsFile() == dir2
+    }
 }

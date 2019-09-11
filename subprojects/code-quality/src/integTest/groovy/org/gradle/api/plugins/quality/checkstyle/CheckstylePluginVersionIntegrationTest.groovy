@@ -60,6 +60,30 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
+    def "supports fallback when configDir does not exist"() {
+        goodCode()
+        buildFile << """
+            checkstyle {
+                config = project.resources.text.fromString('''<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+                        "https://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+                <module name="Checker">
+                
+                    <module name="FileTabCharacter"/>
+                
+                    <module name="SuppressionFilter">
+                        <property name="file" value="\${config_loc}/suppressions.xml" default=""/>
+                        <property name="optional" value="true"/>
+                    </module>
+                </module>''')
+            
+                configDirectory = file("config/does-not-exist")
+            }
+        """
+
+        expect:
+        succeeds('check')
+    }
+
     @ToBeImplemented
     @Issue("GRADLE-3432")
     def "analyze bad resources"() {

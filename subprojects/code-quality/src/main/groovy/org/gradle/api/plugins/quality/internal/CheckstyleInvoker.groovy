@@ -41,7 +41,7 @@ abstract class CheckstyleInvoker {
         def ignoreFailures = checkstyleTask.ignoreFailures
         def logger = checkstyleTask.logger
         def config = checkstyleTask.config
-        def configDir = checkstyleTask.configDir
+        def configDir = checkstyleTask.configDirectory.getAsFile().getOrNull()
         def xmlDestination = reports.xml.destination
 
         if (isHtmlReportEnabledOnly(reports)) {

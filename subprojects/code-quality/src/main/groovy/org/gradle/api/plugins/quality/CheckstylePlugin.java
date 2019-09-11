@@ -54,23 +54,9 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("checkstyle", CheckstyleExtension.class, project);
         extension.setToolVersion(DEFAULT_CHECKSTYLE_VERSION);
-        extension.getConfigDirectory().set(determineConfigurationDirectory());
-        extension.setConfig(project.getResources().getText().fromFile(new Callable<File>() {
-            @Override
-            public File call() {
-                return new File(extension.getConfigDir(), "checkstyle.xml");
-            }
-        }));
+        extension.getConfigDirectory().convention(project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME));
+        extension.setConfig(project.getResources().getText().fromFile(extension.getConfigDirectory().file("checkstyle.xml")));
         return extension;
-    }
-
-    private Provider<Directory> determineConfigurationDirectory() {
-        return project.provider(new Callable<Directory>() {
-            @Override
-            public Directory call() {
-                return project.getRootProject().getLayout().getProjectDirectory().dir(CONFIG_DIR_NAME);
-            }
-        });
     }
 
     @Override
@@ -134,12 +120,7 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
             }
         });
 
-        task.setConfigDir(project.provider(new Callable<File>() {
-            @Override
-            public File call() {
-                return extension.getConfigDir();
-            }
-        }));
+        task.getConfigDirectory().convention(extension.getConfigDirectory());
     }
 
     private void configureReportsConventionMapping(Checkstyle task, final String baseName) {
