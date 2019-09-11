@@ -99,8 +99,9 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
     @Requires(TestPrecondition.WINDOWS)
     def "succeeds when long classpath"() {
+        def fileName = 'a' * ((ARG_MAX_WINDOWS / 2) * 3)
         buildFile << """
-            run.classpath += project.files('${'a' * ((ARG_MAX_WINDOWS / 2) * 3)}')
+            run.classpath += project.files('${fileName}')
         """
 
         when:
@@ -108,21 +109,29 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         then:
         executedAndNotSkipped(":run")
-        outputContains("Gradle is shortening the command line by moving the classpath to a pathing JAR.")
+        assertOutputContainsShorteningMessage(fileName)
     }
 
     @Requires(TestPrecondition.WINDOWS)
     def "still fail when classpath doesn't shorten the command line enough"() {
+        def fileName = 'a' * (ARG_MAX_WINDOWS / 2)
         buildFile << """
-            run.classpath += project.files('${'a' * (ARG_MAX_WINDOWS / 2)}')
+            run.classpath += project.files('${fileName}')
             run.args "${'b' * ARG_MAX_WINDOWS}"
         """
 
         when:
-        succeeds("run", "-i")
+        def failure = fails("run", "-i")
 
         then:
-        executedAndNotSkipped(":run")
-        outputContains("Gradle is shortening the command line by moving the classpath to a pathing JAR.")
+        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
+    }
+
+    private void assertOutputContainsShorteningMessage(String fileName) {
+        assert output =~ /^Shortening Java classpath ${classpath(fileName)} with .+\\/gradle-javaexec-classpath.+\.jar$/
+    }
+
+    private static String classpath(String fileName) {
+        return "${file('build/classes/java/main')};${file('build/generated/sources/annotationProcessor/java/main')};${testDirectory.absolutePath}\\${fileName}"
     }
 }

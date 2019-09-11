@@ -326,7 +326,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
                     arguments.remove(classPathFlagIndex);
                     arguments.remove(classPathFlagIndex);
                     arguments.addAll(classPathFlagIndex, jvmArgs);
-                    LOGGER.info("Gradle is shortening the command line by moving the classpath to a pathing JAR.");
+                    LOGGER.info("Shortening Java classpath {} with {}", this.classpath, pathingJarFile);
                 } catch (IOException e) {
                     LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.");
                 }
