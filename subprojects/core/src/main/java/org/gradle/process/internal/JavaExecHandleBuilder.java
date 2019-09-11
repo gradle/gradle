@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
-import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasEnvironmentVariableExceedMaxLength;
 
 /**
  * Use {@link JavaExecHandleFactory} instead.
