@@ -140,22 +140,21 @@ public class GradleModuleMetadataWriter {
         jsonWriter.name("version");
         jsonWriter.beginObject();
 
-        String required = !immutableVersionConstraint.getRequiredVersion().isEmpty() ? immutableVersionConstraint.getRequiredVersion() : null;
+        boolean isStrict = !immutableVersionConstraint.getStrictVersion().isEmpty();
+        String version = isStrict ? immutableVersionConstraint.getStrictVersion() : !immutableVersionConstraint.getRequiredVersion().isEmpty() ? immutableVersionConstraint.getRequiredVersion() : null;
         String preferred = !immutableVersionConstraint.getPreferredVersion().isEmpty() ? immutableVersionConstraint.getPreferredVersion() : null;
         if (resolvedVersion != null) {
-            required = resolvedVersion;
+            version = resolvedVersion;
             preferred = null;
         }
 
-        // For now, 'requires' implies 'prefers', and 'strictly' implies 'requires'
-        // Only publish the defining constraint.
-        if (!immutableVersionConstraint.getStrictVersion().isEmpty()) {
-            jsonWriter.name("strictly");
-            jsonWriter.value(immutableVersionConstraint.getStrictVersion());
-        }
-        if (required != null) {
+        if (version != null) {
+            if (isStrict) {
+                jsonWriter.name("strictly");
+                jsonWriter.value(version);
+            }
             jsonWriter.name("requires");
-            jsonWriter.value(required);
+            jsonWriter.value(version);
         }
         if (preferred != null) {
             jsonWriter.name("prefers");
