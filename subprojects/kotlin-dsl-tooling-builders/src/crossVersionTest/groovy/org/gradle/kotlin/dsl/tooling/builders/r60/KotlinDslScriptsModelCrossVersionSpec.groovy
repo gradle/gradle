@@ -71,7 +71,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
 
         and:
         def settingsClassPath = model.scriptModels[settings].classPath.collect { it.name }
-        settingsClassPath.contains("buildSrc.jar") // TODO invert
+        !settingsClassPath.contains("buildSrc.jar")
         !settingsClassPath.contains(rootJar.name)
         !settingsClassPath.contains(aJar.name)
         !settingsClassPath.contains(bJar.name)
