@@ -92,7 +92,7 @@ class TestUtil {
         return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
     }
 
-    private static ServiceRegistry services() {
+    static ServiceRegistry services() {
         if (services == null) {
             services = new DefaultServiceRegistry()
             services.register {

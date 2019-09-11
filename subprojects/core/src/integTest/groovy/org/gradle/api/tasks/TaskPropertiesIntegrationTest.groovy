@@ -203,8 +203,8 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             
             tasks.create("thing", MyTask) {
                 beans {
-                    one { prop.set('1') }
-                    two { prop.set('2') }
+                    one { prop = '1' }
+                    two { prop = '2' }
                 }
             }
         """
