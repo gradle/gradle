@@ -58,8 +58,8 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     public abstract List<String> getAllArguments();
 
-    protected ArgsEnvironment getEffectiveArgsEnvironment() {
-        return new ArgsEnvironment(getAllArguments(), getActualEnvironment());
+    protected List<String> getEffectiveArguments() {
+        return getAllArguments();
     }
 
     @Override
@@ -146,8 +146,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         }
 
         StreamsHandler effectiveOutputHandler = getEffectiveStreamsHandler();
-        ArgsEnvironment effectiveArgsEnvironment = getEffectiveArgsEnvironment();
-        return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, effectiveArgsEnvironment.getArguments(), effectiveArgsEnvironment.getEnvironment(),
+        return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getEffectiveArguments(), getActualEnvironment(),
                 effectiveOutputHandler, inputHandler, listeners, redirectErrorStream, timeoutMillis, daemon, executor, buildCancellationToken);
     }
 
@@ -178,23 +177,5 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     public AbstractExecHandleBuilder setTimeout(int timeoutMillis) {
         this.timeoutMillis = timeoutMillis;
         return this;
-    }
-
-    protected static class ArgsEnvironment {
-        private final List<String> arguments;
-        private final Map<String, String> environment;
-
-        public ArgsEnvironment(List<String> arguments, Map<String, String> environment) {
-            this.arguments = arguments;
-            this.environment = environment;
-        }
-
-        public List<String> getArguments() {
-            return arguments;
-        }
-
-        public Map<String, String> getEnvironment() {
-            return environment;
-        }
     }
 }

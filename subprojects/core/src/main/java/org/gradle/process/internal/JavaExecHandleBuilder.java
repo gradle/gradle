@@ -314,34 +314,26 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    protected ArgsEnvironment getEffectiveArgsEnvironment() {
+    protected List<String> getEffectiveArguments() {
         List<String> arguments = getAllArguments();
-        Map<String, String> environment = getActualEnvironment();
 
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
             int classPathFlagIndex = arguments.indexOf("-cp");
             if (shouldTryShorteningCommandLine(arguments)) {
-                if (shouldUseEnvironmentVariable(arguments, environment)) {
-                    environment.put("CLASSPATH", arguments.get(classPathFlagIndex + 1));
+                try {
+                    File pathingJarFile = File.createTempFile("gradle-javaexec-classpath", ".jar");
+                    List<String> jvmArgs = writePathingJarFile(classpath, pathingJarFile);
                     arguments.remove(classPathFlagIndex);
                     arguments.remove(classPathFlagIndex);
-                    LOGGER.info("Gradle is shortening the command line by moving the classpath to the CLASSPATH environment variable.");
-                } else {
-                    try {
-                        File pathingJarFile = File.createTempFile("gradle-javaexec-classpath", ".jar");
-                        List<String> jvmArgs = writePathingJarFile(classpath, pathingJarFile);
-                        arguments.remove(classPathFlagIndex);
-                        arguments.remove(classPathFlagIndex);
-                        arguments.addAll(classPathFlagIndex, jvmArgs);
-                        LOGGER.info("Gradle is shortening the command line by moving the classpath to a pathing JAR.");
-                    } catch (IOException e) {
-                        LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.");
-                    }
+                    arguments.addAll(classPathFlagIndex, jvmArgs);
+                    LOGGER.info("Gradle is shortening the command line by moving the classpath to a pathing JAR.");
+                } catch (IOException e) {
+                    LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.");
                 }
             }
         }
 
-        return new ArgsEnvironment(arguments, environment);
+        return arguments;
     }
 
     private boolean shouldTryShorteningCommandLine(List<String> arguments) {
@@ -352,38 +344,6 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
             return false;
         }
 
-        return true;
-    }
-
-    private boolean shouldUseEnvironmentVariable(List<String> arguments, Map<String, String> environment) {
-        int classPathFlagIndex = arguments.indexOf("-cp");
-        if (hasEnvironmentVariableExceedMaxLength(arguments.get(classPathFlagIndex + 1))) {
-            // Class path is exceeding the maximum environment variable value length
-            LOGGER.info("Classpath size is exceeding the maximum environment variable length, Gradle cannot shorten the command line using the environment variable.");
-            return false;
-        }
-
-        if (System.getenv().containsKey("CLASSPATH")) {
-            if (environment.containsKey("CLASSPATH")) {
-                // Only if the CLASSPATH wasn't overwritten in the JavaExecSpec
-                if (System.getenv().get("CLASSPATH").equals(environment.get("CLASSPATH"))) {
-                    return true;
-                }
-                LOGGER.info("CLASSPATH environment variable was explicitly overwritten, Gradle cannot shorten the command line using the environment variable.");
-                return false;
-            }
-            // The CLASSPATH was explicitly cleared
-            LOGGER.info("CLASSPATH environment variable was explicitly cleared, Gradle cannot shorten the command line using the environment variable.");
-            return false;
-        }
-
-        if (environment.containsKey("CLASSPATH")) {
-            // The CLASSPATH was explicitly defined
-            LOGGER.info("CLASSPATH environment variable was explicitly defined, Gradle cannot shorten the command line using the environment variable.");
-            return false;
-        }
-
-        // The CLASSPATH wasn't declared or inherited
         return true;
     }
 
