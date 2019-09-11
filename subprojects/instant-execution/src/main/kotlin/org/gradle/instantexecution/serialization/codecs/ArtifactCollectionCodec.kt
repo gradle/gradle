@@ -19,6 +19,7 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.artifacts.ArtifactCollection
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.file.FileCollection
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -37,9 +38,13 @@ object ArtifactCollectionCodec : Codec<ArtifactCollection> {
 
     override suspend fun ReadContext.decode(): ArtifactCollection {
         val files = read() as FileCollection
-        val artifacts = readCollectionInto { LinkedHashSet<Any?>(it) } as MutableSet<ResolvedArtifactResult>
-        val failures = readCollectionInto { ArrayList<Any?>(it) } as List<Throwable>
-        return FixedArtifactCollection(files, artifacts, failures)
+        val artifacts = readCollectionInto { LinkedHashSet<Any?>(it) }
+        val failures = readCollectionInto { ArrayList<Any?>(it) }
+        return FixedArtifactCollection(
+            files,
+            artifacts.uncheckedCast(),
+            failures.uncheckedCast()
+        )
     }
 }
 

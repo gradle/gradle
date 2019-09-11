@@ -127,6 +127,7 @@ interface EncodingProvider<T> {
 }
 
 
+@Suppress("experimental_feature_warning")
 inline class ClassLoaderRole(val local: Boolean)
 
 
