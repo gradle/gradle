@@ -78,6 +78,9 @@ public class DefaultResolutionResultBuilder {
                 dependencyResult = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.isConstraint(), d.getReason(), d.getFailure());
             } else {
                 DefaultResolvedComponentResult selected = modules.get(d.getSelected());
+                if (selected == null) {
+                    throw new IllegalStateException("Corrupt serialized resolution result. Cannot find selected module (" + d.getSelected() + ") for " + (d.isConstraint() ? "constraint " : "") + fromVariant + " -> " + d.getRequested().getDisplayName());
+                }
                 dependencyResult = dependencyResultFactory.createResolvedDependency(d.getRequested(), from, selected, d.getSelectedVariant(), d.isConstraint());
                 selected.addDependent((ResolvedDependencyResult) dependencyResult);
             }
