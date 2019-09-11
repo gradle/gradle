@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven.internal.publisher;
 
-import com.google.common.collect.ImmutableSet;
 import org.apache.maven.artifact.repository.metadata.Metadata;
 import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
@@ -42,13 +41,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.util.Set;
 
 import static org.apache.maven.artifact.ArtifactUtils.isSnapshot;
 
 abstract class AbstractMavenPublisher implements MavenPublisher {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenPublisher.class);
-    private static final Set<String> JAR_PACKAGINGS = ImmutableSet.of("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
 
     private static final String POM_FILE_ENCODING = "UTF-8";
     private final Factory<File> temporaryDirFactory;
@@ -79,9 +76,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         if (publication.getMainArtifact() != null) {
-            String packaging = publication.getPackaging();
-            String extension = packaging == null || JAR_PACKAGINGS.contains(packaging) ? publication.getMainArtifact().getExtension() : packaging;
-            artifactPublisher.publish(null, extension, publication.getMainArtifact().getFile());
+            artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
         }
         artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile());
         for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {
