@@ -458,7 +458,12 @@ The Worker API provides a mechanism for doing exactly this. It allows for safe, 
 
 In order to submit work to the Worker API, two things must be provided: an implementation of the unit of work, and the parameters for the unit of work.
 
-The parameters for the unit of work are defined as an interface that extends link:{javadocPath}/org/gradle/workers/WorkParameters.html[WorkParameters].  The implementation is a class that extends link:{javadocPath}/org/gradle/workers/WorkAction.html[WorkAction]. This class should be abstract and should not implement the `getParameters()` method (Gradle will inject this method at runtime with the parameters object for each unit of work).
+The parameters for the unit of work are defined as an interface or abstract class that implements link:{javadocPath}/org/gradle/workers/WorkParameters.html[WorkParameters].
+The parameters type must be a <<custom_gradle_types.adoc#managed_types,managed type>>.
+
+You can find out more about implementing work parameters in <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>>.
+
+The implementation is a class that extends link:{javadocPath}/org/gradle/workers/WorkAction.html[WorkAction]. This class should be abstract and should not implement the `getParameters()` method. Gradle will inject an implementation of this method at runtime with the parameters object for each unit of work.
 
 .Defining the unit of work parameters and implementation
 ====
