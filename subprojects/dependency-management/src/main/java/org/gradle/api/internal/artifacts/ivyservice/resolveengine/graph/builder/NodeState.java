@@ -171,7 +171,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public List<EdgeState> getIncomingEdges() {
-        return incomingEdges;
+        return ImmutableList.copyOf(incomingEdges);
     }
 
     @Override
@@ -943,9 +943,7 @@ public class NodeState implements DependencyGraphNode {
                 if (outgoingDependency == edgeToKeep) {
                     continue;
                 }
-                outgoingDependency.removeFromTargetConfigurations();
-                outgoingDependency.getSelector().release();
-                outgoingDependency.maybeDecreaseHardEdgeCount(this);
+                outgoingDependency.cleanUpOnSourceChange(this);
             }
         }
         outgoingEdges.clear();
