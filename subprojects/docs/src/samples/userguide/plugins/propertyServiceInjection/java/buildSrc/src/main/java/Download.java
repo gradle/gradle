@@ -4,7 +4,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.workers.WorkerExecutor;
 
-public abstract class UrlProcess extends DefaultTask {
+public abstract class Download extends DefaultTask {
     // Use an abstract getter method
     @Inject
     protected abstract ObjectFactory getObjectFactory();

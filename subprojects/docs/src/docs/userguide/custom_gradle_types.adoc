@@ -46,19 +46,19 @@ Here is an example of a task type with a `uri` property:
 .Mutable managed property
 ====
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Download.java
 ----
-include::{samplesPath}/userguide/plugins/mutableManagedProperty/java/buildSrc/src/main/java/UrlProcess.java[]
+include::{samplesPath}/userguide/plugins/mutableManagedProperty/java/buildSrc/src/main/java/Download.java[]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Download.kt
 ----
-include::{samplesPath}/userguide/plugins/mutableManagedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
+include::{samplesPath}/userguide/plugins/mutableManagedProperty/kotlin/buildSrc/src/main/kotlin/Download.kt[]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Download.groovy
 ----
-include::{samplesPath}/userguide/plugins/mutableManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+include::{samplesPath}/userguide/plugins/mutableManagedProperty/groovy/buildSrc/src/main/groovy/Download.groovy[]
 ----
 ====
 
@@ -76,19 +76,19 @@ Here is an example of a task type with a `uri` property:
 .Read-only managed property
 ====
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Download.java
 ----
-include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/java/buildSrc/src/main/java/UrlProcess.java[]
+include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/java/buildSrc/src/main/java/Download.java[]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Download.kt
 ----
-include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
+include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/kotlin/buildSrc/src/main/kotlin/Download.kt[]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Download.groovy
 ----
-include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/groovy/buildSrc/src/main/groovy/Download.groovy[]
 ----
 ====
 
@@ -118,20 +118,20 @@ Here is an example of a task type with a `hostAndPath` property:
 .Read-only managed nested property
 ====
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Download.java
 ----
-include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/java/buildSrc/src/main/java/UrlProcess.java[tags=url-process]
-include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/java/buildSrc/src/main/java/HostAndPath.java[tags=host-and-path]
+include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/java/buildSrc/src/main/java/Download.java[tags=url-process]
+include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/java/buildSrc/src/main/java/Resource.java[tags=host-and-path]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Download.kt
 ----
-include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[tags=url-process]
+include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/kotlin/buildSrc/src/main/kotlin/Download.kt[tags=url-process]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Download.groovy
 ----
-include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[tags=url-process]
+include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/groovy/buildSrc/src/main/groovy/Download.groovy[tags=url-process]
 ----
 ====
 
@@ -184,19 +184,19 @@ Here is an example that shows a task type that receives an `ObjectFactory` via i
 .Constructor service injection
 ====
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Download.java
 ----
-include::{samplesPath}/userguide/plugins/constructorServiceInjection/java/buildSrc/src/main/java/UrlProcess.java[]
+include::{samplesPath}/userguide/plugins/constructorServiceInjection/java/buildSrc/src/main/java/Download.java[]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Download.kt
 ----
-include::{samplesPath}/userguide/plugins/constructorServiceInjection/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
+include::{samplesPath}/userguide/plugins/constructorServiceInjection/kotlin/buildSrc/src/main/kotlin/Download.kt[]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Download.groovy
 ----
-include::{samplesPath}/userguide/plugins/constructorServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+include::{samplesPath}/userguide/plugins/constructorServiceInjection/groovy/buildSrc/src/main/groovy/Download.groovy[]
 ----
 ====
 
@@ -215,19 +215,19 @@ Here is an example that shows a task type that receives a two services via prope
 .Property service injection
 ====
 [source.multi-language-sample,java]
-.UrlProcess.java
+.Download.java
 ----
-include::{samplesPath}/userguide/plugins/propertyServiceInjection/java/buildSrc/src/main/java/UrlProcess.java[]
+include::{samplesPath}/userguide/plugins/propertyServiceInjection/java/buildSrc/src/main/java/Download.java[]
 ----
 [source.multi-language-sample,kotlin]
-.UrlProcess.kt
+.Download.kt
 ----
-include::{samplesPath}/userguide/plugins/propertyServiceInjection/kotlin/buildSrc/src/main/kotlin/UrlProcess.kt[]
+include::{samplesPath}/userguide/plugins/propertyServiceInjection/kotlin/buildSrc/src/main/kotlin/Download.kt[]
 ----
 [source.multi-language-sample,groovy]
-.UrlProcess.groovy
+.Download.groovy
 ----
-include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/UrlProcess.groovy[]
+include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSrc/src/main/groovy/Download.groovy[]
 ----
 ====
 

@@ -5,7 +5,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.tasks.OutputDirectory
 
-open class UrlProcess
+open class Download
 // Inject an ObjectFactory into the constructor
 @Inject constructor(objectFactory: ObjectFactory) : DefaultTask() {
     // Use the factory

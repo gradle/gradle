@@ -1,1 +1,1 @@
-task url(type: UrlProcess)
+task download(type: Download)

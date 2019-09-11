@@ -3,7 +3,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.api.provider.Property
 import java.net.URI
 
-abstract class UrlProcess : DefaultTask() {
+abstract class Download : DefaultTask() {
     // Use an abstract val
     abstract val uri: Property<URI>
 

@@ -4,15 +4,15 @@ import javax.inject.Inject;
 
 public class DownloadExtension {
     // A nested instance
-    private final Server server;
+    private final Resource resource;
 
     @Inject
     public DownloadExtension(ObjectFactory objectFactory) {
-        // Use an injected ObjectFactory to create a Server object
-        server = objectFactory.newInstance(Server.class);
+        // Use an injected ObjectFactory to create a Resource object
+        resource = objectFactory.newInstance(Resource.class);
     }
 
-    public Server getServer() {
-        return server;
+    public Resource getResource() {
+        return resource;
     }
 }

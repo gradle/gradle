@@ -4,7 +4,7 @@ import org.gradle.api.tasks.TaskAction;
 
 import java.net.URI;
 
-public abstract class UrlProcess extends DefaultTask {
+public abstract class Download extends DefaultTask {
     // Use an abstract getter method
     abstract Property<URI> getUri();
 
