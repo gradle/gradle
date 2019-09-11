@@ -23,7 +23,18 @@ import java.util.Map;
 /**
  * Kotlin DSL scripts model.
  *
- * Can only be requested on the root project.
+ * Can only be requested on the root project, the builder will throw otherwise.
+ *
+ * Requires the <code>prepareKotlinBuildScriptModel</code> task to be executed before building the model.
+ *
+ * The set of scripts must be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.scripts</code>,
+ * as a list of absolute paths separated by <code>|</code>.
+ *
+ * Optionally, the Gradle Kotlin DSL script provider can run in a lenient mode, ignoring, collecting and returning exceptions
+ * in the built model by providing the system property <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath</code>.
+ *
+ * Optionally, an identifier can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.cid</code>,
+ * it can then be used to correlate Gradle and TAPI client log statements.
  */
 public interface KotlinDslScriptsModel {
 
