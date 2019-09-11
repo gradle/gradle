@@ -10,6 +10,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
 import model.GradleSubproject
+import model.GradleSubprojectBucket
 import model.SpecificBuild
 import model.Stage
 import model.TestType
@@ -62,8 +63,8 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             uuid = "${rootProjectUuid}_deferred_tests"
             id = AbsoluteId(uuid)
             name = "Test coverage deferred from Quick Feedback and Ready for Merge"
-            model.subProjects
-                .filter(GradleSubproject::containsSlowTests)
+            model.subprojectBuckets
+                .filter(GradleSubprojectBucket::containsSlowTests)
                 .forEach { subProject ->
                     FunctionalTestProject.missingTestCoverage
                         .filter { testConfig ->

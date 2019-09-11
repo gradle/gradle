@@ -18,14 +18,8 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
 import model.CIBuildModel
 import model.GradleSubproject
+import model.GradleSubprojectBucket
 import model.TestCoverage
-
-fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
-    // TODO: Hacky. We should really be running all the subprojects on macOS
-    // But we're restricting this to just a subset of projects for now
-    // since we only have a small pool of macOS agents
-    return testConfig.os.ignoredSubprojects.contains(subProject.name)
-}
 
 val killAllGradleProcesses = """
     free -m

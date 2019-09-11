@@ -1,7 +1,6 @@
 package projects
 
 import configurations.FunctionalTest
-import configurations.shouldBeSkipped
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
@@ -13,33 +12,19 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
     this.id = AbsoluteId(uuid)
     this.name = testConfig.asName()
 
-    model.subProjects.forEach { subProject ->
-        if (shouldBeSkipped(subProject, testConfig)) {
+    model.subprojectBuckets.forEach { subprojectBucket ->
+        if (subprojectBucket.shouldBeSkipped(testConfig)) {
             return@forEach
         }
-        if (stage.shouldOmitSlowProject(subProject)) {
+        if (stage.shouldOmitSlowProject(subprojectBucket)) {
             addMissingTestCoverage(testConfig)
             return@forEach
         }
 
-        if (subProject.hasSeparateTestBuild(testConfig.testType)) {
-            buildType(FunctionalTest(model, testConfig, listOf(subProject.name), stage))
-        }
-    }
-
-    val projectNamesForMergedTestsBuild = model.subProjects
-        .filter { it.includeInMergedTestBuild(testConfig.testType) }
-        .map {
-            it.name
-        }
-
-    if (projectNamesForMergedTestsBuild.isNotEmpty()) {
-        buildType(FunctionalTest(model, testConfig, projectNamesForMergedTestsBuild, stage, allUnitTestsBuildTypeName))
+        buildType(FunctionalTest(model, testConfig, subprojectBucket.subprojects.map { it.name }, stage, subprojectBucket.name, subprojectBucket.extraParameters()))
     }
 }) {
     companion object {
-        const val allUnitTestsBuildTypeName = "AllUnitTests"
-
         val missingTestCoverage = mutableSetOf<TestCoverage>()
 
         private fun addMissingTestCoverage(coverage: TestCoverage) {

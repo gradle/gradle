@@ -10,6 +10,7 @@ import org.gradle.kotlin.dsl.*
 import accessors.eclipse
 import accessors.groovy
 import accessors.java
+import accessors.sourceSets
 
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
@@ -86,6 +87,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register(name, IntegrationTest::class) {
+        configureTestSplitIfNecessary(sourceSet)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -94,6 +96,36 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         libsRepository.required = testType.libRepoRequired
         extraConfig.execute(this)
     }
+
+
+private
+fun DistributionTest.configureTestSplitIfNecessary(sourceSet: SourceSet) {
+    val testSplit = project.stringPropertyOrEmpty("testSplit")
+    if (testSplit.isBlank()) {
+        return
+    }
+
+    val currentSplit = testSplit.split("/")[0].toInt()
+    val totalSplit = testSplit.split("/")[1].toInt()
+    val sourceFiles = sourceSet.groovy.files.sortedBy { it.absolutePath }
+    require(sourceFiles.all { it.name.endsWith(".groovy") || it.name.endsWith(".java") }) {
+        "All files should be java/groovy files: ${sourceFiles.filter { !it.name.endsWith(".groovy") && !it.name.endsWith(".java") }.joinToString(",")}"
+    }
+
+    if (sourceFiles.size < totalSplit) {
+        enabled = currentSplit == 1
+        return
+    }
+
+    val chunks = sourceFiles.chunked(sourceFiles.size / totalSplit)
+    if (currentSplit == totalSplit) {
+        filter.setExcludePatterns(*chunks.subList(0, chunks.size - 1).flatten().map { it.name.substring(0, it.name.length - ".groovy".length) }.toTypedArray())
+    } else {
+        filter.setIncludePatterns(*chunks[currentSplit - 1].map { it.name.substring(0, it.name.length - ".groovy".length) }.toTypedArray())
+    }
+
+    inputs.properties("testSplit" to testSplit)
+}
 
 
 private
