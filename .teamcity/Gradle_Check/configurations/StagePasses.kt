@@ -113,8 +113,8 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         stage.functionalTests.forEach { testCoverage ->
             val isSplitIntoBuckets = testCoverage.testType != TestType.soak
             if (isSplitIntoBuckets) {
-                model.subprojectBuckets.filter { subProjectBucket ->
-                    !subProjectBucket.shouldBeSkipped(testCoverage) && !stage.shouldOmitSlowProject(subProjectBucket)
+                model.buildTypeBuckets.filter { bucket ->
+                    !bucket.shouldBeSkipped(testCoverage) && !bucket.shouldBeSkippedInStage(stage)
                 }.forEach { subProjectBucket ->
                     if (subProjectBucket.hasTestsOf(testCoverage.testType)) {
                         dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProjectBucket.name))) { snapshot {} }
@@ -128,12 +128,12 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         }
 
         if (containsDeferredTests) {
-            model.subprojectBuckets.forEach { subprojectBucket ->
-                if (subprojectBucket.containsSlowTests()) {
+            model.buildTypeBuckets.forEach { bucket ->
+                if (bucket.containsSlowTests()) {
                     FunctionalTestProject.missingTestCoverage.filter {
-                        subprojectBucket.hasTestsOf(it.testType)
+                        bucket.hasTestsOf(it.testType)
                     }.forEach { testConfig ->
-                        dependency(AbsoluteId(testConfig.asConfigurationId(model, subprojectBucket.name))) { snapshot {} }
+                        dependency(AbsoluteId(testConfig.asConfigurationId(model, bucket.name))) { snapshot {} }
                     }
                 }
             }

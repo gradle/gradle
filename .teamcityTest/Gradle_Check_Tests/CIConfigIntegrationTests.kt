@@ -62,7 +62,7 @@ class CIConfigIntegrationTests {
                 }
 
                 stage.functionalTests.forEach { testCoverage ->
-                    m.subprojectBuckets.forEach { subprojectBucket ->
+                    m.buildTypeBuckets.forEach { subprojectBucket ->
                         if (subprojectBucket.containsSlowTests() && stage.omitsSlowProjects) {
                             return@forEach
                         }

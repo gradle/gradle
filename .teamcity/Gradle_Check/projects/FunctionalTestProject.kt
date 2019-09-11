@@ -12,16 +12,16 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
     this.id = AbsoluteId(uuid)
     this.name = testConfig.asName()
 
-    model.subprojectBuckets.forEach { subprojectBucket ->
-        if (subprojectBucket.shouldBeSkipped(testConfig)) {
+    model.buildTypeBuckets.forEach { bucket ->
+        if (bucket.shouldBeSkipped(testConfig)) {
             return@forEach
         }
-        if (stage.shouldOmitSlowProject(subprojectBucket)) {
+        if (bucket.shouldBeSkippedInStage(stage)) {
             addMissingTestCoverage(testConfig)
             return@forEach
         }
 
-        buildType(FunctionalTest(model, testConfig, subprojectBucket.subprojects.map { it.name }, stage, subprojectBucket.name, subprojectBucket.extraParameters()))
+        buildType(FunctionalTest(model, testConfig, bucket.getSubprojectNames(), stage, bucket.name, bucket.extraParameters()))
     }
 }) {
     companion object {

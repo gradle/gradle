@@ -1,18 +1,14 @@
 package org.gradle.gradlebuild.test.integrationtests
 
+import accessors.eclipse
+import accessors.groovy
+import accessors.java
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
-
-import org.gradle.kotlin.dsl.*
-
-import accessors.eclipse
-import accessors.groovy
-import accessors.java
-import accessors.sourceSets
-
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
+import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
@@ -106,25 +102,22 @@ fun DistributionTest.configureTestSplitIfNecessary(sourceSet: SourceSet) {
     }
 
     val currentSplit = testSplit.split("/")[0].toInt()
-    val totalSplit = testSplit.split("/")[1].toInt()
+    val numberOfSplits = testSplit.split("/")[1].toInt()
     val sourceFiles = sourceSet.groovy.files.sortedBy { it.absolutePath }
-    require(sourceFiles.all { it.name.endsWith(".groovy") || it.name.endsWith(".java") }) {
-        "All files should be java/groovy files: ${sourceFiles.filter { !it.name.endsWith(".groovy") && !it.name.endsWith(".java") }.joinToString(",")}"
-    }
 
-    if (sourceFiles.size < totalSplit) {
+    if (sourceFiles.size < numberOfSplits) {
         enabled = currentSplit == 1
         return
     }
 
-    val chunks = sourceFiles.chunked(sourceFiles.size / totalSplit)
-    if (currentSplit == totalSplit) {
-        filter.setExcludePatterns(*chunks.subList(0, chunks.size - 1).flatten().map { it.name.substring(0, it.name.length - ".groovy".length) }.toTypedArray())
+    val chunks = sourceFiles.chunked(sourceFiles.size / numberOfSplits)
+    if (currentSplit == numberOfSplits) {
+        filter.excludePatterns.addAll(chunks.subList(0, chunks.size - 1).flatten().map { it.nameWithoutExtension })
     } else {
-        filter.setIncludePatterns(*chunks[currentSplit - 1].map { it.name.substring(0, it.name.length - ".groovy".length) }.toTypedArray())
+        filter.includePatterns.addAll(chunks[currentSplit - 1].map { it.nameWithoutExtension })
     }
 
-    inputs.properties("testSplit" to testSplit)
+    inputs.property("testSplit", testSplit)
 }
 
 

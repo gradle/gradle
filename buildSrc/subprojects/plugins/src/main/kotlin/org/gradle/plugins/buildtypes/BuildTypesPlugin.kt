@@ -103,7 +103,7 @@ fun Project.insertBuildTypeTasksInto(
                 val taskPath = "$subproject:$it"
                 val testSplit = stringPropertyOrEmpty("testSplit")
                 when {
-                    isUnitTestWithNonFirstSplit(it, testSplit) -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it is unit test and we're on $testSplit.")
+                    isUnitTestWithNonFirstSplit(it, testSplit) -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it is a unit test and we're on $testSplit.")
                     tasks.findByPath(taskPath) == null -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
                     else -> insert(taskPath)
                 }

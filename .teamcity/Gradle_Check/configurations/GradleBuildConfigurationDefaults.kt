@@ -17,9 +17,6 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
 import model.CIBuildModel
-import model.GradleSubproject
-import model.GradleSubprojectBucket
-import model.TestCoverage
 
 val killAllGradleProcesses = """
     free -m
@@ -107,7 +104,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
                     "-PteamCityUsername=%teamcity.username.restbot%" +
                     "-PteamCityPassword=%teamcity.password.restbot%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { configurations.buildScanTag(it) }
+                    buildScanTags.map { buildScanTag(it) }
                 ).joinToString(separator = " ")
         }
     }
@@ -129,7 +126,7 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
                     "-PteamCityUsername=%teamcity.username.restbot%" +
                     "-PteamCityPassword=%teamcity.password.restbot%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { configurations.buildScanTag(it) } +
+                    buildScanTags.map { buildScanTag(it) } +
                     "-PonlyPreviousFailedTestClasses=true" +
                     "-Dscan.tag.RERUN_TESTS" +
                     "-PgithubToken=%github.ci.oauth.token%"
