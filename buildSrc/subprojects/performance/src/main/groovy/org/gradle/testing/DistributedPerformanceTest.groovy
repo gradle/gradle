@@ -60,7 +60,7 @@ import java.util.zip.ZipInputStream
  */
 @CompileStatic
 @CacheableTask
-abstract class DistributedPerformanceTest extends PerformanceTest {
+class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
     String buildTypeId
@@ -84,6 +84,9 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
     DefaultPerformanceReporter distributedPerformanceReporter
 
     private RESTClient client
+    private final Property<PerformanceScenarioRerunStrategy> rerunStrategy = project.objects
+        .property(PerformanceScenarioRerunStrategy)
+        .convention(PerformanceScenarioRerunStrategy.NEVER)
 
     protected Map<String, Scenario> scheduledBuilds = [:]
 
@@ -95,7 +98,9 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
      */
     @Nested
     @PackageScope
-    abstract Property<PerformanceScenarioRerunStrategy> getRerunStrategy()
+    Property<PerformanceScenarioRerunStrategy> getRerunStrategy() {
+        return rerunStrategy
+    }
 
     @Internal
     @VisibleForTesting
@@ -115,7 +120,6 @@ abstract class DistributedPerformanceTest extends PerformanceTest {
                 return ["-Dorg.gradle.performance.scenario.list=$scenarioList".toString()]
             }
         })
-        rerunStrategy.convention(PerformanceScenarioRerunStrategy.NEVER)
     }
 
     @Override
