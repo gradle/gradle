@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -177,8 +178,10 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    public FileSystemSnapshotBuilder newFileSystemSnapshotBuilder() {
-        return new FileSystemSnapshotBuilder(stringInterner, hasher);
+    public FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
+        FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner, hasher);
+        buildAction.accept(builder);
+        return builder.build();
     }
 
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter filter) {
