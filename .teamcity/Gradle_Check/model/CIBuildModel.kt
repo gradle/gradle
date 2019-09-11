@@ -334,8 +334,7 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     fun asConfigurationId(model: CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
         val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
-        val ret = model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
-        return ret
+        return model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
     }
 
     private
