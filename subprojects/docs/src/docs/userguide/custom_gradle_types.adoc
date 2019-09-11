@@ -12,8 +12,10 @@ This chapter applies to the following types:
 - Plugin types.
 - Task types.
 - Artifact transform parameters types.
+- Worker API work action parameters types.
 - Extension objects created using `ExtensionContainer.create()`, for example a project extension registered by a plugin.
-- Objects created using an `ObjectFactory.newInstance()`.
+- Objects created using `ObjectFactory.newInstance()`.
+- Objects created for a managed nested property.
 - Elements of a `NamedDomainObjectContainer`.
 
 == Configuration using bean properties
@@ -25,11 +27,12 @@ This configuration is represented as Java bean properties.
 Kotlin and Groovy provide conveniences for declaring Java bean properties, which make them good language choices to use to implement Gradle types.
 These conveniences are demonstrated in the samples below.
 
+Gradle also provides some conveniences for implementing types with bean properties.
+
 [[managed_properties]]
 === Managed properties
 
-Gradle provides some conveniences for implementing types with bean properties.
-Gradle can provide an implementation of a property. This is called a _managed property_, as Gradle takes care of managing the state of the property.
+Gradle can provide an implementation of an abstract property. This is called a _managed property_, as Gradle takes care of managing the state of the property.
 A property may be _mutable_, meaning that it has both a getter method and setter method, or _read-only_, meaning that it has only a getter method.
 
 [NOTE]
@@ -62,14 +65,16 @@ include::{samplesPath}/userguide/plugins/mutableManagedProperty/groovy/buildSrc/
 ----
 ====
 
-Note that for a property to be considered a mutable managed property, _all_ of the property's getter methods and setter methods must be `public` or `protected` and `abstract`.
+Note that for a property to be considered a mutable managed property, _all_ of the property's getter methods and setter methods must be `abstract` and have `public` or `protected` visibility.
 
 [[read_only_managed_properties]]
 ==== Read-only managed properties
 
 To declare a read-only managed property, add an abstract getter method for the property to the type.
 The property should not have any setter methods.
-This is a useful pattern to use with one of Gradle's configurable <<lazy_configuration.adoc#lazy_configuration,lazy property>> types.
+Gradle will provide an implementation of the getter and also create a value for the property.
+
+This is a useful pattern to use with one of Gradle's configurable <<lazy_configuration.adoc#lazy_configuration,lazy property>> or container types.
 
 Here is an example of a task type with a `uri` property:
 
@@ -92,7 +97,8 @@ include::{samplesPath}/userguide/plugins/readOnlyManagedProperty/groovy/buildSrc
 ----
 ====
 
-Note that for a property to be considered a read only managed property, _all_ of the property's getter methods must be `public` or `protected` and `abstract` and the property must not have any setter methods.
+Note that for a property to be considered a read only managed property, _all_ of the property's getter methods must be `abstract` and have `public` or `protected` visibility.
+The property must not have any setter methods.
 In addition, the property must have one of the following types:
 
 - `Property<T>`
@@ -105,15 +111,20 @@ In addition, the property must have one of the following types:
 - `ConfigurableFileTree`
 - `NamedDomainObjectContainer<T>`
 
-[[sec:managed_nested_properties]]
+Gradle creates values for read-only managed properties in the same way as link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory].
+
+[[read_only_managed_nested_properties]]
 ==== Read-only managed nested properties
 
 To declare a read-only managed nested property, add an abstract getter method for the property to the type annotated with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 The property should not have any setter methods.
-This pattern is useful if the current type has a nested complex type which has the same lifecycle.
+Gradle provides an implementation for the getter method, and also creates a value for the property.
+The nested type is also treated as a custom type, and can use the features discussed in this chapter.
+
+This pattern is useful when a custom type has a nested complex type which has the same lifecycle.
 If the lifecycle is different, consider using `Property<NestedType>` instead.
 
-Here is an example of a task type with a `hostAndPath` property:
+Here is an example of a task type with a `resource` property:
 
 .Read-only managed nested property
 ====
@@ -135,7 +146,8 @@ include::{samplesPath}/userguide/plugins/readOnlyNestedProperty/groovy/buildSrc/
 ----
 ====
 
-Note that for a property to be considered a read only managed nested property, _all_ of the property's getter methods must be `public` or `protected` and `abstract` and the property must not have any setter methods.
+Note that for a property to be considered a read only managed nested property, _all_ of the property's getter methods must be `abstract` and have `public` or `protected` visibility.
+The property must not have any setter methods.
 In addition, the property getter must be annotated with `@link:{javadocPath}/org/gradle/api/tasks/Nested.html[Nested]`.
 
 [[managed_types]]
@@ -237,8 +249,10 @@ include::{samplesPath}/userguide/plugins/propertyServiceInjection/groovy/buildSr
 A custom Gradle type can use the link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] service to create instances of Gradle types to use for its property values.
 These instances can make use of the features discussed in this chapter, allowing you to create 'nested' instances and a nested DSL.
 
+You can also have Gradle create nested objects for you by using a <<read_only_managed_nested_properties,managed nested property>>.
+
 In the following example, a project extension receives an `ObjectFactory` instance through its constructor.
-The constructor uses this to create a nested `Server` object (also a custom Gradle type) and makes this object available through the `server` property.
+The constructor uses this to create a nested `Resources` object (also a custom Gradle type) and makes this object available through the `resources` property.
 
 .Nested object creation
 ====
