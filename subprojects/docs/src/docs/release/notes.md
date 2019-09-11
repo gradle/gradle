@@ -157,7 +157,7 @@ We promoted all API elements in `ide` and `tooling-api` sub-projects that were i
 ### Some long existing incubating features have been promoted
 
 * All pre-5.0 incubating APIs have been promoted.
-* The [lazy configuration API](userguide/lazy_configuration.html) has been promoted
+* The [lazy configuration API](userguide/lazy_configuration.html) has been promoted.
 * Enabling [strict task validation](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-) has been promoted.
 
 <!--
