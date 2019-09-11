@@ -131,7 +131,7 @@ class JavaExecWIthLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         assert output =~ /^Shortening Java classpath ${classpath(fileName)} with .+\\/gradle-javaexec-classpath.+\.jar$/
     }
 
-    private static String classpath(String fileName) {
+    private String classpath(String fileName) {
         return "${file('build/classes/java/main')};${file('build/generated/sources/annotationProcessor/java/main')};${testDirectory.absolutePath}\\${fileName}"
     }
 }
