@@ -81,7 +81,7 @@ data class KotlinBuildScriptModelParameter(
 )
 
 
-private
+internal
 data class StandardKotlinBuildScriptModel(
     private val classPath: List<File>,
     private val sourcePath: List<File>,
