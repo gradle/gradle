@@ -20,6 +20,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -54,12 +55,15 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.language.cpp.CppBinary;
+import org.gradle.nativeplatform.Linkage;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -79,8 +83,18 @@ class HomebrewModuleComponentRepository implements ConfiguredModuleComponentRepo
     private final ImmutableAttributesFactory attributesFactory;
     private final AttributesSchemaInternal schema;
     private final ImmutableAttributes apiAttributes;
-    private final ImmutableAttributes linkAttributes;
-    private final ImmutableAttributes runtimeAttributes;
+    private final NativeLibraryAttributes sharedLibraryAttributes;
+    private final NativeLibraryAttributes staticLibraryAttributes;
+
+    private class NativeLibraryAttributes {
+        private final ImmutableAttributes linkAttributes;
+        private final ImmutableAttributes runtimeAttributes;
+
+        NativeLibraryAttributes(ImmutableAttributes linkAttributes, ImmutableAttributes runtimeAttributes) {
+            this.linkAttributes = linkAttributes;
+            this.runtimeAttributes = runtimeAttributes;
+        }
+    }
 
     public HomebrewModuleComponentRepository(String name, File baseDir, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator, AttributesSchemaInternal schema) {
         this.name = name;
@@ -94,13 +108,20 @@ class HomebrewModuleComponentRepository implements ConfiguredModuleComponentRepo
         attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.C_PLUS_PLUS_API));
         apiAttributes = attributes.asImmutable();
 
-        attributes = attributesFactory.mutable();
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.NATIVE_LINK));
-        linkAttributes = attributes.asImmutable();
+        sharedLibraryAttributes = newLibraryAttributes(attributesFactory, instantiator, Linkage.SHARED);
+        staticLibraryAttributes = newLibraryAttributes(attributesFactory, instantiator, Linkage.STATIC);
+    }
 
-        attributes = attributesFactory.mutable();
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.NATIVE_RUNTIME));
-        runtimeAttributes = attributes.asImmutable();
+    private NativeLibraryAttributes newLibraryAttributes(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator, Linkage linkage) {
+        AttributeContainerInternal linkAttributes = attributesFactory.mutable();
+        linkAttributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.NATIVE_LINK));
+        linkAttributes.attribute(CppBinary.LINKAGE_ATTRIBUTE, linkage);
+
+        AttributeContainerInternal runtimeAttributes = attributesFactory.mutable();
+        runtimeAttributes.attribute(Usage.USAGE_ATTRIBUTE, instantiator.named(Usage.class, Usage.NATIVE_RUNTIME));
+        runtimeAttributes.attribute(CppBinary.LINKAGE_ATTRIBUTE, linkage);
+
+        return new NativeLibraryAttributes(linkAttributes.asImmutable(), runtimeAttributes.asImmutable());
     }
 
     @Override
@@ -181,9 +202,9 @@ class HomebrewModuleComponentRepository implements ConfiguredModuleComponentRepo
 
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
-            File libDir = new File(baseDir, moduleComponentIdentifier.getModule() + "/" + moduleComponentIdentifier.getVersion());
+            File libDir = new File(baseDir, moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getVersion());
             if (libDir.isDirectory()) {
-                result.resolved(new MutablePrebuiltComponentResolveMetadata(moduleComponentIdentifier, libDir, attributesFactory, schema, apiAttributes, linkAttributes, runtimeAttributes).asImmutable());
+                result.resolved(new MutablePrebuiltComponentResolveMetadata(moduleComponentIdentifier, libDir, attributesFactory, schema, apiAttributes, sharedLibraryAttributes, staticLibraryAttributes).asImmutable());
             } else {
                 result.attempted(new ExternalResourceName(libDir.toURI()));
                 result.missing();
@@ -209,15 +230,14 @@ class HomebrewModuleComponentRepository implements ConfiguredModuleComponentRepo
     // Would refactor to share more with existing implementations
     private static class MutablePrebuiltComponentResolveMetadata extends AbstractMutableModuleComponentResolveMetadata {
         private final ImmutableAttributes apiAttributes;
-        private final ImmutableAttributes linkAttributes;
-        private final ImmutableAttributes runtimeAttributes;
+        private final NativeLibraryAttributes sharedLibraryAttributes;
+        private final NativeLibraryAttributes staticLibraryAttributes;
 
-        public MutablePrebuiltComponentResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, File libDir, ImmutableAttributesFactory attributesFactory, AttributesSchemaInternal schema,
-                                                       ImmutableAttributes apiAttributes, ImmutableAttributes linkAttributes, ImmutableAttributes runtimeAttributes) {
+        public MutablePrebuiltComponentResolveMetadata(ModuleComponentIdentifier moduleComponentIdentifier, File libDir, ImmutableAttributesFactory attributesFactory, AttributesSchemaInternal schema, ImmutableAttributes apiAttributes, NativeLibraryAttributes sharedLibraryAttributes, NativeLibraryAttributes staticLibraryAttributes) {
             super(attributesFactory, DefaultModuleVersionIdentifier.newId(moduleComponentIdentifier), moduleComponentIdentifier, schema);
             this.apiAttributes = apiAttributes;
-            this.linkAttributes = linkAttributes;
-            this.runtimeAttributes = runtimeAttributes;
+            this.sharedLibraryAttributes = sharedLibraryAttributes;
+            this.staticLibraryAttributes = staticLibraryAttributes;
             setSource(new HomebrewLibraryLocation(libDir));
         }
 
@@ -236,23 +256,26 @@ class HomebrewModuleComponentRepository implements ConfiguredModuleComponentRepo
     private static class PrebuildComponentResolveMetadata extends AbstractModuleComponentResolveMetadata {
         private final VariantMetadataRules variantMetadataRules;
         private final ImmutableAttributes apiAttributes;
-        private final ImmutableAttributes linkAttributes;
-        private final ImmutableAttributes runtimeAttributes;
+        private final NativeLibraryAttributes sharedLibraryAttributes;
+        private final NativeLibraryAttributes staticLibraryAttributes;
+        private final HomebrewLibraryLocation location;
 
         public PrebuildComponentResolveMetadata(MutablePrebuiltComponentResolveMetadata original) {
             super(original);
             apiAttributes = original.apiAttributes;
-            linkAttributes = original.linkAttributes;
-            runtimeAttributes = original.runtimeAttributes;
+            sharedLibraryAttributes = original.sharedLibraryAttributes;
+            staticLibraryAttributes = original.staticLibraryAttributes;
             variantMetadataRules = new VariantMetadataRules(getAttributesFactory(), getModuleVersionId());
+            location = (HomebrewLibraryLocation)original.getSource();
         }
 
         public PrebuildComponentResolveMetadata(PrebuildComponentResolveMetadata original, ModuleSource source) {
             super(original, source);
             apiAttributes = original.apiAttributes;
-            linkAttributes = original.linkAttributes;
-            runtimeAttributes = original.runtimeAttributes;
+            sharedLibraryAttributes = original.sharedLibraryAttributes;
+            staticLibraryAttributes = original.staticLibraryAttributes;
             variantMetadataRules = new VariantMetadataRules(getAttributesFactory(), getModuleVersionId());
+            location = original.location;
         }
 
         @Override
@@ -269,11 +292,39 @@ class HomebrewModuleComponentRepository implements ConfiguredModuleComponentRepo
         @Override
         public Optional<ImmutableList<? extends ConfigurationMetadata>> getVariantsForGraphTraversal() {
             UrlBackedArtifactMetadata includeDir = new UrlBackedArtifactMetadata(getId(), "include", "include");
-            PrebuildVariant includeVariant = new PrebuildVariant(getId(), apiAttributes, ImmutableList.of(includeDir));
-            // TODO = locate link and runtime artifacts too
-            PrebuildVariant linkVariant = new PrebuildVariant(getId(), linkAttributes, ImmutableList.of());
-            PrebuildVariant runtimeVariant = new PrebuildVariant(getId(), runtimeAttributes, ImmutableList.of());
-            return Optional.of(ImmutableList.of(includeVariant, linkVariant, runtimeVariant));
+            PrebuildVariant includeVariant = new PrebuildVariant("include", getId(), apiAttributes, ImmutableList.of(includeDir));
+
+            List<PrebuildVariant> prebuildVariants = Lists.newArrayList(includeVariant);
+
+            if (isRequestingHeaderOnly()) {
+                // Using shared library attributes, it doesn't really matter
+                prebuildVariants.add(new PrebuildVariant("headerOnlyLink", getId(), sharedLibraryAttributes.linkAttributes, ImmutableList.of()));
+                prebuildVariants.add(new PrebuildVariant("headerOnlyRuntime", getId(), sharedLibraryAttributes.runtimeAttributes, ImmutableList.of()));
+            } else {
+                // Shared variant
+                String sharedFileName = OperatingSystem.current().getSharedLibraryName(getId().getModule());
+                String sharedFileRelativePath = "lib/" + sharedFileName;
+                if (new File(location.libDir, sharedFileRelativePath).exists()) {
+                    ImmutableList<UrlBackedArtifactMetadata> sharedLinkAndRuntimeFile = ImmutableList.of(new UrlBackedArtifactMetadata(getId(), sharedFileName, sharedFileRelativePath));
+                    prebuildVariants.add(new PrebuildVariant("sharedLink", getId(), sharedLibraryAttributes.linkAttributes, sharedLinkAndRuntimeFile));
+                    prebuildVariants.add(new PrebuildVariant("sharedRuntime", getId(), sharedLibraryAttributes.runtimeAttributes, sharedLinkAndRuntimeFile));
+                }
+
+                // Static variant
+                String staticFileName = OperatingSystem.current().getStaticLibraryName(getId().getModule());
+                String staticFileRelativePath = "lib/" + staticFileName;
+                if (new File(location.libDir, staticFileRelativePath).exists()) {
+                    ImmutableList<UrlBackedArtifactMetadata> staticLinkFile = ImmutableList.of(new UrlBackedArtifactMetadata(getId(), staticFileName, staticFileRelativePath));
+                    prebuildVariants.add(new PrebuildVariant("staticLink", getId(), staticLibraryAttributes.linkAttributes, staticLinkFile));
+                    prebuildVariants.add(new PrebuildVariant("staticRuntime", getId(), staticLibraryAttributes.runtimeAttributes, ImmutableList.of()));
+                }
+            }
+
+            return Optional.of(ImmutableList.copyOf(prebuildVariants));
+        }
+
+        private boolean isRequestingHeaderOnly() {
+            return getId().getModule().isEmpty();
         }
 
         @Override
@@ -292,8 +343,8 @@ class HomebrewModuleComponentRepository implements ConfiguredModuleComponentRepo
         }
 
         private static class PrebuildVariant extends AbstractConfigurationMetadata {
-            public PrebuildVariant(ModuleComponentIdentifier id, ImmutableAttributes attributes, ImmutableList<UrlBackedArtifactMetadata> artifacts) {
-                super(id, "include", true, true, artifacts, ImmutableSet.of(), ImmutableList.of(), attributes, ImmutableList.of(), ImmutableCapabilities.EMPTY);
+            public PrebuildVariant(String name, ModuleComponentIdentifier id, ImmutableAttributes attributes, ImmutableList<UrlBackedArtifactMetadata> artifacts) {
+                super(id, name, true, true, artifacts, ImmutableSet.of(), ImmutableList.of(), attributes, ImmutableList.of(), ImmutableCapabilities.EMPTY);
             }
 
             @Override

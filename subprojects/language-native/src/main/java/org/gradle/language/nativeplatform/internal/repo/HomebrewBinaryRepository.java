@@ -20,12 +20,16 @@ import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.os.OperatingSystem;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -37,17 +41,29 @@ import java.io.File;
  * (the group is ignored).
  */
 public class HomebrewBinaryRepository implements ArtifactRepository, ResolutionAwareRepository {
-    private final File baseDir;
+    private static final File HOMEBREW_MACOS_CELLAR_DIRECTORY = new File("/usr/local/Cellar");
+    private static final File HOMEBREW_SUDO_LINUX_CELLAR_DIRECTORY = new File("/home/linuxbrew/.linuxbrew/Cellar");
+    private static final File HOMEBREW_USER_LINUX_CELLAR_DIRECTORY = new File(System.getProperty("user.home") + "/.linuxbrew/Cellar");
     private final ImmutableAttributesFactory attributesFactory;
     private final NamedObjectInstantiator instantiator;
     private final AttributesSchemaInternal schema;
+    private final DirectoryProperty location;
 
     @Inject
-    public HomebrewBinaryRepository(File baseDir, ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator, AttributesSchemaInternal schema) {
-        this.baseDir = baseDir;
+    public HomebrewBinaryRepository(ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator instantiator, AttributesSchemaInternal schema, ProviderFactory providerFactory, ObjectFactory objectFactory) {
         this.attributesFactory = attributesFactory;
         this.instantiator = instantiator;
         this.schema = schema;
+        this.location = objectFactory.directoryProperty().fileProvider(providerFactory.provider(() -> {
+            if (OperatingSystem.current().isMacOsX()) {
+                return HOMEBREW_MACOS_CELLAR_DIRECTORY;
+            } else if (HOMEBREW_SUDO_LINUX_CELLAR_DIRECTORY.exists()) {
+                return HOMEBREW_SUDO_LINUX_CELLAR_DIRECTORY;
+            } else if (HOMEBREW_USER_LINUX_CELLAR_DIRECTORY.exists()) {
+                return HOMEBREW_USER_LINUX_CELLAR_DIRECTORY;
+            }
+            return null;
+        }));
     }
 
     @Override
@@ -58,6 +74,10 @@ public class HomebrewBinaryRepository implements ArtifactRepository, ResolutionA
     @Override
     public void setName(String name) {
         throw new UnsupportedOperationException();
+    }
+
+    public DirectoryProperty getLocation() {
+        return location;
     }
 
     @Override
@@ -73,7 +93,7 @@ public class HomebrewBinaryRepository implements ArtifactRepository, ResolutionA
 
     @Override
     public ConfiguredModuleComponentRepository createResolver() {
-        return new HomebrewModuleComponentRepository(getName(), baseDir, attributesFactory, instantiator, schema);
+        return new HomebrewModuleComponentRepository(getName(), getLocation().get().getAsFile(), attributesFactory, instantiator, schema);
     }
 
     private class HomebrewRepositoryDescriptor extends RepositoryDescriptor {
