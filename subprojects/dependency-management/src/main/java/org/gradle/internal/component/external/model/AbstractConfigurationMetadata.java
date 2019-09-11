@@ -24,16 +24,16 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Factory;
-import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 
 import java.util.List;
 import java.util.Set;
 
-public abstract class AbstractConfigurationMetadata implements ConfigurationMetadata, VariantResolveMetadata {
+public abstract class AbstractConfigurationMetadata implements ModuleConfigurationMetadata {
     private final ModuleComponentIdentifier componentId;
     private final String name;
     private final ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
@@ -43,6 +43,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     private final ImmutableList<ExcludeMetadata> excludes;
     private final ImmutableAttributes attributes;
     private final ImmutableCapabilities capabilities;
+    private boolean mavenArtifactDiscovery;
 
     // Should be final, and set in constructor
     private ImmutableList<ModuleDependencyMetadata> configDependencies;
@@ -51,7 +52,8 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                   ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
                                   ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
-                                  ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities) {
+                                  ImmutableList<ModuleDependencyMetadata> configDependencies, ImmutableCapabilities capabilities,
+                                  boolean mavenArtifactDiscovery) {
 
         this.componentId = componentId;
         this.name = name;
@@ -63,13 +65,15 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         this.attributes = attributes;
         this.configDependencies = configDependencies;
         this.capabilities = capabilities;
+        this.mavenArtifactDiscovery = mavenArtifactDiscovery;
     }
 
     AbstractConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible,
                                   ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts, ImmutableSet<String> hierarchy,
                                   ImmutableList<ExcludeMetadata> excludes, ImmutableAttributes attributes,
                                   Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
-                                  ImmutableCapabilities capabilities) {
+                                  ImmutableCapabilities capabilities,
+                                  boolean mavenArtifactDiscovery) {
 
         this.componentId = componentId;
         this.name = name;
@@ -81,6 +85,7 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
         this.attributes = attributes;
         this.configDependenciesFactory = configDependenciesFactory;
         this.capabilities = capabilities;
+        this.mavenArtifactDiscovery = mavenArtifactDiscovery;
     }
 
     @Override
@@ -167,6 +172,11 @@ public abstract class AbstractConfigurationMetadata implements ConfigurationMeta
     @Override
     public CapabilitiesMetadata getCapabilities() {
         return capabilities;
+    }
+
+    @Override
+    public boolean requiresMavenArtifactDiscovery() {
+        return mavenArtifactDiscovery;
     }
 
     ImmutableList<ModuleDependencyMetadata> getConfigDependencies() {

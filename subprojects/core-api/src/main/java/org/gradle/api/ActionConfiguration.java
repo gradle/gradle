@@ -36,7 +36,6 @@ package org.gradle.api;
  *
  * @since 4.0
  */
-@Incubating
 public interface ActionConfiguration {
     /**
      * Adds initialization parameters to use when constructing an instance of the implementation class.

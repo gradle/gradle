@@ -28,7 +28,6 @@ import javax.annotation.Nullable;
  * @param <T> the type of elements.
  * @since 4.5
  */
-@Incubating
 public interface HasMultipleValues<T> extends HasConfigurableValue {
     /**
      * Sets the value of the property to the elements of the given iterable, and replaces any existing value. This property will query the elements of the iterable each time the value of this property is queried.
@@ -56,6 +55,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @return this
      * @since 5.6
      */
+    @Incubating
     HasMultipleValues<T> value(@Nullable Iterable<? extends T> elements);
 
     /**
@@ -67,6 +67,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @return this
      * @since 5.6
      */
+    @Incubating
     HasMultipleValues<T> value(Provider<? extends Iterable<? extends T>> provider);
 
     /**
@@ -75,6 +76,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @return this property.
      * @since 5.0
      */
+    @Incubating
     HasMultipleValues<T> empty();
 
     /**
@@ -129,6 +131,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @return this
      * @since 5.1
      */
+    @Incubating
     HasMultipleValues<T> convention(Iterable<? extends T> elements);
 
     /**
@@ -138,6 +141,7 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      * @return this
      * @since 5.1
      */
+    @Incubating
     HasMultipleValues<T> convention(Provider<? extends Iterable<? extends T>> provider);
 
     /**
@@ -149,5 +153,6 @@ public interface HasMultipleValues<T> extends HasConfigurableValue {
      *
      * @since 5.0
      */
+    @Incubating
     void finalizeValue();
 }

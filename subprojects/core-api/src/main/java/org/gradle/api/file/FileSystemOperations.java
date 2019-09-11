@@ -17,6 +17,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.WorkResult;
 
 
@@ -25,6 +26,7 @@ import org.gradle.api.tasks.WorkResult;
  *
  * @since 6.0
  */
+@Incubating
 public interface FileSystemOperations {
 
     /**

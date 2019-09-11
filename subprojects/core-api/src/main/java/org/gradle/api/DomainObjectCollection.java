@@ -33,30 +33,24 @@ import java.util.Collection;
  * {@code DomainObjectCollection} instances are not <em>thread-safe</em> and undefined behavior may result from the invocation of any method on a collection that is being mutated by another
  * thread; this includes direct invocations, passing the collection to a method that might perform invocations, and using an existing iterator to examine the collection.
  * </p>
- * 
+ *
  * @param <T> The type of domain objects in this collection.
  */
 public interface DomainObjectCollection<T> extends Collection<T> {
     /**
      * Adds an element to this collection, given a {@link Provider} that will provide the element when required.
      *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
-     *
      * @param provider A {@link Provider} that can provide the element when required.
      * @since 4.8
      */
-    @Incubating
     void addLater(Provider<? extends T> provider);
 
     /**
      * Adds elements to this collection, given a {@link Provider} of {@link Iterable} that will provide the elements when required.
      *
-     * <strong>Note: this method currently has a placeholder name and will almost certainly be renamed.</strong>
-     *
      * @param provider A {@link Provider} of {@link Iterable} that can provide the elements when required.
      * @since 5.0
      */
-    @Incubating
     void addAllLater(Provider<? extends Iterable<T>> provider);
 
     /**

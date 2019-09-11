@@ -301,12 +301,8 @@ All of them match the consumer attributes:
         def variant2 = variant("second", ImmutableAttributes.EMPTY)
 
         given:
-        variant1.getArtifacts() >> [
-                artifact('foo', null)
-        ]
-        variant2.getArtifacts() >> [
-                artifact('foo', 'classy')
-        ]
+        variant1.getArtifacts() >> ImmutableList.of(artifact('foo', null))
+        variant2.getArtifacts() >> ImmutableList.of(artifact('foo', 'classy'))
         component(variant1, variant2)
 
         and:

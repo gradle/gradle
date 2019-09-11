@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
+import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.WINDOWS_GCC
@@ -930,6 +931,107 @@ model {
         and:
         file("app.sln").assertExists()
         solutionFile("app.sln").assertHasProjects("bothDll", "bothLib", "staticOnlyLib")
+    }
+
+    @Unroll
+    def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard]"() {
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                cppCompiler.args "${compilerFlag}"
+            }
+        }
+    }
+}
+"""
+        when:
+        succeeds "visualStudio"
+
+        then:
+        executedAndNotSkipped ":visualStudio"
+        executedAndNotSkipped getExecutableTasks("main")
+
+        and:
+        final projectFile = projectFile("mainExe.vcxproj")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        projectFile.projectConfigurations.values().each {
+            assert it.languageStandard == expectedLanguageStandard
+        }
+
+        where:
+        compilerFlag     | expectedLanguageStandard
+        '/std:cpp14'     | 'stdcpp14'
+        '-std:cpp14'     | 'stdcpp14'
+        '/std:cpp17'     | 'stdcpp17'
+        '-std:cpp17'     | 'stdcpp17'
+        '/std:cpplatest' | 'stdcpplatest'
+        '-std:cpplatest' | 'stdcpplatest'
+    }
+
+    def "can detect different language standard per component for Visual Studio IntelliSense"() {
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+model {
+    components {
+        main(NativeExecutableSpec) {
+            binaries.all {
+                if (it.buildType.name == 'debug') {
+                    cppCompiler.args "/std:cpp14"
+                } else {
+                    cppCompiler.args "/std:cpp17"
+                }
+            }
+        }
+    }
+}
+"""
+        when:
+        succeeds "visualStudio"
+
+        then:
+        executedAndNotSkipped ":visualStudio"
+        executedAndNotSkipped getExecutableTasks("main")
+
+        and:
+        final projectFile = projectFile("mainExe.vcxproj")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        projectFile.projectConfigurations.values().each {
+            if (it.name.endsWith("Debug")) {
+                assert it.languageStandard == "stdcpp14"
+            } else {
+                assert it.languageStandard == "stdcpp17"
+            }
+        }
+    }
+
+    def "does not configure language standard when compiler flag is absent for Visual Studio IntelliSense"() {
+        given:
+        app.writeSources(file("src/main"))
+        buildFile << """
+model {
+    components {
+        main(NativeExecutableSpec)
+    }
+}
+"""
+        when:
+        succeeds "visualStudio"
+
+        then:
+        executedAndNotSkipped ":visualStudio"
+        executedAndNotSkipped getExecutableTasks("main")
+
+        and:
+        final projectFile = projectFile("mainExe.vcxproj")
+        projectFile.projectConfigurations.keySet() == projectConfigurations
+        projectFile.projectConfigurations.values().each {
+            assert it.languageStandard == null
+        }
     }
 
     private String[] getLibraryTasks(String libraryName) {

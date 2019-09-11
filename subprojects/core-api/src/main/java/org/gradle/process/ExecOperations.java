@@ -17,12 +17,14 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 /**
  * Process execution operations.
  *
  * @since 6.0
  */
+@Incubating
 public interface ExecOperations {
 
     /**

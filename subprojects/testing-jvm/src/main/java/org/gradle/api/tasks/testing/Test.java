@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
@@ -874,7 +873,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         this.testFramework = testFramework;
 
         if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(Cast.<T>uncheckedCast(this.testFramework.getOptions()));
+            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.getOptions()));
         }
 
         return this.testFramework;
@@ -913,7 +912,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 4.6
      */
-    @Incubating
     public void useJUnitPlatform() {
         useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
     }
@@ -925,7 +923,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @param testFrameworkConfigure An action used to configure the JUnit platform options.
      * @since 4.6
      */
-    @Incubating
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
     }

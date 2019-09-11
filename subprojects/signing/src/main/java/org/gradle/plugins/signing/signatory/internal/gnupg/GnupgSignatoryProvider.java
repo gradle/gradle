@@ -16,7 +16,6 @@
 package org.gradle.plugins.signing.signatory.internal.gnupg;
 
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.plugins.signing.SigningExtension;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -32,7 +31,6 @@ import static org.codehaus.groovy.runtime.DefaultGroovyMethods.asType;
  *
  * @since 4.5
  */
-@Incubating
 public class GnupgSignatoryProvider implements SignatoryProvider<GnupgSignatory> {
 
     private final GnupgSignatoryFactory factory = new GnupgSignatoryFactory();

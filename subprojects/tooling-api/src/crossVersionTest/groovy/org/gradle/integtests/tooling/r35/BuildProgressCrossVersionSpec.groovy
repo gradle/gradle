@@ -155,13 +155,13 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         def resolveArtifactB = events.operation("Resolve artifact projectB.jar (group:projectB:1.0)")
         def resolveArtifactC = events.operation("Resolve artifact projectC.jar (group:projectC:1.5)")
         def resolveArtifactD = events.operation("Resolve artifact projectD.jar (group:projectD:2.0-SNAPSHOT)")
-        def downloadBMetadata = events.operation("Download http://localhost:${server.port}${projectB.pomPath}")
-        def downloadBArtifact = events.operation("Download http://localhost:${server.port}${projectB.artifactPath}")
-        def downloadCRootMetadata = events.operation("Download http://localhost:${server.port}/repo/group/projectC/maven-metadata.xml")
-        def downloadCPom = events.operation("Download http://localhost:${server.port}${projectC.pomPath}")
-        def downloadCArtifact = events.operation("Download http://localhost:${server.port}${projectC.artifactPath}")
-        def downloadDPom = events.operation("Download http://localhost:${server.port}${projectD.pomPath}")
-        def downloadDMavenMetadata = events.operation("Download http://localhost:${server.port}${projectD.metaDataPath}")
+        def downloadBMetadata = events.operation("Download ${server.uri}${projectB.pomPath}")
+        def downloadBArtifact = events.operation("Download ${server.uri}${projectB.artifactPath}")
+        def downloadCRootMetadata = events.operation("Download ${server.uri}/repo/group/projectC/maven-metadata.xml")
+        def downloadCPom = events.operation("Download ${server.uri}${projectC.pomPath}")
+        def downloadCArtifact = events.operation("Download ${server.uri}${projectC.artifactPath}")
+        def downloadDPom = events.operation("Download ${server.uri}${projectD.pomPath}")
+        def downloadDMavenMetadata = events.operation("Download ${server.uri}${projectD.metaDataPath}")
         resolveCompile.parent == configureRoot
         configureRoot.children == [resolveCompile, resolveArtifactA, resolveArtifactB, resolveArtifactC, resolveArtifactD]
 

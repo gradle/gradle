@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 
 /**
@@ -35,7 +34,6 @@ import org.gradle.api.file.CopySpec;
  *
  * @since 4.10
  */
-@Incubating
 public interface JavaApplication {
     /**
      * The name of the application.

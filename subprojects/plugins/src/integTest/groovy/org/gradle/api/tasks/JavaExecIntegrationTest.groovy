@@ -18,12 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-
-import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.ARG_MAX_WINDOWS
-import static org.gradle.util.Matchers.containsText
 
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
@@ -234,45 +229,6 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ":run"
         outputFile.text == "different"
-    }
-
-    @Requires(TestPrecondition.NOT_WINDOWS)
-    def "does not suggest long command line failures when execution fails on non-Windows system"() {
-        buildFile << """
-            run.classpath += project.files('${'a' * ARG_MAX_WINDOWS}')
-            run.executable 'some-java'
-        """
-
-        when:
-        def failure = fails("run")
-
-        then:
-        failure.assertThatCause(containsText("A problem occurred starting process"))
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "can suggest long command line failures when execution fails for long command line on Windows system"() {
-        buildFile << """
-            run.classpath += project.files('${'a' * ARG_MAX_WINDOWS}')
-        """
-
-        when:
-        def failure = fails("run")
-
-        then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
-    }
-
-    def "does not suggest long command line failures when execution fails for short command line"() {
-        buildFile << """
-            run.executable 'some-java'
-        """
-
-        when:
-        def failure = fails("run")
-
-        then:
-        failure.assertThatCause(containsText("A problem occurred starting process"))
     }
 
     private void assertOutputFileIs(String text) {

@@ -16,14 +16,11 @@
 
 package org.gradle.concurrent;
 
-import org.gradle.api.Incubating;
-
 /**
  * A {@code ParallelismConfiguration} defines the parallel settings for a Gradle build.
  *
  * @since 4.1
  */
-@Incubating
 public interface ParallelismConfiguration {
     /**
      * Returns true if parallel project execution is enabled.

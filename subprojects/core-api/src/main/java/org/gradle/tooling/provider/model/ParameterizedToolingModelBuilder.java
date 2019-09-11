@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.provider.model;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 
 /**
@@ -36,7 +35,6 @@ import org.gradle.api.Project;
  * @since 4.4
  * @see ToolingModelBuilder
  */
-@Incubating
 public interface ParameterizedToolingModelBuilder<T> extends ToolingModelBuilder {
     /**
      * Returns the expected type of the parameter.

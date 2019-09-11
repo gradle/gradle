@@ -67,6 +67,8 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
+import org.gradle.api.internal.resources.ApiTextResourceAdapter;
+import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -92,7 +94,6 @@ import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -179,11 +180,17 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         DirectoryFileTreeFactory directoryFileTreeFactory,
         StreamHasher streamHasher,
         FileHasher fileHasher,
-        TextResourceLoader textResourceLoader,
+        ApiTextResourceAdapter.Factory textResourceAdapterFactory,
         FileCollectionFactory fileCollectionFactory,
         FileSystem fileSystem,
         Deleter deleter
     ) {
+        final DefaultResourceHandler.Factory resourceHandlerFactory = new DefaultResourceHandler.Factory(
+            fileResolver,
+            fileSystem,
+            temporaryFileProvider,
+            textResourceAdapterFactory
+        );
         return new DefaultFileOperations(
             fileResolver,
             temporaryFileProvider,
@@ -191,7 +198,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             directoryFileTreeFactory,
             streamHasher,
             fileHasher,
-            textResourceLoader,
+            resourceHandlerFactory,
             fileCollectionFactory,
             fileSystem,
             deleter

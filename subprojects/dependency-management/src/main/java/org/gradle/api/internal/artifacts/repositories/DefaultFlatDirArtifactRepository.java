@@ -36,7 +36,6 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.authentication.Authentication;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -152,7 +151,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
             throw new InvalidUserDataException("You must specify at least one directory for a flat directory repository.");
         }
 
-        RepositoryTransport transport = transportFactory.createTransport("file", getName(), Collections.<Authentication>emptyList());
+        RepositoryTransport transport = transportFactory.createFileTransport(getName());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
         IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
         for (File root : dirs) {

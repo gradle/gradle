@@ -16,7 +16,6 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 
@@ -34,13 +33,12 @@ import java.io.File;
  *
  * @since 4.3
  */
-@Incubating
 public interface RegularFileProperty extends FileSystemLocationProperty<RegularFile> {
     /**
      * {@inheritDoc}
      */
     @Override
-    RegularFileProperty value(RegularFile value);
+    RegularFileProperty value(@Nullable RegularFile value);
 
     /**
      * {@inheritDoc}

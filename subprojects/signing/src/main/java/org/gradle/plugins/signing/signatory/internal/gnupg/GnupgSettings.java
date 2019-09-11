@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.signing.signatory.internal.gnupg;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
@@ -25,7 +24,6 @@ import java.io.File;
  *
  * @since 4.5
  */
-@Incubating
 public class GnupgSettings {
 
     private String executable;

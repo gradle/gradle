@@ -16,20 +16,12 @@
 
 package org.gradle.api.tasks.testing;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.inject.Inject;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionTask;
@@ -85,6 +77,12 @@ import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
+
+import javax.inject.Inject;
+import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Abstract class for all test task.
@@ -172,7 +170,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @since 4.4
      */
-    @Incubating
     protected abstract TestExecuter<? extends TestExecutionSpec> createTestExecuter();
 
     /**
@@ -180,7 +177,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @since 4.4
      */
-    @Incubating
     protected abstract TestExecutionSpec createTestExecutionSpec();
 
     @Internal
@@ -216,7 +212,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @return the test result directory, containing the test results in binary format.
      */
     @ReplacedBy("binaryResultsDirectory")
-    @Incubating
+    @Deprecated
     public File getBinResultsDir() {
         return binaryResultsDirectory.getAsFile().getOrNull();
     }
@@ -226,7 +222,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param binResultsDir The root folder
      */
-    @Incubating
+    @Deprecated
     public void setBinResultsDir(File binResultsDir) {
         this.binaryResultsDirectory.set(binResultsDir);
     }
@@ -237,7 +233,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.4
      */
     @OutputDirectory
-    @Incubating
     public DirectoryProperty getBinaryResultsDirectory() {
         return binaryResultsDirectory;
     }
@@ -513,7 +508,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * @since 4.5
      */
     @Internal
-    @Incubating
     protected List<String> getNoMatchingTestErrorReasons() {
         List<String> reasons = Lists.newArrayList();
         if (!getFilter().getIncludePatterns().isEmpty()) {
@@ -562,7 +556,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * For more information on supported patterns see {@link TestFilter}
      */
     @Option(option = "tests", description = "Sets test class or method name to be included, '*' is supported.")
-    @Incubating
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
         filter.setCommandLineIncludePatterns(testNamePattern);
         return this;

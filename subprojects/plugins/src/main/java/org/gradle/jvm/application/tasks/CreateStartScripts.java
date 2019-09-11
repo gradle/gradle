@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
@@ -184,7 +183,6 @@ public class CreateStartScripts extends ConventionTask {
      * The directory to write the scripts into in the distribution.
      * @since 4.5
      */
-    @Incubating
     @Input
     public String getExecutableDir() {
         return executableDir;
@@ -194,7 +192,6 @@ public class CreateStartScripts extends ConventionTask {
      * The directory to write the scripts into in the distribution.
      * @since 4.5
      */
-    @Incubating
     public void setExecutableDir(String executableDir) {
         this.executableDir = executableDir;
     }

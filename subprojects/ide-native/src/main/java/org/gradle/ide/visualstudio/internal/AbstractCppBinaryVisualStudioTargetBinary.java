@@ -53,6 +53,11 @@ abstract public class AbstractCppBinaryVisualStudioTargetBinary implements Visua
         this.projectLayout = projectLayout;
     }
 
+    @Override
+    public LanguageStandard getLanguageStandard() {
+        return LanguageStandard.from(getBinary().getCompileTask().get().getCompilerArgs().get());
+    }
+
     abstract CppBinary getBinary();
 
     @Override

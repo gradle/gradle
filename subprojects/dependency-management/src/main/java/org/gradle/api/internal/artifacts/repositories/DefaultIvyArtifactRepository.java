@@ -72,6 +72,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -80,9 +81,9 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupportedRepository implements IvyArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
-    private Object baseUrl;
     private Set<String> schemes = null;
     private AbstractRepositoryLayout layout;
+    private final DefaultUrlArtifactRepository urlArtifactRepository;
     private final AdditionalPatternsRepositoryLayout additionalPatternsLayout;
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
@@ -112,9 +113,11 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
                                         GradleModuleMetadataParser moduleMetadataParser,
                                         IvyMutableModuleMetadataFactory metadataFactory,
                                         IsolatableFactory isolatableFactory,
-                                        ObjectFactory objectFactory) {
+                                        ObjectFactory objectFactory,
+                                        DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory) {
         super(instantiatorFactory.decorateLenient(), authenticationContainer, objectFactory);
         this.fileResolver = fileResolver;
+        this.urlArtifactRepository = urlArtifactRepositoryFactory.create("Ivy", this::getDisplayName);
         this.transportFactory = transportFactory;
         this.locallyAvailableResourceFinder = locallyAvailableResourceFinder;
         this.artifactFileStore = artifactFileStore;
@@ -176,7 +179,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
             m2Compatible = false;
         }
 
-        return new IvyRepositoryDescriptor.Builder(getName(), getUrl())
+        return new IvyRepositoryDescriptor.Builder(getName(), urlArtifactRepository.getUrl())
             .setAuthenticated(getConfiguredCredentials() != null)
             .setAuthenticationSchemes(getAuthenticationSchemes())
             .setMetadataSources(metadataSources.asList())
@@ -192,7 +195,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         validate(schemes);
 
         IvyResolver resolver = createResolver(schemes);
-        URI uri = getUrl();
+        @Nullable
+        URI uri = urlArtifactRepository.getUrl();
         layout.apply(uri, resolver);
         additionalPatternsLayout.apply(uri, resolver);
 
@@ -200,7 +204,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private IvyResolver createResolver(Set<String> schemes) {
-        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication()));
+        return createResolver(transportFactory.createTransport(schemes, getName(), getConfiguredAuthentication(), urlArtifactRepository.createRedirectVerifier()));
     }
 
     private void validate(Set<String> schemes) {
@@ -259,7 +263,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
 
     @Override
     public URI getUrl() {
-        return baseUrl == null ? null : fileResolver.resolveUri(baseUrl);
+        return urlArtifactRepository.getUrl();
     }
 
 
@@ -290,13 +294,24 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     @Override
     public void setUrl(URI url) {
         invalidateDescriptor();
-        baseUrl = url;
+        urlArtifactRepository.setUrl(url);
     }
 
     @Override
     public void setUrl(Object url) {
         invalidateDescriptor();
-        baseUrl = url;
+        urlArtifactRepository.setUrl(url);
+    }
+
+    @Override
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
+        invalidateDescriptor();
+        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
+    }
+
+    @Override
+    public boolean isAllowInsecureProtocol() {
+        return urlArtifactRepository.isAllowInsecureProtocol();
     }
 
     @Override

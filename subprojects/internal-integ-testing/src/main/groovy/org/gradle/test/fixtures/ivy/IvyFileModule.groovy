@@ -369,7 +369,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     IvyFileModule publish() {
         moduleDir.createDir()
 
-        if (artifacts.empty) {
+        if (artifacts.findAll { !it.undeclared }.empty) {
             artifact([:])
         }
 
@@ -408,7 +408,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     private void publishModuleMetadata() {
-        def defaultArtifacts = artifacts.collect { moduleArtifact(it) }.collect {
+        def defaultArtifacts = artifacts.findAll {!it.undeclared}.collect { moduleArtifact(it) }.collect {
             new FileSpec(it.file.name, it.file.name)
         }
         GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(organisation, module, revision,

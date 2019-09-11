@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
@@ -2529,9 +2528,9 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         hasDefaultDependencyArtifact(depGroupOne)
     }
 
-    @NotYetImplemented
-    @Issue("GRADLE-3485")
-    def "throws appropriate exception if parent pom has the same GAV as resolved pom"() {
+    @Issue("gradle/gradle#1084")
+    def "ignores parent if it has the same GAV as resolved pom"() {
+        // Maven forbids to _create_ a project with a self referencing parent POM but parses a dependency built that way
         given:
         def pomWithParent = """
 <project>
@@ -2547,16 +2546,13 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
     </parent>
 </project>
 """
-        def parent = tmpDir.file("parent.xml") << pomWithParent
         pomFile << pomWithParent
-
-        and:
-        parseContext.getMetaDataArtifact(_, _, MAVEN_POM) >> asResource(parent)
 
         when:
         parsePom()
 
         then:
-        thrown(MetaDataParseException)
+        metadata.id == componentId('group-one', 'artifact-one', 'version-one')
+
     }
 }

@@ -673,7 +673,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.6
      */
-    @Incubating
     public boolean isBuildCacheDebugLogging() {
         return buildCacheDebugLogging;
     }
@@ -683,7 +682,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.6
      */
-    @Incubating
     public void setBuildCacheDebugLogging(boolean buildCacheDebugLogging) {
         this.buildCacheDebugLogging = buildCacheDebugLogging;
     }
@@ -812,7 +810,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.8
      */
-    @Incubating
     public void setWriteDependencyLocks(boolean writeDependencyLocks) {
         this.writeDependencyLocks = writeDependencyLocks;
     }
@@ -822,7 +819,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.8
      */
-    @Incubating
     public boolean isWriteDependencyLocks() {
         return writeDependencyLocks;
     }
@@ -836,7 +832,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.8
      */
-    @Incubating
     public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
         this.lockedDependenciesToUpdate = Lists.newArrayList(lockedDependenciesToUpdate);
         this.writeDependencyLocks = true;
@@ -849,7 +844,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @since 4.8
      */
-    @Incubating
     public List<String> getLockedDependenciesToUpdate() {
         return lockedDependenciesToUpdate;
     }

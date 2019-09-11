@@ -79,9 +79,9 @@ class RepositoryChainArtifactResolver implements ArtifactResolver, OriginArtifac
         ComponentResolveMetadata unpackedComponent = unpackSource(component);
         // First try to determine the artifacts locally before going remote
         DefaultBuildableComponentArtifactsResolveResult result = new DefaultBuildableComponentArtifactsResolveResult();
-        sourceRepository.getLocalAccess().resolveArtifacts(unpackedComponent, result);
+        sourceRepository.getLocalAccess().resolveArtifacts(unpackedComponent, configuration, result);
         if (!result.hasResult()) {
-            sourceRepository.getRemoteAccess().resolveArtifacts(unpackedComponent, result);
+            sourceRepository.getRemoteAccess().resolveArtifacts(unpackedComponent, configuration, result);
         }
         if (result.hasResult()) {
             return result.getResult().getArtifactsFor(component, configuration, this, sourceRepository.getArtifactCache(), artifactTypeRegistry, exclusions, overriddenAttributes);

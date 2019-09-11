@@ -530,7 +530,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see TaskContainer#create(String, Action)
      * @since 4.10
      */
-    @Incubating
     Task task(String name, Action<? super Task> configureAction);
 
     /**
@@ -669,6 +668,8 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <li>A {@link org.gradle.api.file.Directory} or {@link org.gradle.api.file.RegularFile}.</li>
      *
      * <li>A {@link Provider} of any supported type. The provider's value is resolved recursively.</li>
+     *
+     * <li>A {@link org.gradle.api.resources.TextResource}.</li>
      *
      * <li>A Groovy {@link Closure} or Kotlin function that returns any supported type. The closure's return value is resolved recursively.</li>
      *
@@ -954,7 +955,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @see org.gradle.api.provider.ProviderFactory#provider(Callable)
      * @since 4.0
      */
-    @Incubating
     <T> Provider<T> provider(Callable<T> value);
 
     /**
@@ -962,7 +962,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     ProviderFactory getProviders();
 
     /**
@@ -970,7 +969,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.0
      */
-    @Incubating
     ObjectFactory getObjects();
 
     /**
@@ -978,7 +976,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.1
      */
-    @Incubating
     ProjectLayout getLayout();
 
     /**
@@ -1745,7 +1742,6 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.8
      */
-    @Incubating
     void dependencyLocking(Action<? super DependencyLockingHandler> configuration);
 
     /**
@@ -1753,6 +1749,5 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @since 4.8
      */
-    @Incubating
     DependencyLockingHandler getDependencyLocking();
 }

@@ -57,7 +57,19 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
                        ImmutableMetadataSources repositoryContentFilter,
                        MetadataArtifactProvider metadataArtifactProvider,
                        Instantiator injector) {
-        super(name, transport.isLocal(), transport.getRepository(), transport.getResourceAccessor(), locallyAvailableResourceFinder, artifactFileStore, repositoryContentFilter, metadataArtifactProvider, componentMetadataSupplierFactory, componentMetadataVersionListerFactory, injector);
+        super(
+            name,
+            transport.isLocal(),
+            transport.getRepository(),
+            transport.getResourceAccessor(),
+            locallyAvailableResourceFinder,
+            artifactFileStore,
+            repositoryContentFilter,
+            metadataArtifactProvider,
+            componentMetadataSupplierFactory,
+            componentMetadataVersionListerFactory,
+            injector
+        );
         this.dynamicResolve = dynamicResolve;
         this.localRepositoryAccess = new IvyLocalRepositoryAccess();
         this.remoteRepositoryAccess = new IvyRemoteRepositoryAccess();
@@ -124,7 +136,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     private class IvyLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
-        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
+        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             result.resolved(new MetadataSourcedComponentArtifacts());
         }
 
@@ -147,7 +159,7 @@ public class IvyResolver extends ExternalResourceResolver<IvyModuleResolveMetada
 
     private class IvyRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
+        protected void resolveModuleArtifacts(IvyModuleResolveMetadata module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
             // Configuration artifacts are determined locally
         }
 

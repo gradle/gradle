@@ -21,6 +21,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
@@ -37,10 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
 
+import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
+import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasEnvironmentVariableExceedMaxLength;
+
 /**
  * Use {@link JavaExecHandleFactory} instead.
  */
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
+    private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
     private final FileCollectionFactory fileCollectionFactory;
     private String mainClass;
     private final List<Object> applicationArgs = new ArrayList<Object>();
@@ -53,6 +59,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         this.fileCollectionFactory = fileCollectionFactory;
         this.javaOptions = javaOptions;
         executable(javaOptions.getExecutable());
+
     }
 
     @Override
@@ -296,6 +303,61 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
             Iterables.addAll(arguments, argumentProvider.asArguments());
         }
         return arguments;
+    }
+
+    @Override
+    protected ArgsEnvironment getEffectiveArgsEnvironment() {
+        List<String> arguments = getAllArguments();
+        Map<String, String> environment = getActualEnvironment();
+
+        if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
+            if (shouldUseEnvironmentVariable(arguments, environment)) {
+                int classPathFlagIndex = arguments.indexOf("-cp");
+                environment.put("CLASSPATH", arguments.get(classPathFlagIndex + 1));
+                arguments.remove(classPathFlagIndex);
+                arguments.remove(classPathFlagIndex);
+            }
+        }
+
+        return new ArgsEnvironment(arguments, environment);
+    }
+
+    private boolean shouldUseEnvironmentVariable(List<String> arguments, Map<String, String> environment) {
+        int classPathFlagIndex = arguments.indexOf("-cp");
+        if (classPathFlagIndex == -1) {
+            // No class path flag, so we can't use CLASSPATH
+            LOGGER.info("No class path flag found in the command line, Gradle cannot shorten the command line");
+            return false;
+        }
+
+        if (hasEnvironmentVariableExceedMaxLength(arguments.get(classPathFlagIndex + 1))) {
+            // Class path is exceeding the maximum environment variable value length
+            LOGGER.info("Class path size is exceeding the maximum environment variable length, CLASSPATH variable cannot be used for shortening the command line");
+            return false;
+        }
+
+        if (System.getenv().containsKey("CLASSPATH")) {
+            if (environment.containsKey("CLASSPATH")) {
+                // Only if the CLASSPATH wasn't overwritten in the JavaExecSpec
+                if (System.getenv().get("CLASSPATH").equals(environment.get("CLASSPATH"))) {
+                    return true;
+                }
+                LOGGER.info("CLASSPATH environment variable was explicitly overwritten, Gradle cannot shorten the command line");
+                return false;
+            }
+            // The CLASSPATH was explicitly cleared
+            LOGGER.info("CLASSPATH environment variable was explicitly cleared, Gradle cannot shorten the command line");
+            return false;
+        }
+
+        if (environment.containsKey("CLASSPATH")) {
+            // The CLASSPATH was explicitly defined
+            LOGGER.info("CLASSPATH environment variable was explicitly defined, Gradle cannot shorten the command line");
+            return false;
+        }
+
+        // The CLASSPATH wasn't declared or inherited
+        return true;
     }
 
     @Override

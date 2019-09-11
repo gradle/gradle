@@ -259,25 +259,23 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         create("distributedPerformanceTest", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
-            rerunable = true
             channel = "commits"
+            retryFailedScenarios()
         }
         create("distributedPerformanceExperiment", DistributedPerformanceTest::class) {
             (options as JUnitOptions).includeCategories(performanceExperimentCategory)
-            rerunable = true
             channel = "experiments"
+            retryFailedScenarios()
         }
         create("distributedFullPerformanceTest", DistributedPerformanceTest::class) {
             configuredBaselines.set(Config.baseLineList)
-            rerunable = false
             checks = "none"
             channel = "historical"
         }
         create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
-            rerunable = false
             distributedPerformanceReporter.reportGeneratorClass = "org.gradle.performance.results.report.FlakinessReportGenerator"
-            repeat = 3
+            repeatScenarios(3)
             checks = "none"
             channel = "flakiness-detection"
         }

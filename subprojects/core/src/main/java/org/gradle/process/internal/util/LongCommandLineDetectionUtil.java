@@ -23,6 +23,7 @@ import java.util.List;
 public class LongCommandLineDetectionUtil {
     // See http://msdn.microsoft.com/en-us/library/windows/desktop/ms682425(v=vs.85).aspx
     public static final int ARG_MAX_WINDOWS = 32767; // in chars
+    public static final int ENVIRONMENT_VARIABLE_MAX_STRING_LENGTH = 32767; // in chars
     private static final String WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE = "The filename or extension is too long";
 
     private static int getMaxCommandLineLength() {
@@ -46,5 +47,16 @@ public class LongCommandLineDetectionUtil {
         } while ((cause = cause.getCause()) != null);
 
         return false;
+    }
+
+    private static int getMaxEnvironmentVariableLength() {
+        if (OperatingSystem.current().isWindows()) {
+            return ENVIRONMENT_VARIABLE_MAX_STRING_LENGTH;
+        }
+        return Integer.MAX_VALUE;
+    }
+
+    public static boolean hasEnvironmentVariableExceedMaxLength(String value) {
+        return value.length() > getMaxCommandLineLength();
     }
 }

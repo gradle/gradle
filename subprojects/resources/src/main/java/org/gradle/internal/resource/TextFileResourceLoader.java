@@ -17,22 +17,7 @@ package org.gradle.internal.resource;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.net.URI;
 
-public class BasicTextResourceLoader implements TextResourceLoader {
-    @Override
-    public TextResource loadFile(String description, @Nullable File sourceFile) {
-        if (sourceFile == null) {
-            return new StringTextResource(description, "");
-        }
-        if (sourceFile.exists()) {
-            return new UriTextResource(description, sourceFile);
-        }
-        return new EmptyFileTextResource(description, sourceFile);
-    }
-
-    @Override
-    public TextResource loadUri(String description, URI sourceUri) {
-        return new UriTextResource(description, sourceUri);
-    }
+public interface TextFileResourceLoader {
+    TextResource loadFile(String description, @Nullable File sourceFile);
 }

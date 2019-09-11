@@ -19,7 +19,6 @@ package org.gradle.language.scala.tasks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -185,7 +184,6 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
      *
      * @since 4.6
      */
-    @Incubating
     @Input
     // We track this as an input since the Scala compiler output may depend on it.
     // TODO: This should be replaced by a property in the Scala toolchain as soon as we model these.

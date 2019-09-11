@@ -15,8 +15,6 @@
  */
 package org.gradle.process;
 
-import org.gradle.api.Incubating;
-
 import java.util.List;
 
 /**
@@ -104,6 +102,5 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @since 4.6
      */
-    @Incubating
     List<CommandLineArgumentProvider> getArgumentProviders();
 }

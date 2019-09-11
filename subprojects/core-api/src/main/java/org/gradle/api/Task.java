@@ -177,7 +177,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 4.7
      */
-    @Incubating
     String TASK_CONSTRUCTOR_ARGS = "constructorArgs";
 
     /**
@@ -369,7 +368,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 4.2
      */
-    @Incubating
     Task doFirst(String actionName, Action<? super Task> action);
 
     /**
@@ -389,7 +387,6 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @since 4.2
      */
-    @Incubating
     Task doLast(String actionName, Action<? super Task> action);
 
     /**

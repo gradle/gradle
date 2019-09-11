@@ -93,30 +93,6 @@
             "changes": []
         },
         {
-            "type": "org.gradle.api.file.FileSystemOperations",
-            "member": "Class org.gradle.api.file.FileSystemOperations",
-            "acceptation": "New public API",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.file.FileSystemOperations",
-            "member": "Method org.gradle.api.file.FileSystemOperations.copy(org.gradle.api.Action)",
-            "acceptation": "New public API",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.file.FileSystemOperations",
-            "member": "Method org.gradle.api.file.FileSystemOperations.delete(org.gradle.api.Action)",
-            "acceptation": "New public API",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.file.FileSystemOperations",
-            "member": "Method org.gradle.api.file.FileSystemOperations.sync(org.gradle.api.Action)",
-            "acceptation": "New public API",
-            "changes": []
-        },
-        {
             "type": "org.gradle.api.plugins.antlr.AntlrTask",
             "member": "Method org.gradle.api.plugins.antlr.AntlrTask.execute(org.gradle.api.tasks.incremental.IncrementalTaskInputs)",
             "acceptation": "Migrated to use InputChanges",
@@ -125,22 +101,20 @@
             ]
         },
         {
-            "type": "org.gradle.process.ExecOperations",
-            "member": "Class org.gradle.process.ExecOperations",
-            "acceptation": "New public API",
-            "changes": []
+            "type": "org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.IvyArtifactRepository",
+            "acceptation": "Common methods extracted to UrlArtifactRepository",
+            "changes": [
+                "org.gradle.api.artifacts.repositories.UrlArtifactRepository"
+            ]
         },
         {
-            "type": "org.gradle.process.ExecOperations",
-            "member": "Method org.gradle.process.ExecOperations.exec(org.gradle.api.Action)",
-            "acceptation": "New public API",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.process.ExecOperations",
-            "member": "Method org.gradle.process.ExecOperations.javaexec(org.gradle.api.Action)",
-            "acceptation": "New public API",
-            "changes": []
+            "type": "org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "member": "Class org.gradle.api.artifacts.repositories.MavenArtifactRepository",
+            "acceptation": "Common methods extracted to UrlArtifactRepository",
+            "changes": [
+                "org.gradle.api.artifacts.repositories.UrlArtifactRepository"
+            ]
         }
     ]
 }
