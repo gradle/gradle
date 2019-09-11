@@ -3,8 +3,8 @@ plugins {
 }
 
 download {
-    servers {
-        gradle {
+    resources {
+        gradleHome {
             uri = uri('https://gradle.org')
         }
     }

@@ -3,7 +3,7 @@ import org.gradle.api.tasks.Input;
 
 // tag::host-and-path[]
 
-public interface HostAndPath {
+public interface Resource {
     @Input
     Property<String> getHostName();
     @Input

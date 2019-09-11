@@ -1,10 +1,10 @@
 
-class Server {
+class Resource {
     final String name
     URI uri
     String userName
 
-    Server(String name) {
+    Resource(String name) {
         this.name = name
     }
 }

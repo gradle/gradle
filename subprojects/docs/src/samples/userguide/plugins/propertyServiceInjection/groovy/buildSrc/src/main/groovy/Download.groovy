@@ -5,7 +5,7 @@ import org.gradle.workers.WorkerExecutor
 
 import javax.inject.Inject
 
-abstract class UrlProcess extends DefaultTask {
+abstract class Download extends DefaultTask {
     // Use an abstract getter method
     @Inject
     protected abstract ObjectFactory getObjectFactory()

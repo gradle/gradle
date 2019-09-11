@@ -1,4 +1,0 @@
-
-class Server {
-    URI uri
-}

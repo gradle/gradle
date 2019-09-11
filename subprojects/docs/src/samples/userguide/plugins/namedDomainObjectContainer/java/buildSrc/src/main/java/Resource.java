@@ -1,13 +1,17 @@
 
 import java.net.URI;
 
-public class Server {
+public class Resource {
     private final String name;
     private URI uri;
     private String userName;
 
-    public Server(String name) {
+    public Resource(String name) {
         this.name = name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public URI getUri() {

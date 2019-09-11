@@ -6,12 +6,12 @@ import org.gradle.api.tasks.TaskAction;
 
 import javax.inject.Inject;
 
-public class UrlProcess extends DefaultTask {
+public class Download extends DefaultTask {
     private final DirectoryProperty outputDirectory;
 
     // Inject an ObjectFactory into the constructor
     @Inject
-    public UrlProcess(ObjectFactory objectFactory) {
+    public Download(ObjectFactory objectFactory) {
         // Use the factory
         outputDirectory = objectFactory.directoryProperty();
     }

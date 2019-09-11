@@ -1,6 +1,6 @@
 import java.net.URI;
 
-public class Server {
+public class Resource {
     private URI uri;
 
     public URI getUri() {

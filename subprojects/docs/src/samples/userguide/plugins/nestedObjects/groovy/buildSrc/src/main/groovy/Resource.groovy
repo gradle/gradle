@@ -1,0 +1,4 @@
+
+class Resource {
+    URI uri
+}

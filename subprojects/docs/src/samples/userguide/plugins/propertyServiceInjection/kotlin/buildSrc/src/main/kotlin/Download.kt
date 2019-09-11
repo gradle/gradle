@@ -4,7 +4,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.workers.WorkerExecutor
 
-abstract class UrlProcess : DefaultTask() {
+abstract class Download : DefaultTask() {
     // Use an abstract property
     // Note that the @Inject annotation must be attached to the getter
     @get:Inject

@@ -5,19 +5,19 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskAction
 
 // tag::url-process[]
-abstract class UrlProcess : DefaultTask() {
+abstract class Download : DefaultTask() {
     // Use an abstract getter method annotated with @Nested
     @get:Nested
-    abstract val hostAndPath: HostAndPath
+    abstract val resource: Resource
 
     @TaskAction
     fun run() {
-        // Use the `hostAndPath` property
-        println("Downloading https://${hostAndPath.hostName.get()}/${hostAndPath.path.get()}")
+        // Use the `resource` property
+        println("Downloading https://${resource.hostName.get()}/${resource.path.get()}")
     }
 }
 
-interface HostAndPath {
+interface Resource {
     @get:Input
     val hostName: Property<String>
     @get:Input
