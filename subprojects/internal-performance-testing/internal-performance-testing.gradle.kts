@@ -65,7 +65,7 @@ dependencies {
     implementation(library("jsch"))
     implementation(library("commons_math"))
     implementation(library("jcl_to_slf4j"))
-    implementation("org.openjdk.jmc:flightrecorder:7.0.0-SNAPSHOT")
+    implementation("org.gradle.org.openjdk.jmc:flightrecorder:7.0.0-alpha01")
     implementation("org.gradle.ci.health:tagging:0.63")
     implementation(testLibrary("mina"))
     implementation(testLibrary("jetty"))
