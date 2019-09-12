@@ -505,7 +505,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (result instanceof InternalTestSuccessResult) {
             if (result instanceof InternalTestSuccessResult2) {
                 String output = ((InternalTestSuccessResult2)result).getOutput();
-                return new DefaultTestSuccessResult2(result.getStartTime(), result.getEndTime(), output);
+                String error = ((InternalTestSuccessResult2)result).getError();
+                return new DefaultTestSuccessResult2(result.getStartTime(), result.getEndTime(), output, error);
             } else {
                 return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
             }

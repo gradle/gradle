@@ -98,4 +98,6 @@ public interface TestResult {
     long getSkippedTestCount();
 
     String getOutput();
+
+    String getError();
 }

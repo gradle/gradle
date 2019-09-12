@@ -25,14 +25,21 @@ import org.gradle.tooling.events.test.TestSuccessResult2;
 public final class DefaultTestSuccessResult2 extends DefaultOperationSuccessResult implements TestSuccessResult2 {
 
     private final String output;
+    private final String error;
 
-    public DefaultTestSuccessResult2(long startTime, long endTime, String output) {
+    public DefaultTestSuccessResult2(long startTime, long endTime, String output, String error) {
         super(startTime, endTime);
         this.output = output;
+        this.error = error;
     }
 
     public String getOutput() {
         return output;
+    }
+
+    @Override
+    public String getError() {
+        return error;
     }
 
     @Override

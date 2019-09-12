@@ -44,7 +44,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
             package example;
             public class MyTest2 {
                 @org.junit.Test public void foo() throws Exception {
-                    System.out.println("Winged Hussars");
+                    System.out.println("Winged hussars");
+                    System.err.println("The red baron");
                     org.junit.Assert.assertEquals(1, 1);
                 }
             }
@@ -60,7 +61,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                         @Override
                         void statusChanged(ProgressEvent event) {
                             if (event instanceof DefaultTestFinishEvent) {
-                                println event.result.toString()
+                                println "out=" + event.result.output
+                                println "err=" + event.result.error
                             }
                         }
                     }

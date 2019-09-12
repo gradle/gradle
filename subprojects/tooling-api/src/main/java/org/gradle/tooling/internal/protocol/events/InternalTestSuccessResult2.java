@@ -23,4 +23,5 @@ package org.gradle.tooling.internal.protocol.events;
  */
 public interface InternalTestSuccessResult2 extends InternalTestSuccessResult {
     String getOutput();
+    String getError();
 }

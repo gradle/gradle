@@ -44,9 +44,9 @@ public class FailFastTestListenerInternal implements TestListenerInternal {
         TestResult delegateResult = testResult;
         if (failed) {
             if (testDescriptor.isComposite()) {
-                delegateResult = new DefaultTestResult(TestResult.ResultType.FAILURE, testResult.getStartTime(), testResult.getEndTime(), testResult.getTestCount(), testResult.getSuccessfulTestCount(), testResult.getFailedTestCount(), testResult.getExceptions(), testResult.getOutput());
+                delegateResult = new DefaultTestResult(TestResult.ResultType.FAILURE, testResult.getStartTime(), testResult.getEndTime(), testResult.getTestCount(), testResult.getSuccessfulTestCount(), testResult.getFailedTestCount(), testResult.getExceptions(), testResult.getOutput(), testResult.getError());
             } else {
-                delegateResult = new DefaultTestResult(TestResult.ResultType.SKIPPED, testResult.getStartTime(), testResult.getEndTime(), testResult.getTestCount(), testResult.getSuccessfulTestCount(), testResult.getFailedTestCount(), testResult.getExceptions(), testResult.getOutput());
+                delegateResult = new DefaultTestResult(TestResult.ResultType.SKIPPED, testResult.getStartTime(), testResult.getEndTime(), testResult.getTestCount(), testResult.getSuccessfulTestCount(), testResult.getFailedTestCount(), testResult.getExceptions(), testResult.getOutput(), testResult.getError());
             }
         }
 

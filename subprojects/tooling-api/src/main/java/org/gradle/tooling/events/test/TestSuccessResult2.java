@@ -26,4 +26,6 @@ import org.gradle.tooling.events.SuccessResult;
 public interface TestSuccessResult2 extends TestSuccessResult {
 
     String getOutput();
+
+    String getError();
 }

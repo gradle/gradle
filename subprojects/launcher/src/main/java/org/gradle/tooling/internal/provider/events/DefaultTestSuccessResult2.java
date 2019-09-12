@@ -20,7 +20,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult2;
 
 public class DefaultTestSuccessResult2 extends AbstractTestResult implements InternalTestSuccessResult2 {
 
-    public DefaultTestSuccessResult2(long startTime, long endTime, String output) {
-        super(startTime, endTime, "succeeded", output);
+    public DefaultTestSuccessResult2(long startTime, long endTime, String output, String error) {
+        super(startTime, endTime, "succeeded", output, error);
     }
 }

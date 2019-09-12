@@ -97,6 +97,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
 
         testState.completed(event);
         testState.output = outputCollector.outputFor(testState.test);
+        testState.error = outputCollector.errorFor(testState.test);
         delegate.completed(testState.test, new DefaultTestResult(testState), event);
     }
 
