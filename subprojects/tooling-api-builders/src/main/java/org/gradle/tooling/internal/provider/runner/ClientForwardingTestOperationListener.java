@@ -35,6 +35,7 @@ import org.gradle.tooling.internal.provider.events.AbstractTestResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
+import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult2;
 import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
@@ -147,7 +148,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
             case SKIPPED:
                 return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:
-                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
+                return new DefaultTestFailureResult2(result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()), result.getOutput(), result.getError());
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }

@@ -46,7 +46,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                 @org.junit.Test public void foo() throws Exception {
                     System.out.println("Winged hussars");
                     System.err.println("The red baron");
-                    org.junit.Assert.assertEquals(1, 1);
+                    org.junit.Assert.assertEquals(1, 2);
                 }
             }
         """

@@ -67,6 +67,7 @@ import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestFailureResult;
+import org.gradle.tooling.events.test.internal.DefaultTestFailureResult2;
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
@@ -122,6 +123,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult2;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestResult;
@@ -513,7 +515,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         } else if (result instanceof InternalTestSkippedResult) {
             return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalTestFailureResult) {
-            return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            if (result instanceof InternalTestFailureResult2) {
+                String output = ((InternalTestFailureResult2)result).getOutput();
+                String error = ((InternalTestFailureResult2)result).getError();
+                return new DefaultTestFailureResult2(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()), output, error);
+            } else {
+                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), toFailures(result.getFailures()));
+            }
         } else {
             return null;
         }
