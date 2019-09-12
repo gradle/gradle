@@ -141,8 +141,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
             }
         }
     }
-}) {
-}
+})
 
 fun stageTriggerUuid(model: CIBuildModel, stage: Stage) = "${model.projectPrefix}Stage_${stage.stageName.uuid}_Trigger"
 fun stageTriggerId(model: CIBuildModel, stage: Stage) = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}_Trigger")

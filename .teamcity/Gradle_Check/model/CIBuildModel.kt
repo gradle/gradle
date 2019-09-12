@@ -258,9 +258,9 @@ data class SubprojectBucket(override val name: String, val subprojects: List<Gra
     override fun shouldBeSkippedInStage(stage: Stage) = stage.omitsSlowProjects && subprojects.any { it.containsSlowTests }
 
     override fun validate(consumer: ErrorConsumer) {
-        if (!hasSameProperties { it.unitTests }
-            || !hasSameProperties { it.functionalTests }
-            || !hasSameProperties { it.crossVersionTests }) {
+        if (!hasSameProperties { it.unitTests } ||
+            !hasSameProperties { it.functionalTests } ||
+            !hasSameProperties { it.crossVersionTests }) {
             consumer.consumeError("All merged subprojects must have same properties: ${subprojects.map { it.name }.joinToString(" ")}")
         }
 
@@ -286,7 +286,6 @@ data class SubprojectBucket(override val name: String, val subprojects: List<Gra
 
     override fun extraParameters() = ""
 }
-
 
 data class GradleSubproject(override val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) : BuildTypeBucket {
     override fun getSubprojectNames(): List<String> {
@@ -335,8 +334,7 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     fun asConfigurationId(model: CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
         val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
-        val ret = model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
-        return ret;
+        return model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
     }
 
     private
