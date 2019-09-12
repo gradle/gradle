@@ -112,8 +112,10 @@ fun DistributionTest.configureTestSplitIfNecessary(sourceSet: SourceSet) {
 
     val chunks = sourceFiles.chunked(sourceFiles.size / numberOfSplits)
     if (currentSplit == numberOfSplits) {
+        println(chunks.subList(0, chunks.size - 1).flatten().joinToString(",") { it.nameWithoutExtension })
         filter.excludePatterns.addAll(chunks.subList(0, chunks.size - 1).flatten().map { it.nameWithoutExtension })
     } else {
+        println(chunks[currentSplit - 1].joinToString(",") { it.nameWithoutExtension })
         filter.includePatterns.addAll(chunks[currentSplit - 1].map { it.nameWithoutExtension })
     }
 
