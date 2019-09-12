@@ -293,6 +293,7 @@ class Resolve extends Copy {
         """
 
         when:
+        executer.expectDeprecationWarning()
         run 'resolve'
 
         then:
