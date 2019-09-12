@@ -28,7 +28,6 @@ import org.gradle.internal.file.Stat;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 
 import java.io.File;
@@ -82,19 +81,29 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
     }
 
-    private FileSystemSnapshot snapshotFileTree(final FileTreeInternal tree) {
-        final FileSystemSnapshotBuilder builder = fileSystemSnapshotter.newFileSystemSnapshotBuilder();
-        tree.visit(new FileVisitor() {
+    private FileSystemSnapshot snapshotFileTree(FileTreeInternal tree) {
+        return fileSystemSnapshotter.snapshotWithBuilder(builder -> tree.visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
-                builder.addDir(dirDetails.getFile(), dirDetails.getRelativePath().getSegments());
+                builder.addDir(
+                    dirDetails.getFile(),
+                    dirDetails.getRelativePath().getSegments()
+                );
             }
 
             @Override
             public void visitFile(FileVisitDetails fileDetails) {
-                builder.addFile(fileDetails.getFile(), fileDetails.getRelativePath().getSegments(), fileDetails.getName(), new DefaultFileMetadata(FileType.RegularFile, fileDetails.getLastModified(), fileDetails.getSize()));
+                builder.addFile(
+                    fileDetails.getFile(),
+                    fileDetails.getRelativePath().getSegments(),
+                    fileDetails.getName(),
+                    new DefaultFileMetadata(
+                        FileType.RegularFile,
+                        fileDetails.getLastModified(),
+                        fileDetails.getSize()
+                    )
+                );
             }
-        });
-        return builder.build();
+        }));
     }
 }

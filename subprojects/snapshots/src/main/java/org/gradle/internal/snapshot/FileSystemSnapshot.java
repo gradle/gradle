@@ -23,11 +23,7 @@ public interface FileSystemSnapshot {
     /**
      * An empty snapshot.
      */
-    FileSystemSnapshot EMPTY = new FileSystemSnapshot() {
-        @Override
-        public void accept(FileSystemSnapshotVisitor visitor) {
-        }
-    };
+    FileSystemSnapshot EMPTY = visitor -> {};
 
     /**
      * Walks the whole hierarchy represented by this snapshot.

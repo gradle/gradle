@@ -29,12 +29,7 @@ import java.util.Comparator;
  */
 public interface FileSystemLocationSnapshot extends FileSystemSnapshot {
 
-    Comparator<FileSystemLocationSnapshot> BY_NAME = new Comparator<FileSystemLocationSnapshot>() {
-        @Override
-        public int compare(FileSystemLocationSnapshot o1, FileSystemLocationSnapshot o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
-    };
+    Comparator<FileSystemLocationSnapshot> BY_NAME = Comparator.comparing(FileSystemLocationSnapshot::getName);
 
     /**
      * The type of the file.
@@ -61,7 +56,7 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot {
      *     <dt>Regular Files</dt>
      *     <dd>The hash of the content of the file.</dd>
      *     <dt>Missing files</dt>
-     *     <dd>{@link MissingFileSnapshot#SIGNATURE}</dd>
+     *     <dd>A special signature denoting a missing file.</dd>
      * </dl>
      */
     HashCode getHash();
