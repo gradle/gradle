@@ -11,6 +11,7 @@ import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import java.io.File
 
 
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
@@ -110,15 +111,23 @@ fun DistributionTest.configureTestSplitIfNecessary(sourceSet: SourceSet) {
         return
     }
 
-    val chunks = sourceFiles.chunked(sourceFiles.size / numberOfSplits)
+    val buckets = splitIntoBuckets(sourceFiles, numberOfSplits)
     if (currentSplit == numberOfSplits) {
-        filter.excludePatterns.addAll(chunks.subList(0, chunks.size - 1).flatten().map { it.nameWithoutExtension })
+        filter.excludePatterns.addAll(buckets.subList(0, buckets.size - 1).flatten().map { it.nameWithoutExtension })
     } else {
-        filter.includePatterns.addAll(chunks[currentSplit - 1].map { it.nameWithoutExtension })
+        filter.includePatterns.addAll(buckets[currentSplit - 1].map { it.nameWithoutExtension })
     }
 
     inputs.property("testSplit", testSplit)
 }
+
+
+fun splitIntoBuckets(sourceFiles: List<File>, numberOfSplits: Int): List<List<File>> =
+    if (sourceFiles.size % numberOfSplits == 0) {
+        sourceFiles.chunked(sourceFiles.size / numberOfSplits)
+    } else {
+        sourceFiles.chunked(sourceFiles.size / numberOfSplits + 1)
+    }
 
 
 private
