@@ -345,11 +345,11 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
             }
         """
         when:
-        // config_loc points to the correct location
+        // config_loc points to the location of suppressions.xml
         // while the default configDirectory does not.
-        // The build should be successful anyways
+        // The build should fail because we ignore the user provided value
         executer.expectDeprecationWarning()
-        succeeds "checkstyleMain"
+        fails "checkstyleMain"
         then:
         outputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated.")
         executedAndNotSkipped(":checkstyleMain")
