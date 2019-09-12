@@ -74,4 +74,26 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
 
         assertThat(result.error, containsString("Could not find org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0"))
     }
+
+    @Test
+    fun `embedded kotlin is compatible with locking because it properly reflects the dependency tree`() {
+        withBuildScript("""
+            ${scriptWithKotlinDslPlugin()}
+
+            dependencyLocking {
+                lockAllConfigurations()
+            }
+        """)
+
+        withFile("src/main/kotlin/test/Test.kt", """
+
+            package test
+
+            val test = true
+
+        """)
+        build("dependencies", "--configuration", "compileClasspath", "--write-locks")
+
+        build("compileKotlin")
+    }
 }
