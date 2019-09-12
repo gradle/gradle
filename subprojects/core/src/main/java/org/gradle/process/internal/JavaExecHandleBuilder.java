@@ -71,18 +71,22 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public List<String> getAllJvmArgs() {
+        return getAllJvmArgs(this.classpath);
+    }
+
+    private List<String> getAllJvmArgs(FileCollection realClasspath) {
         List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
         if (mainClass == null) {
-            if (classpath != null && classpath.getFiles().size() == 1) {
+            if (realClasspath != null && realClasspath.getFiles().size() == 1) {
                 allArgs.add("-jar");
-                allArgs.add(classpath.getSingleFile().getAbsolutePath());
+                allArgs.add(realClasspath.getSingleFile().getAbsolutePath());
             } else {
                 throw new IllegalStateException("No main class specified and classpath is not an executable jar.");
             }
         } else {
-            if (classpath != null && !classpath.isEmpty()) {
+            if (realClasspath != null && !realClasspath.isEmpty()) {
                 allArgs.add("-cp");
-                allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
+                allArgs.add(CollectionUtils.join(File.pathSeparator, realClasspath));
             }
             allArgs.add(mainClass);
         }
@@ -304,7 +308,11 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public List<String> getAllArguments() {
-        List<String> arguments = new ArrayList<String>(getAllJvmArgs());
+        return getAllArguments(this.classpath);
+    }
+
+    private List<String> getAllArguments(FileCollection realClasspath) {
+        List<String> arguments = new ArrayList<String>(getAllJvmArgs(realClasspath));
         arguments.addAll(getArgs());
         for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
             Iterables.addAll(arguments, argumentProvider.asArguments());
@@ -316,41 +324,29 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     protected List<String> getEffectiveArguments() {
         List<String> arguments = getAllArguments();
 
+        // Try to shorten command-line if necessary
         if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
-            int classPathFlagIndex = arguments.indexOf("-cp");
-            if (shouldTryShorteningCommandLine(arguments)) {
-                try {
-                    File pathingJarFile = File.createTempFile("gradle-javaexec-classpath", ".jar");
-                    List<String> jvmArgs = writePathingJarFile(classpath, pathingJarFile);
-                    arguments.remove(classPathFlagIndex);
-                    arguments.remove(classPathFlagIndex);
-                    arguments.addAll(classPathFlagIndex, jvmArgs);
-                    LOGGER.info("Shortening Java classpath {} with {}", this.classpath, pathingJarFile);
-                } catch (IOException e) {
-                    LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
-                }
+            try {
+                File pathingJarFile = writePathingJarFile(classpath);
+                ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
+                shortenedClasspath.from(pathingJarFile);
+                List<String> shortenedArguments = getAllArguments(shortenedClasspath);
+                LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
+                return shortenedArguments;
+            } catch (IOException e) {
+                LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
             }
         }
 
         return arguments;
     }
 
-    private boolean shouldTryShorteningCommandLine(List<String> arguments) {
-        int classPathFlagIndex = arguments.indexOf("-cp");
-        if (classPathFlagIndex == -1) {
-            // No class path flag, so we can't use CLASSPATH
-            LOGGER.info("No class path flag found in the command line, Gradle cannot shorten the command line");
-            return false;
-        }
-
-        return true;
-    }
-
-    private List<String> writePathingJarFile(FileCollection classPath, File pathingJarFile) throws IOException {
+    private File writePathingJarFile(FileCollection classPath) throws IOException {
+        File pathingJarFile = File.createTempFile("gradle-javaexec-classpath", ".jar");
         try (JarOutputStream jarOutputStream = new JarOutputStream(new FileOutputStream(pathingJarFile), toManifest(classPath))) {
             jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         }
-        return Arrays.asList("-cp", pathingJarFile.getAbsolutePath());
+        return pathingJarFile;
     }
 
     private static Manifest toManifest(FileCollection classPath) {

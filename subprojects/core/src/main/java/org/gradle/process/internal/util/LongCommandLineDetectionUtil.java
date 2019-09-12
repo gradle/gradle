@@ -22,20 +22,21 @@ import java.util.List;
 
 public class LongCommandLineDetectionUtil {
     // See http://msdn.microsoft.com/en-us/library/windows/desktop/ms682425(v=vs.85).aspx
-    public static final int ARG_MAX_WINDOWS = 32767; // in chars
-    public static final int ENVIRONMENT_VARIABLE_MAX_STRING_LENGTH = 32767; // in chars
+    public static final int MAX_COMMAND_LINE_LENGTH_WINDOWS = 32767;
     private static final String WINDOWS_LONG_COMMAND_EXCEPTION_MESSAGE = "The filename or extension is too long";
-
-    private static int getMaxCommandLineLength() {
-        if (OperatingSystem.current().isWindows()) {
-            return ARG_MAX_WINDOWS;
-        }
-        return Integer.MAX_VALUE;
-    }
 
     public static boolean hasCommandLineExceedMaxLength(String command, List<String> arguments) {
         int commandLineLength = command.length() + arguments.stream().map(String::length).reduce(Integer::sum).orElse(0) + arguments.size();
         return commandLineLength > getMaxCommandLineLength();
+    }
+
+    private static int getMaxCommandLineLength() {
+        int defaultMax = Integer.MAX_VALUE;
+        if (OperatingSystem.current().isWindows()) {
+            defaultMax = MAX_COMMAND_LINE_LENGTH_WINDOWS;
+        }
+        // in chars
+        return Integer.getInteger("org.gradle.internal.cmdline.max.length", defaultMax);
     }
 
     public static boolean hasCommandLineExceedMaxLengthException(Throwable failureCause) {
@@ -47,16 +48,5 @@ public class LongCommandLineDetectionUtil {
         } while ((cause = cause.getCause()) != null);
 
         return false;
-    }
-
-    private static int getMaxEnvironmentVariableLength() {
-        if (OperatingSystem.current().isWindows()) {
-            return ENVIRONMENT_VARIABLE_MAX_STRING_LENGTH;
-        }
-        return Integer.MAX_VALUE;
-    }
-
-    public static boolean hasEnvironmentVariableExceedMaxLength(String value) {
-        return value.length() > getMaxCommandLineLength();
     }
 }
