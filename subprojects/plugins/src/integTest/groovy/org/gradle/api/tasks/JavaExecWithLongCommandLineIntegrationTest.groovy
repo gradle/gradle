@@ -24,9 +24,10 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.util.Matchers.containsText
 
 class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec {
+    def veryLongFileName = 'a' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS
 
     def setup() {
-        file("src/main/java/Driver.java").text = """
+        file("src/main/java/Driver.java") << """
             package driver;
 
             public class Driver {
@@ -63,11 +64,11 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     @Requires(TestPrecondition.WINDOWS)
     def "can suggest long command line failures when execution fails for long command line on Windows system"() {
         buildFile << """
-            extraClasspath.from(project.files('${'a' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS}'))
+            extraClasspath.from('${veryLongFileName}')
         """
 
         when:
-        fails("run")
+        fails("run", "-i")
 
         then:
         failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
@@ -82,7 +83,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "does not suggest long command line failures when execution fails on non-Windows system"() {
         buildFile << """
-            extraClasspath.from(project.files('${'a' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS}'))
+            extraClasspath.from('${veryLongFileName}')
             run.executable 'does-not-exist'
         """
 
@@ -118,9 +119,8 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     def "succeeds with long classpath"() {
-        def fileName = 'a'*1000
         buildFile << """
-            extraClasspath.from(project.files('${fileName}'))
+            extraClasspath.from('${veryLongFileName}')
         """
 
         // Artificially lower the length of the command-line we try to shorten
@@ -143,12 +143,17 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         assertOutputContainsShorteningMessage()
     }
 
+    private void assertOutputContainsShorteningMessage() {
+        outputContains("Shortening Java classpath")
+    }
+    
     @Requires(TestPrecondition.WINDOWS)
     def "still fail when classpath doesn't shorten the command line enough"() {
+        def veryLongCommandLineArg = 'b' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS
         buildFile << """
-            extraClasspath.from(project.files('${'a' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS}'))
+            extraClasspath.from('${veryLongFileName}')
             
-            run.args "${'b' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS}"
+            run.args "${veryLongCommandLineArg}"
         """
 
         when:
@@ -162,9 +167,5 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
-    }
-
-    private void assertOutputContainsShorteningMessage() {
-        outputContains("Shortening Java classpath")
     }
 }
