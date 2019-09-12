@@ -350,6 +350,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
+        alwaysExpectKotlinPluginDeprecationWarning()
+
         withFolders {
 
             "buildSrc" {
@@ -398,6 +400,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     fun `conflicting extensions across build runs`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
+
+        alwaysExpectKotlinPluginDeprecationWarning()
 
         withFolders {
 
@@ -482,6 +486,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
+
+        alwaysExpectKotlinPluginDeprecationWarning()
 
         withBuildSrc {
             withFile("src/main/kotlin/my/DocumentationPlugin.kt", """
@@ -760,6 +766,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
         withDefaultSettingsIn("buildSrc")
 
+        alwaysExpectKotlinPluginDeprecationWarning()
+
         withFile("buildSrc/build.gradle.kts", """
             plugins {
                 `kotlin-dsl`
@@ -814,6 +822,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
+
+        alwaysExpectKotlinPluginDeprecationWarning()
 
         withBuildScriptIn("buildSrc", """
             plugins {
@@ -904,6 +914,8 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
         requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettingsIn("buildSrc")
+
+        alwaysExpectKotlinPluginDeprecationWarning()
 
         withBuildScriptIn("buildSrc", """
             plugins {

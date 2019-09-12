@@ -15,24 +15,26 @@
  */
 package org.gradle.kotlin.dsl.plugins.embedded
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
-import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
-
-import org.gradle.api.logging.Logger
-
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.api.logging.Logger
+import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.hamcrest.CoreMatchers.containsString
-
 import org.junit.Assert.assertThat
+import org.junit.Before
 import org.junit.Test
 
 
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
+
+    @Before
+    fun expectDeprecationWarnings() {
+        alwaysExpectKotlinPluginDeprecationWarning()
+    }
 
     @Test
     @ToBeFixedForInstantExecution
@@ -66,7 +68,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             configurations {
                 create("compileOnlyClasspath") { extendsFrom(configurations["compileOnly"]) }
             }
-            
+
             $repositoriesBlock
 
             tasks {

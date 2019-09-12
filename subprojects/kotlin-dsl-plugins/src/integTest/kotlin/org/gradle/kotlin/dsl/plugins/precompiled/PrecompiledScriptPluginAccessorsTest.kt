@@ -20,12 +20,10 @@ import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
-
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
 import org.gradle.kotlin.dsl.fixtures.bytecode.RETURN
@@ -37,7 +35,6 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.fixtures.pluginDescriptorEntryFor
 import org.gradle.kotlin.dsl.support.zipTo
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TextUtil.replaceLineSeparatorsOf
 
@@ -51,9 +48,7 @@ import org.jetbrains.kotlin.descriptors.Visibility
 import org.jetbrains.kotlin.psi.psiUtil.toVisibility
 import org.jetbrains.kotlin.psi.psiUtil.visibilityModifierType
 import org.junit.Assert.assertTrue
-
 import org.junit.Test
-
 import java.io.File
 
 
@@ -98,6 +93,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             }
         """)
 
+        executer.expectKotlinPluginDeprecationWarning()
         assertThat(
             buildFailureOutput("assemble"),
             containsMultiLineString("""
@@ -149,6 +145,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             }
         }
 
+        executer.expectKotlinPluginDeprecationWarning()
         assertThat(
             build("tasks").output,
             allOf(
@@ -185,6 +182,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         """)
 
+        executer.expectKotlinPluginDeprecationWarning()
         build("generatePrecompiledScriptPluginAccessors")
 
         compileKotlin()
@@ -460,7 +458,9 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
 
         withPrecompiledScriptApplying(pluginId, pluginJar)
 
-        gradleExecuterFor(arrayOf("classes")).withStackTraceChecksDisabled().run().apply {
+        gradleExecuterFor(arrayOf("classes"))
+            .expectKotlinPluginDeprecationWarning()
+            .withStackTraceChecksDisabled().run().apply {
             assertOutputContains("An exception occurred applying plugin request [id: '$pluginId']")
             assertOutputContains("'InvalidPlugin' is neither a plugin or a rule source and cannot be applied.")
         }
@@ -524,6 +524,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     include("external-foo", "external-bar")
                 """)
             }
+            executer.expectKotlinPluginDeprecationWarning()
             build("assemble")
         }
 
@@ -573,6 +574,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
             }
         """)
 
+        executer.expectKotlinPluginDeprecationWarning()
         assertThat(
             build("tasks").output,
             allOf(
@@ -603,6 +605,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                     """)
                 }
             }
+            executer.expectKotlinPluginDeprecationWarning()
             build("assemble")
             existing("build/libs/external-plugins.jar")
         }

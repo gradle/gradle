@@ -19,6 +19,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @ToBeFixedForInstantExecution
     fun `generated code follows kotlin-dsl coding conventions`() {
 
+        alwaysExpectKotlinPluginDeprecationWarning()
+
         withBuildScript("""
             plugins {
                 `kotlin-dsl`
@@ -64,6 +66,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                 }
             }
         """)
+
+        alwaysExpectKotlinPluginDeprecationWarning()
+
         withBuildScriptIn(firstLocation, """
             plugins { `kotlin-dsl` }
             ${jcenterRepository(GradleDsl.KOTLIN)}
@@ -111,6 +116,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     @ToBeFixedForInstantExecution
     fun `precompiled script plugins adapters generation clean stale outputs`() {
+
+        alwaysExpectKotlinPluginDeprecationWarning()
 
         withBuildScript("""
             plugins { `kotlin-dsl` }
