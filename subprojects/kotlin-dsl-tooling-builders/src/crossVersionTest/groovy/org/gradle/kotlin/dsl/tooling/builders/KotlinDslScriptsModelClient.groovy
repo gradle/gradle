@@ -16,14 +16,12 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
 import org.gradle.tooling.ProjectConnection
 
 import javax.annotation.Nullable
 
-import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.getModelSpecificJvmOptions
-import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.kotlinBuildScriptModelCorrelationId
-import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.kotlinBuildScriptModelTask
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.newCorrelationId
 
 
@@ -51,16 +49,16 @@ class KotlinDslScriptsModelClient {
 
             addJvmArguments(request.jvmOptions)
             if (request.lenient) {
-                addJvmArguments(modelSpecificJvmOptions)
+                addJvmArguments(KotlinDslModelsParameters.LENIENT_MODE_SYSTEM_PROPERTY_DECLARATION)
             }
 
-            forTasks(kotlinBuildScriptModelTask)
+            forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
 
 
             addArguments(request.options)
             addArguments(
-                "-P$kotlinBuildScriptModelCorrelationId=${request.correlationId}",
-                "-P${KotlinDslScriptsModel.SCRIPTS_PROPERTY_NAME}=${request.scripts.collect { it.canonicalPath }.join("|")}"
+                "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${request.correlationId}",
+                "-P${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME}=${request.scripts.collect { it.canonicalPath }.join("|")}"
             )
 
         }.get()

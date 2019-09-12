@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface KotlinBuildScriptModel {
 
+    String SCRIPT_GRADLE_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.script";
+
     List<File> getClassPath();
 
     List<File> getSourcePath();

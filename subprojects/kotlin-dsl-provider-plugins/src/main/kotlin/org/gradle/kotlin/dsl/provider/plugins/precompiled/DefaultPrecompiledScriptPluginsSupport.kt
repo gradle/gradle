@@ -46,7 +46,8 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompi
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
 
-import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTask
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
+
 import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
@@ -295,7 +296,7 @@ private
 fun Project.registerBuildScriptModelTask(
     modelTask: TaskProvider<out Task>
 ) {
-    rootProject.tasks.named(kotlinBuildScriptModelTask) {
+    rootProject.tasks.named(KotlinDslModelsParameters.PREPARATION_TASK_NAME) {
         it.dependsOn(modelTask)
     }
 }

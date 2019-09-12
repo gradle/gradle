@@ -15,13 +15,8 @@
  */
 package org.gradle.kotlin.dsl.provider
 
-
-internal
-object KotlinDslProviderMode {
-    const val systemPropertyName = "org.gradle.kotlin.dsl.provider.mode"
-    const val classPathMode = "classpath"
-}
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 
 
 fun inClassPathMode() =
-    System.getProperty(KotlinDslProviderMode.systemPropertyName) == KotlinDslProviderMode.classPathMode
+    System.getProperty(KotlinDslModelsParameters.LENIENT_MODE_SYSTEM_PROPERTY_NAME) == KotlinDslModelsParameters.LENIENT_MODE_SYSTEM_PROPERTY_VALUE

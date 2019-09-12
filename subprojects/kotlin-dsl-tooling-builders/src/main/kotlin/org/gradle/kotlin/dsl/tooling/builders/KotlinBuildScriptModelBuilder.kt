@@ -53,8 +53,6 @@ import org.gradle.kotlin.dsl.provider.ignoringErrors
 import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
-import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelCorrelationId
-import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptType
@@ -63,6 +61,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -165,8 +164,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
-            (modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String)?.let(::canonicalFile),
-            modelRequestProject.findProperty(kotlinBuildScriptModelCorrelationId) as? String
+            (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
+            modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
         )
 
     private
