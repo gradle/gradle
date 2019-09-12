@@ -104,6 +104,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -574,10 +575,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         warnIfConfigurationIsDeprecatedForResolving();
 
         if (!owner.getModel().hasMutableState()) {
-            // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
-            // lenient locking to prevent deadlocks in user-managed threads.
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a thread not managed by Gradle or from a different project.  See " + documentationRegistry.getDocumentationFor("troubleshooting_dependency_resolution", "sub:configuration_resolution_constraints") + " for more details.");
-            owner.getModel().withLenientState(() -> resolveExclusively(requestedState));
+            if (!GradleThread.isManaged()) {
+                // Error if we are executing in a user-managed thread.
+                throw new IllegalStateException("The configuration " + identityPath.toString() + " was resolved from a thread not managed by Gradle.");
+            } else {
+                // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
+                // lenient locking.
+                DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See " + documentationRegistry.getDocumentationFor("troubleshooting_dependency_resolution", "sub:configuration_resolution_constraints") + " for more details.");
+                owner.getModel().withLenientState(() -> resolveExclusively(requestedState));
+            }
         } else {
             resolveExclusively(requestedState);
         }

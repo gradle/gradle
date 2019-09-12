@@ -58,7 +58,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         outputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
     }
 
-    def "deprecation warning when configuration is resolved from a non-gradle thread"() {
+    def "exception when configuration is resolved from a non-gradle thread"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 
         settingsFile << """
@@ -69,11 +69,13 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         buildFile << """
             task resolve {
                 def thread = new Thread({
-                    println project(':bar').configurations.bar.files
+                    file('bar') << project(':bar').configurations.bar.files
                 })
                 doFirst {
                     thread.start()
                     thread.join()
+                    // this should fail
+                    assert file('bar').exists()
                 }
             }
            
@@ -94,11 +96,11 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
 
         when:
         executer.withArgument("--parallel")
-        executer.expectDeprecationWarning()
-        succeeds(":resolve")
+        executer.withStackTraceChecksDisabled()
+        fails(":resolve")
 
         then:
-        outputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
+        failure.assertHasErrorOutput("The configuration :bar:bar was resolved from a thread not managed by Gradle.")
     }
 
     def "deprecation warning when configuration is resolved while evaluating a different project"() {

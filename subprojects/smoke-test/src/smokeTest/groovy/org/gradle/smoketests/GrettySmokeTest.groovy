@@ -16,8 +16,11 @@
 
 package org.gradle.smoketests
 
+import spock.lang.Ignore
+
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
+@Ignore("Ignored until https://github.com/gretty-gradle-plugin/gretty/issues/80 is resolved.")
 class GrettySmokeTest extends AbstractSmokeTest {
 
     def 'run with jetty'() {
