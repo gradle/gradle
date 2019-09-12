@@ -1204,6 +1204,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform(parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
 
         file("lib/dir1.classes").file("child").createFile()
+        executer.beforeExecute {
+            if (!useParameterObject) {
+                expectDeprecationWarning()
+            }
+        }
 
         when:
         succeeds ":util:resolve", ":app:resolve"
@@ -1254,6 +1259,11 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         // Use another script to define the value, so that transform implementation does not change when the value is changed
         def otherScript = file("other.gradle")
         otherScript.text = "ext.value = 123"
+        executer.beforeExecute {
+            if (!useParameterObject) {
+                expectDeprecationWarning()
+            }
+        }
 
         buildFile << """
             apply from: 'other.gradle'
