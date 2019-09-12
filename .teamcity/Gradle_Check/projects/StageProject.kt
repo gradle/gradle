@@ -9,7 +9,6 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
-import model.GradleSubproject
 import model.SpecificBuild
 import model.Stage
 import model.TestType
@@ -62,15 +61,15 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             uuid = "${rootProjectUuid}_deferred_tests"
             id = AbsoluteId(uuid)
             name = "Test coverage deferred from Quick Feedback and Ready for Merge"
-            model.subProjects
-                .filter(GradleSubproject::containsSlowTests)
-                .forEach { subProject ->
+            model.buildTypeBuckets
+                .filter { it.shouldBeSkippedInStage(stage) }
+                .forEach { bucket ->
                     FunctionalTestProject.missingTestCoverage
                         .filter { testConfig ->
-                            subProject.hasTestsOf(testConfig.testType)
+                            bucket.hasTestsOf(testConfig.testType)
                         }
                         .forEach { testConfig ->
-                            buildType(FunctionalTest(model, testConfig, listOf(subProject.name), stage))
+                            buildType(FunctionalTest(model, testConfig, bucket.getSubprojectNames(), stage, bucket.name))
                         }
                 }
         }
