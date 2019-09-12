@@ -42,6 +42,8 @@ class BuildTypesPluginTest {
     @Before
     fun setUp() {
         every { project.tasks } returns taskContainer
+        every { project.project } returns project
+        every { project.findProperty(any()) } returns ""
         every { project.name } returns "project"
         every { project.findProject(any()) } returns null
         every { taskContainer.findByPath(any()) } returns null
