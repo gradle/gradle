@@ -64,7 +64,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     @Requires(TestPrecondition.WINDOWS)
     def "can suggest long command line failures when execution fails for long command line on Windows system"() {
         buildFile << """
-            extraClasspath.from('${veryLongFileName}')
+            extraClasspath.from('${veryLongFileName}', '${veryLongFileName}')
         """
 
         when:
@@ -146,7 +146,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     private void assertOutputContainsShorteningMessage() {
         outputContains("Shortening Java classpath")
     }
-    
+
     @Requires(TestPrecondition.WINDOWS)
     def "still fail when classpath doesn't shorten the command line enough"() {
         def veryLongCommandLineArg = 'b' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS
