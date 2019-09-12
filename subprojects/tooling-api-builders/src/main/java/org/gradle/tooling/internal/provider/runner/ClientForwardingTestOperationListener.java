@@ -143,7 +143,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
-                return new DefaultTestSuccessResult2(result.getStartTime(), result.getEndTime(), "the output was Foo");
+                return new DefaultTestSuccessResult2(result.getStartTime(), result.getEndTime(), result.getOutput());
             case SKIPPED:
                 return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:

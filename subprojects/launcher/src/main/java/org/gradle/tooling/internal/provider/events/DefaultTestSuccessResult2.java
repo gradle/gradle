@@ -19,19 +19,8 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult2;
 
 public class DefaultTestSuccessResult2 extends AbstractTestResult implements InternalTestSuccessResult2 {
-    private final String output;
 
     public DefaultTestSuccessResult2(long startTime, long endTime, String output) {
-        super(startTime, endTime, "succeeded");
-        this.output = output;
-    }
-
-    public String getOutput() {
-        return output;
-    }
-
-    @Override
-    public String toString() {
-        return "Launcher test success with output " +output;
+        super(startTime, endTime, "succeeded", output);
     }
 }

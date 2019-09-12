@@ -96,4 +96,6 @@ public interface TestResult {
      * @return The number of tests, possibly 0
      */
     long getSkippedTestCount();
+
+    String getOutput();
 }

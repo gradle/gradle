@@ -36,6 +36,7 @@ public class TestState {
     public long failedCount;
     public TestResult.ResultType resultType;
     TestCompleteEvent completeEvent;
+    public String output;
 
     public TestState(TestDescriptorInternal test, TestStartEvent startEvent, Map<Object, TestState> executing) {
         this.test = test;

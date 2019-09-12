@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestOutputCollectingListener;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
@@ -33,9 +34,11 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
     private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
     private TestDescriptorInternal currentParent;
     private final TestListenerInternal delegate;
+    private final TestOutputCollectingListener outputCollector;
 
-    public StateTrackingTestResultProcessor(TestListenerInternal delegate) {
+    public StateTrackingTestResultProcessor(TestListenerInternal delegate, TestOutputCollectingListener outputCollector) {
         this.delegate = delegate;
+        this.outputCollector = outputCollector;
     }
 
     @Override
@@ -93,6 +96,7 @@ public class StateTrackingTestResultProcessor implements TestResultProcessor {
         currentParent = testState.test.getParent();
 
         testState.completed(event);
+        testState.output = outputCollector.outputFor(testState.test);
         delegate.completed(testState.test, new DefaultTestResult(testState), event);
     }
 

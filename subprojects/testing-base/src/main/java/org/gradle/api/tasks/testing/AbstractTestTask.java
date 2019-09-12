@@ -76,6 +76,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.ClosureBackedAction;
+import org.gradle.api.internal.tasks.testing.TestOutputCollectingListener;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -454,9 +455,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestOutputStore.Writer outputWriter = testOutputStore.writer();
         TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
+        TestOutputCollectingListener outputCollector = new TestOutputCollectingListener();
 
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
+        addTestOutputListener(outputCollector);
 
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
@@ -475,7 +478,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
         }
 
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
+        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate, outputCollector);
 
         try {
             testExecuter.execute(executionSpec, resultProcessor);

@@ -29,12 +29,13 @@ public class DefaultTestResult implements TestResult, Serializable {
     private final long testCount;
     private final long successfulCount;
     private final long failedCount;
+    private final String output;
 
     public DefaultTestResult(TestState state) {
-        this(state.resultType, state.getStartTime(), state.getEndTime(), state.testCount, state.successfulCount, state.failedCount, state.failures);
+        this(state.resultType, state.getStartTime(), state.getEndTime(), state.testCount, state.successfulCount, state.failedCount, state.failures, state.output);
     }
 
-    public DefaultTestResult(ResultType resultType, long startTime, long endTime, long testCount, long successfulCount, long failedCount, List<Throwable> failures) {
+    public DefaultTestResult(ResultType resultType, long startTime, long endTime, long testCount, long successfulCount, long failedCount, List<Throwable> failures, String output) {
         this.resultType = resultType;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -42,6 +43,7 @@ public class DefaultTestResult implements TestResult, Serializable {
         this.successfulCount = successfulCount;
         this.failedCount = failedCount;
         this.failures = failures;
+        this.output = output;
     }
 
     @Override
@@ -92,5 +94,10 @@ public class DefaultTestResult implements TestResult, Serializable {
     @Override
     public String toString() {
         return resultType.toString();
+    }
+
+    @Override
+    public String getOutput() {
+        return output;
     }
 }
