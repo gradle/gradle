@@ -100,12 +100,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         final String absolutePath = file.getAbsolutePath();
         FileSystemLocationSnapshot result = fileSystemMirror.getSnapshot(absolutePath);
         if (result == null) {
-            result = producingSnapshots.guardByKey(absolutePath, new Supplier<FileSystemLocationSnapshot>() {
-                @Override
-                public FileSystemLocationSnapshot get() {
-                    return snapshotAndCache(file, null);
-                }
-            });
+            result = producingSnapshots.guardByKey(absolutePath, () -> snapshotAndCache(file, null));
         }
         return result;
     }
@@ -163,16 +158,15 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         if (snapshot != null) {
             return filterSnapshot(snapshot, filter);
         }
-        return producingSnapshots.guardByKey(path, new Supplier<FileSystemSnapshot>() {
-            @Override
-            public FileSystemSnapshot get() {
-                FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
-                if (snapshot == null) {
-                    snapshot = snapshotAndCache(root, filter);
-                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, filter) : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
-                } else {
-                    return filterSnapshot(snapshot, filter);
-                }
+        return producingSnapshots.guardByKey(path, () -> {
+            FileSystemLocationSnapshot snapshot1 = fileSystemMirror.getSnapshot(path);
+            if (snapshot1 == null) {
+                snapshot1 = snapshotAndCache(root, filter);
+                return snapshot1.getType() != FileType.Directory
+                    ? filterSnapshot(snapshot1, filter)
+                    : filterSnapshot(snapshot1, SnapshottingFilter.EMPTY);
+            } else {
+                return filterSnapshot(snapshot1, filter);
             }
         });
     }
