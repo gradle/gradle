@@ -39,6 +39,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         }
         buildfile.text = kotlinDslBuildSrcScript + buildfile.text
         if (!hasKotlin) {
+            executer.beforeExecute {
+                // The Kotlin plugin uses the old Artifact transform API
+                expectDeprecationWarning()
+            }
             hasKotlin = true
         }
     }

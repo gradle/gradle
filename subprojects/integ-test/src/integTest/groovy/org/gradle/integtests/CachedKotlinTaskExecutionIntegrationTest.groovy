@@ -108,6 +108,10 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
     }
 
     def withKotlinBuildSrc() {
+        executer.beforeExecute {
+            // The Kotlin plugin uses the old Artifact transform API
+            expectDeprecationWarning()
+        }
         file("buildSrc/build.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcScript
     }
 

@@ -49,6 +49,7 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
 
         when:
         executer.requireGradleDistribution() // TestKit and Kotlin DSL both require a distribution
+        executer.expectDeprecationWarning()
         run("build")
 
         then:

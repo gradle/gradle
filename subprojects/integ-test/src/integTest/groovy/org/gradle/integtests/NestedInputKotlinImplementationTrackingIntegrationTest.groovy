@@ -45,6 +45,10 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         """
 
         buildFile.makeOlder()
+        executer.beforeExecute {
+            // The Kotlin plugin uses the old Artifact transform API
+            expectDeprecationWarning()
+        }
 
         when:
         run 'myTask'
@@ -79,6 +83,10 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         """
 
         buildFile.makeOlder()
+        executer.beforeExecute {
+            // The Kotlin plugin uses the old Artifact transform API
+            expectDeprecationWarning()
+        }
 
         when:
         run 'myTask'

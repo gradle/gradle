@@ -128,6 +128,9 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
             }
         """)
 
+        // The Kotlin plugin uses the old Artifact transform API
+        executer.expectDeprecationWarning()
+
         println(
             build("test").output)
     }
