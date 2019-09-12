@@ -62,13 +62,16 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(TestPrecondition.WINDOWS)
-    def "can suggest long command line failures when execution fails for long command line on Windows system"() {
+    def "still fail when classpath doesn't shorten the command line enough"() {
+        def veryLongCommandLineArg = 'b' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS
         buildFile << """
-            extraClasspath.from('${veryLongFileName}', '${veryLongFileName}')
+            extraClasspath.from('${veryLongFileName}')
+            
+            run.args "${veryLongCommandLineArg}"
         """
 
         when:
-        fails("run", "-i")
+        fails("run")
 
         then:
         failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
@@ -92,12 +95,14 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertThatCause(containsText("A problem occurred starting process"))
+        failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
 
         when:
         fails("runWithJavaExec")
 
         then:
         failure.assertThatCause(containsText("A problem occurred starting process"))
+        failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
     }
 
     def "does not suggest long command line failures when execution fails for short command line"() {
@@ -110,12 +115,14 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
         then:
         failure.assertThatCause(containsText("A problem occurred starting process"))
+        failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
 
         when:
         fails("runWithJavaExec")
 
         then:
         failure.assertThatCause(containsText("A problem occurred starting process"))
+        failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
     }
 
     def "succeeds with long classpath"() {
@@ -145,27 +152,5 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
 
     private void assertOutputContainsShorteningMessage() {
         outputContains("Shortening Java classpath")
-    }
-
-    @Requires(TestPrecondition.WINDOWS)
-    def "still fail when classpath doesn't shorten the command line enough"() {
-        def veryLongCommandLineArg = 'b' * LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS
-        buildFile << """
-            extraClasspath.from('${veryLongFileName}')
-            
-            run.args "${veryLongCommandLineArg}"
-        """
-
-        when:
-        fails("run")
-
-        then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
-
-        when:
-        fails("runWithJavaExec")
-
-        then:
-        failure.assertThatCause(containsText("could not be started because the command line exceed operating system limits."))
     }
 }
