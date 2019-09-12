@@ -60,7 +60,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
-    def "supports fallback when configDir does not exist"() {
+    def "supports fallback when configDirectory does not exist"() {
         goodCode()
         buildFile << """
             checkstyle {
@@ -290,7 +290,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !file("build/tmp/checkstyleMain/main.xml").exists()
     }
 
-    def "changes to files in configDir make the task out-of-date"() {
+    def "changes to files in configDirectory make the task out-of-date"() {
         given:
         goodCode()
         succeeds "checkstyleMain"
@@ -316,7 +316,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         buildFile << """
             checkstyle {
                 configFile = file("config/checkstyle/checkstyle.xml")
-                configDir = file("custom")
+                configDirectory = file("custom")
             }
         """
         when:
@@ -346,7 +346,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         """
         when:
         // config_loc points to the correct location
-        // while the default configDir does not.
+        // while the default configDirectory does not.
         // The build should be successful anyways
         executer.expectDeprecationWarning()
         succeeds "checkstyleMain"
