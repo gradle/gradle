@@ -45,7 +45,7 @@ import spock.lang.Unroll
 
 import javax.inject.Inject
 
-class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
+class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
@@ -132,14 +132,14 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation."
 
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
             Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.
             Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
@@ -163,7 +163,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("validateTaskProperties")
+        succeeds("validatePlugin")
 
         where:
         annotation        | application                   | type
@@ -213,13 +213,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails("validateTaskProperties")
-        failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
+        fails("validatePlugin")
+        failure.assertHasDescription("Execution failed for task ':validatePlugin'.")
         failure.assertHasCause("Task property validation failed. See")
         failure.assertHasCause("Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.")
         failure.assertHasCause("Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.")
 
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.
             Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.
             """.stripIndent().trim()
@@ -254,14 +254,14 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails("validateTaskProperties")
-        failure.assertHasDescription("Execution failed for task ':validateTaskProperties'.")
+        fails("validatePlugin")
+        failure.assertHasDescription("Execution failed for task ':validatePlugin'.")
         failure.assertHasCause("Task property validation failed. See")
         failure.assertHasCause("Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.")
         failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
         failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.")
 
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.
             Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.
             Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.
@@ -299,12 +299,12 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
 
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
             Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
             """.stripIndent().trim()
@@ -316,7 +316,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "validateTaskProperties"
+        succeeds "validatePlugin"
     }
 
     def "does not report missing properties for Provider types"() {
@@ -381,9 +381,9 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "validateTaskProperties"
+        succeeds "validatePlugin"
 
-        file("build/reports/task-properties/report.txt").text == ""
+        reportFileContents() == ""
     }
 
     @Unroll
@@ -408,10 +408,10 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/MyTask.java") << myTask
 
         when:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
 
         then:
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself
             """.stripIndent().trim()
 
@@ -488,10 +488,10 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
 
         then:
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
             Warning: Type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.
             Warning: Type 'MyTask': property 'inputDirectory' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
@@ -536,10 +536,10 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
 
         then:
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask': property 'badTime' is private and annotated with @Input.
             Warning: Type 'MyTask': property 'options.badNested' is private and annotated with @Input.
             Warning: Type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.
@@ -576,10 +576,10 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
 
         then:
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask\$Options': non-property method 'notANestedGetter()' should not be annotated with: @Input
             Warning: Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input
             """.stripIndent().trim()
@@ -630,10 +630,10 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
 
         then:
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask\$Options': setter method 'setReadWrite()' should not be annotated with: @Input
             Warning: Type 'MyTask\$Options': setter method 'setWriteOnly()' should not be annotated with: @Input
             Warning: Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.
@@ -670,7 +670,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "validateTaskProperties"
+        succeeds "validatePlugin"
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -719,7 +719,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "validateTaskProperties"
+        succeeds "validatePlugin"
     }
 
     def "can enable stricter validation"() {
@@ -730,7 +730,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 implementation localGroovy()
             }
             
-            validateTaskProperties.enableStricterValidation = project.hasProperty('strict')
+            validatePlugin.enableStricterValidation = project.hasProperty('strict')
         """
         file("src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
@@ -752,13 +752,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("validateTaskProperties")
+        succeeds("validatePlugin")
 
         when:
-        fails "validateTaskProperties", "-Pstrict"
+        fails "validatePlugin", "-Pstrict"
 
         then:
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask': property 'dirProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Type 'MyTask': property 'fileProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
             Warning: Type 'MyTask': property 'filesProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
@@ -815,13 +815,13 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."
         failure.assertHasCause "Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile."
         failure.assertHasCause "Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."
 
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation.
             Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile.
             Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation.
@@ -882,14 +882,14 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
         failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."
 
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.
             Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties.
             Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.
@@ -925,11 +925,25 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validateTaskProperties"
+        fails "validatePlugin"
 
         then:
-        file("build/reports/task-properties/report.txt").text == """
+        reportFileContents() == """
             Warning: Type 'MyTask': property 'oldProperty' getter 'getOldProperty()' annotated with @ReplacedBy should not be also annotated with @Input.
             """.stripIndent().trim()
+    }
+
+    def "can run old task"() {
+        executer.expectDeprecationWarning()
+
+        when:
+        run "validateTaskProperties"
+        then:
+        executedAndNotSkipped(":validatePlugin")
+        output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugin task instead.")
+    }
+
+    private String reportFileContents() {
+        file("build/reports/plugin-development/validation-report.txt").text
     }
 }

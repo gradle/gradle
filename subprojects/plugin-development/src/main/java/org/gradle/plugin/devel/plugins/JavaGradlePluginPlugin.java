@@ -48,10 +48,11 @@ import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
 import org.gradle.plugin.devel.tasks.PluginUnderTestMetadata;
-import org.gradle.plugin.devel.tasks.ValidateTaskProperties;
+import org.gradle.plugin.devel.tasks.ValidatePlugin;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -72,6 +73,7 @@ import java.util.concurrent.Callable;
  *
  * Integrates with the 'maven-publish' and 'ivy-publish' plugins to automatically publish the plugins so they can be resolved using the `pluginRepositories` and `plugins` DSL.
  */
+@SuppressWarnings({"deprecation", "DeprecatedIsStillUsed"})
 @NonNullApi
 public class JavaGradlePluginPlugin implements Plugin<Project> {
     private static final Logger LOGGER = Logging.getLogger(JavaGradlePluginPlugin.class);
@@ -92,6 +94,9 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String EXTENSION_NAME = "gradlePlugin";
     static final String PLUGIN_UNDER_TEST_METADATA_TASK_NAME = "pluginUnderTestMetadata";
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_NAME = "pluginDescriptors";
+    static final String VALIDATE_PLUGIN_TASK_NAME = "validatePlugin";
+
+    @Deprecated
     static final String VALIDATE_TASK_PROPERTIES_TASK_NAME = "validateTaskProperties";
 
     /**
@@ -116,11 +121,21 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION = "Generates plugin descriptors from plugin declarations.";
 
     /**
+     * The description for the task validating the plugin.
+     *
+     * @since 6.0
+     */
+    static final String VALIDATE_PLUGIN_TASK_DESCRIPTION = "Validates the plugin by checking parameter annotations on task and artifact transform types etc.";
+
+    /**
      * The description for the task validating task property annotations for the plugin.
      *
      * @since 4.0
+     *
+     * @deprecated Use {@link #VALIDATE_PLUGIN_TASK_DESCRIPTION}.
      */
-    static final String VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION = "Validates task property annotations for the plugin.";
+    @Deprecated
+    static final String VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION = "Validates task property annotations for the plugin. (Deprecated, use " + VALIDATE_PLUGIN_TASK_NAME + " instead.)";
 
     @Override
     public void apply(Project project) {
@@ -133,7 +148,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         registerPlugins(project, extension);
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
-        configureTaskPropertiesValidation(project);
+        configurePluginValidation(project);
     }
 
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
@@ -223,20 +238,36 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureTaskPropertiesValidation(Project project) {
+    private void configurePluginValidation(Project project) {
         SourceSet mainSourceSet = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        TaskProvider<ValidateTaskProperties> validator = project.getTasks().register(VALIDATE_TASK_PROPERTIES_TASK_NAME, ValidateTaskProperties.class, task -> {
+        TaskProvider<Task> naggerTask = project.getTasks().register("nagAboutValidateTaskProperties", task -> {
             task.setGroup(PLUGIN_DEVELOPMENT_GROUP);
-            task.setDescription(VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION);
+            task.setDescription("Nag about deprecated task " + VALIDATE_PLUGIN_TASK_NAME);
+            task.doFirst((taskWithAction) -> nagAboutDeprecatedValidateTaskPropertiesTask());
+        });
+        TaskProvider<ValidatePlugin> validatorTask = project.getTasks().register(VALIDATE_PLUGIN_TASK_NAME, ValidatePlugin.class, task -> {
+            task.setGroup(PLUGIN_DEVELOPMENT_GROUP);
+            task.setDescription(VALIDATE_PLUGIN_TASK_DESCRIPTION);
 
-            task.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/task-properties/report.txt"));
+            task.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/plugin-development/validation-report.txt"));
 
             task.getClasses().setFrom(mainSourceSet.getOutput().getClassesDirs());
             task.getClasspath().setFrom(mainSourceSet.getCompileClasspath());
             task.dependsOn(mainSourceSet.getOutput());
+            task.mustRunAfter(naggerTask);
         });
+        project.getTasks().register(VALIDATE_TASK_PROPERTIES_TASK_NAME, org.gradle.plugin.devel.tasks.ValidateTaskProperties.class, validatorTask, (Runnable) JavaGradlePluginPlugin::nagAboutDeprecatedValidateTaskPropertiesTask)
+            .configure(task -> {
+                task.setGroup(PLUGIN_DEVELOPMENT_GROUP);
+                task.setDescription(VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION);
+                task.dependsOn(naggerTask, validatorTask);
+            });
 
-        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validator));
+        project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, check -> check.dependsOn(validatorTask));
+    }
+
+    private static void nagAboutDeprecatedValidateTaskPropertiesTask() {
+        DeprecationLogger.nagUserOfReplacedTask(VALIDATE_TASK_PROPERTIES_TASK_NAME, VALIDATE_PLUGIN_TASK_NAME);
     }
 
     /**
