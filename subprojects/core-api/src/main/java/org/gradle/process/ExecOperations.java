@@ -22,6 +22,8 @@ import org.gradle.api.Incubating;
 /**
  * Process execution operations.
  *
+ * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
+ *
  * @since 6.0
  */
 @Incubating
