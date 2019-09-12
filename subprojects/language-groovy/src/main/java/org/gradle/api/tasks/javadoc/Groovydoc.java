@@ -101,7 +101,7 @@ public class Groovydoc extends SourceTask {
         checkGroovyClasspathNonEmpty(getGroovyClasspath().getFiles());
         File destinationDir = getDestinationDir();
         try {
-            getDeleter().ensureEmptyDirectory(destinationDir, true);
+            getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }

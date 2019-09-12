@@ -118,7 +118,7 @@ public class CacheStep implements Step<IncrementalChangesContext, CurrentSnapsho
     private void cleanLocalState(UnitOfWork work) {
         work.visitLocalState(localStateFile -> {
             try {
-                deleter.deleteRecursively(localStateFile, true);
+                deleter.deleteRecursively(localStateFile);
             } catch (IOException ex) {
                 throw new UncheckedIOException(String.format("Failed to clean up local state files for %s: %s", work.getDisplayName(), localStateFile), ex);
             }

@@ -27,12 +27,12 @@ public class PackerDirectoryUtil {
     public static void ensureDirectoryForTree(Deleter deleter, TreeType type, File root) throws IOException {
         switch (type) {
             case DIRECTORY:
-                deleter.ensureEmptyDirectory(root, true);
+                deleter.ensureEmptyDirectory(root);
                 break;
             case FILE:
                 if (!makeDirectory(deleter, root.getParentFile())) {
                     if (root.exists()) {
-                        deleter.deleteRecursively(root, true);
+                        deleter.deleteRecursively(root);
                     }
                 }
                 break;

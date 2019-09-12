@@ -217,7 +217,7 @@ public class AntlrTask extends SourceTask {
             }
             if (rebuildRequired) {
                 try {
-                    getDeleter().ensureEmptyDirectory(outputDirectory, true);
+                    getDeleter().ensureEmptyDirectory(outputDirectory);
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
                 }

@@ -107,7 +107,7 @@ public class Javadoc extends SourceTask {
     protected void generate() {
         File destinationDir = getDestinationDir();
         try {
-            getDeleter().ensureEmptyDirectory(destinationDir, true);
+            getDeleter().ensureEmptyDirectory(destinationDir);
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }

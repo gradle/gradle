@@ -55,6 +55,11 @@ public class DefaultDeleter implements Deleter {
     }
 
     @Override
+    public boolean deleteRecursively(File target) throws IOException {
+        return deleteRecursively(target, false);
+    }
+
+    @Override
     public boolean deleteRecursively(File root, boolean followSymlinks) throws IOException {
         if (root.exists()) {
             return deleteRecursively(root, followSymlinks
@@ -66,9 +71,15 @@ public class DefaultDeleter implements Deleter {
     }
 
     @Override
+    public boolean ensureEmptyDirectory(File target) throws IOException {
+        return ensureEmptyDirectory(target, false);
+    }
+
+    @Override
     public boolean ensureEmptyDirectory(File root, boolean followSymlinks) throws IOException {
         if (root.exists()) {
-            if (root.isDirectory()) {
+            if (root.isDirectory()
+                && (followSymlinks || !isSymlink.test(root))) {
                 return deleteRecursively(root, followSymlinks
                     ? Handling.KEEP_AND_FOLLOW_SYMLINKED_DIRECTORIES
                     : Handling.KEEP_AND_DO_NOT_FOLLOW_CHILD_SYMLINKS);

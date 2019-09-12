@@ -88,7 +88,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                              Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
         Timer clock = Time.startTimer();
         try {
-            deleter.ensureEmptyDirectory(classesDir, true);
+            deleter.ensureEmptyDirectory(classesDir);
         } catch (IOException ioex) {
             throw new UncheckedIOException(ioex);
         }
@@ -98,8 +98,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             compileScript(source, classLoader, configuration, metadataDir, extractingTransformer, verifier);
         } catch (Exception e) {
             try {
-                deleter.deleteRecursively(classesDir, true);
-                deleter.deleteRecursively(metadataDir, true);
+                deleter.deleteRecursively(classesDir);
+                deleter.deleteRecursively(metadataDir);
             } catch (IOException ioex) {
                 throw new UncheckedIOException(ioex);
             }

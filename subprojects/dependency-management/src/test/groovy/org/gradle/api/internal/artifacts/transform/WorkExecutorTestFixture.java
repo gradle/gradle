@@ -114,8 +114,18 @@ public class WorkExecutorTestFixture {
         };
         Deleter deleter = new Deleter() {
             @Override
+            public boolean deleteRecursively(File target) {
+                return deleteRecursively(target, false);
+            }
+
+            @Override
             public boolean deleteRecursively(File target, boolean followSymlinks) {
                 return FileUtils.deleteQuietly(target);
+            }
+
+            @Override
+            public boolean ensureEmptyDirectory(File target) throws IOException {
+                return ensureEmptyDirectory(target, false);
             }
 
             @Override

@@ -70,7 +70,7 @@ public class IncrementalSwiftCompiler implements Compiler<SwiftCompileSpec> {
             File objectFile = getObjectFile(spec.getObjectFileDir(), removedSource);
 
             try {
-                if (deleter.deleteRecursively(objectFile.getParentFile(), true)) {
+                if (deleter.deleteRecursively(objectFile.getParentFile())) {
                     didRemove = true;
                 }
             } catch (IOException ex) {

@@ -76,7 +76,7 @@ public class GeneratePluginDescriptors extends DefaultTask {
 
     private void clearOutputDirectory(File directoryToClear) {
         try {
-            getDeleter().ensureEmptyDirectory(directoryToClear, true);
+            getDeleter().ensureEmptyDirectory(directoryToClear);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
