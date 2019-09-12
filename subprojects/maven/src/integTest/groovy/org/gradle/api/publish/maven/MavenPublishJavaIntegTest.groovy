@@ -455,7 +455,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
     @Unroll('can publish java-library with dependencies with maven incompatible version notation: #version')
     def "can publish java-library with dependencies with maven incompatible version notation: #version"() {
-        requiresExternalDependencies = true
 
         given:
         createBuildScripts("""
@@ -503,7 +502,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library without warning when dependency with maven incompatible version and using versionMapping"() {
-        requiresExternalDependencies = true
 
         given:
         createBuildScripts("""
@@ -532,7 +530,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultMavenPublication.INCOMPATIBLE_FEATURE)
+        outputDoesNotContain(DefaultMavenPublication.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
 
         javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
@@ -656,7 +654,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with capabilities"() {
-        requiresExternalDependencies = true
         given:
         createBuildScripts("""
 
@@ -693,7 +690,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can ignore publication warnings"() {
-        requiresExternalDependencies = true
         given:
         createBuildScripts("""
 
@@ -714,6 +710,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
+        outputContains(DefaultMavenPublication.PUBLICATION_WARNING_FOOTER)
         outputContains('Declares capability org:foo:1.0')
         outputContains("Variant apiElements")
         outputDoesNotContain("Variant runtimeElements")
@@ -721,7 +718,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can ignore all publication warnings"() {
-        requiresExternalDependencies = true
         given:
         createBuildScripts("""
 
@@ -742,8 +738,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain("Maven publication 'maven' warnings")
-        outputDoesNotContain('Declares capability org:foo:1.0')
+        outputDoesNotContain(DefaultMavenPublication.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
     }
 
@@ -838,7 +833,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     def "can publish java-library with dependencies/constraints with attributes"() {
-        requiresExternalDependencies = true
         given:
         settingsFile << "include 'utils'\n"
         file("utils/build.gradle") << '''

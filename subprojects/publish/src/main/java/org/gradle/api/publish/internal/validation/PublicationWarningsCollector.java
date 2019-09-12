@@ -31,11 +31,13 @@ public class PublicationWarningsCollector {
     private final Logger logger;
     private final String unsupportedFeature;
     private final String incompatibleFeature;
+    private final String footer;
     private final Map<String, CollectedWarnings> variantToWarnings;
-    String currentVariant;
-    CollectedWarnings currentWarnings;
+    private String currentVariant;
+    private CollectedWarnings currentWarnings;
 
-    public PublicationWarningsCollector(Logger logger, String unsupportedFeature, String incompatibleFeature) {
+    public PublicationWarningsCollector(Logger logger, String unsupportedFeature, String incompatibleFeature, String footer) {
+        this.footer = footer;
         this.variantToWarnings = new TreeMap<>();
         this.logger = logger;
         this.unsupportedFeature = unsupportedFeature;
@@ -55,7 +57,7 @@ public class PublicationWarningsCollector {
 
         if (!variantToWarnings.isEmpty()) {
             TreeFormatter treeFormatter = new TreeFormatter();
-            treeFormatter.node(displayName + " warnings: (silence with 'silencePublicationWarningsFor(variant)')");
+            treeFormatter.node(displayName + " warnings (silence with 'silencePublicationWarningsFor(variant)')");
             treeFormatter.startChildren();
             variantToWarnings.entrySet().stream().filter(entry -> !silencedVariants.contains(entry.getKey())).forEach(entry -> {
                 CollectedWarnings warnings = entry.getValue();
@@ -79,6 +81,7 @@ public class PublicationWarningsCollector {
                 treeFormatter.endChildren();
             });
             treeFormatter.endChildren();
+            treeFormatter.node(footer);
             logger.lifecycle(treeFormatter.toString());
         }
     }

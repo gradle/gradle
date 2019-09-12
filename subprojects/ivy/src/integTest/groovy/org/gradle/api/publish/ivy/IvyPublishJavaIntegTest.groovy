@@ -118,7 +118,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         succeeds "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
         if (ivyConfiguration == 'compile') {
             javaLibrary.assertApiDependencies('org.gradle.test:b:1.2')
@@ -259,7 +259,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublishedAsJavaModule()
 
         def dep = javaLibrary.parsedIvy.expectDependency("org.springframework:spring-core:2.5.6")
@@ -316,7 +316,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     @Issue("https://github.com/gradle/gradle/issues/4356, https://github.com/gradle/gradle/issues/5035")
     void "generated ivy descriptor includes configuration exclusions"() {
-        requiresExternalDependencies = true
         def exclusion = { name -> "$name-group:$name-module" }
         def exclusions = { conf -> javaLibrary.parsedIvy.exclusions.findAll { it.conf == conf }.collect { it.org + ":" + it.module } }
 
@@ -404,7 +403,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         succeeds "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublishedAsJavaModule()
         javaLibrary.assertApiDependencies("org.test:default-dependency:1.1")
     }
@@ -449,7 +448,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         succeeds "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublishedAsJavaModule()
         javaLibrary.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:X')
     }
@@ -482,7 +481,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
-        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
+        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
 
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
@@ -552,6 +551,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
+        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         outputContains('commons-logging:commons-logging:1.1 declared as a dependency constraint')
         javaLibrary.assertPublished()
@@ -632,6 +632,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
+        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         outputContains('commons-collections:commons-collections declared without version')
         javaLibrary.assertPublished()
@@ -701,6 +702,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
+        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         outputDoesNotContain('commons-collections:commons-collections declared without version')
         javaLibrary.assertPublished()
@@ -762,6 +764,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
+        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         outputDoesNotContain('commons-collections:commons-collections declared without version')
         javaLibrary.assertPublished()
@@ -826,8 +829,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
-        outputDoesNotContain(DefaultIvyPublication.UNSUPPORTED_FEATURE)
-        outputDoesNotContain('commons-collections:commons-collections declared without version')
+        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         javaLibrary.assertPublished()
         javaLibrary.parsedIvy.configurations.keySet() == ["compile", "runtime", "default"] as Set
         javaLibrary.parsedIvy.assertDependsOn("commons-collections:commons-collections:3.2.2@runtime")
@@ -887,6 +889,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         then:
         javaLibrary.removeGradleMetadataRedirection()
+        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         javaLibrary.assertPublished()
 
@@ -924,7 +927,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can publish java-library with capabilities"() {
-        requiresExternalDependencies = true
         given:
         createBuildScripts("""
 
@@ -944,6 +946,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
+        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputContains('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
 
@@ -961,7 +964,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can ignore publication warnings"() {
-        requiresExternalDependencies = true
         given:
         createBuildScripts("""
 
@@ -982,6 +984,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
+        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputContains('Declares capability org:foo:1.0')
         outputContains("Variant runtimeElements")
         outputDoesNotContain("Variant apiElements")
@@ -989,7 +992,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     def "can ignore all publication warnings"() {
-        requiresExternalDependencies = true
         given:
         createBuildScripts("""
 
@@ -1010,13 +1012,13 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
+        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputDoesNotContain("Ivy publication 'ivy' warnings:")
         outputDoesNotContain('Declares capability org:foo:1.0')
         javaLibrary.assertPublished()
     }
 
     def "can publish java-library with dependencies/constraints with attributes"() {
-        requiresExternalDependencies = true
         given:
         settingsFile << "include 'utils'\n"
         file("utils/build.gradle") << '''
@@ -1071,6 +1073,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         run "publish"
 
         then:
+        outputContains(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
         outputContains(DefaultIvyPublication.UNSUPPORTED_FEATURE)
         javaLibrary.assertPublished()
 
