@@ -247,7 +247,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     @InputDirectory
     @Nullable
     @Deprecated
-    @ReplacedBy("configDirectory")
+    // @ReplacedBy("configDirectory")
     public File getConfigDir() {
         // TODO: The annotations need to be moved to the new property
         SingleMessageLogger.nagUserOfReplacedMethod("Checkstyle.getConfigDir()", "Use Checkstyle.getConfigDirectory() instead");
