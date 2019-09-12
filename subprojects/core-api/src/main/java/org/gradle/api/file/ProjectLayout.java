@@ -46,7 +46,7 @@ public interface ProjectLayout {
     Provider<RegularFile> file(Provider<File> file);
 
     /**
-     * Creates a {@link RegularFile} provider whose location is calculated from the given {@link Provider}.
+     * Creates a {@link Directory} provider whose location is calculated from the given {@link Provider}.
      *
      * @since 6.0
      */
