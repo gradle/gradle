@@ -1,7 +1,6 @@
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
-
-// tag::host-and-path[]
+// tag::resource[]
 
 public interface Resource {
     @Input
@@ -9,4 +8,4 @@ public interface Resource {
     @Input
     Property<String> getPath();
 }
-// end::host-and-path[]
+// end::resource[]

@@ -4,7 +4,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.TaskAction
 
-// tag::url-process[]
+// tag::download[]
 abstract class Download extends DefaultTask {
     // Use an abstract getter method annotated with @Nested
     @Nested
@@ -23,4 +23,4 @@ interface Resource {
     @Input
     Property<String> getPath()
 }
-// end::url-process[]
+// end::download[]
