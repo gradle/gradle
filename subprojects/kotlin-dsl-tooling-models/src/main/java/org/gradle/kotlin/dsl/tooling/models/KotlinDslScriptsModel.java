@@ -28,7 +28,7 @@ import java.util.Map;
  * Requires the <code>prepareKotlinBuildScriptModel</code> task to be executed before building the model.
  *
  * The set of scripts must be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.scripts</code>,
- * as a list of absolute paths separated by <code>|</code>.
+ * as a list of absolute paths separated by <code>|</code>. See {@link KotlinDslScriptsModel#SCRIPTS_PROPERTY_NAME}.
  *
  * Optionally, the Gradle Kotlin DSL script provider can run in a lenient mode, ignoring, collecting and returning exceptions
  * in the built model by providing the system property <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath</code>.
@@ -37,6 +37,8 @@ import java.util.Map;
  * it can then be used to correlate Gradle and TAPI client log statements.
  */
 public interface KotlinDslScriptsModel {
+
+    String SCRIPTS_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.scripts";
 
     /**
      * Script models by file.

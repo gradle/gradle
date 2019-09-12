@@ -17,9 +17,9 @@
 package org.gradle.kotlin.dsl.tooling.builders.r60
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.kotlin.dsl.resolver.KotlinDslScriptsModelClient
-import org.gradle.kotlin.dsl.resolver.KotlinDslScriptsModelRequest
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
+import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelClient
+import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelRequest
 import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
@@ -100,7 +100,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
 
     private KotlinDslScriptsModel kotlinDslScriptsModelFor(File... scripts) {
         return withConnection { connection ->
-            KotlinDslScriptsModelClient.fetchKotlinDslScriptsModel(
+            new KotlinDslScriptsModelClient().fetchKotlinDslScriptsModel(
                 connection,
                 new KotlinDslScriptsModelRequest(scripts.toList())
             )

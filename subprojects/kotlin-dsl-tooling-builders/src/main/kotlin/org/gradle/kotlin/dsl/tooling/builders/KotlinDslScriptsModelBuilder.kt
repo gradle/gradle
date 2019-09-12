@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.tooling.builders
 import org.gradle.api.Project
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelCorrelationId
-import org.gradle.kotlin.dsl.resolver.kotlinDslScriptsModelTargets
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -144,11 +143,11 @@ private
 fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
     KotlinDslScriptsParameter(
         findProperty(kotlinBuildScriptModelCorrelationId) as? String,
-        (findProperty(kotlinDslScriptsModelTargets) as? String)
+        (findProperty(KotlinDslScriptsModel.SCRIPTS_PROPERTY_NAME) as? String)
             ?.split("|")
             ?.map(::canonicalFile)
             ?.takeIf { it.isNotEmpty() }
-            ?: throw IllegalArgumentException("$kotlinDslScriptsModelTargets property must be set and non empty")
+            ?: throw IllegalArgumentException("${KotlinDslScriptsModel.SCRIPTS_PROPERTY_NAME} property must be set and non empty")
     )
 
 
