@@ -22,7 +22,8 @@ import java.util.concurrent.Callable;
  * A factory for creating instances of {@link Provider}.
  *
  * <p>
- * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via  {@link org.gradle.api.Project#getProviders()}.
+ * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
+ * It is also available via {@link org.gradle.api.Project#getProviders()}.
  *
  * @since 4.0
  */

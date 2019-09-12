@@ -39,7 +39,8 @@ import java.util.Set;
 /**
  * A factory for creating various kinds of model objects.
  * <p>
- * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
+ * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
+ * It is also available via {@link org.gradle.api.Project#getObjects()}.
  *
  * @since 4.0
  */
@@ -67,7 +68,7 @@ public interface ObjectFactory {
     /**
      * Create a new instance of T, using {@code parameters} as the construction parameters.
      *
-     * <p>The type must be a non-abstract class.</p>
+     * <p>The type must be non-final, and can be a class, abstract class or interface.</p>
      *
      * <p>Objects created using this method are decorated and extensible, meaning that they have DSL support mixed in and can be extended using the `extensions` property, similar to the {@link org.gradle.api.Project} object.</p>
      *
@@ -77,6 +78,8 @@ public interface ObjectFactory {
      *     <li>{@link ObjectFactory}.</li>
      *     <li>{@link org.gradle.api.file.ProjectLayout}.</li>
      *     <li>{@link org.gradle.api.provider.ProviderFactory}.</li>
+     *     <li>{@link org.gradle.process.ExecOperations}</li>
+     *     <li>{@link org.gradle.api.file.FileSystemOperations}</li>
      * </ul>
      *
      * @throws ObjectInstantiationException On failure to create the new instance.
@@ -111,9 +114,13 @@ public interface ObjectFactory {
     ConfigurableFileTree fileTree();
 
     /**
-     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.</p>
+     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type.</p>
      *
-     * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
+     * <p>The specified type must have a public constructor which takes the name as a String parameter. The type must be non-final and a class or abstract class. Interfaces are currently not supported.</p>
+     *
+     * <p>All objects <b>MUST</b> expose their name as a bean property called "name". The name must be constant for the life of the object.</p>
+     *
+     * <p>The objects created by the container are decorated and extensible, and have services available for injection. See {@link #newInstance(Class, Object...)} for more details.</p>
      *
      * @param elementType The type of objects for the container to contain.
      * @param <T> The type of objects for the container to contain.

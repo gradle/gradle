@@ -24,6 +24,8 @@ import org.gradle.api.tasks.WorkResult;
 /**
  * Operations on the file system.
  *
+ * <p>An instance of this type can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
+ *
  * @since 6.0
  */
 @Incubating
