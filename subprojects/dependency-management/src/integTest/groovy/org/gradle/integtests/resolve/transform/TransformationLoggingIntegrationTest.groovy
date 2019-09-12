@@ -44,15 +44,13 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
                     attributesSchema {
                         attribute(usage)
                     }
-                    registerTransform {
+                    registerTransform(GreenMultiplier) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "green")
-                        artifactTransform(GreenMultiplier)
                     }                    
-                    registerTransform {
+                    registerTransform(BlueMultiplier) {
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
-                        artifactTransform(BlueMultiplier)
                     }                    
                 }
                 configurations {
@@ -103,11 +101,12 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
                 }
             }
 
-            class Multiplier extends ArtifactTransform {
-                private final String target
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            abstract class Multiplier implements TransformAction<TransformParameters.None> {
                 private final boolean showOutput = System.getProperty("showOutput") != null
+                private final String target
         
-                @javax.inject.Inject
                 Multiplier(String target) {
                     if (showOutput) {
                         println("Creating multiplier")
@@ -115,25 +114,28 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
                     this.target = target
                 }
         
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+        
                 @Override
-                List<File> transform(File input) {
-                    def output1 = new File(outputDirectory, input.name + ".1." + target)
-                    def output2 = new File(outputDirectory, input.name + ".2." + target)
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output1 = outputs.file(input.name + ".1." + target)
+                    def output2 = outputs.file(input.name + ".2." + target)
                     if (showOutput) {
                         println("Transforming \${input.name} to \${input.name}.\${target}")
                     }
                     Files.copy(input.toPath(), output1.toPath())
                     Files.copy(input.toPath(), output2.toPath())
-                    return [output1, output2]
                 }
             }
             
-            class GreenMultiplier extends Multiplier {
+            abstract class GreenMultiplier extends Multiplier {
                 GreenMultiplier() {
                     super("green")
                 }
             }
-            class BlueMultiplier extends Multiplier {
+            abstract class BlueMultiplier extends Multiplier {
                 BlueMultiplier() {
                     super("blue")
                 }
