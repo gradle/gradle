@@ -15,10 +15,11 @@
  */
 package org.gradle.api.plugins.quality;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.resources.TextResource;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -38,11 +39,11 @@ public class CheckstyleExtension extends CodeQualityExtension {
     private int maxErrors;
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
-    private DirectoryProperty configDir;
+    private final DirectoryProperty configDirectory;
 
     public CheckstyleExtension(Project project) {
         this.project = project;
-        configDir = project.getObjects().directoryProperty();
+        this.configDirectory = project.getObjects().directoryProperty();
     }
 
     /**
@@ -100,9 +101,11 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * @since 4.0
      *
      */
-    @Incubating
+    @Deprecated
+    @ReplacedBy("configDirectory")
     public File getConfigDir() {
-        return configDir.get().getAsFile();
+        SingleMessageLogger.nagUserOfReplacedMethod("CheckstyleExtension.getConfigDir()", "Use CheckstyleExtension.getConfigDirectory() instead");
+        return configDirectory.get().getAsFile();
     }
 
     /**
@@ -112,20 +115,22 @@ public class CheckstyleExtension extends CodeQualityExtension {
      * </p>
      * @since 4.0
      */
-    @Incubating
+    @Deprecated
     public void setConfigDir(File configDir) {
-        this.configDir.set(configDir);
+        SingleMessageLogger.nagUserOfReplacedMethod("CheckstyleExtension.setConfigDir()", "Use CheckstyleExtension.getConfigDirectory().set() instead");
+        this.configDirectory.set(configDir);
     }
 
     /**
-     * Gets the configuration directory.
-     *
-     * @return The configuration directory
+     * Path to other Checkstyle configuration files. By default, this path is {@code $rootProject.projectDir/config/checkstyle}
+     * <p>
+     * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
+     * </p>
+     * @return path to other Checkstyle configuration files
      * @since 4.7
      */
-    @Incubating
     public DirectoryProperty getConfigDirectory() {
-        return configDir;
+        return configDirectory;
     }
 
     /**

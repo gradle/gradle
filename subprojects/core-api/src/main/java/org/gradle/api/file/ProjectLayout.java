@@ -46,6 +46,13 @@ public interface ProjectLayout {
     Provider<RegularFile> file(Provider<File> file);
 
     /**
+     * Creates a {@link Directory} provider whose location is calculated from the given {@link Provider}.
+     *
+     * @since 6.0
+     */
+    Provider<Directory> dir(Provider<File> file);
+
+    /**
      * <p>Creates a {@link FileCollection} containing the given files, as defined by {@link Project#files(Object...)}.
      *
      * <p>This method can also be used to create an empty collection, but the collection may not be mutated later.</p>

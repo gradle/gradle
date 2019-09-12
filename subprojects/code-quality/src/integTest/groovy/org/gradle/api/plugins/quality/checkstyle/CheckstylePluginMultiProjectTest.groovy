@@ -91,7 +91,7 @@ class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
         file('child/build.gradle') << javaProjectUsingCheckstyle()
         file('child/build.gradle') << """
             checkstyle {
-                configDir = file('config/checkstyle')
+                configDirectory = file('config/checkstyle')
             }
         """
         file('child/src/main/java/Dummy.java') << javaClassWithNewLineAtEnd()

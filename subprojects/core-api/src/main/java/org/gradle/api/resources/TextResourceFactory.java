@@ -66,6 +66,8 @@ public interface TextResourceFactory {
 
     /**
      * Same as {@code fromFile(file, Charset.defaultCharset())}.
+     *
+     * @see #fromFile(Object, String)
      */
     TextResource fromFile(Object file);
 
