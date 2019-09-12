@@ -99,7 +99,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     @VisibleForTesting
     public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
     @VisibleForTesting
-    public static final String PUBLICATION_WARNING_FOOTER = "These issues indicate information that it lost in the published 'ivy.xml' metadata file, which may be an issue if the published library is consumed by an old Gradle version or Apache Ivy.\nThe 'module' metadata file, which is used by Gradle 6+ is not affected.";
+    public static final String PUBLICATION_WARNING_FOOTER = "These issues indicate information that is lost in the published 'ivy.xml' metadata file, which may be an issue if the published library is consumed by an old Gradle version or Apache Ivy.\nThe 'module' metadata file, which is used by Gradle 6+ is not affected.";
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -238,7 +238,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER);
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "silenceIvyMetadataWarningsFor");
 
         populateConfigurations();
         populateArtifacts();
@@ -246,7 +246,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         populateGlobalExcludes();
 
         if (!silenceAllPublicationWarnings) {
-            publicationWarningsCollector.complete(getDisplayName(), silencedVariants);
+            publicationWarningsCollector.complete(getDisplayName() + " ivy metadata", silencedVariants);
         }
     }
 

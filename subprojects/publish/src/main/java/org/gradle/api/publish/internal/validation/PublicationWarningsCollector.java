@@ -17,7 +17,6 @@
 package org.gradle.api.publish.internal.validation;
 
 import org.gradle.api.logging.Logger;
-import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -32,12 +31,14 @@ public class PublicationWarningsCollector {
     private final String unsupportedFeature;
     private final String incompatibleFeature;
     private final String footer;
+    private final String disableMethod;
     private final Map<String, CollectedWarnings> variantToWarnings;
     private String currentVariant;
     private CollectedWarnings currentWarnings;
 
-    public PublicationWarningsCollector(Logger logger, String unsupportedFeature, String incompatibleFeature, String footer) {
+    public PublicationWarningsCollector(Logger logger, String unsupportedFeature, String incompatibleFeature, String footer, String disableMethod) {
         this.footer = footer;
+        this.disableMethod = disableMethod;
         this.variantToWarnings = new TreeMap<>();
         this.logger = logger;
         this.unsupportedFeature = unsupportedFeature;
@@ -52,12 +53,12 @@ public class PublicationWarningsCollector {
         currentWarnings.addIncompatible(text);
     }
 
-    public void complete(DisplayName displayName, Set<String> silencedVariants) {
+    public void complete(String header, Set<String> silencedVariants) {
         saveVariantWarnings();
 
         if (!variantToWarnings.isEmpty()) {
             TreeFormatter treeFormatter = new TreeFormatter();
-            treeFormatter.node(displayName + " warnings (silence with 'silencePublicationWarningsFor(variant)')");
+            treeFormatter.node(header + " warnings (silence with '" + disableMethod + "(variant)')");
             treeFormatter.startChildren();
             variantToWarnings.entrySet().stream().filter(entry -> !silencedVariants.contains(entry.getKey())).forEach(entry -> {
                 CollectedWarnings warnings = entry.getValue();
