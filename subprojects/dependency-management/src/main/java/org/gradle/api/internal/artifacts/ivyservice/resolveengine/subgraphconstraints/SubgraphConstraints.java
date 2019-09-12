@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.subgraphconstraints;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
 
 import java.util.Collections;
@@ -24,7 +25,32 @@ import java.util.Set;
 
 public class SubgraphConstraints {
 
-    public static final SubgraphConstraints EMPTY = new SubgraphConstraints();
+    public static final SubgraphConstraints EMPTY = new SubgraphConstraints() {
+        @Override
+        public final SubgraphConstraints union(SubgraphConstraints other) {
+            return other;
+        }
+
+        @Override
+        public final SubgraphConstraints intersect(SubgraphConstraints other) {
+            return EMPTY;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public boolean contains(ModuleIdentifier module) {
+            return false;
+        }
+
+        @Override
+        public String toString() {
+            return "no modules";
+        }
+    };
 
     private final Set<ModuleIdentifier> modules;
 
@@ -43,10 +69,6 @@ public class SubgraphConstraints {
         return new SubgraphConstraints(modules);
     }
 
-    public static SubgraphConstraints of(SubgraphConstraints subgraphConstraints1, SubgraphConstraints subgraphConstraints2) {
-        return of(new ImmutableSet.Builder<ModuleIdentifier>().addAll(subgraphConstraints1.modules).addAll(subgraphConstraints2.modules).build());
-    }
-
     public Set<ModuleIdentifier> getModules() {
         return modules;
     }
@@ -57,5 +79,30 @@ public class SubgraphConstraints {
 
     public boolean contains(ModuleIdentifier module) {
         return modules.contains(module);
+    }
+
+    public SubgraphConstraints union(SubgraphConstraints other) {
+        if (other == EMPTY) {
+            return this;
+        }
+        ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(modules.size() + other.modules.size());
+        builder.addAll(modules);
+        builder.addAll(other.modules);
+        return of(builder.build());
+    }
+
+    public SubgraphConstraints intersect(SubgraphConstraints other) {
+        if (other.modules == modules) {
+            return this;
+        }
+        if (other == EMPTY) {
+            return EMPTY;
+        }
+        return of(ImmutableSet.copyOf(Sets.intersection(modules, other.modules)));
+    }
+
+    @Override
+    public String toString() {
+        return "modules=" + modules;
     }
 }
