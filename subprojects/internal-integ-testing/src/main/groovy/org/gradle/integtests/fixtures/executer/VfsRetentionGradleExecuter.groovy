@@ -38,7 +38,7 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
     }
 
     @Override
-    protected List<String> getAllArgs() {
+    List<String> getAllArgs() {
         List<Object> conditionalArgs = firstUse ? [VfsRetentionHelper.dropVfsArgument] : ImmutableList.of()
         firstUse = false
         super.getAllArgs() + ([

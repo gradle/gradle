@@ -56,7 +56,7 @@ public class DaemonGradleExecuter extends NoDaemonGradleExecuter {
     }
 
     @Override
-    protected List<String> getAllArgs() {
+    public List<String> getAllArgs() {
         List<String> args = new ArrayList<String>(super.getAllArgs());
         if(!isQuiet() && isAllowExtraLogging()) {
             if (!containsLoggingArgument(args)) {

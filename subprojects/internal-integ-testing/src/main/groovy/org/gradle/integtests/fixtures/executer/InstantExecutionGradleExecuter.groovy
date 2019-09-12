@@ -40,7 +40,7 @@ class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
     }
 
     @Override
-    protected List<String> getAllArgs() {
+    List<String> getAllArgs() {
         return super.getAllArgs() + INSTANT_EXECUTION_ARGS
     }
 }

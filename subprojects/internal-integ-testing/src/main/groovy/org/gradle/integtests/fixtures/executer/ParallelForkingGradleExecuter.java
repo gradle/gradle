@@ -31,7 +31,7 @@ class ParallelForkingGradleExecuter extends DaemonGradleExecuter {
     }
 
     @Override
-    protected List<String> getAllArgs() {
+    public List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
         if (getDistribution().getVersion().compareTo(GradleVersion.version("2.3")) <= 0) {

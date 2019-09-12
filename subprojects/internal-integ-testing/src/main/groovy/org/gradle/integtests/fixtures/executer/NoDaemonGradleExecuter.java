@@ -115,7 +115,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    protected List<String> getAllArgs() {
+    public List<String> getAllArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(super.getAllArgs());
         addPropagatedSystemProperties(args);
