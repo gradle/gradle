@@ -1449,7 +1449,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             Type returnType = Type.getType(method.getReturnType());
 
-            Type[] originalParameterTypes = CollectionUtils.collectArray(method.getParameterTypes(), Type.class, (Transformer<Type, Class>) clazz -> Type.getType(clazz));
+            Type[] originalParameterTypes = CollectionUtils.collectArray(method.getParameterTypes(), Type.class, (Transformer<Type, Class>) Type::getType);
             int numParams = originalParameterTypes.length;
             Type[] closurisedParameterTypes = new Type[numParams];
             System.arraycopy(originalParameterTypes, 0, closurisedParameterTypes, 0, numParams);
@@ -1522,7 +1522,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private void generateGetInstantiator() {
             MethodVisitor mv = visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY, null, null);
             mv.visitCode();
-            // GENERATE if (instantiator != null) { return instantiator; } else { return AsmBackedClassGenerator.getInstantiatorForNext(); }
+            // GENERATE if (instantiator != null) { return instantiator; } else { return AsmBackedClassGenerator.getFactoryForNext(); }
             mv.visitVarInsn(ALOAD, 0);
             mv.visitFieldInsn(GETFIELD, generatedType.getInternalName(), FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE.getDescriptor());
             mv.visitInsn(DUP);
@@ -1530,7 +1530,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             mv.visitJumpInsn(IFNULL, label);
             mv.visitInsn(ARETURN);
             mv.visitLabel(label);
-            mv.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getInstantiatorForNext", RETURN_MANAGED_OBJECT_FACTORY, false);
+            mv.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getFactoryForNext", RETURN_MANAGED_OBJECT_FACTORY, false);
             mv.visitInsn(ARETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();

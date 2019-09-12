@@ -248,6 +248,50 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("count = 12")
     }
 
+    def "can define task with abstract read-only @Nested Property property"() {
+        given:
+        buildFile << """
+            interface Params {
+                Integer getCount()
+            }
+            class DefaultParams implements Params {
+                private final int count
+
+                DefaultParams(int count) {
+                    this.count = count
+                }
+                
+                @Override
+                Integer getCount() {
+                    return count
+                }
+            }
+            abstract class MyTask extends DefaultTask {
+                @Nested
+                abstract Property<Params> getParams()
+                
+                MyTask() {
+                    params.convention(new DefaultParams(10))
+                }
+                
+                @TaskAction
+                void go() {
+                    println("count = \${params.get().count}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                params.set(new DefaultParams(12))
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("count = 12")
+    }
+
     def "cannot modify task's input properties via returned map"() {
         given:
         buildFile << """
