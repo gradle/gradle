@@ -13,7 +13,7 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
     this.name = testConfig.asName()
 
     model.buildTypeBuckets.forEach { bucket ->
-        if (bucket.shouldBeSkipped(testConfig)) {
+        if (bucket.shouldBeSkipped(testConfig) || !bucket.hasTestsOf(testConfig.testType)) {
             return@forEach
         }
         if (bucket.shouldBeSkippedInStage(stage)) {

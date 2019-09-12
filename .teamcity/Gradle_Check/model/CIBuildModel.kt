@@ -211,9 +211,9 @@ data class CIBuildModel(
                 SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
             ) + buckets.map { projectsInBucket ->
                 SubprojectBucket(name = projectsInBucket[0], subprojects = projectsInBucket.map { subprojectMap.getValue(it) })
-            } + largeSubprojects.entries.map { entry ->
+            } + largeSubprojects.flatMap { entry ->
                 (1..entry.value).map { SubprojectSplit(subproject = subprojectMap.getValue(entry.key), number = it, total = entry.value) }
-            }.flatten() + subProjects.filter {
+            } + subProjects.filter {
                 !buckets.flatten().contains(it.name) && !largeSubprojects.containsKey(it.name) && !it.hasOnlyUnitTests()
             }
     }
@@ -275,13 +275,11 @@ data class SubprojectBucket(override val name: String, val subprojects: List<Gra
         return count == 0 || count == subprojects.size
     }
 
-    override fun shouldBeSkipped(testCoverage: TestCoverage) = subprojects.map { it.name }.intersect(testCoverage.os.ignoredSubprojects).isNotEmpty()
+    override fun shouldBeSkipped(testCoverage: TestCoverage) = subprojects.any { it.shouldBeSkipped(testCoverage) }
 
     override fun containsSlowTests() = subprojects.any { it.containsSlowTests }
 
-    override fun hasTestsOf(testType: TestType): Boolean = (subprojects.any { it.unitTests } && testType.unitTests)
-        || (subprojects.any { it.functionalTests } && testType.functionalTests)
-        || (subprojects.any { it.crossVersionTests } && testType.crossVersionTests)
+    override fun hasTestsOf(testType: TestType) = subprojects.any { it.hasTestsOf(testType) }
 
     override fun extraParameters() = ""
 }
@@ -334,7 +332,8 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     fun asConfigurationId(model: CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
         val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
-        return model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
+        val ret = model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
+        return ret;
     }
 
     private
