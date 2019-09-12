@@ -195,19 +195,6 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
         }
     }
 
-    def canSpecifyLoggingHeader() {
-        when:
-        def logger = factory.newOperation('logger')
-        logger.description = 'description'
-        logger.loggingHeader = 'header'
-        logger.started()
-
-        then:
-        1 * progressListener.started(!null) >> { ProgressStartEvent event ->
-            assert event.loggingHeader == 'header'
-        }
-    }
-
     def canSpecifyNullStatus() {
         def logger = factory.newOperation('logger')
         logger.description = 'not empty'
@@ -241,32 +228,6 @@ class DefaultProgressLoggerFactoryTest extends ConcurrentSpec {
 
         when:
         logger.description = 'new'
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot configure this operation (logger - old) once it has started.'
-    }
-
-    def cannotChangeShortDescriptionAfterStart() {
-        def logger = factory.newOperation('logger')
-        logger.description = 'old'
-        logger.started()
-
-        when:
-        logger.shortDescription = 'new'
-
-        then:
-        IllegalStateException e = thrown()
-        e.message == 'Cannot configure this operation (logger - old) once it has started.'
-    }
-
-    def cannotChangeLoggingHeaderAfterStart() {
-        def logger = factory.newOperation('logger')
-        logger.description = 'old'
-        logger.started()
-
-        when:
-        logger.loggingHeader = 'new'
 
         then:
         IllegalStateException e = thrown()
