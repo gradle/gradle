@@ -1953,6 +1953,7 @@ Found the following transforms:
             }
 """
         then:
+        executer.expectDeprecationWarning()
         fails "help"
 
         and:
