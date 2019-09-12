@@ -38,7 +38,7 @@ import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult;
+import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult2; // TODO delete old DefaultTestSuccessResult?
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,7 +143,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
-                return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
+                return new DefaultTestSuccessResult2(result.getStartTime(), result.getEndTime(), "the output was Foo");
             case SKIPPED:
                 return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:

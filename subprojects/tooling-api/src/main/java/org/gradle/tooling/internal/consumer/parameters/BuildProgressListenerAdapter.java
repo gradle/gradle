@@ -72,6 +72,7 @@ import org.gradle.tooling.events.test.internal.DefaultTestOperationDescriptor;
 import org.gradle.tooling.events.test.internal.DefaultTestSkippedResult;
 import org.gradle.tooling.events.test.internal.DefaultTestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult;
+import org.gradle.tooling.events.test.internal.DefaultTestSuccessResult2;
 import org.gradle.tooling.events.transform.TransformFinishEvent;
 import org.gradle.tooling.events.transform.TransformOperationDescriptor;
 import org.gradle.tooling.events.transform.TransformOperationResult;
@@ -127,6 +128,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestSkippedResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
+import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult2;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 
@@ -501,7 +503,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestOperationResult toTestResult(InternalTestResult result) {
         if (result instanceof InternalTestSuccessResult) {
-            return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
+            if (result instanceof InternalTestSuccessResult2) {
+                String output = ((InternalTestSuccessResult2)result).getOutput();
+                return new DefaultTestSuccessResult2(result.getStartTime(), result.getEndTime(), output);
+            } else {
+                return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
+            }
         } else if (result instanceof InternalTestSkippedResult) {
             return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
         } else if (result instanceof InternalTestFailureResult) {
