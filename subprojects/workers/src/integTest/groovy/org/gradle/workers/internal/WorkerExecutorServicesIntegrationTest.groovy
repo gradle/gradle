@@ -127,23 +127,32 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
     }
 
     @Unroll
-    def "workers can inject ExecOperations service using #isolationMode isolation"() {
-        fixture.workActionThatCreatesFiles.extraFields += """
-            org.gradle.process.ExecOperations execOperations
-        """
-        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.process.ExecOperations execOperations"
-        fixture.workActionThatCreatesFiles.constructorAction = "this.execOperations = execOperations"
+    def "workers can inject ExecOperations service and use exec with #isolationMode isolation"() {
+        withTestMainParametersAndServices()
+
         fixture.workActionThatCreatesFiles.action += """
             execOperations.exec { 
                 it.executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
-                it.args "-h"
+                it.args '-cp', parameters.classpath.asPath, 'org.gradle.TestMain', parameters.projectDir, parameters.testFile
             }
         """
         fixture.withWorkActionClassInBuildScript()
 
+        file('src/main/java/org/gradle/TestMain.java') << testMainSource
+
         buildFile << """
+            apply plugin: "java"
+
             task runInWorker(type: WorkerTask) {
                 isolationMode = $isolationMode
+                ext.testFile = project.file("\$buildDir/\$name")
+                additionalParameters = {
+                    it.classpath.from(sourceSets.main.output.classesDirs)
+                    it.setProjectDir(project.projectDir)
+                    it.setTestFile(testFile)
+                }
+                doLast { assert testFile.exists() }
+                dependsOn sourceSets.main.output
             }
         """
 
@@ -153,10 +162,83 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         and:
         assertWorkerExecuted("runInWorker")
 
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    @Unroll
+    def "workers can inject ExecOperations service and use javaexec with #isolationMode isolation"() {
+        withTestMainParametersAndServices()
+
+        fixture.workActionThatCreatesFiles.action += """
+            execOperations.javaexec { 
+                it.executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                it.classpath(parameters.classpath)
+                it.main 'org.gradle.TestMain'
+                it.args parameters.projectDir, parameters.testFile
+            }
+        """
+        fixture.withWorkActionClassInBuildScript()
+
+        file('src/main/java/org/gradle/TestMain.java') << testMainSource
+
+        buildFile << """
+            apply plugin: "java"
+
+            task runInWorker(type: WorkerTask) {
+                isolationMode = $isolationMode
+                ext.testFile = project.file("\$buildDir/\$name")
+                additionalParameters = {
+                    it.classpath.from(sourceSets.main.output.classesDirs)
+                    it.setProjectDir(project.projectDir)
+                    it.setTestFile(testFile)
+                }
+                doLast { assert testFile.exists() }
+                dependsOn sourceSets.main.output
+            }
+        """
+
+        expect:
+        succeeds("runInWorker")
+
         and:
-        errorOutput.contains("--version")
+        assertWorkerExecuted("runInWorker")
 
         where:
         isolationMode << ISOLATION_MODES
+    }
+
+    def withTestMainParametersAndServices() {
+        fixture.workActionThatCreatesFiles.extraFields += """
+            org.gradle.process.ExecOperations execOperations
+        """
+        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.process.ExecOperations execOperations"
+        fixture.workActionThatCreatesFiles.constructorAction = "this.execOperations = execOperations"
+        fixture.testParameterType.fields += [
+            classpath: "ConfigurableFileCollection",
+            projectDir: "File",
+            testFile: "File"
+        ]
+    }
+
+    def getTestMainSource() {
+        return """
+            package org.gradle;
+
+            import java.io.File;
+            
+            public class TestMain {
+                public static void main(String[] args) throws Exception {
+                    File expectedWorkingDir = new File(args[0]).getCanonicalFile();
+                    File actualWorkingDir = new File(System.getProperty("user.dir")).getCanonicalFile();
+                    if (!expectedWorkingDir.getCanonicalFile().equals(actualWorkingDir)) {
+                        throw new RuntimeException(String.format("Unexpected working directory '%s', expected '%s'.", actualWorkingDir, expectedWorkingDir));
+                    }
+                    File file = new File(args[1]);
+                    file.getParentFile().mkdirs();
+                    file.createNewFile();
+                }
+            }
+        """
     }
 }
