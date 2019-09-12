@@ -403,6 +403,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         def buildFinished = server.expectAndBlock('build-finished')
 
         when:
+        executer.expectDeprecationWarning()
         gradle = executer.withTasks(":util:resolve").start()
 
         then:

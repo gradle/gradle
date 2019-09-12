@@ -650,6 +650,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 """
 
         when:
+        executer.expectDeprecationWarning()
         fails(":a:resolve")
 
         then:
