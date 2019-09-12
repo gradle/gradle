@@ -5,6 +5,7 @@ import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Test
@@ -21,31 +22,27 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `buildscript dependencies to embedded kotlin are resolved without an extra repository`() {
-
+    fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
         withBuildScript("""
-            buildscript {
-                dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-stdlib:$embeddedKotlinVersion")
-                    classpath("org.jetbrains.kotlin:kotlin-reflect:$embeddedKotlinVersion")
-                    classpath("org.jetbrains.kotlin:kotlin-compiler-embeddable:$embeddedKotlinVersion")
-                    classpath("org.jetbrains.kotlin:kotlin-script-runtime:$embeddedKotlinVersion")
-                    classpath("org.jetbrains.kotlin:kotlin-sam-with-receiver-compiler-plugin:$embeddedKotlinVersion")
-                }
+            plugins {
+                kotlin("jvm") version "1.3.31"
             }
         """)
 
         val result = build("buildEnvironment")
 
-        listOf("stdlib", "reflect", "compiler-embeddable", "script-runtime", "sam-with-receiver-compiler-plugin").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:$embeddedKotlinVersion"))
+        listOf("stdlib", "reflect").forEach { module ->
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.3.31 -> $embeddedKotlinVersion"))
         }
     }
 
     @Test
-    fun `stdlib and reflect are pinned to the embedded kotlin version`() {
+    fun `stdlib and reflect are pinned to the embedded kotlin version for buildscript dependencies`() {
         withBuildScript("""
             buildscript {
+                repositories {
+                    gradlePluginPortal()
+                }
                 dependencies {
                     classpath("org.jetbrains.kotlin:kotlin-stdlib:1.0")
                     classpath("org.jetbrains.kotlin:kotlin-reflect:1.0")
@@ -64,14 +61,18 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     fun `compiler-embeddable is not pinned`() {
         withBuildScript("""
             buildscript {
+                repositories {
+                    gradlePluginPortal()
+                }
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0")
+                    classpath("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.31")
                 }
             }
         """)
 
-        val result = buildAndFail("buildEnvironment")
+        val result = build("buildEnvironment")
 
-        assertThat(result.error, containsString("Could not find org.jetbrains.kotlin:kotlin-compiler-embeddable:1.0"))
+        assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.31"))
+        assertThat(result.output, not(containsString("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.31 ->")))
     }
 }
