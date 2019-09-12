@@ -700,7 +700,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 publications {
                     maven(MavenPublication) {
                         from components.java
-                        silencePublicationWarningsFor('runtimeElements')
+                        silencePomMetadataWarningsFor('runtimeElements')
                     }
                 }
             }
@@ -728,7 +728,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 publications {
                     maven(MavenPublication) {
                         from components.java
-                        silenceAllPublicationWarnings()
+                        silenceAllPomMetadataWarnings()
                     }
                 }
             }

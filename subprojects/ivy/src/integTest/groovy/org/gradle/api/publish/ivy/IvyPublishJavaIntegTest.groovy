@@ -974,7 +974,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        silencePublicationWarningsFor('apiElements')
+                        silenceIvyMetadataWarningsFor('apiElements')
                     }
                 }
             }
@@ -1002,7 +1002,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        silenceAllPublicationWarnings()
+                        silenceAllIvyMetadataWarnings()
                     }
                 }
             }

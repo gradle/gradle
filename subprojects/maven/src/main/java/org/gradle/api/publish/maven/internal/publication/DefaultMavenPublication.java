@@ -500,12 +500,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public void silencePublicationWarningsFor(String variantName) {
+    public void silencePomMetadataWarningsFor(String variantName) {
         this.silencedVariants.add(variantName);
     }
 
     @Override
-    public void silenceAllPublicationWarnings() {
+    public void silenceAllPomMetadataWarnings() {
         this.silenceAllPublicationWarnings = true;
     }
 

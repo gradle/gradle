@@ -614,12 +614,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void silencePublicationWarningsFor(String variantName) {
+    public void silenceIvyMetadataWarningsFor(String variantName) {
         silencedVariants.add(variantName);
     }
 
     @Override
-    public void silenceAllPublicationWarnings() {
+    public void silenceAllIvyMetadataWarnings() {
         this.silenceAllPublicationWarnings = true;
     }
 

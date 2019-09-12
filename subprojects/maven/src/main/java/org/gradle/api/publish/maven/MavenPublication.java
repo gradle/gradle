@@ -324,7 +324,7 @@ public interface MavenPublication extends Publication {
      * @since 6.0
      */
     @Incubating
-    void silencePublicationWarningsFor(String variantName);
+    void silencePomMetadataWarningsFor(String variantName);
 
 
     /**
@@ -335,5 +335,5 @@ public interface MavenPublication extends Publication {
      * @since 6.0
      */
     @Incubating
-    void silenceAllPublicationWarnings();
+    void silenceAllPomMetadataWarnings();
 }
