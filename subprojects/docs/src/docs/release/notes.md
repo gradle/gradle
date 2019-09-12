@@ -111,6 +111,13 @@ To avoid these errors, Gradle has been employing workarounds in some but not all
 From now on Gradle uses these workarounds every time it removes file hierarchies.
 The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
 
+## Automatic shortening of long classpaths on Windows
+
+When Gradle detects that a Java process command-line will exceed Windows's 32,768 character limit, Gradle will now attempt to shorten the command-line by passing the classpath of the Java application via a "classpath jar". 
+The classpath jar contains a manifest with the full classpath of the application and the command-line's classpath will only consist of the classpath jar.  If this doesn't shorten the command-line enough, the Java process will still fail to start.
+
+If the command-line is not long enough to require shortening, Gradle will not change the command-line arguments for the Java process.
+
 ## Features for plugin authors
 
 ### ConfigurableFileTree managed property methods
