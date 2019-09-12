@@ -154,19 +154,19 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         String path = root.getAbsolutePath();
 
-        FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
-        if (snapshot != null) {
-            return filterSnapshot(snapshot, filter);
+        FileSystemLocationSnapshot cachedSnapshot = fileSystemMirror.getSnapshot(path);
+        if (cachedSnapshot != null) {
+            return filterSnapshot(cachedSnapshot, filter);
         }
         return producingSnapshots.guardByKey(path, () -> {
-            FileSystemLocationSnapshot snapshot1 = fileSystemMirror.getSnapshot(path);
-            if (snapshot1 == null) {
-                snapshot1 = snapshotAndCache(root, filter);
-                return snapshot1.getType() != FileType.Directory
-                    ? filterSnapshot(snapshot1, filter)
-                    : filterSnapshot(snapshot1, SnapshottingFilter.EMPTY);
+            FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
+            if (snapshot == null) {
+                snapshot = snapshotAndCache(root, filter);
+                return snapshot.getType() != FileType.Directory
+                    ? filterSnapshot(snapshot, filter)
+                    : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
             } else {
-                return filterSnapshot(snapshot1, filter);
+                return filterSnapshot(snapshot, filter);
             }
         });
     }
