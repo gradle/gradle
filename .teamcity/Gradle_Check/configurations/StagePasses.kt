@@ -115,22 +115,12 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         stage.functionalTests.forEach { testCoverage ->
             val isSplitIntoBuckets = testCoverage.testType != TestType.soak
             if (isSplitIntoBuckets) {
-                model.subProjects.forEach { subProject ->
-                    if (shouldBeSkipped(subProject, testCoverage) ||
-                        stage.shouldOmitSlowProject(subProject) ||
-                        !subProject.hasSeparateTestBuild(testCoverage.testType)) {
-                        return@forEach
+                model.buildTypeBuckets.filter { bucket ->
+                    !bucket.shouldBeSkipped(testCoverage) && !bucket.shouldBeSkippedInStage(stage)
+                }.forEach { subProjectBucket ->
+                    if (subProjectBucket.hasTestsOf(testCoverage.testType)) {
+                        dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProjectBucket.name))) { snapshot {} }
                     }
-                    if (subProject.unitTests && testCoverage.testType.unitTests) {
-                        dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
-                    } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {
-                        dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
-                    } else if (subProject.crossVersionTests && testCoverage.testType.crossVersionTests) {
-                        dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProject.name))) { snapshot {} }
-                    }
-                }
-                if (model.subProjects.any { it.includeInMergedTestBuild(testCoverage.testType) }) {
-                    dependency(AbsoluteId(testCoverage.asConfigurationId(model, FunctionalTestProject.allUnitTestsBuildTypeName))) { snapshot {} }
                 }
             } else {
                 dependency(AbsoluteId(testCoverage.asConfigurationId(model))) {
@@ -140,22 +130,19 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         }
 
         if (containsDeferredTests) {
-            model.subProjects.forEach { subProject ->
-                if (subProject.containsSlowTests) {
-                    FunctionalTestProject.missingTestCoverage.forEach { testConfig ->
-                        if (subProject.unitTests && testConfig.testType.unitTests) {
-                            dependency(AbsoluteId(testConfig.asConfigurationId(model, subProject.name))) { snapshot {} }
-                        } else if (subProject.functionalTests && testConfig.testType.functionalTests) {
-                            dependency(AbsoluteId(testConfig.asConfigurationId(model, subProject.name))) { snapshot {} }
-                        } else if (subProject.crossVersionTests && testConfig.testType.crossVersionTests) {
-                            dependency(AbsoluteId(testConfig.asConfigurationId(model, subProject.name))) { snapshot {} }
-                        }
+            model.buildTypeBuckets.forEach { bucket ->
+                if (bucket.containsSlowTests()) {
+                    FunctionalTestProject.missingTestCoverage.filter {
+                        bucket.hasTestsOf(it.testType)
+                    }.forEach { testConfig ->
+                        dependency(AbsoluteId(testConfig.asConfigurationId(model, bucket.name))) { snapshot {} }
                     }
                 }
             }
         }
     }
-})
+}) {
+}
 
 fun stageTriggerUuid(model: CIBuildModel, stage: Stage) = "${model.projectPrefix}Stage_${stage.stageName.uuid}_Trigger"
 fun stageTriggerId(model: CIBuildModel, stage: Stage) = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}_Trigger")

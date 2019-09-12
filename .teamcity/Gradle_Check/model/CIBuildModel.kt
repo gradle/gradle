@@ -13,6 +13,8 @@ import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.ErrorConsumer
+import jetbrains.buildServer.configs.kotlin.v2018_2.Validatable
 
 enum class StageNames(override val stageName: String, override val description: String, override val uuid: String) : StageName {
     QUICK_FEEDBACK_LINUX_ONLY("Quick Feedback - Linux Only", "Run checks and functional tests (embedded executer, Linux)", "QuickFeedbackLinuxOnly"),
@@ -89,6 +91,7 @@ data class CIBuildModel(
                 TestCoverage(19, TestType.platform, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor))
         )
     ),
+
     val subProjects: List<GradleSubproject> = listOf(
         GradleSubproject("announce"),
         GradleSubproject("antlr"),
@@ -170,7 +173,7 @@ data class CIBuildModel(
         GradleSubproject("toolingNative", unitTests = false, functionalTests = false, crossVersionTests = true),
         GradleSubproject("versionControl"),
         GradleSubproject("workers"),
-        GradleSubproject("worker-processes", unitTests = false, functionalTests = false),
+        GradleSubproject("workerProcesses", unitTests = false, functionalTests = false),
         GradleSubproject("wrapper", crossVersionTests = true),
 
         GradleSubproject("soak", unitTests = false, functionalTests = false),
@@ -195,20 +198,116 @@ data class CIBuildModel(
         GradleSubproject("performance", unitTests = false, functionalTests = false),
         GradleSubproject("runtimeApiInfo", unitTests = false, functionalTests = false),
         GradleSubproject("smokeTest", unitTests = false, functionalTests = false))
-)
+) {
+    val buildTypeBuckets: List<BuildTypeBucket>
 
-data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) {
-    fun asDirectoryName(): String {
-        return name.replace(Regex("([A-Z])"), { "-" + it.groups[1]!!.value.toLowerCase() })
+    init {
+        val subprojectMap = subProjects.map { it.name to it }.toMap()
+        val buckets = listOf(
+            listOf("resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp"),
+            listOf("platformBase", "platformJvm", "platformNative")
+        )
+        val largeSubprojects = mapOf("integTest" to 3, "core" to 3, "dependencyManagement" to 3)
+
+        buildTypeBuckets =
+            listOf<BuildTypeBucket>(
+                SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
+            ) + buckets.map { projectsInBucket ->
+                SubprojectBucket(name = projectsInBucket[0], subprojects = projectsInBucket.map { subprojectMap.getValue(it) })
+            } + largeSubprojects.flatMap { entry ->
+                (1..entry.value).map { SubprojectSplit(subproject = subprojectMap.getValue(entry.key), number = it, total = entry.value) }
+            } + subProjects.filter {
+                !buckets.flatten().contains(it.name) && !largeSubprojects.containsKey(it.name) && !it.hasOnlyUnitTests()
+            }
+    }
+}
+
+interface BuildTypeBucket {
+    // TODO: Hacky. We should really be running all the subprojects on macOS
+    // But we're restricting this to just a subset of projects for now
+    // since we only have a small pool of macOS agents
+    fun shouldBeSkipped(testCoverage: TestCoverage): Boolean
+
+    val name: String
+
+    fun containsSlowTests(): Boolean
+    fun shouldBeSkippedInStage(stage: Stage): Boolean
+    fun hasTestsOf(testType: TestType): Boolean
+    fun extraParameters(): String
+    fun getSubprojectNames(): List<String>
+}
+
+data class SubprojectSplit(val subproject: GradleSubproject, val number: Int, val total: Int) : BuildTypeBucket by subproject, Validatable {
+    override fun validate(consumer: ErrorConsumer) {
+        if (total <= 1) {
+            consumer.consumeError("Split number must be > 1: ${subproject.name} $total!")
+        }
     }
 
-    fun hasTestsOf(type: TestType) = (unitTests && type.unitTests) || (functionalTests && type.functionalTests) || (crossVersionTests && type.crossVersionTests)
+    override val name: String
+        get() = if (number == 1) subproject.name else "${subproject.name}_$number"
+
+    override fun extraParameters(): String = "-PtestSplit=$number/$total"
+}
+
+data class SubprojectBucket(override val name: String, val subprojects: List<GradleSubproject>) : BuildTypeBucket, Validatable {
+    override fun getSubprojectNames(): List<String> {
+        return subprojects.map { it.name }
+    }
+
+    override fun shouldBeSkippedInStage(stage: Stage) = stage.omitsSlowProjects && subprojects.any { it.containsSlowTests }
+
+    override fun validate(consumer: ErrorConsumer) {
+        if (!hasSameProperties { it.unitTests }
+            || !hasSameProperties { it.functionalTests }
+            || !hasSameProperties { it.crossVersionTests }) {
+            consumer.consumeError("All merged subprojects must have same properties: ${subprojects.map { it.name }.joinToString(" ")}")
+        }
+
+        Os.values().forEach {
+            val intersected = subprojects.intersect(it.ignoredSubprojects)
+            if (intersected.isNotEmpty() && intersected.size != subprojects.size) {
+                consumer.consumeError("Either all subprojects in a bucket are ignored, or none of them are ignored")
+            }
+        }
+    }
+
+    private
+    fun hasSameProperties(predicate: (GradleSubproject) -> Boolean): Boolean {
+        val count = subprojects.count(predicate)
+        return count == 0 || count == subprojects.size
+    }
+
+    override fun shouldBeSkipped(testCoverage: TestCoverage) = subprojects.any { it.shouldBeSkipped(testCoverage) }
+
+    override fun containsSlowTests() = subprojects.any { it.containsSlowTests }
+
+    override fun hasTestsOf(testType: TestType) = subprojects.any { it.hasTestsOf(testType) }
+
+    override fun extraParameters() = ""
+}
+
+
+data class GradleSubproject(override val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) : BuildTypeBucket {
+    override fun getSubprojectNames(): List<String> {
+        return listOf(name)
+    }
+
+    override fun shouldBeSkippedInStage(stage: Stage) = containsSlowTests && stage.omitsSlowProjects
+
+    override fun shouldBeSkipped(testCoverage: TestCoverage) = testCoverage.os.ignoredSubprojects.contains(name)
+
+    override fun containsSlowTests() = containsSlowTests
+
+    override fun hasTestsOf(testType: TestType) = (unitTests && testType.unitTests) || (functionalTests && testType.functionalTests) || (crossVersionTests && testType.crossVersionTests)
+
+    override fun extraParameters() = ""
+
+    fun asDirectoryName(): String {
+        return name.replace(Regex("([A-Z])")) { "-" + it.groups[1]!!.value.toLowerCase() }
+    }
 
     fun hasOnlyUnitTests() = unitTests && !functionalTests && !crossVersionTests
-
-    fun hasSeparateTestBuild(type: TestType) = hasTestsOf(type) && !hasOnlyUnitTests()
-
-    fun includeInMergedTestBuild(type: TestType) = hasTestsOf(type) && hasOnlyUnitTests()
 }
 
 interface StageName {
@@ -222,8 +321,6 @@ interface StageName {
 
 data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false) {
     val id = stageName.id
-
-    fun shouldOmitSlowProject(project: GradleSubproject) = project.containsSlowTests && omitsSlowProjects
 }
 
 data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val testJvmVersion: JvmVersion, val vendor: JvmVendor = JvmVendor.oracle, val buildJvmVersion: JvmVersion = JvmVersion.java11) {
@@ -238,7 +335,8 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     fun asConfigurationId(model: CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
         val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
-        return model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
+        val ret = model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
+        return ret;
     }
 
     private
