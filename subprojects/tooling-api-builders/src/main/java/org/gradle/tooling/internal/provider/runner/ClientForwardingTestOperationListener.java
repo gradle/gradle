@@ -39,7 +39,7 @@ import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult2;
 import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult2; // TODO delete old DefaultTestSuccessResult?
+import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult2; // TODO use original DefaultTestSuccessResult if no output is filtered
 
 import java.util.ArrayList;
 import java.util.List;

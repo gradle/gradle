@@ -22,6 +22,15 @@ package org.gradle.tooling.internal.protocol.events;
  * @since 6.0
  */
 public interface InternalTestSuccessResult2 extends InternalTestSuccessResult {
+
+    // TODO (donat) Find a better naming scheme for all test result interfaces/classes. Something like TestSuccessResultWithOutput.
+    // TODO (donat) Providing the test output potentially add big memory pressure. We should control the output collection.
+    //              Maybe add a new TestLauncher.filterTestOutput(TestOutputFilter) method have the following properties:
+    //               INCLUDE_ALL
+    //               FILTER_ALL
+    //               TRIM (default; include test output only if it doesn't reach, say 50Mb altogether)
+    // TODO (donat) Add sufficient test coverage for all changed classes
+
     String getOutput();
     String getError();
 }
