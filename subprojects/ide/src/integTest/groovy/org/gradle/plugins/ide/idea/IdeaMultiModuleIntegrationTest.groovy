@@ -449,6 +449,7 @@ project(':two') {
         dependencies = parseIml("master/two/two.iml").dependencies
         assert dependencies.libraries*.jarName as Set == [someLib2Jar.name] as Set
 
+        executer.expectDeprecationWarning()
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withArgument("-PforceDeps=true").withTasks("idea").run()
 
         //then

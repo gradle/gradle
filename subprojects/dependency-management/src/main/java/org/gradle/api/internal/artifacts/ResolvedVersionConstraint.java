@@ -31,4 +31,5 @@ public interface ResolvedVersionConstraint {
 
     boolean isRejectAll();
     boolean isDynamic();
+    boolean isStrict();
 }

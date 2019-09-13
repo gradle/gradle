@@ -113,4 +113,8 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
         return false;
     }
 
+    @Override
+    public boolean hasStrongOpinion() {
+        return false;
+    }
 }

@@ -279,6 +279,7 @@ project(':tool') {
 """
 
         expect:
+        executer.expectDeprecationWarning()
         run("tool:dependencies")
     }
 
@@ -303,6 +304,7 @@ task checkDeps {
 """
 
         expect:
+        executer.expectDeprecationWarning()
         executer.withTasks("checkDeps").run()
     }
 
@@ -394,6 +396,7 @@ task checkDeps {
 
 
         when:
+        executer.expectDeprecationWarning()
         run 'checkDeps'
 
         then:
@@ -444,6 +447,7 @@ task checkDeps {
 """
 
         expect:
+        executer.expectDeprecationWarning()
         run 'checkDeps'
     }
 
