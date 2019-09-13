@@ -10,6 +10,7 @@ import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withGroovyBuilder
 import org.gradle.plugin.devel.tasks.ValidateTaskProperties
 import org.gradle.gradlebuild.buildquality.classycle.Classycle
+import org.gradle.gradlebuild.docs.FindBrokenInternalLinks
 import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 import java.io.File
@@ -67,6 +68,7 @@ open class CiReportingPlugin : Plugin<Project> {
     fun Task.failedTaskCustomReports() = when (this) {
         is ValidateTaskProperties -> listOf(outputFile.get().asFile to project.name)
         is Classycle -> listOf(reportFile to project.name)
+        is FindBrokenInternalLinks -> listOf(reportFile.get().asFile to project.name)
         is DistributionTest -> listOf(
             gradleInstallationForTest.gradleUserHomeDir.dir("worker-1/test-kit-daemon").get().asFile to "all-logs",
             gradleInstallationForTest.daemonRegistry.get().asFile to "all-logs"
