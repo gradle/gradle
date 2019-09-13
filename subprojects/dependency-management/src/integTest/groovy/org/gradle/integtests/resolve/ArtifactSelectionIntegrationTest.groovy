@@ -520,12 +520,15 @@ task show {
         def m1 = ivyHttpRepo.module("org", "test", "1.0").publish()
 
         buildFile << """
+import org.gradle.api.artifacts.transform.TransformParameters
 
-class VariantArtifactTransform extends ArtifactTransform {
-    List<File> transform(File input) {
-        def output = new File(outputDirectory, "transformed-" + input.name)
+abstract class VariantArtifactTransform implements TransformAction<TransformParameters.None> {
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    void transform(TransformOutputs outputs) {
+        def output = outputs.file("transformed-" + inputArtifact.get().asFile.name)
         output << "transformed"
-        return [output]         
     }
 }
 
@@ -534,10 +537,9 @@ dependencies {
     compile project(':lib')
     compile project(':ui')
     compile 'org:test:1.0'
-    registerTransform {
+    registerTransform(VariantArtifactTransform) {
         from.attribute(usage, "api")
         to.attribute(usage, "transformed")
-        artifactTransform(VariantArtifactTransform)
     }
 }
 
