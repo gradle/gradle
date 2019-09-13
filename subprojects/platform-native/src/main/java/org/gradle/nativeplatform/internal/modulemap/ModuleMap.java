@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.internal.modulemap;
 
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.List;
@@ -52,6 +52,9 @@ public class ModuleMap implements Serializable {
     }
 
     public HashCode getHashCode() {
-        return Hashing.hashString(moduleName + CollectionUtils.join("", publicHeaderPaths));
+        Hasher hasher = Hashing.newHasher();
+        hasher.putString(moduleName);
+        publicHeaderPaths.forEach(hasher::putString);
+        return hasher.hash();
     }
 }
