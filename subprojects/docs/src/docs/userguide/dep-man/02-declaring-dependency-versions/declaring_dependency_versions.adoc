@@ -1,6 +1,8 @@
 [[declaring-dependency-versions]]
 = Declaring dependency versions
 
+include::single_versions.adoc[leveloffset=+1]
+
 include::rich_versions.adoc[leveloffset=+1]
 
 [[sec:declaring_without_version]]
