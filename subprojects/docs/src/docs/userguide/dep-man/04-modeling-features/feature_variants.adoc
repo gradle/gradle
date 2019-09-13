@@ -18,7 +18,7 @@
 [[feature_variants]]
 = Feature variants and optional dependencies
 
-Gradle supports the concept of _feature variants_: when running a library, it's often the case that some features should only be available when some dependencies are present, or when special artifacts are used.
+Gradle supports the concept of _feature variants_: when building a library, it's often the case that some features should only be available when some dependencies are present, or when special artifacts are used.
 
 Feature variants let consumers choose what _features_ of a library they need: the dependency management engine will select the right artifacts and dependencies.
 
