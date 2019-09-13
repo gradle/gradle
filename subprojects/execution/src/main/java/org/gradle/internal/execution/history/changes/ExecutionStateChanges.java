@@ -34,4 +34,11 @@ public interface ExecutionStateChanges {
      * Turn these changes into ones forcing a rebuild with the given reason.
      */
     ExecutionStateChanges withEnforcedRebuild(String rebuildReason);
+
+    /**
+     * Whether the changes allow incremental execution of the work.
+     */
+    default boolean isIncremental() {
+        return false;
+    }
 }

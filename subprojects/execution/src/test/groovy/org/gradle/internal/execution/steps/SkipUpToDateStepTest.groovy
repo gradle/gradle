@@ -63,6 +63,7 @@ class SkipUpToDateStepTest extends StepSpec<IncrementalChangesContext> {
 
         _ * context.changes >> Optional.of(changes)
         1 * changes.allChangeMessages >> ImmutableList.of("change")
+        1 * changes.isIncremental() >> false
         1 * delegate.execute(context) >> delegateResult
         0 * _
 

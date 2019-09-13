@@ -82,13 +82,13 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
                     }
                 };
             } else {
-                return executeBecause(reasons, context);
+                return executeBecause(reasons, context, changes.isIncremental());
             }
-        }).orElseGet(() -> executeBecause(CHANGE_TRACKING_DISABLED, context));
+        }).orElseGet(() -> executeBecause(CHANGE_TRACKING_DISABLED, context, false));
     }
 
-    private UpToDateResult executeBecause(ImmutableList<String> reasons, C context) {
-        logExecutionReasons(reasons, context.getWork());
+    private UpToDateResult executeBecause(ImmutableList<String> reasons, C context, boolean incremental) {
+        logExecutionReasons(reasons, context.getWork(), incremental);
         CurrentSnapshotResult result = delegate.execute(context);
         return new UpToDateResult() {
             @Override
@@ -115,10 +115,10 @@ public class SkipUpToDateStep<C extends IncrementalChangesContext> implements St
         };
     }
 
-    private void logExecutionReasons(List<String> reasons, UnitOfWork work) {
+    private void logExecutionReasons(List<String> reasons, UnitOfWork work, boolean incremental) {
         if (LOGGER.isInfoEnabled()) {
             Formatter formatter = new Formatter();
-            formatter.format("%s is not up-to-date because:", StringUtils.capitalize(work.getDisplayName()));
+            formatter.format("%s is not up-to-date %sbecause:", StringUtils.capitalize(work.getDisplayName()), incremental ? "" : "and requires a rebuild ");
             for (String message : reasons) {
                 formatter.format("%n  %s", message);
             }

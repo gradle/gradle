@@ -93,6 +93,7 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         outputs.deletedClasses("AThing")
 
         and:
+        outputContains("Task ':compileJava' is not up-to-date and requires a rebuild because:")
         output.contains("Input property 'options.annotationProcessorPath' file ${file("annotation/build/libs/annotation.jar").absolutePath} has been removed")
     }
 }

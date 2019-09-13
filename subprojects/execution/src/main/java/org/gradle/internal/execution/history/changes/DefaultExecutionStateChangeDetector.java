@@ -164,6 +164,11 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
         public InputChangesInternal createInputChanges() {
             return new IncrementalInputChanges(inputFileChanges, incrementalInputProperties);
         }
+
+        @Override
+        public boolean isIncremental() {
+            return true;
+        }
     }
 
     private static class NonIncrementalDetectedExecutionStateChanges extends AbstractDetectedExecutionStateChanges {
