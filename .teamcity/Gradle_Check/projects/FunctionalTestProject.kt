@@ -5,6 +5,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
 import model.Stage
+import model.SubprojectSplit
 import model.TestCoverage
 
 class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage: Stage) : Project({
@@ -21,7 +22,16 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
             return@forEach
         }
 
-        buildType(FunctionalTest(model, testConfig, bucket.getSubprojectNames(), stage, bucket.name, bucket.extraParameters()))
+        if (bucket is SubprojectSplit) {
+            // https://github.com/gradle/gradle-private/issues/2693
+            if (testConfig.testType.supportTestSplit) {
+                buildType(FunctionalTest(model, testConfig, bucket.getSubprojectNames(), stage, bucket.name, bucket.extraParameters()))
+            } else if (bucket.number == 1) {
+                buildType(FunctionalTest(model, testConfig, bucket.getSubprojectNames(), stage, bucket.name))
+            }
+        } else {
+            buildType(FunctionalTest(model, testConfig, bucket.getSubprojectNames(), stage, bucket.name, bucket.extraParameters()))
+        }
     }
 }) {
     companion object {
@@ -32,3 +42,4 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
         }
     }
 }
+

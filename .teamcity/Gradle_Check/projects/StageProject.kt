@@ -39,8 +39,10 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
     }
 
     stage.functionalTests.forEach { testCoverage ->
-        val isSplitIntoBuckets = testCoverage.testType != TestType.soak
-        if (isSplitIntoBuckets) {
+        val isSoakTest = testCoverage.testType == TestType.soak
+        if (isSoakTest) {
+            buildType(FunctionalTest(model, testCoverage, stage = stage))
+        } else {
             val functionalTests = FunctionalTestProject(model, testCoverage, stage)
             subProject(functionalTests)
             if (stage.functionalTestsDependOnSpecificBuilds) {
@@ -51,8 +53,6 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             if (!(stage.functionalTestsDependOnSpecificBuilds && stage.specificBuilds.contains(SpecificBuild.SanityCheck)) && stage.dependsOnSanityCheck) {
                 functionalTests.addDependencyForAllBuildTypes(AbsoluteId(SanityCheck.buildTypeId(model)))
             }
-        } else {
-            buildType(FunctionalTest(model, testCoverage, stage = stage))
         }
     }
 
