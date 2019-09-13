@@ -175,6 +175,20 @@ The abstract method `compile()` is no longer declared by `AbstractCompile`.
 Tasks extending `AbstractCompile` can implement their own `@TaskAction` method with the name of their choosing.
 They are also free to add a `@TaskAction` method with an `InputChanges` parameter without having to implement a parameter-less one as well.
 
+==== Using the `embedded-kotlin` plugin now requires a repository
+
+Just like when using the `kotlin-dsl` plugin, it is now required to declare a repository where Kotlin dependencies can be found if you apply the `embedded-kotlin` plugin.
+
+```kotlin
+plugins {
+    `embedded-kotlin`
+}
+
+repositories {
+    jcenter()
+}
+```
+
 ==== Kotlin DSL IDE support now requires Kotlin IntelliJ Plugin >= 1.3.50
 
 With Kotlin IntelliJ plugin versions prior to 1.3.50, Kotlin DSL scripts will be wrongly highlighted when the _Gradle JVM_ is set to a version different from the one in _Project SDK_.
