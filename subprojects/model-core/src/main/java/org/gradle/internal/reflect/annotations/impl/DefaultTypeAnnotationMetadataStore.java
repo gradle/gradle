@@ -181,9 +181,12 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     private TypeAnnotationMetadata createTypeAnnotationMetadata(Class<?> type) {
-        String packageName = type.getPackage().getName();
-        if (ignoredPackagePrefixes.stream().anyMatch(packageName::startsWith)) {
-            return EMPTY_TYPE_ANNOTATION_METADATA;
+        Package typePackage = type.getPackage();
+        if (typePackage != null) {
+            String typePackageName = typePackage.getName();
+            if (ignoredPackagePrefixes.stream().anyMatch(typePackageName::startsWith)) {
+                return EMPTY_TYPE_ANNOTATION_METADATA;
+            }
         }
 
         ImmutableSet.Builder<Annotation> typeAnnotations = ImmutableSet.builder();
