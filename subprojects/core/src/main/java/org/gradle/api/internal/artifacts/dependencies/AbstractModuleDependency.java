@@ -82,6 +82,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Override
     public void setTargetConfiguration(@Nullable String configuration) {
         validateMutation(this.configuration, configuration);
+        validateNotVariantAware();
         this.configuration = configuration;
     }
 
@@ -113,6 +114,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public AbstractModuleDependency addArtifact(DependencyArtifact artifact) {
+        validateNotVariantAware();
         artifacts.add(artifact);
         return this;
     }
@@ -124,6 +126,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     @Override
     public DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) {
+        validateNotVariantAware();
         DefaultDependencyArtifact artifact = new DefaultDependencyArtifact();
         configureAction.execute(artifact);
         artifact.validate();
@@ -195,6 +198,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Override
     public AbstractModuleDependency attributes(Action<? super AttributeContainer> configureAction) {
         validateMutation();
+        validateNotLegacyConfigured();
         if (attributesFactory == null) {
             warnAboutInternalApiUse("attributes");
             return this;
@@ -209,6 +213,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Override
     public ModuleDependency capabilities(Action<? super ModuleDependencyCapabilitiesHandler> configureAction) {
         validateMutation();
+        validateNotLegacyConfigured();
         if (capabilityNotationParser == null) {
             warnAboutInternalApiUse("capabilities");
             return this;
@@ -275,6 +280,18 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     protected void validateMutation(Object currentValue, Object newValue) {
         if (!Objects.equal(currentValue, newValue)) {
             validateMutation();
+        }
+    }
+
+    private void validateNotVariantAware() {
+        if (!getAttributes().isEmpty() || !getRequestedCapabilities().isEmpty()) {
+            throw new IllegalStateException("Cannot set artifact / configuration information on a dependency that has attributes or capabilities configured");
+        }
+    }
+
+    private void validateNotLegacyConfigured() {
+        if (getTargetConfiguration() != null || !getArtifacts().isEmpty()) {
+            throw new IllegalStateException("Cannot add attributes or capabilities on a dependency that specifies artifacts or configuration information");
         }
     }
 

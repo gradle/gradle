@@ -153,6 +153,134 @@ abstract class AbstractModuleDependencySpec extends Specification {
 
     }
 
+    void "refuses artifact when attributes present"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.attributes {
+            it.attribute(Attribute.of("attribute", String), 'foo')
+        }
+
+        when:
+        dep.artifact {
+            println("Not reached")
+        }
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    void "refuses target configuration when attributes present"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.attributes {
+            it.attribute(Attribute.of("attribute", String), 'foo')
+        }
+
+        when:
+        dep.setTargetConfiguration('foo')
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    void "refuses artifact when capability present"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.capabilities {
+            it.requireCapability((Object)'org:foo:1.0')
+        }
+
+        when:
+        dep.artifact {
+            println("Not reached")
+        }
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    void "refuses target configuration when capability present"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.capabilities {
+            it.requireCapability((Object)'org:foo:1.0')
+        }
+
+        when:
+        dep.setTargetConfiguration('foo')
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    void "refuses attribute when targetConfiguration specified"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.setTargetConfiguration('foo')
+
+        when:
+        dep.attributes {
+            it.attribute(Attribute.of("attribute", String), 'foo')
+        }
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    void "refuses capability when targetConfiguration specified"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.setTargetConfiguration('foo')
+
+        when:
+        dep.capabilities {
+            it.requireCapability('org:foo:1.0')
+        }
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    void "refuses attribute when artifact added"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        when:
+        dep.attributes {
+            it.attribute(Attribute.of("attribute", String), 'foo')
+        }
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    void "refuses capability when artifact added"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        when:
+        dep.capabilities {
+            it.requireCapability('org:foo:1.0')
+        }
+
+        then:
+        thrown(IllegalStateException)
+    }
+
     void "copy does not mutate original attributes"() {
         def attr1 = Attribute.of("attr1", String)
         dependency.attributes {
