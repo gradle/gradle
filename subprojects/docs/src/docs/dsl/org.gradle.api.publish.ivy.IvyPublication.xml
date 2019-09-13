@@ -47,6 +47,12 @@
             <tr>
                 <td>configurations</td>
             </tr>
+            <tr>
+                <td>suppressIvyMetadataWarningsFor</td>
+            </tr>
+            <tr>
+                <td>suppressAllIvyMetadataWarnings</td>
+            </tr>
         </table>
     </section>
 </section>

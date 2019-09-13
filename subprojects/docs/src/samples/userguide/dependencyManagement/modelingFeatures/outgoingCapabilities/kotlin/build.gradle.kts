@@ -45,10 +45,13 @@ publishing {
             setUrl("${buildDir}/repo")
         }
     }
+    // tag::ignore-pom-warnings[]
     publications {
         register<MavenPublication>("maven") {
             from(components["java"])
+            suppressPomMetadataWarningsFor("runtimeElements")
         }
     }
+    // end::ignore-pom-warnings[]
 }
 

@@ -174,6 +174,20 @@ The table below summarizes how some Gradle specific features are mapped to Maven
 
 |===
 
+==== Disabling metadata compatibility publication warnings
+
+If you want to suppress warnings, you can use the following APIs to do so:
+
+* For Maven, see the `suppress*` methods in link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:suppressAllPomMetadataWarnings()[MavenPublication]
+* For Ivy, see the `suppress*` methods in link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:suppressAllIvyMetadataWarnings()[IvyPublication]
+
+
+.Disabling publication warnings
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/groovy",files="build.gradle[tags=ignore-pom-warnings]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/kotlin",files="build.gradle.kts[tags=ignore-pom-warnings]"]
+====
+
 [[sub:interactions-other-build-tools]]
 === Interactions with other build tools
 
