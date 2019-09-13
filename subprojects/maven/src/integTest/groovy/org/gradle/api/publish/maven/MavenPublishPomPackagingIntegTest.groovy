@@ -129,8 +129,26 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         then:
         mavenModule.assertPublished()
         mavenModule.parsedPom.packaging == 'foo'
-         // Ideally, the '.foo' artifact would be '.txt' as specified
-        mavenModule.assertArtifactsPublished("publishTest-1.9.foo", "publishTest-1.9.pom")
+        mavenModule.assertArtifactsPublished("publishTest-1.9.txt", "publishTest-1.9.pom")
+    }
+
+    def "can specify packaging for known jar packaging without changing artifact extension"() {
+        given:
+        createBuildScripts """
+            pom.packaging "ejb"
+
+            artifact("content.txt") {
+                extension "jar"
+            }
+"""
+
+        when:
+        succeeds "publish"
+
+        then:
+        mavenModule.assertPublished()
+        mavenModule.parsedPom.packaging == 'ejb'
+        mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom")
     }
 
     def "can specify packaging with multiple unclassified artifacts"() {
