@@ -15,6 +15,7 @@ We would like to thank the following community contributors to this release of G
 [Sergey Shatunov](https://github.com/Prototik),
 [Dan Sănduleac](https://github.com/dansanduleac),
 [Vladimir Sitnikov](https://github.com/vlsi),
+[Ross Goldberg](https://github.com/rgoldberg),
 and [Robin Verduijn](https://github.com/robinverduijn).
 
 <!-- 
