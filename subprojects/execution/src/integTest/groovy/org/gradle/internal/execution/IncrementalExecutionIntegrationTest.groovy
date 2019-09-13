@@ -115,6 +115,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationExecutor = new TestBuildOperationExecutor()
+    def validationWarningReporter = Mock(ValidateStep.ValidationWarningReporter)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")
@@ -142,7 +143,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         // @formatter:off
         new DefaultWorkExecutor<>(
             new LoadExecutionStateStep<>(
-            new ValidateStep<>(
+            new ValidateStep<>(validationWarningReporter,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,

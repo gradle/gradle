@@ -145,12 +145,13 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
     def deleter = TestFiles.deleter()
+    def validationWarningReporter = Stub(ValidateStep.ValidationWarningReporter)
 
     // @formatter:off
     def workExecutor = new DefaultWorkExecutor<>(
         new LoadExecutionStateStep<>(
         new SkipEmptyWorkStep<>(
-        new ValidateStep<>(
+        new ValidateStep<>(validationWarningReporter,
         new CaptureStateBeforeExecutionStep(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
         new ResolveCachingStateStep(buildCacheController, false,
         new ResolveChangesStep<>(changeDetector,

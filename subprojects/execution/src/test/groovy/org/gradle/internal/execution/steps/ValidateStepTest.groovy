@@ -21,7 +21,8 @@ import org.gradle.internal.reflect.WorkValidationContext
 import org.gradle.internal.reflect.WorkValidationException
 
 class ValidateStepTest extends ContextInsensitiveStepSpec {
-    def step = new ValidateStep<>(delegate)
+    def warningReporter = Mock(ValidateStep.ValidationWarningReporter)
+    def step = new ValidateStep<>(warningReporter, delegate)
     def delegateResult = Mock(Result)
 
     def "executes work when there are no violations"() {
@@ -73,6 +74,44 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
             validationContext.visitError("Validation error #1")
             validationContext.visitError("Validation error #2")
         }
+        0 * _
+    }
+
+    def "reports deprecation warning for validation warning"() {
+        when:
+        step.execute(context)
+
+        then:
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.visitWarning("Validation warning")
+        }
+
+        then:
+        1 * warningReporter.reportValidationWarning("Validation warning")
+
+        then:
+        1 * delegate.execute(context)
+        0 * _
+    }
+
+    def "reports deprecation warning even when there's also an error"() {
+        when:
+        step.execute(context)
+
+        then:
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.visitWarning("Validation warning")
+            validationContext.visitError("Validation error")
+        }
+
+        then:
+        1 * warningReporter.reportValidationWarning("Validation warning")
+
+        then:
+        def ex = thrown WorkValidationException
+        ex.message == "A problem was found with the configuration of job ':test'."
+        ex.causes.size() == 1
+        ex.causes[0].message == "Validation error"
         0 * _
     }
 }

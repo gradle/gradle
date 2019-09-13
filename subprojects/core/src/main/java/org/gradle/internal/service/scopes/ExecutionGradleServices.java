@@ -142,6 +142,7 @@ public class ExecutionGradleServices {
         OutputFilesRepository outputFilesRepository,
         OverlappingOutputDetector overlappingOutputDetector,
         TimeoutHandler timeoutHandler,
+        ValidateStep.ValidationWarningReporter validationWarningReporter,
         ValueSnapshotter valueSnapshotter
     ) {
         // @formatter:off
@@ -149,7 +150,7 @@ public class ExecutionGradleServices {
             new LoadExecutionStateStep<>(
             new MarkSnapshottingInputsStartedStep<>(
             new SkipEmptyWorkStep<>(
-            new ValidateStep<>(
+            new ValidateStep<>(validationWarningReporter,
             new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep(buildCacheController, buildScanPlugin.isBuildScanPluginApplied(),
             new MarkSnapshottingInputsFinishedStep<>(
