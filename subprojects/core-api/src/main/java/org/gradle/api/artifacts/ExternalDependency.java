@@ -32,7 +32,10 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
      *
      * @param force Whether to force this version or not.
      * @return this
+     *
+     * @deprecated Use {@link MutableVersionConstraint#strictly(String) instead.}
      */
+    @Deprecated
     ExternalDependency setForce(boolean force);
 
     /**

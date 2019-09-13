@@ -29,6 +29,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     private final VersionSelector preferredVersionSelector;
     private final VersionSelector requiredVersionSelector;
     private final VersionSelector rejectedVersionsSelector;
+    private final boolean isStrict;
     private final boolean rejectAll;
     private final boolean isDynamic;
 
@@ -40,12 +41,12 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     public DefaultResolvedVersionConstraint(String requiredVersion, String preferredVersion, String strictVersion, List<String> rejectedVersions, VersionSelectorScheme scheme) {
         // For now, required and preferred are treated the same
 
-        boolean strict = !strictVersion.isEmpty();
-        String version = strict ? strictVersion : requiredVersion;
+        isStrict = !strictVersion.isEmpty();
+        String version = isStrict ? strictVersion : requiredVersion;
         this.requiredVersionSelector = scheme.parseSelector(version);
         this.preferredVersionSelector = preferredVersion.isEmpty() ? null : scheme.parseSelector(preferredVersion);
 
-        if (strict) {
+        if (isStrict) {
             VersionSelector rejectionForStrict = getRejectionForStrict(version, scheme);
             if (!rejectedVersions.isEmpty()) {
                 VersionSelector explicitRejected = toRejectSelector(scheme, rejectedVersions);
@@ -96,6 +97,11 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     @Override
     public boolean isDynamic() {
         return isDynamic;
+    }
+
+    @Override
+    public boolean isStrict() {
+        return isStrict;
     }
 
     private boolean doComputeIsDynamic() {

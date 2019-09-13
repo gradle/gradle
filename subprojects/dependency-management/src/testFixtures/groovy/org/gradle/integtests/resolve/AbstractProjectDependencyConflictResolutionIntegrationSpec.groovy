@@ -128,6 +128,9 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
 """)
 
         then:
+        if (force != null) {
+            executer.expectDeprecationWarning()
+        }
         succeeds('check')
 
         where:

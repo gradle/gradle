@@ -232,6 +232,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
                 expectGetMetadata()
             }
         }
+        executer.expectDeprecationWarning()
         fails ':checkDeps'
 
         then:

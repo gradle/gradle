@@ -46,6 +46,7 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -262,7 +263,7 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
         Dependency platformDependency = create(notation);
         if (platformDependency instanceof ExternalModuleDependency) {
             ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
-            externalModuleDependency.setForce(true);
+            DeprecationLogger.whileDisabled(() -> externalModuleDependency.setForce(true));
             platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
         } else if (platformDependency instanceof HasConfigurableAttributes) {
             platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));

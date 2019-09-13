@@ -250,10 +250,10 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return reason;
     }
 
-    boolean isForced() {
+    boolean hasStrongOpinion() {
         return StreamSupport.stream(module.getSelectors().spliterator(), false)
             .filter(s -> s.getFailure() == null)
-            .anyMatch(SelectorState::isForce);
+            .anyMatch(SelectorState::hasStrongOpinion);
     }
 
     @Override
