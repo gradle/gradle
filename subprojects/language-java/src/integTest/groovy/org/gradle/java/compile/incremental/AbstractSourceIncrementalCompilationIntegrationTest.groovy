@@ -32,8 +32,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         source """class B {
             private C c;
         }"""
-        source """class C {
-        }"""
+        source 'class C {}'
 
         outputs.snapshot { run language.compileTaskName }
 
@@ -48,18 +47,12 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
     }
 
     def "complex recompilation"() {
-        source """class AccessedFromPackagePrivateField {
-        }"""
-        source """class AccessedFromPrivateMethod {
-        }"""
-        source """class AccessedFromPrivateMethodBody {
-        }"""
-        source """class AccessedFromPrivateField {
-        }"""
-        source """class AccessedFromPrivateClass {
-        }"""
-        source """class AccessedFromPrivateClassPublicField {
-        }"""
+        source 'class AccessedFromPackagePrivateField {}'
+        source 'class AccessedFromPrivateMethod {}'
+        source 'class AccessedFromPrivateMethodBody {}'
+        source 'class AccessedFromPrivateField {}'
+        source 'class AccessedFromPrivateClass {}'
+        source 'class AccessedFromPrivateClassPublicField {}'
         source """class SomeClass {
             java.util.List<Integer> field = new java.util.LinkedList<Integer>();
         
