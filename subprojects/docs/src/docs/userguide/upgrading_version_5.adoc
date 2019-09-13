@@ -88,10 +88,11 @@ The traditional metadata file will contain a marker so that Gradle knows that th
 ==== Maven or Ivy repositories are no longer queried for artifacts without metadata by default
 
 If Gradle fails to locate the metadata file (`.pom` or `ivy.xml`) of a module in a repository defined in the `repositories { }` section, it now assumes that the module does not exist in that repository.
+Similar, for dynamic versions, the `metadata.xml` for the corresponding module needs to be present in a Maven repository.
 Previously, Gradle was also looking for a default artifact (`.jar`) which usually also does not exist.
 This often caused large number of unnecessary requests when using multiple repositories.
 This change speeds up builds with many dependencies using multiple repositories.
-You can opt into the previous behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:repository-content-filtering,repository content filter>>.
+You can opt into the previous behavior for selected repositories by adding the `artifact()` <<supported_metadata_sources.adoc#sec:repository-content-filtering,metadata source>>.
 
 ==== buildSrc classes are no longer visible from settings scripts
 
@@ -192,6 +193,20 @@ Therefore, the `Javadoc` and `Groovydoc` tasks are now configured to not include
 ==== User provided 'config_loc' properties are ignored by Checkstyle
 
 Gradle always uses `configDirectory` as the value for 'config_loc' when running Checkstyle.
+
+==== Changing the pom packaging no longer changes the artifact extension
+
+Previously, the extension of the main artifact published to a Maven repository, typically a _jar_, was changed during publishing if the pom packaging was not _jar_, _ejb_, _bundle_ or _maven-plugin_.
+This behavior let to broken Gradle Module Metadata and was difficult to understand due to different handling of different packaging types.
+Build authors can change the artifact name when the artifact is created to obtain the same result as before - e.g. by setting `jar.archiveExtension.set(pomPackaging)`.
+
+==== Ivy.xml published for Java libraries contains more information
+
+A number of fixes were made to produce more correct `ivy.xml` metadata in the `ivy-publish` plugin.
+As a consequence, the internal structure of the `ivy.xml` file has changed.
+However, selecting the `default` configuration yields the same result as before.
+Only the `runtime` configuration now contains more information which corresponds to the _runtimeElements_ variant of a Java library.
+In general, users are advised to migrate from `ivy.xml` to the new Gradle Module Metadata format.
 
 ==== Miscellaneous
 
