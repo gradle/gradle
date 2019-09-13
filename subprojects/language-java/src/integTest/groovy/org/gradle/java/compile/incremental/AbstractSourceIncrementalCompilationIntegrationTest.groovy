@@ -371,7 +371,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         run language.compileTaskName
 
         then:
-        if ("groovy" == language.name) {
+        if (language == CompiledLanguage.GROOVY) {
             // Groovy doesn't propagate annotations on fields to the generated getter+setter methods.
             // The field itself is made 'private' by Groovy.
             // Therefore, the field-annotation is no longer "accessible" but instead "private".
