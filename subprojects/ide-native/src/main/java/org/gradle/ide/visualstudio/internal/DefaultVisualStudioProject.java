@@ -174,7 +174,6 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         builtBy(nativeBinary.getHeaderFiles());
     }
 
-    @Internal
     public VisualStudioProjectConfiguration getConfiguration(VisualStudioTargetBinary nativeBinary) {
         return configurations.get(nativeBinary);
     }
