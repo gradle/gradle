@@ -63,6 +63,10 @@ public interface VisualStudioProject extends Named, Buildable {
     XmlConfigFile getFiltersFile();
 
     @Override
+    @Internal
+    TaskDependency getBuildDependencies();
+
+    @Override
     @Input
     String getName();
 }

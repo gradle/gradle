@@ -87,7 +87,6 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
     }
 
     @Override
-    @Input
     public String getComponentName() {
         return componentName;
     }
@@ -193,16 +192,17 @@ public class DefaultVisualStudioProject implements VisualStudioProjectInternal {
         return name;
     }
 
+    @Internal
     public Property<VersionNumber> getVisualStudioVersion() {
         return visualStudioVersion;
     }
 
+    @Internal
     public Property<VersionNumber> getSdkVersion() {
         return sdkVersion;
     }
 
     @Override
-    @Internal
     public IdeProjectMetadata getPublishArtifact() {
         return new VisualStudioProjectMetadata(this);
     }

@@ -19,10 +19,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
 import groovy.transform.Generated;
-import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Describable;
-import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
@@ -138,7 +136,6 @@ public class ExecutionGlobalServices {
             ),
             ImmutableSet.of(
                 AbstractTask.class,
-                Buildable.class,
                 ClosureBackedAction.class,
                 ConfigureUtil.WrappedConfigureAction.class,
                 ConventionTask.class,
@@ -154,7 +151,6 @@ public class ExecutionGlobalServices {
                 ExtensionAware.class,
                 HasConvention.class,
                 IConventionAware.class,
-                Named.class,
                 ScriptOrigin.class,
                 Task.class
             ),
