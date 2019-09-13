@@ -19,7 +19,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.GroovyObject;
 import groovy.transform.Generated;
+import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Describable;
+import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.InputArtifact;
@@ -130,9 +133,11 @@ public class ExecutionGlobalServices {
             ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
             ImmutableSet.of(
                 AbstractTask.class,
+                Buildable.class,
                 ClosureBackedAction.class,
                 ConfigureUtil.WrappedConfigureAction.class,
                 ConventionTask.class,
+                Describable.class,
                 DefaultDomainObjectCollection.class,
                 DefaultDomainObjectSet.class,
                 DefaultNamedDomainObjectCollection.class,
@@ -145,6 +150,7 @@ public class ExecutionGlobalServices {
                 GroovyObject.class,
                 HasConvention.class,
                 IConventionAware.class,
+                Named.class,
                 Object.class,
                 ScriptOrigin.class,
                 Task.class
