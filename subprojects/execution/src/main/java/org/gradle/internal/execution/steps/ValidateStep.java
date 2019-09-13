@@ -16,9 +16,17 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
+import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.WorkValidationException;
+
+import javax.annotation.Nullable;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class ValidateStep<C extends Context, R extends Result> implements Step<C, R> {
     private final Step<? super C, ? extends R> delegate;
@@ -29,7 +37,49 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
 
     @Override
     public R execute(C context) {
-        context.getWork().validate();
+        ValidationContext validationContext = new ValidationContext();
+        context.getWork().validate(validationContext);
+        ImmutableList<String> messages = validationContext.getMessages();
+        if (!messages.isEmpty()) {
+            String displayName = context.getWork().getDisplayName();
+            String errorMessage = messages.size() == 1
+                ? String.format("A problem was found with the configuration of %s.", displayName)
+                : String.format("Some problems were found with the configuration of %s.", displayName);
+            List<InvalidUserDataException> causes = messages.stream()
+                .limit(5)
+                .sorted()
+                .map(InvalidUserDataException::new)
+                .collect(Collectors.toList());
+            throw new WorkValidationException(errorMessage, causes);
+        }
         return delegate.execute(context);
+    }
+
+    private static class ValidationContext implements WorkValidationContext {
+        private final ImmutableList.Builder<String> messages = ImmutableList.builder();
+
+        @Override
+        public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+            visitWarning(WorkValidationContext.decorateMessage(ownerPath, propertyName, message));
+        }
+
+        @Override
+        public void visitWarning(String message) {
+            messages.add(message);
+        }
+
+        @Override
+        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+            visitError(WorkValidationContext.decorateMessage(ownerPath, propertyName, message));
+        }
+
+        @Override
+        public void visitError(String message) {
+            visitWarning(message);
+        }
+
+        public ImmutableList<String> getMessages() {
+            return messages.build();
+        }
     }
 }
