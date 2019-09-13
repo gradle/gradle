@@ -243,7 +243,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         TaskProvider<Task> naggerTask = project.getTasks().register("nagAboutValidateTaskProperties", task -> {
             task.setGroup(PLUGIN_DEVELOPMENT_GROUP);
             task.setDescription("Nag about task " + VALIDATE_TASK_PROPERTIES_TASK_NAME + " replaced by " + VALIDATE_PLUGIN_TASK_NAME);
-            task.doFirst((taskWithAction) -> nagAboutDeprecatedValidateTaskPropertiesTask());
+            task.doFirst(taskWithAction -> nagAboutDeprecatedValidateTaskPropertiesTask());
         });
         TaskProvider<ValidatePlugin> validatorTask = project.getTasks().register(VALIDATE_PLUGIN_TASK_NAME, ValidatePlugin.class, task -> {
             task.setGroup(PLUGIN_DEVELOPMENT_GROUP);
