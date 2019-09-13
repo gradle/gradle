@@ -58,11 +58,10 @@ public class Ear extends Jar {
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
 
-    @Inject
-    public Ear(ObjectFactory objectFactory) {
+    public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
         setMetadataCharset("UTF-8");
-        generateDeploymentDescriptor = objectFactory.property(Boolean.class);
+        generateDeploymentDescriptor = getObjectFactory().property(Boolean.class);
         generateDeploymentDescriptor.convention(true);
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
             (Callable<String>) () -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)
