@@ -4,6 +4,7 @@
 Gradle supports a rich model for declaring versions, which allows to combine different level of version information.
 The terms and their meaning are explained below, from the strongest to the weakest:
 
+[[sec:strict-version]]
 `strictly`::
 Any version not matched by this version notation will be excluded.
 This is the strongest version declaration.
@@ -12,6 +13,7 @@ This term supports dynamic versions.
 +
 When defined, overrides previous `require` declaration and clears previous `reject`.
 
+[[sec:required-version]]
 `require`::
 Implies that the selected version cannot be lower than what `require` accepts but could be higher through conflict resolution, even if higher has an exclusive higher bound.
 This is what a direct version on a dependency translates to.
@@ -19,6 +21,7 @@ This term supports dynamic versions.
 +
 When defined, overrides previous `strictly` declaration and clears previous `reject`.
 
+[[sec:preferred-version]]
 `prefer`::
 This is a very soft version declaration.
 It applies only if there is no stronger non dynamic opinion on a version for the module.
@@ -28,6 +31,7 @@ Definition can complement `strictly` or `require`.
 
 There is also an additional term outside of the level hierarchy:
 
+[[sec:rejected-version]]
 `reject`::
 Declares that specific version(s) are not accepted for the module.
 This will cause dependency resolution to fail if the only versions selectable are also rejected.
