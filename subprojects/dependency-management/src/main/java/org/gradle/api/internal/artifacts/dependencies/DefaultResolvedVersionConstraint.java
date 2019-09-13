@@ -46,9 +46,6 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         this.preferredVersionSelector = preferredVersion.isEmpty() ? null : scheme.parseSelector(preferredVersion);
 
         if (strict) {
-            //if (!rejectedVersions.isEmpty()) {
-            //    throw new IllegalArgumentException("Cannot combine 'strict' and 'reject' in a single version constraint.");
-            //}
             VersionSelector rejectionForStrict = getRejectionForStrict(version, scheme);
             if (!rejectedVersions.isEmpty()) {
                 VersionSelector explicitRejected = toRejectSelector(scheme, rejectedVersions);
