@@ -248,6 +248,34 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("count = 12")
     }
 
+    def "can query generated read only property in constructor"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                abstract Property<String> getParam()
+                
+                MyTask() {
+                    param.convention("from convention")
+                }
+                
+                @TaskAction
+                void go() {
+                    println("param = \${param.get()}")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                param.set("from configuration")
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("param = from configuration")
+    }
+
     def "cannot modify task's input properties via returned map"() {
         given:
         buildFile << """
