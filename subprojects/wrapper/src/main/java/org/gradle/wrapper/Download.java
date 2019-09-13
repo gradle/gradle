@@ -22,9 +22,9 @@ import java.net.*;
 
 public class Download implements IDownload {
     public static final String UNKNOWN_VERSION = "0";
-    private static final int PROGRESS_CHUNK = 1024 * 1024;
 
     private static final int BUFFER_SIZE = 10 * 1024;
+    private static final int PROGRESS_CHUNK = 1024 * 1024;
     private final Logger logger;
     private final String appName;
     private final String appVersion;
@@ -69,7 +69,8 @@ public class Download implements IDownload {
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
             int totalLength = conn.getContentLength();
-            int downloadedLength = 0;
+            long downloadedLength = 0;
+            long progressCounter = 0;
             while ((numRead = in.read(buffer)) != -1) {
                 if (Thread.currentThread().isInterrupted()) {
                     System.out.print("interrupted");
@@ -79,15 +80,24 @@ public class Download implements IDownload {
                 long previousDownloadedLength = downloadedLength;
                 downloadedLength += numRead;
 
-                int currentDownloadPercentTenth = calculateDownloadPercent(totalLength, downloadedLength) / 10;
-                int previousDownloadPercentTenth = calculateDownloadPercent(totalLength, previousDownloadedLength) / 10;
+                if (totalLength > 0) {
+                    int currentDownloadPercentTenth = calculateDownloadPercent(totalLength, downloadedLength) / 10;
+                    int previousDownloadPercentTenth = calculateDownloadPercent(totalLength, previousDownloadedLength) / 10;
 
-                if (currentDownloadPercentTenth != 0 && currentDownloadPercentTenth != previousDownloadPercentTenth) {
-                    logger.append(String.format("%d%%... ", currentDownloadPercentTenth * 10));
+                    if (currentDownloadPercentTenth != 0 && currentDownloadPercentTenth != previousDownloadPercentTenth) {
+                        int percentage = currentDownloadPercentTenth * 10;
+                        logger.append(String.valueOf(percentage)).append('%');
+                    }
                 }
 
-                if (progressListener != null) {
-                    progressListener.downloadStatusChanged(address, totalLength, downloadedLength);
+                progressCounter += numRead;
+                if (progressCounter / PROGRESS_CHUNK > 0) {
+                    logger.append(".");
+                    progressCounter = progressCounter - PROGRESS_CHUNK;
+
+                    if (progressListener != null) {
+                        progressListener.downloadStatusChanged(address, totalLength, downloadedLength);
+                    }
                 }
 
                 out.write(buffer, 0, numRead);
