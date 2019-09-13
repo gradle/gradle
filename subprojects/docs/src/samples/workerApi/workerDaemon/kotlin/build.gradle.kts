@@ -35,7 +35,7 @@ abstract class ReverseFile : WorkAction<ReverseParameters> {
     }
 }
 
-open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) : SourceTask() {
+open class ReverseFiles @Inject constructor(private val workerExecutor: WorkerExecutor) : SourceTask() {
     @OutputDirectory
     lateinit var outputDir: File
 
