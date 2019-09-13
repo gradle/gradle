@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult2;
 
-public class DefaultTestSuccessResult2 extends AbstractTestResult implements InternalTestSuccessResult2 {
+public class DefaultTestSuccessResult2 extends AbstractTestResultWithOutput implements InternalTestSuccessResult2 {
 
     public DefaultTestSuccessResult2(long startTime, long endTime, String output, String error) {
         super(startTime, endTime, "succeeded", output, error);

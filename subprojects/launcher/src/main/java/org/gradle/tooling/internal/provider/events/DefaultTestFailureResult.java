@@ -24,7 +24,7 @@ public class DefaultTestFailureResult extends AbstractTestResult implements Inte
     private final List<DefaultFailure> failures;
 
     public DefaultTestFailureResult(long startTime, long endTime, List<DefaultFailure> failures) {
-        super(startTime, endTime, "failed", "TODO", "TODO");
+        super(startTime, endTime, "failed");
         this.failures = failures;
     }
 

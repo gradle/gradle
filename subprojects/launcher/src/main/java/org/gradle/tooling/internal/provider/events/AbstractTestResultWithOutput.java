@@ -16,21 +16,24 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult2;
+import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 
-import java.util.List;
+public abstract class AbstractTestResultWithOutput extends AbstractTestResult {
 
-public class DefaultTestFailureResult2 extends AbstractTestResultWithOutput implements InternalTestFailureResult2 {
-    private final List<DefaultFailure> failures;
+    private final String output;
+    private final String error;
 
-    public DefaultTestFailureResult2(long startTime, long endTime, List<DefaultFailure> failures, String output, String error) {
-        super(startTime, endTime, "failed", output, error);
-        this.failures = failures;
+    protected AbstractTestResultWithOutput(long startTime, long endTime, String outcomeDescription, String output, String error) {
+        super(startTime, endTime, outcomeDescription);
+        this.output = output;
+        this.error = error;
     }
 
-    @Override
-    public List<DefaultFailure> getFailures() {
-        return failures;
+    public String getOutput() {
+        return output;
+    }
+
+    public String getError() {
+        return error;
     }
 }
