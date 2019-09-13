@@ -8,6 +8,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
+import model.BuildTypeBucket
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
@@ -62,7 +63,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             id = AbsoluteId(uuid)
             name = "Test coverage deferred from Quick Feedback and Ready for Merge"
             model.buildTypeBuckets
-                .filter { !it.shouldBeSkippedInStage(stage) && it.containsSlowTests() }
+                .filter(BuildTypeBucket::containsSlowTests)
                 .forEach { bucket ->
                     FunctionalTestProject.missingTestCoverage
                         .filter { testConfig ->
