@@ -24,6 +24,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
         when:
         buildScript '''
             class MessageTask extends DefaultTask {
+                @Internal
                 String message = "default"
 
                 @TaskAction
