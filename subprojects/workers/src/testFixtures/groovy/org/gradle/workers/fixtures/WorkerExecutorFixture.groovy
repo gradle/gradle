@@ -70,14 +70,23 @@ class WorkerExecutorFixture {
             import org.gradle.other.Foo
 
             class WorkerTask extends DefaultTask {
+                @Internal
                 def list = $list
+                @Internal
                 def outputFileDirPath = "${outputFileDirPath}/\${name}"
+                @Internal
                 def additionalForkOptions = {}
+                @Internal
                 def workActionClass = TestWorkAction.class
+                @Internal
                 def additionalClasspath = project.layout.files()
+                @Internal
                 def foo = new Foo()
+                @Internal
                 def displayName = null
+                @Internal
                 def isolationMode = IsolationMode.AUTO
+                @Internal
                 def forkMode = null
 
                 @Inject
