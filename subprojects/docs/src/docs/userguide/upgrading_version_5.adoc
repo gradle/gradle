@@ -92,7 +92,7 @@ Similar, for dynamic versions, the `metadata.xml` for the corresponding module n
 Previously, Gradle was also looking for a default artifact (`.jar`) which usually also does not exist.
 This often caused large number of unnecessary requests when using multiple repositories.
 This change speeds up builds with many dependencies using multiple repositories.
-You can opt into the previous behavior for selected repositories by adding the `artifact()` <<supported_metadata_sources.adoc#sec:repository-content-filtering,metadata source>>.
+You can opt into the previous behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata source>>.
 
 ==== buildSrc classes are no longer visible from settings scripts
 
