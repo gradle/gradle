@@ -31,6 +31,6 @@ public interface InternalTestSuccessResult2 extends InternalTestSuccessResult {
     //               TRIM (default; include test output only if it doesn't reach, say 50Mb altogether)
     // TODO (donat) Add sufficient test coverage for all changed classes
 
-    String getOutput();
+    String getOutput(); // TODO (donat) use a more clear method name. Maybe getTest
     String getError();
 }

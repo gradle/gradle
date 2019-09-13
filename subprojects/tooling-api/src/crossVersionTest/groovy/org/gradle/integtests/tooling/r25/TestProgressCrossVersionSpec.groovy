@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.tooling.r25
+package org.gradle.integtests.tooling.r26
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -30,49 +30,11 @@ import org.gradle.tooling.events.test.TestFailureResult
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.events.test.TestProgressEvent
 import org.gradle.tooling.events.test.TestSkippedResult
-import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
-
-    def "receive test output"() {
-        given:
-        goodCode()
-        file("src/test/java/example/MyTest2.java") << """
-            package example;
-            public class MyTest2 {
-                @org.junit.Test public void foo() throws Exception {
-                    System.out.println("Winged hussars");
-                    System.err.println("The red baron");
-                    org.junit.Assert.assertEquals(1, 2);
-                }
-            }
-        """
-
-        when:
-        def events = ProgressEvents.create()
-        withConnection {
-            ProjectConnection connection ->
-                connection.model(BuildInvocations.class).forTasks('test').addProgressListener(
-                    new org.gradle.tooling.events.ProgressListener() {
-
-                        @Override
-                        void statusChanged(ProgressEvent event) {
-                            if (event instanceof DefaultTestFinishEvent) {
-                                println "out=" + event.result.output
-                                println "err=" + event.result.error
-                            }
-                        }
-                    }
-
-                ).withArguments("--info").get()
-        }
-
-        then:
-        true
-    }
 
     def "receive test progress events when requesting a model"() {
         given:

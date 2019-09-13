@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.tooling.events.SuccessResult;
-
 /**
  * Describes how a test operation finished successfully.
  *
