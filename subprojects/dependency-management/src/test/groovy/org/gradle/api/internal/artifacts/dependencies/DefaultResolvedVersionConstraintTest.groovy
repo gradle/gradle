@@ -40,24 +40,16 @@ class DefaultResolvedVersionConstraintTest extends Specification {
         !e.rejectAll
 
         where:
-        strictVersion | complement
-        '1.0'         | '!(1.0)'
-        '[1.0, 2.0]'  | '!([1.0, 2.0])'
-        '[1.0, 2.0)'  | '!([1.0, 2.0))'
-        '(, 2.0)'     | '!((, 2.0))'
-        '(, 2.0]'     | '!((, 2.0])'
+        strictVersion    | complement
+        '1.0'            | '!(1.0)'
+        '[1.0, 2.0]'     | '!([1.0, 2.0])'
+        '[1.0, 2.0)'     | '!([1.0, 2.0))'
+        '(, 2.0)'        | '!((, 2.0))'
+        '(, 2.0]'        | '!((, 2.0])'
+        '[1.0,)'         | '!([1.0,))'
+        '1.+'            | '!(1.+)'
+        '1+'             | '!(1+)'
+        'latest.release' | '!(latest.release)'
     }
 
-    @Unroll
-    def "fails converting version #version to a strict dependency"() {
-        when:
-        new DefaultResolvedVersionConstraint('', '', version, [], versionSelectorScheme)
-
-        then:
-        IllegalArgumentException ex = thrown()
-        ex.message == "Version '$version' cannot be converted to a strict version constraint."
-
-        where:
-        version << ['[1.0,)', '1.+', '1+']
-    }
 }
