@@ -278,7 +278,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class MyTask extends DefaultTask {
-                final WorkerExecutor workerExecutor
+                private final WorkerExecutor workerExecutor
             
                 @OutputFile
                 File outputFile
