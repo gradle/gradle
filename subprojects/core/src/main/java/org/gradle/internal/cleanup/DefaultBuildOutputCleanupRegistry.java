@@ -16,19 +16,19 @@
 
 package org.gradle.internal.cleanup;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 
 import java.io.File;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
     private final FileCollectionFactory fileCollectionFactory;
     private final Set<FileCollection> outputs = Sets.newHashSet();
-    private Set<String> resolvedPaths;
+    private volatile ImmutableSet<String> resolvedPaths;
 
     public DefaultBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
         this.fileCollectionFactory = fileCollectionFactory;
@@ -56,21 +56,28 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
     }
 
     private Set<String> getResolvedPaths() {
-        if (resolvedPaths == null) {
-            doResolvePaths();
-        }
-        return resolvedPaths;
-    }
-
-    private synchronized void doResolvePaths() {
-        if (resolvedPaths == null) {
-            Set<String> result = new LinkedHashSet<String>();
-            for (FileCollection output : outputs) {
-                for (File file : output) {
-                    result.add(file.getAbsolutePath());
+        // Use double checked locking,
+        // since `isOutputOwnedByBuild` can be accessed from multiple projects at the same time,
+        // while other projects are still running configuration.
+        ImmutableSet<String> tmp = resolvedPaths;
+        if (tmp == null) {
+            synchronized (this) {
+                tmp = resolvedPaths;
+                if (tmp == null) {
+                    resolvedPaths = tmp = doResolvePaths();
                 }
             }
-            resolvedPaths = result;
         }
+        return tmp;
+    }
+
+    private ImmutableSet<String> doResolvePaths() {
+        ImmutableSet.Builder<String> builder = ImmutableSet.builderWithExpectedSize(outputs.size());
+        for (FileCollection output : outputs) {
+            for (File file : output) {
+                builder.add(file.getAbsolutePath());
+            }
+        }
+        return builder.build();
     }
 }
