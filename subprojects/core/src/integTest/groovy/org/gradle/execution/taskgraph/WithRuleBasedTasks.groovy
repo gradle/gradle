@@ -21,6 +21,7 @@ trait WithRuleBasedTasks {
     String ruleBasedTasks() {
         """
         class EchoTask extends DefaultTask {
+            @Internal
             String message = "default"
             @TaskAction
             void print() {
@@ -29,6 +30,7 @@ trait WithRuleBasedTasks {
         }
 
         class ClimbTask extends DefaultTask {
+            @Internal
             int steps = 0
             @TaskAction
             void print() {
@@ -37,6 +39,7 @@ trait WithRuleBasedTasks {
         }
 
         class JumpTask extends DefaultTask {
+            @Internal
             int height = 0
             @TaskAction
             void print() {
