@@ -22,27 +22,11 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
-        withBuildScript("""
-            plugins {
-                kotlin("jvm") version "1.3.31"
-            }
-        """)
+    fun `embedded kotlin dependencies are pinned to the embedded version`() {
 
-        val result = build("buildEnvironment")
-
-        listOf("stdlib", "reflect").forEach { module ->
-            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.3.31 -> $embeddedKotlinVersion"))
-        }
-    }
-
-    @Test
-    fun `stdlib and reflect are pinned to the embedded kotlin version for buildscript dependencies`() {
         withBuildScript("""
             buildscript {
-                repositories {
-                    gradlePluginPortal()
-                }
+                $repositoriesBlock
                 dependencies {
                     classpath("org.jetbrains.kotlin:kotlin-stdlib:1.0")
                     classpath("org.jetbrains.kotlin:kotlin-reflect:1.0")
@@ -54,6 +38,21 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
 
         listOf("stdlib", "reflect").forEach { module ->
             assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.0 -> $embeddedKotlinVersion"))
+        }
+    }
+
+    @Test
+    fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
+        withBuildScript("""
+            plugins {
+                kotlin("jvm") version "1.3.31"
+            }
+        """)
+
+        val result = build("buildEnvironment")
+
+        listOf("stdlib", "reflect").forEach { module ->
+            assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-$module:1.3.31 -> $embeddedKotlinVersion"))
         }
     }
 

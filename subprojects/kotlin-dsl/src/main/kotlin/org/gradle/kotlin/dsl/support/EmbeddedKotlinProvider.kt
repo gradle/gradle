@@ -19,6 +19,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 
+import java.util.Properties
+
 
 class EmbeddedKotlinProvider {
 
@@ -33,28 +35,39 @@ class EmbeddedKotlinProvider {
     }
 
     internal
-    fun pinDependenciesOn(
+    fun pinEmbeddedKotlinDependenciesOn(
         dependencies: DependencyHandler,
-        configuration: String,
-        vararg kotlinModules: String
+        configuration: String
     ) {
-        kotlinModules.forEach { kotlinModule ->
-            dependencies.constraints.add(configuration, kotlinModuleNotationFor(kotlinModule)) { constraint ->
+        embeddedKotlinVersions.forEach { (module, version) ->
+            dependencies.constraints.add(configuration, module) { constraint ->
                 constraint.version {
-                    it.strictly(embeddedKotlinVersion)
+                    it.strictly(version)
                 }
                 constraint.because("Pinned to the embedded Kotlin")
             }
         }
     }
+
+    private
+    fun kotlinModuleVersionNotationFor(kotlinModule: String) =
+        "${kotlinModuleNotationFor(kotlinModule)}:$embeddedKotlinVersion"
+
+    private
+    fun kotlinModuleNotationFor(kotlinModule: String) =
+        "org.jetbrains.kotlin:kotlin-$kotlinModule"
+
+    private
+    val embeddedKotlinVersions by lazy {
+        uncheckedCast<Map<String, String>>(
+            Properties().apply {
+                EmbeddedKotlinProvider::class.java
+                    .classLoader
+                    .getResourceAsStream("gradle-kotlin-dsl-embedded-kotlin.properties")
+                    .use { input ->
+                        load(input)
+                    }
+            }
+        )
+    }
 }
-
-
-private
-fun kotlinModuleVersionNotationFor(kotlinModule: String) =
-    "${kotlinModuleNotationFor(kotlinModule)}:$embeddedKotlinVersion"
-
-
-private
-fun kotlinModuleNotationFor(kotlinModule: String) =
-    "org.jetbrains.kotlin:kotlin-$kotlinModule"

@@ -131,10 +131,9 @@ class StandardKotlinScriptEvaluator(
 
     private
     fun setupEmbeddedKotlinForBuildscript(scriptHandler: ScriptHandler) {
-        embeddedKotlinProvider.pinDependenciesOn(
+        embeddedKotlinProvider.pinEmbeddedKotlinDependenciesOn(
             scriptHandler.dependencies,
-            "classpath",
-            "stdlib-jdk8", "reflect"
+            "classpath"
         )
     }
 
