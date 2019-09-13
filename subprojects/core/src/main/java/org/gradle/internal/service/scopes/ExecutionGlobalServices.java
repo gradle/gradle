@@ -87,6 +87,8 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore;
 import org.gradle.internal.scripts.ScriptOrigin;
+import org.gradle.util.ClosureBackedAction;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
@@ -128,6 +130,8 @@ public class ExecutionGlobalServices {
             ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
             ImmutableSet.of(
                 AbstractTask.class,
+                ClosureBackedAction.class,
+                ConfigureUtil.WrappedConfigureAction.class,
                 ConventionTask.class,
                 DefaultTask.class,
                 DynamicObjectAware.class,
