@@ -23,7 +23,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.tasks.TaskValidationException;
-import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.internal.reflect.ParameterValidationContext.decorateMessage;
+import static org.gradle.internal.reflect.WorkValidationContext.decorateMessage;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -71,7 +71,7 @@ public class TaskPropertyUtils {
         return propertyName;
     }
 
-    private static class StrictErrorsOnlyContext implements ParameterValidationContext {
+    private static class StrictErrorsOnlyContext implements WorkValidationContext {
         private final TaskInternal task;
         List<String> problems;
 

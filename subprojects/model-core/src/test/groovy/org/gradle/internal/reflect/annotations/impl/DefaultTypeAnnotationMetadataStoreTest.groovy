@@ -21,7 +21,7 @@ import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
-import org.gradle.internal.reflect.ParameterValidationContext
+import org.gradle.internal.reflect.WorkValidationContext
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -695,7 +695,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         }
 
         List<String> actualErrors = []
-        def visitor = new ParameterValidationContext() {
+        def visitor = new WorkValidationContext() {
             @Override
             void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
                 actualErrors.add("Property '$propertyName' $message")

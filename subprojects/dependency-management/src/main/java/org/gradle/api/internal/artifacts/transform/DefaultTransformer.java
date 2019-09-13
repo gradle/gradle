@@ -32,7 +32,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.tasks.properties.DefaultWorkValidationContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
@@ -61,7 +61,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -135,13 +135,13 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.cacheable = cacheable;
     }
 
-    public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, ParameterValidationContext parameterValidationContext) {
+    public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, WorkValidationContext workValidationContext) {
         if (cacheable) {
             if (normalizer == AbsolutePathInputNormalizer.class) {
-                parameterValidationContext.visitWarning(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
+                workValidationContext.visitWarning(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
             }
             if (normalizer == null) {
-                parameterValidationContext.visitWarning(null, propertyName, "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath");
+                workValidationContext.visitWarning(null, propertyName, "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath");
             }
         }
     }
@@ -192,7 +192,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         if (parameterObject != null) {
-            parameterPropertyWalker.visitProperties(parameterObject, ParameterValidationContext.NOOP, new PropertyVisitor.Adapter() {
+            parameterPropertyWalker.visitProperties(parameterObject, WorkValidationContext.NOOP, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                     context.add(value.getTaskDependencies());
@@ -258,7 +258,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         List<String> validationMessages = new ArrayList<>();
-        DefaultParameterValidationContext validationContext = new DefaultParameterValidationContext(validationMessages);
+        DefaultWorkValidationContext validationContext = new DefaultWorkValidationContext(validationMessages);
         propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
             @Override
             public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {

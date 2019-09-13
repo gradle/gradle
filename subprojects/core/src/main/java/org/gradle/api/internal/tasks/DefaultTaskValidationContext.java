@@ -17,13 +17,13 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.tasks.properties.DefaultWorkValidationContext;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 
 import java.io.File;
 import java.util.Collection;
 
-public class DefaultTaskValidationContext extends DefaultParameterValidationContext implements TaskValidationContext {
+public class DefaultTaskValidationContext extends DefaultWorkValidationContext implements TaskValidationContext {
     private final FileOperations fileOperations;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
 

@@ -18,8 +18,8 @@ package org.gradle.internal.reflect;
 
 import javax.annotation.Nullable;
 
-public interface ParameterValidationContext {
-    ParameterValidationContext NOOP = new ParameterValidationContext() {
+public interface WorkValidationContext {
+    WorkValidationContext NOOP = new WorkValidationContext() {
         @Override
         public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
         }

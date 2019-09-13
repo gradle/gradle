@@ -30,8 +30,8 @@ import com.google.common.collect.SetMultimap;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -77,7 +77,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         @Override
-        public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
+        public void visitValidationFailures(@Nullable String ownerPath, WorkValidationContext validationContext) {
         }
     };
 
