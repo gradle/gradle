@@ -40,11 +40,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         buildFile << """
             dependencies {
-                conf('org:foo:1.0') {
-                   version {
-                      strictly '1.0'
-                   }
-                }
+                conf('org:foo:1.0!!')
             }           
         """
 
@@ -175,12 +171,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         buildFile << """
             dependencies {
-                conf('org:foo') {
-                    version {
-                        strictly '[1.0.0,2.0.0)'
-                        prefer '1.1.0'
-                    }
-                }
+                conf('org:foo:[1.0.0,2.0.0)!!1.1.0')
             }
         """
 
@@ -268,11 +259,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
         buildFile << """
             dependencies {
-                conf('org:foo') {
-                    version {
-                        strictly '1.0'
-                    }
-                }
+                conf('org:foo:1.0!!')
                 conf('org:bar:1.0')
             }           
         """
