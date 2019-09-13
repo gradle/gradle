@@ -24,9 +24,13 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             abstract class AbstractVerificationTask<K, V> extends DefaultTask {
 
+                @Internal
                 final MapProperty<K, V> prop
+                @Internal
                 Map<K, V> expected = [:]
+                @Internal
                 final Class<K> keyType
+                @Internal
                 final Class<V> valueType
                 
                 AbstractVerificationTask(Class<K> keyType, Class<V> valueType) {
