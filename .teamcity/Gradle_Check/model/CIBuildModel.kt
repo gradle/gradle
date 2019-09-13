@@ -209,16 +209,15 @@ data class CIBuildModel(
         )
         val largeSubprojects = mapOf("integTest" to 3, "core" to 3, "dependencyManagement" to 3)
 
-        buildTypeBuckets =
-            listOf<BuildTypeBucket>(
-                SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
-            ) + buckets.map { projectsInBucket ->
-                SubprojectBucket(name = projectsInBucket[0], subprojects = projectsInBucket.map { subprojectMap.getValue(it) })
-            } + largeSubprojects.flatMap { entry ->
-                (1..entry.value).map { SubprojectSplit(subproject = subprojectMap.getValue(entry.key), number = it, total = entry.value) }
-            } + subProjects.filter {
-                !buckets.flatten().contains(it.name) && !largeSubprojects.containsKey(it.name) && !it.hasOnlyUnitTests()
-            }
+        val nonTrivialBuckets = listOf<BuildTypeBucket>(
+            SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
+        ) + buckets.map { projectsInBucket ->
+            SubprojectBucket(name = projectsInBucket[0], subprojects = projectsInBucket.map { subprojectMap.getValue(it) })
+        } + largeSubprojects.map { entry ->
+            SubprojectSplit(subproject = subprojectMap.getValue(entry.key), number = 1, total = entry.value)
+        }
+        val handledSubprojects = nonTrivialBuckets.flatMap { it.getSubprojectNames() }
+        buildTypeBuckets = nonTrivialBuckets + subProjects.filter { !handledSubprojects.contains(it.name) }
     }
 }
 
@@ -235,6 +234,9 @@ interface BuildTypeBucket {
     fun hasTestsOf(testType: TestType): Boolean
     fun extraParameters(): String
     fun getSubprojectNames(): List<String>
+    fun forTestType(testType: TestType): List<BuildTypeBucket> {
+        return listOf(this)
+    }
 }
 
 data class SubprojectSplit(val subproject: GradleSubproject, val number: Int, val total: Int) : BuildTypeBucket by subproject, Validatable {
@@ -248,6 +250,16 @@ data class SubprojectSplit(val subproject: GradleSubproject, val number: Int, va
         get() = if (number == 1) subproject.name else "${subproject.name}_$number"
 
     override fun extraParameters(): String = "-PtestSplit=$number/$total"
+
+    override fun forTestType(testType: TestType): List<BuildTypeBucket> {
+        return if (testType.supportTestSplit) {
+            (1..total).map {
+                SubprojectSplit(subproject, it, total)
+            }
+        } else {
+            listOf(subproject)
+        }
+    }
 }
 
 data class SubprojectBucket(override val name: String, val subprojects: List<GradleSubproject>) : BuildTypeBucket, Validatable {

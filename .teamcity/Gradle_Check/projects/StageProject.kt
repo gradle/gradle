@@ -62,14 +62,16 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             id = AbsoluteId(uuid)
             name = "Test coverage deferred from Quick Feedback and Ready for Merge"
             model.buildTypeBuckets
-                .filter { it.shouldBeSkippedInStage(stage) }
+                .filter { !it.shouldBeSkippedInStage(stage) && it.containsSlowTests() }
                 .forEach { bucket ->
                     FunctionalTestProject.missingTestCoverage
                         .filter { testConfig ->
                             bucket.hasTestsOf(testConfig.testType)
                         }
                         .forEach { testConfig ->
-                            buildType(FunctionalTest(model, testConfig, bucket.getSubprojectNames(), stage, bucket.name))
+                            bucket.forTestType(testConfig.testType).forEach {
+                                buildType(FunctionalTest(model, testConfig, it.getSubprojectNames(), stage, it.name))
+                            }
                         }
                 }
         }

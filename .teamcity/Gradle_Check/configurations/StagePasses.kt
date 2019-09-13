@@ -119,7 +119,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
                     !bucket.shouldBeSkipped(testCoverage) && !bucket.shouldBeSkippedInStage(stage)
                 }.forEach { subProjectBucket ->
                     if (subProjectBucket.hasTestsOf(testCoverage.testType)) {
-                        dependency(AbsoluteId(testCoverage.asConfigurationId(model, subProjectBucket.name))) { snapshot {} }
+                        subProjectBucket.forTestType(testCoverage.testType).forEach {
+                            dependency(AbsoluteId(testCoverage.asConfigurationId(model, it.name))) { snapshot {} }
+                        }
                     }
                 }
             } else {
@@ -135,7 +137,9 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
                     FunctionalTestProject.missingTestCoverage.filter {
                         bucket.hasTestsOf(it.testType)
                     }.forEach { testConfig ->
-                        dependency(AbsoluteId(testConfig.asConfigurationId(model, bucket.name))) { snapshot {} }
+                        bucket.forTestType(testConfig.testType).forEach {
+                            dependency(AbsoluteId(testConfig.asConfigurationId(model, it.name))) { snapshot {} }
+                        }
                     }
                 }
             }

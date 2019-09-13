@@ -72,11 +72,8 @@ class CIConfigIntegrationTests {
                             return@forEach
                         }
                         if (subprojectBucket.hasTestsOf(testCoverage.testType)) {
-                            functionalTestCount++
+                            functionalTestCount += subprojectBucket.forTestType(testCoverage.testType).size
                         }
-                    }
-                    if (testCoverage.testType.unitTests) {
-                        functionalTestCount++ // All unit tests build type
                     }
                     if (testCoverage.testType == TestType.soak) {
                         functionalTestCount++
@@ -151,7 +148,7 @@ class CIConfigIntegrationTests {
             subProjects = listOf(
                 GradleSubproject("fastBuild"),
                 GradleSubproject("slowBuild", containsSlowTests = true)
-            )
+            ) + listOf("integTest", "core", "dependencyManagement", "resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp", "platformBase", "platformJvm", "platformNative").map { GradleSubproject(it) }
         )
         val p = RootProject(m)
         assertTrue(!p.hasSubProject("Stage1", "deferred"))
