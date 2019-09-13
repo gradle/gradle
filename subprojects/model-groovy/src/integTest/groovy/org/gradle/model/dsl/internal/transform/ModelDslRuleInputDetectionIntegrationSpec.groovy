@@ -351,6 +351,7 @@ tasks configured
             }
 
             class PrintTask extends DefaultTask {
+                @Internal
                 String message
 
                 @TaskAction
