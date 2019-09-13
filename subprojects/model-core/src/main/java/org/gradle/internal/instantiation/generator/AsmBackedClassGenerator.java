@@ -124,20 +124,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private final String suffix;
     private final int factoryId;
 
-    // Used by generated code
+    private static final String GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME = "getDisplayNameForNext";
+    // Used by generated code, see ^
     @SuppressWarnings("unused")
     @Nullable
     public static Describable getDisplayNameForNext() {
         return SERVICES_FOR_NEXT_OBJECT.get().displayName;
     }
 
-    // Used by generated code
+    private static final String GET_SERVICES_FOR_NEXT_METHOD_NAME = "getServicesForNext";
+    // Used by generated code, see ^
     @SuppressWarnings("unused")
     public static ServiceLookup getServicesForNext() {
         return SERVICES_FOR_NEXT_OBJECT.get().services;
     }
 
-    // Used by generated code
+    private static final String GET_FACTORY_FOR_NEXT_METHOD_NAME = "getFactoryForNext";
+    // Used by generated code, see ^
     @SuppressWarnings("unused")
     public static ManagedObjectFactory getFactoryForNext() {
         ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
@@ -547,19 +550,19 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             if (requiresToString) {
                 // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getDisplayNameForNext", RETURN_DESCRIBABLE, false);
+                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME, RETURN_DESCRIBABLE, false);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
             }
             if (requiresServicesMethod) {
                 // this.services = AsmBackedClassGenerator.getServicesForNext()
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getServicesForNext", RETURN_SERVICE_LOOKUP, false);
+                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_SERVICES_FOR_NEXT_METHOD_NAME, RETURN_SERVICE_LOOKUP, false);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), SERVICES_FIELD, SERVICE_LOOKUP_TYPE.getDescriptor());
             }
             if (requiresFactory) {
                 // this.factory = AsmBackedClassGenerator.getFactoryForNext()
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getFactoryForNext", RETURN_MANAGED_OBJECT_FACTORY, false);
+                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_FACTORY_FOR_NEXT_METHOD_NAME, RETURN_MANAGED_OBJECT_FACTORY, false);
                 methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE.getDescriptor());
             }
             for (PropertyMetadata property : propertiesToAttach) {
@@ -931,7 +934,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             mv.visitJumpInsn(IFNULL, label);
             mv.visitInsn(ARETURN);
             mv.visitLabel(label);
-            mv.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getServicesForNext", RETURN_SERVICE_LOOKUP, false);
+            mv.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_SERVICES_FOR_NEXT_METHOD_NAME, RETURN_SERVICE_LOOKUP, false);
             mv.visitInsn(ARETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();
@@ -1530,7 +1533,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             mv.visitJumpInsn(IFNULL, label);
             mv.visitInsn(ARETURN);
             mv.visitLabel(label);
-            mv.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), "getFactoryForNext", RETURN_MANAGED_OBJECT_FACTORY, false);
+            mv.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_FACTORY_FOR_NEXT_METHOD_NAME, RETURN_MANAGED_OBJECT_FACTORY, false);
             mv.visitInsn(ARETURN);
             mv.visitMaxs(0, 0);
             mv.visitEnd();
