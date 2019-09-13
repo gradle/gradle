@@ -143,6 +143,7 @@ public class EarPlugin implements Plugin<Project> {
             public void execute(Ear ear) {
                 ear.setDescription("Generates a ear archive with all the modules, the application descriptor and the libraries.");
                 ear.setGroup(BasePlugin.BUILD_GROUP);
+                ear.getGenerateDeploymentDescriptor().convention(convention.getGenerateDeploymentDescriptor());
             }
         });
 
