@@ -191,6 +191,9 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                                     username = System.getenv("ARTIFACTORY_USERNAME")
                                     password = System.getenv("ARTIFACTORY_PASSWORD")
                                 }
+                                authentication {
+                                    basic(BasicAuthentication)
+                                }
                             }
                         }
 
