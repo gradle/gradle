@@ -62,16 +62,6 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         builder.append(version);
     }
 
-    private void append(String name, boolean active, StringBuilder builder) {
-        if (!active) {
-            return;
-        }
-        if (builder.length() != 1) {
-            builder.append("; ");
-        }
-        builder.append(name);
-    }
-
     @Override
     public String getDisplayName() {
         String requiredVersion = getRequiredVersion();
