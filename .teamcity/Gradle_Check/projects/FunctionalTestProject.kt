@@ -42,4 +42,3 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
         }
     }
 }
-
