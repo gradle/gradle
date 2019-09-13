@@ -301,31 +301,31 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [DYNAMIC_PLUS, FIXED_11],
         expected: "13",
-        expectedStrict: [IGNORE, "11"],
+        expectedStrict: ["13", "11"],
         conflicts: true
     ).and(
         versions: [DYNAMIC_PLUS, RANGE_10_12],
         expected: "13",
-        expectedStrict: [IGNORE, "12"],
+        expectedStrict: ["13", "12"],
         conflicts: true
     ).and(
         versions: [DYNAMIC_PLUS, RANGE_10_16],
         expected: "13",
-        expectedStrict: [IGNORE, "13"]
+        expectedStrict: ["13", "13"]
     ).and(
         versions: [DYNAMIC_LATEST, FIXED_11],
         expected: "13",
-        expectedStrict: [IGNORE, "11"],
+        expectedStrict: ["13", "11"],
         conflicts: true
     ).and(
         versions: [DYNAMIC_LATEST, RANGE_10_12],
         expected: "13",
-        expectedStrict: [IGNORE, "12"],
+        expectedStrict: ["13", "12"],
         conflicts: true
     ).and(
         versions: [DYNAMIC_LATEST, RANGE_10_16],
         expected: "13",
-        expectedStrict: [IGNORE, "13"]
+        expectedStrict: ["13", "13"]
     )
 
     public static final StrictPermutationsProvider SCENARIOS_DEPENDENCY_WITH_REJECT = StrictPermutationsProvider.check(
