@@ -281,6 +281,38 @@ abstract class AbstractModuleDependencySpec extends Specification {
         thrown(IllegalStateException)
     }
 
+    void "refuses configuration when artifact added"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        when:
+        dep.setTargetConfiguration('foo')
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    void "refuses artifact when configuration specified"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.setTargetConfiguration('foo')
+
+        when:
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        dep.artifact {
+            throw new AssertionError()
+        }
+
+        then:
+        thrown(IllegalStateException)
+    }
+
     void "copy does not mutate original attributes"() {
         def attr1 = Attribute.of("attr1", String)
         dependency.attributes {

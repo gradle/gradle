@@ -83,6 +83,9 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     public void setTargetConfiguration(@Nullable String configuration) {
         validateMutation(this.configuration, configuration);
         validateNotVariantAware();
+        if (!artifacts.isEmpty()) {
+            throw new IllegalStateException("Cannot set target configuration when artifacts have been specified");
+        }
         this.configuration = configuration;
     }
 
@@ -115,6 +118,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Override
     public AbstractModuleDependency addArtifact(DependencyArtifact artifact) {
         validateNotVariantAware();
+        validateNoTargetConfiguration();
         artifacts.add(artifact);
         return this;
     }
@@ -127,6 +131,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Override
     public DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) {
         validateNotVariantAware();
+        validateNoTargetConfiguration();
         DefaultDependencyArtifact artifact = new DefaultDependencyArtifact();
         configureAction.execute(artifact);
         artifact.validate();
@@ -292,6 +297,12 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private void validateNotLegacyConfigured() {
         if (getTargetConfiguration() != null || !getArtifacts().isEmpty()) {
             throw new IllegalStateException("Cannot add attributes or capabilities on a dependency that specifies artifacts or configuration information");
+        }
+    }
+
+    private void validateNoTargetConfiguration() {
+        if (configuration != null) {
+            throw new IllegalStateException(("Cannot add artifact if target configuration has been set"));
         }
     }
 
