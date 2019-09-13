@@ -17,7 +17,9 @@ package org.gradle.plugins.ear;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 import org.gradle.plugins.ear.descriptor.DeploymentDescriptor;
 
 /**
@@ -54,7 +56,10 @@ public abstract class EarPluginConvention {
     /**
      * Specifies if the deploymentDescriptor should be generated if it does not exist.
      * Default is true.
+     *
+     * @since 6.0
      */
+    @Incubating
     public abstract Property<Boolean> getGenerateDeploymentDescriptor();
 
     /**

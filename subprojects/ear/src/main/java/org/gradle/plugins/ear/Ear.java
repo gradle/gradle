@@ -18,6 +18,7 @@ package org.gradle.plugins.ear;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -224,10 +225,12 @@ public class Ear extends Jar {
     }
 
     /**
-     * Specifies if deploymentDescriptor should be generated.
-     * @return
+     * @return should deploymentDescriptor be generated.
+     *
+     * @since 6.0
      */
     @Input
+    @Incubating
     public Property<Boolean> getGenerateDeploymentDescriptor() {
         return generateDeploymentDescriptor;
     }
