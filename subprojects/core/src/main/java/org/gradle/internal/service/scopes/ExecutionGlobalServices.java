@@ -27,6 +27,12 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.DefaultDomainObjectCollection;
+import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DefaultNamedDomainObjectCollection;
+import org.gradle.api.internal.DefaultNamedDomainObjectList;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.HasConvention;
 import org.gradle.api.internal.IConventionAware;
@@ -129,6 +135,12 @@ public class ExecutionGlobalServices {
                 GroovyObject.class,
                 HasConvention.class,
                 IConventionAware.class,
+                DefaultDomainObjectCollection.class,
+                DefaultDomainObjectSet.class,
+                DefaultNamedDomainObjectCollection.class,
+                DefaultNamedDomainObjectList.class,
+                DefaultNamedDomainObjectSet.class,
+                DefaultPolymorphicDomainObjectContainer.class,
                 Object.class,
                 ScriptOrigin.class,
                 Task.class
