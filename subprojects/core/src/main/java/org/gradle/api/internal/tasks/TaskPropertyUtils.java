@@ -22,8 +22,8 @@ import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.WorkValidationException;
 import org.gradle.util.CollectionUtils;
 
 import javax.annotation.Nullable;
@@ -91,7 +91,7 @@ public class TaskPropertyUtils {
                 Collections.sort(problems);
                 message = String.format("Some problems were found with the configuration of %s of type '%s'.", task, taskType.getName());
             }
-            throw new TaskValidationException(message, CollectionUtils.collect(problems, InvalidUserDataException::new));
+            throw new WorkValidationException(message, CollectionUtils.collect(problems, InvalidUserDataException::new));
         }
 
         @Override

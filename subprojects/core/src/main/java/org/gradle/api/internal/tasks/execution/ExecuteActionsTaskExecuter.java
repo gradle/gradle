@@ -50,7 +50,6 @@ import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerManager;
@@ -84,6 +83,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.reflect.WorkValidationException;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
@@ -165,7 +165,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskExecution work = new TaskExecution(task, context, executionHistoryStore, fingerprinterRegistry, classLoaderHierarchyHasher);
         try {
             return executeIfValid(task, state, context, work);
-        } catch (TaskValidationException ex) {
+        } catch (WorkValidationException ex) {
             state.setOutcome(ex);
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
@@ -481,7 +481,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                     .sorted()
                     .map(InvalidUserDataException::new)
                     .collect(Collectors.toList());
-                throw new TaskValidationException(errorMessage, causes);
+                throw new WorkValidationException(errorMessage, causes);
             }
         }
 

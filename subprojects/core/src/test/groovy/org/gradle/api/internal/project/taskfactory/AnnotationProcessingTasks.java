@@ -141,6 +141,7 @@ public class AnnotationProcessingTasks {
         }
     }
 
+    @SuppressWarnings("GrDeprecatedAPIUsage")
     public static class TaskWithOverriddenIncrementalAction extends TaskWithIncrementalAction {
         private final Action<IncrementalTaskInputs> action;
 
