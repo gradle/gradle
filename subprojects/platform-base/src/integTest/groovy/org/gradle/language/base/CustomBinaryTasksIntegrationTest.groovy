@@ -20,7 +20,7 @@ import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
+class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
         buildFile << """
@@ -127,6 +127,7 @@ public class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
         class BinaryCreationTask extends DefaultTask {
+            @Internal
             BinarySpec binary
             @TaskAction void create(){
                 println "Building \${binary.projectScopedName} via \${name} of type BinaryCreationTask"
