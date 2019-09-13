@@ -822,7 +822,9 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             List<String> mutableList = ["foo"]
             
             class VerifyingRunnableTask extends DefaultTask {
+                @Internal
                 String item
+                @Internal
                 List<String> testList
                 
                 @Inject
@@ -866,9 +868,13 @@ class WorkerExecutorParallelIntegrationTest extends AbstractWorkerExecutorIntegr
             import org.gradle.workers.WorkerExecutor
 
             class MultipleWorkItemTask extends DefaultTask {
+                @Internal
                 def isolationMode = IsolationMode.NONE
+                @Internal
                 def additionalForkOptions = {}
+                @Internal
                 def workActionClass = ${parallelWorkAction.name}.class
+                @Internal
                 def additionalClasspath = project.layout.files()
 
                 @Inject
