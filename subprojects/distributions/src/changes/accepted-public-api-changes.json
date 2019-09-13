@@ -115,6 +115,22 @@
             "changes": [
                 "org.gradle.api.artifacts.repositories.UrlArtifactRepository"
             ]
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskValidationException",
+            "member": "Class org.gradle.api.tasks.TaskValidationException",
+            "acceptation": "TaskValidationException is removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskValidationException",
+            "member": "Constructor org.gradle.api.tasks.TaskValidationException(java.lang.String,java.util.List)",
+            "acceptation": "TaskValidationException is removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
