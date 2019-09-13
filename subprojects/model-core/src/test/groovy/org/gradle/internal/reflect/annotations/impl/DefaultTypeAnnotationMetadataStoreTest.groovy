@@ -41,7 +41,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def store = new DefaultTypeAnnotationMetadataStore(
         [TestType],
         [(Large): TYPE, (Small): TYPE, (Color): COLOR],
-        [Object, GroovyObject],
+        ["java", "groovy"],
+        [Object],
         [Object, GroovyObject],
         [MutableType, MutableSubType],
         [Ignored, Ignored2],
@@ -667,6 +668,11 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             @Large
             void setSomething(String something) {}
         }
+
+    def "does not detect methods on type from ignored package"() {
+        expect:
+        assertProperties ArrayList, [:]
+    }
 
     void assertProperties(Class<?> type, Map<String, Map<AnnotationCategory, ?>> expectedProperties, List<String> expectedErrors = []) {
         def metadata = store.getTypeAnnotationMetadata(type)

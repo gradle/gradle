@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.joining;
@@ -82,6 +83,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     };
 
     private final ImmutableSet<Class<? extends Annotation>> recordedTypeAnnotations;
+    private final ImmutableSet<String> ignoredPackagePrefixes;
     private final ImmutableMap<Class<? extends Annotation>, AnnotationCategory> propertyAnnotationCategories;
     private final CrossBuildInMemoryCache<Class<?>, TypeAnnotationMetadata> cache;
     private final ImmutableSet<String> potentiallyIgnoredMethodNames;
@@ -95,6 +97,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
      *
      * @param recordedTypeAnnotations Annotations on the type itself that should be gathered.
      * @param propertyAnnotationCategories Annotations on the properties that should be gathered. They are mapped to {@linkplain AnnotationCategory annotation categories}. The {@code ignoreMethodAnnotation} and the {@literal @}{@link Inject} annotations are automatically mapped to the {@link AnnotationCategory#TYPE TYPE} category.
+     * @param ignoredPackagePrefixes Packages to ignore. Types from ignored packages are considered having no type annotations nor any annotated properties.
      * @param ignoredSuperTypes Super-types to ignore. Ignored super-types are considered having no type annotations nor any annotated properties.
      * @param ignoreMethodsFromTypes Methods to ignore: any methods declared by these types are ignored even when overridden by a given type. This is to avoid detecting methods like {@code Object.equals()} or {@code GroovyObject.getMetaClass()}.
      * @param ignoredMethodAnnotations Annotations to use to explicitly ignore a method/property.
@@ -105,6 +108,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     public DefaultTypeAnnotationMetadataStore(
         Collection<Class<? extends Annotation>> recordedTypeAnnotations,
         Map<Class<? extends Annotation>, ? extends AnnotationCategory> propertyAnnotationCategories,
+        Collection<String> ignoredPackagePrefixes,
         Collection<Class<?>> ignoredSuperTypes,
         Collection<Class<?>> ignoreMethodsFromTypes,
         Collection<Class<?>> mutableNonFinalClasses,
@@ -113,6 +117,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         CrossBuildInMemoryCacheFactory cacheFactory
     ) {
         this.recordedTypeAnnotations = ImmutableSet.copyOf(recordedTypeAnnotations);
+        this.ignoredPackagePrefixes = collectIgnoredPackagePrefixes(ignoredPackagePrefixes);
         this.propertyAnnotationCategories = allAnnotationCategories(propertyAnnotationCategories, ignoredMethodAnnotations);
         this.cache = initCache(ignoredSuperTypes, cacheFactory);
         this.potentiallyIgnoredMethodNames = allMethodNamesOf(ignoreMethodsFromTypes);
@@ -120,6 +125,13 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         this.mutableNonFinalClasses = ImmutableSet.copyOf(mutableNonFinalClasses);
         this.ignoredMethodAnnotations = ImmutableSet.copyOf(ignoredMethodAnnotations);
         this.generatedMethodDetector = generatedMethodDetector;
+    }
+
+    private static ImmutableSet<String> collectIgnoredPackagePrefixes(Collection<String> ignoredPackagePrefixes) {
+        return ImmutableSet.copyOf(ignoredPackagePrefixes.stream()
+            .map(prefix -> prefix + ".")
+            .collect(Collectors.toList())
+        );
     }
 
     private static ImmutableMap<Class<? extends Annotation>, AnnotationCategory> allAnnotationCategories(
@@ -169,6 +181,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     private TypeAnnotationMetadata createTypeAnnotationMetadata(Class<?> type) {
+        String packageName = type.getPackage().getName();
+        if (ignoredPackagePrefixes.stream().anyMatch(packageName::startsWith)) {
+            return EMPTY_TYPE_ANNOTATION_METADATA;
+        }
+
         ImmutableSet.Builder<Annotation> typeAnnotations = ImmutableSet.builder();
         for (Annotation typeAnnotation : type.getDeclaredAnnotations()) {
             if (recordedTypeAnnotations.contains(typeAnnotation.annotationType())) {

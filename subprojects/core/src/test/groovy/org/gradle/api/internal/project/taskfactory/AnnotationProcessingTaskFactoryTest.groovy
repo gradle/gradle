@@ -112,7 +112,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
         ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
-        [Object, GroovyObject],
+        ["java", "groovy"],
+        [],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         IGNORED_METHOD_ANNOTATIONS,

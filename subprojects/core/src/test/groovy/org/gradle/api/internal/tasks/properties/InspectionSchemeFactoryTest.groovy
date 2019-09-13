@@ -37,7 +37,8 @@ class InspectionSchemeFactoryTest extends Specification {
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
         [(Thing1): TYPE, (Thing2): TYPE],
-        [Object, GroovyObject],
+        ["java", "groovy"],
+        [],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         [IgnoredThing],

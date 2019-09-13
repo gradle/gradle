@@ -78,7 +78,8 @@ class DefaultTypeMetadataStoreTest extends Specification {
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [CustomCacheable],
         ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + [SearchPath]) as Set<Class<? extends Annotation>>),
-        [Object, GroovyObject, DefaultTask],
+        ["java", "groovy"],
+        [DefaultTask],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS,

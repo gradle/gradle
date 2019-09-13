@@ -132,6 +132,11 @@ public class ExecutionGlobalServices {
             ),
             ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
             ImmutableSet.of(
+                "java",
+                "groovy",
+                "kotlin"
+            ),
+            ImmutableSet.of(
                 AbstractTask.class,
                 Buildable.class,
                 ClosureBackedAction.class,
@@ -147,11 +152,9 @@ public class ExecutionGlobalServices {
                 DefaultTask.class,
                 DynamicObjectAware.class,
                 ExtensionAware.class,
-                GroovyObject.class,
                 HasConvention.class,
                 IConventionAware.class,
                 Named.class,
-                Object.class,
                 ScriptOrigin.class,
                 Task.class
             ),
