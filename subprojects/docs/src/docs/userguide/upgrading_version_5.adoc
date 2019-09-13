@@ -185,6 +185,12 @@ Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kot
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
 
+==== Updates to default integration versions
+
+- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.24[Checkstyle 8.24].
+- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-14---may-2019[CodeNarc 1.4].
+- PMD has been updated to https://pmd.github.io/latest/pmd_release_notes.html#28-july-2019---6170[PMD 6.17.0].
+
 ==== Javadoc and Groovydoc don't include timestamps by default
 
 Timestamps in the generated documentation have very limited practical use, however they make it impossible to have repeatable documentation builds.
