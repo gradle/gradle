@@ -120,9 +120,9 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         prepareWrapper()
 
         when:
-        def result = wrapperExecuter.run()
+        result = wrapperExecuter.run()
 
         then:
-        result.output.contains("........10%.........20%.........30%.........40%.........50%.........60%.........70%.........80%.........90%........100%")
+        outputContains("........10%.........20%.........30%.........40%.........50%.........60%.........70%.........80%.........90%........100%")
     }
 }

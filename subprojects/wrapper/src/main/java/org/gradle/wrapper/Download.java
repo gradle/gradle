@@ -16,9 +16,19 @@
 
 package org.gradle.wrapper;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Method;
-import java.net.*;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 
 public class Download implements IDownload {
     public static final String UNKNOWN_VERSION = "0";
@@ -38,7 +48,7 @@ public class Download implements IDownload {
         this.logger = logger;
         this.appName = appName;
         this.appVersion = appVersion;
-        this.progressListener = progressListener;
+        this.progressListener = new DefaultDownloadProgressListener(logger, progressListener);
         configureProxyAuthentication();
     }
 
@@ -77,27 +87,12 @@ public class Download implements IDownload {
                     throw new IOException("Download was interrupted.");
                 }
 
-                long previousDownloadedLength = downloadedLength;
                 downloadedLength += numRead;
-
-                if (totalLength > 0) {
-                    int currentDownloadPercentTenth = calculateDownloadPercent(totalLength, downloadedLength) / 10;
-                    int previousDownloadPercentTenth = calculateDownloadPercent(totalLength, previousDownloadedLength) / 10;
-
-                    if (currentDownloadPercentTenth != 0 && currentDownloadPercentTenth != previousDownloadPercentTenth) {
-                        int percentage = currentDownloadPercentTenth * 10;
-                        logger.append(String.valueOf(percentage)).append('%');
-                    }
-                }
-
                 progressCounter += numRead;
-                if (progressCounter / PROGRESS_CHUNK > 0) {
-                    logger.append(".");
-                    progressCounter = progressCounter - PROGRESS_CHUNK;
 
-                    if (progressListener != null) {
-                        progressListener.downloadStatusChanged(address, totalLength, downloadedLength);
-                    }
+                if (progressCounter / PROGRESS_CHUNK > 0 || downloadedLength == totalLength) {
+                    progressCounter = progressCounter - PROGRESS_CHUNK;
+                    progressListener.downloadStatusChanged(address, totalLength, downloadedLength);
                 }
 
                 out.write(buffer, 0, numRead);
@@ -111,10 +106,6 @@ public class Download implements IDownload {
                 out.close();
             }
         }
-    }
-
-    private int calculateDownloadPercent(long totalLength, long downloadedLength) {
-        return Math.min(100, Math.max(0, (int) ((downloadedLength / (double) totalLength) * 100)));
     }
 
     /**
@@ -191,6 +182,50 @@ public class Download implements IDownload {
             return new PasswordAuthentication(
                     System.getProperty("http.proxyUser"), System.getProperty(
                     "http.proxyPassword", "").toCharArray());
+        }
+    }
+
+    private static class DefaultDownloadProgressListener implements DownloadProgressListener {
+        private final Logger logger;
+        private final DownloadProgressListener delegate;
+        private int previousDownloadPercent;
+
+        public DefaultDownloadProgressListener(Logger logger, DownloadProgressListener delegate) {
+            this.logger = logger;
+            this.delegate = delegate;
+            this.previousDownloadPercent = 0;
+        }
+
+        @Override
+        public void downloadStatusChanged(URI address, long contentLength, long downloaded) {
+            // If the total size of distribution is known, but there's no advanced progress listener, provide extra progress information
+            if (contentLength > 0 && delegate == null) {
+                appendPercentageSoFar(contentLength, downloaded);
+            }
+
+            if (contentLength != downloaded) {
+                logger.append(".");
+            }
+
+            if (delegate != null) {
+                delegate.downloadStatusChanged(address, contentLength, downloaded);
+            }
+        }
+
+        private void appendPercentageSoFar(long contentLength, long downloaded) {
+            try {
+                int currentDownloadPercent = 10 * (calculateDownloadPercent(contentLength, downloaded) / 10);
+                if (currentDownloadPercent != 0 && previousDownloadPercent != currentDownloadPercent) {
+                    logger.append(String.valueOf(currentDownloadPercent)).append('%');
+                    previousDownloadPercent = currentDownloadPercent;
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        private int calculateDownloadPercent(long totalLength, long downloadedLength) {
+            return Math.min(100, Math.max(0, (int) ((downloadedLength / (double) totalLength) * 100)));
         }
     }
 }
