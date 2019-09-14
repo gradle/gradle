@@ -40,11 +40,9 @@ class EmbeddedKotlinProvider {
         configuration: String
     ) {
         embeddedKotlinVersions.forEach { (module, version) ->
-            dependencies.constraints.add(configuration, module) { constraint ->
-                constraint.version {
-                    it.strictly(version)
-                }
-                constraint.because("Pinned to the embedded Kotlin")
+            dependencies.constraints.add(configuration, module).apply {
+                version { it.strictly(version) }
+                because("Pinned to the embedded Kotlin")
             }
         }
     }
