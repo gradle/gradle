@@ -36,10 +36,8 @@ import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.invocation.DefaultGradle
 import org.gradle.process.ExecOperations
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
-import org.junit.Rule
 import org.slf4j.Logger
 import spock.lang.Unroll
 
@@ -145,53 +143,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
         result.assertTasksExecuted(":a")
-    }
-
-    @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
-
-    def "instant execution for task in multiple projects"() {
-        server.start()
-
-        given:
-        settingsFile << """
-            include 'a', 'b', 'c'
-        """
-        buildFile << """
-            class SlowTask extends DefaultTask {
-                @TaskAction
-                def go() {
-                    ${server.callFromBuildUsingExpression("project.name")}
-                }
-            }
-
-            subprojects {
-                tasks.create('slow', SlowTask)
-            }
-            project(':a') {
-                tasks.slow.dependsOn(project(':b').tasks.slow, project(':c').tasks.slow)
-            }
-        """
-
-        when:
-        server.expectConcurrent("b", "c")
-        server.expectConcurrent("a")
-        instantRun "slow", "--parallel"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        def pendingCalls = server.expectConcurrentAndBlock("b", "c")
-        server.expectConcurrent("a")
-
-        def buildHandle = executer.withTasks("slow", "--parallel", "--max-workers=3", INSTANT_EXECUTION_PROPERTY).start()
-        pendingCalls.waitForAllPendingCalls()
-        pendingCalls.releaseAll()
-        buildHandle.waitForFinish()
-
-        then:
-        noExceptionThrown()
     }
 
     def "instant execution for multi-level projects"() {

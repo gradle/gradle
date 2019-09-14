@@ -72,9 +72,11 @@ class TaskNodeCodec(
         }
     }
 
-    override suspend fun ReadContext.decode(): LocalTaskNode? {
+    override suspend fun ReadContext.decode(): LocalTaskNode {
         val task = readTask()
-        return taskNodeFactory.getOrCreateNode(task) as LocalTaskNode
+        val node = taskNodeFactory.getOrCreateNode(task) as LocalTaskNode
+        node.isolated()
+        return node
     }
 
     private
