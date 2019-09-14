@@ -161,13 +161,13 @@ val writeEmbeddedKotlinDependencies by tasks.registering {
     outputs.file(outputFile)
     doLast {
 
+        val skippedModules = setOf(project.name, "distributionsDependencies", "kotlinCompilerEmbeddable")
+
         val modules = embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
             .asSequence()
             .mapNotNull { it.moduleVersion }
-            .filter { it.name !in setOf(project.name, "distributionsDependencies", "kotlinCompilerEmbeddable") }
-            .associate {
-                "${it.group}:${it.name}" to it.version
-            }
+            .filter { it.name !in skippedModules }
+            .associate { "${it.group}:${it.name}" to it.version }
 
         ReproduciblePropertiesWriter.store(
             modules,
