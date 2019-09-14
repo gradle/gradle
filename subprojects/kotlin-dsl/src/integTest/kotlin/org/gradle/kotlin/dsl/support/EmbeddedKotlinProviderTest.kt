@@ -72,4 +72,29 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
         assertThat(result.output, containsString("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.31"))
         assertThat(result.output, not(containsString("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.31 ->")))
     }
+
+    @Test
+    fun `fails with a reasonable message on conflict with embedded kotlin`() {
+        withBuildScript("""
+            buildscript {
+                $repositoriesBlock
+                dependencies {
+                    classpath("org.jetbrains.kotlin:kotlin-stdlib") {
+                        version { strictly("1.3.31") }
+                    }
+                }
+            }
+        """)
+
+        val result = buildAndFail("buildEnvironment")
+
+        assertThat(
+            result.error,
+            containsString("Cannot find a version of 'org.jetbrains.kotlin:kotlin-stdlib' that satisfies the version constraints")
+        )
+        assertThat(
+            result.error,
+            containsString("because of the following reason: Pinned to the embedded Kotlin")
+        )
+    }
 }
