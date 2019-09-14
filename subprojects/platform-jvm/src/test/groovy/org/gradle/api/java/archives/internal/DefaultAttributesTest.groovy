@@ -32,7 +32,7 @@ class DefaultAttributesTest extends Specification {
         attributes.put(null, 'someValue')
 
         then:
-        thrown(ManifestException)
+        thrown(NullPointerException)
     }
 
     def testKeyValidationWithPutAll() {
@@ -46,7 +46,7 @@ class DefaultAttributesTest extends Specification {
         attributes.putAll((null): 'someValue')
 
         then:
-        thrown(ManifestException)
+        thrown(NullPointerException)
     }
 
     def testValueValidationWithPut() {
@@ -54,7 +54,7 @@ class DefaultAttributesTest extends Specification {
         attributes.put('key', null)
 
         then:
-        thrown(ManifestException)
+        thrown(NullPointerException)
     }
 
     def testValueValidationWithPutAll() {
@@ -62,6 +62,16 @@ class DefaultAttributesTest extends Specification {
         attributes.putAll('key': null)
 
         then:
-        thrown(ManifestException)
+        thrown(NullPointerException)
+    }
+
+    def caseSensitivity() {
+        when:
+        attributes.put("Hello", "world")
+        attributes.put("hello", "keys are case-insensitive")
+
+        then:
+        attributes.get("Hello") == "keys are case-insensitive"
+        attributes.get("hello") == "keys are case-insensitive"
     }
 }

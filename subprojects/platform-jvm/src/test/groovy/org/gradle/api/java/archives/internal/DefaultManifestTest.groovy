@@ -153,6 +153,29 @@ class DefaultManifestTest extends Specification {
         fileManifest.equals(expectedManifest)
     }
 
+    def "empty file parses as empty manifest"() {
+        given:
+        TestFile manifestFile = tmpDir.file('someManifestFile')
+        fileResolver.resolve('file') >> manifestFile
+
+        and:
+        manifestFile.text = newLine
+
+        when:
+        DefaultManifest manifest = new DefaultManifest('file', fileResolver);
+
+        then:
+        manifest.getAttributes() == [:]
+        manifest.getSections() == [:]
+
+        where:
+        newLine | _
+        ''      | _
+        '\r'    | _
+        '\r\n'  | _
+        '\n'    | _
+    }
+
     @Unroll
     def "can read manifest section starting with #nameAttribute"() {
         given:

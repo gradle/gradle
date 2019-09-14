@@ -28,6 +28,10 @@ dependencies {
 
     testImplementation(project(":native"))
     testImplementation(library("ant"))
+    testImplementation(testLibrary("guava_testlib"))
+    testImplementation(testLibrary("quickcheck_core"))
+    testImplementation(testLibrary("quickcheck_generators"))
+    testImplementation(testLibrary("bricks_automation"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":diagnostics")))
     testImplementation(testFixtures(project(":platformBase")))

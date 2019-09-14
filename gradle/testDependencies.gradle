@@ -37,3 +37,7 @@ testLibraries.mockito_kotlin2 = 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.
 testLibraries.jackson_kotlin = 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.2'
 testLibraries.archunit = "com.tngtech.archunit:archunit:0.11.0"
 testLibraries.archunit_junit4 = "com.tngtech.archunit:archunit-junit4:0.11.0"
+testLibraries.guava_testlib = 'com.google.guava:guava-testlib:' + libraries.guava.version
+testLibraries.quickcheck_core = 'com.pholser:junit-quickcheck-core:0.9'
+testLibraries.quickcheck_generators = 'com.pholser:junit-quickcheck-generators:0.9'
+testLibraries.bricks_automation = 'dk.brics:automaton:1.12-1'
