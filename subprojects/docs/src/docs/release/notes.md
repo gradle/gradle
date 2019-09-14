@@ -10,6 +10,7 @@ We would like to thank the following community contributors to this release of G
 [Andrey Mischenko](https://github.com/gildor),
 [Alex Saveau](https://github.com/SUPERCILEX),
 [Mike Kobit](https://github.com/mkobit),
+[Artur Dryomov](https://github.com/ming13),
 [Robert Stupp](https://github.com/snazy),
 [Nigel Banks](https://github.com/nigelgbanks),
 [Sergey Shatunov](https://github.com/Prototik),
@@ -131,6 +132,12 @@ See the [user manual](userguide/custom_gradle_types.html#service_injection) for 
 Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
 
 TBD
+
+## Wrapper reports download progress
+
+Gradle now reports the progress of the distribution downloaded. 
+
+Initially contributed by [Artur Dryomov](https://github.com/ming13).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
