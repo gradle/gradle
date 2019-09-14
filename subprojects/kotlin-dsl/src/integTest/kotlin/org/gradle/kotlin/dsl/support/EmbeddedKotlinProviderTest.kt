@@ -60,9 +60,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     fun `compiler-embeddable is not pinned`() {
         withBuildScript("""
             buildscript {
-                repositories {
-                    gradlePluginPortal()
-                }
+                $repositoriesBlock
                 dependencies {
                     classpath("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.31")
                 }
