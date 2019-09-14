@@ -32,11 +32,6 @@ public class Parameters {
         this.daemonParameters = new DaemonParameters(layout, fileCollectionFactory);
     }
 
-    public Parameters(StartParameterInternal startParameter, FileCollectionFactory fileCollectionFactory) {
-        this(fileCollectionFactory);
-        this.startParameter = startParameter;
-    }
-
     public DaemonParameters getDaemonParameters() {
         return daemonParameters;
     }
