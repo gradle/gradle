@@ -10,6 +10,7 @@ We would like to thank the following community contributors to this release of G
 [Andrey Mischenko](https://github.com/gildor),
 [Alex Saveau](https://github.com/SUPERCILEX),
 [Mike Kobit](https://github.com/mkobit),
+[Tom Eyckmans](https://github.com/teyckmans),
 [Robert Stupp](https://github.com/snazy),
 [Nigel Banks](https://github.com/nigelgbanks),
 [Sergey Shatunov](https://github.com/Prototik),
@@ -92,6 +93,12 @@ When Gradle detects that a Java process command-line will exceed Windows's 32,76
 The classpath jar contains a manifest with the full classpath of the application and the command-line's classpath will only consist of the classpath jar.  If this doesn't shorten the command-line enough, the Java process will still fail to start.
 
 If the command-line is not long enough to require shortening, Gradle will not change the command-line arguments for the Java process.
+
+## `gradle init` generates `.gitattributes` file
+
+To ensure Windows batch scripts retain the appropriate line endings, `gradle init` now generates a `.gitattributes` file.
+
+This was contributed by [Tom Eyckmans](https://github.com/teyckmans).
 
 ## Features for plugin authors
 
