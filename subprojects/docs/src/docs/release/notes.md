@@ -17,7 +17,8 @@ We would like to thank the following community contributors to this release of G
 [Dan Sănduleac](https://github.com/dansanduleac),
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Ross Goldberg](https://github.com/rgoldberg),
-and [Robin Verduijn](https://github.com/robinverduijn).
+[Robin Verduijn](https://github.com/robinverduijn),
+and [Robert Stupp](https://github.com/snazy.)
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
