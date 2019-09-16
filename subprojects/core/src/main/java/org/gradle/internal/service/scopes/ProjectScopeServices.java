@@ -205,16 +205,16 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected FileSystemOperations createFileSystemOperations(FileOperations fileOperations) {
-        return new DefaultFileSystemOperations(fileOperations);
+    protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
+        return instantiator.newInstance(DefaultFileSystemOperations.class, fileOperations);
     }
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory) {
         return execFactory.forContext(fileResolver, fileCollectionFactory, instantiatorFactory.decorateLenient(), objectFactory);
     }
 
-    protected ExecOperations createExecOperations(ExecFactory execFactory) {
-        return new DefaultExecOperations(execFactory);
+    protected ExecOperations createExecOperations(Instantiator instantiator, ExecFactory execFactory) {
+        return instantiator.newInstance(DefaultExecOperations.class, execFactory);
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {

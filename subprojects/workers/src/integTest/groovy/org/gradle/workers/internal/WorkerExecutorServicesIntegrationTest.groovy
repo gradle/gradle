@@ -51,15 +51,15 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         fixture.workActionThatCreatesFiles.constructorAction = "this.fileOperations = fileOperations"
         fixture.workActionThatCreatesFiles.action += """
             fileOperations.copy {
-                it.from "foo"
-                it.into "bar"
+                from "foo"
+                into "bar"
             }
             fileOperations.sync {
-                it.from "bar"
-                it.into "baz"
+                from "bar"
+                into "baz"
             }
             fileOperations.delete {
-                it.delete "foo"
+                delete "foo"
             }
         """
         fixture.withWorkActionClassInBuildScript()
@@ -132,8 +132,8 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
 
         fixture.workActionThatCreatesFiles.action += """
             execOperations.exec { 
-                it.executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
-                it.args '-cp', parameters.classpath.asPath, 'org.gradle.TestMain', parameters.projectDir, parameters.testFile
+                executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                args '-cp', parameters.classpath.asPath, 'org.gradle.TestMain', parameters.projectDir, parameters.testFile
             }
         """
         fixture.withWorkActionClassInBuildScript()
@@ -172,10 +172,10 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
 
         fixture.workActionThatCreatesFiles.action += """
             execOperations.javaexec { 
-                it.executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
-                it.classpath(parameters.classpath)
-                it.main 'org.gradle.TestMain'
-                it.args parameters.projectDir, parameters.testFile
+                executable org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                classpath(parameters.classpath)
+                main 'org.gradle.TestMain'
+                args parameters.projectDir, parameters.testFile
             }
         """
         fixture.withWorkActionClassInBuildScript()

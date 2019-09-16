@@ -42,6 +42,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
@@ -164,8 +165,8 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return lookup.getFileResolver(baseDir);
         }
 
-        protected FileSystemOperations createFileSystemOperations(FileOperations fileOperations) {
-            return new DefaultFileSystemOperations(fileOperations);
+        protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
+            return instantiator.newInstance(DefaultFileSystemOperations.class, fileOperations);
         }
 
         protected DefaultFileOperations createFileOperations(
@@ -175,6 +176,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
                 ServiceRegistry services,
                 DirectoryFileTreeFactory directoryFileTreeFactory,
                 StreamHasher streamHasher,
+                FileHasher fileHasher,
                 FileCollectionFactory fileCollectionFactory,
                 FileSystem fileSystem,
                 Deleter deleter
@@ -185,7 +187,9 @@ public class WorkerDaemonServer implements WorkerProtocol {
                     instantiator,
                     directoryFileTreeFactory,
                     streamHasher,
-                    null,
+                    fileHasher,
+                    // Use a null resource loader here as implementing a dummy would require adding
+                    // an additional jar to the worker runtime classpath that isn't actually needed.
                     null,
                     fileCollectionFactory,
                     fileSystem,
@@ -193,7 +197,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
             );
         }
 
-        protected FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
             return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory);
         }
 
@@ -212,8 +216,24 @@ public class WorkerDaemonServer implements WorkerProtocol {
                     domainObjectCollectionFactory);
         }
 
-        protected ExecOperations createExecOperations(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ServiceRegistry services, ObjectFactory objectFactory) {
-            return new DefaultExecOperations(execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory));
+        ExecOperations createExecOperations(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ServiceRegistry services, ObjectFactory objectFactory) {
+            return instantiator.newInstance(DefaultExecOperations.class, execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory));
+        }
+
+        FileHasher createFileHasher() {
+            // Return a dummy implementation of this as creating a real file hasher drags numerous other services
+            // along with it, and a file hasher isn't actually needed on the worker process side at the moment.
+            return new FileHasher() {
+                @Override
+                public HashCode hash(File file) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public HashCode hash(File file, long length, long lastModified) {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 }
