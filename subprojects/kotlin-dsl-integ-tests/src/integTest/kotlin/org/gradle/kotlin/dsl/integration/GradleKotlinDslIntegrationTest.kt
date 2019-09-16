@@ -25,6 +25,8 @@ import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.kotlin.dsl.fixtures.LightThought
 import org.gradle.kotlin.dsl.fixtures.ZeroThought
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
+import org.gradle.kotlin.dsl.support.delegates.SettingsDelegate
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -416,11 +418,13 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `script plugin can by applied to either Project or Settings`() {
+    fun `script plugin can be applied to either Project or Settings`() {
 
+        // TODO:kotlin-dsl consider introducing a common `scriptTarget` property and change test script to something like `scriptTarget is Settings`
         withFile("common.gradle.kts", """
-            println("Target is Settings? ${"$"}{Settings::class.java.isAssignableFrom(this::class.java)}")
-            println("Target is Project? ${"$"}{Project::class.java.isAssignableFrom(this::class.java)}")
+            val thisType = this::class.java
+            println("Target is Settings? ${"$"}{${SettingsDelegate::class.qualifiedName}::class.java.isAssignableFrom(thisType)}")
+            println("Target is Project? ${"$"}{${ProjectDelegate::class.qualifiedName}::class.java.isAssignableFrom(thisType)}")
         """)
 
         withSettings("""
