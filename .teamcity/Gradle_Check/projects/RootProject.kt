@@ -28,7 +28,7 @@ class RootProject(model: CIBuildModel) : Project({
     }
 
     var prevStage: Stage? = null
-    val deferredFunctionalTests = mutableListOf<FunctionalTest>()
+    val deferredFunctionalTests = mutableListOf<(Stage) -> List<FunctionalTest>>()
     model.stages.forEach { stage ->
         val stageProject = StageProject(model, stage, uuid, deferredFunctionalTests)
         val stagePasses = StagePasses(model, stage, prevStage, stageProject)

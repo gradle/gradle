@@ -14,7 +14,7 @@ import model.SpecificBuild
 import model.Stage
 import model.TestType
 
-class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, deferredFunctionalTests: MutableList<FunctionalTest>) : Project({
+class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, deferredFunctionalTests: MutableList<(Stage) -> List<FunctionalTest>>) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.stageName.uuid}"
     this.id = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
@@ -45,13 +45,12 @@ class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, d
         performanceTests = stage.performanceTests.map { PerformanceTestCoordinator(model, it, stage) }
         performanceTests.forEach(this::buildType)
 
-        val topLevelFunctionalTests = stage.functionalTests
-            .filter { it.testType == TestType.soak }
+        val (topLevelCoverage, allCoverage) = stage.functionalTests.partition { it.testType == TestType.soak }
+        val topLevelFunctionalTests = topLevelCoverage
             .map { FunctionalTest(model, it, stage = stage) }
         topLevelFunctionalTests.forEach(this::buildType)
 
-        val functionalTestProjects = stage.functionalTests
-            .filter { it.testType != TestType.soak }
+        val functionalTestProjects = allCoverage
             .map { testCoverage ->
                 val functionalTestProject = FunctionalTestProject(model, testCoverage, stage, deferredFunctionalTests)
                 if (stage.functionalTestsDependOnSpecificBuilds) {
@@ -67,9 +66,9 @@ class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, d
 
         functionalTestProjects.forEach(this::subProject)
 
-        val deferredTestsForThisStage = if (stage.omitsSlowProjects) emptyList() else deferredFunctionalTests.toList()
+        val deferredTestsForThisStage = if (stage.omitsSlowProjects) emptyList() else deferredFunctionalTests.toList().flatMap { it(stage) }
         if (deferredTestsForThisStage.isNotEmpty()) {
-            deferredFunctionalTests.removeAll(deferredTestsForThisStage)
+            deferredFunctionalTests.clear()
             val deferredTestsProject = Project {
                 uuid = "${rootProjectUuid}_deferred_tests"
                 id = AbsoluteId(uuid)
