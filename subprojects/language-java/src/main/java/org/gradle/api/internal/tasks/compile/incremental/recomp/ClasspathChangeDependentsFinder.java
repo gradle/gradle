@@ -70,11 +70,11 @@ public class ClasspathChangeDependentsFinder {
         if (allClasses.isDependencyToAll()) {
             return allClasses;
         }
-        DependentsSet affectedOnClasspath = collectDependentsFromClasspath(allClasses.joinDependentClasses());
+        DependentsSet affectedOnClasspath = collectDependentsFromClasspath(allClasses.getAllDependentClasses());
         if (affectedOnClasspath.isDependencyToAll()) {
             return affectedOnClasspath;
         } else {
-            return previousCompilation.getDependents(affectedOnClasspath.joinDependentClasses(), previous.getAllConstants(affectedOnClasspath));
+            return previousCompilation.getDependents(affectedOnClasspath.getAllDependentClasses(), previous.getAllConstants(affectedOnClasspath));
         }
     }
 
@@ -90,7 +90,7 @@ public class ClasspathChangeDependentsFinder {
         if (affectedOnClasspath.isDependencyToAll()) {
             return affectedOnClasspath;
         } else {
-            Set<String> joined = affectedOnClasspath.joinDependentClasses();
+            Set<String> joined = affectedOnClasspath.getAllDependentClasses();
             return previousCompilation.getDependents(joined, currentSnapshot.getRelevantConstants(previous, joined));
         }
     }

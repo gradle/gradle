@@ -67,7 +67,7 @@ public abstract class DependentsSet {
     private DependentsSet() {
     }
 
-    public abstract Set<String> joinDependentClasses();
+    public abstract Set<String> getAllDependentClasses();
 
     private static class EmptyDependentsSet extends DependentsSet {
         private static final EmptyDependentsSet INSTANCE = new EmptyDependentsSet();
@@ -93,7 +93,7 @@ public abstract class DependentsSet {
         }
 
         @Override
-        public Set<String> joinDependentClasses() {
+        public Set<String> getAllDependentClasses() {
             return Collections.emptySet();
         }
 
@@ -147,7 +147,7 @@ public abstract class DependentsSet {
         }
 
         @Override
-        public Set<String> joinDependentClasses() {
+        public Set<String> getAllDependentClasses() {
             if (privateDependentClasses.isEmpty()) {
                 return accessibleDependentClasses;
             }
@@ -209,7 +209,7 @@ public abstract class DependentsSet {
         }
 
         @Override
-        public Set<String> joinDependentClasses() {
+        public Set<String> getAllDependentClasses() {
             throw new UnsupportedOperationException("This instance of dependents set does not have dependent classes information.");
         }
 

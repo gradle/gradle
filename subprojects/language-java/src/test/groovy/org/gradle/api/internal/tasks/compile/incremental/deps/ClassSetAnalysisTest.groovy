@@ -30,13 +30,13 @@ class ClassSetAnalysisTest extends Specification {
                               DependentsSet aggregatedTypes = empty(), DependentsSet dependentsOnAll = empty(), String fullRebuildCause = null) {
         new ClassSetAnalysis(
             new ClassSetAnalysisData(dependents.keySet(), dependents, classToConstants, fullRebuildCause),
-            new AnnotationProcessingData([:], aggregatedTypes.joinDependentClasses(), dependentsOnAll.joinDependentClasses(), [:], dependentsOnAll.dependentResources, null)
+            new AnnotationProcessingData([:], aggregatedTypes.getAllDependentClasses(), dependentsOnAll.getAllDependentClasses(), [:], dependentsOnAll.dependentResources, null)
         )
     }
 
     def "returns empty analysis"() {
         def a = analysis([:])
-        expect: a.getRelevantDependents("Foo", IntSets.EMPTY_SET).joinDependentClasses().isEmpty()
+        expect: a.getRelevantDependents("Foo", IntSets.EMPTY_SET).getAllDependentClasses().isEmpty()
     }
 
     def "does not recurse private dependencies"() {
@@ -102,7 +102,7 @@ class ClassSetAnalysisTest extends Specification {
         expect:
         deps.dependencyToAll
 
-        when: deps.joinDependentClasses()
+        when: deps.getAllDependentClasses()
         then: thrown(UnsupportedOperationException)
     }
 
@@ -115,7 +115,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents("a", IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ['b'] as Set
+        deps.getAllDependentClasses() == ['b'] as Set
         !deps.dependencyToAll
     }
 
@@ -128,9 +128,9 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ["Bar", "Baz"] as Set
-        a.getRelevantDependents("Bar", IntSets.EMPTY_SET).joinDependentClasses() == ["Baz"] as Set
-        a.getRelevantDependents("Baz", IntSets.EMPTY_SET).joinDependentClasses() == [] as Set
+        deps.getAllDependentClasses() == ["Bar", "Baz"] as Set
+        a.getRelevantDependents("Bar", IntSets.EMPTY_SET).getAllDependentClasses() == ["Baz"] as Set
+        a.getRelevantDependents("Baz", IntSets.EMPTY_SET).getAllDependentClasses() == [] as Set
     }
 
     def "recurses multiple dependencies"() {
@@ -144,7 +144,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents("a", IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ["b", "c", "d", "e"] as Set
+        deps.getAllDependentClasses() == ["b", "c", "d", "e"] as Set
     }
 
     def "removes self from dependents"() {
@@ -154,7 +154,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == [] as Set
+        deps.getAllDependentClasses() == [] as Set
     }
 
     def "handles dependency cycles"() {
@@ -166,7 +166,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents("Foo", IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ["Bar", "Baz"] as Set
+        deps.getAllDependentClasses() == ["Bar", "Baz"] as Set
     }
 
     def "recurses but filters out inner classes"() {
@@ -179,7 +179,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents("a", IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ["c", "d", 'a$b'] as Set
+        deps.getAllDependentClasses() == ["c", "d", 'a$b'] as Set
     }
 
     def "handles cycles with inner classes"() {
@@ -191,7 +191,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents("a", IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ["c", 'a$b'] as Set
+        deps.getAllDependentClasses() == ["c", 'a$b'] as Set
     }
 
     def "provides dependents of all input classes"() {
@@ -203,7 +203,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents(["A", "E"], IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ["D", "B"] as Set
+        deps.getAllDependentClasses() == ["D", "B"] as Set
     }
 
     def "provides recursive dependents of all input classes"() {
@@ -215,7 +215,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents(["A", "D"], IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ["E", "B", "C"] as Set
+        deps.getAllDependentClasses() == ["E", "B", "C"] as Set
     }
 
     def "some classes may depend on any change"() {
@@ -225,7 +225,7 @@ class ClassSetAnalysisTest extends Specification {
         def deps = a.getRelevantDependents(["A"], IntSets.EMPTY_SET)
 
         expect:
-        deps.joinDependentClasses() == ["DependsOnAny", "B", "C"] as Set
+        deps.getAllDependentClasses() == ["DependsOnAny", "B", "C"] as Set
     }
 
     def "knows when any of the input classes is a dependency to all"() {
