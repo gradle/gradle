@@ -32,7 +32,7 @@ class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, d
                 buildReportTab("API Compatibility Report", "report-distributions-binary-compatibility-report.html")
                 buildReportTab("Incubating APIs Report", "incubation-reports/all-incubating.html")
             }
-            if (!stage.performanceTests.isEmpty()) {
+            if (stage.performanceTests.isNotEmpty()) {
                 buildReportTab("Performance", "report-performance-performance-tests.zip!report/index.html")
             }
         }
@@ -40,7 +40,7 @@ class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, d
         specificBuildTypes = stage.specificBuilds.map {
             it.create(model, stage)
         }
-        specificBuildTypes.forEach { buildType(it) }
+        specificBuildTypes.forEach(this::buildType)
 
         performanceTests = stage.performanceTests.map { PerformanceTestCoordinator(model, it, stage) }
         performanceTests.forEach(this::buildType)
@@ -65,9 +65,7 @@ class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, d
                 functionalTestProject
             }
 
-        functionalTestProjects.forEach {
-            subProject(it)
-        }
+        functionalTestProjects.forEach(this::subProject)
 
         val deferredTestsForThisStage = if (stage.omitsSlowProjects) emptyList() else deferredFunctionalTests.toList()
         if (deferredTestsForThisStage.isNotEmpty()) {
