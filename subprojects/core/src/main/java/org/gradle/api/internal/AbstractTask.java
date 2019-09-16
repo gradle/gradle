@@ -942,7 +942,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return timeout;
     }
 
-    @Override
     public void requiresResource(String name) {
         taskMutator.mutate("Task.requiresResource(String)", new Runnable() {
             @Override
@@ -952,7 +951,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         });
     }
 
-    @Override
     public void requiresResource(String name, int leases) {
         taskMutator.mutate("Task.requiresResource(String, int)", new Runnable() {
             @Override
