@@ -95,7 +95,6 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         outputContains("Could not set executable permissions")
-        outputContains("Please do this manually if you want to use the Gradle UI.")
     }
 
     def "wrapper prints error and fails build if downloaded zip is empty"() {
