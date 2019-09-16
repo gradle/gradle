@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import com.google.common.base.Objects;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
@@ -84,7 +85,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         validateMutation(this.configuration, configuration);
         validateNotVariantAware();
         if (!artifacts.isEmpty()) {
-            throw new IllegalStateException("Cannot set target configuration when artifacts have been specified");
+            throw new InvalidUserCodeException("Cannot set target configuration when artifacts have been specified");
         }
         this.configuration = configuration;
     }
@@ -290,19 +291,19 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     private void validateNotVariantAware() {
         if (!getAttributes().isEmpty() || !getRequestedCapabilities().isEmpty()) {
-            throw new IllegalStateException("Cannot set artifact / configuration information on a dependency that has attributes or capabilities configured");
+            throw new InvalidUserCodeException("Cannot set artifact / configuration information on a dependency that has attributes or capabilities configured");
         }
     }
 
     private void validateNotLegacyConfigured() {
         if (getTargetConfiguration() != null || !getArtifacts().isEmpty()) {
-            throw new IllegalStateException("Cannot add attributes or capabilities on a dependency that specifies artifacts or configuration information");
+            throw new InvalidUserCodeException("Cannot add attributes or capabilities on a dependency that specifies artifacts or configuration information");
         }
     }
 
     private void validateNoTargetConfiguration() {
         if (configuration != null) {
-            throw new IllegalStateException(("Cannot add artifact if target configuration has been set"));
+            throw new InvalidUserCodeException("Cannot add artifact if target configuration has been set");
         }
     }
 

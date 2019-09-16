@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -166,13 +167,13 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
 
         when:
         dep.addArtifact(Mock(DependencyArtifact))
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses target configuration when attributes present"() {
@@ -186,7 +187,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dep.setTargetConfiguration('foo')
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses artifact when capability present"() {
@@ -202,13 +203,13 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
 
         when:
         dep.addArtifact(Mock(DependencyArtifact))
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses target configuration when capability present"() {
@@ -222,7 +223,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dep.setTargetConfiguration('foo')
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses attribute when targetConfiguration specified"() {
@@ -236,7 +237,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses capability when targetConfiguration specified"() {
@@ -250,7 +251,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses attribute when artifact added"() {
@@ -264,7 +265,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses capability when artifact added"() {
@@ -278,7 +279,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses configuration when artifact added"() {
@@ -290,7 +291,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dep.setTargetConfiguration('foo')
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "refuses artifact when configuration specified"() {
@@ -302,7 +303,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dep.addArtifact(Mock(DependencyArtifact))
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
 
         when:
         dep.artifact {
@@ -310,7 +311,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         }
 
         then:
-        thrown(IllegalStateException)
+        thrown(InvalidUserCodeException)
     }
 
     void "copy does not mutate original attributes"() {
