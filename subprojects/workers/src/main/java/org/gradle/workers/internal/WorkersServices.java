@@ -17,7 +17,7 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectDirectoryProvider;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -44,8 +44,6 @@ import org.gradle.process.internal.worker.WorkerProcessFactory;
 import org.gradle.process.internal.worker.child.DefaultWorkerDirectoryProvider;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
 import org.gradle.workers.WorkerExecutor;
-
-import java.io.File;
 
 public class WorkersServices extends AbstractPluginServiceRegistry {
     @Override
@@ -114,12 +112,10 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             WorkerExecutionQueueFactory workerExecutionQueueFactory,
                                             ServiceRegistry serviceRegistry,
                                             ActionExecutionSpecFactory actionExecutionSpecFactory,
-                                            FileResolver fileResolver) {
+                                            ProjectDirectoryProvider projectDirectoryProvider) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, serviceRegistry);
 
-            // This should resolve to the project directory
-            File projectDir = fileResolver.resolve(".");
-            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiatorFactory.injectAndDecorateLenient(serviceRegistry), projectDir);
+            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiatorFactory.injectAndDecorateLenient(serviceRegistry), projectDirectoryProvider.getProjectDirectory());
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }
