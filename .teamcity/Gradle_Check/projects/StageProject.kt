@@ -9,13 +9,12 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.IdOwner
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
-import model.BuildTypeBucket
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
 import model.TestType
 
-class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boolean, rootProjectUuid: String) : Project({
+class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, deferredFunctionalTests: MutableList<FunctionalTest>) : Project({
     this.uuid = "${model.projectPrefix}Stage_${stage.stageName.uuid}"
     this.id = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}")
     this.name = stage.stageName.stageName
@@ -54,7 +53,7 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
         val functionalTestProjects = stage.functionalTests
             .filter { it.testType != TestType.soak }
             .map { testCoverage ->
-                val functionalTestProject = FunctionalTestProject(model, testCoverage, stage)
+                val functionalTestProject = FunctionalTestProject(model, testCoverage, stage, deferredFunctionalTests)
                 if (stage.functionalTestsDependOnSpecificBuilds) {
                     specificBuildTypes.forEach { specificBuildType ->
                         functionalTestProject.addDependencyForAllBuildTypes(specificBuildType)
@@ -70,29 +69,19 @@ class StageProject(model: CIBuildModel, stage: Stage, containsDeferredTests: Boo
             subProject(it)
         }
 
-        functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests)
-
-        if (containsDeferredTests) {
+        val deferredTestsForThisStage = if (stage.omitsSlowProjects) emptyList() else deferredFunctionalTests.toList()
+        if (deferredTestsForThisStage.isNotEmpty()) {
+            deferredFunctionalTests.removeAll(deferredTestsForThisStage)
             val deferredTestsProject = Project {
                 uuid = "${rootProjectUuid}_deferred_tests"
                 id = AbsoluteId(uuid)
                 name = "Test coverage deferred from Quick Feedback and Ready for Merge"
-                model.buildTypeBuckets
-                    .filter(BuildTypeBucket::containsSlowTests)
-                    .forEach { bucket ->
-                        FunctionalTestProject.missingTestCoverage
-                            .filter { testConfig ->
-                                bucket.hasTestsOf(testConfig.testType)
-                            }
-                            .forEach { testConfig ->
-                                bucket.forTestType(testConfig.testType).forEach {
-                                    buildType(FunctionalTest(model, testConfig, it.getSubprojectNames(), stage, it.name))
-                                }
-                            }
-                    }
+                deferredTestsForThisStage.forEach(this::buildType)
             }
             subProject(deferredTestsProject)
         }
+
+        functionalTests = topLevelFunctionalTests + functionalTestProjects.flatMap(FunctionalTestProject::functionalTests) + deferredTestsForThisStage
     }
 }
 

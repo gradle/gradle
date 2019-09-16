@@ -15,10 +15,9 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 import model.CIBuildModel
 import model.Stage
 import model.Trigger
-import projects.FunctionalTestProject
 import projects.StageProject
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, containsDeferredTests: Boolean, stageProject: StageProject) : BaseGradleBuildType(model, init = {
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) : BaseGradleBuildType(model, init = {
     uuid = stageTriggerUuid(model, stage)
     id = stageTriggerId(model, stage)
     name = stage.stageName.stageName + " (Trigger)"
@@ -103,20 +102,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
         snapshotDependencies(stageProject.specificBuildTypes)
         snapshotDependencies(stageProject.performanceTests)
         snapshotDependencies(stageProject.functionalTests)
-
-        if (containsDeferredTests) {
-            model.buildTypeBuckets.forEach { bucket ->
-                if (bucket.containsSlowTests()) {
-                    FunctionalTestProject.missingTestCoverage.filter {
-                        bucket.hasTestsOf(it.testType)
-                    }.forEach { testConfig ->
-                        bucket.forTestType(testConfig.testType).forEach {
-                            dependency(AbsoluteId(testConfig.asConfigurationId(model, it.name))) { snapshot {} }
-                        }
-                    }
-                }
-            }
-        }
     }
 })
 
