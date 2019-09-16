@@ -29,6 +29,7 @@ import org.gradle.api.initialization.IncludedBuild
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.plugins.PluginAware
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
 
@@ -45,119 +46,132 @@ import java.io.File
  * Once the required interfaces are compiled with Java 8 parameter names these classes can be removed in favor
  * of Kotlin's implementation by delegation.
  */
-abstract class GradleDelegate : Gradle {
+// TODO:kotlin-dsl merge with `InitScriptApi`
+abstract class GradleDelegate : PluginAware {
 
     internal
     abstract val delegate: Gradle
 
-    override fun getGradleVersion(): String =
-        delegate.gradleVersion
+    val gradleVersion: String
+        get() = delegate.gradleVersion
 
-    override fun getGradleUserHomeDir(): File =
-        delegate.gradleUserHomeDir
+    val gradleUserHomeDir: File
+        get() = delegate.gradleUserHomeDir
 
-    override fun getGradleHomeDir(): File? =
-        delegate.gradleHomeDir
+    val gradleHomeDir: File?
+        get() = delegate.gradleHomeDir
 
-    override fun getParent(): Gradle? =
+    // TODO:kotlin-dsl remove
+    fun getParent(): Gradle? =
         delegate.parent
 
-    override fun getRootProject(): Project =
-        delegate.rootProject
+    val rootProject: Project
+        get() = delegate.rootProject
 
-    override fun rootProject(action: Action<in Project>) =
+    fun rootProject(action: Action<in Project>) =
         delegate.rootProject(action)
 
-    override fun allprojects(action: Action<in Project>) =
+    fun allprojects(action: Action<in Project>) =
         delegate.allprojects(action)
 
-    override fun getTaskGraph(): TaskExecutionGraph =
-        delegate.taskGraph
+    val taskGraph: TaskExecutionGraph
+        get() = delegate.taskGraph
 
-    override fun getStartParameter(): StartParameter =
-        delegate.startParameter
+    val startParameter: StartParameter
+        get() = delegate.startParameter
 
-    override fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener =
+    fun addProjectEvaluationListener(listener: ProjectEvaluationListener): ProjectEvaluationListener =
         delegate.addProjectEvaluationListener(listener)
 
-    override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) =
+    fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) =
         delegate.removeProjectEvaluationListener(listener)
 
-    override fun beforeProject(closure: Closure<Any>) =
+    // TODO:kotlin-dsl remove
+    fun beforeProject(closure: Closure<Any>) =
         delegate.beforeProject(closure)
 
-    override fun beforeProject(action: Action<in Project>) =
+    fun beforeProject(action: Action<in Project>) =
         delegate.beforeProject(action)
 
-    override fun afterProject(closure: Closure<Any>) =
+    // TODO:kotlin-dsl remove
+    fun afterProject(closure: Closure<Any>) =
         delegate.afterProject(closure)
 
-    override fun afterProject(action: Action<in Project>) =
+    fun afterProject(action: Action<in Project>) =
         delegate.afterProject(action)
 
-    override fun buildStarted(closure: Closure<Any>) =
+    // TODO:kotlin-dsl remove
+    fun buildStarted(closure: Closure<Any>) =
         delegate.buildStarted(closure)
 
-    override fun buildStarted(action: Action<in Gradle>) =
+    fun buildStarted(action: Action<in Gradle>) =
         delegate.buildStarted(action)
 
-    override fun settingsEvaluated(closure: Closure<Any>) =
+    // TODO:kotlin-dsl remove
+    fun settingsEvaluated(closure: Closure<Any>) =
         delegate.settingsEvaluated(closure)
 
-    override fun settingsEvaluated(action: Action<in Settings>) =
+    fun settingsEvaluated(action: Action<in Settings>) =
         delegate.settingsEvaluated(action)
 
-    override fun projectsLoaded(closure: Closure<Any>) =
+    // TODO:kotlin-dsl remove
+    fun projectsLoaded(closure: Closure<Any>) =
         delegate.projectsLoaded(closure)
 
-    override fun projectsLoaded(action: Action<in Gradle>) =
+    fun projectsLoaded(action: Action<in Gradle>) =
         delegate.projectsLoaded(action)
 
-    override fun projectsEvaluated(closure: Closure<Any>) =
+    // TODO:kotlin-dsl remove
+    fun projectsEvaluated(closure: Closure<Any>) =
         delegate.projectsEvaluated(closure)
 
-    override fun projectsEvaluated(action: Action<in Gradle>) =
+    fun projectsEvaluated(action: Action<in Gradle>) =
         delegate.projectsEvaluated(action)
 
-    override fun buildFinished(closure: Closure<Any>) =
+    // TODO:kotlin-dsl remove
+    fun buildFinished(closure: Closure<Any>) =
         delegate.buildFinished(closure)
 
-    override fun buildFinished(action: Action<in BuildResult>) =
+    fun buildFinished(action: Action<in BuildResult>) =
         delegate.buildFinished(action)
 
-    override fun addBuildListener(buildListener: BuildListener) =
+    fun addBuildListener(buildListener: BuildListener) =
         delegate.addBuildListener(buildListener)
 
-    override fun addListener(listener: Any) =
+    fun addListener(listener: Any) =
         delegate.addListener(listener)
 
-    override fun removeListener(listener: Any) =
+    fun removeListener(listener: Any) =
         delegate.removeListener(listener)
 
-    override fun useLogger(logger: Any) =
+    fun useLogger(logger: Any) =
         delegate.useLogger(logger)
 
-    override fun getGradle(): Gradle =
-        delegate.gradle
+    val gradle: Gradle
+        get() = delegate.gradle
 
-    override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
-        delegate.includedBuilds
+    val includedBuilds: MutableCollection<IncludedBuild>
+        get() = delegate.includedBuilds
 
-    override fun includedBuild(name: String): IncludedBuild =
+    fun includedBuild(name: String): IncludedBuild =
         delegate.includedBuild(name)
 
+    // TODO:kotlin-dsl remove
     override fun getPlugins(): PluginContainer =
         delegate.plugins
 
+    // TODO:kotlin-dsl remove
     override fun apply(closure: Closure<Any>) =
         delegate.apply(closure)
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)
 
+    // TODO:kotlin-dsl remove
     override fun apply(options: Map<String, *>) =
         delegate.apply(options)
 
+    // TODO:kotlin-dsl remove
     override fun getPluginManager(): PluginManager =
         delegate.pluginManager
 }
