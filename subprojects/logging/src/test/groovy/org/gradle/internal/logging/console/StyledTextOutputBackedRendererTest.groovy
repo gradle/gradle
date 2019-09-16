@@ -79,7 +79,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
-        output.value == '10:00:00.000 [INFO] [category] message\n'
+        output.value == "${tenAmFormatted} [INFO] [category] message\n"
     }
 
     def continuesLineWhenPreviousOutputEventDidNotEndWithEOL() {
@@ -94,7 +94,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         renderer.onOutput(event2)
 
         then:
-        output.value == '10:00:00.000 [INFO] [category] message\n'
+        output.value == "${tenAmFormatted} [INFO] [category] message\n"
     }
 
     def addsEOLWhenPreviousOutputEventDidNotEndWithEOLAndHadDifferentCategory() {
@@ -109,7 +109,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         renderer.onOutput(event2)
 
         then:
-        output.value == '10:00:00.000 [INFO] [category] message\n10:00:00.000 [INFO] [category2] message2'
+        output.value == "${tenAmFormatted} [INFO] [category] message\n${tenAmFormatted} [INFO] [category2] message2"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1566")
