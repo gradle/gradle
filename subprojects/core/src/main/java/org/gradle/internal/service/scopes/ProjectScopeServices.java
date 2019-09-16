@@ -186,7 +186,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         FileSystem fileSystem,
         Deleter deleter
     ) {
-        final DefaultResourceHandler.Factory resourceHandlerFactory = new DefaultResourceHandler.Factory(
+        final DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
             fileSystem,
             temporaryFileProvider,

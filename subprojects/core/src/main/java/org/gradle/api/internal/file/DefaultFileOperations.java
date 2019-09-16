@@ -36,6 +36,7 @@ import org.gradle.api.internal.file.delete.DeleteSpecInternal;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.internal.LocalResourceAdapter;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.api.tasks.WorkResult;
@@ -60,7 +61,7 @@ public class DefaultFileOperations implements FileOperations {
     private final TemporaryFileProvider temporaryFileProvider;
     private final Instantiator instantiator;
     private final Deleter deleter;
-    private final DefaultResourceHandler resourceHandler;
+    private final ResourceHandler resourceHandler;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
     private final FileCopier fileCopier;
@@ -228,7 +229,7 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     @Override
-    public DefaultResourceHandler getResources() {
+    public ResourceHandler getResources() {
         return resourceHandler;
     }
 
@@ -242,7 +243,7 @@ public class DefaultFileOperations implements FileOperations {
         ApiTextResourceAdapter.Factory textResourceAdapterFactory = services.get(ApiTextResourceAdapter.Factory.class);
         Deleter deleter = services.get(Deleter.class);
 
-        DefaultResourceHandler.Factory resourceHandlerFactory = new DefaultResourceHandler.Factory(
+        DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
             fileSystem,
             null,

@@ -36,6 +36,9 @@ import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.initialization.LegacyTypesSupport;
 import org.gradle.internal.Factory;
@@ -181,6 +184,26 @@ public class WorkerDaemonServer implements WorkerProtocol {
                 FileSystem fileSystem,
                 Deleter deleter
         ) {
+            // We use a dummy implementation of this as creating a real resource handler would require us to add
+            // an additional jar to the worker runtime startup and a resource handler isn't actually needed in
+            // the worker process.
+            ResourceHandler resourceHandler = new ResourceHandler() {
+                @Override
+                public ReadableResource gzip(Object path) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public ReadableResource bzip2(Object path) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public TextResourceFactory getText() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+
             return new DefaultFileOperations(
                     fileResolver,
                     temporaryFileProvider,
@@ -188,9 +211,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
                     directoryFileTreeFactory,
                     streamHasher,
                     fileHasher,
-                    // Use a null resource loader here as implementing a dummy would require adding
-                    // an additional jar to the worker runtime classpath that isn't actually needed.
-                    null,
+                    fileOperations -> resourceHandler,
                     fileCollectionFactory,
                     fileSystem,
                     deleter
