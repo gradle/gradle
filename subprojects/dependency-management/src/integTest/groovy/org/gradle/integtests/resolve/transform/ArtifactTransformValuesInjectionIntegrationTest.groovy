@@ -112,8 +112,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         """
         setupBuildWithColorTransform {
             params("""
-                prop.set(${value})
-                nested.nestedProp.set(${value})
+                prop = ${value}
+                nested.nestedProp = ${value}
             """)
         }
         buildFile << """
@@ -175,7 +175,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         setupBuildWithColorTransform {
             params("""
                 extension = 'green'
-                nested.inputFile.set(file("some"))    
+                nested.inputFile = file("some")    
             """)
         }
         buildFile << """
