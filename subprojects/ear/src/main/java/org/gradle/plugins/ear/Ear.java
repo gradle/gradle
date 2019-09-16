@@ -225,7 +225,7 @@ public class Ear extends Jar {
     }
 
     /**
-     * @return should deploymentDescriptor be generated.
+     * Should deploymentDescriptor be generated?
      *
      * @since 6.0
      */
