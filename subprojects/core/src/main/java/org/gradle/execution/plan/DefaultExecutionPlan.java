@@ -45,6 +45,7 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
+import org.gradle.invocation.DefaultGradle;
 import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,7 +102,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
         this.sharedResourceLeaseRegistry = sharedResourceLeaseRegistry;
-        this.sharedResourceContainer = gradle.getSharedResources();
+        this.sharedResourceContainer = ((DefaultGradle)gradle).getSharedResources();
     }
 
     @Override
