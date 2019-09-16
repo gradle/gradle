@@ -25,8 +25,10 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.plugins.PluginAware
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
 import org.gradle.caching.configuration.BuildCacheConfiguration
@@ -41,92 +43,95 @@ import java.io.File
  *
  * See [GradleDelegate] for why this is currently necessary.
  */
-abstract class SettingsDelegate : Settings {
+// TODO:kotlin-dsl merge with SettingsScriptApi
+abstract class SettingsDelegate : PluginAware, ExtensionAware {
 
     internal
     abstract val delegate: Settings
 
-    override fun getSettings(): Settings =
-        delegate.settings
+    val settings: Settings
+        get() = delegate.settings
 
-    override fun getBuildscript(): ScriptHandler =
-        delegate.buildscript
+    open val buildscript: ScriptHandler
+        get() = delegate.buildscript
 
-    override fun getSettingsDir(): File =
-        delegate.settingsDir
+    val settingsDir: File
+        get() = delegate.settingsDir
 
-    override fun getRootDir(): File =
-        delegate.rootDir
+    val rootDir: File
+        get() = delegate.rootDir
 
-    override fun getRootProject(): ProjectDescriptor =
-        delegate.rootProject
+    val rootProject: ProjectDescriptor
+        get() = delegate.rootProject
 
-    override fun project(path: String): ProjectDescriptor =
+    fun project(path: String): ProjectDescriptor =
         delegate.project(path)
 
-    override fun findProject(path: String): ProjectDescriptor? =
+    fun findProject(path: String): ProjectDescriptor? =
         delegate.findProject(path)
 
-    override fun project(projectDir: File): ProjectDescriptor =
+    fun project(projectDir: File): ProjectDescriptor =
         delegate.project(projectDir)
 
-    override fun findProject(projectDir: File): ProjectDescriptor? =
+    fun findProject(projectDir: File): ProjectDescriptor? =
         delegate.findProject(projectDir)
 
-    override fun getGradle(): Gradle =
-        delegate.gradle
+    val gradle: Gradle
+        get() = delegate.gradle
 
-    override fun includeBuild(rootProject: Any) =
+    fun includeBuild(rootProject: Any) =
         delegate.includeBuild(rootProject)
 
-    override fun includeBuild(rootProject: Any, configuration: Action<ConfigurableIncludedBuild>) =
+    fun includeBuild(rootProject: Any, configuration: Action<ConfigurableIncludedBuild>) =
         delegate.includeBuild(rootProject, configuration)
 
-    override fun enableFeaturePreview(name: String) =
+    fun enableFeaturePreview(name: String) =
         delegate.enableFeaturePreview(name)
 
     override fun getExtensions(): ExtensionContainer =
         delegate.extensions
 
-    override fun getBuildCache(): BuildCacheConfiguration =
-        delegate.buildCache
+    val buildCache: BuildCacheConfiguration
+        get() = delegate.buildCache
 
-    override fun pluginManagement(pluginManagementSpec: Action<in PluginManagementSpec>) =
+    fun pluginManagement(pluginManagementSpec: Action<in PluginManagementSpec>) =
         delegate.pluginManagement(pluginManagementSpec)
 
-    override fun getPluginManagement(): PluginManagementSpec =
-        delegate.pluginManagement
+    val pluginManagement: PluginManagementSpec
+        get() = delegate.pluginManagement
 
-    override fun sourceControl(configuration: Action<in SourceControl>) =
+    fun sourceControl(configuration: Action<in SourceControl>) =
         delegate.sourceControl(configuration)
 
     override fun getPlugins(): PluginContainer =
         delegate.plugins
 
+    // TODO:kotlin-dsl remove
     override fun apply(closure: Closure<Any>) =
         delegate.apply(closure)
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         delegate.apply(action)
 
+    // TODO:kotlin-dsl remove
     override fun apply(options: Map<String, *>) =
         delegate.apply(options)
 
     override fun getPluginManager(): PluginManager =
         delegate.pluginManager
 
-    override fun include(vararg projectPaths: String?) =
+    fun include(vararg projectPaths: String) =
         delegate.include(*projectPaths)
 
-    override fun includeFlat(vararg projectNames: String?) =
+    fun includeFlat(vararg projectNames: String) =
         delegate.includeFlat(*projectNames)
 
-    override fun getStartParameter(): StartParameter =
-        delegate.startParameter
+    val startParameter: StartParameter
+        get() = delegate.startParameter
 
-    override fun buildCache(action: Action<in BuildCacheConfiguration>) =
+    fun buildCache(action: Action<in BuildCacheConfiguration>) =
         delegate.buildCache(action)
 
-    override fun getSourceControl(): SourceControl =
-        delegate.sourceControl
+    val sourceControl: SourceControl
+        get() = delegate.sourceControl
 }

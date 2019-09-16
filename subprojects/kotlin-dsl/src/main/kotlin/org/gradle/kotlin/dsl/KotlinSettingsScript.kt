@@ -76,8 +76,8 @@ abstract class KotlinSettingsScript(
     /**
      * The [ScriptHandler] for this script.
      */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
+    override val buildscript: ScriptHandler
+        get() = host.scriptHandler
 
     override val fileOperations
         get() = host.fileOperations
