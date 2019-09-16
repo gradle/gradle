@@ -115,6 +115,23 @@
             "changes": [
                 "org.gradle.api.artifacts.repositories.UrlArtifactRepository"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Class org.gradle.kotlin.dsl.InitScriptApi",
+            "acceptation": "Gradle interface removed from script type hierarchy",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinInitScript",
+            "member": "Class org.gradle.kotlin.dsl.KotlinInitScript",
+            "acceptation": "Gradle interface removed from script type hierarchy",
+            "changes": [
+                "Abstract method has been added in implemented interface"
+            ]
         }
     ]
+
 }
