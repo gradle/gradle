@@ -4,6 +4,8 @@ import common.applyDefaultSettings
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2018_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.ScheduleTrigger
@@ -12,11 +14,10 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 import model.CIBuildModel
 import model.Stage
-import model.TestType
 import model.Trigger
-import projects.FunctionalTestProject
+import projects.StageProject
 
-class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, containsDeferredTests: Boolean) : BaseGradleBuildType(model, init = {
+class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stageProject: StageProject) : BaseGradleBuildType(model, init = {
     uuid = stageTriggerUuid(model, stage)
     id = stageTriggerId(model, stage)
     name = stage.stageName.stageName + " (Trigger)"
@@ -100,52 +101,19 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, contains
             }
         }
 
-        stage.specificBuilds.forEach {
-            dependency(it.create(model, stage)) {
-                snapshot {}
-            }
-        }
-
-        stage.performanceTests.forEach { performanceTest ->
-            dependency(AbsoluteId(performanceTest.asId(model))) {
-                snapshot {}
-            }
-        }
-
-        stage.functionalTests.forEach { testCoverage ->
-            val isSplitIntoBuckets = testCoverage.testType != TestType.soak
-            if (isSplitIntoBuckets) {
-                model.buildTypeBuckets.filter { bucket ->
-                    !bucket.shouldBeSkipped(testCoverage) && !bucket.shouldBeSkippedInStage(stage)
-                }.forEach { subProjectBucket ->
-                    if (subProjectBucket.hasTestsOf(testCoverage.testType)) {
-                        subProjectBucket.forTestType(testCoverage.testType).forEach {
-                            dependency(AbsoluteId(testCoverage.asConfigurationId(model, it.name))) { snapshot {} }
-                        }
-                    }
-                }
-            } else {
-                dependency(AbsoluteId(testCoverage.asConfigurationId(model))) {
-                    snapshot {}
-                }
-            }
-        }
-
-        if (containsDeferredTests) {
-            model.buildTypeBuckets.forEach { bucket ->
-                if (bucket.containsSlowTests()) {
-                    FunctionalTestProject.missingTestCoverage.filter {
-                        bucket.hasTestsOf(it.testType)
-                    }.forEach { testConfig ->
-                        bucket.forTestType(testConfig.testType).forEach {
-                            dependency(AbsoluteId(testConfig.asConfigurationId(model, it.name))) { snapshot {} }
-                        }
-                    }
-                }
-            }
-        }
+        snapshotDependencies(stageProject.specificBuildTypes)
+        snapshotDependencies(stageProject.performanceTests)
+        snapshotDependencies(stageProject.functionalTests)
     }
 })
 
 fun stageTriggerUuid(model: CIBuildModel, stage: Stage) = "${model.projectPrefix}Stage_${stage.stageName.uuid}_Trigger"
 fun stageTriggerId(model: CIBuildModel, stage: Stage) = AbsoluteId("${model.projectPrefix}Stage_${stage.stageName.id}_Trigger")
+
+fun Dependencies.snapshotDependencies(buildTypes: Iterable<BuildType>) {
+    buildTypes.forEach {
+        dependency(it.id!!) {
+            snapshot {}
+        }
+    }
+}
