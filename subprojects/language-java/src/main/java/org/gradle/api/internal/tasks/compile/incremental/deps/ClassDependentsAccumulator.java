@@ -58,18 +58,17 @@ public class ClassDependentsAccumulator {
         }
         for (String dependency : privateClassDependencies) {
             if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
-                addDependency(false, dependency, className);
+                addDependency(privateDependents, dependency, className);
             }
         }
         for (String dependency : accessibleClassDependencies) {
             if (!dependency.equals(className) && !dependenciesToAll.contains(dependency)) {
-                addDependency(true, dependency, className);
+                addDependency(accessibleDependents, dependency, className);
             }
         }
     }
 
-    private Set<String> rememberClass(boolean accessible, String className) {
-        Map<String, Set<String>> dependents = accessible ? accessibleDependents : privateDependents;
+    private Set<String> rememberClass(Map<String, Set<String>> dependents, String className) {
         Set<String> d = dependents.get(className);
         if (d == null) {
             d = Sets.newHashSet();
@@ -106,8 +105,8 @@ public class ClassDependentsAccumulator {
         return classesToConstants.build();
     }
 
-    private void addDependency(boolean accessible, String dependency, String dependent) {
-        Set<String> dependents = rememberClass(accessible, dependency);
+    private void addDependency(Map<String, Set<String>> dependentsMap, String dependency, String dependent) {
+        Set<String> dependents = rememberClass(dependentsMap, dependency);
         dependents.add(dependent);
     }
 

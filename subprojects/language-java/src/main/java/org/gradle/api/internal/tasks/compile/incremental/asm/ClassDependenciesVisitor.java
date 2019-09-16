@@ -38,10 +38,6 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     private final static int API = AsmConstants.ASM_LEVEL;
 
-    private final MethodVisitor privateMethodVisitor;
-    private final MethodVisitor accessibleMethodVisitor;
-    private final FieldVisitor privateFieldVisitor;
-    private final FieldVisitor accessibleFieldVisitor;
     private final IntSet constants;
     private final Set<String> privateTypes;
     private final Set<String> accessibleTypes;
@@ -50,21 +46,13 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     private boolean isAnnotationType;
     private boolean dependencyToAll;
     private final RetentionPolicyVisitor retentionPolicyVisitor;
-    private final AnnotationVisitor accessibleAnnotationVisitor;
-    private final AnnotationVisitor privateAnnotationVisitor;
 
     private ClassDependenciesVisitor(Predicate<String> typeFilter, ClassReader reader, StringInterner interner) {
         super(API);
         this.constants = new IntOpenHashSet(2);
         this.privateTypes = Sets.newHashSet();
         this.accessibleTypes = Sets.newHashSet();
-        this.privateMethodVisitor = new MethodVisitor(false);
-        this.accessibleMethodVisitor = new MethodVisitor(true);
-        this.privateFieldVisitor = new FieldVisitor(false);
-        this.accessibleFieldVisitor = new FieldVisitor(true);
         this.retentionPolicyVisitor = new RetentionPolicyVisitor();
-        this.privateAnnotationVisitor = new AnnotationVisitor(false);
-        this.accessibleAnnotationVisitor = new AnnotationVisitor(true);
         this.typeFilter = typeFilter;
         this.interner = interner;
         collectRemainingClassDependencies(reader);
@@ -83,15 +71,16 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         isAnnotationType = isAnnotationType(interfaces);
+        Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
         if (superName != null) {
             // superName can be null if what we are analyzing is `java.lang.Object`
             // which can happen when a custom Java SDK is on classpath (typically, android.jar)
             String type = typeOfFromSlashyString(superName);
-            maybeAddDependentType(isAccessible(access), type);
+            maybeAddDependentType(types, type);
         }
         for (String s : interfaces) {
             String interfaceType = typeOfFromSlashyString(s);
-            maybeAddDependentType(isAccessible(access), interfaceType);
+            maybeAddDependentType(types, interfaceType);
         }
     }
 
@@ -122,15 +111,15 @@ public class ClassDependenciesVisitor extends ClassVisitor {
                 String name = type.getClassName();
                 // Any class that hasn't been added yet, is used in method bodies, which are implementation details and not visible as an "API"1
                 if (!accessibleTypes.contains(name)) {
-                    maybeAddDependentType(false, name);
+                    maybeAddDependentType(privateTypes, name);
                 }
             }
         }
     }
 
-    protected void maybeAddDependentType(boolean accessible, String type) {
+    protected void maybeAddDependentType(Set<String> types, String type) {
         if (typeFilter.apply(type)) {
-            (accessible ? accessibleTypes : privateTypes).add(intern(type));
+            types.add(intern(type));
         }
     }
 
@@ -160,15 +149,15 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-        boolean accessible = isAccessible(access);
-        maybeAddDependentType(accessible, descTypeOf(desc));
+        Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
+        maybeAddDependentType(types, descTypeOf(desc));
         if (isAccessibleConstant(access, value)) {
             // we need to compute a hash for a constant, which is based on the name of the constant + its value
             // otherwise we miss the case where a class defines several constants with the same value, or when
             // two values are switched
             constants.add((name + '|' + value).hashCode()); //non-private const
         }
-        return fieldVisitor(accessible);
+        return new FieldVisitor(types);
     }
 
     protected String descTypeOf(String desc) {
@@ -181,13 +170,13 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        boolean accessible = isAccessible(access);
+        Set<String> types = isAccessible(access) ? accessibleTypes : privateTypes;
         Type methodType = Type.getMethodType(desc);
-        maybeAddDependentType(accessible, methodType.getReturnType().getClassName());
+        maybeAddDependentType(types, methodType.getReturnType().getClassName());
         for (Type argType : methodType.getArgumentTypes()) {
-            maybeAddDependentType(accessible, argType.getClassName());
+            maybeAddDependentType(types, argType.getClassName());
         }
-        return methodVisitor(accessible);
+        return new MethodVisitor(types);
     }
 
     @Override
@@ -195,8 +184,8 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         if (isAnnotationType && "Ljava/lang/annotation/Retention;".equals(desc)) {
             return retentionPolicyVisitor;
         } else {
-            maybeAddDependentType(true, Type.getType(desc).getClassName());
-            return accessibleAnnotationVisitor;
+            maybeAddDependentType(accessibleTypes, Type.getType(desc).getClassName());
+            return new AnnotationVisitor(accessibleTypes);
         }
     }
 
@@ -216,69 +205,57 @@ public class ClassDependenciesVisitor extends ClassVisitor {
         return dependencyToAll;
     }
 
-    private AnnotationVisitor annotationVisitor(boolean accessible) {
-        return accessible ? accessibleAnnotationVisitor : privateAnnotationVisitor;
-    }
-
-    private MethodVisitor methodVisitor(boolean accessible) {
-        return accessible ? accessibleMethodVisitor : privateMethodVisitor;
-    }
-
-    private FieldVisitor fieldVisitor(boolean accessible) {
-        return accessible ? accessibleFieldVisitor : privateFieldVisitor;
-    }
-
     private class FieldVisitor extends org.objectweb.asm.FieldVisitor {
-        private final boolean accessible;
+        private final Set<String> types;
 
-        public FieldVisitor(boolean accessible) {
+        public FieldVisitor(Set<String> types) {
             super(API);
-            this.accessible = accessible;
+            this.types = types;
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            maybeAddDependentType(accessible, Type.getType(descriptor).getClassName());
-            return annotationVisitor(accessible);
+            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            return new AnnotationVisitor(types);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-            maybeAddDependentType(accessible, Type.getType(descriptor).getClassName());
-            return annotationVisitor(accessible);
+            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            return new AnnotationVisitor(types);
         }
     }
 
     private class MethodVisitor extends org.objectweb.asm.MethodVisitor {
-        private final boolean accessible;
+        private final Set<String> types;
 
-        protected MethodVisitor(boolean accessible) {
+        protected MethodVisitor(Set<String> types) {
             super(API);
-            this.accessible = accessible;
+            this.types = types;
         }
 
         @Override
         public void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
-            maybeAddDependentType(accessible, descTypeOf(desc));
+            maybeAddDependentType(types, descTypeOf(desc));
             super.visitLocalVariable(name, desc, signature, start, end, index);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            maybeAddDependentType(accessible, Type.getType(descriptor).getClassName());
-            return annotationVisitor(accessible);
+            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            return new AnnotationVisitor(types);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
-            maybeAddDependentType(accessible, Type.getType(descriptor).getClassName());
-            return annotationVisitor(accessible);
+            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            return new AnnotationVisitor(types);
         }
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
-            maybeAddDependentType(accessible, Type.getType(descriptor).getClassName());
-            return annotationVisitor(accessible);
+            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
+            return new AnnotationVisitor(types);
         }
     }
 
@@ -299,17 +276,17 @@ public class ClassDependenciesVisitor extends ClassVisitor {
     }
 
     private class AnnotationVisitor extends org.objectweb.asm.AnnotationVisitor {
-        private final boolean accessible;
+        private final Set<String> types;
 
-        public AnnotationVisitor(boolean accessible) {
+        public AnnotationVisitor(Set<String> types) {
             super(ClassDependenciesVisitor.API);
-            this.accessible = accessible;
+            this.types = types;
         }
 
         @Override
         public void visit(String name, Object value) {
             if (value instanceof Type) {
-                maybeAddDependentType(accessible, ((Type) value).getClassName());
+                maybeAddDependentType(types, ((Type) value).getClassName());
             }
         }
 
@@ -320,7 +297,7 @@ public class ClassDependenciesVisitor extends ClassVisitor {
 
         @Override
         public org.objectweb.asm.AnnotationVisitor visitAnnotation(String name, String descriptor) {
-            maybeAddDependentType(accessible, Type.getType(descriptor).getClassName());
+            maybeAddDependentType(types, Type.getType(descriptor).getClassName());
             return this;
         }
     }
