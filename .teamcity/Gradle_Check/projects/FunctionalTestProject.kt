@@ -12,20 +12,25 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
     this.id = AbsoluteId(uuid)
     this.name = testConfig.asName()
 
-    model.buildTypeBuckets.forEach { bucket ->
+}) {
+    val functionalTests = model.buildTypeBuckets.flatMap { bucket ->
         if (bucket.shouldBeSkipped(testConfig) || !bucket.hasTestsOf(testConfig.testType)) {
-            return@forEach
+            return@flatMap emptyList<FunctionalTest>()
         }
         if (bucket.shouldBeSkippedInStage(stage)) {
             addMissingTestCoverage(testConfig)
-            return@forEach
+            return@flatMap emptyList<FunctionalTest>()
         }
 
-        for (buildTypeBucket in bucket.forTestType(testConfig.testType)) {
-            buildType(FunctionalTest(model, testConfig, buildTypeBucket.getSubprojectNames(), stage, buildTypeBucket.name, buildTypeBucket.extraParameters()))
+        bucket.forTestType(testConfig.testType).map {
+            buildTypeBucket -> FunctionalTest(model, testConfig, buildTypeBucket.getSubprojectNames(), stage, buildTypeBucket.name, buildTypeBucket.extraParameters())
         }
     }
-}) {
+
+    init {
+        functionalTests.forEach(this::buildType)
+    }
+
     companion object {
         val missingTestCoverage = mutableSetOf<TestCoverage>()
 

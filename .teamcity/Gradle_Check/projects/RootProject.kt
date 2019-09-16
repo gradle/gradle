@@ -32,8 +32,10 @@ class RootProject(model: CIBuildModel) : Project({
     model.stages.forEach { stage ->
         val containsDeferredTests = !stage.omitsSlowProjects && !deferredAlreadyDeclared
         deferredAlreadyDeclared = deferredAlreadyDeclared || containsDeferredTests
-        buildType(StagePasses(model, stage, prevStage, containsDeferredTests))
-        subProject(StageProject(model, stage, containsDeferredTests, uuid))
+        val stageProject = StageProject(model, stage, containsDeferredTests, uuid)
+        val stagePasses = StagePasses(model, stage, prevStage, containsDeferredTests, stageProject)
+        buildType(stagePasses)
+        subProject(stageProject)
         prevStage = stage
     }
 
