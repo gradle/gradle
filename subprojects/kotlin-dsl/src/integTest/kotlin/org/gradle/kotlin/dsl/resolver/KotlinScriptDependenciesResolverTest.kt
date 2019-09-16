@@ -20,6 +20,7 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
@@ -74,7 +75,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     fun `succeeds on init script`() {
 
         assertSucceeds(withFile("my.init.gradle.kts", """
-            require(this is Gradle)
+            require(this is InitScriptApi)
         """))
     }
 
@@ -82,13 +83,13 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     fun `succeeds on settings script`() {
 
         assertSucceeds(withSettings("""
-            require(this is Settings)
+            require(this is SettingsScriptApi)
         """))
 
         recorder.clear()
 
         assertSucceeds(withFile("my.settings.gradle.kts", """
-            require(this is Settings)
+            require(this is SettingsScriptApi)
         """))
     }
 
@@ -96,13 +97,13 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
     fun `succeeds on project script`() {
 
         assertSucceeds(withFile("build.gradle.kts", """
-            require(this is Project)
+            require(this is ${projectScriptApi()})
         """))
 
         recorder.clear()
 
         assertSucceeds(withFile("plugin.gradle.kts", """
-            require(this is Project)
+            require(this is ${projectScriptApi()})
         """))
     }
 
@@ -112,7 +113,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         withKotlinBuildSrc()
 
         assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.init.gradle.kts", """
-            require(this is Gradle)
+            require(this is InitScriptApi)
         """))
     }
 
@@ -126,7 +127,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         """)
 
         assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.settings.gradle.kts", """
-            require(this is Settings)
+            require(this is SettingsScriptApi)
         """))
     }
 
@@ -142,7 +143,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         """)
 
         assertSucceeds(withFile("buildSrc/src/main/kotlin/my-plugin.gradle.kts", """
-            require(this is Project)
+            require(this is ${projectScriptApi()})
         """))
     }
 
@@ -342,6 +343,9 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
             assertSingleFileWarningReport(EditorMessages.buildConfigurationFailed)
         }
     }
+
+    private
+    fun projectScriptApi() = ProjectDelegate::class.qualifiedName
 
     private
     val recorder = ResolverTestRecorder()
