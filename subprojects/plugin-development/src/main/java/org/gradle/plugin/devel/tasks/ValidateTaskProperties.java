@@ -81,7 +81,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     @Override
     public boolean getIgnoreFailures() {
         deprecationNagger.run();
-        return delegate.get().getIgnoreFailures();
+        return delegate.get().getIgnoreFailures().get();
     }
 
     /**
@@ -90,7 +90,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     @Override
     public void setIgnoreFailures(boolean ignoreFailures) {
         deprecationNagger.run();
-        delegate.get().setIgnoreFailures(ignoreFailures);
+        delegate.get().getIgnoreFailures().set(ignoreFailures);
     }
 
     /**
@@ -119,7 +119,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     @Internal
     public boolean getFailOnWarning() {
         deprecationNagger.run();
-        return delegate.get().getFailOnWarning();
+        return delegate.get().getFailOnWarning().get();
     }
 
     /**
@@ -130,7 +130,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     @Internal
     public boolean getEnableStricterValidation() {
         deprecationNagger.run();
-        return delegate.get().getEnableStricterValidation();
+        return delegate.get().getEnableStricterValidation().get();
     }
 
     /**
@@ -140,7 +140,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
      */
     public void setEnableStricterValidation(boolean enableStricterValidation) {
         deprecationNagger.run();
-        delegate.get().setEnableStricterValidation(enableStricterValidation);
+        delegate.get().getEnableStricterValidation().set(enableStricterValidation);
     }
 
     /**
@@ -161,6 +161,6 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
      */
     public void setFailOnWarning(boolean failOnWarning) {
         deprecationNagger.run();
-        delegate.get().setFailOnWarning(failOnWarning);
+        delegate.get().getFailOnWarning().set(failOnWarning);
     }
 }

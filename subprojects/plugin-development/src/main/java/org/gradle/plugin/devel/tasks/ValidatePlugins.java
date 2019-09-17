@@ -34,6 +34,7 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -45,7 +46,6 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskValidationException;
-import org.gradle.api.tasks.VerificationTask;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
@@ -76,19 +76,22 @@ import java.util.stream.Collectors;
  */
 @CacheableTask
 @Incubating
-public class ValidatePlugins extends DefaultTask implements VerificationTask {
+public class ValidatePlugins extends DefaultTask {
     private final ConfigurableFileCollection classes;
     private final ConfigurableFileCollection classpath;
     private final RegularFileProperty outputFile;
-    private boolean enableStricterValidation;
-    private boolean ignoreFailures;
-    private boolean failOnWarning = true;
+    private final Property<Boolean> enableStricterValidation;
+    private final Property<Boolean> ignoreFailures;
+    private final Property<Boolean> failOnWarning;
 
     @Inject
     public ValidatePlugins(ObjectFactory objects) {
         this.classes = objects.fileCollection();
         this.classpath = objects.fileCollection();
         this.outputFile = objects.fileProperty();
+        this.enableStricterValidation = objects.property(Boolean.class).convention(false);
+        this.ignoreFailures = objects.property(Boolean.class).convention(false);
+        this.failOnWarning = objects.property(Boolean.class).convention(true);
     }
 
     @TaskAction
@@ -137,7 +140,7 @@ public class ValidatePlugins extends DefaultTask implements VerificationTask {
                         throw new GradleException("Could not load class: " + className, e);
                     }
                     try {
-                        validatorMethod.invoke(null, clazz, taskValidationProblems, enableStricterValidation);
+                        validatorMethod.invoke(null, clazz, taskValidationProblems, enableStricterValidation.get());
                     } catch (IllegalAccessException | InvocationTargetException e) {
                         throw new RuntimeException(e);
                     }
@@ -162,8 +165,8 @@ public class ValidatePlugins extends DefaultTask implements VerificationTask {
         if (problemMessages.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (hasErrors || getFailOnWarning()) {
-                if (getIgnoreFailures()) {
+            if (hasErrors || failOnWarning.get()) {
+                if (ignoreFailures.get()) {
                     getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"), toMessageList(problemMessages));
                 } else {
                     throw new TaskValidationException(String.format("Plugin validation failed. See %s for more information on how to annotate task properties.", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")), toExceptionList(problemMessages));
@@ -202,22 +205,6 @@ public class ValidatePlugins extends DefaultTask implements VerificationTask {
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
-    }
-
-    /**
      * The classes to validate.
      */
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -236,10 +223,20 @@ public class ValidatePlugins extends DefaultTask implements VerificationTask {
     }
 
     /**
+     * Specifies whether the build should break when plugin verifications fails.
+     *
+     * @return {@code false} when the build should break on failure, {@code true} when failures should be ignored.
+     */
+    @Input
+    public Property<Boolean> getIgnoreFailures() {
+        return ignoreFailures;
+    }
+
+    /**
      * Returns whether the build should break when the verifications performed by this task detects a warning.
      */
     @Input
-    public boolean getFailOnWarning() {
+    public Property<Boolean> getFailOnWarning() {
         return failOnWarning;
     }
 
@@ -247,15 +244,8 @@ public class ValidatePlugins extends DefaultTask implements VerificationTask {
      * Enable the stricter validation for cacheable tasks for all tasks.
      */
     @Input
-    public boolean getEnableStricterValidation() {
+    public Property<Boolean> getEnableStricterValidation() {
         return enableStricterValidation;
-    }
-
-    /**
-     * Enable the stricter validation for cacheable tasks for all tasks.
-     */
-    public void setEnableStricterValidation(boolean enableStricterValidation) {
-        this.enableStricterValidation = enableStricterValidation;
     }
 
     /**
@@ -265,16 +255,6 @@ public class ValidatePlugins extends DefaultTask implements VerificationTask {
     @OutputFile
     public RegularFileProperty getOutputFile() {
         return outputFile;
-    }
-
-    /**
-     * Specifies whether the build should break when the verifications performed by this task detects a warning.
-     *
-     * @param failOnWarning {@code true} to break the build on warning, {@code false} to ignore warnings. The default is {@code true}.
-     */
-    @SuppressWarnings("unused")
-    public void setFailOnWarning(boolean failOnWarning) {
-        this.failOnWarning = failOnWarning;
     }
 
     @Inject
