@@ -269,7 +269,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (component == null) {
             return;
         }
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "silencePomMetadataWarningsFor");
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<PublishedDependency> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
@@ -500,12 +500,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public void silencePomMetadataWarningsFor(String variantName) {
+    public void suppressPomMetadataWarningsFor(String variantName) {
         this.silencedVariants.add(variantName);
     }
 
     @Override
-    public void silenceAllPomMetadataWarnings() {
+    public void suppressAllPomMetadataWarnings() {
         this.silenceAllPublicationWarnings = true;
     }
 

@@ -303,7 +303,7 @@ Let's say you have defined a publication named "myLibrary" and a repository name
  * `<publish>` -> `publishMyLibraryPublicationToMyRepoRepository`
 
 There is also a convenient `publish` task that publishes _all_ publications to _all_ repositories.
-If you'd prefer to limit which publications go to which repositories, check out the <<publishing.adoc#publishing_maven:conditional_publishing,relevant section of the Publishing chapter>>.
+If you'd prefer to limit which publications go to which repositories, check out the <<publishing.adoc#sec:publishing_maven:conditional_publishing,relevant section of the Publishing chapter>>.
 
 .On dependency versions
 [NOTE]

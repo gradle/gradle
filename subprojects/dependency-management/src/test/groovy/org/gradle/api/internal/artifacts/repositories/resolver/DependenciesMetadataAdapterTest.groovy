@@ -67,7 +67,7 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         when:
         adapter.add("org.gradle.test:module1") {
             it.version { it.require '1.0' }
-            it.inheritConstraints()
+            it.inheritStrictVersions()
         }
 
         then:
@@ -201,7 +201,7 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         fillDependencyList(1)
 
         when:
-        adapter.get(0).inheritConstraints()
+        adapter.get(0).inheritStrictVersions()
 
         then:
         dependenciesMetadata.size() == 1

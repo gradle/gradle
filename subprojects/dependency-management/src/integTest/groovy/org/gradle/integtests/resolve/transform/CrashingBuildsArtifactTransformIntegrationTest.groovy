@@ -57,7 +57,7 @@ dependencies {
         from.attribute(type, "jar")
         to.attribute(type, "red")
         parameters {
-            color.set(Color.Red)
+            color = Color.Red
         }
     }
 }

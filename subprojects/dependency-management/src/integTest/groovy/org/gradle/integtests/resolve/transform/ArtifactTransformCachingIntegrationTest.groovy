@@ -342,14 +342,14 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, 'jar')
                         to.attribute(artifactType, 'size')
                         parameters {
-                            target.set('size')
+                            target = 'size'
                         }
                     }
                     registerTransform(TransformWithMultipleTargets) {
                         from.attribute(artifactType, 'jar')
                         to.attribute(artifactType, 'hash')
                         parameters {
-                            target.set('hash')
+                            target = 'hash'
                         }
                     }
                 }
@@ -650,14 +650,14 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, 'jar')
                         to.attribute(artifactType, 'size')
                         parameters {
-                            target.set('size')
+                            target = 'size'
                         }
                     }
                     registerTransform(Hasher) {
                         from.attribute(artifactType, 'jar')
                         to.attribute(artifactType, 'hash')
                         parameters {
-                            target.set('hash')
+                            target = 'hash'
                         }
                     }
                 }
@@ -831,16 +831,16 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "green")
                         parameters {
-                            numberOfOutputFiles.set(2)
-                            differentOutputFileNames.set(false)
+                            numberOfOutputFiles = 2
+                            differentOutputFileNames = false
                         }
                     }
                     registerTransform(Duplicator) {
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
                         parameters {
-                            numberOfOutputFiles.set(2)
-                            differentOutputFileNames.set(false)
+                            numberOfOutputFiles = 2
+                            differentOutputFileNames = false
                         }
                     }
                 }
@@ -893,32 +893,32 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "green")
                         parameters {
-                            numberOfOutputFiles.set(2)
-                            differentOutputFileNames.set(true)
+                            numberOfOutputFiles = 2
+                            differentOutputFileNames = true
                         }
                     }
                     registerTransform(Duplicator) {
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
                         parameters {
-                            numberOfOutputFiles.set(1)
-                            differentOutputFileNames.set(false)
+                            numberOfOutputFiles = 1
+                            differentOutputFileNames = false
                         }
                     }
                     registerTransform(Duplicator) {
                         from.attribute(artifactType, "blue")
                         to.attribute(artifactType, "yellow")
                         parameters {
-                            numberOfOutputFiles.set(3)
-                            differentOutputFileNames.set(false)
+                            numberOfOutputFiles = 3
+                            differentOutputFileNames = false
                         }
                     }
                     registerTransform(Duplicator) {
                         from.attribute(artifactType, "yellow")
                         to.attribute(artifactType, "orange")
                         parameters {
-                            numberOfOutputFiles.set(1)
-                            differentOutputFileNames.set(true)
+                            numberOfOutputFiles = 1
+                            differentOutputFileNames = true
                         }
                     }
                 }
@@ -965,32 +965,32 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "green")
                         parameters {
-                            numberOfOutputFiles.set(2)
-                            differentOutputFileNames.set(true)
+                            numberOfOutputFiles = 2
+                            differentOutputFileNames = true
                         }
                     }
                     registerTransform(${possiblyFailingTransform(2)}) {
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
                         parameters {
-                            numberOfOutputFiles.set(1)
-                            differentOutputFileNames.set(false)
+                            numberOfOutputFiles = 1
+                            differentOutputFileNames = false
                         }
                     }
                     registerTransform(${possiblyFailingTransform(3)}) {
                         from.attribute(artifactType, "blue")
                         to.attribute(artifactType, "yellow")
                         parameters {
-                            numberOfOutputFiles.set(3)
-                            differentOutputFileNames.set(false)
+                            numberOfOutputFiles = 3
+                            differentOutputFileNames = false
                         }
                     }
                     registerTransform(${possiblyFailingTransform(4)}) {
                         from.attribute(artifactType, "yellow")
                         to.attribute(artifactType, "orange")
                         parameters {
-                            numberOfOutputFiles.set(1)
-                            differentOutputFileNames.set(true)
+                            numberOfOutputFiles = 1
+                            differentOutputFileNames = true
                         }
                     }
                 }
@@ -1048,24 +1048,24 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "green")
                         parameters {
-                            numberOfOutputFiles.set(2)
-                            differentOutputFileNames.set(true)
+                            numberOfOutputFiles= 2
+                            differentOutputFileNames= true
                         }
                     }
                     registerTransform(Duplicator) {
                         from.attribute(artifactType, "green")
                         to.attribute(artifactType, "blue")
                         parameters {
-                            numberOfOutputFiles.set(1)
-                            differentOutputFileNames.set(false)
+                            numberOfOutputFiles= 1
+                            differentOutputFileNames= false
                         }
                     }
                     registerTransform(Duplicator) {
                         from.attribute(artifactType, "blue")
                         to.attribute(artifactType, "yellow")
                         parameters {
-                            numberOfOutputFiles.set(3)
-                            differentOutputFileNames.set(false)
+                            numberOfOutputFiles= 3
+                            differentOutputFileNames= false
                         }
                     }
                 }

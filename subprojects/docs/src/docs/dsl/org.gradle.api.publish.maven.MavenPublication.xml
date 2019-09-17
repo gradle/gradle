@@ -47,6 +47,12 @@
             <tr>
                 <td>versionMapping</td>
             </tr>
+            <tr>
+                <td>suppressPomMetadataWarningsFor</td>
+            </tr>
+            <tr>
+                <td>suppressAllPomMetadataWarnings</td>
+            </tr>
         </table>
     </section>
 </section>

@@ -371,7 +371,7 @@ public interface IvyPublication extends Publication {
      * @since 6.0
      */
     @Incubating
-    void silenceIvyMetadataWarningsFor(String variantName);
+    void suppressIvyMetadataWarningsFor(String variantName);
 
     /**
      * Silences all the compatibility warnings for the Ivy publication.
@@ -381,5 +381,5 @@ public interface IvyPublication extends Publication {
      * @since 6.0
      */
     @Incubating
-    void silenceAllIvyMetadataWarnings();
+    void suppressAllIvyMetadataWarnings();
 }

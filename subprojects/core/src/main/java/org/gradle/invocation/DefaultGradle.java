@@ -546,12 +546,10 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.buildType = buildType;
     }
 
-    @Override
     public SharedResourceContainer getSharedResources() {
         return sharedResourceContainer;
     }
 
-    @Override
     public void sharedResources(Action<? super SharedResourceContainer> action) {
         action.execute(sharedResourceContainer);
     }

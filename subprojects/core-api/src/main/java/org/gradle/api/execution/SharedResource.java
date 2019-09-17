@@ -29,7 +29,6 @@ import org.gradle.api.Task;
  * exclusive resource, effectively limiting concurrency of any tasks that use that resource such that only a single one can be
  * executed at any given time.
  *
- * @see Task#requiresResource(String)
  * @since 6.0
  */
 @Incubating

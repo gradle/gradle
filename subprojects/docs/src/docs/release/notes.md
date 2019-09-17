@@ -10,11 +10,13 @@ We would like to thank the following community contributors to this release of G
 [Andrey Mischenko](https://github.com/gildor),
 [Alex Saveau](https://github.com/SUPERCILEX),
 [Mike Kobit](https://github.com/mkobit),
+[Tom Eyckmans](https://github.com/teyckmans),
 [Robert Stupp](https://github.com/snazy),
 [Nigel Banks](https://github.com/nigelgbanks),
 [Sergey Shatunov](https://github.com/Prototik),
 [Dan Sănduleac](https://github.com/dansanduleac),
 [Vladimir Sitnikov](https://github.com/vlsi),
+[Ross Goldberg](https://github.com/rgoldberg),
 and [Robin Verduijn](https://github.com/robinverduijn).
 
 <!-- 
@@ -57,49 +59,22 @@ Earlier AGP versions are not supported.
 * Kotlin versions between 1.3.21 and 1.3.50 are tested.
 Earlier Kotlin versions are not supported.
 
-## Introducing subgraph constraints for dependency versions
+## Inherited strict versions with platforms
 
-When you declare a dependency to a module that is already on your dependency graph, due to a transitive dependency, you sometimes need to change the version of that module according to your needs.
-So far, this was limited to cases where the existing constraint should be limited further (e.g. choosing a specific version from a range).
-Version constraints can now made into [subgraph constraints](userguide/declaring_dependency_versions.html#sec:declaring_for_subgraph) by using `forSubgraph()`, which will prompt Gradle to ignore the corresponding version constraints defined further down the graph.
-This can, for example, be used to downgrade a version. Subgraph constraints are published to [Gradle Module Metadata](userguide/publishing.html#understanding-gradle-module-md).
+When depending on a platform component, Gradle will automatically inherit strict version constraints from the platform.
+This means that all _strict_ constraints defined in the platform will automatically be added to your dependency graph _as if they were first level constraints_.
+This behavior can be opted out by calling the `doNotInheritStrictVersions()` method:
 
-```groovy
+```
 dependencies {
-    implementation('org.apache.hadoop:hadoop-common')
-    implementation('commons-io:commons-io')
-    constraints {
-        // 'hadoop-common:3.2.0' brings in 'commons-io:2.5'
-        implementation('org.apache.hadoop:hadoop-common:3.2.0') 
-        implementation('commons-io:commons-io:2.4') {
-            version { forSubgraph() } // '2.4' takes precedence
-        }
+    implementation(platform(project(':platform'))) {
+       doNotInheritStrictVersions()
     }
+    ...
 }
 ```
 
-Subgraph constraints can also be defined in a platform.
-Theses constraints will be _inherited_ when depending on the platform and treated as if they were defined directly.
-
-```groovy
-project(':platform') {
-    dependencies {
-        constraints {
-            api('org.apache.hadoop:hadoop-common:3.2.0') 
-            api('commons-io:commons-io:2.4') {
-                version { forSubgraph() } 
-            }
-        }
-    }
-}
-
-dependencies {
-    // 'commons-io:commons-io:2.4' win over '2.5' because the platform defines the constraint as 'forSubgraph()'
-    implementation(platform(project(':platform')))
-    implementation('org.apache.hadoop:hadoop-common')
-    implementation('commons-io:commons-io')
-}
-```
+More information about [strict constraints](userguide/rich_versions.adoc#rich-version-constraints) can be found in the documentation.
 
 ## Support for Java 13 EA
 
@@ -118,6 +93,12 @@ When Gradle detects that a Java process command-line will exceed Windows's 32,76
 The classpath jar contains a manifest with the full classpath of the application and the command-line's classpath will only consist of the classpath jar.  If this doesn't shorten the command-line enough, the Java process will still fail to start.
 
 If the command-line is not long enough to require shortening, Gradle will not change the command-line arguments for the Java process.
+
+## `gradle init` generates `.gitattributes` file
+
+To ensure Windows batch scripts retain the appropriate line endings, `gradle init` now generates a `.gitattributes` file.
+
+This was contributed by [Tom Eyckmans](https://github.com/teyckmans).
 
 ## Features for plugin authors
 

@@ -238,7 +238,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "silenceIvyMetadataWarningsFor");
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
 
         populateConfigurations();
         populateArtifacts();
@@ -614,12 +614,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     @Override
-    public void silenceIvyMetadataWarningsFor(String variantName) {
+    public void suppressIvyMetadataWarningsFor(String variantName) {
         silencedVariants.add(variantName);
     }
 
     @Override
-    public void silenceAllIvyMetadataWarnings() {
+    public void suppressAllIvyMetadataWarnings() {
         this.silenceAllPublicationWarnings = true;
     }
 

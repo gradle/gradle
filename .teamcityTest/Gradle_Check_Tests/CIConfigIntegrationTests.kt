@@ -14,12 +14,10 @@ import model.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import projects.RootProject
 import java.io.File
 
-@Disabled
 class CIConfigIntegrationTests {
     @Test
     fun configurationTreeCanBeGenerated() {
@@ -64,19 +62,12 @@ class CIConfigIntegrationTests {
                 }
 
                 stage.functionalTests.forEach { testCoverage ->
-                    m.buildTypeBuckets.forEach { subprojectBucket ->
-                        if (subprojectBucket.containsSlowTests() && stage.omitsSlowProjects) {
-                            return@forEach
-                        }
-                        if (subprojectBucket.shouldBeSkipped(testCoverage)) {
-                            return@forEach
-                        }
+                    m.buildTypeBuckets.filter { bucket ->
+                        !bucket.shouldBeSkippedInStage(stage) && !bucket.shouldBeSkipped(testCoverage)
+                    }.forEach { subprojectBucket ->
                         if (subprojectBucket.hasTestsOf(testCoverage.testType)) {
-                            functionalTestCount++
+                            functionalTestCount += subprojectBucket.forTestType(testCoverage.testType).size
                         }
-                    }
-                    if (testCoverage.testType.unitTests) {
-                        functionalTestCount++ // All unit tests build type
                     }
                     if (testCoverage.testType == TestType.soak) {
                         functionalTestCount++
@@ -151,7 +142,7 @@ class CIConfigIntegrationTests {
             subProjects = listOf(
                 GradleSubproject("fastBuild"),
                 GradleSubproject("slowBuild", containsSlowTests = true)
-            )
+            ) + listOf("integTest", "core", "dependencyManagement", "resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp", "platformBase", "platformJvm", "platformNative").map { GradleSubproject(it) }
         )
         val p = RootProject(m)
         assertTrue(!p.hasSubProject("Stage1", "deferred"))

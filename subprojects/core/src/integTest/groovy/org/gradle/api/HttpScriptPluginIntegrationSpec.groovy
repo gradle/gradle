@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -104,6 +106,8 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds()
     }
 
+    // Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
+    @Requires(TestPrecondition.JDK11_OR_EARLIER)
     def "can apply script via https"() {
         applyTrustStore()
 

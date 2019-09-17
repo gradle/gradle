@@ -131,6 +131,46 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Class org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "acceptation": "ValidateTaskProperties is no longer a ConventionTask",
+            "changes": [
+                "org.gradle.api.internal.ConventionTask.conventionMapping(java.lang.String,groovy.lang.Closure)",
+                "org.gradle.api.internal.ConventionTask.conventionMapping(java.lang.String,java.util.concurrent.Callable)",
+                "org.gradle.api.internal.ConventionTask.getConventionMapping()"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
+            "member": "Class org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
+            "acceptation": "Reified versions of methods that are already de-incubated",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt.all(org.gradle.api.artifacts.dsl.ComponentMetadataHandler)",
+            "acceptation": "Reified versions of methods that are already de-incubated",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt.all(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,org.gradle.api.Action)",
+            "acceptation": "Reified versions of methods that are already de-incubated",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt.withModule(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,java.lang.Object)",
+            "acceptation": "Reified versions of methods that are already de-incubated",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt.withModule(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,java.lang.Object,org.gradle.api.Action)",
+            "acceptation": "Reified versions of methods that are already de-incubated",
+            "changes": []
         }
     ]
 }

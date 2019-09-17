@@ -54,6 +54,11 @@ These methods now assume the local build cache type to be `DirectoryBuildCache`.
 In Gradle 5.4 we introduced a new API for implementing <<custom_tasks.adoc#incremental_tasks,incremental tasks>>: link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges].
 Its predecessor `IncrementalTaskInputs` has been deprecated.
 
+==== Forced dependencies
+
+Forcing dependency versions using `force = true` on a first-level dependency is deprecated.
+Force has both a semantic and ordering issue which can be avoided by using a <<rich_versions.adoc#rich-version-constraints, strict version constraint>>.
+
 === Potential breaking changes
 
 ==== Android Gradle Plugin 3.3 and earlier is not supported anymore
@@ -106,12 +111,15 @@ Custom logic can be used from a settings script by <<tutorial_using_tasks.adoc#s
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
 
-==== Task validation changes
+==== Plugin validation changes
 
-- `ValidateTaskProperties.setClasses()` is now removed. Use `getClasses().setFrom()` instead.
-- `ValidateTaskProperties.setClasspath()` is now removed. use `getClasspath().setFrom()` instead.
-- link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#getFailOnWarning--[ValidateTaskProperties.failOnWarning] is enabled by default.
-- The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[ValidateTaskProperties]:
+- The `validateTaskProperties` task is now deprecated, use `validatePlugins` instead.
+  The new name better reflects the fact that it also validates artifact transform parameters and other non-property definitions.
+- The `ValidateTaskProperties` type is replaced by `ValidatePlugins`.
+- The `setClasses()` method is now removed. Use `getClasses().setFrom()` instead.
+- The `setClasspath()` method is also removed. use `getClasspath().setFrom()` instead.
+- The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html#getFailOnWarning--[failOnWarning] option is now enabled by default.
+- The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins]:
   * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
 ==== `DefaultTask` and `ProjectLayout` methods replaced with `ObjectFactory`
@@ -171,9 +179,23 @@ Additionally, the following deprecated functionality now results in an error:
 
 ==== `AbstractCompile.compile()` is gone
 
-The abstrace method `compile()` is no longer declared by `AbstractCompile`.
+The abstract method `compile()` is no longer declared by `AbstractCompile`.
 Tasks extending `AbstractCompile` can implement their own `@TaskAction` method with the name of their choosing.
 They are also free to add a `@TaskAction` method with an `InputChanges` parameter without having to implement a parameter-less one as well.
+
+==== Using the `embedded-kotlin` plugin now requires a repository
+
+Just like when using the `kotlin-dsl` plugin, it is now required to declare a repository where Kotlin dependencies can be found if you apply the `embedded-kotlin` plugin.
+
+```kotlin
+plugins {
+    `embedded-kotlin`
+}
+
+repositories {
+    jcenter()
+}
+```
 
 ==== Kotlin DSL IDE support now requires Kotlin IntelliJ Plugin >= 1.3.50
 
@@ -184,6 +206,12 @@ Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kot
 
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
+
+==== Updates to default integration versions
+
+- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.24[Checkstyle 8.24].
+- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-14---may-2019[CodeNarc 1.4].
+- PMD has been updated to https://pmd.github.io/latest/pmd_release_notes.html#28-july-2019---6170[PMD 6.17.0].
 
 ==== Javadoc and Groovydoc don't include timestamps by default
 

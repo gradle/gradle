@@ -132,7 +132,7 @@ class EdgeState implements DependencyGraphEdge {
         return isTransitive;
     }
 
-    public void attachToTargetConfigurations() {
+    void attachToTargetConfigurations() {
         ComponentState targetComponent = getTargetComponent();
         if (targetComponent == null) {
             // The selector failed or the module has been deselected. Do not attach.
@@ -159,10 +159,15 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
-    public void removeFromTargetConfigurations() {
-        if (targetNodes.isEmpty()) {
-            selector.getTargetModule().removeUnattachedDependency(this);
-        } else {
+    void cleanUpOnSourceChange(NodeState source) {
+        removeFromTargetConfigurations();
+        selector.getTargetModule().removeUnattachedDependency(this);
+        selector.release();
+        maybeDecreaseHardEdgeCount(source);
+    }
+
+    void removeFromTargetConfigurations() {
+        if (!targetNodes.isEmpty()) {
             for (NodeState targetConfiguration : targetNodes) {
                 targetConfiguration.removeIncomingEdge(this);
             }
@@ -177,7 +182,7 @@ class EdgeState implements DependencyGraphEdge {
      * perform as much resolution as possible, still have a valid graph, but in the
      * end fail resolution.
      */
-    public void failWith(Throwable err) {
+    void failWith(Throwable err) {
         targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
     }
 

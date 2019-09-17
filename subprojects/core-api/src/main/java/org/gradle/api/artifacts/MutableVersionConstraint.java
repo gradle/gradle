@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -71,24 +70,6 @@ public interface MutableVersionConstraint extends VersionConstraint {
      * @param version the preferred version of this module
      */
     void prefer(String version);
-
-    /**
-     * Apply the version constraint to other occurrences of the same module in the subgraph of dependencies.
-     * This effectively gives this constraint a higher weight to accept previously rejected versions
-     * (e.g. to downgrade the version of a transitive dependency)
-     *
-     * @since 6.0
-     */
-    @Incubating
-    void forSubgraph();
-
-    /**
-     * Reset the {@link #forSubgraph()} state of this version constraint.
-     *
-     * @since 6.0
-     */
-    @Incubating
-    void notForSubgraph();
 
     /**
      * Sets the version as strict.

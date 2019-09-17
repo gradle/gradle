@@ -1,4 +1,4 @@
-// Copyright 2018 the original author or authors.
+// Copyright 2019 the original author or authors.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ Gradle supports the concept of _feature variants_: when building a library, it's
 
 Feature variants let consumers choose what _features_ of a library they need: the dependency management engine will select the right artifacts and dependencies.
 
-This allows for a number of different scenarios (list is non exhaustive):
+This allows for a number of different scenarios (list is non-exhaustive):
 
-- a (better) substitute to {maven-optional-deps}
-- a _main_ library is built with support for different runtime features, and the <<sec::incompatible_variants,user has to choose between one of them>>
-- a _main_ library is built with support for different runtime features, each of them requiring a different set of dependencies
+- a (better) substitute for {maven-optional-deps}
+- a _main_ library is built with support for different mutually-exclusive implementations of runtime features; the <<sec::incompatible_variants,user must choose one, and only one, implementation of each such feature>>
+- a _main_ library is built with support for optional runtime features, each of which requires a different set of dependencies
 - a _main_ library comes with secondary variants like _test fixtures_
 - a _main_ library comes with a main artifact, and enabling an additional feature requires additional artifacts
 
@@ -101,7 +101,7 @@ include::sample[dir="java-feature-variant/producer/kotlin",files="build.gradle.k
 
 [NOTE]
 ====
-By convention, Gradle will map the feature name to a capability which group and version are the same as the group and version of the main component, but with a name composed of the main component name and the kebab-cased feature name.
+By convention, Gradle maps the feature name to a capability whose group and version are the same as the group and version of the main component, respectively, but whose name is the main component name followed by a `-` followed by the kebab-cased feature name.
 
 For example, if the group is `org.gradle.demo`, the name of the component is `provider`, its version is `1.0` and the feature is named `mongodbSupport`, the feature variant will be `org.gradle.demo:provider-mongodb-support:1.0`.
 

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -29,7 +30,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -712,7 +712,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Ignore("TODO: change this test not to be dependent on an old version of the build-scan plugin")
     fun `given extension with inaccessible type, its accessor is typed Any`() {
 
         withFile("init.gradle", """
@@ -721,7 +720,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     gradlePluginPortal()
                 }
                 dependencies {
-                    classpath "com.gradle:build-scan-plugin:1.16"
+                    classpath "com.gradle:build-scan-plugin:${AutoAppliedBuildScanPlugin.VERSION}"
                 }
             }
             rootProject {

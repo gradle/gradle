@@ -18,6 +18,7 @@ package org.gradle.performance.regression.corefeature
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.WithExternalRepository
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest implements WithExternalRepository {
@@ -76,6 +77,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
         locking << [false, false, true, true]
     }
 
+    @Ignore
     def "resolve large dependency graph with subgraph constraints"() {
         runner.minimumVersion = '5.7-20190807220120+0000'
         runner.testProject = TEST_PROJECT_NAME

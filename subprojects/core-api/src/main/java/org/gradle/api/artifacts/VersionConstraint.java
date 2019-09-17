@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -75,9 +74,9 @@ import java.util.List;
  * <ul>
  *     <li>If both parts are numeric, the highest numeric value is <b>higher</b>: `1.1 {@literal <} 1.2`</li>
  *     <li>If one part is numeric, it is considered <b>higher</b> than the non-numeric part: `1.a {@literal <} 1.1`</li>
- *     <li>If both are not numeric, the parts are compared alphabetically, case-sensitive: `1.a {@literal <} 1.A  {@literal <} 1.b {@literal <} 1.B`</li>
+ *     <li>If both are not numeric, the parts are compared alphabetically, case-sensitive: `1.A {@literal <} 1.B  {@literal <} 1.a {@literal <} 1.b`</li>
  *     <li>An version with an extra numeric part is considered <b>higher</b> than a version without: `1.1 {@literal <} 1.1.0`</li>
- *     <li>An version with an extra non-numeric part is considered <b>lower</b> than a version without: `1.1 {@literal <} 1.1.a`</li>
+ *     <li>An version with an extra non-numeric part is considered <b>lower</b> than a version without: `1.1.a {@literal <} 1.1`</li>
  * </ul>
  * </li>
  * <li>Certain string values have special meaning for the purposes of ordering:
@@ -137,11 +136,4 @@ public interface VersionConstraint extends Describable {
      */
     List<String> getRejectedVersions();
 
-    /**
-     * Returns true if the version constraint wins over other transitively brought in constraints on the same component.
-     *
-     * @since 6.0
-     */
-    @Incubating
-    boolean isForSubgraph();
 }

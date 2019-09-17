@@ -127,6 +127,7 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `reason`: optional. A explanation why the dependency is used. Can typically be used to explain why a specific version is requested.
 - `attributes`: optional. If set, attributes will override the consumer attributes during dependency resolution for this specific dependency.
 - `requestedCapabilities`: optional. If set, declares the capabilities that the dependency must provide in order to be selected. See `capabilities` above for the format.
+- `inheritStrictVersions`: optional. If set to `true`, all strict version constraints of the target module will be treated as if they were defined on the variant defining this dependency.
 - `inheritConstraints`: optional. If set to `true`, all `forSubgraph` version constraints of the target module will be treated as if they were defined on the variant defining this dependency.
 - `thirdPartyCompatibility`: optional. Includes additional information to be used if the dependency points at a module that did **not** publish Gradle module metadata.
 
@@ -137,7 +138,6 @@ This value, nested in elements of the `dependencies` or `dependencyConstraints` 
 - `prefers`: optional. The preferred version for this dependency.
 - `strictly`: optional. A strictly enforced version requirement for this dependency.
 - `rejects`: optional. An array of rejected versions for this dependency.
-- `forSubgraph`: optional. If set to `true`, the version constraint applies for each dependency to the corresponding module in the subgraph originating from the containing variant.
 
 #### `excludes` value
 
@@ -180,7 +180,7 @@ This value, nested in elements of the `dependencies` node, includes additional i
 
 #### 1.1
 
-- Adds support for _subgraph version constraints_: `version { forSubgraph = true }`
+- Adds support for _inherited strict version constraints_: `{ "group": "some.group", "module": "other-lib", "version": { "requires": "3.4" }, "inheritStrictVersions": "true"`
 - Adds `thirdPartyCompatibility` features for better compatibility with maven and ivy metadata
 
 #### 1.0
@@ -261,7 +261,7 @@ This value, nested in elements of the `dependencies` node, includes additional i
                 { 
                     "group": "some.group", 
                     "module": "other-lib-2", 
-                    "version": { "requires": "1.0", "forSubgraph": true } 
+                    "version": { "requires": "1.0" } 
                 }
             ]
         }

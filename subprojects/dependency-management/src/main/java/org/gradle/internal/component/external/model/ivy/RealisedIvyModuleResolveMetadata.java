@@ -190,11 +190,10 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         List<ModuleDependencyMetadata> dependencyMetadata;
         if (configurationHelper != null) {
             dependencyMetadata = configurationHelper.filterDependencies(configuration);
-            dependencyMetadata = ImmutableList.copyOf(variantMetadataRules.applyDependencyMetadataRules(new NameOnlyVariantResolveMetadata(name), dependencyMetadata));
         } else {
             dependencyMetadata = dependenciesFromRule;
         }
-        configuration.setDependencies(dependencyMetadata);
+        configuration.setDependencies(ImmutableList.copyOf(variantMetadataRules.applyDependencyMetadataRules(new NameOnlyVariantResolveMetadata(name), dependencyMetadata)));
         return configuration;
     }
 

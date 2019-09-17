@@ -1,5 +1,6 @@
 package projects
 
+import configurations.FunctionalTest
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
@@ -27,13 +28,12 @@ class RootProject(model: CIBuildModel) : Project({
     }
 
     var prevStage: Stage? = null
-    var deferredAlreadyDeclared = false
-    FunctionalTestProject.missingTestCoverage.clear()
+    val deferredFunctionalTests = mutableListOf<(Stage) -> List<FunctionalTest>>()
     model.stages.forEach { stage ->
-        val containsDeferredTests = !stage.omitsSlowProjects && !deferredAlreadyDeclared
-        deferredAlreadyDeclared = deferredAlreadyDeclared || containsDeferredTests
-        buildType(StagePasses(model, stage, prevStage, containsDeferredTests))
-        subProject(StageProject(model, stage, containsDeferredTests, uuid))
+        val stageProject = StageProject(model, stage, uuid, deferredFunctionalTests)
+        val stagePasses = StagePasses(model, stage, prevStage, stageProject)
+        buildType(stagePasses)
+        subProject(stageProject)
         prevStage = stage
     }
 

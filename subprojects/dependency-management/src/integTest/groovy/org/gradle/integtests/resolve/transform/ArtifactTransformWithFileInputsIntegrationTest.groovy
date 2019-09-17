@@ -334,7 +334,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         """
         setupBuildWithColorTransform {
             params("""
-                someFile.set(project.inputFile)
+                someFile = project.inputFile
             """)
         }
         buildFile << """
@@ -386,7 +386,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
         """
         setupBuildWithColorTransform {
             params("""
-                someDir.set(project.inputDir)
+                someDir = project.inputDir
             """)
         }
         buildFile << """

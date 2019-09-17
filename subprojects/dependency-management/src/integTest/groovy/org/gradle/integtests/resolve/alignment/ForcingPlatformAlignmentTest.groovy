@@ -58,6 +58,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
+        executer.expectDeprecationWarning()
         expectAlignment {
             module('core') tries('2.9.4') alignsTo('2.7.9') byVirtualPlatform()
             module('databind') alignsTo('2.7.9') byVirtualPlatform()
@@ -224,6 +225,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
+        executer.expectDeprecationWarning()
         allowAllRepositoryInteractions()
         fails ':checkDeps'
 
@@ -339,6 +341,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         "a rule which infers module set from group and version"()
 
         when:
+        executer.expectDeprecationWarning()
         allowAllRepositoryInteractions()
         fails ':checkDeps'
 
@@ -426,6 +429,7 @@ include 'other'
         "a rule which infers module set from group and version"()
 
         when:
+        executer.expectDeprecationWarning()
         allowAllRepositoryInteractions()
         fails ':checkDeps'
 
@@ -461,6 +465,7 @@ include 'other'
         "a rule which infers module set from group and version"()
 
         expect:
+        executer.expectDeprecationWarning()
         allowAllRepositoryInteractions()
         succeeds ':checkDeps'
     }
@@ -528,6 +533,7 @@ include 'other'
         "a rule which infers module set from group and version"()
 
         expect:
+        executer.expectDeprecationWarning()
         allowAllRepositoryInteractions()
         succeeds ':checkDeps'
     }
@@ -958,6 +964,9 @@ include 'other'
                 allowAll()
             }
         }
+        if (forceNotation.contains("force = ")) {
+            executer.expectDeprecationWarning()
+        }
         run ':checkDeps'
 
         then:
@@ -1013,6 +1022,10 @@ include 'other'
                 allowAll()
             }
         }
+        if (forceNotation.contains("force =")) {
+            executer.expectDeprecationWarning()
+        }
+
         run ':checkDeps'
 
         then:

@@ -691,7 +691,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
     def "can ignore publication warnings"() {
         given:
-        def silenceMethod = "silencePomMetadataWarningsFor"
+        def silenceMethod = "suppressPomMetadataWarningsFor"
         createBuildScripts("""
 
             configurations.api.outgoing.capability 'org:foo:1.0'
@@ -730,7 +730,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 publications {
                     maven(MavenPublication) {
                         from components.java
-                        silenceAllPomMetadataWarnings()
+                        suppressAllPomMetadataWarnings()
                     }
                 }
             }

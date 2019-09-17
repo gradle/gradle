@@ -28,13 +28,13 @@ import org.gradle.api.Incubating;
 public interface DirectDependencyMetadata extends DependencyMetadata<DirectDependencyMetadata> {
 
     /**
-     * Inherit version constraints with {@link VersionConstraint#isForSubgraph()} from the target module.
+     * Inherit version constraints with {@link VersionConstraint#getStrictVersion()} strict versions} from the target module.
      * For this, the version constraint of this dependency needs to strictly point at one version.
      *
      * @since 6.0
      */
     @Incubating
-    void inheritConstraints();
+    void inheritStrictVersions();
 
     /**
      * Resets the {@link #isInheriting()} state of this dependency.
@@ -42,10 +42,10 @@ public interface DirectDependencyMetadata extends DependencyMetadata<DirectDepen
      * @since 6.0
      */
     @Incubating
-    void notInheritConstraints();
+    void doNotInheritStrictVersions();
 
     /**
-     * Are the {@link VersionConstraint#isForSubgraph()} dependency constraints of the target module inherited?
+     * Are the {@link VersionConstraint#getStrictVersion()} strict version} dependency constraints of the target module inherited?
      *
      * @since 6.0
      */

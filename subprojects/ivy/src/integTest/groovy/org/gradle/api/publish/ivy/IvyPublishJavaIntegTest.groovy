@@ -965,7 +965,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     def "can ignore publication warnings"() {
         given:
-        def silenceMethod = "silenceIvyMetadataWarningsFor"
+        def silenceMethod = "suppressIvyMetadataWarningsFor"
         createBuildScripts("""
 
             configurations.api.outgoing.capability 'org:foo:1.0'
@@ -1004,7 +1004,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 publications {
                     ivy(IvyPublication) {
                         from components.java
-                        silenceAllIvyMetadataWarnings()
+                        suppressAllIvyMetadataWarnings()
                     }
                 }
             }

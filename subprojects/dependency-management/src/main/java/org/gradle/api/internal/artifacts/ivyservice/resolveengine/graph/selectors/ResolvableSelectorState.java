@@ -64,6 +64,8 @@ public interface ResolvableSelectorState {
 
     boolean isFromLock();
 
+    boolean hasStrongOpinion();
+
     default boolean isProject() {
         return getSelector() instanceof ProjectComponentSelector;
     }

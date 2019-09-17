@@ -79,7 +79,7 @@ class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChai
                     from.attribute(USAGE, CUSTOM).attribute(artifactType, 'zip')
                     to.attribute(USAGE, C_PLUS_PLUS_API).attribute(artifactType, 'directory')
                     parameters {
-                        headerDir.set(file('lib/src/main/headers'))
+                        headerDir = file('lib/src/main/headers')
                     }
                 }
                 
