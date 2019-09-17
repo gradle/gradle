@@ -30,8 +30,6 @@ The reasoning is simple: improve build speed by reusing computations from previo
 
 The Gradle Daemon is enabled by default starting with Gradle 3.0, so you don't have to do anything to benefit from it.
 
-If you run CI builds in ephemeral environments (such as containers) that do not reuse any processes, use of the Daemon will slightly decrease performance (due to caching additional information) for no benefit, and may be disabled.
-
 [[sec:status]]
 == Running Daemon Status
 
