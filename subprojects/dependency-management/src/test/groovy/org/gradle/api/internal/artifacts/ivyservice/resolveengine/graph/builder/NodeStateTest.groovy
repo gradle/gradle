@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.subgraphconstraints.SubgraphConstraints
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints
 import org.gradle.api.specs.Spec
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -32,83 +32,83 @@ class NodeStateTest extends Specification {
     int idIdx = 0
     NodeState root = nextNode()
 
-    def "uses empty subgraph constraints object if no subgraph constraints are defined"() {
+    def "uses empty strict version constraints object if no strict versions are defined"() {
         Set<ModuleIdentifier> constraintsSet = []
 
         when:
-        root.maybeCollectSubgraphConstraint(constraintsSet, edge(root, false).dependencyState)
-        root.maybeCollectSubgraphConstraint(constraintsSet, edge(root, false).dependencyState)
-        root.maybeCollectSubgraphConstraint(constraintsSet, edge(root, false).dependencyState)
-        root.storeOwnConstraints(constraintsSet)
+        root.maybeCollectStrictVersions(constraintsSet, edge(root, false).dependencyState)
+        root.maybeCollectStrictVersions(constraintsSet, edge(root, false).dependencyState)
+        root.maybeCollectStrictVersions(constraintsSet, edge(root, false).dependencyState)
+        root.storeOwnStrictVersions(constraintsSet)
 
         then:
-        root.ownSubgraphConstraints == SubgraphConstraints.EMPTY
-        root.ownSubgraphConstraints.getModules().isEmpty()
+        root.ownStrictVersionConstraints == StrictVersionConstraints.EMPTY
+        root.ownStrictVersionConstraints.getModules().isEmpty()
     }
 
-    def "collects subgraph constraints"() {
+    def "collects strict version constraints"() {
         Set<ModuleIdentifier> constraintsSet = []
 
         when:
-        root.maybeCollectSubgraphConstraint(constraintsSet, edge(root).dependencyState)
-        root.maybeCollectSubgraphConstraint(constraintsSet, edge(root).dependencyState)
-        root.maybeCollectSubgraphConstraint(constraintsSet, edge(root, false).dependencyState)
-        root.maybeCollectSubgraphConstraint(constraintsSet, edge(root).dependencyState)
-        root.maybeCollectSubgraphConstraint(constraintsSet, edge(root, false).dependencyState)
-        root.storeOwnConstraints(constraintsSet)
+        root.maybeCollectStrictVersions(constraintsSet, edge(root).dependencyState)
+        root.maybeCollectStrictVersions(constraintsSet, edge(root).dependencyState)
+        root.maybeCollectStrictVersions(constraintsSet, edge(root, false).dependencyState)
+        root.maybeCollectStrictVersions(constraintsSet, edge(root).dependencyState)
+        root.maybeCollectStrictVersions(constraintsSet, edge(root, false).dependencyState)
+        root.storeOwnStrictVersions(constraintsSet)
 
         then:
-        root.ownSubgraphConstraints.getModules().size() == 3
-        root.ownSubgraphConstraints.getModules() == constraintsSet
+        root.ownStrictVersionConstraints.getModules().size() == 3
+        root.ownStrictVersionConstraints.getModules() == constraintsSet
     }
 
-    def "uses empty subgraph constraints object if no subgraph constraints are inherited"() {
+    def "uses empty strict version constraints object if no strict versions are endorsed"() {
         when:
-        def inheritFrom = edge(root, false, null, nextNode(0), true)
-        root.collectInheritedSubgraphConstraints([inheritFrom])
-        def inheritedConstraints = root.getInheritedSubgraphConstraints(edge(root, false))
+        def endorseFrom = edge(root, false, null, nextNode(0), true)
+        root.collectEndorsedStrictVersions([endorseFrom])
+        def endorsedStrictVersions = root.getEndorsedStrictVersions(edge(root))
 
         then:
-        inheritedConstraints == SubgraphConstraints.EMPTY
-        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints == SubgraphConstraints.EMPTY
+        endorsedStrictVersions == StrictVersionConstraints.EMPTY
+        endorseFrom.targetComponent.nodes[0].ownStrictVersionConstraints == StrictVersionConstraints.EMPTY
     }
 
-    def "collect one inherited subgraph constraint"() {
+    def "collect one endorsed strict version"() {
         when:
-        def inheritFrom = edge(root, false, null, nextNode(1), true)
-        root.collectInheritedSubgraphConstraints([inheritFrom])
-        def inheritedConstraints = root.getInheritedSubgraphConstraints(edge(root, false))
+        def endorseFrom = edge(root, false, null, nextNode(1), true)
+        root.collectEndorsedStrictVersions([endorseFrom])
+        def endorsedStrictVersions = root.getEndorsedStrictVersions(edge(root, false))
 
         then:
-        inheritedConstraints.getModules().size() == 1
-        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints.getModules().size() == 1
-        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints == inheritedConstraints //instance reused
+        endorsedStrictVersions.getModules().size() == 1
+        endorseFrom.targetComponent.nodes[0].ownStrictVersionConstraints.getModules().size() == 1
+        endorseFrom.targetComponent.nodes[0].ownStrictVersionConstraints == endorsedStrictVersions //instance reused
     }
 
-    def "collects multiple inherited subgraph constraints from one module"() {
+    def "collects multiple endorsed strict versions from one module"() {
         when:
-        def inheritFrom = edge(root, false, null, nextNode(12), true)
-        root.collectInheritedSubgraphConstraints([inheritFrom])
-        def inheritedConstraints = root.getInheritedSubgraphConstraints(edge(root, false))
+        def endorseFrom = edge(root, false, null, nextNode(12), true)
+        root.collectEndorsedStrictVersions([endorseFrom])
+        def endorsedStrictVersions = root.getEndorsedStrictVersions(edge(root, false))
 
         then:
-        inheritedConstraints.getModules().size() == 12
-        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints.getModules().size() == 12
-        inheritFrom.targetComponent.nodes[0].ownSubgraphConstraints == inheritedConstraints //instance reused
+        endorsedStrictVersions.getModules().size() == 12
+        endorseFrom.targetComponent.nodes[0].ownStrictVersionConstraints.getModules().size() == 12
+        endorseFrom.targetComponent.nodes[0].ownStrictVersionConstraints == endorsedStrictVersions //instance reused
     }
 
-    def "collects inherited subgraph constraints from multiple sources"() {
+    def "collects endorsed strict versions from multiple sources"() {
         when:
-        edge(root, false) // not-inheriting edge
-        def inheritFrom1 = edge(root, false, null, nextNode(1), true)
-        def inheritFrom2 = edge(root, false, null, nextNode(4), true)
-        root.collectInheritedSubgraphConstraints([inheritFrom1, inheritFrom2])
-        def inheritedConstraints = root.getInheritedSubgraphConstraints(edge(root, false))
+        edge(root, false) // not-endorsing edge
+        def endorseFrom1 = edge(root, false, null, nextNode(1), true)
+        def endorseFrom2 = edge(root, false, null, nextNode(4), true)
+        root.collectEndorsedStrictVersions([endorseFrom1, endorseFrom2])
+        def endorsedStrictVersions = root.getEndorsedStrictVersions(edge(root, false))
 
         then:
-        def modulesAll = inheritedConstraints.getModules()
-        def modules1 = inheritFrom1.targetComponent.nodes[0].ownSubgraphConstraints.getModules()
-        def modules2 = inheritFrom2.targetComponent.nodes[0].ownSubgraphConstraints.getModules()
+        def modulesAll = endorsedStrictVersions.getModules()
+        def modules1 = endorseFrom1.targetComponent.nodes[0].ownStrictVersionConstraints.getModules()
+        def modules2 = endorseFrom2.targetComponent.nodes[0].ownStrictVersionConstraints.getModules()
 
         modulesAll.size() == 5
         modules1.size() == 1
@@ -116,52 +116,52 @@ class NodeStateTest extends Specification {
 
         modulesAll == modules1 + modules2
 
-        inheritFrom1.targetComponent.nodes[0].ownSubgraphConstraints != inheritedConstraints
-        inheritFrom2.targetComponent.nodes[0].ownSubgraphConstraints != inheritedConstraints
+        endorseFrom1.targetComponent.nodes[0].ownStrictVersionConstraints != endorsedStrictVersions
+        endorseFrom2.targetComponent.nodes[0].ownStrictVersionConstraints != endorsedStrictVersions
     }
 
-    def "uses empty subgraph constraints object if there are no ancestor constraints"() {
+    def "uses empty strict version constraints object if there are no ancestor constraints"() {
+        when:
+        def edge = edge(root)
+        def childNode = edge.targetComponent.nodes[0]
+        collectOwnStrictVersions(root, [])
+        childNode.collectAncestorsStrictVersions([edge])
+
+        then:
+        root.ownStrictVersionConstraints == StrictVersionConstraints.EMPTY
+        childNode.ancestorsStrictVersionConstraints == StrictVersionConstraints.EMPTY
+    }
+
+    def "collects ancestor strict versions from one parent"() {
         when:
         def edge = edge(root, false)
         def childNode = edge.targetComponent.nodes[0]
-        collectOwnSubgraphConstraints(root, [])
-        childNode.collectAncestorsSubgraphConstraints([edge])
+        collectOwnStrictVersions(root, ["a", "b", "c", "d"]) // this is always expected to run before running collectAncestorsStrictVersions() on a child
+
+        childNode.collectAncestorsStrictVersions([edge])
 
         then:
-        root.ownSubgraphConstraints == SubgraphConstraints.EMPTY
-        childNode.ancestorsSubgraphConstraints == SubgraphConstraints.EMPTY
+        root.ownStrictVersionConstraints.getModules().size() == 4
+        childNode.ancestorsStrictVersionConstraints.getModules().size() == 4
+        childNode.ancestorsStrictVersionConstraints == root.ownStrictVersionConstraints //instance reused
     }
 
-    def "collects ancestor subgraph constraints from one parent"() {
-        when:
-        def edge = edge(root, false)
-        def childNode = edge.targetComponent.nodes[0]
-        collectOwnSubgraphConstraints(root, ["a", "b", "c", "d"]) // this is always expected to run before running collectAncestorsSubgraphConstraints() on a child
-
-        childNode.collectAncestorsSubgraphConstraints([edge])
-
-        then:
-        root.ownSubgraphConstraints.getModules().size() == 4
-        childNode.ancestorsSubgraphConstraints.getModules().size() == 4
-        childNode.ancestorsSubgraphConstraints == root.ownSubgraphConstraints //instance reused
-    }
-
-    def "uses empty subgraph constraints object if constraints of second parent are empty"() {
+    def "uses empty strict version constraints object if constraints of second parent are empty"() {
         when:
         def parent1 = edge(root, false).targetComponent.nodes[0]
         def parent2 = edge(root, false).targetComponent.nodes[0]
-        collectOwnSubgraphConstraints(parent1, ['a'])
-        collectOwnSubgraphConstraints(parent2, [])
+        collectOwnStrictVersions(parent1, ['a'])
+        collectOwnStrictVersions(parent2, [])
 
         def childNode = nextNode()
         def edge1 = edge(parent1, false, null, childNode)
         def edge2 = edge(parent2, false, null, childNode)
-        childNode.collectAncestorsSubgraphConstraints([edge1, edge2])
+        childNode.collectAncestorsStrictVersions([edge1, edge2])
 
         then:
-        childNode.ancestorsSubgraphConstraints == SubgraphConstraints.EMPTY
-        parent1.ownSubgraphConstraints != SubgraphConstraints.EMPTY
-        parent2.ownSubgraphConstraints == SubgraphConstraints.EMPTY
+        childNode.ancestorsStrictVersionConstraints == StrictVersionConstraints.EMPTY
+        parent1.ownStrictVersionConstraints != StrictVersionConstraints.EMPTY
+        parent2.ownStrictVersionConstraints == StrictVersionConstraints.EMPTY
     }
 
     def "computes intersection of ancestors"() {
@@ -170,32 +170,32 @@ class NodeStateTest extends Specification {
         def parent2Edge = edge(root, false)
         def parent1 = parent1Edge.targetComponent.nodes[0]
         def parent2 = parent2Edge.targetComponent.nodes[0]
-        collectOwnSubgraphConstraints(root, ['a']) //root, on all paths
-        collectOwnSubgraphConstraints(parent1, ['b', 'c'])
-        collectOwnSubgraphConstraints(parent2, ['b', 'd'])
+        collectOwnStrictVersions(root, ['a']) //root, on all paths
+        collectOwnStrictVersions(parent1, ['b', 'c'])
+        collectOwnStrictVersions(parent2, ['b', 'd'])
 
         def child = nextNode()
         def edge1 = edge(parent1, false, null, child)
         def edge2 = edge(parent2, false, null, child)
-        parent1.collectAncestorsSubgraphConstraints([parent1Edge])
-        parent2.collectAncestorsSubgraphConstraints([parent2Edge])
-        child.collectAncestorsSubgraphConstraints([edge1, edge2])
+        parent1.collectAncestorsStrictVersions([parent1Edge])
+        parent2.collectAncestorsStrictVersions([parent2Edge])
+        child.collectAncestorsStrictVersions([edge1, edge2])
 
         then:
-        child.ancestorsSubgraphConstraints.getModules() == moduleSet('a', 'b')
-        parent1.ancestorsSubgraphConstraints == root.ownSubgraphConstraints
-        parent2.ancestorsSubgraphConstraints == root.ownSubgraphConstraints
+        child.ancestorsStrictVersionConstraints.getModules() == moduleSet('a', 'b')
+        parent1.ancestorsStrictVersionConstraints == root.ownStrictVersionConstraints
+        parent2.ancestorsStrictVersionConstraints == root.ownStrictVersionConstraints
     }
 
-    private collectOwnSubgraphConstraints(NodeState node, List<String> children) {
+    private collectOwnStrictVersions(NodeState node, List<String> children) {
         Set<ModuleIdentifier> constraintsSet = []
         for (String child : children) {
-            node.maybeCollectSubgraphConstraint(constraintsSet, edge(node, true, child).dependencyState)
+            node.maybeCollectStrictVersions(constraintsSet, edge(node, true, child, nextNode(), true).dependencyState)
         }
-        node.storeOwnConstraints(constraintsSet)
+        node.storeOwnStrictVersions(constraintsSet)
     }
 
-    private EdgeState edge(NodeState from, boolean forSubgraph = true, String name = null, NodeState to = nextNode(), inheriting = false) {
+    private EdgeState edge(NodeState from, boolean strict = true, String name = null, NodeState to = nextNode(), endorsing = false) {
         String moduleName = name ? name : "${from.nodeId}-${to.nodeId}"
         EdgeState edgeState = Mock()
         DependencyState dependencyState = Mock()
@@ -210,19 +210,19 @@ class NodeStateTest extends Specification {
         edgeState.dependencyMetadata >> dependencyMetadata
         dependencyState.dependency >> dependencyMetadata
         dependencyMetadata.selector >> selector
-        dependencyMetadata.inheriting >> inheriting
+        dependencyMetadata.endorsingStrictVersions >> endorsing
         selector.versionConstraint >> versionConstraint
         selector.moduleIdentifier >> DefaultModuleIdentifier.newId("org", moduleName)
-        versionConstraint.forSubgraph >> forSubgraph
+        versionConstraint.strictVersion >> (strict ? "1.0" : "")
         edgeState
     }
 
-    private NodeState nextNode(int outgoingSubgraph = 0) {
+    private NodeState nextNode(int outgoingEndorsing = 0) {
         def metadata = Stub(ConfigurationMetadata)
         def resolveState = Stub(ResolveState)
         def newState = new NodeState(idIdx++, null, Mock(ComponentState), resolveState, metadata)
-        // if outgoing subgraph edges, also include a normal edge to make sure that is filtered out
-        metadata.dependencies >> ((0..<outgoingSubgraph).collect { edge(newState).dependencyMetadata } + (outgoingSubgraph > 0 ? [edge(newState, false).dependencyMetadata] : []))
+        // if there are outgoing endorsing edges, also include a normal edge to make sure that it is filtered out
+        metadata.dependencies >> ((0..<outgoingEndorsing).collect { edge(newState).dependencyMetadata } + (outgoingEndorsing > 0 ? [edge(newState, false).dependencyMetadata] : []))
         resolveState.moduleExclusions >> Mock(ModuleExclusions)
         resolveState.edgeFilter >> new Spec<DependencyMetadata>() {
             boolean isSatisfiedBy(DependencyMetadata element) { true }

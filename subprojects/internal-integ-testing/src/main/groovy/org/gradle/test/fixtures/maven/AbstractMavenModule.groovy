@@ -133,7 +133,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                               type: attributes.type, scope: attributes.scope, classifier: attributes.classifier,
                               optional: attributes.optional, exclusions: attributes.exclusions, rejects: attributes.rejects,
                               prefers: attributes.prefers, strictly: attributes.strictly,
-                              inheritStrictVersions: attributes.inheritStrictVersions, reason: attributes.reason
+                              endorseStrictVersions: attributes.endorseStrictVersions, reason: attributes.reason
         ]
         return this
     }
@@ -473,7 +473,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     v.name,
                     v.attributes,
                     v.dependencies + dependencies.findAll { !it.optional }.collect { d ->
-                        new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.rejects, d.exclusions, d.inheritStrictVersions, d.reason, d.attributes,
+                        new DependencySpec(d.groupId, d.artifactId, d.version, d.prefers, d.strictly, d.rejects, d.exclusions, d.endorseStrictVersions, d.reason, d.attributes,
                             d.classifier ? new ArtifactSelectorSpec(d.artifactId, 'jar', 'jar', d.classifier) : null)
                     },
                     v.dependencyConstraints + dependencies.findAll { it.optional }.collect { d ->

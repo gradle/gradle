@@ -57,7 +57,7 @@ public interface ComponentVariant extends VariantResolveMetadata {
 
         List<Capability> getRequestedCapabilities();
 
-        boolean isInheriting();
+        boolean isEndorsingStrictVersions();
 
         @Nullable
         IvyArtifactName getDependencyArtifact();

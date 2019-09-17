@@ -164,7 +164,7 @@ class GradleModuleMetadata {
             if (dependencies == null) {
                 dependencies = (values.dependencies ?: []).collect {
                     def exclusions = it.excludes ? it.excludes.collect { "${it.group}:${it.module}" } : []
-                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], exclusions, it.inheritStrictVersions, it.reason, it.thirdPartyCompatibility?.artifactSelector, normalizeForTests(it.attributes))
+                    new Dependency(it.group, it.module, it.version?.requires, it.version?.prefers, it.version?.strictly, it.version?.rejects ?: [], exclusions, it.endorseStrictVersions, it.reason, it.thirdPartyCompatibility?.artifactSelector, normalizeForTests(it.attributes))
                 }
             }
             dependencies
@@ -468,13 +468,13 @@ class GradleModuleMetadata {
     @EqualsAndHashCode
     static class Dependency extends Coords {
         final List<String> excludes
-        final boolean inheritStrictVersions
+        final boolean endorseStrictVersions
         final ArtifactSelectorSpec artifactSelector
 
-        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, List<String> excludes, Boolean inheritStrictVersions, String reason, Map<String, String> artifactSelector, Map<String, String> attributes) {
+        Dependency(String group, String module, String requires, String prefers, String strictly, List<String> rejectedVersions, List<String> excludes, Boolean endorseStrictVersions, String reason, Map<String, String> artifactSelector, Map<String, String> attributes) {
             super(group, module, requires, prefers, strictly, rejectedVersions, reason, attributes)
             this.excludes = excludes*.toString()
-            this.inheritStrictVersions = inheritStrictVersions
+            this.endorseStrictVersions = endorseStrictVersions
             this.artifactSelector = artifactSelector != null ? new ArtifactSelectorSpec(artifactSelector.name, artifactSelector.type, artifactSelector.extesion, artifactSelector.classifier) : null
         }
 

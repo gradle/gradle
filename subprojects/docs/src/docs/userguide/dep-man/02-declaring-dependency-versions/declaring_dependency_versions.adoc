@@ -17,7 +17,7 @@ include::sample[dir="userguide/dependencyManagement/declaringDependencies/withou
 include::sample[dir="userguide/dependencyManagement/declaringDependencies/withoutVersion/kotlin",files="build.gradle.kts[tags=dependencies-without-version]"]
 ====
 
-[[sec:declaring_for_subgraph]]
+[[sec:declaring_as_strict]]
 == Declaring a dependency that is already part of the dependency graph
 
 In larger projects, you often get into a situation where a module you require is already added transitively by one of your existing dependencies.
@@ -28,18 +28,18 @@ To make sure that your own version declaration takes precedence over other decla
 If you do this, the (rich) versions of the dependencies that came in transitively will be ignored.
 
 ====
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/strictForSubgraph/groovy",files="build.gradle[tags=dependencies-for-subgraph]"]
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/strictForSubgraph/kotlin",files="build.gradle.kts[tags=dependencies-for-subgraph]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/strictForSubgraph/groovy",files="build.gradle[tags=dependencies-strictly]"]
+include::sample[dir="userguide/dependencyManagement/declaringDependencies/strictForSubgraph/kotlin",files="build.gradle.kts[tags=dependencies-strictly]"]
 ====
 
 Note that if you change the version of another dependency in your context, it is your responsibility that the resulting combination of modules works.
 In particular, if you are developing a library that others consume.
 More details about dealing with such situations are found in the <<controlling_transitive_dependencies.adoc#, controlling transitive dependencies>> chapter.
 
-You can also _inherit_ the strict version constraints defined by another module so that they are applied to all your dependencies as well.
+You can also _endorse_ the strict versions defined by another module so that they are applied to all your dependencies as well.
 This is the behavior you typically expect from a _platform_.
 A <<controlling_transitive_dependencies.adoc#sec:using-platform-to-control-transitive-deps,platform dependency>> will enable it automatically.
-You can however activate it for arbitrary dependencies by setting `inheritStrictVersions()` on the dependency.
+You can however activate it for arbitrary dependencies by setting `endorseStrictVersions()` on the dependency.
 
 [[sec:dynamic_versions_and_changing_modules]]
 == Dealing with versions which change over time

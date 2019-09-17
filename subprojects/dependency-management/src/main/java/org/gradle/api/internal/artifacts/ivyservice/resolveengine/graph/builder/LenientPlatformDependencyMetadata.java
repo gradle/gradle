@@ -80,7 +80,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public ModuleDependencyMetadata withInheritStrictVersions(boolean inheriting) {
+    public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
         return this;
     }
 
@@ -125,7 +125,7 @@ class LenientPlatformDependencyMetadata implements ModuleDependencyMetadata, For
     }
 
     @Override
-    public boolean isInheriting() {
+    public boolean isEndorsingStrictVersions() {
         return false;
     }
 

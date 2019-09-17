@@ -67,7 +67,7 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         when:
         adapter.add("org.gradle.test:module1") {
             it.version { it.require '1.0' }
-            it.inheritStrictVersions()
+            it.endorseStrictVersions()
         }
 
         then:
@@ -75,7 +75,7 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].selector.group == "org.gradle.test"
         dependenciesMetadata[0].selector.module == "module1"
         dependenciesMetadata[0].selector.version == "1.0"
-        dependenciesMetadata[0].isInheriting()
+        dependenciesMetadata[0].isEndorsingStrictVersions()
     }
 
     def "add via map id with action propagate to the underlying dependency list"() {
@@ -201,11 +201,11 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         fillDependencyList(1)
 
         when:
-        adapter.get(0).inheritStrictVersions()
+        adapter.get(0).endorseStrictVersions()
 
         then:
         dependenciesMetadata.size() == 1
-        dependenciesMetadata[0].isInheriting()
+        dependenciesMetadata[0].isEndorsingStrictVersions()
     }
 
     private fillDependencyList(int size) {
@@ -233,8 +233,8 @@ abstract class DependenciesMetadataAdapterTest extends Specification {
         }
 
         @Override
-        protected boolean isInheriting(DirectDependencyMetadata details) {
-            return details.isInheriting()
+        protected boolean isEndorsingStrictVersions(DirectDependencyMetadata details) {
+            return details.isEndorsingStrictVersions()
         }
     }
 }

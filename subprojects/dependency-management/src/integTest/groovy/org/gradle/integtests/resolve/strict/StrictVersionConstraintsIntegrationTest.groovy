@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.subgraph
+package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
+class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
         resolve.withStrictReasonsCheck()
@@ -556,7 +556,7 @@ class SubgraphVersionConstraintsIntegrationTest extends AbstractModuleDependency
     @RequiredFeatures([
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
     )
-    def "can reintroduce a strict constraint on the root level"() { // similar to test above, but reintroduces subgraph constraint in build script
+    def "can reintroduce a strict version on the root level"() { // similar to test above, but reintroduces strict version in build script
         given:
         repository {
             'org:x1:1.0' {

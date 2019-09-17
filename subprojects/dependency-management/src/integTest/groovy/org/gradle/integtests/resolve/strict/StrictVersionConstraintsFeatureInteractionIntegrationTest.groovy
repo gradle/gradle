@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.subgraph
+package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends AbstractModuleDependencyResolveTest {
+class StrictVersionConstraintsFeatureInteractionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
         resolve.withStrictReasonsCheck()
@@ -289,7 +289,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         }
     }
 
-    def "subgraph constraints apply to modules provided through substitution"() {
+    def "strict version constraints apply to modules provided through substitution"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -336,7 +336,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         }
     }
 
-    def "subgraph constraints apply to modules provided through substitution with version selector"() {
+    def "strict version constraints apply to modules provided through substitution with version selector"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -401,7 +401,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
     }
 
 
-    def "dependency resolve rules dominate over subgraph constraints"() {
+    def "dependency resolve rules dominate over strict version constraints"() {
         given:
         repository {
             'org:foo:0.11'()
@@ -451,7 +451,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         }
     }
 
-    def "a substitution does not leak substituted subgraph constraint"() {
+    def "a substitution does not leak substituted strict version constraint"() {
         given:
         repository {
             'org:foo:1.0'()
@@ -465,7 +465,7 @@ class SubgraphVersionConstraintsFeatureInteractionIntegrationTest extends Abstra
         buildFile << """
            configurations.conf.resolutionStrategy.eachDependency { DependencyResolveDetails details ->
                 if (details.requested.name == 'foo' && details.requested.version == '1.0') {
-                    details.useTarget 'org:new:1.0' // this also has to remove the 'subgraph' state of all 'org:foo:1.0' edges
+                    details.useTarget 'org:new:1.0' // this also has to remove the 'strict' state of all 'org:foo:1.0' edges
                 }
             }
             dependencies {
