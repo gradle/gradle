@@ -53,10 +53,36 @@ Dependency constraints themselves can also be added transitively.
 [[sub:sharing-dep-versions-between-projects]]
 === Sharing dependency versions between projects
 
-// A dependency to a platform inherits all subgraph constraints of the platform (can be turned off by 'doNotInheritStrictVersions()')
+A <<dependency_management_terminology.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
+In most cases it's exclusively composed of link:#sec:adding-constraints-transitive-deps[dependency constraints] which will either _suggest_ dependency versions or _enforce_ some versions.
+As such, this is a perfect tool whenever you need to _share dependency versions between projects_.
+In this case, a project will typically be organized this way:
 
-[[sub:enforced-platforms]]
-=== Enforced platforms
+- a `platform` project which defines constraints for the various dependencies found in the different sub-projects
+- a number of sub-projects which _depend on_ the platform and declare dependencies _without version_
+
+In the Java ecosystem, Gradle provides a <<java_platform_plugin.adoc#java_platform_plugin,plugin>> for this purpose.
+
+It's also common to find platforms published as Maven BOMs which link:#sec:sub:bom_import[Gradle supports natively].
+
+A dependency on a platform is created using the `platform` keyword:
+
+.Getting versions declared in a platform
+====
+include::sample[dir="java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
+include::sample[dir="java-platform/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
+====
+
+[NOTE]
+====
+This `platform` notation is a short-hand notation which actually performs several operations under the hood:
+
+* it sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[org.gradle.category attribute] to `platform`, which means that Gradle will select the _platform_ component of the dependency.
+* it set the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#inheritStrictVersions--[inheritStrictVersions] behavior by default, meaning that if the platform declares strict dependencies, they will be enforced.
+
+This means that by default, a dependency to a platform triggers the inheritance of all strict versions defined in that platform, which can be useful for platform authors to make sure that all consumers respect their decisions in terms of versions of dependencies.
+This can be turned off by explicitly calling the `doNotInheritStrictVersions` method.
+====
 
 [[sub:bom_import]]
 === Importing Maven BOMs
@@ -194,12 +220,6 @@ A platform defined by a component metadata rule for which the `belongsTo` target
 A virtual platform is considered specially by the engine and participates in dependency resolution like a published module, but triggers dependency version alignment.
 On the other hand, we can find "real" platforms published on public repositories. Typical examples include BOMs, like the Spring BOM. They differ in the sense that a published platform may refer to modules which are effectively different things.
 For example the Spring BOM declares dependencies on Spring as well as Apache Groovy. Obviously those things are versioned differently, so it doesn't make sense to align in this case. In other words, if a platform is _published_, Gradle trusts its metadata, and will not try to align dependency versions of this platform.
-
-[[aligning-for-consumers]]
-=== For your consumers
-
-[[aligning-for-your-deps]]
-=== For dependencies you consume
 
 [[sec:matching-dependencies-to-repos]]
 == Matching dependencies to repositories
