@@ -28,13 +28,13 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
     }
 
     @Unroll
-    def "delegates to validatePlugin and emits deprecation warning when configuration is changed via #methodCall for validateTaskProperties"() {
+    def "delegates to validatePlugins and emits deprecation warning when configuration is changed via #methodCall for validateTaskProperties"() {
         buildFile << """
             validateTaskProperties {
                 ${methodCall}
             }
 
-            ${check ? "assert validatePlugin." + check : ""}
+            ${check ? "assert validatePlugins." + check : ""}
         """
 
         executer.expectDeprecationWarning()
@@ -43,7 +43,7 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
         run "help"
 
         then:
-        output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugin task instead.")
+        output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
 
         where:
         methodCall                        | check
@@ -145,7 +145,7 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
 
         expect:
         fails "validateTaskProperties"
-        failure.assertHasCause "Task property validation failed"
+        failure.assertHasCause "Plugin validation failed"
         failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation."
@@ -155,6 +155,6 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
             Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation.
             Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation.
             """.stripIndent().trim()
-        output.contains "The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugin task instead."
+        output.contains "The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead."
     }
 }

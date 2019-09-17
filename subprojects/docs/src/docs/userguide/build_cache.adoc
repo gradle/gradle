@@ -155,7 +155,7 @@ Currently, the following built-in Gradle tasks are cacheable:
     link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport]
 * Other tasks:
     link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrTask.html[AntlrTask],
-    link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugin.html[ValidatePlugin],
+    link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins],
     link:{groovyDslPath}/org.gradle.api.tasks.WriteProperties.html[WriteProperties]
 
 All other built-in tasks are currently not cacheable.

@@ -45,7 +45,7 @@ import spock.lang.Unroll
 
 import javax.inject.Inject
 
-class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
+class ValidatePluginsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
@@ -132,8 +132,8 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "validatePlugin"
-        failure.assertHasCause "Task property validation failed"
+        fails "validatePlugins"
+        failure.assertHasCause "Plugin validation failed"
         failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
@@ -163,7 +163,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("validatePlugin")
+        succeeds("validatePlugins")
 
         where:
         annotation        | application                   | type
@@ -213,9 +213,9 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails("validatePlugin")
-        failure.assertHasDescription("Execution failed for task ':validatePlugin'.")
-        failure.assertHasCause("Task property validation failed. See")
+        fails("validatePlugins")
+        failure.assertHasDescription("Execution failed for task ':validatePlugins'.")
+        failure.assertHasCause("Plugin validation failed. See")
         failure.assertHasCause("Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.")
         failure.assertHasCause("Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.")
 
@@ -254,9 +254,9 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails("validatePlugin")
-        failure.assertHasDescription("Execution failed for task ':validatePlugin'.")
-        failure.assertHasCause("Task property validation failed. See")
+        fails("validatePlugins")
+        failure.assertHasDescription("Execution failed for task ':validatePlugins'.")
+        failure.assertHasCause("Plugin validation failed. See")
         failure.assertHasCause("Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.")
         failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
         failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.")
@@ -299,8 +299,8 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "validatePlugin"
-        failure.assertHasCause "Task property validation failed"
+        fails "validatePlugins"
+        failure.assertHasCause "Plugin validation failed"
         failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
 
@@ -316,7 +316,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "validatePlugin"
+        succeeds "validatePlugins"
     }
 
     def "does not report missing properties for Provider types"() {
@@ -381,7 +381,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "validatePlugin"
+        succeeds "validatePlugins"
 
         reportFileContents() == ""
     }
@@ -408,7 +408,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/java/MyTask.java") << myTask
 
         when:
-        fails "validatePlugin"
+        fails "validatePlugins"
 
         then:
         reportFileContents() == """
@@ -488,7 +488,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validatePlugin"
+        fails "validatePlugins"
 
         then:
         reportFileContents() == """
@@ -536,7 +536,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validatePlugin"
+        fails "validatePlugins"
 
         then:
         reportFileContents() == """
@@ -576,7 +576,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validatePlugin"
+        fails "validatePlugins"
 
         then:
         reportFileContents() == """
@@ -630,7 +630,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validatePlugin"
+        fails "validatePlugins"
 
         then:
         reportFileContents() == """
@@ -670,7 +670,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "validatePlugin"
+        succeeds "validatePlugins"
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
@@ -719,7 +719,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds "validatePlugin"
+        succeeds "validatePlugins"
     }
 
     def "can enable stricter validation"() {
@@ -730,7 +730,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
                 implementation localGroovy()
             }
             
-            validatePlugin.enableStricterValidation = project.hasProperty('strict')
+            validatePlugins.enableStricterValidation = project.hasProperty('strict')
         """
         file("src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
@@ -752,10 +752,10 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("validatePlugin")
+        succeeds("validatePlugins")
 
         when:
-        fails "validatePlugin", "-Pstrict"
+        fails "validatePlugins", "-Pstrict"
 
         then:
         reportFileContents() == """
@@ -815,8 +815,8 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "validatePlugin"
-        failure.assertHasCause "Task property validation failed"
+        fails "validatePlugins"
+        failure.assertHasCause "Plugin validation failed"
         failure.assertHasCause "Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."
         failure.assertHasCause "Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile."
         failure.assertHasCause "Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."
@@ -882,8 +882,8 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        fails "validatePlugin"
-        failure.assertHasCause "Task property validation failed"
+        fails "validatePlugins"
+        failure.assertHasCause "Plugin validation failed"
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."
         failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact."
@@ -925,7 +925,7 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails "validatePlugin"
+        fails "validatePlugins"
 
         then:
         reportFileContents() == """
@@ -939,8 +939,8 @@ class ValidatePluginIntegrationTest extends AbstractIntegrationSpec {
         when:
         run "validateTaskProperties"
         then:
-        executedAndNotSkipped(":validatePlugin")
-        output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugin task instead.")
+        executedAndNotSkipped(":validatePlugins")
+        output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
     }
 
     private String reportFileContents() {

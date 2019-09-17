@@ -107,13 +107,13 @@ The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annot
 
 ==== Plugin validation changes
 
-- The `validateTaskProperties` task is now deprecated, use `validatePlugin` instead.
+- The `validateTaskProperties` task is now deprecated, use `validatePlugins` instead.
   The new name better reflects the fact that it also validates artifact transform parameters and other non-property definitions.
-- The `ValidateTaskProperties` type is replaced by `ValidatePlugin`.
+- The `ValidateTaskProperties` type is replaced by `ValidatePlugins`.
 - The `setClasses()` method is now removed. Use `getClasses().setFrom()` instead.
 - The `setClasspath()` method is also removed. use `getClasspath().setFrom()` instead.
-- The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugin.html#getFailOnWarning--[failOnWarning] option is now enabled by default.
-- The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugin.html[ValidatePlugin]:
+- The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html#getFailOnWarning--[failOnWarning] option is now enabled by default.
+- The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins]:
   * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
 ==== `DefaultTask` and `ProjectLayout` methods replaced with `ObjectFactory`

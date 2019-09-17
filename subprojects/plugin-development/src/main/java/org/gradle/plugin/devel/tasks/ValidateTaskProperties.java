@@ -64,15 +64,15 @@ import javax.inject.Inject;
  *
  * @since 3.0
  *
- * @deprecated Use {@link ValidatePlugin} instead.
+ * @deprecated Use {@link ValidatePlugins} instead.
  */
 @Deprecated
 public class ValidateTaskProperties extends DefaultTask implements VerificationTask {
-    private final TaskProvider<ValidatePlugin> delegate;
+    private final TaskProvider<ValidatePlugins> delegate;
     private final Runnable deprecationNagger;
 
     @Inject
-    public ValidateTaskProperties(TaskProvider<ValidatePlugin> delegate, Runnable deprecationNagger) {
+    public ValidateTaskProperties(TaskProvider<ValidatePlugins> delegate, Runnable deprecationNagger) {
         this.delegate = delegate;
         this.deprecationNagger = deprecationNagger;
     }

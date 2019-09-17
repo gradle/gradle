@@ -191,7 +191,7 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         pluginDescriptors.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
         pluginDescriptors.description == JavaGradlePluginPlugin.GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION
 
-        def validateTask = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_PLUGIN_TASK_NAME)
+        def validateTask = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_PLUGINS_TASK_NAME)
         validateTask.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
         validateTask.description == JavaGradlePluginPlugin.VALIDATE_PLUGIN_TASK_DESCRIPTION
 

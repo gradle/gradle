@@ -108,7 +108,7 @@ import java.util.stream.Collectors;
  */
 @CacheableTask
 @Incubating
-public class ValidatePlugin extends DefaultTask implements VerificationTask {
+public class ValidatePlugins extends DefaultTask implements VerificationTask {
     private final ConfigurableFileCollection classes;
     private final ConfigurableFileCollection classpath;
     private final RegularFileProperty outputFile;
@@ -117,7 +117,7 @@ public class ValidatePlugin extends DefaultTask implements VerificationTask {
     private boolean failOnWarning = true;
 
     @Inject
-    public ValidatePlugin(ObjectFactory objects) {
+    public ValidatePlugins(ObjectFactory objects) {
         this.classes = objects.fileCollection();
         this.classpath = objects.fileCollection();
         this.outputFile = objects.fileProperty();
@@ -192,16 +192,16 @@ public class ValidatePlugin extends DefaultTask implements VerificationTask {
 
     private void communicateResult(List<String> problemMessages, boolean hasErrors) {
         if (problemMessages.isEmpty()) {
-            getLogger().info("Task property validation finished without warnings.");
+            getLogger().info("Plugin validation finished without warnings.");
         } else {
             if (hasErrors || getFailOnWarning()) {
                 if (getIgnoreFailures()) {
-                    getLogger().warn("Task property validation finished with errors. See {} for more information on how to annotate task properties.{}", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"), toMessageList(problemMessages));
+                    getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"), toMessageList(problemMessages));
                 } else {
-                    throw new TaskValidationException(String.format("Task property validation failed. See %s for more information on how to annotate task properties.", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")), toExceptionList(problemMessages));
+                    throw new TaskValidationException(String.format("Plugin validation failed. See %s for more information on how to annotate task properties.", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")), toExceptionList(problemMessages));
                 }
             } else {
-                getLogger().warn("Task property validation finished with warnings:{}", toMessageList(problemMessages));
+                getLogger().warn("Plugin validation finished with warnings:{}", toMessageList(problemMessages));
             }
         }
     }
