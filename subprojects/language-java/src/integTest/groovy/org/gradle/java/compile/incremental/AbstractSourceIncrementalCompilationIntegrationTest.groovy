@@ -16,7 +16,6 @@
 
 package org.gradle.java.compile.incremental
 
-
 import org.gradle.integtests.fixtures.CompiledLanguage
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -77,6 +76,8 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
                 private class Foo {
                     // Hint: this field won't appear in the ClassAnalysis for SomeClass
                     public AccessedFromPrivateClassPublicField anotherField;
+
+                    Foo() {}
 
                     public String toString() {
                         return "" + new AccessedFromPrivateClass();
