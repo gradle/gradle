@@ -16,8 +16,8 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.project.ProjectDirectoryProvider;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
@@ -112,10 +112,24 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                                             WorkerExecutionQueueFactory workerExecutionQueueFactory,
                                             ServiceRegistry serviceRegistry,
                                             ActionExecutionSpecFactory actionExecutionSpecFactory,
-                                            ProjectDirectoryProvider projectDirectoryProvider) {
+                                            ProjectLayout projectLayout) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationExecutor, serviceRegistry);
 
-            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(DefaultWorkerExecutor.class, daemonWorkerFactory, isolatedClassloaderWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerLeaseRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, workerExecutionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiatorFactory.injectAndDecorateLenient(serviceRegistry), projectDirectoryProvider.getProjectDirectory());
+            DefaultWorkerExecutor workerExecutor = instantiatorFactory.decorateLenient().newInstance(
+                    DefaultWorkerExecutor.class,
+                    daemonWorkerFactory,
+                    isolatedClassloaderWorkerFactory,
+                    noIsolationWorkerFactory,
+                    forkOptionsFactory,
+                    workerLeaseRegistry,
+                    buildOperationExecutor,
+                    asyncWorkTracker,
+                    workerDirectoryProvider,
+                    workerExecutionQueueFactory,
+                    classLoaderStructureProvider,
+                    actionExecutionSpecFactory,
+                    instantiatorFactory.injectAndDecorateLenient(serviceRegistry),
+                    projectLayout.getProjectDirectory().getAsFile());
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }

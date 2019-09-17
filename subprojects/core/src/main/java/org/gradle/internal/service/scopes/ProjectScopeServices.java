@@ -62,7 +62,6 @@ import org.gradle.api.internal.plugins.RuleBasedPluginTarget;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
-import org.gradle.api.internal.project.ProjectDirectoryProvider;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
@@ -403,9 +402,5 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileResolver, fileCollectionFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(fileResolver, fileCollectionFactory)
         );
-    }
-
-    protected ProjectDirectoryProvider createProjectDirectoryProvider() {
-        return () -> project.getProjectDir();
     }
 }
