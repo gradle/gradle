@@ -133,11 +133,22 @@ In the same vein, doing file system operations such as `copy()`, `sync()` and `d
 
 See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`FileSystemOperations`](javadoc/org/gradle/api/file/FileSystemOperations.html) and [`ExecOperations`](javadoc/org/gradle/process/ExecOperations.html) api documentation for more details and examples.
 
-## Improving integrity of builds
+## Security
+
+### Improving integrity of builds
 
 Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
 
 TBD
+
+### Signing Plugin now uses SHA512
+
+A low severity security issue was reported in the Gradle signing plugin.
+
+More information can be found below:
+
+ - [Gradle GitHub Advisory](https://github.com/gradle/gradle/security/advisories/GHSA-mrm8-42q4-6rm7)
+ - [CVE-2019-16370](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16370)
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
