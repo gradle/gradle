@@ -249,7 +249,7 @@ There might be different use cases for downgrading:
 - your code depends on a lower version which is not binary compatible
 - your code doesn't depend on the code paths which need a higher version of a dependency
 
-In all situations, this is better expressed by saying that your code _strictly depends on_ a version of a transitive.
+In all situations, this is best expressed saying that your code _strictly depends on_ a version of a transitive.
 Using <<rich_versions.adoc#sec:strict-version,strict versions>>, you will effectively depend on the version you declare, even if a transitive dependency says otherwise.
 
 [NOTE]
@@ -263,7 +263,7 @@ Strict dependencies are to some extent similar to Maven's _nearest first_ strate
 
 Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10.
 However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore.
-A dependency version can be enforced by declaring as strict it in the build script:
+A dependency version can be enforced by declaring it as strict it in the build script:
 
 .Setting a strict version
 ====
@@ -274,7 +274,7 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 [[sec:strict-version-consequences]]
 === Consequences of using strict versions
 
-Using a strict version must be done with care, in particular for library authors.
+Using a strict version must be carefully considered, in particular by library authors.
 As the _producer_, a strict version will effectively behave like a _force_: the version declaration takes precedence over whatever is found in the transitive dependency graph.
 In particular, a _strict version_ will override any other _strict version_ on the same module found transitively.
 
