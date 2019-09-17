@@ -68,41 +68,9 @@ import java.util.stream.Collectors;
 /**
  * Validates plugins by checking property annotations on work items like tasks and artifact transforms.
  *
- * <p>
- *     Properties must be annotated with one of:
- * </p>
- *
- * <ul>
- *     <li>
- *         <b>Properties taken into account during up-to-date checks:</b>
- *         <ul>
-*              <li>
- *                 {@literal @}{@link org.gradle.api.tasks.Input},
- *                 {@literal @}{@link org.gradle.api.tasks.Nested},
- *                 {@literal @}{@link org.gradle.api.tasks.InputFile},
- *                 {@literal @}{@link org.gradle.api.tasks.InputDirectory},
- *                 {@literal @}{@link org.gradle.api.tasks.InputFiles}
- *                 to mark it as an input.
- *             </li>
- *             <li>
- *                 {@literal @}{@link org.gradle.api.tasks.OutputFile},
- *                 {@literal @}{@link org.gradle.api.tasks.OutputFiles},
- *                 {@literal @}{@link org.gradle.api.tasks.OutputDirectory},
- *                 {@literal @}{@link org.gradle.api.tasks.OutputDirectories}
- *                 to mark it as an output.
- *             </li>
- *         </ul>
- *    </li>
- *    <li>
- *         <b>Properties ignored during up-to-date checks:</b>
- *         <ul>
- *             <li>{@literal @}{@link javax.inject.Inject} marks an injected Gradle service.</li>
- *             <li>{@literal @}{@link org.gradle.api.tasks.Console Console} marks a property that only influences console output.</li>
- *             <li>{@literal @}{@link org.gradle.api.tasks.Internal Internal} mark an internal property.</li>
- *             <li>{@literal @}{@link org.gradle.api.model.ReplacedBy ReplacedBy} mark a property as replaced by another (similar to {@code Internal}).</li>
- *         </ul>
- *     </li>
- * </ul>
+ * See the user guide for more information on
+ * <a href="https://docs.gradle.org/current/userguide/more_about_tasks.html#sec:up_to_date_checks" target="_top">incremental build</a> and
+ * <a href="https://docs.gradle.org/current/userguide/build_cache.html#sec:task_output_caching" target="_top">caching task outputs</a>.
  *
  * @since 6.0
  */
