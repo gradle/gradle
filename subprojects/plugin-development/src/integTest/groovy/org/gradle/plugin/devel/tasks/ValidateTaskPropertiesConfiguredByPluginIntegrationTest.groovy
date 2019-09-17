@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Unroll
 
 class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -27,40 +26,7 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
         """
     }
 
-    @Unroll
-    def "delegates to validatePlugins and emits deprecation warning when configuration is changed via #methodCall for validateTaskProperties"() {
-        buildFile << """
-            validateTaskProperties {
-                ${methodCall}
-            }
-
-            ${check ? "assert validatePlugins." + check : ""}
-        """
-
-        executer.expectDeprecationWarning()
-
-        when:
-        run "help"
-
-        then:
-        output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
-
-        where:
-        methodCall                        | check
-        "getIgnoreFailures()"             | null
-        "ignoreFailures = true"           | "ignoreFailures.get() == true"
-        "ignoreFailures = false"          | "ignoreFailures.get() == false"
-        "getFailOnWarning()"              | null
-        "failOnWarning = true"            | "failOnWarning.get() == true"
-        "failOnWarning = false"           | "failOnWarning.get() == false"
-        "getClasses()"                    | null
-        "getClasspath()"                  | null
-        "getEnableStricterValidation()"   | null
-        "enableStricterValidation = true" | "enableStricterValidation.get() == true"
-        "getOutputFile()"                 | null
-    }
-
-    def "detects missing annotations on Java properties while emitting deprecation warning"() {
+    def "detects missing annotations on Java properties"() {
         buildFile << """
             validateTaskProperties {
                 failOnWarning = true
@@ -141,20 +107,17 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
             }
         """
 
-        executer.expectDeprecationWarning()
-
         expect:
-        fails "validateTaskProperties"
-        failure.assertHasCause "Plugin validation failed"
+        fails "check"
+        failure.assertHasCause "Task property validation failed"
         failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation."
         failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation."
 
-        file("build/reports/plugin-development/validation-report.txt").text == """
+        file("build/reports/task-properties/report.txt").text == """
             Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation.
             Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation.
             Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation.
             """.stripIndent().trim()
-        output.contains "The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead."
     }
 }
