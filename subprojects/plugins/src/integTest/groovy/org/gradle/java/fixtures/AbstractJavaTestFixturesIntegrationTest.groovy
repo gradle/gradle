@@ -299,8 +299,8 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                 testFixturesImplementation 'org.apache.commons:commons-lang3:3.9'
             }
 
-            components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { it.skip() }
-            components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { it.skip() }
+            components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { skip() }
+            components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { skip() }
 
             publishing {
                 repositories {

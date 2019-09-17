@@ -1228,7 +1228,7 @@ include(':platform')
                 implementation 'org:bar:1.0'
             }
             components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
-                it.skip()
+                skip()
             }
             publishing {
                 publications {
@@ -1257,7 +1257,7 @@ include(':platform')
         given:
         createBuildScripts """
             components.java.withVariantsFromConfiguration(configurations.annotationProcessor) {
-                it.skip()
+                skip()
             }
         """
 

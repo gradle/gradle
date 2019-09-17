@@ -265,7 +265,7 @@ include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjec
 include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=create_adhoc_component]"]
 ====
 
-The `AdhocComponentWithVariants` component declares two method called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
+The `AdhocComponentWithVariants` component declares two methods called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
 
 - the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
 - a configuration which allows you to _filter out_ what variants are going to be published

@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.internal.java.usagecontext.ConfigurationVariantMapping;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Map;
 import java.util.Set;
@@ -33,9 +34,11 @@ import java.util.Set;
 public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants, SoftwareComponentInternal {
     private final String componentName;
     private final Map<Configuration, ConfigurationVariantMapping> variants = Maps.newLinkedHashMapWithExpectedSize(4);
+    private final Instantiator instantiator;
 
-    public DefaultAdhocSoftwareComponent(String componentName) {
+    public DefaultAdhocSoftwareComponent(String componentName, Instantiator instantiator) {
         this.componentName = componentName;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -45,7 +48,7 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
 
     @Override
     public void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> spec) {
-        variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec));
+        variants.put(outgoingConfiguration, new ConfigurationVariantMapping((ConfigurationInternal) outgoingConfiguration, spec, instantiator));
     }
 
     @Override

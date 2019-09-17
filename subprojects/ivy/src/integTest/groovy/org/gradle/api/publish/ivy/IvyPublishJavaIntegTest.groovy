@@ -1162,7 +1162,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 optionalFeatureImplementation 'org:foo:4.0'
             }
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                if ($optional) it.mapToOptional()
+                if ($optional) mapToOptional()
             }
             publishing {
                 publications {
@@ -1205,7 +1205,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 optionalFeatureImplementation 'org:foo:1.0'
             }
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                it.mapToOptional()
+                mapToOptional()
             }
             publishing {
                 publications {
@@ -1234,7 +1234,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 implementation 'org:bar:1.0'
             }
             components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
-                it.skip()
+                skip()
             }
             publishing {
                 publications {

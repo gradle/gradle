@@ -31,6 +31,7 @@ import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.internal.Actions;
+import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
 import java.util.Set;
@@ -38,10 +39,12 @@ import java.util.Set;
 public class ConfigurationVariantMapping {
     private final ConfigurationInternal outgoingConfiguration;
     private Action<? super ConfigurationVariantDetails> action;
+    private final Instantiator instantiator;
 
-    public ConfigurationVariantMapping(ConfigurationInternal outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+    public ConfigurationVariantMapping(ConfigurationInternal outgoingConfiguration, Action<? super ConfigurationVariantDetails> action, Instantiator instantiator) {
         this.outgoingConfiguration = outgoingConfiguration;
         this.action = action;
+        this.instantiator = instantiator;
     }
 
     private void assertNoDuplicateVariant(String name, Set<String> seen) {
@@ -56,8 +59,8 @@ public class ConfigurationVariantMapping {
 
     public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
         Set<String> seen = Sets.newHashSet();
-        DefaultConfigurationVariant defaultConfigurationVariant = new DefaultConfigurationVariant();
-        ConfigurationVariantDetailsInternal details = new DefaultConfigurationVariantDetails(defaultConfigurationVariant);
+        ConfigurationVariant defaultConfigurationVariant = instantiator.newInstance(DefaultConfigurationVariant.class, outgoingConfiguration);
+        ConfigurationVariantDetailsInternal details = instantiator.newInstance(DefaultConfigurationVariantDetails.class, defaultConfigurationVariant);
         action.execute(details);
         String outgoingConfigurationName = outgoingConfiguration.getName();
         if (details.shouldPublish()) {
@@ -86,7 +89,13 @@ public class ConfigurationVariantMapping {
         }
     }
 
-    private class DefaultConfigurationVariant implements ConfigurationVariant {
+    static class DefaultConfigurationVariant implements ConfigurationVariant {
+        private final ConfigurationInternal outgoingConfiguration;
+
+        public DefaultConfigurationVariant(ConfigurationInternal outgoingConfiguration) {
+            this.outgoingConfiguration = outgoingConfiguration;
+        }
+
         @Override
         public PublishArtifactSet getArtifacts() {
             return outgoingConfiguration.getArtifacts();
@@ -119,13 +128,13 @@ public class ConfigurationVariantMapping {
         }
     }
 
-    private static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetailsInternal {
+    static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetailsInternal {
         private final ConfigurationVariant variant;
         private boolean skip = false;
         private String mavenScope = "compile";
         private boolean optional = false;
 
-        private DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
+        public DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
             this.variant = variant;
         }
 

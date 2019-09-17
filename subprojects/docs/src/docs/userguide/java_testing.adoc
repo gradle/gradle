@@ -572,5 +572,5 @@ That's because by convention, for projects that use the `java-test-fixtures` plu
 
 [NOTE]
 ====
-If you publish your library and use test fixtures, but do not want to publish them, you can deactivate publishing of the _test fixtures variants_ using `components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { it.skip() }` and `components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { it.skip() }`.
+If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ using `components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { skip() }` and `components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { skip() }`.
 ====
