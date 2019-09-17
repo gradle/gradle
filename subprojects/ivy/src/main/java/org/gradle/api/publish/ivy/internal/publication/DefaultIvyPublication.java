@@ -82,6 +82,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
@@ -97,6 +98,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     @VisibleForTesting
     public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published ivy descriptor.";
+    @VisibleForTesting
+    public static final String PUBLICATION_WARNING_FOOTER = "These issues indicate information that is lost in the published 'ivy.xml' metadata file, which may be an issue if the published library is consumed by an old Gradle version or Apache Ivy.\nThe 'module' metadata file, which is used by Gradle 6+ is not affected.";
 
     private final String name;
     private final IvyModuleDescriptorSpecInternal descriptor;
@@ -111,6 +114,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private final PlatformSupport platformSupport;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
+    private final Set<String> silencedVariants = new HashSet<>();
     private IvyArtifact ivyDescriptorArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
     private SingleOutputTaskIvyArtifact gradleModuleDescriptorArtifact;
@@ -120,6 +124,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private boolean populated;
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
+    private boolean silenceAllPublicationWarnings;
 
     @Inject
     public DefaultIvyPublication(
@@ -233,15 +238,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         if (component == null) {
             return;
         }
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "");
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
 
         populateConfigurations();
         populateArtifacts();
         populateDependencies(publicationWarningsCollector);
         populateGlobalExcludes();
-        warnForUnsupportedFeatures(publicationWarningsCollector);
 
-        publicationWarningsCollector.complete(getDisplayName());
+        if (!silenceAllPublicationWarnings) {
+            publicationWarningsCollector.complete(getDisplayName() + " ivy metadata", silencedVariants);
+        }
     }
 
     private void populateConfigurations() {
@@ -306,6 +312,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
 
     private void populateDependencies(PublicationWarningsCollector publicationWarningsCollector) {
         for (UsageContext usageContext : component.getUsages()) {
+            publicationWarningsCollector.newContext(usageContext.getName());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 String confMapping = confMappingFor(usageContext, dependency);
                 if (!dependency.getAttributes().isEmpty()) {
@@ -324,6 +331,18 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                     addExternalDependency(externalDependency, confMapping, ((AttributeContainerInternal) usageContext.getAttributes()).asImmutable());
                 }
             }
+
+            if (!usageContext.getDependencyConstraints().isEmpty()) {
+                for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
+                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
+                }
+            }
+            if (!usageContext.getCapabilities().isEmpty()) {
+                for (Capability capability : usageContext.getCapabilities()) {
+                    publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Ivy", capability.getGroup(), capability.getName(), capability.getVersion()));
+                }
+            }
+
         }
     }
 
@@ -358,21 +377,6 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             confMappingTarget = Dependency.DEFAULT_CONFIGURATION;
         }
         return conf + "->" + confMappingTarget;
-    }
-
-    private void warnForUnsupportedFeatures(PublicationWarningsCollector publicationWarningsCollector) {
-        for (UsageContext usageContext : component.getUsages()) {
-            if (!usageContext.getDependencyConstraints().isEmpty()) {
-                for (DependencyConstraint constraint : usageContext.getDependencyConstraints()) {
-                    publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as a dependency constraint", constraint.getGroup(), constraint.getName(), constraint.getVersion()));
-                }
-            }
-            if (!usageContext.getCapabilities().isEmpty()) {
-                for (Capability capability : usageContext.getCapabilities()) {
-                    publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
-                }
-            }
-        }
     }
 
     /**
@@ -607,6 +611,16 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     public void versionMapping(Action<? super VersionMappingStrategy> configureAction) {
         this.versionMappingInUse = true;
         configureAction.execute(versionMappingStrategy);
+    }
+
+    @Override
+    public void suppressIvyMetadataWarningsFor(String variantName) {
+        silencedVariants.add(variantName);
+    }
+
+    @Override
+    public void suppressAllIvyMetadataWarnings() {
+        this.silenceAllPublicationWarnings = true;
     }
 
     @Override

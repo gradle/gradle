@@ -70,4 +70,7 @@ val generateTemplate = tasks.register<JvmProjectGeneratorTask>("javaProject") {
 tasks.withType<PerformanceTest>().configureEach {
     dependsOn(generateTemplate)
     systemProperties["incomingArtifactDir"] = "$rootDir/incoming/"
+
+    environment("ARTIFACTORY_USERNAME", System.getenv("ARTIFACTORY_USERNAME"))
+    environment("ARTIFACTORY_PASSWORD", System.getenv("ARTIFACTORY_PASSWORD"))
 }

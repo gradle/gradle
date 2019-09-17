@@ -24,7 +24,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.execution.SharedResourceContainer;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
@@ -378,30 +377,4 @@ public interface Gradle extends PluginAware {
      * @since 3.1
      */
     IncludedBuild includedBuild(String name) throws UnknownDomainObjectException;
-
-    /**
-     * Returns the shared resources registered to this build.
-     *
-     * @return the collection of shared resources.
-     * @since 6.0
-     */
-    @Incubating
-    SharedResourceContainer getSharedResources();
-
-    /**
-     * Configures the shared resources for this build.
-     *
-     * An example of registering a shared resource.
-     * <pre class='autoTested'>
-     * gradle.sharedResources {
-     *     testCluster {
-     *         leases = 4
-     *     }
-     * }
-     * </pre>
-     * @param action The action to execute.
-     * @since 6.0
-     */
-    @Incubating
-    void sharedResources(Action<? super SharedResourceContainer> action);
 }

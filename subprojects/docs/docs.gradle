@@ -550,7 +550,11 @@ tasks.register("docsZip", Zip) {
     dependsOn 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
-tasks.register("checkDeadInternalLinks", org.gradle.gradlebuild.docs.FindBrokenInternalLinks) {
+def checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", org.gradle.gradlebuild.docs.FindBrokenInternalLinks) {
     dependsOn(userguideFlattenSources)
     inputDirectory.set(userguideFlattenSources.get().destinationDir)
+}
+
+tasks.named("check") {
+    dependsOn(checkDeadInternalLinks)
 }

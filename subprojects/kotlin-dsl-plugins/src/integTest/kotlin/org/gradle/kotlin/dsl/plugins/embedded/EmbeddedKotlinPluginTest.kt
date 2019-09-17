@@ -42,6 +42,8 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 `embedded-kotlin`
             }
 
+            $repositoriesBlock
+
         """)
 
         val result = build("assemble")
@@ -61,6 +63,8 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             configurations {
                 create("compileOnlyClasspath") { extendsFrom(configurations["compileOnly"]) }
             }
+            
+            $repositoriesBlock
 
             tasks {
                 register("assertions") {
@@ -81,13 +85,15 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
-    fun `all embedded kotlin dependencies are resolvable without any added repository`() {
+    fun `all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript("""
 
             plugins {
                 `embedded-kotlin`
             }
+
+            $repositoriesBlock
 
             dependencies {
                 ${dependencyDeclarationsFor(
@@ -96,21 +102,19 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
                 )}
             }
 
-            println(repositories.map { it.name })
             configurations["compileClasspath"].files.map { println(it) }
 
         """)
 
         val result = build("dependencies")
 
-        assertThat(result.output, containsString("Embedded Kotlin Repository"))
         listOf("stdlib", "reflect", "compiler-embeddable", "scripting-compiler-embeddable", "scripting-compiler-impl-embeddable").forEach {
             assertThat(result.output, containsString("kotlin-$it-$embeddedKotlinVersion.jar"))
         }
     }
 
     @Test
-    fun `sources and javadoc of all embedded kotlin dependencies are resolvable with an added repository`() {
+    fun `sources and javadoc of all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript("""
 
@@ -174,6 +178,8 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             plugins {
                 `embedded-kotlin`
             }
+
+            $repositoriesBlock
 
             val customConfiguration by configurations.creating
             customConfiguration.extendsFrom(configurations["embeddedKotlin"])

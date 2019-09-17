@@ -116,6 +116,68 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
     }
 
     @Unroll
+    def "#thing can be added to a new variant"() {
+        when:
+        buildFile << """
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.addVariant("new") { 
+                        with${toCamelCase(thing)} {
+                            add 'org.test:moduleB:1.0'
+                        }
+                        withCapabilities {
+                            removeCapability("org.test", "moduleA")
+                            addCapability("all", "new", "1.0")
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                $variantToTest 'org.test:moduleB'
+                $variantToTest('org.test:moduleA:1.0') {
+                    capabilities { requireCapability("all:new") }
+                }
+                components {
+                    withModule('org.test:moduleA', ModifyRule)
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def expectedVariant = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org.test:moduleB', 'org.test:moduleB:1.0')
+                module("org.test:moduleA:1.0:$expectedVariant")
+                module("org.test:moduleA:1.0:new") {
+                    if (thing == "dependencies") {
+                        edge('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                    } else {
+                        constraint('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                    }
+                }
+            }
+        }
+
+        where:
+        thing                    | _
+        "dependency constraints" | _
+        "dependencies"           | _
+    }
+
+    @Unroll
     def "#thing can be added and configured using #notation notation"() {
         when:
         buildFile << """
@@ -1017,7 +1079,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                             edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
                             byReason('can set a custom reason in a rule')
                         }
-                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1").byAncestor()
                     }
                 }
             }

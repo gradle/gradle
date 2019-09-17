@@ -76,7 +76,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         }
 
         if (publication.getMainArtifact() != null) {
-            artifactPublisher.publish(null, publication.getPackaging(), publication.getMainArtifact().getFile());
+            artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
         }
         artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile());
         for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {

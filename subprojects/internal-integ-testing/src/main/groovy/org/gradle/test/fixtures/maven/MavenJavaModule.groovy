@@ -45,9 +45,13 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
 
     @Override
     void assertPublished() {
+        assertPublished(null, "jar")
+    }
+
+    void assertPublished(String pomPackaging, String artifactFileExtension) {
         super.assertPublished()
 
-        List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact("jar")]
+        List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact(artifactFileExtension)]
         expectedArtifacts.addAll(additionalArtifacts)
         mavenModule.assertArtifactsPublished(expectedArtifacts)
 
@@ -56,8 +60,8 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         def apiElements = mavenModule.parsedModuleMetadata.variant('apiElements')
         def runtimeElements = mavenModule.parsedModuleMetadata.variant('runtimeElements')
 
-        assert apiElements.files*.name == [artifact('jar')]
-        assert runtimeElements.files*.name == [artifact('jar')]
+        assert apiElements.files*.name == [artifact(artifactFileExtension)]
+        assert runtimeElements.files*.name == [artifact(artifactFileExtension)]
 
         // Verify it contains some expected attributes
         assert apiElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
@@ -66,7 +70,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         assert runtimeElements.attributes.containsKey(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name)
 
         // Verify POM particulars
-        assert mavenModule.parsedPom.packaging == null
+        assert mavenModule.parsedPom.packaging == pomPackaging
     }
 
     void assertNoDependencies() {

@@ -62,19 +62,26 @@ abstract class AbstractDependencyDescriptorFactoryInternalSpec extends Specifica
         excludeRuleConverterStub.convertExcludeRule(excludeRule) >> exclude
     }
 
-    protected Dependency setUpDependency(ModuleDependency dependency) {
-        return dependency.addArtifact(artifact).
-                addArtifact(artifactWithClassifiers).
-                exclude(WrapUtil.toMap("group", TEST_EXCLUDE_RULE.getGroup())).
+    protected Dependency setUpDependency(ModuleDependency dependency, boolean withArtifacts) {
+        ModuleDependency result = dependency;
+        if (withArtifacts) {
+            result = dependency.addArtifact(artifact).
+                addArtifact(artifactWithClassifiers)
+        }
+        return result.exclude(WrapUtil.toMap("group", TEST_EXCLUDE_RULE.getGroup())).
                 setTransitive(true)
     }
 
-    protected void assertDependencyDescriptorHasCommonFixtureValues(LocalOriginDependencyMetadata dependencyMetadata) {
+    protected void assertDependencyDescriptorHasCommonFixtureValues(LocalOriginDependencyMetadata dependencyMetadata, boolean withArtifacts) {
         assert TEST_IVY_EXCLUDE_RULE == dependencyMetadata.getExcludes().get(0)
         assert dependencyMetadata.getModuleConfiguration() == TEST_CONF
-        assert dependencyMetadata.getDependencyConfiguration() == TEST_DEP_CONF
+        if (!withArtifacts) {
+            assert dependencyMetadata.getDependencyConfiguration() == TEST_DEP_CONF
+        }
         assert dependencyMetadata.isTransitive()
-        assertDependencyDescriptorHasArtifacts(dependencyMetadata)
+        if (withArtifacts) {
+            assertDependencyDescriptorHasArtifacts(dependencyMetadata)
+        }
     }
 
     private void assertDependencyDescriptorHasArtifacts(DependencyMetadata dependencyMetadata) {

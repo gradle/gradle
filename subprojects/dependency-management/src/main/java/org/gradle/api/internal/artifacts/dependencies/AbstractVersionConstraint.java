@@ -37,13 +37,12 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
             && Objects.equal(getPreferredVersion(), that.getPreferredVersion())
             && Objects.equal(getStrictVersion(), that.getStrictVersion())
             && Objects.equal(getBranch(), that.getBranch())
-            && Objects.equal(getRejectedVersions(), that.getRejectedVersions())
-            && Objects.equal(isForSubgraph(), that.isForSubgraph());
+            && Objects.equal(getRejectedVersions(), that.getRejectedVersions());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getRequiredVersion(), getPreferredVersion(), getStrictVersion(), getRejectedVersions(), isForSubgraph());
+        return Objects.hashCode(getRequiredVersion(), getPreferredVersion(), getStrictVersion(), getRejectedVersions());
     }
 
     @Override
@@ -61,16 +60,6 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         builder.append(name);
         builder.append(" ");
         builder.append(version);
-    }
-
-    private void append(String name, boolean active, StringBuilder builder) {
-        if (!active) {
-            return;
-        }
-        if (builder.length() != 1) {
-            builder.append("; ");
-        }
-        builder.append(name);
     }
 
     @Override
@@ -93,7 +82,6 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         }
         append("reject", rejectedVersionsString(), builder);
         append("branch", getBranch(), builder);
-        append("subgraph", isForSubgraph(), builder);
         builder.append("}");
         return builder.toString();
     }
@@ -102,8 +90,7 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         return (getPreferredVersion().isEmpty() || getRequiredVersion().equals(getPreferredVersion()))
                 && getStrictVersion().isEmpty()
                 && getRejectedVersions().isEmpty()
-                && getBranch() == null
-                && !isForSubgraph();
+                && getBranch() == null;
     }
 
     private String rejectedVersionsString() {

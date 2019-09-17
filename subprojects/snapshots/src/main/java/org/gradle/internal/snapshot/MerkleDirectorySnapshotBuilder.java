@@ -23,7 +23,6 @@ import org.gradle.internal.hash.Hashing;
 import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 
@@ -31,8 +30,8 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
     private static final HashCode DIR_SIGNATURE = Hashing.signature("DIR");
 
     private final RelativePathSegmentsTracker relativePathSegmentsTracker = new RelativePathSegmentsTracker();
-    private final Deque<List<FileSystemLocationSnapshot>> levelHolder = new ArrayDeque<List<FileSystemLocationSnapshot>>();
-    private final Deque<String> directoryAbsolutePaths = new ArrayDeque<String>();
+    private final Deque<List<FileSystemLocationSnapshot>> levelHolder = new ArrayDeque<>();
+    private final Deque<String> directoryAbsolutePaths = new ArrayDeque<>();
     private final boolean sortingRequired;
     private FileSystemLocationSnapshot result;
 
@@ -48,16 +47,16 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
         this.sortingRequired = sortingRequired;
     }
 
-    public boolean preVisitDirectory(String absolutePath, String name) {
+    public void preVisitDirectory(String absolutePath, String name) {
         relativePathSegmentsTracker.enter(name);
-        levelHolder.addLast(new ArrayList<FileSystemLocationSnapshot>());
+        levelHolder.addLast(new ArrayList<>());
         directoryAbsolutePaths.addLast(absolutePath);
-        return true;
     }
 
     @Override
     public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-        return preVisitDirectory(directorySnapshot.getAbsolutePath(), directorySnapshot.getName());
+        preVisitDirectory(directorySnapshot.getAbsolutePath(), directorySnapshot.getName());
+        return true;
     }
 
     @Override
@@ -86,7 +85,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
             return false;
         }
         if (sortingRequired) {
-            Collections.sort(children, FileSystemLocationSnapshot.BY_NAME);
+            children.sort(FileSystemLocationSnapshot.BY_NAME);
         }
         Hasher hasher = Hashing.newHasher();
         hasher.putHash(DIR_SIGNATURE);

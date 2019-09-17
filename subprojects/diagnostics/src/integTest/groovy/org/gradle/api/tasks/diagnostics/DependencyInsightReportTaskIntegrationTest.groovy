@@ -647,6 +647,7 @@ org:leaf:2.0 -> 1.0
         """
 
         when:
+        executer.expectDeprecationWarning()
         run "dependencyInsight", "--configuration", "conf", "--dependency", "leaf"
 
         then:
@@ -1212,6 +1213,7 @@ org:leaf:2.0 -> 1.5
         """
 
         when:
+        executer.expectDeprecationWarning()
         run "insight"
 
         then:

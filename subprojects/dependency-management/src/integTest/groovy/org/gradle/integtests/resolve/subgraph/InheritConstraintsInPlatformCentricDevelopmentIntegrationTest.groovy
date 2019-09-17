@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.forsubgraph
+package org.gradle.integtests.resolve.subgraph
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -22,10 +22,10 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-import static org.gradle.integtests.resolve.forsubgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.MODULE
-import static org.gradle.integtests.resolve.forsubgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.PLATFORM
-import static org.gradle.integtests.resolve.forsubgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
-import static org.gradle.integtests.resolve.forsubgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
+import static org.gradle.integtests.resolve.subgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.MODULE
+import static org.gradle.integtests.resolve.subgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.PLATFORM
+import static org.gradle.integtests.resolve.subgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
+import static org.gradle.integtests.resolve.subgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
 
 @RequiredFeatures([
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
@@ -34,13 +34,13 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
 
     enum PlatformType {
         // The recommended way of doing platforms
-        PLATFORM,          // constraints in platform are published with 'forSubgraph', consumer uses 'platform()' dependencies
+        PLATFORM,          // constraints in platform are published with strict constraints, consumer uses 'platform()' dependencies
         // The recommended way of dealing with existing platforms
-        LEGACY_PLATFORM,   // constraints in platform are published without 'forSubgraph', consumer uses 'platform()' dependencies + component metadata rules to add 'forSubgraph' to published constraints
+        LEGACY_PLATFORM,   // constraints in platform are published without strict constraints, consumer uses 'platform()' dependencies + component metadata rules to add 'forSubgraph' to published constraints
         // The discouraged way of dealing with existing platforms
-        ENFORCED_PLATFORM, // constraints in platform are published without 'forSubgraph', consumer uses 'enforcedPlatform()' dependencies (to be deprecated)
+        ENFORCED_PLATFORM, // constraints in platform are published without strict constraints, consumer uses 'enforcedPlatform()' dependencies (to be deprecated)
         // Using a normal module as "platform" (i.e. inheriting it's constraints) also works
-        MODULE             // constraints in module are published with 'forSubgraph', consumer uses normal dependencies with 'inheritConstraints()'
+        MODULE             // constraints in module are published with strict constraints, consumer uses normal dependencies with 'inheritStrictVersions()'
     }
 
     def setup() {
@@ -55,7 +55,7 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             case ENFORCED_PLATFORM:
                 return "conf(enforcedPlatform('$dependency'))"
             case MODULE:
-                return "conf('$dependency') { inheritConstraints() }"
+                return "conf('$dependency') { inheritStrictVersions() }"
         }
         ""
     }
@@ -76,8 +76,13 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                     attributes = ['org.gradle.category': 'platform']
                     noArtifacts = true
                 }
-                constraint(group: 'org', artifact: 'bar', version: '2.0', forSubgraph: platformType in [PLATFORM, MODULE])
-                constraint(group: 'org', artifact: 'foo', version: '3.0', rejects: ['3.1', '3.2'], forSubgraph: platformType in [PLATFORM, MODULE])
+                if (platformType in [PLATFORM, MODULE]) {
+                    constraint(group: 'org', artifact: 'bar', strictly: '2.0')
+                    constraint(group: 'org', artifact: 'foo', strictly: '3.0', rejects: ['3.1', '3.2'])
+                } else {
+                    constraint(group: 'org', artifact: 'bar', version: '2.0')
+                    constraint(group: 'org', artifact: 'foo', version: '3.0', rejects: ['3.1', '3.2'])
+                }
             }
             'org:foo' {
                 '3.0'()
@@ -95,7 +100,13 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                     components.withModule('org:platform') { ComponentMetadataDetails details ->
                         details.withVariant('apiElements') {
                             withDependencyConstraints {
-                                it.each { it.version { forSubgraph() } }
+                                it.each {
+                                   def rejected = it.versionConstraint.rejectedVersions
+                                   it.version {
+                                      strictly(it.requiredVersion); 
+                                      if (rejected) { reject(*rejected) } 
+                                   } 
+                                }
                             }
                         }
                     }
@@ -112,8 +123,13 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                     attributes = ['org.gradle.category': 'platform']
                     noArtifacts = true
                 }
-                constraint(group: 'org', artifact: 'bar', version: '2.0', forSubgraph:  platformType in [PLATFORM, MODULE])
-                constraint(group: 'org', artifact: 'foo', version: '3.1.1', rejects: ['3.1', '3.2'], forSubgraph:  platformType in [PLATFORM, MODULE])
+                if (platformType in [PLATFORM, MODULE]) {
+                    constraint(group: 'org', artifact: 'bar', strictly: '2.0')
+                    constraint(group: 'org', artifact: 'foo', strictly: '3.1.1', rejects: ['3.1', '3.2'])
+                } else {
+                    constraint(group: 'org', artifact: 'bar', version: '2.0')
+                    constraint(group: 'org', artifact: 'foo', version: '3.1.1', rejects: ['3.1', '3.2'])
+                }
             }
             'org:foo' {
                 '3.1.1'()
@@ -122,15 +138,15 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
     }
 
     static private String expectSubgraphVersion(platformType, String requiredVersion, String rejectedVersions = '') {
-        String subgraph = platformType == ENFORCED_PLATFORM ? '' : 'subgraph'
-        if (!subgraph.isEmpty() && rejectedVersions.isEmpty()) {
-            return "{require $requiredVersion; $subgraph}"
+        boolean subgraph = platformType != ENFORCED_PLATFORM
+        if (subgraph && rejectedVersions.isEmpty()) {
+            return "{strictly $requiredVersion}"
         }
-        if (subgraph.isEmpty() && !rejectedVersions.isEmpty()) {
+        if (!subgraph && !rejectedVersions.isEmpty()) {
             return "{require $requiredVersion; reject $rejectedVersions}"
         }
-        if (!subgraph.isEmpty() && !rejectedVersions.isEmpty()) {
-            return "{require $requiredVersion; reject $rejectedVersions; $subgraph}"
+        if (subgraph && !rejectedVersions.isEmpty()) {
+            return "{strictly $requiredVersion; reject $rejectedVersions}"
         }
         requiredVersion
     }
@@ -147,7 +163,9 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             }
             'org:platform:1.0' {
                 expectGetMetadata()
-                if (platformType == MODULE) { expectGetArtifact() }
+                if (platformType == MODULE) {
+                    expectGetArtifact()
+                }
             }
             'org:bar:2.0' {
                 expectGetMetadata()
@@ -175,7 +193,11 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                 edge('org:bar', 'org:bar:2.0') {
                     byRequest()
                     edge('org:foo:3.1', 'org:foo:3.0') {
-                        if (platformType != ENFORCED_PLATFORM) { byAncestor() } else { byRequest() }
+                        if (platformType != ENFORCED_PLATFORM) {
+                            byAncestor()
+                        } else {
+                            byRequest()
+                        }
                     }
                 }
             }
@@ -200,7 +222,9 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             }
             'org:platform:1.1' {
                 expectGetMetadata()
-                if (platformType == MODULE) { expectGetArtifact() }
+                if (platformType == MODULE) {
+                    expectGetArtifact()
+                }
             }
             'org:bar:2.0' {
                 expectGetMetadata()
@@ -228,7 +252,11 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                 edge('org:bar', 'org:bar:2.0') {
                     byRequest()
                     edge('org:foo:3.1', 'org:foo:3.1.1') {
-                        if (platformType != ENFORCED_PLATFORM) { byAncestor() } else { byRequest() }
+                        if (platformType != ENFORCED_PLATFORM) {
+                            byAncestor()
+                        } else {
+                            byRequest()
+                        }
                     }
                 }
             }
@@ -263,14 +291,20 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             }
             'org:bar:2.0' {
                 expectGetMetadata()
-                if (platformType == ENFORCED_PLATFORM) { expectGetArtifact() }
+                if (platformType == ENFORCED_PLATFORM) {
+                    expectGetArtifact()
+                }
             }
             'org:foo:3.1.1' {
                 expectGetMetadata()
-                if (platformType == ENFORCED_PLATFORM) { expectGetArtifact() }
+                if (platformType == ENFORCED_PLATFORM) {
+                    expectGetArtifact()
+                }
             }
             'org:foo:3.2' {
-                if (platformType != ENFORCED_PLATFORM) { expectGetMetadata() }
+                if (platformType != ENFORCED_PLATFORM) {
+                    expectGetMetadata()
+                }
             }
         }
         if (platformType == ENFORCED_PLATFORM) {
@@ -283,7 +317,7 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
         (platformType == ENFORCED_PLATFORM && !failure) || failure.assertHasCause(
             """Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'org:platform:1.1' --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2; subgraph}'
+   Constraint path ':test:unspecified' --> 'org:platform:1.1' --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
    Constraint path ':test:unspecified' --> 'org:foo:3.2'""")
 
         where:
@@ -291,7 +325,7 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
     }
 
     @Unroll
-    void "(4) library developer has issues with org:foo:3.1.1 and forces an override of the platform decision with forSubgraph [#platformType]"() {
+    void "(4) library developer has issues with org:foo:3.1.1 and forces an override of the platform decision with strictly [#platformType]"() {
         // issue with enforced platform: consumer can not override platform decision via constraint
         //                               (an override via an own forced dependency is possible)
         def expectedFooVersion = platformType == ENFORCED_PLATFORM ? '3.1.1' : '3.2'
@@ -301,8 +335,8 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
         buildFile << """
             dependencies {
                 constraints {
-                    conf('org:foo:3.2') {
-                        version { forSubgraph() }
+                    conf('org:foo') {
+                        version { strictly '3.2' }
                     }
                 }
             }
@@ -316,38 +350,55 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             }
             'org:platform:1.1' {
                 expectGetMetadata()
-                if (platformType == MODULE) { expectGetArtifact() }
+                if (platformType == MODULE) {
+                    expectGetArtifact()
+                }
             }
             'org:bar:2.0' {
                 expectGetMetadata()
-                expectGetArtifact()
+                if (platformType != ENFORCED_PLATFORM) {
+                    expectGetArtifact()
+                }
             }
             "org:foo:$expectedFooVersion" {
                 expectGetMetadata()
-                expectGetArtifact()
+                if (platformType != ENFORCED_PLATFORM) {
+                    expectGetArtifact()
+                }
             }
         }
-        run ':checkDeps'
+        if (platformType != ENFORCED_PLATFORM) {
+            run ':checkDeps'
+        } else {
+            fails ':checkDeps'
+        }
 
         then:
-        resolve.expectGraph {
-            root(':', ':test:') {
-                constraint('org:foo:{require 3.2; subgraph}', "org:foo:$expectedFooVersion").byConstraint()
-                edge('org:platform:1.+', 'org:platform:1.1') {
-                    byRequest()
-                    if (platformType != MODULE) {
-                        configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
-                        noArtifacts()
+        if (platformType == ENFORCED_PLATFORM) {
+            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
+   Constraint path ':test:unspecified' --> 'org:platform:1.1' --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
+   Constraint path ':test:unspecified' --> 'org:foo:{strictly 3.2}'"""
+        } else {
+            resolve.expectGraph {
+                root(':', ':test:') {
+                    constraint('org:foo:{strictly 3.2}', "org:foo:$expectedFooVersion").byConstraint()
+                    edge('org:platform:1.+', 'org:platform:1.1') {
+                        byRequest()
+                        if (platformType != MODULE) {
+                            configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
+                            noArtifacts()
+                        }
+                        constraint("org:bar:${expectSubgraphVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
+                        constraint("org:foo:${expectSubgraphVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
                     }
-                    constraint("org:bar:${expectSubgraphVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
-                    constraint("org:foo:${expectSubgraphVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
+                    edge('org:bar', 'org:bar:2.0') {
+                        edge('org:foo:3.1', "org:foo:$expectedFooVersion").byAncestor()
+                    }.byRequest()
                 }
-                edge('org:bar', 'org:bar:2.0') {
-                    edge('org:foo:3.1', "org:foo:$expectedFooVersion").byAncestor()
-                }.byRequest()
-            }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
+                if (platformType == ENFORCED_PLATFORM) {
+                    nodesWithoutRoot.each { it.forced() }
+                }
             }
         }
 
@@ -366,8 +417,8 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                     ${platformDependency(platformType, 'org:platform:1.+')}
                     conf('org:bar')
                     constraints {
-                        conf('org:foo:3.2') {
-                            version { forSubgraph() } // ignoring platform's reject
+                        conf('org:foo') {
+                            version { strictly '3.2' } // ignoring platform's reject
                         }
                     }
                 }
@@ -395,35 +446,39 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             }
             'org:bar:2.0' {
                 expectGetMetadata()
-                if (platformType == ENFORCED_PLATFORM) { expectGetArtifact() }
             }
             'org:foo:3.1.1' {
                 expectGetMetadata()
-                if (platformType == ENFORCED_PLATFORM) { expectGetArtifact() }
             }
             'org:foo:3.2' {
-                if (platformType != ENFORCED_PLATFORM) { expectGetMetadata() }
+                if (platformType != ENFORCED_PLATFORM) {
+                    expectGetMetadata()
+                }
             }
         }
-        if (platformType == ENFORCED_PLATFORM) {
-            // issue with enforced platform: the forced version is always used and the conflict is 'hidden'
-            succeeds ':checkDeps'
-        } else {
-            fails ':checkDeps'
-        }
+
+        fails ':checkDeps'
 
         then:
-        (platformType == ENFORCED_PLATFORM && !failure) || failure.assertHasCause(
-            """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        if (platformType == ENFORCED_PLATFORM) {
+            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:platform:1.1' --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2; subgraph}'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:foo:{require 3.2; subgraph}'""")
+   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:platform:1.1' --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
+   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:foo:{strictly 3.2}'"""
+        } else {
+            failure.assertHasCause(
+                """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
+   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:platform:1.1' --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
+   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:foo:{strictly 3.2}'""")
+        }
 
         where:
         platformType << PlatformType.values()
     }
 
-    @Ignore // Having only Unroll tests breaks something in the combination with GradleMetadataResolveRunner
+    @Ignore
+    // Having only Unroll tests breaks something in the combination with GradleMetadataResolveRunner
     void "dummy"() {
         expect:
         true

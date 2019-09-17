@@ -45,10 +45,13 @@ publishing {
             url "${buildDir}/repo"
         }
     }
+    // tag::ignore-pom-warnings[]
     publications {
         maven(MavenPublication) {
             from components.java
+            suppressPomMetadataWarningsFor('runtimeElements')
         }
     }
+    // end::ignore-pom-warnings[]
 }
 

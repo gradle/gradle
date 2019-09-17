@@ -51,22 +51,35 @@ public class LocalTaskNode extends TaskNode {
     private final TaskInternal task;
     private final Map<File, String> canonicalizedFileCache;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
+    private boolean isolated;
 
     public LocalTaskNode(TaskInternal task, Map<File, String> canonicalizedFileCache) {
         this.task = task;
         this.canonicalizedFileCache = canonicalizedFileCache;
     }
 
+    /**
+     * Indicates that this task is isolated and so does not require the project lock in order to execute.
+     */
+    public void isolated() {
+        isolated = true;
+    }
+
     @Nullable
     @Override
     public Project getProjectToLock() {
-        // Running the task requires access to the task's owning project
-        return task.getProject();
+        if (isolated) {
+            return null;
+        } else {
+            // Running the task requires access to the task's owning project
+            return task.getProject();
+        }
     }
 
     @Nullable
     @Override
     public Project getOwningProject() {
+        // Task requires its owning project's execution services
         return task.getProject();
     }
 

@@ -225,12 +225,12 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
         buildFile << """
             def artifactType = Attribute.of('artifactType', String)
 
-            class Jar2Class extends ArtifactTransform {
-                List<File> transform(File input) {
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            abstract class Jar2Class implements TransformAction<TransformParameters.None> {
+                void transform(TransformOutputs outputs) {
                     println "Jar2Class"
-                    def classes = new File(outputDirectory, 'classes')
-                    classes.mkdirs()
-                    return [classes]
+                    def classes = outputs.dir('classes')
                 }
             }
 
@@ -238,10 +238,9 @@ class ArtifactFilterIntegrationTest extends AbstractHttpDependencyResolutionTest
                 compile project('libInclude')
                 compile project('libExclude')
                 
-                registerTransform {
+                registerTransform(Jar2Class) {
                     from.attribute(Attribute.of('artifactType', String), "jar")
                     to.attribute(Attribute.of('artifactType', String), "class")
-                    artifactTransform(Jar2Class)
                 }
             }
             def artifactFilter = { component -> component.projectPath == ':libInclude' }

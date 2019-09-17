@@ -29,30 +29,38 @@ class ConcurrentBuildsArtifactTransformIntegrationTest extends AbstractDependenc
 enum Color { Red, Green, Blue }
 def type = Attribute.of("artifactType", String)
 
-class ToColor extends ArtifactTransform {
-    Color color
+abstract class ToColor implements TransformAction<Parameters> {
+    interface Parameters extends TransformParameters {
+        @Input
+        Property<Color> getColor()
+    }
 
-    @javax.inject.Inject
-    ToColor(Color color) { this.color = color }
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
 
-    List<File> transform(File input) { 
+    void transform(TransformOutputs outputs) {
+        def input = inputArtifact.get().asFile
+        def color = parameters.color.get()
         println "Transforming \$input.name to \$color"
-        def out = new File(outputDirectory, color.toString())
+        def out = outputs.file(color.toString())
         out.text = input.name
-        [out]
     }
 }
 
 dependencies {
-    registerTransform {
+    registerTransform(ToColor) {
         from.attribute(type, "jar")
         to.attribute(type, "red")
-        artifactTransform(ToColor) { params(Color.Red) }
+        parameters {
+            color = Color.Red
+        }
     }
-    registerTransform {
+    registerTransform(ToColor) {
         from.attribute(type, "jar")
         to.attribute(type, "blue")
-        artifactTransform(ToColor) { params(Color.Blue) }
+        parameters {
+            color = Color.Blue
+        }
     }
 }
 

@@ -357,6 +357,8 @@ task check {
                     configuration('alice')
                     byConstraint()
                     module('org:bar:1.0') {
+                        byAncestor()
+                        byConstraint()
                         configuration('extra')
                     }
                 }

@@ -32,9 +32,9 @@ public class FileSystemSnapshotFilter {
     private FileSystemSnapshotFilter() {
     }
 
-    public static FileSystemSnapshot filterSnapshot(final SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshot unfiltered) {
-        final MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
-        final AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
+    public static FileSystemSnapshot filterSnapshot(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshot unfiltered) {
+        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
+        AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
         unfiltered.accept(new FileSystemSnapshotVisitor() {
             private final RelativePathSegmentsTracker relativePathTracker = new RelativePathSegmentsTracker();
 

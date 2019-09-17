@@ -60,11 +60,6 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
 
     @Override
     public VersionSelector complementForRejection(VersionSelector selector) {
-        // TODO We can probably now support more versions with `strictly` but we'll need more test coverage
-        if ((selector instanceof ExactVersionSelector)
-            || (selector instanceof VersionRangeSelector && ((VersionRangeSelector) selector).getUpperBound() != null)) {
-            return new InverseVersionSelector(selector);
-        }
-        throw new IllegalArgumentException("Version '" + renderSelector(selector) + "' cannot be converted to a strict version constraint.");
+        return new InverseVersionSelector(selector);
     }
 }

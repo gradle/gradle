@@ -27,14 +27,15 @@ public class StaleDataCleanupInitializer implements ConnectionAction<Void> {
 
     @Override
     public Void execute(Connection connection) throws SQLException {
-        runStatement(connection, "delete from testOperation where testExecution in (select id from testExecution where startTime < ?)");
-        runStatement(connection, "delete from testExecution where startTime < ?");
+        Timestamp time = Timestamp.valueOf(LocalDateTime.now().minusDays(MAX_DATA_STORE_DAYS));
+        runStatement(connection, "delete from testOperation where testExecution in (select id from testExecution where startTime < ?)", time);
+        runStatement(connection, "delete from testExecution where startTime < ?", time);
         return null;
     }
 
-    private void runStatement(Connection connection, String sql) throws SQLException {
+    private void runStatement(Connection connection, String sql, Timestamp time) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now().minusDays(MAX_DATA_STORE_DAYS)));
+            statement.setTimestamp(1, time);
             statement.execute();
         }
     }

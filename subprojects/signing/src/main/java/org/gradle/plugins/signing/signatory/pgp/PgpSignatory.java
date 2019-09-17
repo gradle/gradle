@@ -104,7 +104,7 @@ public class PgpSignatory extends SignatorySupport {
 
     public PGPSignatureGenerator createSignatureGenerator() {
         try {
-            PGPSignatureGenerator generator = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA1));
+            PGPSignatureGenerator generator = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA512));
             generator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
             return generator;
         } catch (PGPException e) {

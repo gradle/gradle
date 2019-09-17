@@ -60,6 +60,30 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
+    def "supports fallback when configDirectory does not exist"() {
+        goodCode()
+        buildFile << """
+            checkstyle {
+                config = project.resources.text.fromString('''<!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
+                        "https://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+                <module name="Checker">
+                
+                    <module name="FileTabCharacter"/>
+                
+                    <module name="SuppressionFilter">
+                        <property name="file" value="\${config_loc}/suppressions.xml" default=""/>
+                        <property name="optional" value="true"/>
+                    </module>
+                </module>''')
+            
+                configDirectory = file("config/does-not-exist")
+            }
+        """
+
+        expect:
+        succeeds('check')
+    }
+
     @ToBeImplemented
     @Issue("GRADLE-3432")
     def "analyze bad resources"() {
@@ -266,7 +290,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !file("build/tmp/checkstyleMain/main.xml").exists()
     }
 
-    def "changes to files in configDir make the task out-of-date"() {
+    def "changes to files in configDirectory make the task out-of-date"() {
         given:
         goodCode()
         succeeds "checkstyleMain"
@@ -292,7 +316,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         buildFile << """
             checkstyle {
                 configFile = file("config/checkstyle/checkstyle.xml")
-                configDir = file("custom")
+                configDirectory = file("custom")
             }
         """
         when:
@@ -321,11 +345,11 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
             }
         """
         when:
-        // config_loc points to the correct location
-        // while the default configDir does not.
-        // The build should be successful anyways
+        // config_loc points to the location of suppressions.xml
+        // while the default configDirectory does not.
+        // The build should fail because we ignore the user provided value
         executer.expectDeprecationWarning()
-        succeeds "checkstyleMain"
+        fails "checkstyleMain"
         then:
         outputContains("Adding 'config_loc' to checkstyle.configProperties has been deprecated.")
         executedAndNotSkipped(":checkstyleMain")

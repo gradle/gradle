@@ -63,7 +63,7 @@ class VersionRangeResolveTestScenarios {
     public static final RANGE_10_12_AND_PREFER_11 = requireAndPrefer(10, 12, 11)
 
     public static final DYNAMIC_PLUS = dynamic('+')
-    public static final DYNAMIC_LATEST = dynamic( 'latest.integration')
+    public static final DYNAMIC_LATEST = dynamic('latest.integration')
 
     public static final REJECT_11 = reject("11")
     public static final REJECT_12 = reject("12")
@@ -147,7 +147,8 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_12, RANGE_10_14],
         expected: "12",
-        expectedStrict: [IGNORE, "12"]
+        expectedStrictSingle: [IGNORE, "12"],
+        expectedStrictMulti: [IGNORE, ["12", "13"]]
     ).and(
         versions: [PREFER_11, RANGE_12_14],
         expected: "13",
@@ -156,18 +157,21 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [PREFER_11, PREFER_12, RANGE_10_14],
         expected: "12",
-        expectedStrict: [IGNORE, IGNORE, "12"]
+        expectedStrictSingle: [IGNORE, IGNORE, "12"],
+        expectedStrictMulti: [IGNORE, IGNORE, IGNORE]
     ).and(
         versions: [PREFER_11, RANGE_10_11, PREFER_13, RANGE_10_14],
         expected: "11"
     ).and(
         versions: [FIXED_11, PREFER_12, RANGE_10_14],
         expected: "11",
-        expectedStrict: ["11", IGNORE, "11"]
+        expectedStrictSingle: ["11", IGNORE, "11"],
+        expectedStrictMulti: ["11", IGNORE, IGNORE]
     ).and(
         versions: [PREFER_11, PREFER_13, RANGE_10_12],
         expected: "11",
-        expectedStrict: [IGNORE, IGNORE, "11"]
+        expectedStrictSingle: [IGNORE, IGNORE, "11"],
+        expectedStrictMulti: [IGNORE, IGNORE, IGNORE],
     ).and(
         versions: [PREFER_7_8, FIXED_12],  // No version satisfies the range [7,8]
         expected: FAILED
@@ -176,6 +180,7 @@ class VersionRangeResolveTestScenarios {
         expected: FAILED
     )
 
+    // Keep in mind that only versions in 9..13 are published
     public static final StrictPermutationsProvider SCENARIOS_TWO_DEPENDENCIES = StrictPermutationsProvider.check(
         versions: [FIXED_7, FIXED_13],
         expected: "13",
@@ -184,34 +189,41 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [FIXED_12, FIXED_13],
         expected: "13",
-        expectedStrict: [REJECTED, "13"],
+        expectedStrictMulti: [["12", REJECTED], "13"],
+        expectedStrictSingle: [REJECTED, "13"],
         conflicts: true
     ).and(
         versions: [FIXED_12, RANGE_10_11],
         expected: "12",
-        expectedStrict: ["12", REJECTED],
+        expectedStrictSingle: ["12", REJECTED],
+        expectedStrictMulti: ["12", [REJECTED, "11"]],
         conflicts: true
     ).and(
         versions: [FIXED_12, RANGE_10_14],
         expected: "12",
-        expectedStrict: ["12", "12"]
+        expectedStrictSingle: ["12", "12"],
+        expectedStrictMulti: ["12", ["12", "13"]]
     ).and(
         versions: [FIXED_12, RANGE_13_14],
         expected: "13",
-        expectedStrict: [REJECTED, "13"],
+        expectedStrictSingle: [REJECTED, "13"],
+        expectedStrictMulti: [["12", REJECTED], "13"],
         conflicts: true
     ).and(
         versions: [FIXED_12, RANGE_7_8],  // No version satisfies the range [7,8]
         expected: FAILED,
-        expectedStrict: [FAILED, FAILED]
+        expectedStrictSingle: [FAILED, FAILED],
+        expectedStrictMulti: [["12", FAILED], FAILED]
     ).and(
         versions: [FIXED_12, RANGE_14_16], // No version satisfies the range [14,16]
         expected: FAILED,
-        expectedStrict: [FAILED, FAILED]
+        expectedStrictSingle: [FAILED, FAILED],
+        expectedStrictMulti: [["12", FAILED], FAILED],
     ).and(
         versions: [RANGE_10_11, FIXED_10],
         expected: "10",
-        expectedStrict: ["10", "10"]
+        expectedStrictSingle: ["10", "10"],
+        expectedStrictMulti: [["11", "10"], "10"],
     ).and(
         versions: [RANGE_10_14, FIXED_13],
         expected: "13",
@@ -219,7 +231,8 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [RANGE_10_14, RANGE_10_11],
         expected: "11",
-        expectedStrict: ["11", "11"]
+        expectedStrictSingle: ["11", "11"],
+        expectedStrictMulti: [["13", "11"], "11"],
     ).and(
         versions: [RANGE_10_14, RANGE_10_16],
         expected: "13",
@@ -227,7 +240,8 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [RANGE_10_12, RANGE_11_13], // Intersecting ranges
         expected: "12",
-        expectedStrict: ["12", "12"]
+        expectedStrictSingle: ["12", "12"],
+        expectedStrictMulti: ["12", ["12", "13"]],
     ).and(
         versions: [FIXED_12, RANGE_10_OR_HIGHER],
         expected: "12",
@@ -254,58 +268,64 @@ class VersionRangeResolveTestScenarios {
     ).and(
         versions: [FIXED_12, RANGE_LESS_THAN_12],
         expected: "12",
-        expectedStrict: ["12", REJECTED],
+        expectedStrictSingle: ["12", REJECTED],
+        expectedStrictMulti: ["12", [REJECTED, "11"]],
         conflicts: true
     ).and(
         versions: [FIXED_12, RANGE_10_12_EXCLUSIVE],
         expected: "12",
-        expectedStrict: ["12", REJECTED],
+        expectedStrictSingle: ["12", REJECTED],
+        expectedStrictMulti: ["12", [REJECTED, "11"]],
         conflicts: true
     ).and(
         versions: [FIXED_10, RANGE_10_12_EXCLUSIVE],
         expected: "11",
-        expectedStrict: [REJECTED, "11"],
+        expectedStrictSingle: [REJECTED, "11"],
+        expectedStrictMulti: [["10", REJECTED], "11"],
         conflicts: true
     ).and(
         versions: [RANGE_10_12, RANGE_10_12_EXCLUSIVE],
         expected: "11",
-        expectedStrict: ["11", "11"]
+        expectedStrictSingle: ["11", "11"],
+        expectedStrictMulti: [["12", "11"], "11"]
     ).and(
         versions: [RANGE_11_13, RANGE_10_12_EXCLUSIVE],
         expected: "11",
-        expectedStrict: ["11", "11"]
+        expectedStrictSingle: ["11", "11"],
+        expectedStrictMulti: [["13", "11"], "11"],
     ).and(
         versions: [RANGE_11_12, RANGE_10_12_EXCLUSIVE],
         expected: "11",
-        expectedStrict: ["11", "11"]
+        expectedStrictSingle: ["11", "11"],
+        expectedStrictMulti: [["12", "11"], "11"]
     ).and(
         versions: [DYNAMIC_PLUS, FIXED_11],
         expected: "13",
-        expectedStrict: [IGNORE, "11"],
+        expectedStrict: ["13", "11"],
         conflicts: true
     ).and(
         versions: [DYNAMIC_PLUS, RANGE_10_12],
         expected: "13",
-        expectedStrict: [IGNORE, "12"],
+        expectedStrict: ["13", "12"],
         conflicts: true
     ).and(
         versions: [DYNAMIC_PLUS, RANGE_10_16],
         expected: "13",
-        expectedStrict: [IGNORE, "13"]
+        expectedStrict: ["13", "13"]
     ).and(
         versions: [DYNAMIC_LATEST, FIXED_11],
         expected: "13",
-        expectedStrict: [IGNORE, "11"],
+        expectedStrict: ["13", "11"],
         conflicts: true
     ).and(
         versions: [DYNAMIC_LATEST, RANGE_10_12],
         expected: "13",
-        expectedStrict: [IGNORE, "12"],
+        expectedStrict: ["13", "12"],
         conflicts: true
     ).and(
         versions: [DYNAMIC_LATEST, RANGE_10_16],
         expected: "13",
-        expectedStrict: [IGNORE, "13"]
+        expectedStrict: ["13", "13"]
     )
 
     public static final StrictPermutationsProvider SCENARIOS_DEPENDENCY_WITH_REJECT = StrictPermutationsProvider.check(
@@ -501,11 +521,13 @@ class VersionRangeResolveTestScenarios {
         expected: "11",
         expectedStrict: [REJECTED, "11", "11", "11"]
     )
+
     private static RenderableVersion empty() {
         def vs = new SimpleVersion()
         vs.version = ""
         return vs
     }
+
     private static RenderableVersion fixed(int version) {
         def vs = new SimpleVersion()
         vs.version = "${version}"
@@ -655,7 +677,7 @@ class VersionRangeResolveTestScenarios {
 
         @Override
         VersionConstraint getVersionConstraint() {
-            DefaultImmutableVersionConstraint.of("", "", "", [version], false)
+            DefaultImmutableVersionConstraint.of("", "", "", [version])
         }
 
         @Override
@@ -685,14 +707,15 @@ class VersionRangeResolveTestScenarios {
             if (!config.ignore) {
                 List<RenderableVersion> versions = config.versions
                 String expected = config.expected
-                List<String> expectedStrict = config.expectedStrict
+                List<String> expectedStrictSingle = config.expectedStrict?:config.expectedStrictSingle
+                List<String> expectedStrictMulti = config.expectedStrict?:config.expectedStrictMulti
                 boolean expectConflict = config.conflicts as boolean
                 List<Batch> iterations = []
                 String batchName = config.description ?: "#${batchCount} (${versions})"
-                iterations.add(new Batch(batchName, versions, expected, expectConflict))
-                if (expectedStrict) {
+                iterations.add(new Batch(batchName, versions, expected, expected, expectConflict))
+                if (expectedStrictSingle || expectedStrictMulti) {
                     versions.size().times { idx ->
-                        def expectedStrictResolution = expectedStrict[idx]
+                        def expectedStrictResolution = expectedStrictMulti[idx]
                         if (expectedStrictResolution != IGNORE) {
                             iterations.add(new Batch(batchName, versions.withIndex().collect { RenderableVersion version, idx2 ->
                                 if (idx == idx2) {
@@ -700,7 +723,7 @@ class VersionRangeResolveTestScenarios {
                                 } else {
                                     version
                                 }
-                            }, expectedStrictResolution, expectConflict))
+                            }, expectedStrictSingle[idx], expectedStrictMulti[idx], expectConflict))
                         }
                     }
                 }
@@ -719,7 +742,8 @@ class VersionRangeResolveTestScenarios {
         static class Batch {
             String batchName
             List<RenderableVersion> versions
-            String expected
+            Object expectedSingle
+            Object expectedMulti
             boolean expectConflict
         }
 
@@ -727,8 +751,10 @@ class VersionRangeResolveTestScenarios {
             Iterator<Batch> batchesIterator = batches.iterator()
             String currentBatch
             Iterator<List<RenderableVersion>> current
-            String expected
+            Object expectedSingle
+            Object expectedMulti
             boolean expectConflictResolution
+            int idx = 0
 
             @Override
             boolean hasNext() {
@@ -738,26 +764,56 @@ class VersionRangeResolveTestScenarios {
             @Override
             Candidate next() {
                 if (current?.hasNext()) {
-                    return new Candidate(batch: currentBatch, candidates: current.next() as RenderableVersion[], expected: expected, conflicts: expectConflictResolution)
+                    if (expectedSingle instanceof Iterable) {
+                        expectedSingle = expectedSingle.iterator()
+                    }
+                    if (expectedMulti instanceof Iterable) {
+                        expectedMulti = expectedMulti.iterator()
+                    }
+                    Object nextExpectedSingle = expectedSingle instanceof String ? expectedSingle : expectedSingle.next()
+                    Object nextExpectedMulti = expectedMulti instanceof String ? expectedMulti : expectedMulti.next()
+                    def candidate = new Candidate(idx: idx++, batch: currentBatch, candidates: current.next() as RenderableVersion[], expectedSingle: nextExpectedSingle, expectedMulti:nextExpectedMulti, conflicts: expectConflictResolution)
+                    return candidate
                 }
                 Batch nextBatch = batchesIterator.next()
-                expected = nextBatch.expected
+                expectedSingle = nextBatch.expectedSingle
+                expectedMulti = nextBatch.expectedMulti
                 expectConflictResolution = nextBatch.expectConflict
-                current = nextBatch.versions.permutations().iterator()
+                current = permutations(nextBatch).iterator()
+                if (nextBatch.batchName != currentBatch) {
+                    idx = 0
+                }
                 currentBatch = nextBatch.batchName
                 return next()
+            }
+
+            // an alternative to Groovy's permutations method which is reproducible
+            private static List<List<RenderableVersion>> permutations(Batch nextBatch) {
+                def generator = new PermutationGenerator<>(nextBatch.versions)
+                def permutations = []
+                def permutationsAsSet = [] as Set
+                while (generator.hasNext()) {
+                    def next = generator.next()
+                    if (permutationsAsSet.add(next)) {
+                        permutations << next
+                    }
+                }
+                permutations
             }
         }
 
         static class Candidate {
+            int idx
             String batch
             RenderableVersion[] candidates
-            String expected
+            String expectedSingle
+            String expectedMulti
             boolean conflicts
 
             @Override
             String toString() {
-                batch + ": " + candidates.collect { it.toString() }.join(' & ') + " -> ${expected}"
+                String expected = expectedSingle == expectedMulti ? expectedSingle : "single:${expectedSingle} / multi:${expectedMulti}"
+                batch + ": $idx - " + candidates.collect { it.toString() }.join(' & ') + " -> $expected"
             }
         }
     }

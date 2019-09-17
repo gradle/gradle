@@ -27,6 +27,8 @@ import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
 
+import java.util.function.Consumer
+
 class TestFileSnapshotter implements FileSystemSnapshotter {
 
     @Override
@@ -51,7 +53,7 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
     }
 
     @Override
-    FileSystemSnapshotBuilder newFileSystemSnapshotBuilder() {
+    FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
         throw new UnsupportedOperationException()
     }
 }

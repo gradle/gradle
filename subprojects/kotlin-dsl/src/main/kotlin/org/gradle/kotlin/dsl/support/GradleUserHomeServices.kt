@@ -15,14 +15,11 @@
  */
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.cache.CacheRepository
-
 
 internal
 object GradleUserHomeServices {
 
     @Suppress("unused")
-    fun createEmbeddedKotlinRepositoryProvider(cacheRepository: CacheRepository, moduleRegistry: ModuleRegistry) =
-        EmbeddedKotlinProvider(cacheRepository, moduleRegistry)
+    fun createEmbeddedKotlinRepositoryProvider() =
+        EmbeddedKotlinProvider()
 }

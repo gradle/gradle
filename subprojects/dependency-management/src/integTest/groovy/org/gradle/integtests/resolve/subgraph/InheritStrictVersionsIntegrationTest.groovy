@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.forsubgraph
+package org.gradle.integtests.resolve.subgraph
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -23,7 +23,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 @RequiredFeatures([
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
 )
-class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
+class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
         resolve.withStrictReasonsCheck()
@@ -34,7 +34,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         repository {
             'org:platform:1.0'() {
                 constraint(group: 'org', artifact: 'bar', version: '1.0')
-                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+                constraint(group: 'org', artifact: 'foo', strictly: '1.0')
             }
             'org:foo:1.0'()
             'org:foo:2.0'()
@@ -46,7 +46,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:bar')
             }           
@@ -74,7 +74,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
             root(':', ':test:') {
                 module('org:platform:1.0') {
                     constraint('org:bar:1.0').byConstraint()
-                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
+                    constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
                 }
                 edge('org:bar', 'org:bar:1.0') {
                     edge('org:foo:2.0', 'org:foo:1.0').byAncestor()
@@ -88,7 +88,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         repository {
             'org:platform:1.0'() {
                 constraint(group: 'org', artifact: 'bar', version: '1.0')
-                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+                constraint(group: 'org', artifact: 'foo', strictly: '1.0')
             }
             'org:platform:2.0'() {
                 constraint(group: 'org', artifact: 'bar', version: '1.0')
@@ -105,7 +105,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:bar')
             }           
@@ -146,14 +146,14 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         }
     }
 
-    def "multiple inherited subgraph constraints that target the same module are conflict resolved"() {
+    def "multiple inherited subgraph constraints that target the same module fail the build if they conflict"() {
         given:
         repository {
             'org:platform-a:1.0'() {
-                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+                constraint(group: 'org', artifact: 'foo', strictly: '1.0')
             }
             'org:platform-b:1.0'() {
-                constraint(group: 'org', artifact: 'foo', version: '2.0', forSubgraph: true)
+                constraint(group: 'org', artifact: 'foo', strictly: '2.0')
             }
             'org:foo:1.0'()
             'org:foo:2.0'()
@@ -162,10 +162,10 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         buildFile << """
             dependencies {
                 conf('org:platform-a:1.0') {
-                    inheritConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:platform-b:1.0') {
-                    inheritConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:foo')
             }           
@@ -175,41 +175,31 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         repositoryInteractions {
             'org:platform-a:1.0' {
                 expectGetMetadata()
-                expectGetArtifact()
             }
             'org:platform-b:1.0' {
                 expectGetMetadata()
-                expectGetArtifact()
             }
             'org:foo:1.0' {
                 expectGetMetadata()
             }
             'org:foo:2.0' {
                 expectGetMetadata()
-                expectGetArtifact()
             }
         }
-        run ':checkDeps'
+        fails ':checkDeps'
 
         then:
-        resolve.expectGraph {
-            root(':', ':test:') {
-                module('org:platform-a:1.0') {
-                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:2.0').byConflictResolution("between versions 2.0 and 1.0")
-                }
-                module('org:platform-b:1.0') {
-                    constraint('org:foo:{require 2.0; subgraph}', 'org:foo:2.0').byConstraint()
-                }
-                edge('org:foo', 'org:foo:2.0').byRequest()
-            }
-        }
+        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:foo'
+   Constraint path ':test:unspecified' --> 'org:platform-a:1.0' --> 'org:foo:{strictly 1.0}'
+   Constraint path ':test:unspecified' --> 'org:platform-b:1.0' --> 'org:foo:{strictly 2.0}'"""
     }
 
     def "a module from which constraints are inherited can itself be influenced by constraints inherited form elsewhere"() {
         given:
         repository {
             'org:platform:1.0'() {
-                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+                constraint(group: 'org', artifact: 'foo', strictly: '1.0')
             }
             'org:baz:1.0'() {
                 dependsOn 'org:bar:1.0'
@@ -224,10 +214,10 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritConstraints()
+                    inheritStrictVersions()
                 }
                 conf('org:baz:1.0') {
-                    inheritConstraints()
+                    inheritStrictVersions()
                 }
             }           
         """
@@ -257,7 +247,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org:platform:1.0') {
-                    constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
+                    constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
                 }
                 module('org:baz:1.0') {
                     module('org:bar:1.0') {
@@ -273,7 +263,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
         repository {
             'org:platform:1.0'() {
                 constraint(group: 'org', artifact: 'bar', version: '1.0')
-                constraint(group: 'org', artifact: 'foo', version: '1.0', forSubgraph: true)
+                constraint(group: 'org', artifact: 'foo', strictly: '1.0')
             }
             'org:foo:1.0'()
             'org:foo:2.0'()
@@ -281,7 +271,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
                 dependsOn 'org:foo:2.0'
             }
             'org:baz:1.0' {
-                dependsOn(group: 'org', artifact: 'platform', version: '1.0', inheritConstraints: true)
+                dependsOn(group: 'org', artifact: 'platform', version: '1.0', inheritStrictVersions: true)
                 dependsOn(group: 'org', artifact: 'bar')
             }
         }
@@ -319,7 +309,7 @@ class InheritConstraintsIntegrationTest extends AbstractModuleDependencyResolveT
                 module('org:baz:1.0') {
                     module('org:platform:1.0') {
                         constraint('org:bar:1.0').byConstraint()
-                        constraint('org:foo:{require 1.0; subgraph}', 'org:foo:1.0').byConstraint()
+                        constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
                     }
                     edge('org:bar', 'org:bar:1.0') {
                         byRequest()

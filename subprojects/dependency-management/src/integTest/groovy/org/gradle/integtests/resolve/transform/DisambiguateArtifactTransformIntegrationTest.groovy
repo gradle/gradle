@@ -22,6 +22,28 @@ import spock.lang.Unroll
 
 class DisambiguateArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
+    private static String artifactTransform(String className, String extension = "txt", String message = "Transforming") {
+        """
+            import org.gradle.api.artifacts.transform.TransformParameters
+            
+            abstract class ${className} implements TransformAction<TransformParameters.None> {
+                ${className}() {
+                    println "Creating ${className}"
+                }
+                
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+                
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file("\${input.name}.${extension}")
+                    println "${message} \${input.name} to \${output.name}"
+                    output.text = String.valueOf(input.length())
+                }
+            }
+        """
+    }
+
     def "disambiguates A -> B -> C and B -> C by selecting the later"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"
@@ -64,21 +86,19 @@ project(':app') {
     }
 
     dependencies {
-        registerTransform {
+        registerTransform(FileSizer) {
             from.attribute(artifactType, 'java-classes-directory')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, 'size'))
-            artifactTransform(FileSizer)
         }
-        registerTransform {
+        registerTransform(FileSizer) {
             from.attribute(artifactType, 'jar')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
             to.attribute(artifactType, 'java-classes-directory')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
             to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES))
-            artifactTransform(FileSizer)
         }
     }
 
@@ -100,23 +120,8 @@ project(':app') {
     }
 }
 
-class FileSizer extends ArtifactTransform {
-    FileSizer() {
-        println "Creating FileSizer"
-    }
-    
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
-
+${artifactTransform("FileSizer")}
 """
-
-
 
         when:
         run "resolve"
@@ -171,7 +176,7 @@ project(':app') {
     }
 
     dependencies {
-        registerTransform {
+        registerTransform(TestTransform) {
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             from.attribute(artifactType, 'java-classes-directory')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
@@ -181,10 +186,8 @@ project(':app') {
                 from.attribute(extraAttribute, 'whatever')
                 to.attribute(extraAttribute, 'value1')
             }
-            
-            artifactTransform(TestTransform)
         }
-        registerTransform {
+        registerTransform(TestTransform) {
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
             from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
             from.attribute(artifactType, 'jar')
@@ -196,13 +199,10 @@ project(':app') {
                 from.attribute(extraAttribute, 'whatever')
                 to.attribute(extraAttribute, 'value2')
             }
-            
-            artifactTransform(TestTransform)
         }
-        registerTransform {
+        registerTransform(TestTransform) {
             from.attribute(artifactType, 'magic-jar')
             to.attribute(artifactType, 'final')
-            artifactTransform(TestTransform)
         }
     }
 
@@ -224,19 +224,8 @@ project(':app') {
     }
 }
 
-class TestTransform extends ArtifactTransform {
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
-
+${artifactTransform("TestTransform")}
 """
-
-
 
         when:
         run "resolve"
@@ -257,48 +246,9 @@ class TestTransform extends ArtifactTransform {
     def "transform with two attributes will not confuse"() {
         given:
         buildFile << """
-class AarRelease extends ArtifactTransform {
-    AarRelease() {
-        println "Creating AarRelease"
-    }
-    
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name.replace(".jar",".release.aar"))
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
-
-class AarDebug extends ArtifactTransform {
-    AarDebug() {
-        println "Creating AarDebug"
-    }
-    
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name.replace(".jar",".debug.aar"))
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
-
-class AarClasses extends ArtifactTransform {
-    AarClasses() {
-        println "Creating AarClasses"
-    }
-    
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name.replace(".aar",".classes"))
-        println "Transforming \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-} 
-
+${artifactTransform("AarRelease", "release")}
+${artifactTransform("AarDebug", "debug")}
+${artifactTransform("AarClasses", "classes")}
 
 def buildType = Attribute.of('buildType', String)
 def artifactType = Attribute.of('artifactType', String)
@@ -318,31 +268,25 @@ dependencies {
 
     compile files(jar1)
 
-    registerTransform {
+    registerTransform(AarRelease) {
         from.attribute(artifactType, 'jar')
         to.attribute(artifactType, 'aar')
 
         from.attribute(buildType, 'default')
         to.attribute(buildType, 'release')
-
-        artifactTransform(AarRelease)
     }
     
-    registerTransform {
+    registerTransform(AarDebug) {
         from.attribute(artifactType, 'jar')
         to.attribute(artifactType, 'aar')
 
         from.attribute(buildType, 'default')
         to.attribute(buildType, 'debug')
-
-        artifactTransform(AarDebug)
     }
     
-    registerTransform {
+    registerTransform(AarClasses) {
         from.attribute(artifactType, 'aar')
         to.attribute(artifactType, 'classes')
-
-        artifactTransform(AarClasses)
     }
 }
 
@@ -386,8 +330,8 @@ task resolveTestClasses {
         run "resolveReleaseClasses"
 
         then:
-        outputContains("files: [lib1.release.classes]")
-        outputContains("ids: [lib1.release.classes (lib1.jar)]")
+        outputContains("files: [lib1.jar.release.classes]")
+        outputContains("ids: [lib1.jar.release.classes (lib1.jar)]")
         outputContains("components: [lib1.jar]")
         outputContains("variants: [{artifactType=classes, buildType=release}]")
         outputContains("content: [1]")
@@ -434,38 +378,19 @@ dependencies {
         attributes.attribute(minified, false)
     }
     
-    registerTransform {
+    registerTransform(FileSizer) {
         from.attribute(artifactType, 'jar')
         to.attribute(artifactType, 'size')
-        artifactTransform(FileSizer)
     }
     
-    registerTransform {
+    registerTransform(Minifier) {
         from.attribute(minified, false)
         to.attribute(minified, true)
-        artifactTransform(Minifier)
     }
 }
 
-class Minifier extends ArtifactTransform {
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".min")
-        println "Minifying \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
-
-class FileSizer extends ArtifactTransform {
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Sizing \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
+${artifactTransform("Minifier", "min", "Minifying")}
+${artifactTransform("FileSizer", "txt", "Sizing")}
 
 task resolve(type: Copy) {
     def artifacts = configurations.compileClasspath.incoming.artifactView {
@@ -539,58 +464,51 @@ dependencies {
     }
     
     if ($apiFirst) {
-        registerTransform {
+        registerTransform(Identity) {
             from.attribute(artifactType, 'jar')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
             to.attribute(artifactType, 'jar')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            artifactTransform(Identity)
         }
     }
-    registerTransform {
+    registerTransform(IllegalTransform) {
         from.attribute(artifactType, 'jar')
         from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
         to.attribute(artifactType, 'jar')
         to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-        artifactTransform(IllegalTransform)
     }
     if (!$apiFirst) {
-        registerTransform {
+        registerTransform(Identity) {
             from.attribute(artifactType, 'jar')
             from.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "weird"))
             to.attribute(artifactType, 'jar')
             to.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
-            artifactTransform(Identity)
         }
     }
-    registerTransform {
+    registerTransform(FileSizer) {
         from.attribute(artifactType, 'jar')
         to.attribute(artifactType, 'size')
-        artifactTransform(FileSizer)
     }
 }
 
-class Identity extends ArtifactTransform {
-    List<File> transform(File input) {
-        return [input]
+import org.gradle.api.artifacts.transform.TransformParameters
+
+abstract class Identity implements TransformAction<TransformParameters.None> {
+    @InputArtifact
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    void transform(TransformOutputs outputs) {
+        outputs.file(inputArtifact)
     }
 }
 
-class IllegalTransform extends ArtifactTransform {
-    List<File> transform(File input) {
+abstract class IllegalTransform implements TransformAction<TransformParameters.None> {
+    void transform(TransformOutputs outputs) {
         throw new IllegalStateException("IllegalTransform should not be invoked")
     }
 }
 
-class FileSizer extends ArtifactTransform {
-    List<File> transform(File input) {
-        assert outputDirectory.directory && outputDirectory.list().length == 0
-        def output = new File(outputDirectory, input.name + ".txt")
-        println "Sizing \${input.name} to \${output.name}"
-        output.text = String.valueOf(input.length())
-        return [output]
-    }
-}
+${artifactTransform("FileSizer")}
 
 task resolve(type: Copy) {
     def artifacts = configurations.compileClasspath.incoming.artifactView {

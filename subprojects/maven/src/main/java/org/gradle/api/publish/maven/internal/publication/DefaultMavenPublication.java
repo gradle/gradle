@@ -90,6 +90,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -120,7 +121,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     };
     @VisibleForTesting
     public static final String INCOMPATIBLE_FEATURE = " contains dependencies that will produce a pom file that cannot be consumed by a Maven client.";
+    @VisibleForTesting
     public static final String UNSUPPORTED_FEATURE = " contains dependencies that cannot be represented in a published pom file.";
+    @VisibleForTesting
+    public static final String PUBLICATION_WARNING_FOOTER = "These issues indicate information that is lost in the published 'pom' metadata file, which may be an issue if the published library is consumed by an old Gradle version or Apache Maven.\nThe 'module' metadata file, which is used by Gradle 6+ is not affected.";
+
 
     private final String name;
     private final MavenPomInternal pom;
@@ -140,6 +145,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final PlatformSupport platformSupport;
+    private final Set<String> silencedVariants = new HashSet<>();
     private MavenArtifact pomArtifact;
     private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
@@ -149,6 +155,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private boolean populated;
     private boolean artifactsOverridden;
     private boolean versionMappingInUse = false;
+    private boolean silenceAllPublicationWarnings;
 
     @Inject
     public DefaultMavenPublication(
@@ -262,7 +269,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         if (component == null) {
             return;
         }
-        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE);
+        PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, INCOMPATIBLE_FEATURE, PUBLICATION_WARNING_FOOTER, "suppressPomMetadataWarningsFor");
         Set<ArtifactKey> seenArtifacts = Sets.newHashSet();
         Set<PublishedDependency> seenDependencies = Sets.newHashSet();
         Set<DependencyConstraint> seenConstraints = Sets.newHashSet();
@@ -277,6 +284,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
 
             Set<ExcludeRule> globalExcludes = usageContext.getGlobalExcludes();
 
+            publicationWarningsCollector.newContext(usageContext.getName());
             Set<MavenDependencyInternal> dependencies = dependenciesFor(usageContext);
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 if (seenDependencies.add(PublishedDependency.of(dependency))) {
@@ -319,11 +327,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
             if (!usageContext.getCapabilities().isEmpty()) {
                 for (Capability capability : usageContext.getCapabilities()) {
-                    publicationWarningsCollector.addUnsupported(String.format("Declares capability %s:%s:%s", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
                 }
             }
         }
-        publicationWarningsCollector.complete(getDisplayName());
+        if (!silenceAllPublicationWarnings) {
+            publicationWarningsCollector.complete(getDisplayName() + "pom metadata", silencedVariants);
+        }
     }
 
     private boolean isDependencyWithDefaultArtifact(ModuleDependency dependency) {
@@ -487,6 +497,16 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public void versionMapping(Action<? super VersionMappingStrategy> configureAction) {
         this.versionMappingInUse = true;
         configureAction.execute(versionMappingStrategy);
+    }
+
+    @Override
+    public void suppressPomMetadataWarningsFor(String variantName) {
+        this.silencedVariants.add(variantName);
+    }
+
+    @Override
+    public void suppressAllPomMetadataWarnings() {
+        this.silenceAllPublicationWarnings = true;
     }
 
     @Override

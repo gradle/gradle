@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.util.GUtil;
@@ -41,17 +42,15 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              String requiredVersion,
                                              String strictVersion,
-                                             List<String> rejectedVersions,
-                                             boolean forSubgraph) {
-        this(preferredVersion, requiredVersion, strictVersion, rejectedVersions, null, forSubgraph);
+                                             List<String> rejectedVersions) {
+        this(preferredVersion, requiredVersion, strictVersion, rejectedVersions, null);
     }
 
     public DefaultImmutableVersionConstraint(String preferredVersion,
                                              String requiredVersion,
                                              String strictVersion,
                                              List<String> rejectedVersions,
-                                             @Nullable String requiredBranch,
-                                             boolean forSubgraph) {
+                                             @Nullable String requiredBranch) {
         if (preferredVersion == null) {
             throw new IllegalArgumentException("Preferred version must not be null");
         }
@@ -74,7 +73,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.strictVersion = strictVersion;
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
         this.requiredBranch = requiredBranch;
-        this.forSubgraph = forSubgraph;
+        this.forSubgraph = !StringUtils.isEmpty(strictVersion);
         this.hashCode = super.hashCode();
     }
 
@@ -131,7 +130,7 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         if (versionConstraint instanceof ImmutableVersionConstraint) {
             return (ImmutableVersionConstraint) versionConstraint;
         }
-        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions(), versionConstraint.isForSubgraph());
+        return new DefaultImmutableVersionConstraint(versionConstraint.getPreferredVersion(), versionConstraint.getRequiredVersion(), versionConstraint.getStrictVersion(), versionConstraint.getRejectedVersions());
     }
 
     public static ImmutableVersionConstraint of(String version) {
@@ -141,8 +140,8 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         return new DefaultImmutableVersionConstraint(version);
     }
 
-    public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects, boolean forSubgraph) {
-        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejects, forSubgraph);
+    public static ImmutableVersionConstraint of(String preferredVersion, String requiredVersion, String strictVersion, List<String> rejects) {
+        return new DefaultImmutableVersionConstraint(preferredVersion, requiredVersion, strictVersion, rejects);
     }
 
     public static ImmutableVersionConstraint of() {

@@ -29,7 +29,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -37,6 +36,7 @@ import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -132,36 +132,35 @@ public class GradleModuleMetadataWriter {
         jsonWriter.endObject();
     }
 
-    private void writeVersionConstraint(VersionConstraint versionConstraint, String resolvedVersion, JsonWriter jsonWriter) throws IOException {
-        if (DefaultImmutableVersionConstraint.of().equals(versionConstraint)) {
+    private void writeVersionConstraint(ImmutableVersionConstraint immutableVersionConstraint, String resolvedVersion, JsonWriter jsonWriter) throws IOException {
+        if (resolvedVersion == null && DefaultImmutableVersionConstraint.of().equals(immutableVersionConstraint)) {
             return;
         }
 
         jsonWriter.name("version");
         jsonWriter.beginObject();
 
-        String required = !versionConstraint.getRequiredVersion().isEmpty() ? versionConstraint.getRequiredVersion() : null;
-        String preferred = !versionConstraint.getPreferredVersion().isEmpty() ? versionConstraint.getPreferredVersion() : null;
+        boolean isStrict = !immutableVersionConstraint.getStrictVersion().isEmpty();
+        String version = isStrict ? immutableVersionConstraint.getStrictVersion() : !immutableVersionConstraint.getRequiredVersion().isEmpty() ? immutableVersionConstraint.getRequiredVersion() : null;
+        String preferred = !immutableVersionConstraint.getPreferredVersion().isEmpty() ? immutableVersionConstraint.getPreferredVersion() : null;
         if (resolvedVersion != null) {
-            required = resolvedVersion;
+            version = resolvedVersion;
             preferred = null;
         }
 
-        // For now, 'requires' implies 'prefers', and 'strictly' implies 'requires'
-        // Only publish the defining constraint.
-        if (!versionConstraint.getStrictVersion().isEmpty()) {
-            jsonWriter.name("strictly");
-            jsonWriter.value(versionConstraint.getStrictVersion());
-        }
-        if (required != null) {
+        if (version != null) {
+            if (isStrict) {
+                jsonWriter.name("strictly");
+                jsonWriter.value(version);
+            }
             jsonWriter.name("requires");
-            jsonWriter.value(required);
+            jsonWriter.value(version);
         }
         if (preferred != null) {
             jsonWriter.name("prefers");
             jsonWriter.value(preferred);
         }
-        List<String> rejectedVersions = versionConstraint.getRejectedVersions();
+        List<String> rejectedVersions = immutableVersionConstraint.getRejectedVersions();
         if (!rejectedVersions.isEmpty()) {
             jsonWriter.name("rejects");
             jsonWriter.beginArray();
@@ -169,10 +168,6 @@ public class GradleModuleMetadataWriter {
                 jsonWriter.value(reject);
             }
             jsonWriter.endArray();
-        }
-        if (versionConstraint.isForSubgraph()) {
-            jsonWriter.name("forSubgraph");
-            jsonWriter.value(true);
         }
         jsonWriter.endObject();
     }
@@ -444,9 +439,9 @@ public class GradleModuleMetadataWriter {
             jsonWriter.value(group);
             jsonWriter.name("module");
             jsonWriter.value(name);
-            VersionConstraint vc;
+            ImmutableVersionConstraint vc;
             if (dependency instanceof ExternalDependency) {
-                vc = ((ExternalDependency) dependency).getVersionConstraint();
+                vc = DefaultImmutableVersionConstraint.of(((ExternalDependency) dependency).getVersionConstraint());
             } else {
                 vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
             }
@@ -458,7 +453,7 @@ public class GradleModuleMetadataWriter {
 
         boolean inheriting = dependency.isInheriting();
         if (inheriting) {
-            jsonWriter.name("inheritConstraints");
+            jsonWriter.name("inheritStrictVersions");
             jsonWriter.value(true);
         }
         String reason = dependency.getReason();
@@ -517,7 +512,7 @@ public class GradleModuleMetadataWriter {
         jsonWriter.value(resolvedVersion != null ? resolvedVersion.getGroup() : group);
         jsonWriter.name("module");
         jsonWriter.value(resolvedVersion != null ? resolvedVersion.getName() : module);
-        writeVersionConstraint(dependencyConstraint.getVersionConstraint(), resolvedVersion != null ? resolvedVersion.getVersion() : null, jsonWriter);
+        writeVersionConstraint(DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()), resolvedVersion != null ? resolvedVersion.getVersion() : null, jsonWriter);
         writeAttributes(dependencyConstraint.getAttributes(), jsonWriter);
         String reason = dependencyConstraint.getReason();
         if (StringUtils.isNotEmpty(reason)) {
