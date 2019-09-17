@@ -245,6 +245,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
             task.doFirst(new Action<Task>() {
                 @Override
                 public void execute(Task taskWithAction) {
+                    task.setDescription("Nag about task " + VALIDATE_TASK_PROPERTIES_TASK_NAME + " replaced by " + VALIDATE_PLUGINS_TASK_NAME);
                     nagAboutDeprecatedValidateTaskPropertiesTask();
                 }
             });
@@ -262,7 +263,6 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         });
         project.getTasks().register(VALIDATE_TASK_PROPERTIES_TASK_NAME, org.gradle.plugin.devel.tasks.ValidateTaskProperties.class, validatorTask, (Runnable) JavaGradlePluginPlugin::nagAboutDeprecatedValidateTaskPropertiesTask)
             .configure(task -> {
-                task.setGroup(PLUGIN_DEVELOPMENT_GROUP);
                 task.setDescription(VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION);
                 task.dependsOn(naggerTask, validatorTask);
             });

@@ -224,8 +224,6 @@ public class ValidatePlugins extends DefaultTask {
 
     /**
      * Specifies whether the build should break when plugin verifications fails.
-     *
-     * @return {@code false} when the build should break on failure, {@code true} when failures should be ignored.
      */
     @Input
     public Property<Boolean> getIgnoreFailures() {

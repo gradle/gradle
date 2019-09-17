@@ -196,7 +196,6 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         validateTask.description == JavaGradlePluginPlugin.VALIDATE_PLUGIN_TASK_DESCRIPTION
 
         def deprecatedValidateTask = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_NAME)
-        deprecatedValidateTask.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
         deprecatedValidateTask.description == JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION
     }
 
