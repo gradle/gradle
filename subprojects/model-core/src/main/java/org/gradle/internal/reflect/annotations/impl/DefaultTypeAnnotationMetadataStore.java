@@ -181,6 +181,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     }
 
     private TypeAnnotationMetadata createTypeAnnotationMetadata(Class<?> type) {
+        if (type.isPrimitive() || type.isArray() || type.isAnnotation()) {
+            return EMPTY_TYPE_ANNOTATION_METADATA;
+        }
+
         Package typePackage = type.getPackage();
         if (typePackage != null) {
             String typePackageName = typePackage.getName();

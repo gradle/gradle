@@ -24,6 +24,7 @@ import org.gradle.internal.reflect.AnnotationCategory
 import org.gradle.internal.reflect.WorkValidationContext
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import javax.annotation.Nullable
 import javax.inject.Inject
@@ -102,6 +103,16 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             @Inject
             String getInjectedProperty() { "injected" }
         }
+
+    @Unroll
+    def "ignores all properties on type #type.simpleName"() {
+        expect:
+        assertProperties type, [:]
+        where:
+        type << [int, EmptyGroovyObject, int[], Object[], Nullable]
+    }
+
+        class EmptyGroovyObject {}
 
     def "finds annotation on field"() {
         expect:
