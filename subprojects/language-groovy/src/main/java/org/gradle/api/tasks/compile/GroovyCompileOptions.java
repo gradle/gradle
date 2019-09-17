@@ -64,6 +64,8 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     private boolean javaAnnotationProcessing;
 
+    private boolean parameters;
+
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
      */
@@ -217,6 +219,23 @@ public class GroovyCompileOptions extends AbstractOptions {
      */
     public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
         this.javaAnnotationProcessing = javaAnnotationProcessing;
+    }
+
+    /**
+     * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
+     */
+    @Input
+    public boolean isParameters() {
+        return parameters;
+    }
+
+    /**
+     * Sets whether metadata for reflection on method parameter names should be generated.
+     *
+     * Defaults to {@code false}
+     */
+    public void setParameters(boolean parameters) {
+        this.parameters = parameters;
     }
 
     /**

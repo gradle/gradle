@@ -41,6 +41,7 @@ class GroovyCompileOptionsTest {
         assertNotNull(compileOptions.forkOptions)
         assertNull(compileOptions.configurationScript)
         assertFalse(compileOptions.javaAnnotationProcessing)
+        assertFalse(compileOptions.parameters)
     }
 
     @Test public void testOptionMapForForkOptions() {
@@ -53,7 +54,8 @@ class GroovyCompileOptionsTest {
                 failOnError: 'failOnError',
                 verbose: 'verbose',
                 listFiles: 'listFiles',
-                fork: 'fork'
+                fork: 'fork',
+                parameters: 'parameters'
         ]
         booleans.keySet().each {compileOptions."$it" = true}
         Map optionMap = compileOptions.optionMap()
@@ -91,8 +93,11 @@ class GroovyCompileOptionsTest {
         compileOptions.verbose = false
         compileOptions.encoding = 'xxxx'
         compileOptions.fork = false
+        compileOptions.parameters = true
         compileOptions.define( encoding: 'encoding')
         assertEquals('encoding', compileOptions.encoding)
         assertFalse(compileOptions.verbose)
+        assertFalse(compileOptions.fork)
+        assertTrue(compileOptions.parameters)
     }
 }

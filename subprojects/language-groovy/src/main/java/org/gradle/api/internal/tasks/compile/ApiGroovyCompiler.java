@@ -157,6 +157,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         GroovySystemLoader compilerGroovyLoader = groovySystemLoaderFactory.forClassLoader(compilerClassLoader);
 
         CompilerConfiguration configuration = new CompilerConfiguration();
+        configuration.setParameters(spec.getGroovyCompileOptions().isParameters());
         configuration.setVerbose(spec.getGroovyCompileOptions().isVerbose());
         configuration.setSourceEncoding(spec.getGroovyCompileOptions().getEncoding());
         configuration.setTargetBytecode(spec.getTargetCompatibility());
