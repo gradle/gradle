@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -47,7 +46,6 @@ import java.util.concurrent.Callable;
  *
  * @since 4.1
  */
-@Incubating
 @NonNullApi
 public class CppBasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;

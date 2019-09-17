@@ -17,5 +17,4 @@
 /**
  * API classes for testing native binaries.
  */
-@org.gradle.api.Incubating
 package org.gradle.nativeplatform.test;

@@ -15,7 +15,6 @@
  */
 package org.gradle.nativeplatform.platform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -46,7 +45,6 @@ import org.gradle.api.tasks.Internal;
  *     </tr>
  * </table>
  */
-@Incubating
 public interface OperatingSystem extends Named {
     @Input
     @Override

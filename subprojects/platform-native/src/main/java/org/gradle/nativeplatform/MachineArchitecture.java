@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.tasks.Input;
@@ -26,7 +25,6 @@ import org.gradle.api.tasks.Input;
  *
  * @since 5.1
  */
-@Incubating
 public abstract class MachineArchitecture implements Named {
     public static final Attribute<MachineArchitecture> ARCHITECTURE_ATTRIBUTE = Attribute.of("org.gradle.native.architecture", MachineArchitecture.class);
 

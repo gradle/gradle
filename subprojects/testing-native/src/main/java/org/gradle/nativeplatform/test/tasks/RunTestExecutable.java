@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.test.tasks;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.AbstractExecTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -30,7 +29,6 @@ import java.io.File;
 /**
  * Runs a compiled and installed test executable.
  */
-@Incubating
 public class RunTestExecutable extends AbstractExecTask<RunTestExecutable> implements VerificationTask {
     /**
      * The directory where the results should be generated.

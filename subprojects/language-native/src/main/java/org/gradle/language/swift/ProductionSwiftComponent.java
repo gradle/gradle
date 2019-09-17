@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.language.ProductionComponent;
 
@@ -25,7 +24,6 @@ import org.gradle.language.ProductionComponent;
  *
  * @since 4.5
  */
-@Incubating
 public interface ProductionSwiftComponent extends SwiftComponent, ProductionComponent {
     /**
      * {@inheritDoc}

@@ -17,7 +17,6 @@
 package org.gradle.language;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 
 /**
@@ -25,7 +24,6 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
  *
  * @since 4.6
  */
-@Incubating
 public interface LibraryDependencies extends ComponentDependencies {
     /**
      * Adds an API dependency to this library. An API dependency is made visible to consumers that are compiled against this component.

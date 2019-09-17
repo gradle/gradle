@@ -54,6 +54,7 @@ public interface VisualStudioSolution extends Named, Buildable, IdeWorkspace {
      * Configuration for the generated solution file.
      */
     @Internal
+    @Incubating
     TextConfigFile getSolutionFile();
 
     /**
@@ -65,6 +66,7 @@ public interface VisualStudioSolution extends Named, Buildable, IdeWorkspace {
 
     @Override
     @Internal
+    @Incubating
     TaskDependency getBuildDependencies();
 
     @Override

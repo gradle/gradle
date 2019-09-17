@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.provider.Provider;
@@ -26,7 +25,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 4.5
  */
-@Incubating
 public interface TestComponent extends SoftwareComponent {
     /**
      * Returns the task that runs the tests for this component.

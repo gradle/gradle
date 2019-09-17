@@ -19,7 +19,6 @@ package org.gradle.language.swift.tasks;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
@@ -74,7 +73,6 @@ import java.util.Set;
  *
  * @since 4.1
  */
-@Incubating
 @CacheableTask
 public class SwiftCompile extends DefaultTask {
     private final Property<String> moduleName;
@@ -278,7 +276,7 @@ public class SwiftCompile extends DefaultTask {
     }
 
     @TaskAction
-    void compile(InputChanges inputs) {
+    protected void compile(InputChanges inputs) {
         final List<File> removedFiles = Lists.newArrayList();
         final Set<File> changedFiles = Sets.newHashSet();
         boolean isIncremental = inputs.isIncremental();

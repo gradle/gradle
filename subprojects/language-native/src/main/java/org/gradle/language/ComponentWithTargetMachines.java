@@ -16,7 +16,6 @@
 
 package org.gradle.language;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.nativeplatform.TargetMachine;
 
@@ -25,7 +24,6 @@ import org.gradle.nativeplatform.TargetMachine;
  *
  * @since 5.2
  */
-@Incubating
 public interface ComponentWithTargetMachines {
     /**
      * Specifies the target machines this component should be built for.  The "machines" extension property (see {@link org.gradle.nativeplatform.TargetMachineFactory}) can be used to construct common operating system and architecture combinations.
