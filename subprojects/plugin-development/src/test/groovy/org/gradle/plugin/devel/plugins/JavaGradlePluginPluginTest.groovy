@@ -191,9 +191,12 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         pluginDescriptors.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
         pluginDescriptors.description == JavaGradlePluginPlugin.GENERATE_PLUGIN_DESCRIPTORS_TASK_DESCRIPTION
 
-        def validateTaskProperties = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_NAME)
-        validateTaskProperties.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
-        validateTaskProperties.description == JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION
+        def validateTask = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_PLUGINS_TASK_NAME)
+        validateTask.group == JavaGradlePluginPlugin.PLUGIN_DEVELOPMENT_GROUP
+        validateTask.description == JavaGradlePluginPlugin.VALIDATE_PLUGIN_TASK_DESCRIPTION
+
+        def deprecatedValidateTask = project.tasks.getByName(JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_NAME)
+        deprecatedValidateTask.description == JavaGradlePluginPlugin.VALIDATE_TASK_PROPERTIES_TASK_DESCRIPTION
     }
 
     def "registers local publication for each plugin"() {
