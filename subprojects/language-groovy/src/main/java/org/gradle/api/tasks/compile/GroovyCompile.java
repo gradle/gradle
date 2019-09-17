@@ -43,12 +43,12 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.GroovySourceFile
 import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpecProvider;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
@@ -344,7 +344,7 @@ public class GroovyCompile extends AbstractCompile {
      * {@inheritDoc}
      */
     @Override
-    @Internal
+    @ReplacedBy("stableSources")
     public FileTree getSource() {
         return super.getSource();
     }
