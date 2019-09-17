@@ -52,14 +52,14 @@ dependencies {
         from.attribute(type, "jar")
         to.attribute(type, "red")
         parameters {
-            color.set(Color.Red)
+            color = Color.Red
         }
     }
     registerTransform(ToColor) {
         from.attribute(type, "jar")
         to.attribute(type, "blue")
         parameters {
-            color.set(Color.Blue)
+            color = Color.Blue
         }
     }
 }

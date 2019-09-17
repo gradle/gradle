@@ -136,8 +136,7 @@ class DependencyManagementGlobalScopeServices {
     }
 
     ArtifactTransformParameterScheme createArtifactTransformParameterScheme(InspectionSchemeFactory inspectionSchemeFactory, InstantiatorFactory instantiatorFactory) {
-        // TODO - should decorate
-        InstantiationScheme instantiationScheme = instantiatorFactory.injectScheme();
+        InstantiationScheme instantiationScheme = instantiatorFactory.decorateScheme();
         InspectionScheme inspectionScheme = inspectionSchemeFactory.inspectionScheme(
             ImmutableSet.of(
                 Console.class,
