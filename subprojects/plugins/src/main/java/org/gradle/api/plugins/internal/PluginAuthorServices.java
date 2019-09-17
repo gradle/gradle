@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.component.SoftwareComponentFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
@@ -29,8 +30,8 @@ public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     }
 
     private static class GlobalScopeServices {
-        SoftwareComponentFactory createSoftwareComponentFactory() {
-            return new DefaultSoftwareComponentFactory();
+        SoftwareComponentFactory createSoftwareComponentFactory(Instantiator instantiator) {
+            return new DefaultSoftwareComponentFactory(instantiator);
         }
     }
 }

@@ -1,3 +1,5 @@
+import org.gradle.api.internal.component.SoftwareComponentInternal
+
 /*
  * Copyright 2019 the original author or authors.
  *
@@ -55,3 +57,15 @@ publishing {
     }
 }
 // end::publishing_test_fixtures[]
+
+// tag::disable-test-fixtures-publishing[]
+val javaComponent = components["java"] as AdhocComponentWithVariants
+javaComponent.withVariantsFromConfiguration(configurations["testFixturesApiElements"]) { skip() }
+javaComponent.withVariantsFromConfiguration(configurations["testFixturesRuntimeElements"]) { skip() }
+// end::disable-test-fixtures-publishing[]
+
+tasks.create("usages") {
+    doLast {
+        (components["java"] as SoftwareComponentInternal).usages.forEach { println(it.name) }
+    }
+}

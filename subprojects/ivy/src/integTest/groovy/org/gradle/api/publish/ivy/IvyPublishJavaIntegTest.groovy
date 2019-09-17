@@ -1162,7 +1162,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 optionalFeatureImplementation 'org:foo:4.0'
             }
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                if ($optional) it.mapToOptional()
+                if ($optional) mapToOptional()
             }
             publishing {
                 publications {
@@ -1205,7 +1205,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 optionalFeatureImplementation 'org:foo:1.0'
             }
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                it.mapToOptional()
+                mapToOptional()
             }
             publishing {
                 publications {
@@ -1223,6 +1223,39 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         with(javaLibrary.parsedIvy) {
             assertConfigurationDependsOn("optionalFeatureRuntimeElements", "org:foo:1.0")
             assertConfigurationDependsOn('runtime', "org:foo:1.0")
+        }
+    }
+
+    def "a component's variant can be modified before publishing"() {
+        given:
+        createBuildScripts """
+            dependencies {
+                api 'org:foo:1.0'
+                implementation 'org:bar:1.0'
+            }
+            components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
+                skip()
+            }
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        with(javaLibrary.parsedIvy) {
+            assert configurations.keySet() == ["compile", "default"] as Set // skipped runtime
+            assertConfigurationDependsOn('compile', "org:foo:1.0")
+        }
+        with(javaLibrary.parsedModuleMetadata) {
+            assert variants.collect { it.name } == ["apiElements"]
+            assert variants[0].dependencies.collect { it.toString() } == ["org:foo:1.0"]
         }
     }
 

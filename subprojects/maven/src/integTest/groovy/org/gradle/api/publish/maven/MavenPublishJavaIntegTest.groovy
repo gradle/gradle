@@ -1220,4 +1220,52 @@ include(':platform')
         true    | true
     }
 
+    def "a component's variant can be modified before publishing"() {
+        given:
+        createBuildScripts """
+            dependencies {
+                api 'org:foo:1.0'
+                implementation 'org:bar:1.0'
+            }
+            components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
+                skip()
+            }
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds "publish"
+
+        then:
+        with(javaLibrary.parsedPom) {
+            assert scopes.size() == 1
+            scopes['compile'].expectDependency('org:foo:1.0')
+        }
+        with(javaLibrary.parsedModuleMetadata) {
+            assert variants.collect { it.name } == ["apiElements"]
+            assert variants[0].dependencies.collect { it.toString() } == ["org:foo:1.0"]
+        }
+    }
+
+    def "fails when attempting to modify a published variant that does not exist"() {
+        given:
+        createBuildScripts """
+            components.java.withVariantsFromConfiguration(configurations.annotationProcessor) {
+                skip()
+            }
+        """
+
+        when:
+        fails "publish"
+
+        then:
+        failure.assertHasCause("Variant for configuration annotationProcessor does not exist in component java")
+    }
+
 }
