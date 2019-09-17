@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.subgraph
+package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -22,25 +22,25 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-import static org.gradle.integtests.resolve.subgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.MODULE
-import static org.gradle.integtests.resolve.subgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.PLATFORM
-import static org.gradle.integtests.resolve.subgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
-import static org.gradle.integtests.resolve.subgraph.InheritConstraintsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.MODULE
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.PLATFORM
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
 
 @RequiredFeatures([
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
 )
-class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends AbstractModuleDependencyResolveTest {
+class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     enum PlatformType {
         // The recommended way of doing platforms
         PLATFORM,          // constraints in platform are published with strict constraints, consumer uses 'platform()' dependencies
         // The recommended way of dealing with existing platforms
-        LEGACY_PLATFORM,   // constraints in platform are published without strict constraints, consumer uses 'platform()' dependencies + component metadata rules to add 'forSubgraph' to published constraints
+        LEGACY_PLATFORM,   // constraints in platform are published without strict constraints, consumer uses 'platform()' dependencies + component metadata rules to make all published constraints strict
         // The discouraged way of dealing with existing platforms
         ENFORCED_PLATFORM, // constraints in platform are published without strict constraints, consumer uses 'enforcedPlatform()' dependencies (to be deprecated)
-        // Using a normal module as "platform" (i.e. inheriting it's constraints) also works
-        MODULE             // constraints in module are published with strict constraints, consumer uses normal dependencies with 'inheritStrictVersions()'
+        // Using a normal module as "platform" (i.e. endorsing it's strict constraints) also works
+        MODULE             // constraints in module are published with strict constraints, consumer uses normal dependencies with 'endorseStrictVersions()'
     }
 
     def setup() {
@@ -55,7 +55,7 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
             case ENFORCED_PLATFORM:
                 return "conf(enforcedPlatform('$dependency'))"
             case MODULE:
-                return "conf('$dependency') { inheritStrictVersions() }"
+                return "conf('$dependency') { endorseStrictVersions() }"
         }
         ""
     }
@@ -137,15 +137,15 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
         }
     }
 
-    static private String expectSubgraphVersion(platformType, String requiredVersion, String rejectedVersions = '') {
-        boolean subgraph = platformType != ENFORCED_PLATFORM
-        if (subgraph && rejectedVersions.isEmpty()) {
+    static private String expectStrictVersion(platformType, String requiredVersion, String rejectedVersions = '') {
+        boolean strictVersion = platformType != ENFORCED_PLATFORM
+        if (strictVersion && rejectedVersions.isEmpty()) {
             return "{strictly $requiredVersion}"
         }
-        if (!subgraph && !rejectedVersions.isEmpty()) {
+        if (!strictVersion && !rejectedVersions.isEmpty()) {
             return "{require $requiredVersion; reject $rejectedVersions}"
         }
-        if (subgraph && !rejectedVersions.isEmpty()) {
+        if (strictVersion && !rejectedVersions.isEmpty()) {
             return "{strictly $requiredVersion; reject $rejectedVersions}"
         }
         requiredVersion
@@ -187,8 +187,8 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                         configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                         noArtifacts()
                     }
-                    constraint("org:bar:${expectSubgraphVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
-                    constraint("org:foo:${expectSubgraphVersion(platformType, '3.0', '3.1 & 3.2')}", 'org:foo:3.0').byConstraint()
+                    constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
+                    constraint("org:foo:${expectStrictVersion(platformType, '3.0', '3.1 & 3.2')}", 'org:foo:3.0').byConstraint()
                 }
                 edge('org:bar', 'org:bar:2.0') {
                     byRequest()
@@ -246,8 +246,8 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                         configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                         noArtifacts()
                     }
-                    constraint("org:bar:${expectSubgraphVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
-                    constraint("org:foo:${expectSubgraphVersion(platformType, '3.1.1', '3.1 & 3.2')}", 'org:foo:3.1.1').byConstraint()
+                    constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
+                    constraint("org:foo:${expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", 'org:foo:3.1.1').byConstraint()
                 }
                 edge('org:bar', 'org:bar:2.0') {
                     byRequest()
@@ -389,8 +389,8 @@ class InheritConstraintsInPlatformCentricDevelopmentIntegrationTest extends Abst
                             configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
                             noArtifacts()
                         }
-                        constraint("org:bar:${expectSubgraphVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
-                        constraint("org:foo:${expectSubgraphVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
+                        constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
+                        constraint("org:foo:${expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
                     }
                     edge('org:bar', 'org:bar:2.0') {
                         edge('org:foo:3.1', "org:foo:$expectedFooVersion").byAncestor()

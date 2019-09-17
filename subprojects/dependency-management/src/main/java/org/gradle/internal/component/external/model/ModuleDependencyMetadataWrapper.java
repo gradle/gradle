@@ -57,9 +57,9 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public ModuleDependencyMetadata withInheritStrictVersions(boolean inheriting) {
+    public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
         if (delegate instanceof ModuleDependencyMetadata) {
-            return new ModuleDependencyMetadataWrapper(((ModuleDependencyMetadata) delegate).withInheritStrictVersions(inheriting));
+            return new ModuleDependencyMetadataWrapper(((ModuleDependencyMetadata) delegate).withEndorseStrictVersions(endorse));
         }
         return this;
     }
@@ -100,8 +100,8 @@ public class ModuleDependencyMetadataWrapper implements ModuleDependencyMetadata
     }
 
     @Override
-    public boolean isInheriting() {
-        return delegate.isInheriting();
+    public boolean isEndorsingStrictVersions() {
+        return delegate.isEndorsingStrictVersions();
     }
 
     @Override

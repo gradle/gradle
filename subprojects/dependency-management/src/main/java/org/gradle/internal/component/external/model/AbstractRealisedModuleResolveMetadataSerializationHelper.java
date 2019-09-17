@@ -121,11 +121,11 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         ModuleComponentSelector selector = componentSelectorSerializer.read(decoder);
         List<ExcludeMetadata> excludes = readMavenExcludes(decoder);
         boolean constraint = decoder.readBoolean();
-        boolean inheriting = decoder.readBoolean();
+        boolean endorsing = decoder.readBoolean();
         boolean force = decoder.readBoolean();
         String reason = decoder.readNullableString();
         IvyArtifactName artifact = readNullableArtifact(decoder);
-        return new GradleDependencyMetadata(selector, excludes, constraint, inheriting, reason, force, artifact);
+        return new GradleDependencyMetadata(selector, excludes, constraint, endorsing, reason, force, artifact);
     }
 
     protected ImmutableList<? extends ModuleComponentArtifactMetadata> readFiles(Decoder decoder, ModuleComponentIdentifier componentIdentifier) throws IOException {
@@ -218,7 +218,7 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
         List<ExcludeMetadata> excludes = dependencyMetadata.getExcludes();
         writeMavenExcludeRules(encoder, excludes);
         encoder.writeBoolean(dependencyMetadata.isConstraint());
-        encoder.writeBoolean(dependencyMetadata.isInheriting());
+        encoder.writeBoolean(dependencyMetadata.isEndorsingStrictVersions());
         encoder.writeBoolean(dependencyMetadata.isForce());
         encoder.writeNullableString(dependencyMetadata.getReason());
         writeNullableArtifact(encoder,  dependencyMetadata.getDependencyArtifact());

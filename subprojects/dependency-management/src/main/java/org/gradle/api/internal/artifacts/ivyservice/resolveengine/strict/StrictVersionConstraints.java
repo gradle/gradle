@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.subgraphconstraints;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -23,16 +23,16 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import java.util.Collections;
 import java.util.Set;
 
-public class SubgraphConstraints {
+public class StrictVersionConstraints {
 
-    public static final SubgraphConstraints EMPTY = new SubgraphConstraints() {
+    public static final StrictVersionConstraints EMPTY = new StrictVersionConstraints() {
         @Override
-        public final SubgraphConstraints union(SubgraphConstraints other) {
+        public final StrictVersionConstraints union(StrictVersionConstraints other) {
             return other;
         }
 
         @Override
-        public final SubgraphConstraints intersect(SubgraphConstraints other) {
+        public final StrictVersionConstraints intersect(StrictVersionConstraints other) {
             return EMPTY;
         }
 
@@ -54,19 +54,19 @@ public class SubgraphConstraints {
 
     private final Set<ModuleIdentifier> modules;
 
-    private SubgraphConstraints() {
+    private StrictVersionConstraints() {
         modules = Collections.emptySet();
     }
 
-    private SubgraphConstraints(Set<ModuleIdentifier> modules) {
+    private StrictVersionConstraints(Set<ModuleIdentifier> modules) {
         this.modules = modules;
     }
 
-    public static SubgraphConstraints of(Set<ModuleIdentifier> modules) {
+    public static StrictVersionConstraints of(Set<ModuleIdentifier> modules) {
         if (modules.isEmpty()) {
             return EMPTY;
         }
-        return new SubgraphConstraints(modules);
+        return new StrictVersionConstraints(modules);
     }
 
     public Set<ModuleIdentifier> getModules() {
@@ -81,7 +81,7 @@ public class SubgraphConstraints {
         return modules.contains(module);
     }
 
-    public SubgraphConstraints union(SubgraphConstraints other) {
+    public StrictVersionConstraints union(StrictVersionConstraints other) {
         if (other == EMPTY) {
             return this;
         }
@@ -91,7 +91,7 @@ public class SubgraphConstraints {
         return of(builder.build());
     }
 
-    public SubgraphConstraints intersect(SubgraphConstraints other) {
+    public StrictVersionConstraints intersect(StrictVersionConstraints other) {
         if (other.modules == modules) {
             return this;
         }

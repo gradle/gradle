@@ -57,7 +57,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     @Nullable
     private String configuration;
     private boolean transitive = true;
-    private boolean inheriting;
+    private boolean endorsing;
 
     protected AbstractModuleDependency(@Nullable String configuration) {
         this.configuration = configuration;
@@ -240,18 +240,18 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     @Override
-    public void inheritStrictVersions() {
-        this.inheriting = true;
+    public void endorseStrictVersions() {
+        this.endorsing = true;
     }
 
     @Override
-    public void doNotInheritStrictVersions() {
-        this.inheriting = false;
+    public void doNotEndorseStrictVersions() {
+        this.endorsing = false;
     }
 
     @Override
-    public boolean isInheriting() {
-        return this.inheriting;
+    public boolean isEndorsingStrictVersions() {
+        return this.endorsing;
     }
 
     private void warnAboutInternalApiUse(String thing) {

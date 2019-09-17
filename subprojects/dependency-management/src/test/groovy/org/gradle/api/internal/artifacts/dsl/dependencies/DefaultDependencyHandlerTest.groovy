@@ -339,7 +339,7 @@ class DefaultDependencyHandlerTest extends Specification {
         1 * dependencyFactory.createDependency(null)
     }
 
-    void "platform dependencies are inheriting"() {
+    void "platform dependencies are endorsing"() {
         ModuleDependency dep1 = new DefaultExternalModuleDependency("org", "platform", "")
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
         ModuleDependency dep2 = new DefaultExternalModuleDependency("org", "platform", "")
@@ -351,7 +351,7 @@ class DefaultDependencyHandlerTest extends Specification {
         then:
         1 * dependencyFactory.createDependency("org:platform") >> dep1
         dep1.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == 'platform'
-        dep1.isInheriting()
+        dep1.isEndorsingStrictVersions()
         dep1.version == null
 
         when:
@@ -360,11 +360,11 @@ class DefaultDependencyHandlerTest extends Specification {
         then:
         1 * dependencyFactory.createDependency("org:platform") >> dep2
         dep2.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == 'platform'
-        dep2.isInheriting()
+        dep2.isEndorsingStrictVersions()
         dep2.version == '1.0'
     }
 
-    void "local platform dependencies are inheriting"() {
+    void "local platform dependencies are endorsing"() {
         ModuleDependency dep1 = new DefaultProjectDependency(null, null, false)
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
         ModuleDependency dep2 = new DefaultProjectDependency(null, null, false)
@@ -376,7 +376,7 @@ class DefaultDependencyHandlerTest extends Specification {
         then:
         1 * dependencyFactory.createDependency(dep1) >> dep1
         dep1.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == 'platform'
-        dep1.isInheriting()
+        dep1.isEndorsingStrictVersions()
 
         when:
         dependencyHandler.platform(dep2) { }
@@ -384,33 +384,33 @@ class DefaultDependencyHandlerTest extends Specification {
         then:
         1 * dependencyFactory.createDependency(dep2) >> dep2
         dep2.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == 'platform'
-        dep2.isInheriting()
+        dep2.isEndorsingStrictVersions()
     }
 
-    void "platform dependency can be made non-inheriting"() {
+    void "platform dependency can be made non-endorsing"() {
         ModuleDependency dep1 = new DefaultExternalModuleDependency("org", "platform", "")
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
-        dependencyHandler.platform("org:platform") { it.doNotInheritStrictVersions() }
+        dependencyHandler.platform("org:platform") { it.doNotEndorseStrictVersions() }
 
         then:
         1 * dependencyFactory.createDependency("org:platform") >> dep1
         dep1.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == 'platform'
-        !dep1.isInheriting()
+        !dep1.isEndorsingStrictVersions()
     }
 
-    void "local platform dependency can be made non-inheriting"() {
+    void "local platform dependency can be made non-endorsing"() {
         ModuleDependency dep1 = new DefaultProjectDependency(null, null, false)
         dep1.attributesFactory = AttributeTestUtil.attributesFactory()
 
         when:
-        dependencyHandler.platform(dep1) { it.doNotInheritStrictVersions() }
+        dependencyHandler.platform(dep1) { it.doNotEndorseStrictVersions() }
 
         then:
         1 * dependencyFactory.createDependency(dep1) >> dep1
         dep1.attributes.getAttribute(Category.CATEGORY_ATTRIBUTE).name == 'platform'
-        !dep1.isInheriting()
+        !dep1.isEndorsingStrictVersions()
     }
 
     @CompileStatic

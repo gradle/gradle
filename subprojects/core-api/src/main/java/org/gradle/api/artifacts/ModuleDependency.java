@@ -199,21 +199,23 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     List<Capability> getRequestedCapabilities();
 
     /**
-     * Inherit version constraints with {@link VersionConstraint#getStrictVersion()} strict versions} from the target module.
-     * For this, the version constraint of this dependency needs to strictly point at one version.
+     * Endorse version constraints with {@link VersionConstraint#getStrictVersion()} strict versions} from the target module.
+     *
+     * Endorsing strict versions of another module/platform means that all strict versions will be interpreted during dependency
+     * resolution as if they where defined by the endorsing module itself.
      *
      * @since 6.0
      */
     @Incubating
-    void inheritStrictVersions();
+    void endorseStrictVersions();
 
     /**
-     * Resets the {@link #isInheriting()} state of this dependency.
+     * Resets the {@link #isEndorsingStrictVersions()} state of this dependency.
      *
      * @since 6.0
      */
     @Incubating
-    void doNotInheritStrictVersions();
+    void doNotEndorseStrictVersions();
 
     /**
      * Are the {@link VersionConstraint#getStrictVersion()} strict version} dependency constraints of the target module inherited?
@@ -221,5 +223,5 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @since 6.0
      */
     @Incubating
-    boolean isInheriting();
+    boolean isEndorsingStrictVersions();
 }

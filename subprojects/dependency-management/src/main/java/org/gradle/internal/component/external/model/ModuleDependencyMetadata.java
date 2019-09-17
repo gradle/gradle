@@ -31,5 +31,5 @@ public interface ModuleDependencyMetadata extends DependencyMetadata {
     @Override
     ModuleDependencyMetadata withReason(String reason);
 
-    ModuleDependencyMetadata withInheritStrictVersions(boolean inheriting);
+    ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse);
 }

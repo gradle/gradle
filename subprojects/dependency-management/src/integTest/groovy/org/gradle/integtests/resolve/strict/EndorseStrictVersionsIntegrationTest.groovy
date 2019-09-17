@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests.resolve.subgraph
+package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -23,7 +23,7 @@ import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 @RequiredFeatures([
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
 )
-class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResolveTest {
+class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
         resolve.withStrictReasonsCheck()
@@ -46,7 +46,7 @@ class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritStrictVersions()
+                    endorseStrictVersions()
                 }
                 conf('org:bar')
             }           
@@ -105,7 +105,7 @@ class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritStrictVersions()
+                    endorseStrictVersions()
                 }
                 conf('org:bar')
             }           
@@ -146,7 +146,7 @@ class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         }
     }
 
-    def "multiple inherited subgraph constraints that target the same module fail the build if they conflict"() {
+    def "multiple endorsed strict versions that target the same module fail the build if they conflict"() {
         given:
         repository {
             'org:platform-a:1.0'() {
@@ -162,10 +162,10 @@ class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         buildFile << """
             dependencies {
                 conf('org:platform-a:1.0') {
-                    inheritStrictVersions()
+                    endorseStrictVersions()
                 }
                 conf('org:platform-b:1.0') {
-                    inheritStrictVersions()
+                    endorseStrictVersions()
                 }
                 conf('org:foo')
             }           
@@ -195,7 +195,7 @@ class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
    Constraint path ':test:unspecified' --> 'org:platform-b:1.0' --> 'org:foo:{strictly 2.0}'"""
     }
 
-    def "a module from which constraints are inherited can itself be influenced by constraints inherited form elsewhere"() {
+    def "a module from which strict versions are endorsed can itself be influenced by strict versions endorsed form elsewhere"() {
         given:
         repository {
             'org:platform:1.0'() {
@@ -214,10 +214,10 @@ class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         buildFile << """
             dependencies {
                 conf('org:platform:1.0') {
-                    inheritStrictVersions()
+                    endorseStrictVersions()
                 }
                 conf('org:baz:1.0') {
-                    inheritStrictVersions()
+                    endorseStrictVersions()
                 }
             }           
         """
@@ -258,7 +258,7 @@ class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         }
     }
 
-    def "constraint inheritance can be consumed from metadata"() {
+    def "strict version endorsing can be consumed from metadata"() {
         given:
         repository {
             'org:platform:1.0'() {
@@ -271,7 +271,7 @@ class InheritStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                 dependsOn 'org:foo:2.0'
             }
             'org:baz:1.0' {
-                dependsOn(group: 'org', artifact: 'platform', version: '1.0', inheritStrictVersions: true)
+                dependsOn(group: 'org', artifact: 'platform', version: '1.0', endorseStrictVersions: true)
                 dependsOn(group: 'org', artifact: 'bar')
             }
         }

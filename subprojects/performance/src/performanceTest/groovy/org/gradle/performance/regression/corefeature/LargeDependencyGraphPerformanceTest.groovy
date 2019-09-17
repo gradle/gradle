@@ -78,7 +78,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
     }
 
     @Ignore
-    def "resolve large dependency graph with subgraph constraints"() {
+    def "resolve large dependency graph with strict versions"() {
         runner.minimumVersion = '5.7-20190807220120+0000'
         runner.testProject = TEST_PROJECT_NAME
         startServer()

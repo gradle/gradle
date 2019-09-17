@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.util.GUtil;
@@ -35,7 +34,6 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     private final ImmutableList<String> rejectedVersions;
     @Nullable
     private final String requiredBranch;
-    private final boolean forSubgraph;
 
     private final int hashCode;
 
@@ -73,7 +71,6 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.strictVersion = strictVersion;
         this.rejectedVersions = ImmutableList.copyOf(rejectedVersions);
         this.requiredBranch = requiredBranch;
-        this.forSubgraph = !StringUtils.isEmpty(strictVersion);
         this.hashCode = super.hashCode();
     }
 
@@ -86,7 +83,6 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
         this.strictVersion = "";
         this.rejectedVersions = ImmutableList.of();
         this.requiredBranch = null;
-        this.forSubgraph = false;
         this.hashCode = super.hashCode();
     }
 
@@ -119,11 +115,6 @@ public class DefaultImmutableVersionConstraint extends AbstractVersionConstraint
     @Override
     public List<String> getRejectedVersions() {
         return rejectedVersions;
-    }
-
-    @Override
-    public boolean isForSubgraph() {
-        return forSubgraph;
     }
 
     public static ImmutableVersionConstraint of(VersionConstraint versionConstraint) {

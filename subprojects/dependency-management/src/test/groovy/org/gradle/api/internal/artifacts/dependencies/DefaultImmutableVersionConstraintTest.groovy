@@ -29,7 +29,6 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         v.preferredVersion == ''
         v.strictVersion == ''
         v.rejectedVersions == []
-        !v.forSubgraph
     }
 
     def "can create an immutable version constraint with rejects"() {
@@ -43,14 +42,14 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         v.rejectedVersions == ['1.2','2.0']
     }
 
-    def "can create an immutable version constraint that applies for the subgraph"() {
+    def "can create an immutable version constraint that is strict"() {
         given:
-        def v = new DefaultImmutableVersionConstraint('', '1.0', '', [])
+        def v = new DefaultImmutableVersionConstraint('', '', '1.0', [])
 
         expect:
-        v.requiredVersion == '1.0'
+        v.requiredVersion == ''
         v.preferredVersion == ''
-        v.strictVersion == ''
+        v.strictVersion =='1.0'
         v.rejectedVersions == []
     }
 

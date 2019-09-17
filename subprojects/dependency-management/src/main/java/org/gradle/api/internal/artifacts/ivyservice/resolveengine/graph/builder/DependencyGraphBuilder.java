@@ -95,8 +95,8 @@ public class DependencyGraphBuilder {
     private final Comparator<Version> versionComparator;
     private final VersionParser versionParser;
 
-    final static Spec<EdgeState> INHERITING_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isInheriting();
-    final static Spec<EdgeState> NOT_INHERITING_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isInheriting();
+    final static Spec<EdgeState> ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
+    final static Spec<EdgeState> NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC = dependencyState -> !dependencyState.getDependencyState().getDependency().isEndorsingStrictVersions();
 
     public DependencyGraphBuilder(DependencyToComponentIdResolver componentIdResolver,
                                   ComponentMetaDataResolver componentMetaDataResolver,
@@ -181,9 +181,9 @@ public class DependencyGraphBuilder {
                 // Initialize and collect any new outgoing edges of this node
                 dependencies.clear();
                 node.visitOutgoingDependencies(dependencies);
-                boolean edgeWasProcessed = resolveEdges(node, dependencies, INHERITING_DEPENDENCY_SPEC, false, resolveState, componentIdentifierCache);
-                node.collectInheritedSubgraphConstraints(dependencies);
-                resolveEdges(node, dependencies, NOT_INHERITING_DEPENDENCY_SPEC, edgeWasProcessed, resolveState, componentIdentifierCache);
+                boolean edgeWasProcessed = resolveEdges(node, dependencies, ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, false, resolveState, componentIdentifierCache);
+                node.collectEndorsedStrictVersions(dependencies);
+                resolveEdges(node, dependencies, NOT_ENDORSE_STRICT_VERSIONS_DEPENDENCY_SPEC, edgeWasProcessed, resolveState, componentIdentifierCache);
             } else {
                 // We have some batched up conflicts. Resolve the first, and continue traversing the graph
                 if (moduleConflictHandler.hasConflicts()) {

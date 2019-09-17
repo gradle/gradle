@@ -279,8 +279,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting, @Nullable IvyArtifactName artifact) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, inheriting, artifact));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, endorsing, artifact));
         }
 
         @Override
@@ -360,10 +360,10 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         private final String reason;
         private final ImmutableAttributes attributes;
         private final ImmutableList<Capability> requestedCapabilities;
-        private final boolean inheriting;
+        private final boolean endorsing;
         private final IvyArtifactName dependencyArtifact;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean inheriting, @Nullable IvyArtifactName dependencyArtifact) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName dependencyArtifact) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
@@ -375,7 +375,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                     .map(c -> new ImmutableCapability(c.getGroup(), c.getName(), c.getVersion()))
                     .collect(Collectors.toList())
             );
-            this.inheriting = inheriting;
+            this.endorsing = endorsing;
             this.dependencyArtifact = dependencyArtifact;
         }
 
@@ -415,8 +415,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public boolean isInheriting() {
-            return inheriting;
+        public boolean isEndorsingStrictVersions() {
+            return endorsing;
         }
 
         @Override

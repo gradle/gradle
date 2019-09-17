@@ -43,7 +43,7 @@ public class DirectDependenciesMetadataAdapter extends AbstractDependenciesMetad
     }
 
     @Override
-    protected boolean isInheriting(DirectDependencyMetadata details) {
-        return details.isInheriting();
+    protected boolean isEndorsingStrictVersions(DirectDependencyMetadata details) {
+        return details.isEndorsingStrictVersions();
     }
 }

@@ -54,8 +54,8 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     }
 
     @Override
-    public ModuleDependencyMetadata withInheritStrictVersions(boolean inheriting) {
-        return new ForcedDependencyMetadataWrapper(delegate.withInheritStrictVersions(inheriting));
+    public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
+        return new ForcedDependencyMetadataWrapper(delegate.withEndorseStrictVersions(endorse));
     }
 
     @Override
@@ -94,8 +94,8 @@ public class ForcedDependencyMetadataWrapper implements ForcingDependencyMetadat
     }
 
     @Override
-    public boolean isInheriting() {
-        return delegate.isInheriting();
+    public boolean isEndorsingStrictVersions() {
+        return delegate.isEndorsingStrictVersions();
     }
 
     @Override

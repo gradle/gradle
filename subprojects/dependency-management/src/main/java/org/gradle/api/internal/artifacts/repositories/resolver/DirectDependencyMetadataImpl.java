@@ -20,24 +20,24 @@ import org.gradle.api.artifacts.DirectDependencyMetadata;
 
 public class DirectDependencyMetadataImpl extends AbstractDependencyImpl<DirectDependencyMetadata> implements DirectDependencyMetadata {
 
-    boolean inheriting = false;
+    boolean endorsing = false;
 
     public DirectDependencyMetadataImpl(String group, String name, String version) {
         super(group, name, version);
     }
 
     @Override
-    public void inheritStrictVersions() {
-        inheriting = true;
+    public void endorseStrictVersions() {
+        endorsing = true;
     }
 
     @Override
-    public void doNotInheritStrictVersions() {
-        inheriting = false;
+    public void doNotEndorseStrictVersions() {
+        endorsing = false;
     }
 
     @Override
-    public boolean isInheriting() {
-        return inheriting;
+    public boolean isEndorsingStrictVersions() {
+        return endorsing;
     }
 }
