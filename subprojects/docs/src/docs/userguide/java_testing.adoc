@@ -572,5 +572,11 @@ That's because by convention, for projects that use the `java-test-fixtures` plu
 
 [NOTE]
 ====
-If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ using `components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { skip() }` and `components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { skip() }`.
+If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ as shown below.
+====
+
+.Disable publishing of test fixtures variants
+====
+include::sample[dir="userguide/java/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
+include::sample[dir="userguide/java/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
 ====
