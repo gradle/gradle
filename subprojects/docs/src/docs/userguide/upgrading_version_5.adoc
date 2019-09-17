@@ -111,15 +111,12 @@ Custom logic can be used from a settings script by <<tutorial_using_tasks.adoc#s
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
 
-==== Plugin validation changes
+==== Task validation changes
 
-- The `validateTaskProperties` task is now deprecated, use `validatePlugins` instead.
-  The new name better reflects the fact that it also validates artifact transform parameters and other non-property definitions.
-- The `ValidateTaskProperties` type is replaced by `ValidatePlugins`.
-- The `setClasses()` method is now removed. Use `getClasses().setFrom()` instead.
-- The `setClasspath()` method is also removed. use `getClasspath().setFrom()` instead.
-- The link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html#getFailOnWarning--[failOnWarning] option is now enabled by default.
-- The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins]:
+- `ValidateTaskProperties.setClasses()` is now removed. Use `getClasses().setFrom()` instead.
+- `ValidateTaskProperties.setClasspath()` is now removed. use `getClasspath().setFrom()` instead.
+- link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#getFailOnWarning--[ValidateTaskProperties.failOnWarning] is enabled by default.
+- The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html[ValidateTaskProperties]:
   * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
 ==== `DefaultTask` and `ProjectLayout` methods replaced with `ObjectFactory`

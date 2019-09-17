@@ -117,16 +117,6 @@
             ]
         },
         {
-            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
-            "member": "Class org.gradle.plugin.devel.tasks.ValidateTaskProperties",
-            "acceptation": "ValidateTaskProperties is no longer a ConventionTask",
-            "changes": [
-                "org.gradle.api.internal.ConventionTask.conventionMapping(java.lang.String,groovy.lang.Closure)",
-                "org.gradle.api.internal.ConventionTask.conventionMapping(java.lang.String,java.util.concurrent.Callable)",
-                "org.gradle.api.internal.ConventionTask.getConventionMapping()"
-            ]
-        },
-        {
             "type": "org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
             "member": "Class org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
             "acceptation": "Reified versions of methods that are already de-incubated",
