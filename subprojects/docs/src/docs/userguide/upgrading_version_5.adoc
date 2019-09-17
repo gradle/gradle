@@ -57,7 +57,7 @@ Its predecessor `IncrementalTaskInputs` has been deprecated.
 ==== Forced dependencies
 
 Forcing dependency versions using `force = true` on a first-level dependency is deprecated.
-Force has both a semantic and ordering issue which can be avoided by using a <<rich_versions.adoc#sec:rich-version-constraints, strict version constraint>>.
+Force has both a semantic and ordering issue which can be avoided by using a <<rich_versions.adoc#rich-version-constraints, strict version constraint>>.
 
 === Potential breaking changes
 
