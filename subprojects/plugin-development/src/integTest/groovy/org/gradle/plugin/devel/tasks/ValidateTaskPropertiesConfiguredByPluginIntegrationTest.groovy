@@ -48,15 +48,15 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
         where:
         methodCall                        | check
         "getIgnoreFailures()"             | null
-        "ignoreFailures = true"           | "ignoreFailures == true"
-        "ignoreFailures = false"          | "ignoreFailures == false"
+        "ignoreFailures = true"           | "ignoreFailures.get() == true"
+        "ignoreFailures = false"          | "ignoreFailures.get() == false"
         "getFailOnWarning()"              | null
-        "failOnWarning = true"            | "failOnWarning == true"
-        "failOnWarning = false"           | "failOnWarning == false"
+        "failOnWarning = true"            | "failOnWarning.get() == true"
+        "failOnWarning = false"           | "failOnWarning.get() == false"
         "getClasses()"                    | null
         "getClasspath()"                  | null
         "getEnableStricterValidation()"   | null
-        "enableStricterValidation = true" | "enableStricterValidation == true"
+        "enableStricterValidation = true" | "enableStricterValidation.get() == true"
         "getOutputFile()"                 | null
     }
 
