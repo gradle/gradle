@@ -38,7 +38,8 @@ import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KVisibility
-import kotlin.reflect.full.superclasses
+
+import java.lang.reflect.Modifier
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
@@ -149,8 +150,19 @@ val KClass<*>.firstKotlinPublicOrSelf
 
 private
 val KClass<*>.firstKotlinPublicOrNull: KClass<*>?
-    get() = takeIf { visibility == KVisibility.PUBLIC }
-        ?: superclasses.firstNotNullResult { it.firstKotlinPublicOrNull }
+    get() = takeIf { isJavaPublic && isKotlinVisible && visibility == KVisibility.PUBLIC }
+        ?: (java.superclass as Class<*>?)?.kotlin?.firstKotlinPublicOrNull
+        ?: java.interfaces.firstNotNullResult { it.kotlin.firstKotlinPublicOrNull }
+
+
+private
+val KClass<*>.isJavaPublic
+    get() = Modifier.isPublic(java.modifiers)
+
+
+private
+val KClass<*>.isKotlinVisible: Boolean
+    get() = !java.isLocalClass && !java.isAnonymousClass && !java.isSynthetic
 
 
 private
