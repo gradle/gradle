@@ -18,12 +18,14 @@ package org.gradle.api.tasks;
 
 import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecResult;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
@@ -98,6 +100,7 @@ import java.util.Map;
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
+    private ExecResult execResult;
 
     public JavaExec() {
         javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
@@ -117,7 +120,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public void exec() {
         setMain(getMain()); // make convention mapping work (at least for 'main'...
         setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
-        javaExecHandleBuilder.execute();
+        execResult = javaExecHandleBuilder.execute();
     }
 
     /**
@@ -672,5 +675,17 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     @Override
     public List<CommandLineArgumentProvider> getJvmArgumentProviders() {
         return javaExecHandleBuilder.getJvmArgumentProviders();
+    }
+
+    /**
+     * Returns the result for the command run by this task. Returns {@code null} if this task has not been executed yet.
+     *
+     * @return The result. Returns {@code null} if this task has not been executed yet.
+     * @since 6.1
+     */
+    @Internal
+    @Incubating
+    public ExecResult getExecResult() {
+        return execResult;
     }
 }
