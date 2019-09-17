@@ -26,7 +26,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = '3572aa1db6dc7785049b33118954c627b9915ae9'
+    ref = 'a846542aa16003eac8905365bb56948f6c20edfd'
 }
 
 // === Java ===
