@@ -29,26 +29,20 @@ import org.gradle.internal.service.ServiceRegistry;
 
 public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
     private final GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
-    private final ClassLoaderStructure classLoaderStructure;
-    private final ClassLoader workerInfrastructureClassloader;
-    private final LegacyTypesSupport legacyTypesSupport;
     private ClassLoader workerClassLoader;
     private boolean reuseClassloader;
 
-    public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry workServices, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
+    public IsolatedClassloaderWorker(ClassLoader workerClassLoader, ServiceRegistry workServices, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
         super(workServices, actionExecutionSpecFactory, instantiatorFactory);
-        this.classLoaderStructure = classLoaderStructure;
-        this.workerInfrastructureClassloader = workerInfrastructureClassloader;
-        this.legacyTypesSupport = legacyTypesSupport;
+        this.workerClassLoader = workerClassLoader;
     }
 
-    public IsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, ServiceRegistry workServices, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory, boolean reuseClassloader) {
-        this(classLoaderStructure, workerInfrastructureClassloader, workServices, legacyTypesSupport, actionExecutionSpecFactory, instantiatorFactory);
+    public IsolatedClassloaderWorker(ClassLoader workerClassLoader, ServiceRegistry workServices, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory, boolean reuseClassloader) {
+        this(workerClassLoader, workServices, actionExecutionSpecFactory, instantiatorFactory);
         this.reuseClassloader = reuseClassloader;
     }
 
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
-        ClassLoader workerClassLoader = getWorkerClassLoader();
         GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
 
         try {
@@ -63,33 +57,22 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
         }
     }
 
-    private ClassLoader getWorkerClassLoader() {
-        if (workerClassLoader == null) {
-            workerClassLoader = createWorkerClassloader();
-        }
-        return workerClassLoader;
+    static ClassLoader createIsolatedWorkerClassloader(ClassLoaderStructure classLoaderStructure, ClassLoader workerInfrastructureClassloader, LegacyTypesSupport legacyTypesSupport) {
+        return createWorkerClassLoaderWithStructure(workerInfrastructureClassloader, classLoaderStructure, legacyTypesSupport);
     }
 
-    private ClassLoader createWorkerClassloader() {
-        if (classLoaderStructure == null) {
-            throw new IllegalStateException("ClassLoaderStructure cannot be null");
-        }
-
-        return createWorkerClassLoaderWithStructure(workerInfrastructureClassloader, classLoaderStructure);
-    }
-
-    private ClassLoader createWorkerClassLoaderWithStructure(ClassLoader workerInfrastructureClassloader, ClassLoaderStructure classLoaderStructure) {
+    private static ClassLoader createWorkerClassLoaderWithStructure(ClassLoader workerInfrastructureClassloader, ClassLoaderStructure classLoaderStructure, LegacyTypesSupport legacyTypesSupport) {
         if (classLoaderStructure.getParent() == null) {
             // This is the highest parent in the hierarchy
-            return createClassLoaderFromSpec(workerInfrastructureClassloader, classLoaderStructure.getSpec());
+            return createClassLoaderFromSpec(workerInfrastructureClassloader, classLoaderStructure.getSpec(), legacyTypesSupport);
         } else {
             // Climb up the hierarchy looking for the highest parent
-            ClassLoader parent = createWorkerClassLoaderWithStructure(workerInfrastructureClassloader, classLoaderStructure.getParent());
-            return createClassLoaderFromSpec(parent, classLoaderStructure.getSpec());
+            ClassLoader parent = createWorkerClassLoaderWithStructure(workerInfrastructureClassloader, classLoaderStructure.getParent(), legacyTypesSupport);
+            return createClassLoaderFromSpec(parent, classLoaderStructure.getSpec(), legacyTypesSupport);
         }
     }
 
-    private ClassLoader createClassLoaderFromSpec(ClassLoader parent, ClassLoaderSpec spec) {
+    private static ClassLoader createClassLoaderFromSpec(ClassLoader parent, ClassLoaderSpec spec, LegacyTypesSupport legacyTypesSupport) {
         if (spec instanceof MixInLegacyTypesClassLoader.Spec) {
             MixInLegacyTypesClassLoader.Spec mixinSpec = (MixInLegacyTypesClassLoader.Spec) spec;
             if (mixinSpec.getClasspath().isEmpty()) {

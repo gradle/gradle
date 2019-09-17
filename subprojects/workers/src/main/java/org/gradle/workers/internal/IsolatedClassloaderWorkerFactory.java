@@ -51,7 +51,8 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(spec.isInternalServicesRequired()).build();
                         ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
-                        Worker worker = new IsolatedClassloaderWorker(forkOptions.getClassLoaderStructure(), workerInfrastructureClassloader, workServices, legacyTypesSupport, actionExecutionSpecFactory, instantiatorFactory);
+                        ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(forkOptions.getClassLoaderStructure(), workerInfrastructureClassloader, legacyTypesSupport);
+                        Worker worker = new IsolatedClassloaderWorker(workerClassLoader, workServices, actionExecutionSpecFactory, instantiatorFactory);
                         return worker.execute(spec);
                     }
                 });

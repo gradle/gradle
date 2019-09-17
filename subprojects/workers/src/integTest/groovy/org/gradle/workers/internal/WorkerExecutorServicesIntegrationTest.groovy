@@ -87,6 +87,62 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
     }
 
     @Unroll
+    def "workers with injected FileSystemOperations service always resolve files from the project directory using #isolationMode isolation"() {
+        fixture.workActionThatCreatesFiles.extraFields += """
+            org.gradle.api.file.FileSystemOperations fileOperations
+        """
+        fixture.workActionThatCreatesFiles.constructorArgs = "org.gradle.api.file.FileSystemOperations fileOperations"
+        fixture.workActionThatCreatesFiles.constructorAction = "this.fileOperations = fileOperations"
+        fixture.workActionThatCreatesFiles.action += """
+            fileOperations.copy {
+                from "foo"
+                into "bar"
+            }
+        """
+        fixture.withWorkActionClassInBuildScript()
+
+        settingsFile << """
+            include ":anotherProject"
+        """
+
+        buildFile << """
+            def rootTask = tasks.create("runInWorker", WorkerTask) {
+                isolationMode = $isolationMode
+            }
+
+            project(":anotherProject") {
+                tasks.create("runInWorker2", WorkerTask) {
+                    dependsOn rootTask
+                    isolationMode = $isolationMode
+                }
+            }
+        """
+
+        file("foo").text = "foo"
+        file("anotherProject/foo").text = "foo2"
+
+        when:
+        executer.withWorkerDaemonsExpirationDisabled()
+        succeeds("runInWorker2")
+
+        then:
+        assertWorkerExecuted("runInWorker")
+        assertWorkerExecuted("runInWorker2")
+
+        and:
+        file("bar/foo").text == "foo"
+        file("anotherProject/bar/foo").text == "foo2"
+
+        and:
+        if (isolationMode == "IsolationMode.PROCESS") {
+            assertSameDaemonWasUsed("runInWorker", "runInWorker2")
+        }
+
+        where:
+        isolationMode << ISOLATION_MODES
+    }
+
+    @Unroll
     def "workers can inject ObjectFactory service using #isolationMode isolation"() {
         fixture.workActionThatCreatesFiles.extraFields += """
             org.gradle.api.model.ObjectFactory objectFactory

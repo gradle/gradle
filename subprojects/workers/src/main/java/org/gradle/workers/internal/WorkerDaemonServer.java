@@ -73,7 +73,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
     private final LegacyTypesSupport legacyTypesSupport;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final InstantiatorFactory instantiatorFactory;
-    private Worker isolatedClassloaderWorker;
+    private ClassLoader workerClassLoader;
 
     @Inject
     public WorkerDaemonServer(ServiceRegistry parentServices, RequestArgumentSerializers argumentSerializers) {
@@ -107,14 +107,18 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
-        if (isolatedClassloaderWorker == null) {
-            if (classLoaderStructure instanceof FlatClassLoaderStructure) {
-                isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
-            } else {
-                isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, this.getClass().getClassLoader(), workServices, legacyTypesSupport, actionExecutionSpecFactory, instantiatorFactory, true);
-            }
+        if (classLoaderStructure instanceof FlatClassLoaderStructure) {
+            return new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
+        } else {
+            return new IsolatedClassloaderWorker(getWorkerClassLoader(classLoaderStructure), workServices, actionExecutionSpecFactory, instantiatorFactory, true);
         }
-        return isolatedClassloaderWorker;
+    }
+
+    private ClassLoader getWorkerClassLoader(ClassLoaderStructure classLoaderStructure) {
+        if (workerClassLoader == null) {
+            this.workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(classLoaderStructure, this.getClass().getClassLoader(), legacyTypesSupport);
+        }
+        return workerClassLoader;
     }
 
     @Override
