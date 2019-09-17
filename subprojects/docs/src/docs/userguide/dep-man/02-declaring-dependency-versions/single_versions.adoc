@@ -19,6 +19,7 @@ Gradle supports different ways of declaring a version string:
 == Version ordering
 
 Versions have an implicit ordering. Version ordering is used to:
+
 * Determine if a particular version is included in a range.
 * Determine which version is 'newest' when performing conflict resolution.
 
@@ -31,9 +32,9 @@ Versions are ordered based on the following rules:
 * The equivalent parts of 2 versions are compared using the following rules:
 ** If both parts are numeric, the highest numeric value is **higher**: `1.1` < `1.2`
 ** If one part is numeric, it is considered **higher** than the non-numeric part: `1.a` < `1.1`
-** If both are not numeric, the parts are compared **alphabetically, case-sensitive**: `1.a` < `1.A` < `1.b` < `1.B`
+** If both are not numeric, the parts are compared **alphabetically, case-sensitive**: `1.A` < `1.B` < `1.a` < `1.b`
 ** A version with an extra numeric part is considered **higher** than a version without: `1.1` < `1.1.0`
-** A version with an extra non-numeric part is considered **lower** than a version without: `1.1` < `1.1.a`
+** A version with an extra non-numeric part is considered **lower** than a version without: `1.1.a` < `1.1`
 * Certain string values have special meaning for the purposes of ordering:
 ** The string `dev` is consider **lower** than any other string part: `1.0-dev` < `1.0-alpha` < `1.0-rc`.
 ** The strings `rc`, `release` and `final` are considered **higher** than any other string part (sorted in that order): `1.0-zeta` < `1.0-rc` < `1.0-release` < `1.0-final` < `1.0`.
@@ -70,4 +71,3 @@ The notation `[1.7, 1.8[!!1.7.25` above is equivalent to:
 
 which means that the engine **must** select a version between 1.7 (included) and 1.8 (excluded), and that if no other component in the graph needs a different version, it should _prefer_ `1.7.25`.
 
-The section below explains the semantics of rich version constraints in details.
