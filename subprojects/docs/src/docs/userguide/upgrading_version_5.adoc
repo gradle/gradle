@@ -54,6 +54,11 @@ These methods now assume the local build cache type to be `DirectoryBuildCache`.
 In Gradle 5.4 we introduced a new API for implementing <<custom_tasks.adoc#incremental_tasks,incremental tasks>>: link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges].
 Its predecessor `IncrementalTaskInputs` has been deprecated.
 
+==== Forced dependencies
+
+Forcing dependency versions using `force = true` on a first-level dependency is deprecated.
+Force has both a semantic and ordering issue which can be avoided by using a <<rich_versions.adoc#sec:rich-version-constraints, strict version constraint>>.
+
 === Potential breaking changes
 
 ==== Android Gradle Plugin 3.3 and earlier is not supported anymore
