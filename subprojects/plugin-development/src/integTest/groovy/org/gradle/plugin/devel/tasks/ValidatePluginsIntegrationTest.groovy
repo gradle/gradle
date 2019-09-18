@@ -64,48 +64,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
-    def "detects missing annotation on Groovy properties"() {
-        buildFile << """
-            apply plugin: "groovy"
-
-            dependencies {
-                implementation localGroovy()
-            }
-        """
-        file("src/main/groovy/MyTask.groovy") << """
-            import org.gradle.api.*
-            import org.gradle.api.tasks.*
-
-            class MyTask extends DefaultTask {
-                @Input
-                long goodTime
-
-                @Nested Options options
-
-                @javax.inject.Inject
-                org.gradle.api.internal.file.FileResolver fileResolver
-
-                long badTime
-
-                static class Options {
-                    @Input String goodNested
-                    String badNested
-                }
-            }
-        """
-
-        expect:
-        fails "validatePlugins"
-        failure.assertHasCause "Plugin validation failed"
-        failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
-
-        reportFileContents() == """
-            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-            """.stripIndent().trim()
-    }
-
     def "no problems with Copy task"() {
         file("src/main/java/MyTask.java") << """
             public class MyTask extends org.gradle.api.tasks.Copy {}

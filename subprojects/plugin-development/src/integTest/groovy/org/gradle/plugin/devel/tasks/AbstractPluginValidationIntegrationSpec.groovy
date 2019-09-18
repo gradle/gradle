@@ -249,6 +249,45 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    def "detects missing annotation on Groovy properties"() {
+        buildFile << """
+            apply plugin: "groovy"
+
+            dependencies {
+                implementation localGroovy()
+            }
+        """
+        groovyTaskSource << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            class MyTask extends DefaultTask {
+                @Input
+                long goodTime
+
+                @Nested Options options = new Options()
+
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver fileResolver
+
+                long badTime
+
+                static class Options {
+                    @Input String goodNested = "good nested"
+                    String badNested
+                }
+                
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.": WARNING,
+        )
+    }
+
     enum Severity {
         WARNING("Warning"), ERROR("Error");
 
