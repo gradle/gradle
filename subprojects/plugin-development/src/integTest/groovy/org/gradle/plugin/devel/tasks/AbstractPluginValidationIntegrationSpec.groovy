@@ -188,14 +188,14 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             public class MyTask extends DefaultTask {
                 @Nested
                 Options getOptions() { 
-                    return null;
+                    return new Options();
                 }
 
                 @CacheableTask @CacheableTransform 
                 public static class Options {
                     @Input
                     String getNestedThing() {
-                        return null;
+                        return "value";
                     }
                 }
                     
