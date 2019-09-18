@@ -16,8 +16,7 @@
 
 package org.gradle.plugin.devel.tasks
 
-import org.gradle.api.artifacts.transform.InputArtifact
-import org.gradle.api.artifacts.transform.InputArtifactDependencies
+
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
@@ -63,51 +62,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @Override
     TestFile source(String path) {
         return file("src/main/$path")
-    }
-
-    @Unroll
-    def "task cannot have property with annotation @#annotation.simpleName"() {
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import org.gradle.api.artifacts.transform.*;
-
-            public class MyTask extends DefaultTask {
-                @${annotation.simpleName}
-                String getThing() {
-                    return null;
-                }
-
-                @Nested
-                Options getOptions() { 
-                    return null;
-                }
-
-                public static class Options {
-                    @${annotation.simpleName}
-                    String getNestedThing() {
-                        return null;
-                    }
-                }
-            }
-        """
-
-        expect:
-        fails("validatePlugins")
-        failure.assertHasDescription("Execution failed for task ':validatePlugins'.")
-        failure.assertHasCause("Plugin validation failed. See")
-        failure.assertHasCause("Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.")
-        failure.assertHasCause("Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.")
-
-        reportFileContents() == """
-            Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.
-            Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.
-            """.stripIndent().trim()
-
-        where:
-        annotation                | _
-        InputArtifact             | _
-        InputArtifactDependencies | _
     }
 
     def "validates task caching annotations"() {

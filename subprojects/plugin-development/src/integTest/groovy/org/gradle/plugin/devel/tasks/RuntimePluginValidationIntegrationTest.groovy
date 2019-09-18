@@ -46,8 +46,10 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
             .keySet()
             .collect { removeTypePrefix(it) }
 
-        executer.expectDeprecationWarnings(expectedWarnings.size())
-        executer.withFullDeprecationStackTraceDisabled()
+        if (expectedWarnings) {
+            executer.expectDeprecationWarnings(expectedWarnings.size())
+            executer.withFullDeprecationStackTraceDisabled()
+        }
         if (expectedErrors) {
             fails "run"
         } else {

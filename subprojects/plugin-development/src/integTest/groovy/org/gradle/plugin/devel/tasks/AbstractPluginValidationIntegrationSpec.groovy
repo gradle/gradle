@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.api.artifacts.transform.InputArtifact
+import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.FileCollection
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.model.ReplacedBy
@@ -39,6 +41,7 @@ import spock.lang.Unroll
 
 import javax.inject.Inject
 
+import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.ERROR
 import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
@@ -172,6 +175,45 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         OutputDirectory   | 'OutputDirectory'             | File           | "new File(\"output\")"
         OutputDirectories | 'OutputDirectories'           | Map            | "new HashMap<String, File>()"
         Nested            | 'Nested'                      | List           | "new ArrayList()"
+    }
+
+    @Unroll
+    def "task cannot have property with annotation @#annotation.simpleName"() {
+        source << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+
+            public class MyTask extends DefaultTask {
+                @${annotation.simpleName}
+                String getThing() {
+                    return null;
+                }
+
+                @Nested
+                Options getOptions() { 
+                    return null;
+                }
+
+                public static class Options {
+                    @${annotation.simpleName}
+                    String getNestedThing() {
+                        return null;
+                    }
+                }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.": ERROR,
+            "Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.": ERROR,
+        )
+
+        where:
+        annotation                | _
+        InputArtifact             | _
+        InputArtifactDependencies | _
     }
 
     enum Severity {
