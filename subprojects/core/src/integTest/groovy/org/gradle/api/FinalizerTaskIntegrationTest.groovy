@@ -286,8 +286,18 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         run("work", "--parallel")
         then:
         // TODO: Should be:
-        //  result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
+        // result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
         result.assertTaskOrder(any(exact(":a:work", ":a:finalizer"), ":b:work"))
+
+        when: "Apply workaround"
+        buildFile << """
+            configure(project(':b')) {
+                work.mustRunAfter(":a:work")
+            }
+        """
+        run("work", "--parallel")
+        then:
+        result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
     }
 
     private void setupProject() {
