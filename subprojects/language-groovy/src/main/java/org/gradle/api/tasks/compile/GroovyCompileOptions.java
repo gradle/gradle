@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -223,7 +224,10 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
+     *
+     * @since 6.0
      */
+    @Incubating
     @Input
     public boolean isParameters() {
         return parameters;
@@ -231,9 +235,11 @@ public class GroovyCompileOptions extends AbstractOptions {
 
     /**
      * Sets whether metadata for reflection on method parameter names should be generated.
-     *
      * Defaults to {@code false}
+     *
+     * @since 6.0
      */
+    @Incubating
     public void setParameters(boolean parameters) {
         this.parameters = parameters;
     }
