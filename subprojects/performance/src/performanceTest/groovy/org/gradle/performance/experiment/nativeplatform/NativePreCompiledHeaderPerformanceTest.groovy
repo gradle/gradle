@@ -16,13 +16,13 @@
 
 package org.gradle.performance.experiment.nativeplatform
 
-import org.gradle.performance.AbstractCrossBuildGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 @Category(PerformanceExperiment)
-class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildGradleProfilerPerformanceTest {
+class NativePreCompiledHeaderPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Unroll
     def "clean assemble on #testProject with precompiled headers" () {
         given:

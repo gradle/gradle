@@ -17,7 +17,7 @@
 package org.gradle.performance.experiment.java
 
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.performance.AbstractCrossBuildGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
@@ -27,7 +27,7 @@ import spock.lang.Unroll
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Category(PerformanceExperiment)
-class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildGradleProfilerPerformanceTest {
+class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "java-library vs java on #testProject"() {

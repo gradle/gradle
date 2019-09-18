@@ -16,7 +16,7 @@
 
 package org.gradle.performance.experiment.buildcache
 
-import org.gradle.performance.AbstractCrossBuildGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
@@ -28,7 +28,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 @Category(PerformanceExperiment)
-class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildGradleProfilerPerformanceTest {
+class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "#tasks on #testProject with local cache (build comparison)"() {

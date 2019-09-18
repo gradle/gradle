@@ -16,7 +16,7 @@
 
 package org.gradle.performance.experiment.java
 
-import org.gradle.performance.AbstractCrossBuildGradleProfilerPerformanceTest
+import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -25,7 +25,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
 @Category(PerformanceExperiment)
-class ParallelBuildPerformanceTest extends AbstractCrossBuildGradleProfilerPerformanceTest {
+class ParallelBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll
     def "clean assemble on #testProject with 4 parallel workers"() {

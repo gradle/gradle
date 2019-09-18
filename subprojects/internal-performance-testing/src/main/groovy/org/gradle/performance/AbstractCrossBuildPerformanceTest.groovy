@@ -34,7 +34,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
-class AbstractCrossBuildGradleProfilerPerformanceTest extends Specification {
+class AbstractCrossBuildPerformanceTest extends Specification {
     private static final CrossBuildResultsStore RESULT_STORE = new CrossBuildResultsStore()
     private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory"
 
@@ -76,13 +76,13 @@ class AbstractCrossBuildGradleProfilerPerformanceTest extends Specification {
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = temporaryFolder.testDirectory
-                AbstractCrossBuildGradleProfilerPerformanceTest.this.defaultSpec(builder)
+                AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
             }
 
             @Override
             protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
                 super.finalizeSpec(builder)
-                AbstractCrossBuildGradleProfilerPerformanceTest.this.finalizeSpec(builder)
+                AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
             }
         }
         performanceTestIdProvider.setTestSpec(runner)
