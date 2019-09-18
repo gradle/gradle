@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFact
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
@@ -93,7 +94,7 @@ public class JavaCompile extends AbstractCompile {
      * {@inheritDoc}
      */
     @Override
-    @Internal
+    @ReplacedBy("stableSources")
     public FileTree getSource() {
         return super.getSource();
     }
