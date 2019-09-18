@@ -56,9 +56,12 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         return buildDefinition.getInjectedPluginRequests();
     }
 
+    // We temporally disable auto apply functionality to fix a chicken egg problem with the gradle enterprise plugin that is
+    //    converted to be a settings plugin
     private boolean shouldApplyScanPlugin(Project target) {
-        StartParameter startParameter = buildDefinition.getStartParameter();
-        return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
+//        StartParameter startParameter = buildDefinition.getStartParameter();
+//        return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
+        return false;
     }
 
     private static DefaultPluginRequest createScanPluginRequest() {
