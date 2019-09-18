@@ -19,8 +19,6 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
@@ -67,6 +65,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return buildFile
     }
 
+    @Override
+    TestFile getTaskSettingsFile() {
+        return settingsFile
+    }
+
     @Unroll
     def "task cannot have property with annotation @#annotation.simpleName"() {
         javaTaskSource << """
@@ -108,56 +111,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies]
-    }
-
-
-    @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "can validate task classes using types from other projects"() {
-        settingsFile << """include 'lib'"""
-        buildFile << """  
-            allprojects {
-                ${jcenterRepository()}
-            }
-
-            project(':lib') {
-                apply plugin: 'java'
-
-                dependencies {
-                    implementation 'com.typesafe:config:1.3.2'
-                }
-            }          
-
-            dependencies {
-                implementation project(':lib')
-            }
-        """
-        file("lib/src/main/java/MyUtil.java") << """
-            import com.typesafe.config.Config;
-
-            public class MyUtil {
-                public Config getConfig() {
-                    return null;
-                }
-            }
-        """
-
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-
-            public class MyTask extends DefaultTask {
-                @Input
-                public long getGoodTime() {
-                    return 0;
-                }
-                
-                @Input
-                public MyUtil getUtil() { return null; } 
-            }
-        """
-
-        expect:
-        succeeds "validatePlugins"
     }
 
     def "can enable stricter validation"() {

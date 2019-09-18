@@ -81,4 +81,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     TestFile getTaskBuildFile() {
         return file("buildSrc/build.gradle")
     }
+
+    @Override
+    TestFile getTaskSettingsFile() {
+        return file("buildSrc/settings.gradle")
+    }
 }

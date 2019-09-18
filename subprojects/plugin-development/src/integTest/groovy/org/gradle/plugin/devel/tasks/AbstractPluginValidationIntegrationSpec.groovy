@@ -623,6 +623,61 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can validate task classes using types from other projects"() {
+        taskSettingsFile << """
+            include 'lib'
+        """
+
+        taskBuildFile << """  
+            allprojects {
+                ${jcenterRepository()}
+            }
+
+            project(':lib') {
+                apply plugin: 'java'
+
+                dependencies {
+                    implementation 'com.typesafe:config:1.3.2'
+                }
+            }          
+
+            dependencies {
+                implementation project(':lib')
+            }
+        """
+
+        source("lib/src/main/java/MyUtil.java") << """
+            import com.typesafe.config.Config;
+
+            public class MyUtil {
+                public Config getConfig() {
+                    return null;
+                }
+            }
+        """
+
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+                
+                @Input
+                public MyUtil getUtil() { return new MyUtil(); }
+                
+                @TaskAction public void execute() {} 
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+    }
+
     enum Severity {
         /**
          * A validation warning, emitted as a deprecation warning during runtime.
@@ -663,6 +718,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     abstract TestFile source(String path)
 
     abstract TestFile getTaskBuildFile()
+
+    abstract TestFile getTaskSettingsFile()
 
     TestFile getJavaTaskSource() {
         source("src/main/java/MyTask.java")
