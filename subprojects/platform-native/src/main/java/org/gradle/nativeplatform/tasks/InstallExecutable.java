@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -54,7 +53,6 @@ import java.util.Collection;
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
  */
-@Incubating
 public class InstallExecutable extends DefaultTask {
     private final Property<NativePlatform> targetPlatform;
     private final Property<NativeToolChain> toolChain;
@@ -196,7 +194,7 @@ public class InstallExecutable extends DefaultTask {
     }
 
     @TaskAction
-    public void install() {
+    protected void install() {
         NativePlatform nativePlatform = targetPlatform.get();
         File executable = getExecutableFile().get().getAsFile();
         File libDirectory = getLibDirectory().get().getAsFile();

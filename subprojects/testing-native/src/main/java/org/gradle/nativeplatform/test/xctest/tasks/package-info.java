@@ -17,5 +17,4 @@
 /**
  * Tasks for XCTest execution.
  */
-@org.gradle.api.Incubating
 package org.gradle.nativeplatform.test.xctest.tasks;

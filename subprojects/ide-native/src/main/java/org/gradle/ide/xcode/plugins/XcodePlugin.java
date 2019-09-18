@@ -19,7 +19,6 @@ package org.gradle.ide.xcode.plugins;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.ArtifactView;
@@ -82,7 +81,6 @@ import java.io.File;
  *
  * @since 4.2
  */
-@Incubating
 public class XcodePlugin extends IdePlugin {
     private final GidGenerator gidGenerator;
     private final ObjectFactory objectFactory;

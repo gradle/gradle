@@ -16,7 +16,6 @@
 
 package org.gradle.language;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.file.FileCollection;
 
@@ -25,7 +24,6 @@ import org.gradle.api.file.FileCollection;
  *
  * @since 4.5
  */
-@Incubating
 public interface ComponentWithOutputs extends SoftwareComponent {
     /**
      * Returns the outputs produced for this component.

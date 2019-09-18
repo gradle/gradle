@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Provider;
@@ -29,7 +28,6 @@ import org.gradle.language.swift.tasks.SwiftCompile;
  *
  * @since 4.2
  */
-@Incubating
 public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDependencies {
     /**
      * Returns the name of the Swift module that this binary defines.

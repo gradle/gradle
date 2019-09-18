@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
@@ -47,7 +46,6 @@ import javax.inject.Inject;
  *
  * @since 4.1
  */
-@Incubating
 public class SwiftBasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;
     private final MacOSSdkPathLocator locator;

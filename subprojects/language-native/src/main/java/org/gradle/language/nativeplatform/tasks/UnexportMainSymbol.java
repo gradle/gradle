@@ -18,7 +18,6 @@ package org.gradle.language.nativeplatform.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -46,7 +45,6 @@ import java.io.IOException;
  *
  * @since 4.4
  */
-@Incubating
 @CacheableTask
 public class UnexportMainSymbol extends DefaultTask {
     private final ConfigurableFileCollection source = getProject().files();
@@ -85,7 +83,7 @@ public class UnexportMainSymbol extends DefaultTask {
     }
 
     @TaskAction
-    public void unexport(InputChanges inputChanges) {
+    protected void unexport(InputChanges inputChanges) {
         for (FileChange change : inputChanges.getFileChanges(getObjects())) {
             if (change.getChangeType() == ChangeType.REMOVED) {
                 File relocatedFileLocation = relocatedObject(change.getFile());

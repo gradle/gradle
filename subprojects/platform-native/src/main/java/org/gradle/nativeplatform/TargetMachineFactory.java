@@ -16,14 +16,11 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 /**
  * A factory for creating {@link TargetMachine} objects.
  *
  * @since 5.1
  */
-@Incubating
 public interface TargetMachineFactory {
     /**
      * Returns a {@link TargetMachineBuilder} for the Windows operating system family and the architecture of the current host.

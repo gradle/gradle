@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -48,7 +47,6 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.tryToBuildO
  *
  * @since 4.5
  */
-@Incubating
 public class SwiftApplicationPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;

@@ -20,7 +20,6 @@ import com.google.common.io.Files;
 import org.apache.commons.io.FilenameUtils;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
@@ -53,7 +52,6 @@ import java.util.concurrent.Callable;
  *
  * @since 4.4
  */
-@Incubating
 public class InstallXCTestBundle extends DefaultTask {
     private final DirectoryProperty installDirectory;
     private final RegularFileProperty bundleBinaryFile;
@@ -82,7 +80,7 @@ public class InstallXCTestBundle extends DefaultTask {
     }
 
     @TaskAction
-    void install() throws IOException {
+    protected void install() throws IOException {
         File bundleFile = bundleBinaryFile.get().getAsFile();
         File bundleDir = installDirectory.get().file(bundleFile.getName() + ".xctest").getAsFile();
         installToDir(bundleDir, bundleFile);

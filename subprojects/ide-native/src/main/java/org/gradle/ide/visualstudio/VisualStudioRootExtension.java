@@ -17,14 +17,12 @@
 package org.gradle.ide.visualstudio;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * The configuration for mapping a set of native components to a Visual Studio project and solution.
  *
  * @since 4.6
  */
-@Incubating
 public interface VisualStudioRootExtension extends VisualStudioExtension {
     /**
      * Returns the generated  {@link VisualStudioSolution} for this build.

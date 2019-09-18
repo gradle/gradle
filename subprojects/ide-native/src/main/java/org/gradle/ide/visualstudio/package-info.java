@@ -17,5 +17,4 @@
 /**
  * Model classes for visual studio.
  */
-@org.gradle.api.Incubating
 package org.gradle.ide.visualstudio;

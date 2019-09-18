@@ -16,14 +16,11 @@
 
 package org.gradle.ide.xcode;
 
-import org.gradle.api.Incubating;
-
 /**
  * The configuration for mapping a C++ or Swift project to XCode project and workspace.
  *
  * @since 4.7
  */
-@Incubating
 public interface XcodeRootExtension extends XcodeExtension {
     /**
      * Returns the generated Xcode workspace for this Gradle build.
