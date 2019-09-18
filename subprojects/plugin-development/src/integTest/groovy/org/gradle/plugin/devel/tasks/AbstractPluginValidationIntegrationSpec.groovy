@@ -43,6 +43,7 @@ import spock.lang.Unroll
 import javax.inject.Inject
 
 import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.ERROR
+import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.STRICT_WARNING
 import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
@@ -371,6 +372,88 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         ConfigurableFileCollection.name | "getProject().getObjects().fileCollection()"
         "${Property.name}<String>"      | "getProject().getObjects().property(String.class).convention(\"value\")"
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
+    }
+
+    def "detects problems with file inputs"() {
+        file("input.txt").text = "input"
+        file("input").createDir()
+
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.util.Set;
+            import java.util.Collections;
+            import java.io.File;
+
+            @CacheableTask
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @javax.inject.Inject
+                org.gradle.api.internal.file.FileResolver fileResolver;
+
+                public long getBadTime() {
+                    return 0;
+                }
+
+                public static class Options {
+                    @Input
+                    public String getGoodNested() {
+                        return "good";
+                    }
+                    public String getBadNested(){
+                        return "bad";
+                    }
+                }
+                
+                @OutputDirectory
+                public File getOutputDir() {
+                    return new File("outputDir");
+                }
+                
+                @InputDirectory
+                @Optional
+                public File getInputDirectory() {
+                    return new File("input");
+                }
+
+                @InputFile
+                public File getInputFile() {
+                    return new File("input.txt");
+                }
+
+                @InputFiles
+                public Set<File> getInputFiles() {
+                    return Collections.emptySet();
+                }
+                
+                @Input
+                public File getFile() {
+                    return new File("some-file");
+                }
+                
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.": WARNING,
+            "Type 'MyTask': property 'inputDirectory' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
+            "Type 'MyTask': property 'inputFile' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
+            "Type 'MyTask': property 'inputFiles' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
+            "Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.": WARNING,
+        )
     }
 
     enum Severity {
