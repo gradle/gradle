@@ -23,6 +23,7 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.test.TestFailureResult2
 import org.gradle.tooling.events.test.TestFinishEvent
+import org.gradle.tooling.events.test.TestOutputStartProgressEvent
 import org.gradle.tooling.events.test.TestSuccessResult2
 import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent
 
@@ -59,7 +60,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
                         @Override
                         void statusChanged(ProgressEvent event) {
-                            if (event instanceof DefaultTestFinishEvent) {
+                            if (event instanceof TestOutputStartProgressEvent) {
                                 events << event
                             }
                         }
@@ -68,7 +69,26 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        events.find { TestFinishEvent event -> event.result instanceof TestSuccessResult2 && event.result.output == 'Winged Hussars' && event.result.error == 'The Last Battle' }
-        events.find { TestFinishEvent event -> event.result instanceof TestFailureResult2 && event.result.output == 'To Hell And Back' && event.result.error == 'Gott mit uns' }
+        events.find { event -> event.descriptor.message == "Winged Hussars" && event.descriptor.destination == "StdOut" }
+        events.find { event -> event.descriptor.message == "The Last Battle" && event.descriptor.destination == "StdErr" }
+    }
+
+    def goodCode() {
+        buildFile << """
+            apply plugin: 'java'
+            sourceCompatibility = 1.7
+            ${mavenCentralRepository()}
+            dependencies { testCompile 'junit:junit:4.12' }
+            compileTestJava.options.fork = true  // forked as 'Gradle Test Executor 1'
+        """
+
+        file("src/test/java/example/MyTest.java") << """
+            package example;
+            public class MyTest {
+                @org.junit.Test public void foo() throws Exception {
+                     org.junit.Assert.assertEquals(1, 1);
+                }
+            }
+        """
     }
 }

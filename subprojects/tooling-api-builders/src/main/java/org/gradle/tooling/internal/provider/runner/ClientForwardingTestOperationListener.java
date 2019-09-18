@@ -20,7 +20,9 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
+import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
@@ -30,13 +32,16 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTestResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult2;
 import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTestOutputDescriptor;
+import org.gradle.tooling.internal.provider.events.DefaultTestOutputFinishedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTestOutputStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult2; // TODO use original DefaultTestSuccessResult if no output is filtered
@@ -75,8 +80,19 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         }
     }
 
+    private int idx = 1;
+
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
+        if (progressEvent.getDetails() instanceof TestListenerBuildOperationAdapter.OutputProgress) {
+            TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) progressEvent.getDetails();
+            TestOutputEvent event = progress.getOutput();
+
+            InternalOperationDescriptor descriptor = new DefaultTestOutputDescriptor(buildOperationId + "." + idx++, "todo", "todo", progress.getTestId(), progress.getOutput().getDestination().name(), progress.getOutput().getMessage());
+            eventConsumer.started(new DefaultTestOutputStartedProgressEvent(progressEvent.getTime(), descriptor));
+            eventConsumer.finished(new DefaultTestOutputFinishedProgressEvent(progressEvent.getTime(), descriptor));
+        }
+
     }
 
     @Override

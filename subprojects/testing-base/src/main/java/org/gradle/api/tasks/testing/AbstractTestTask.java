@@ -28,9 +28,12 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
@@ -455,11 +458,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestOutputStore.Writer outputWriter = testOutputStore.writer();
         TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
-        TestOutputCollectingListener outputCollector = new TestOutputCollectingListener();
+
 
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
-        addTestOutputListener(outputCollector);
+
 
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);
@@ -477,6 +480,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         if (failFast) {
             resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
         }
+
+        TestOutputCollectingListener outputCollector = new TestOutputCollectingListener(resultProcessorDelegate);
+        addTestOutputListener(outputCollector);
 
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate, outputCollector);
 

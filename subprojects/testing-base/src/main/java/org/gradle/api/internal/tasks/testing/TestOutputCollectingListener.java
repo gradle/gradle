@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.api.internal.tasks.testing.results.TestListenerInternal;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestOutputListener;
@@ -25,11 +26,17 @@ import java.util.Map;
 
 public class TestOutputCollectingListener implements TestOutputListener {
 
+    private final TestListenerInternal delegate;
     Map<TestDescriptor, String> outputs = new HashMap<TestDescriptor, String>();
     Map<TestDescriptor, String> errors = new HashMap<TestDescriptor, String>();
 
+    public TestOutputCollectingListener(TestListenerInternal delegate) {
+        this.delegate = delegate;
+    }
+
     @Override
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
+
         if (outputEvent.getDestination() == TestOutputEvent.Destination.StdOut) {
             String prev = outputs.get(testDescriptor);
             if (prev == null) {

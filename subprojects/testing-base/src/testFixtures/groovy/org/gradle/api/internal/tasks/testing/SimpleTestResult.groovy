@@ -28,6 +28,8 @@ class SimpleTestResult implements TestResult {
     long successfulTestCount = 1
     long failedTestCount = 0
     long skippedTestCount = 0
+    String output = ""
+    String error = ""
 
     SimpleTestResult(long endTime = 100) {
         this.endTime = endTime
