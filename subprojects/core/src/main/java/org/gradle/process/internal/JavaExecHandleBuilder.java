@@ -343,7 +343,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     private File writePathingJarFile(FileCollection classPath) throws IOException {
         File pathingJarFile = File.createTempFile("gradle-javaexec-classpath", ".jar");
-        try (JarOutputStream jarOutputStream = new JarOutputStream(new FileOutputStream(pathingJarFile), toManifest(classPath))) {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(pathingJarFile);
+             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classPath))) {
             jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
         }
         return pathingJarFile;

@@ -148,9 +148,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 }
             });
         } finally {
-            if (workerLogEventListener != null) {
-                loggingManager.removeOutputEventListener(workerLogEventListener);
-            }
+            loggingManager.removeOutputEventListener(workerLogEventListener);
             CompositeStoppable.stoppable(connection, unrecoverableErrorHandler, basicWorkerServices).stop();
             loggingManager.stop();
         }

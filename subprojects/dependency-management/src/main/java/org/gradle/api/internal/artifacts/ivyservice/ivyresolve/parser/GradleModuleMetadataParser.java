@@ -107,7 +107,7 @@ public class GradleModuleMetadataParser {
                     File file = resource.getFile();
                     metadata.setContentHash(HashUtil.createHash(file, "MD5"));
                     if (!FORMAT_VERSION.equals(version)) {
-                        LOGGER.debug("Unrecognized metadata format version '%s' found in '%s'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
+                        LOGGER.debug("Unrecognized metadata format version '{}' found in '{}'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
                     }
                     return null;
                 } catch (Exception e) {

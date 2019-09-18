@@ -32,8 +32,8 @@ import java.util.regex.Pattern;
 
 public class DaemonContextParser {
     public static DaemonContext parseFromFile(File file) {
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
+        try (FileReader in = new FileReader(file);
+            BufferedReader reader = new BufferedReader(in)) {
             for (String line = reader.readLine(); line != null; line = reader.readLine()) {
                 DaemonContext context = parseFrom(line);
                 if (context != null) {

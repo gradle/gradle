@@ -74,15 +74,15 @@ public class XcodeprojSerializer {
     private String serializeObject(PBXObject obj) {
         if (obj.getGlobalID() == null) {
             obj.setGlobalID(obj.generateGid(gidGenerator));
-            LOG.trace("Set new object GID: %s", obj);
+            LOG.trace("Set new object GID: {}", obj);
         } else {
             // Check that the object has already been serialized.
             NSObject object = objects.get(obj.getGlobalID());
             if (object != null) {
-                LOG.trace("Object %s found, returning existing object %s", obj, object);
+                LOG.trace("Object {} found, returning existing object {}", obj, object);
                 return obj.getGlobalID();
             } else {
-                LOG.trace("Object already had GID set: %s", obj);
+                LOG.trace("Object already had GID set: {}", obj);
             }
         }
 
