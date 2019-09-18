@@ -61,6 +61,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
             assert(output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
                 || output.contains("${removeTypePrefix(warning)} This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."))
         }
+        expectedErrors.forEach { error ->
+            failureHasCause(error)
+        }
     }
 
     String removeTypePrefix(String message) {
