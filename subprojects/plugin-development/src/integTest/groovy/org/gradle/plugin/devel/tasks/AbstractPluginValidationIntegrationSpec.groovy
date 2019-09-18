@@ -216,6 +216,39 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         InputArtifactDependencies | _
     }
 
+    def "validates task caching annotations"() {
+        source << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.artifacts.transform.*;
+
+            @CacheableTransform 
+            public class MyTask extends DefaultTask {
+                @Nested
+                Options getOptions() { 
+                    return null;
+                }
+
+                @CacheableTask @CacheableTransform 
+                public static class Options {
+                    @Input
+                    String getNestedThing() {
+                        return null;
+                    }
+                }
+                    
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.": ERROR,
+            "Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.": ERROR,
+            "Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.": ERROR,
+        )
+    }
+
     enum Severity {
         WARNING("Warning"), ERROR("Error");
 

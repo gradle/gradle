@@ -64,44 +64,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file("src/main/$path")
     }
 
-    def "validates task caching annotations"() {
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import org.gradle.api.artifacts.transform.*;
-
-            @CacheableTransform 
-            public class MyTask extends DefaultTask {
-                @Nested
-                Options getOptions() { 
-                    return null;
-                }
-
-                @CacheableTask @CacheableTransform 
-                public static class Options {
-                    @Input
-                    String getNestedThing() {
-                        return null;
-                    }
-                }
-            }
-        """
-
-        expect:
-        fails("validatePlugins")
-        failure.assertHasDescription("Execution failed for task ':validatePlugins'.")
-        failure.assertHasCause("Plugin validation failed. See")
-        failure.assertHasCause("Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.")
-        failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
-        failure.assertHasCause("Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.")
-
-        reportFileContents() == """
-            Error: Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.
-            Error: Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.
-            Error: Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.
-            """.stripIndent().trim()
-    }
-
     def "detects missing annotation on Groovy properties"() {
         buildFile << """
             apply plugin: "groovy"
