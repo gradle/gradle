@@ -24,7 +24,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
 
     abstract void recompiledWithFailure(String expectedFailure, String... recompiledClasses)
 
-    def "abc recompilation"() {
+    def "changes to transitive private classes do not force recompilation"() {
         source """class A {
             private B b;
         }"""
@@ -428,7 +428,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         def a = source "enum A { FOO }"
         source "@B(A.FOO) class OnClass {}",
             "class OnMethod { @B(A.FOO) void foo() {} }",
-            "class OnField { @B(A.FOO) String foo; }",
+            "class OnField { public @B(A.FOO) String foo; }",
             "class OnParameter { void foo(@B(A.FOO) int x) {} }"
         outputs.snapshot { run language.compileTaskName }
 
@@ -437,15 +437,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         run language.compileTaskName
 
         then:
-        if (language == CompiledLanguage.GROOVY) {
-            // Groovy doesn't propagate annotations on fields to the generated getter+setter methods.
-            // The field itself is made 'private' by Groovy.
-            // Therefore, the field-annotation is no longer "accessible" but instead "private".
-            outputs.recompiledClasses("A", "B", "OnClass", "OnMethod", "OnParameter")
-        }
-        else {
-            outputs.recompiledClasses("A", "B", "OnClass", "OnMethod", "OnParameter", "OnField")
-        }
+        outputs.recompiledClasses("A", "B", "OnClass", "OnMethod", "OnParameter", "OnField")
     }
 
     def "change to value in nested annotation recompiles annotated types"() {
