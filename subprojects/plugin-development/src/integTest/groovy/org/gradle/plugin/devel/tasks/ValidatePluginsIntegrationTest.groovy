@@ -38,14 +38,14 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import javax.inject.Inject
 
-class ValidatePluginsIntegrationTest extends AbstractIntegrationSpec {
+class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
     def setup() {
         buildFile << """
@@ -57,94 +57,26 @@ class ValidatePluginsIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "detects missing annotations on Java properties"() {
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-
-            public class MyTask extends DefaultTask {
-                // Should be ignored because it's not a getter
-                public void getVoid() {
-                }
-
-                // Should be ignored because it's not a getter
-                public int getWithParameter(int count) {
-                    return count;
-                }
-
-                public long getter() {
-                    return 0L;
-                }
-
-                // Ignored because static
-                public static int getStatic() {
-                    return 0;
-                }
-
-                // Ignored because injected
-                @javax.inject.Inject
-                public org.gradle.api.internal.file.FileResolver getInjected() {
-                    throw new UnsupportedOperationException();
-                }
-
-                // Valid because it is annotated
-                @Input
-                public long getGoodTime() {
-                    return 0;
-                }
-
-                // Valid because it is annotated
-                @Nested
-                public Options getOptions() {
-                    return null;
-                }
-
-                // Valid because it is annotated
-                @CompileClasspath
-                public java.util.List<java.io.File> getClasspath() {
-                    return null;
-                }
-
-                // Invalid because it has no annotation
-                public long getBadTime() {
-                    return System.currentTimeMillis();
-                }
-
-                // Invalid because it has some other annotation
-                @Deprecated
-                public String getOldThing() {
-                    return null;
-                }
-
-                public static class Options {
-                    // Valid because it is annotated
-                    @Input
-                    public int getGoodNested() {
-                        return 1;
-                    }
-
-                    // Invalid because there is no annotation
-                    public int getBadNested() {
-                        return -1;
-                    }
-                }
-            }
-        """
-
-        expect:
+    @Override
+    void assertValidationFailsWith(Map<String, Severity> messages) {
         fails "validatePlugins"
-        failure.assertHasCause "Plugin validation failed"
-        failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation."
 
-        reportFileContents() == """
-            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Type 'MyTask': property 'oldThing' is not annotated with an input or output annotation.
-            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-            Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation.
-            """.stripIndent().trim()
+        def expectedReportContents = messages
+            .collect { message, severity ->
+                "$severity: $message"
+            }
+            .join("\n")
+        assert file("build/reports/plugin-development/validation-report.txt").text == expectedReportContents
+
+        failure.assertHasCause "Plugin validation failed"
+        messages.forEach { message, severity ->
+            failure.assertHasCause("$severity: $message")
+        }
+    }
+
+    @Override
+    TestFile source(String path) {
+        return file("src/main/$path")
     }
 
     @Unroll
