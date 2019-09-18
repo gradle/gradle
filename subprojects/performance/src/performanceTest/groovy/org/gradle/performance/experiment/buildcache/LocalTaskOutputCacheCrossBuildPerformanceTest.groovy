@@ -16,11 +16,10 @@
 
 package org.gradle.performance.experiment.buildcache
 
-import org.gradle.performance.AbstractCrossBuildPerformanceTest
+import org.gradle.performance.AbstractCrossBuildGradleProfilerPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
-import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.profiler.mutations.AbstractCleanupMutator
+import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -29,7 +28,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
 @Category(PerformanceExperiment)
-class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPerformanceTest {
+class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildGradleProfilerPerformanceTest {
 
     @Unroll
     def "#tasks on #testProject with local cache (build comparison)"() {
@@ -54,19 +53,8 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
         """.stripIndent()
 
         given:
-        runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
-            @Override
-            void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
-                cacheDir.deleteDir().mkdirs()
-                def settingsFile = new TestFile(projectDir).file('settings.gradle')
-                settingsFile << """
-                    buildCache {
-                        local {
-                            directory = '${cacheDir.absoluteFile.toURI()}'
-                        }
-                    }
-                """.stripIndent()
-            }
+        runner.addBuildMutator { invocationSettings ->
+            new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
         runner.testGroup = "task output cache"
         runner.buildSpec {

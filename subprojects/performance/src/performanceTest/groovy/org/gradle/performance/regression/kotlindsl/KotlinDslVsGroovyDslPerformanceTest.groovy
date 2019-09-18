@@ -15,7 +15,7 @@
  */
 package org.gradle.performance.regression.kotlindsl
 
-import org.gradle.performance.AbstractCrossBuildPerformanceTest
+import org.gradle.performance.AbstractCrossBuildGradleProfilerPerformanceTest
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
@@ -28,7 +28,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 
 @Category(PerformanceRegressionTest)
-class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceTest {
+class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildGradleProfilerPerformanceTest {
 
     @Unroll
     def "help on #kotlinProject vs. help on #groovyProject"() {
