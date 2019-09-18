@@ -2,12 +2,11 @@ import common.JvmVendor
 import common.JvmVersion
 import common.NoBuildCache
 import common.Os
+import configurations.FunctionalTest
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import model.CIBuildModel
-import model.GradleSubproject
 import model.SpecificBuild
 import model.Stage
-import model.StageName
 import model.StageNames
 import model.TestCoverage
 import model.TestType
@@ -16,6 +15,7 @@ import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import projects.RootProject
+import projects.StageProject
 import java.io.File
 
 class CIConfigIntegrationTests {
@@ -110,47 +110,19 @@ class CIConfigIntegrationTests {
 
     @Test
     fun canDeferSlowTestsToLaterStage() {
+        val model = CIBuildModel()
+        val rootProject = RootProject(model)
+        val slowSubprojects = model.subProjects.filter { it.containsSlowTests }.map { it.name }
 
-        data class DefaultStageName(override val stageName: String, override val description: String) : StageName
+        fun Project.searchSubproject(id: String): StageProject = (subProjects.find { it.id!!.value == id } as StageProject)
+        fun FunctionalTest.isSlow(): Boolean = slowSubprojects.any { name.contains(it) }
+        fun Project.subprojectContainsSlowTests(name: String): Boolean = searchSubproject(name).functionalTests.any(FunctionalTest::isSlow)
 
-        val m = CIBuildModel(
-            projectPrefix = "",
-            parentBuildCache = NoBuildCache,
-            childBuildCache = NoBuildCache,
-            stages = listOf(
-                Stage(DefaultStageName("Stage1", "Stage1 description"),
-                    functionalTests = listOf(
-                        TestCoverage(1, TestType.quick, Os.linux, JvmVersion.java8),
-                        TestCoverage(2, TestType.quick, Os.windows, JvmVersion.java8)),
-                    omitsSlowProjects = true),
-                Stage(DefaultStageName("Stage2", "Stage2 description"),
-                    functionalTests = listOf(
-                        TestCoverage(3, TestType.noDaemon, Os.linux, JvmVersion.java8),
-                        TestCoverage(4, TestType.noDaemon, Os.windows, JvmVersion.java8)),
-                    omitsSlowProjects = true),
-                Stage(DefaultStageName("Stage3", "Stage3 description"),
-                    functionalTests = listOf(
-                        TestCoverage(5, TestType.platform, Os.linux, JvmVersion.java8),
-                        TestCoverage(6, TestType.platform, Os.windows, JvmVersion.java8)),
-                    omitsSlowProjects = false),
-                Stage(DefaultStageName("Stage4", "Stage4 description"),
-                    functionalTests = listOf(
-                        TestCoverage(7, TestType.parallel, Os.linux, JvmVersion.java8),
-                        TestCoverage(8, TestType.parallel, Os.windows, JvmVersion.java8)),
-                    omitsSlowProjects = false)
-            ),
-            subProjects = listOf(
-                GradleSubproject("fastBuild"),
-                GradleSubproject("slowBuild", containsSlowTests = true)
-            ) + listOf("integTest", "core", "dependencyManagement", "resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp", "platformBase", "platformJvm", "platformNative").map { GradleSubproject(it) }
-        )
-        val p = RootProject(m)
-        assertTrue(!p.hasSubProject("Stage1", "deferred"))
-        assertTrue(!p.hasSubProject("Stage2", "deferred"))
-        assertTrue(p.hasSubProject("Stage3", "deferred"))
-        assertTrue(!p.hasSubProject("Stage4", "deferred"))
-        assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("Quick", "slowBuild"))
-        assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("NoDaemon", "slowBuild"))
+        assertTrue(!rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_QuickFeedbackLinuxOnly"))
+        assertTrue(!rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_QuickFeedback"))
+        assertTrue(!rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_ReadyforMerge"))
+        assertTrue(rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_ReadyforNightly"))
+        assertTrue(rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_ReadyforRelease"))
     }
 
     private fun Project.hasSubProject(vararg patterns: String): Boolean {

@@ -200,16 +200,20 @@ data class CIBuildModel(
 
     init {
         val subprojectMap = subProjects.map { it.name to it }.toMap()
-        val buckets = listOf(
-            listOf("resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp"),
-            listOf("platformBase", "platformJvm", "platformNative")
+        val buckets = mapOf(
+            "resources" to listOf("resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp"),
+            "platformBase" to listOf("platformBase", "platformJvm", "platformNative"),
+            "bucket1" to listOf("kotlinDslProviderPlugins", "buildCachePackaging", "native", "snapshots", "internalPerformanceTesting", "internalIntegTesting", "execution", "publish", "ear", "languageJvm"),
+            "bucket2" to listOf("baseServices", "processServices", "messaging", "buildProfile", "modelGroovy"),
+            "bucket3" to listOf("javascript", "fileCollections", "buildCache", "toolingNative", "buildCacheHttp"),
+            "bucket4" to listOf("antlr", "languageGroovy", "reporting", "diagnostics", "versionControl")
         )
-        val largeSubprojects = mapOf("integTest" to 3, "core" to 3, "dependencyManagement" to 3)
+        val largeSubprojects = mapOf("integTest" to 3, "core" to 4, "dependencyManagement" to 3, "toolingApi" to 2)
 
         val nonTrivialBuckets = listOf<BuildTypeBucket>(
             SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
-        ) + buckets.map { projectsInBucket ->
-            SubprojectBucket(name = projectsInBucket[0], subprojects = projectsInBucket.map { subprojectMap.getValue(it) })
+        ) + buckets.map { entry ->
+            SubprojectBucket(name = entry.key, subprojects = entry.value.map { subprojectMap.getValue(it) })
         } + largeSubprojects.map { entry ->
             SubprojectSplit(subproject = subprojectMap.getValue(entry.key), number = 1, total = entry.value)
         }
