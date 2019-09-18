@@ -18,6 +18,7 @@ package org.gradle.java
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSpec {
@@ -447,6 +448,45 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         compileClasspathPackaging | _
         false                     | _
         true                      | _
+    }
+
+    @Issue("gradle/gradle#10778")
+    def "dependencies of a feature that uses the main source set are available on test compile classpath"() {
+        buildFile << """
+            apply plugin: 'java-library'
+            
+            ${mavenCentralRepository()}
+            
+            java {
+                registerFeature('feat') {
+                   usingSourceSet(sourceSets.main)
+                }
+            }
+
+            dependencies {
+                testImplementation "junit:junit:4.12"
+                featApi "org.apache.commons:commons-math3:3.6.1"
+            }
+        """
+        file("src/test/java/com/acme/FeatureTest.java") << """package com.acme;
+            import org.apache.commons.math3.complex.Complex;
+            import org.junit.Test;
+            import static org.junit.Assert.*;
+
+            public class FeatureTest {
+                @Test
+                public void shouldCompileAndRun() {
+                    Complex complex = new Complex(2.0, 1);
+                    assertEquals(3, complex.pow(2.0).getReal(), 1e-5);
+                }
+            }
+        """
+
+        when:
+        run 'test'
+
+        then:
+        executedAndNotSkipped ':compileTestJava', ':test'
     }
 
     private void packagingTasks(boolean expectExecuted, String subproject, String feature = '') {
