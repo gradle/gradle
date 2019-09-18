@@ -288,42 +288,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             """.stripIndent().trim()
     }
 
-    def "reports conflicting types when property is replaced"() {
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.model.*;
-            import org.gradle.api.tasks.*;
-            import org.gradle.api.provider.*;
-            
-            public class MyTask extends DefaultTask {
-                private final Property<String> newProperty = getProject().getObjects().property(String.class);
-    
-                @Input
-                @ReplacedBy("newProperty")
-                public String getOldProperty() {
-                    return newProperty.get();
-                }
-    
-                public void setOldProperty(String oldProperty) {
-                    newProperty.set(oldProperty);
-                }
-    
-                @Input
-                public Property<String> getNewProperty() {
-                    return newProperty;
-                }
-            }
-        """
-
-        when:
-        fails "validatePlugins"
-
-        then:
-        reportFileContents() == """
-            Warning: Type 'MyTask': property 'oldProperty' getter 'getOldProperty()' annotated with @ReplacedBy should not be also annotated with @Input.
-            """.stripIndent().trim()
-    }
-
     def "can run old task"() {
         executer.expectDeprecationWarning()
 
