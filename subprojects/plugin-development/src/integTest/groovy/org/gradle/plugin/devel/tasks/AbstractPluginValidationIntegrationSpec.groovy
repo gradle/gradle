@@ -304,6 +304,74 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
     }
 
+    def "does not report missing properties for Provider types"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.provider.Provider;
+            import org.gradle.api.provider.Property;
+            
+            import java.io.File;
+            import java.util.concurrent.Callable;
+
+            public class MyTask extends DefaultTask {
+                private final Provider<String> text;
+                private final Property<File> file;
+                private final Property<Pojo> pojo;
+
+                public MyTask() {
+                    text = getProject().provider(new Callable<String>() {
+                        @Override
+                        public String call() throws Exception {
+                            return "Hello World!";
+                        }
+                    });
+                    file = getProject().getObjects().property(File.class);
+                    file.set(new File("some/dir"));
+                    pojo = getProject().getObjects().property(Pojo.class);
+                    pojo.set(new Pojo(true));
+                }
+
+                @Input
+                public String getText() {
+                    return text.get();
+                }
+
+                @OutputFile
+                public File getFile() {
+                    return file.get();
+                }
+
+                @Nested
+                public Pojo getPojo() {
+                    return pojo.get();
+                }
+
+                @TaskAction public void execute() {}
+            }
+        """
+
+        source("src/main/java/Pojo.java") << """
+            import org.gradle.api.tasks.Input;
+
+            public class Pojo {
+                private final Boolean enabled;
+                
+                public Pojo(Boolean enabled) {
+                    this.enabled = enabled;
+                }
+
+                @Input
+                public Boolean isEnabled() {
+                    return enabled;
+                }
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+    }
+
     enum Severity {
         WARNING("Warning"), ERROR("Error");
 
