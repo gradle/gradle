@@ -239,20 +239,21 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             return;
         }
         PublicationWarningsCollector publicationWarningsCollector = new PublicationWarningsCollector(LOG, UNSUPPORTED_FEATURE, "", PUBLICATION_WARNING_FOOTER, "suppressIvyMetadataWarningsFor");
+        Set<? extends UsageContext> usageContexts = component.getUsages();
 
-        populateConfigurations();
-        populateArtifacts();
-        populateDependencies(publicationWarningsCollector);
-        populateGlobalExcludes();
+        populateConfigurations(usageContexts);
+        populateArtifacts(usageContexts);
+        populateDependencies(usageContexts, publicationWarningsCollector);
+        populateGlobalExcludes(usageContexts);
 
         if (!silenceAllPublicationWarnings) {
             publicationWarningsCollector.complete(getDisplayName() + " ivy metadata", silencedVariants);
         }
     }
 
-    private void populateConfigurations() {
+    private void populateConfigurations(Set<? extends UsageContext> usageContexts) {
         IvyConfiguration defaultConfiguration = configurations.maybeCreate("default");
-        for (UsageContext usageContext : component.getUsages()) {
+        for (UsageContext usageContext : usageContexts) {
             String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
             configurations.maybeCreate(conf);
             if (defaultShouldExtend(usageContext)) {
@@ -285,12 +286,12 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return API_VARIANT.equals(usageName) || API_ELEMENTS_VARIANT.equals(usageName);
     }
 
-    private void populateArtifacts() {
+    private void populateArtifacts(Set<? extends UsageContext> usageContexts) {
         if (artifactsOverridden) {
             return;
         }
         Map<String, IvyArtifact> seenArtifacts = Maps.newHashMap();
-        for (UsageContext usageContext : component.getUsages()) {
+        for (UsageContext usageContext : usageContexts) {
             String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
             for (PublishArtifact publishArtifact : usageContext.getArtifacts()) {
                 String key = artifactKey(publishArtifact);
@@ -310,8 +311,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         return publishArtifact.getName() + ":" + publishArtifact.getType() + ":" + publishArtifact.getExtension() + ":" + publishArtifact.getClassifier();
     }
 
-    private void populateDependencies(PublicationWarningsCollector publicationWarningsCollector) {
-        for (UsageContext usageContext : component.getUsages()) {
+    private void populateDependencies(Set<? extends UsageContext> usageContexts, PublicationWarningsCollector publicationWarningsCollector) {
+        for (UsageContext usageContext : usageContexts) {
             publicationWarningsCollector.newContext(usageContext.getName());
             for (ModuleDependency dependency : usageContext.getDependencies()) {
                 String confMapping = confMappingFor(usageContext, dependency);
@@ -346,8 +347,8 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         }
     }
 
-    private void populateGlobalExcludes() {
-        for (UsageContext usageContext : component.getUsages()) {
+    private void populateGlobalExcludes(Set<? extends UsageContext> usageContexts) {
+        for (UsageContext usageContext : usageContexts) {
             String conf = mapUsageNameToIvyConfiguration(usageContext.getName());
             for (ExcludeRule excludeRule : usageContext.getGlobalExcludes()) {
                 globalExcludes.add(new DefaultIvyExcludeRule(excludeRule, conf));
