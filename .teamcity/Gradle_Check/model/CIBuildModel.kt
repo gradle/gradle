@@ -267,8 +267,8 @@ data class SubprojectSplit(val subproject: GradleSubproject, val total: Int) : B
 data class SubprojectBucket(val name: String, val subprojects: List<GradleSubproject>) : BuildTypeBucket, Validatable {
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) = listOf(
         FunctionalTest(model, testCoverage.asConfigurationId(model, name),
-            "${testCoverage.asName()} (${subprojects.map { it.name }.joinToString(", ")})",
-            "${testCoverage.asName()} for ${subprojects.map { it.name }.joinToString(", ")}",
+            "${testCoverage.asName()} (${subprojects.joinToString(", ") { it.name }})",
+            "${testCoverage.asName()} for ${subprojects.joinToString(", ") { it.name }}",
             testCoverage,
             stage,
             subprojects.map { it.name }
@@ -285,7 +285,7 @@ data class SubprojectBucket(val name: String, val subprojects: List<GradleSubpro
         if (!hasSameProperties { it.unitTests } ||
             !hasSameProperties { it.functionalTests } ||
             !hasSameProperties { it.crossVersionTests }) {
-            consumer.consumeError("All merged subprojects must have same properties: ${subprojects.map { it.name }.joinToString(" ")}")
+            consumer.consumeError("All merged subprojects must have same properties: ${subprojects.joinToString(" ") { it.name }}")
         }
 
         Os.values().forEach {
@@ -364,7 +364,7 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     fun asConfigurationId(model: CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
         val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
-        return model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
+        return model.projectPrefix + if (subproject.isNotEmpty()) shortenedSubprojectName else "${prefix}0"
     }
 
     private
