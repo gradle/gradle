@@ -11,6 +11,7 @@ We would like to thank the following community contributors to this release of G
 [Alex Saveau](https://github.com/SUPERCILEX),
 [Mike Kobit](https://github.com/mkobit),
 [Tom Eyckmans](https://github.com/teyckmans),
+[Artur Dryomov](https://github.com/ming13),
 [Robert Stupp](https://github.com/snazy),
 [Nigel Banks](https://github.com/nigelgbanks),
 [Sergey Shatunov](https://github.com/Prototik),
@@ -151,6 +152,12 @@ More information can be found below:
 
  - [Gradle GitHub Advisory](https://github.com/gradle/gradle/security/advisories/GHSA-mrm8-42q4-6rm7)
  - [CVE-2019-16370](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16370)
+
+## Wrapper reports download progress
+
+Gradle now reports the progress of the distribution downloaded. 
+
+Initially contributed by [Artur Dryomov](https://github.com/ming13).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
