@@ -33,6 +33,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     @Override
     void assertValidationSucceeds() {
         succeeds "run"
+        executedAndNotSkipped ":run"
     }
 
     @Override
@@ -55,6 +56,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         } else {
             succeeds "run"
         }
+        executedAndNotSkipped ":run"
 
         expectedWarnings.forEach { warning ->
             assert output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
