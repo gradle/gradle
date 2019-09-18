@@ -8,7 +8,9 @@ The terms and their meaning are explained below, from the strongest to the weake
 `strictly`::
 Any version not matched by this version notation will be excluded.
 This is the strongest version declaration.
-It will cause dependency resolution to fail if no version acceptable by this clause can be selected.
+On a declared dependency, a `strictly` can downgrade a version.
+When on a transitive dependency, it will cause dependency resolution to fail if no version acceptable by this clause can be selected.
+See <<controlling_transitive_dependencies.adoc#sec:enforcing_dependency_version,overriding dependency version>> for details.
 This term supports dynamic versions.
 +
 When defined, overrides previous `require` declaration and clears previous `reject`.
@@ -44,14 +46,14 @@ The following table illustrates a number of use cases and how to combine the dif
 |===
 | Which version(s) of this dependency are acceptable? | `strictly` | `require` | `prefer` | `rejects` | Selection result
 
-| Tested with version `1.5`, believe all future versions should work
+| Tested with version `1.5`, believe all future versions should work.
 |
 | 1.5
 |
 |
 | Any version starting from `1.5`, equivalent of `org:foo:1.5`. An upgrade to `2.4` is accepted.
 
-| Tested with `1.5`, soft constraint upgrades according to semantic versioning
+| Tested with `1.5`, soft constraint upgrades according to semantic versioning.
 |
 | [1.0, 2.0[
 | 1.5
@@ -59,58 +61,62 @@ The following table illustrates a number of use cases and how to combine the dif
 | Any version between `1.0` and `2.0`, `1.5` if nobody else cares. An upgrade to `2.4` is accepted. +
 🔒
 
-| Tested with `1.5`, but follows semantic versioning
+| Tested with `1.5`, but follows semantic versioning.
 | [1.0, 2.0[
 |
 | 1.5
 |
 | Any version between `1.0` and `2.0` excluded, `1.5` if nobody else cares. +
+Overwrites versions from transitive dependencies. +
 🔒
 
-| Same as above, with `1.4` known broken
+| Same as above, with `1.4` known broken.
 | [1.0, 2.0[
 |
 | 1.5
 | 1.4
 | Any version between `1.0` and `2.0` excluded except for `1.4`, `1.5` if nobody else cares. +
+Overwrites versions from transitive dependencies. +
 🔒
 
-| No opinion, works with `1.5`
+| No opinion, works with `1.5`.
 |
 |
 | 1.5
 |
-| `1.5` if no other opinion, any otherwise
+| `1.5` if no other opinion, any otherwise.
 
-| No opinion, prefer latest release
+| No opinion, prefer latest release.
 |
 |
 | `latest.release`
 |
-| The latest release at build time +
+| The latest release at build time. +
 🔒
 
-| On the edge, latest release, no downgrade
+| On the edge, latest release, no downgrade.
 |
 | `latest.release`
 |
 |
-| The latest release at build time +
+| The latest release at build time. +
 🔒
 
-| No other version than 1.5
+| No other version than 1.5.
 | 1.5
 |
 |
 |
-| 1.5, or failure if another `strict` or higher `require` constraint disagrees
+| 1.5, or failure if another `strict` or higher `require` constraint disagrees. +
+Overwrites versions from transitive dependencies.
 
-| `1.5` or a patch version of it exclusively
+| `1.5` or a patch version of it exclusively.
 | [1.5,1.6[
 |
 |
 |
-| Latest `1.5.x` patch release, or failure if another `strict` or higher `require` constraint disagrees +
+| Latest `1.5.x` patch release, or failure if another `strict` or higher `require` constraint disagrees. +
+Overwrites versions from transitive dependencies. +
 🔒
 |===
 
@@ -118,8 +124,9 @@ Lines annotated with a lock (🔒) indicate that leveraging <<dependency_locking
 Another concept that relates with rich version declaration is the ability to publish <<publishing_maven.adoc#publishing_maven:resolved_dependencies,resolved versions>> instead of declared ones.
 
 
-Using `strictly`, especially for a library, must be a well thought process as it can have a serious impact on downstream consumers.
+Using `strictly`, especially for a library, must be a well thought process as it has an impact on downstream consumers.
 At the same time, used correctly, it will help consumers understand what combination of libraries do not work together in their context.
+See <<controlling_transitive_dependencies.adoc#sec:enforcing_dependency_version,overriding dependency version>> for more information.
 
 
 [NOTE]
