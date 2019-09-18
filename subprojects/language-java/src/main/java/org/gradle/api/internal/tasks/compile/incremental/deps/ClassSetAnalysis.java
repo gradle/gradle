@@ -67,34 +67,26 @@ public class ClassSetAnalysis {
     }
 
     public DependentsSet getRelevantDependents(Iterable<String> classes, IntSet constants) {
-        Set<String> accessibleResultClasses = null;
-        Set<String> privateResultClasses = null;
-        Set<GeneratedResource> resultResources = null;
+        final Set<String> accessibleResultClasses = Sets.newLinkedHashSet();
+        final Set<String> privateResultClasses = Sets.newLinkedHashSet();
+        final Set<GeneratedResource> resultResources = Sets.newLinkedHashSet();
         for (String cls : classes) {
             DependentsSet d = getRelevantDependents(cls, constants);
             if (d.isDependencyToAll()) {
                 return d;
             }
+            if (d.isEmpty()) {
+                continue;
+            }
             Set<String> accessibleDependentClasses = d.getAccessibleDependentClasses();
             Set<String> privateDependentClasses = d.getPrivateDependentClasses();
             Set<GeneratedResource> dependentResources = d.getDependentResources();
-            if (accessibleDependentClasses.isEmpty() && privateDependentClasses.isEmpty() && dependentResources.isEmpty()) {
-                continue;
-            }
-            if (accessibleResultClasses == null) {
-                accessibleResultClasses = Sets.newLinkedHashSet();
-            }
-            if (privateResultClasses == null) {
-                privateResultClasses = Sets.newLinkedHashSet();
-            }
+
             accessibleResultClasses.addAll(accessibleDependentClasses);
             privateResultClasses.addAll(privateDependentClasses);
-            if (resultResources == null) {
-                resultResources = Sets.newLinkedHashSet();
-            }
             resultResources.addAll(dependentResources);
         }
-        return privateResultClasses == null ? DependentsSet.empty() : DependentsSet.dependents(privateResultClasses, accessibleResultClasses, resultResources);
+        return DependentsSet.dependents(privateResultClasses, accessibleResultClasses, resultResources);
     }
 
     public DependentsSet getRelevantDependents(String className, IntSet constants) {
@@ -111,7 +103,7 @@ public class ClassSetAnalysis {
         }
         Set<String> classesDependingOnAllOthers = annotationProcessingData.getGeneratedTypesDependingOnAllOthers();
         Set<GeneratedResource> resourcesDependingOnAllOthers = annotationProcessingData.getGeneratedResourcesDependingOnAllOthers();
-        if (deps.getPrivateDependentClasses().isEmpty() && deps.getAccessibleDependentClasses().isEmpty() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty()) {
+        if (!deps.hasDependentClasses() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty()) {
             return deps;
         }
 
@@ -145,7 +137,7 @@ public class ClassSetAnalysis {
                 continue;
             }
             // Don't filter nested classes here, otherwise class dependencies from inner classes will not be considered during recompilation,
-            // i.e. org.gradle.java.compile.incremental.AbstractSourceIncrementalCompilationIntegrationTest."complex recompilation" would fail.
+            // i.e. tests in org.gradle.java.compile.incremental.AbstractSourceIncrementalCompilationIntegrationTest would fail.
             privateResultClasses.add(d);
             DependentsSet currentDependents = getDependents(d);
             if (!currentDependents.isDependencyToAll()) {
@@ -158,7 +150,7 @@ public class ClassSetAnalysis {
                 continue;
             }
             // Don't filter nested classes here, otherwise class dependencies from inner classes will not be considered during recompilation,
-            // i.e. org.gradle.java.compile.incremental.AbstractSourceIncrementalCompilationIntegrationTest."complex recompilation" would fail.
+            // i.e. tests in org.gradle.java.compile.incremental.AbstractSourceIncrementalCompilationIntegrationTest would fail.
             accessibleResultClasses.add(d);
             DependentsSet currentDependents = getDependents(d);
             if (!currentDependents.isDependencyToAll()) {
