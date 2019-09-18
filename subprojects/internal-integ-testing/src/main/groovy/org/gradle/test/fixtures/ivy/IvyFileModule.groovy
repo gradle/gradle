@@ -144,6 +144,12 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         return this
     }
 
+    @Override
+    IvyModule withoutDefaultVariants() {
+        variants.clear()
+        return this
+    }
+
     IvyFileModule withXml(Closure action) {
         transformer.addAction(action);
         return this

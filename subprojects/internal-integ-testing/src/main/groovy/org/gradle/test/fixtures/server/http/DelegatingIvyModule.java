@@ -267,4 +267,10 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
     }
+
+    @Override
+    public T withoutDefaultVariants() {
+        backingModule.withoutDefaultVariants();
+        return t();
+    }
 }
