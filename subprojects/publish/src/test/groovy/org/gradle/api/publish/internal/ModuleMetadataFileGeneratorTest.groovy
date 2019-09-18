@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.internal
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Named
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalDependency
@@ -70,7 +71,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     def generator = new GradleModuleMetadataWriter(new BuildInvocationScopeId(buildId), projectDependencyResolver)
 
-    def "writes file for component with no variants"() {
+    def "fails to write file for component with no variants"() {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
         def publication = publication(component, id)
@@ -79,28 +80,20 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         generator.generateTo(publication, [publication], writer)
 
         then:
-        writer.toString() == """{
-  "formatVersion": "${GradleModuleMetadataParser.FORMAT_VERSION}",
-  "component": {
-    "group": "group",
-    "module": "module",
-    "version": "1.2",
-    "attributes": {}
-  },
-  "createdBy": {
-    "gradle": {
-      "version": "${GradleVersion.current().version}",
-      "buildId": "${buildId}"
-    }
-  }
-}
-"""
+        InvalidUserCodeException ex = thrown()
+        ex.message.contains("This publication must publish at least one variant")
     }
 
     def "writes file for component with attributes"() {
         def writer = new StringWriter()
         def component = Stub(TestComponent)
         def publication = publication(component, id)
+        def v1 = Stub(UsageContext)
+        v1.name >> "v1"
+        v1.attributes >> attributes(usage: "compile")
+        v1.dependencies >> []
+
+        component.usages >> [v1]
 
         when:
         publication.attributes >> attributes(status: 'release', 'test': 'value')
@@ -123,7 +116,15 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       "version": "${GradleVersion.current().version}",
       "buildId": "${buildId}"
     }
-  }
+  },
+  "variants": [
+    {
+      "name": "v1",
+      "attributes": {
+        "usage": "compile"
+      }
+    }
+  ]
 }
 """
     }
@@ -565,7 +566,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         v1.attributes >> attributes(usage: "compile", debuggable: true, platform: platform, linkage: SomeEnum.VALUE_1)
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
-        v2.attributes >> attributes([:])
+        v2.attributes >> attributes(usage: "runtime", debuggable: true, platform: platform, linkage: SomeEnum.VALUE_2)
 
         component.usages >> [v1, v2]
 
@@ -598,7 +599,13 @@ class ModuleMetadataFileGeneratorTest extends Specification {
       }
     },
     {
-      "name": "v2"
+      "name": "v2",
+      "attributes": {
+        "debuggable": true,
+        "linkage": "VALUE_2",
+        "platform": "windows",
+        "usage": "runtime"
+      }
     }
   ]
 }
