@@ -98,8 +98,7 @@ public class ClasspathChangeDependentsFinder {
     private DependentsSet collectDependentsFromClasspath(Set<String> modified) {
         final Set<String> privateDependentClasses = Sets.newHashSet(modified);
         final Set<String> accessibleDependentClasses = Sets.newHashSet(modified);
-        final Deque<String> queue = Lists.newLinkedList(accessibleDependentClasses);
-        queue.addAll(privateDependentClasses);
+        final Deque<String> queue = Lists.newLinkedList(modified);
         while (!queue.isEmpty()) {
             final String dependentClass = queue.poll();
             for (File entry : classpathSnapshot.getEntries()) {
@@ -108,12 +107,12 @@ public class ClasspathChangeDependentsFinder {
                     return dependents;
                 } else {
                     for (String intermediate : dependents.getPrivateDependentClasses()) {
-                        if (privateDependentClasses.add(intermediate)) {
+                        if (privateDependentClasses.add(intermediate) && !accessibleDependentClasses.contains(intermediate)) {
                             queue.add(intermediate);
                         }
                     }
                     for (String intermediate : dependents.getAccessibleDependentClasses()) {
-                        if (accessibleDependentClasses.add(intermediate)) {
+                        if (accessibleDependentClasses.add(intermediate) && !privateDependentClasses.contains(intermediate)) {
                             queue.add(intermediate);
                         }
                     }
