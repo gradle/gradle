@@ -105,62 +105,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    def "detects annotations on setter methods"() {
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import java.io.File;
-
-            public class MyTask extends DefaultTask {
-                @Input
-                public void setWriteOnly(String value) {
-                }
-
-                public String getReadWrite() {
-                    return "read-write property";
-                }
-
-                @Input
-                public void setReadWrite(String value) {
-                }
-
-                @Nested
-                public Options getOptions() {
-                    return new Options();
-                }
-
-                public static class Options {
-                    @Input
-                    public void setWriteOnly(String value) {
-                    }
-
-                    @Input
-                    public String getReadWrite() {
-                        return "read-write property";
-                    }
-
-                    @Input
-                    public void setReadWrite(String value) {
-                    }
-                }
-
-                @TaskAction
-                public void doStuff() { }
-            }
-        """
-
-        when:
-        fails "validatePlugins"
-
-        then:
-        reportFileContents() == """
-            Warning: Type 'MyTask\$Options': setter method 'setReadWrite()' should not be annotated with: @Input
-            Warning: Type 'MyTask\$Options': setter method 'setWriteOnly()' should not be annotated with: @Input
-            Warning: Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.
-            Warning: Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input
-            Warning: Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input
-            """.stripIndent().trim()
-    }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can validate task classes using external types"() {

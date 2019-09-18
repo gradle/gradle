@@ -534,6 +534,60 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    def "detects annotations on setter methods"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public void setWriteOnly(String value) {
+                }
+
+                public String getReadWrite() {
+                    return "read-write property";
+                }
+
+                @Input
+                public void setReadWrite(String value) {
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                public static class Options {
+                    @Input
+                    public void setWriteOnly(String value) {
+                    }
+
+                    @Input
+                    public String getReadWrite() {
+                        return "read-write property";
+                    }
+
+                    @Input
+                    public void setReadWrite(String value) {
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask\$Options': setter method 'setReadWrite()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask\$Options': setter method 'setWriteOnly()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input": WARNING,
+        )
+    }
+
     enum Severity {
         /**
          * A validation warning, emitted as a deprecation warning during runtime.
