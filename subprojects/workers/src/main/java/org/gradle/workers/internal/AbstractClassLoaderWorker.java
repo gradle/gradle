@@ -17,6 +17,7 @@
 package org.gradle.workers.internal;
 
 import org.gradle.internal.Factory;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
@@ -27,9 +28,9 @@ public abstract class AbstractClassLoaderWorker implements Worker {
     private final WorkerProtocol worker;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public AbstractClassLoaderWorker(ServiceRegistry serviceRegistry) {
-        this.worker = new DefaultWorkerServer(serviceRegistry);
-        this.actionExecutionSpecFactory = serviceRegistry.get(ActionExecutionSpecFactory.class);
+    public AbstractClassLoaderWorker(ServiceRegistry workServices, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
+        this.worker = new DefaultWorkerServer(workServices, instantiatorFactory);
+        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
     }
 
     public DefaultWorkResult executeInClassLoader(ActionExecutionSpec spec, ClassLoader workerClassLoader) {

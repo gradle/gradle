@@ -16,6 +16,10 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":snapshots"))
+    implementation(project(":fileCollections"))
+    implementation(project(":files"))
+    implementation(project(":native"))
+    implementation(project(":resources"))
 
     implementation(library("slf4j_api"))
     implementation(library("guava"))

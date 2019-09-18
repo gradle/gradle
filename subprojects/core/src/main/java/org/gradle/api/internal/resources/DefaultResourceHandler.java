@@ -50,23 +50,31 @@ public class DefaultResourceHandler implements ResourceHandler {
         return textResourceFactory;
     }
 
-    public static class Factory {
-        private final FileResolver fileResolver;
-        private final FileSystem fileSystem;
-        private final TemporaryFileProvider tempFileProvider;
-        private final ApiTextResourceAdapter.Factory textResourceAdapterFactory;
+    public interface Factory {
+        ResourceHandler create(FileOperations fileOperations);
 
-        public Factory(FileResolver fileResolver, FileSystem fileSystem, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
-            this.fileResolver = fileResolver;
-            this.fileSystem = fileSystem;
-            this.tempFileProvider = tempFileProvider;
-            this.textResourceAdapterFactory = textResourceAdapterFactory;
+        static Factory from(FileResolver fileResolver, FileSystem fileSystem, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
+            return new FactoryImpl(fileResolver, fileSystem, tempFileProvider, textResourceAdapterFactory);
         }
 
-        public DefaultResourceHandler create(FileOperations fileOperations) {
-            ResourceResolver resourceResolver = new DefaultResourceResolver(fileResolver, fileSystem);
-            DefaultTextResourceFactory textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceAdapterFactory);
-            return new DefaultResourceHandler(resourceResolver, textResourceFactory);
+        class FactoryImpl implements Factory {
+            private final FileResolver fileResolver;
+            private final FileSystem fileSystem;
+            private final TemporaryFileProvider tempFileProvider;
+            private final ApiTextResourceAdapter.Factory textResourceAdapterFactory;
+
+            public FactoryImpl(FileResolver fileResolver, FileSystem fileSystem, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
+                this.fileResolver = fileResolver;
+                this.fileSystem = fileSystem;
+                this.tempFileProvider = tempFileProvider;
+                this.textResourceAdapterFactory = textResourceAdapterFactory;
+            }
+
+            public DefaultResourceHandler create(FileOperations fileOperations) {
+                ResourceResolver resourceResolver = new DefaultResourceResolver(fileResolver, fileSystem);
+                DefaultTextResourceFactory textResourceFactory = new DefaultTextResourceFactory(fileOperations, tempFileProvider, textResourceAdapterFactory);
+                return new DefaultResourceHandler(resourceResolver, textResourceFactory);
+            }
         }
     }
 }

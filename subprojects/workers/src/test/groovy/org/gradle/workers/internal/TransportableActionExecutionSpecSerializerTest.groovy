@@ -27,9 +27,10 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
     def bytes = [ (byte) 1, (byte) 2, (byte) 3 ] as byte[]
+    def usesInternalServices = true
 
     def "can serialize and deserialize a spec with a hierarchical classloader structure"() {
-        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class.name, bytes, classLoaderStructure())
+        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class.name, bytes, classLoaderStructure(), new File("/foo"), usesInternalServices)
 
         when:
         serializer.write(encoder, spec)
@@ -44,10 +45,12 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.implementationClassName == spec.implementationClassName
         decodedSpec.serializedParameters == spec.serializedParameters
         decodedSpec.classLoaderStructure == spec.classLoaderStructure
+        decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
+        decodedSpec.internalServicesRequired
     }
 
     def "can serialize and deserialize a spec with a flat classloader structure"() {
-        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class.name, bytes, flatClassLoaderStructure())
+        def spec = new TransportableActionExecutionSpec("test spec", Runnable.class.name, bytes, flatClassLoaderStructure(), new File("/foo"), usesInternalServices)
 
         when:
         serializer.write(encoder, spec)
@@ -63,6 +66,8 @@ class TransportableActionExecutionSpecSerializerTest extends Specification {
         decodedSpec.serializedParameters == spec.serializedParameters
         decodedSpec.classLoaderStructure instanceof FlatClassLoaderStructure
         decodedSpec.classLoaderStructure.spec == null
+        decodedSpec.baseDir.canonicalPath == spec.baseDir.canonicalPath
+        decodedSpec.internalServicesRequired
     }
 
     def filteringClassloaderSpec() {

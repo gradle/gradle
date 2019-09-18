@@ -20,17 +20,16 @@ import org.gradle.internal.isolation.Isolatable;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
-public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> implements ActionExecutionSpec<T> {
-    private final String displayName;
+import java.io.File;
+
+public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> extends AbstractActionExecutionSpec<T> {
     private final Class<? extends WorkAction<T>> implementationClass;
     private final Isolatable<T> isolatedParams;
-    private final ClassLoaderStructure classLoaderStructure;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure) {
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+        super(displayName, baseDir, usesInternalServices, classLoaderStructure);
         this.implementationClass = implementationClass;
-        this.displayName = displayName;
         this.isolatedParams = isolatedParams;
-        this.classLoaderStructure = classLoaderStructure;
     }
 
     @Override
@@ -39,18 +38,8 @@ public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> imp
     }
 
     @Override
-    public String getDisplayName() {
-        return displayName;
-    }
-
-    @Override
     public T getParameters() {
         return isolatedParams.isolate();
-    }
-
-    @Override
-    public ClassLoaderStructure getClassLoaderStructure() {
-        return classLoaderStructure;
     }
 
     public Isolatable<T> getIsolatedParams() {
