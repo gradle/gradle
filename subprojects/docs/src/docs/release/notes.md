@@ -103,6 +103,11 @@ To ensure Windows batch scripts retain the appropriate line endings, `gradle ini
 
 This was contributed by [Tom Eyckmans](https://github.com/teyckmans).
 
+## Improved Java/Groovy compilation avoidance
+
+The class analysis used as part of the incremental compilation will now exclude any classes that are an implementation details.
+It will help Gradle narrow the number of classes to recompile implementation detail changes.
+
 ## Features for plugin authors
 
 ### ConfigurableFileTree managed property methods
