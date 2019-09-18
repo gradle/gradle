@@ -288,6 +288,22 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    def "no problems with Copy task"() {
+        file("input.txt").text = "input"
+
+        javaTaskSource << """
+            public class MyTask extends org.gradle.api.tasks.Copy {
+                public MyTask() {
+                    from("input.txt");
+                    setDestinationDir(new java.io.File("output"));
+                }
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+    }
+
     enum Severity {
         WARNING("Warning"), ERROR("Error");
 

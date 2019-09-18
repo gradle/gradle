@@ -64,15 +64,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
-    def "no problems with Copy task"() {
-        file("src/main/java/MyTask.java") << """
-            public class MyTask extends org.gradle.api.tasks.Copy {}
-        """
-
-        expect:
-        succeeds "validatePlugins"
-    }
-
     def "does not report missing properties for Provider types"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
