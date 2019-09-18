@@ -24,7 +24,5 @@ import org.gradle.tooling.events.StartEvent;
  *
  * @since 6.0
  */
-public interface TestOutputStartProgressEvent extends TestOutputProgressEvent, StartEvent {
-
-    TestOutputDescriptor getDescriptor();
+public interface TestOutputProgressEvent extends ProgressEvent {
 }

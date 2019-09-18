@@ -16,11 +16,10 @@
 
 package org.gradle.tooling.events.test.internal;
 
-import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
-import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationResult;
+import org.gradle.tooling.events.test.TestOutputDescriptor;
 import org.gradle.tooling.events.test.TestOutputFinishProgressEvent;
 
 /**
@@ -28,18 +27,12 @@ import org.gradle.tooling.events.test.TestOutputFinishProgressEvent;
  */
 public final class DefaultTestOutputFinishEvent extends DefaultFinishEvent implements TestOutputFinishProgressEvent {
 
-    public DefaultTestOutputFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, OperationResult result) {
-        super(eventTime, displayName, descriptor, result);
+    public DefaultTestOutputFinishEvent(long eventTime, String displayName, TestOutputDescriptor descriptor) {
+        super(eventTime, displayName, descriptor, null);
     }
 
     @Override
-    public TestOperationDescriptor getDescriptor() {
-        return (TestOperationDescriptor) super.getDescriptor();
+    public TestOutputDescriptor getDescriptor() {
+        return (TestOutputDescriptor) super.getDescriptor();
     }
-
-    @Override
-    public TestOperationResult getResult() {
-        return (TestOperationResult) super.getResult();
-    }
-
 }

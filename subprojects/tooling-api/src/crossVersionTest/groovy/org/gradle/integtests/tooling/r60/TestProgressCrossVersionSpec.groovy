@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.test.TestOutputFinishProgressEvent
 import org.gradle.tooling.events.test.TestOutputStartProgressEvent
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
@@ -48,7 +49,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def events = []
+        def startEvents = []
+        def finishEvents = []
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(
@@ -57,16 +59,21 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
                         @Override
                         void statusChanged(ProgressEvent event) {
                             if (event instanceof TestOutputStartProgressEvent) {
-                                events << event
+                                startEvents << event
+                            } else if (event instanceof TestOutputFinishProgressEvent) {
+                                finishEvents << event
                             }
+
                         }
                     }
                 ).run()
         }
 
         then:
-        events.find { event -> event.descriptor.message == "Winged Hussars" && event.descriptor.destination == "StdOut" }
-        events.find { event -> event.descriptor.message == "The Last Battle" && event.descriptor.destination == "StdErr" }
+        startEvents.find { event -> event.descriptor.message == "Winged Hussars" && event.descriptor.destination == "StdOut" }
+        startEvents.find { event -> event.descriptor.message == "The Last Battle" && event.descriptor.destination == "StdErr" }
+        finishEvents.find { event -> event.descriptor.message == "Winged Hussars" && event.descriptor.destination == "StdOut" }
+        finishEvents.find { event -> event.descriptor.message == "The Last Battle" && event.descriptor.destination == "StdErr" }
     }
 
     def goodCode() {

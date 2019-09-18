@@ -22,7 +22,7 @@ import org.gradle.tooling.events.ProgressEvent;
 /**
  * An event that informs about a test having started its execution.
  *
- * @since 2.4
+ * @since 6.0
  */
-public interface TestOutputFinishProgressEvent extends ProgressEvent, FinishEvent {
+public interface TestOutputFinishProgressEvent extends TestOutputProgressEvent, FinishEvent {
 }
