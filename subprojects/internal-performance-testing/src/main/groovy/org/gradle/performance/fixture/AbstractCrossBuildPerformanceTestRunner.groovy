@@ -36,7 +36,7 @@ abstract class AbstractCrossBuildPerformanceTestRunner extends AbstractGradleBui
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            builder.invocation.distribution(gradleDistribution)
+            ((GradleBuildExperimentSpec.GradleBuilder) builder).invocation.distribution(gradleDistribution)
         }
     }
 

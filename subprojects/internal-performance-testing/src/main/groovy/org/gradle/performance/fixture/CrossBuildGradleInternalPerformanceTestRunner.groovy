@@ -24,7 +24,17 @@ import org.gradle.performance.results.ResultsStore
 
 @CompileStatic
 class CrossBuildGradleInternalPerformanceTestRunner extends AbstractCrossBuildPerformanceTestRunner {
-    CrossBuildGradleInternalPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+    CrossBuildGradleInternalPerformanceTestRunner(GradleInternalBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
+    }
+
+    BuildExperimentListener buildExperimentListener
+    InvocationCustomizer invocationCustomizer
+
+    @Override
+    protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+        super.defaultSpec(builder)
+        builder.setListener(buildExperimentListener)
+        builder.setInvocationCustomizer(invocationCustomizer)
     }
 }

@@ -50,8 +50,6 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
         String projectName
         File workingDirectory
         MavenInvocationSpec.InvocationBuilder invocation = MavenInvocationSpec.builder()
-        List<Function<InvocationSettings, BuildMutator>> buildMutators
-        ImmutableList<String> measuredBuildOperations
 
         Integer warmUpCount
         Integer invocationCount
@@ -90,6 +88,26 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
         MavenBuilder invocationCustomizer(InvocationCustomizer invocationCustomizer) {
             this.invocationCustomizer = invocationCustomizer
             this
+        }
+
+        @Override
+        void setBuildMutators(ImmutableList<Function<InvocationSettings, BuildMutator>> mutators) {
+            throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
+        }
+
+        @Override
+        ImmutableList<Function<InvocationSettings, BuildMutator>> getBuildMutators() {
+            return null
+        }
+
+        @Override
+        void setMeasuredBuildOperations(ImmutableList<String> measuredBuildOperations) {
+            throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
+        }
+
+        @Override
+        ImmutableList<String> getMeasuredBuildOperations() {
+            return null
         }
 
         BuildExperimentSpec build() {

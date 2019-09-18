@@ -41,6 +41,9 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
     List<Object> jvmOpts = []
     List<Object> mvnArgs = []
 
+    BuildExperimentListener buildExperimentListener
+    InvocationCustomizer invocationCustomizer
+
     int warmUpRuns = 4
     int runs = 12
 
@@ -52,6 +55,8 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
+        builder.setListener(buildExperimentListener)
+        builder.setInvocationCustomizer(invocationCustomizer)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             ((GradleInvocationSpec.InvocationBuilder) builder.invocation).distribution(gradleDistribution)
         }

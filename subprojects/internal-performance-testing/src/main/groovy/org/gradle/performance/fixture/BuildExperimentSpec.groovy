@@ -68,11 +68,11 @@ abstract class BuildExperimentSpec {
         InvocationCustomizer getInvocationCustomizer()
         void setInvocationCustomizer(InvocationCustomizer invocationCustomizer)
 
-        void setBuildMutators(List<Function<InvocationSettings, BuildMutator>> mutators)
-        List<Function<InvocationSettings, BuildMutator>> getBuildMutators()
+        void setBuildMutators(ImmutableList<Function<InvocationSettings, BuildMutator>> mutators)
+        ImmutableList<Function<InvocationSettings, BuildMutator>> getBuildMutators()
 
         void setMeasuredBuildOperations(ImmutableList<String> measuredBuildOperations)
-        List<String> getMeasuredBuildOperations()
+        ImmutableList<String> getMeasuredBuildOperations()
 
         InvocationSpec.Builder getInvocation()
 
