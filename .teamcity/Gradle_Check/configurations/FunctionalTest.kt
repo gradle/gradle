@@ -10,7 +10,7 @@ import model.TestType
 class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProjects: List<String> = listOf(), stage: Stage, buildTypeName: String = "", extraParameters: String = "") : BaseGradleBuildType(model, stage = stage, init = {
     uuid = testCoverage.asConfigurationId(model, buildTypeName)
     id = AbsoluteId(uuid)
-    name = testCoverage.asName() + if (buildTypeName.isEmpty()) "" else " ($buildTypeName)"
+    name = testCoverage.asName() + " (" + (if (buildTypeName.contains("_")) buildTypeName else subProjects.joinToString(", ")) + ")"
     description = "${testCoverage.asName()} for ${when (subProjects.size) {
         0 -> "all projects "
         1 -> "project ${if (buildTypeName.isEmpty()) subProjects[0] else buildTypeName}"
