@@ -105,45 +105,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    def "detects annotations on non-property methods"() {
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import java.io.File;
-
-            public class MyTask extends DefaultTask {
-                @Input
-                public String notAGetter() {
-                    return "not-a-getter";
-                }
-
-                @Nested
-                public Options getOptions() {
-                    return new Options();
-                }
-
-                public static class Options {
-                    @Input
-                    public String notANestedGetter() {
-                        return "not-a-nested-getter";
-                    }
-                }
-
-                @TaskAction
-                public void doStuff() { }
-            }
-        """
-
-        when:
-        fails "validatePlugins"
-
-        then:
-        reportFileContents() == """
-            Warning: Type 'MyTask\$Options': non-property method 'notANestedGetter()' should not be annotated with: @Input
-            Warning: Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input
-            """.stripIndent().trim()
-    }
-
     def "detects annotations on setter methods"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;

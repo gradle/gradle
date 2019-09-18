@@ -498,6 +498,42 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    def "detects annotations on non-property methods"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public String notAGetter() {
+                    return "not-a-getter";
+                }
+
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                public static class Options {
+                    @Input
+                    public String notANestedGetter() {
+                        return "not-a-nested-getter";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask\$Options': non-property method 'notANestedGetter()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input": WARNING,
+        )
+    }
+
     enum Severity {
         /**
          * A validation warning, emitted as a deprecation warning during runtime.
