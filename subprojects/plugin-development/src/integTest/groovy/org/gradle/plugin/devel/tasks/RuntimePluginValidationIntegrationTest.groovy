@@ -33,7 +33,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     @Override
     void assertValidationSucceeds() {
         succeeds "run"
-        executedAndNotSkipped ":run"
+        result.assertTaskNotSkipped(":run")
     }
 
     @Override
@@ -54,7 +54,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         } else {
             succeeds "run"
         }
-        executedAndNotSkipped ":run"
+        result.assertTaskNotSkipped(":run")
 
         expectedWarnings.forEach { warning ->
             // TODO Replace this with logging the type related to the property during runtime validation, too
