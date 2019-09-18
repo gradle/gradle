@@ -345,7 +345,3 @@ If you need to do this, then you will need to create additional variants followi
 
 [NOTE]
 Future versions of Gradle will provide ways to automatically build for different Java platforms.
-
-[[producing-different-artifacts]]
-=== Producing different artifacts
-
