@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.events;
 import org.gradle.tooling.internal.protocol.events.InternalTestResult;
 
 public abstract class AbstractTestResult extends AbstractResult implements InternalTestResult {
-
     protected AbstractTestResult(long startTime, long endTime, String outcomeDescription) {
         super(startTime, endTime, outcomeDescription);
     }

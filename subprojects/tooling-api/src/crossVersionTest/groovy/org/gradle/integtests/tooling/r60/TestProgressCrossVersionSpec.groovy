@@ -21,11 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.test.TestFailureResult2
-import org.gradle.tooling.events.test.TestFinishEvent
 import org.gradle.tooling.events.test.TestOutputStartProgressEvent
-import org.gradle.tooling.events.test.TestSuccessResult2
-import org.gradle.tooling.events.test.internal.DefaultTestFinishEvent
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 

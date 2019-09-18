@@ -15,7 +15,7 @@
  */
 
 
-package org.gradle.integtests.tooling.r26
+package org.gradle.integtests.tooling.r25
 
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -35,7 +35,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
-
     def "receive test progress events when requesting a model"() {
         given:
         goodCode()

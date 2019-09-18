@@ -28,12 +28,9 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.NoMatchingTestsReporter;
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
 import org.gradle.api.internal.tasks.testing.TestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter;
 import org.gradle.api.internal.tasks.testing.junit.result.Binary2JUnitXmlReportGenerator;
 import org.gradle.api.internal.tasks.testing.junit.result.InMemoryTestResultsProvider;
@@ -79,7 +76,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.ClosureBackedAction;
-import org.gradle.api.internal.tasks.testing.TestOutputCollectingListener;
 import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -481,10 +477,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
             resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
         }
 
-        TestOutputCollectingListener outputCollector = new TestOutputCollectingListener(resultProcessorDelegate);
-        addTestOutputListener(outputCollector);
-
-        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate, outputCollector);
+        TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
 
         try {
             testExecuter.execute(executionSpec, resultProcessor);

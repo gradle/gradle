@@ -314,52 +314,6 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         }
     }
 
-    def "convert to TestSuiteSucceededEvent with test output"() {
-        given:
-        def listener = Mock(ProgressListener)
-        def adapter = createAdapter(listener)
-
-        when:
-        def testDescriptor = Mock(InternalJvmTestDescriptor)
-        _ * testDescriptor.getId() >> 1
-        _ * testDescriptor.getName() >> 'some test suite'
-        _ * testDescriptor.getTestKind() >> InternalJvmTestDescriptor.KIND_SUITE
-        _ * testDescriptor.getParentId() >> null
-
-        def startEvent = Mock(InternalTestStartedProgressEvent)
-        _ * startEvent.getEventTime() >> 999
-        _ * startEvent.getDescriptor() >> testDescriptor
-
-        def testResult = Mock(InternalTestSuccessResult2)
-        _ * testResult.getStartTime() >> 1
-        _ * testResult.getEndTime() >> 2
-        _ * testResult.getOutput() >> 'test output'
-        _ * testResult.getError() >> 'test error'
-
-        def succeededEvent = Mock(InternalTestFinishedProgressEvent)
-        _ * succeededEvent.getEventTime() >> 999
-        _ * succeededEvent.getDisplayName() >> 'test suite succeeded'
-        _ * succeededEvent.getDescriptor() >> testDescriptor
-        _ * succeededEvent.getResult() >> testResult
-
-        adapter.onEvent(startEvent) // succeededEvent always assumes a previous startEvent
-        adapter.onEvent(succeededEvent)
-
-        then:
-        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == 'test suite succeeded'
-            assert event.descriptor.name == 'some test suite'
-            assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
-            assert event.descriptor.parent == null
-            assert event.result instanceof TestSuccessResult2
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.output == 'test output'
-            assert event.result.error == 'test error'
-        }
-    }
-
     def "convert to TestSuiteFailedEvent"() {
         given:
         def listener = Mock(ProgressListener)
@@ -401,54 +355,6 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
             assert event.result.startTime == 1
             assert event.result.endTime == 2
             assert event.result.failures.size() == 1
-        }
-    }
-
-    def "convert to TestSuiteFailedEvent with test output"() {
-        given:
-        def listener = Mock(ProgressListener)
-        def adapter = createAdapter(listener)
-
-        when:
-        def testDescriptor = Mock(InternalJvmTestDescriptor)
-        _ * testDescriptor.getId() >> 1
-        _ * testDescriptor.getName() >> 'some test suite'
-        _ * testDescriptor.getTestKind() >> InternalJvmTestDescriptor.KIND_SUITE
-        _ * testDescriptor.getParentId() >> null
-
-        def startEvent = Mock(InternalTestStartedProgressEvent)
-        _ * startEvent.getEventTime() >> 999
-        _ * startEvent.getDescriptor() >> testDescriptor
-
-        def testResult = Mock(InternalTestFailureResult2)
-        _ * testResult.getStartTime() >> 1
-        _ * testResult.getEndTime() >> 2
-        _ * testResult.getFailures() >> [Stub(InternalFailure)]
-        _ * testResult.getOutput() >> 'test output'
-        _ * testResult.getError() >> 'test error'
-
-        def failedEvent = Mock(InternalTestFinishedProgressEvent)
-        _ * failedEvent.getEventTime() >> 999
-        _ * failedEvent.getDisplayName() >> 'test suite failed'
-        _ * failedEvent.getDescriptor() >> testDescriptor
-        _ * failedEvent.getResult() >> testResult
-
-        adapter.onEvent(startEvent) // failedEvent always assumes a previous startEvent
-        adapter.onEvent(failedEvent)
-
-        then:
-        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "test suite failed"
-            assert event.descriptor.name == 'some test suite'
-            assert event.descriptor.jvmTestKind == JvmTestKind.SUITE
-            assert event.descriptor.parent == null
-            assert event.result instanceof TestFailureResult2
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.failures.size() == 1
-            assert event.result.output == 'test output'
-            assert event.result.error == 'test error'
         }
     }
 
@@ -571,55 +477,6 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
         }
     }
 
-    def "convert to TestSucceededEvent with test output"() {
-        given:
-        def listener = Mock(ProgressListener)
-        def adapter = createAdapter(listener)
-
-        when:
-        def testDescriptor = Mock(InternalJvmTestDescriptor)
-        _ * testDescriptor.getId() >> 1
-        _ * testDescriptor.getName() >> 'some test'
-        _ * testDescriptor.getTestKind() >> InternalJvmTestDescriptor.KIND_ATOMIC
-        _ * testDescriptor.getClassName() >> 'Foo'
-        _ * testDescriptor.getParentId() >> null
-
-        def startEvent = Mock(InternalTestStartedProgressEvent)
-        _ * startEvent.getEventTime() >> 999
-        _ * startEvent.getDescriptor() >> testDescriptor
-
-        def testResult = Mock(InternalTestSuccessResult2)
-        _ * testResult.getStartTime() >> 1
-        _ * testResult.getEndTime() >> 2
-        _ * testResult.getOutput() >> 'test output'
-        _ * testResult.getError() >> 'test error'
-
-
-        def succeededEvent = Mock(InternalTestFinishedProgressEvent)
-        _ * succeededEvent.getEventTime() >> 999
-        _ * succeededEvent.getDisplayName() >> 'test succeeded'
-        _ * succeededEvent.getDescriptor() >> testDescriptor
-        _ * succeededEvent.getResult() >> testResult
-
-        adapter.onEvent(startEvent) // succeededEvent always assumes a previous startEvent
-        adapter.onEvent(succeededEvent)
-
-        then:
-        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "test succeeded"
-            assert event.descriptor.name == 'some test'
-            assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
-            assert event.descriptor.className == 'Foo'
-            assert event.descriptor.parent == null
-            assert event.result instanceof TestSuccessResult2
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.output == 'test output'
-            assert event.result.error == 'test error'
-        }
-    }
-
     def "convert to TestFailedEvent"() {
         given:
         def listener = Mock(ProgressListener)
@@ -663,56 +520,6 @@ class BuildProgressListenerAdapterForTestOperationsTest extends Specification {
             assert event.result.startTime == 1
             assert event.result.endTime == 2
             assert event.result.failures.size() == 1
-        }
-    }
-
-    def "convert to TestFailedEvent with test output"() {
-        given:
-        def listener = Mock(ProgressListener)
-        def adapter = createAdapter(listener)
-
-        when:
-        def testDescriptor = Mock(InternalJvmTestDescriptor)
-        _ * testDescriptor.getId() >> 1
-        _ * testDescriptor.getName() >> 'some test'
-        _ * testDescriptor.getTestKind() >> InternalJvmTestDescriptor.KIND_ATOMIC
-        _ * testDescriptor.getClassName() >> 'Foo'
-        _ * testDescriptor.getParentId() >> null
-
-        def startEvent = Mock(InternalTestStartedProgressEvent)
-        _ * startEvent.getEventTime() >> 999
-        _ * startEvent.getDescriptor() >> testDescriptor
-
-        def testResult = Mock(InternalTestFailureResult2)
-        _ * testResult.getStartTime() >> 1
-        _ * testResult.getEndTime() >> 2
-        _ * testResult.getFailures() >> [Stub(InternalFailure)]
-        _ * testResult.getOutput() >> 'test output'
-        _ * testResult.getError() >> 'test error'
-
-        def failedEvent = Mock(InternalTestFinishedProgressEvent)
-        _ * failedEvent.getEventTime() >> 999
-        _ * failedEvent.getDisplayName() >> 'test failed'
-        _ * failedEvent.getDescriptor() >> testDescriptor
-        _ * failedEvent.getResult() >> testResult
-
-        adapter.onEvent(startEvent) // failedEvent always assumes a previous startEvent
-        adapter.onEvent(failedEvent)
-
-        then:
-        1 * listener.statusChanged(_ as TestFinishEvent) >> { TestFinishEvent event ->
-            assert event.eventTime == 999
-            assert event.displayName == "test failed"
-            assert event.descriptor.name == 'some test'
-            assert event.descriptor.jvmTestKind == JvmTestKind.ATOMIC
-            assert event.descriptor.className == 'Foo'
-            assert event.descriptor.parent == null
-            assert event.result instanceof TestFailureResult
-            assert event.result.startTime == 1
-            assert event.result.endTime == 2
-            assert event.result.failures.size() == 1
-            assert event.result.output == 'test output'
-            assert event.result.error == 'test error'
         }
     }
 

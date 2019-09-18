@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 

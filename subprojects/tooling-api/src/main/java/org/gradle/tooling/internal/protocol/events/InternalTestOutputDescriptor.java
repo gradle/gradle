@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
- * @since 5.1
+ * @since 6.0
  */
 public interface InternalTestOutputDescriptor extends InternalOperationDescriptor {
 

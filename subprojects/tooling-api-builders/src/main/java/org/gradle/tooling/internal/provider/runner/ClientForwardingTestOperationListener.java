@@ -37,14 +37,14 @@ import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTestResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult2;
+import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestOutputDescriptor;
 import org.gradle.tooling.internal.provider.events.DefaultTestOutputFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestOutputStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult2; // TODO use original DefaultTestSuccessResult if no output is filtered
+import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -160,11 +160,11 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         TestResult.ResultType resultType = result.getResultType();
         switch (resultType) {
             case SUCCESS:
-                return new DefaultTestSuccessResult2(result.getStartTime(), result.getEndTime(), result.getOutput(), result.getError());
+                return new DefaultTestSuccessResult(result.getStartTime(), result.getEndTime());
             case SKIPPED:
                 return new DefaultTestSkippedResult(result.getStartTime(), result.getEndTime());
             case FAILURE:
-                return new DefaultTestFailureResult2(result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()), result.getOutput(), result.getError());
+                return new DefaultTestFailureResult(result.getStartTime(), result.getEndTime(), convertExceptions(result.getExceptions()));
             default:
                 throw new IllegalStateException("Unknown test result type: " + resultType);
         }

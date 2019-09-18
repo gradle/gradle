@@ -32,10 +32,8 @@ public interface TestFinishEvent extends TestProgressEvent, FinishEvent {
      *
      * <ul>
      *     <li>{@link TestSuccessResult}</li>
-     *     <li>{@link TestSuccessResult2}</li>
      *     <li>{@link TestSkippedResult}</li>
      *     <li>{@link TestFailureResult}</li>
-     *     <li>{@link TestFailureResult2}</li>
      * </ul>
      *
      * @return the result of the finished test operation
