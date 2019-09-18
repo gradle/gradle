@@ -19,31 +19,12 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.model.ReplacedBy
 import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Console
-import org.gradle.api.tasks.Destroys
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
-import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.LocalState
-import org.gradle.api.tasks.Nested
-import org.gradle.api.tasks.OutputDirectories
-import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.OutputFiles
-import org.gradle.api.tasks.options.OptionValues
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
-
-import javax.inject.Inject
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -55,6 +36,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 implementation gradleApi()
             }
         """
+    }
+
+    @Override
+    void assertValidationSucceeds() {
+        succeeds "validatePlugins"
     }
 
     @Override
@@ -77,44 +63,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     @Override
     TestFile source(String path) {
         return file("src/main/$path")
-    }
-
-    @Unroll
-    def "task can have property with annotation @#annotation.simpleName"() {
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.model.*;
-            import org.gradle.api.tasks.*;
-
-            public class MyTask extends DefaultTask {
-                @${application}
-                ${type.name} getThing() {
-                    return null;
-                }
-            }
-        """
-
-        expect:
-        succeeds("validatePlugins")
-
-        where:
-        annotation        | application                   | type
-        Inject            | Inject.name                   | ObjectFactory
-        OptionValues      | "${OptionValues.name}(\"a\")" | List
-        Internal          | 'Internal'                    | String
-        ReplacedBy        | 'ReplacedBy("")'              | String
-        Console           | 'Console'                     | Boolean
-        Destroys          | 'Destroys'                    | FileCollection
-        LocalState        | 'LocalState'                  | FileCollection
-        InputFile         | 'InputFile'                   | File
-        InputFiles        | 'InputFiles'                  | Set
-        InputDirectory    | 'InputDirectory'              | File
-        Input             | 'Input'                       | String
-        OutputFile        | 'OutputFile'                  | File
-        OutputFiles       | 'OutputFiles'                 | Map
-        OutputDirectory   | 'OutputDirectory'             | File
-        OutputDirectories | 'OutputDirectories'           | Map
-        Nested            | 'Nested'                      | List
     }
 
     @Unroll

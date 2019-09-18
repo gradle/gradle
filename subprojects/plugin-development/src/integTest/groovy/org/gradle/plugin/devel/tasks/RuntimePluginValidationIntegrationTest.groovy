@@ -31,6 +31,11 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     }
 
     @Override
+    void assertValidationSucceeds() {
+        succeeds "run"
+    }
+
+    @Override
     void assertValidationFailsWith(Map<String, Severity> messages) {
         def expectedWarnings = messages
             .findAll { message, severity -> severity == WARNING }

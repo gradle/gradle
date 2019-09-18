@@ -16,8 +16,28 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.api.file.FileCollection
+import org.gradle.api.model.ObjectFactory
+import org.gradle.api.model.ReplacedBy
+import org.gradle.api.tasks.Console
+import org.gradle.api.tasks.Destroys
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.LocalState
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.OutputDirectories
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Unroll
+
+import javax.inject.Inject
 
 import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
 
@@ -108,6 +128,52 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    @Unroll
+    def "task can have property with annotation @#annotation.simpleName"() {
+        file("input.txt").text = "input"
+        file("input").createDir()
+
+        source << """
+            import org.gradle.api.*;
+            import org.gradle.api.model.*;
+            import org.gradle.api.tasks.*;
+
+            import java.io.File;
+            import java.util.*;
+
+            public class MyTask extends DefaultTask {
+                @${application}
+                public ${type.name} getThing() {
+                    return ${value};
+                }
+                
+                @TaskAction void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+
+        where:
+        annotation        | application                   | type           | value
+        Inject            | Inject.name                   | ObjectFactory  | null
+        OptionValues      | "${OptionValues.name}(\"a\")" | List           | null
+        Internal          | 'Internal'                    | String         | null
+        ReplacedBy        | 'ReplacedBy("")'              | String         | null
+        Console           | 'Console'                     | Boolean        | null
+        Destroys          | 'Destroys'                    | FileCollection | null
+        LocalState        | 'LocalState'                  | FileCollection | null
+        InputFile         | 'InputFile'                   | File           | "new File(\"input.txt\")"
+        InputFiles        | 'InputFiles'                  | Set            | "new HashSet()"
+        InputDirectory    | 'InputDirectory'              | File           | "new File(\"input\")"
+        Input             | 'Input'                       | String         | "\"value\""
+        OutputFile        | 'OutputFile'                  | File           | "new File(\"output.txt\")"
+        OutputFiles       | 'OutputFiles'                 | Map            | "new HashMap<String, File>()"
+        OutputDirectory   | 'OutputDirectory'             | File           | "new File(\"output\")"
+        OutputDirectories | 'OutputDirectories'           | Map            | "new HashMap<String, File>()"
+        Nested            | 'Nested'                      | List           | "new ArrayList()"
+    }
+
     enum Severity {
         WARNING("Warning"), ERROR("Error");
 
@@ -122,6 +188,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             return displayName
         }
     }
+
+    abstract void assertValidationSucceeds()
 
     abstract void assertValidationFailsWith(Map<String, Severity> messages)
 
