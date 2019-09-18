@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -30,14 +29,11 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.plugins.ObjectConfigurationAction
-import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
-
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.delegates.GradleDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
@@ -57,7 +53,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
 /**
  * Base class for Kotlin init scripts.
  */
-@KotlinScriptTemplate
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")
@@ -69,32 +64,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
 ])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
-    private val host: KotlinScriptHost<Gradle>
-) : InitScriptApi(host.target) {
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    val initscript
-        get() = host.scriptHandler
-
-    /**
-     * Applies zero or more plugins or scripts.
-     * <p>
-     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
-     * <p>
-     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
-     * @see [PluginAware.apply]
-     */
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.applyObjectConfigurationAction(action)
-
-    override val fileOperations
-        get() = host.fileOperations
-
-    override val processOperations
-        get() = host.processOperations
-}
+    host: KotlinScriptHost<Gradle>
+) : CompiledKotlinInitScript(host), Gradle /* TODO:kotlin-dsl configure as implicit receiver */
 
 
 /**
@@ -102,14 +73,17 @@ abstract class KotlinInitScript(
  * precompiled and otherwise.
  */
 abstract class InitScriptApi(
-    override val delegate: Gradle
-) : GradleDelegate() {
+    internal val delegate: Gradle
+) {
 
-    protected
+    internal
     abstract val fileOperations: FileOperations
 
-    protected
+    internal
     abstract val processOperations: ProcessOperations
+
+    open val initscript: ScriptHandler
+        get() = internalError()
 
     /**
      * Configures the classpath of the init script.
@@ -130,7 +104,7 @@ abstract class InitScriptApi(
      * and `System.err` is redirected at the `ERROR` log level.
      */
     @Suppress("unused")
-    val logging by unsafeLazy { gradle.serviceOf<LoggingManager>() }
+    val logging by unsafeLazy { delegate.serviceOf<LoggingManager>() }
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.

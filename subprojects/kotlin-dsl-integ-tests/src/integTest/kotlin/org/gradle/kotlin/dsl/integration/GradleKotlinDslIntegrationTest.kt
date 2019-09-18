@@ -416,11 +416,12 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `script plugin can by applied to either Project or Settings`() {
+    fun `script plugin can be applied to either Project or Settings`() {
 
         withFile("common.gradle.kts", """
-            println("Target is Settings? ${"$"}{Settings::class.java.isAssignableFrom(this::class.java)}")
-            println("Target is Project? ${"$"}{Project::class.java.isAssignableFrom(this::class.java)}")
+            fun Project.targetName() = "Project"
+            fun Settings.targetName() = "Settings"
+            println("Target is " + targetName())
         """)
 
         withSettings("""
@@ -429,9 +430,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             build("help").output,
-            allOf(
-                containsString("Target is Settings? true"),
-                containsString("Target is Project? false")))
+            containsString("Target is Settings")
+        )
 
         withSettings("")
         withBuildScript("""
@@ -440,9 +440,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             build("help").output,
-            allOf(
-                containsString("Target is Settings? false"),
-                containsString("Target is Project? true")))
+            containsString("Target is Project")
+        )
     }
 
     @Test

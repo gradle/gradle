@@ -74,6 +74,15 @@ import java.io.File
 import java.io.OutputStream
 import java.io.PrintStream
 
+import kotlin.reflect.KClass
+
+import kotlin.script.experimental.api.ScriptCompilationConfiguration
+import kotlin.script.experimental.api.baseClass
+import kotlin.script.experimental.api.defaultImports
+import kotlin.script.experimental.api.hostConfiguration
+import kotlin.script.experimental.api.implicitReceivers
+import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
+
 
 fun compileKotlinScriptModuleTo(
     outputDirectory: File,
@@ -91,6 +100,27 @@ fun compileKotlinScriptModuleTo(
     classPath,
     LoggingMessageCollector(logger, pathTranslation)
 )
+
+
+fun scriptDefinitionFromTemplate(
+    template: KClass<out Any>,
+    implicitImports: List<String>,
+    implicitReceiver: KClass<*>? = null
+): ScriptDefinition {
+    val hostConfiguration = defaultJvmScriptingHostConfiguration
+    return ScriptDefinition.FromConfigurations(
+        hostConfiguration = hostConfiguration,
+        compilationConfiguration = ScriptCompilationConfiguration {
+            baseClass(template)
+            defaultImports(implicitImports)
+            hostConfiguration(hostConfiguration)
+            implicitReceiver?.let {
+                implicitReceivers(it)
+            }
+        },
+        evaluationConfiguration = null
+    )
+}
 
 
 internal

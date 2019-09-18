@@ -35,12 +35,13 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.delegates.SettingsDelegate
 import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -69,14 +70,20 @@ import kotlin.script.templates.ScriptTemplateDefinition
 ])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinSettingsScript(
+    host: KotlinScriptHost<Settings>
+) : SettingsScriptApi(host.target), Settings /* TODO:kotlin-dsl configure as implicit receiver */
+
+
+@ImplicitReceiver(Settings::class)
+abstract class CompiledKotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
-) : SettingsScriptApi(host.target) {
+) : SettingsScriptApi(host.target), PluginAware {
 
     /**
      * The [ScriptHandler] for this script.
      */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
+    val buildscript: ScriptHandler
+        get() = host.scriptHandler
 
     override val fileOperations
         get() = host.fileOperations
@@ -94,8 +101,8 @@ abstract class KotlinSettingsScript(
  * precompiled and otherwise.
  */
 abstract class SettingsScriptApi(
-    override val delegate: Settings
-) : SettingsDelegate() {
+    protected val delegate: Settings
+) {
 
     protected
     abstract val fileOperations: FileOperations
@@ -115,7 +122,7 @@ abstract class SettingsScriptApi(
      * and `System.err` is redirected at the `ERROR` log level.
      */
     @Suppress("unused")
-    val logging by unsafeLazy { settings.serviceOf<LoggingManager>() }
+    val logging by unsafeLazy { delegate.serviceOf<LoggingManager>() }
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
@@ -126,7 +133,7 @@ abstract class SettingsScriptApi(
     /**
      * Returns the relative path from this script's target base directory to the given path.
      *
-     * The given path object is (logically) resolved as described for [KotlinSettingsScript.file],
+     * The given path object is (logically) resolved as described for [SettingsScriptApi.file],
      * from which a relative path is calculated.
      *
      * @param path The path to convert to a relative path.
@@ -139,7 +146,7 @@ abstract class SettingsScriptApi(
     /**
      * Resolves a file path to a URI, relative to this script's target base directory.
      *
-     * Evaluates the provided path object as described for [KotlinSettingsScript.file],
+     * Evaluates the provided path object as described for [SettingsScriptApi.file],
      * with the exception that any URI scheme is supported, not just `file:` URIs.
      */
     @Suppress("unused")
@@ -184,7 +191,7 @@ abstract class SettingsScriptApi(
      * @param path The object to resolve as a `File`.
      * @param validation The validation to perform on the file.
      * @return The resolved file.
-     * @see KotlinSettingsScript.file
+     * @see SettingsScriptApi.file
      */
     @Suppress("unused")
     fun file(path: Any, validation: PathValidation): File =
@@ -195,12 +202,12 @@ abstract class SettingsScriptApi(
      *
      * You can pass any of the following types to this method:
      *
-     * - A [CharSequence], including [String] as defined by [KotlinSettingsScript.file].
-     * - A [File] as defined by [KotlinSettingsScript.file].
-     * - A [java.nio.file.Path] as defined by [KotlinSettingsScript.file].
-     * - A [URI] or [java.net.URL] as defined by [KotlinSettingsScript.file].
+     * - A [CharSequence], including [String] as defined by [SettingsScriptApi.file].
+     * - A [File] as defined by [SettingsScriptApi.file].
+     * - A [java.nio.file.Path] as defined by [SettingsScriptApi.file].
+     * - A [URI] or [java.net.URL] as defined by [SettingsScriptApi.file].
      * - A [org.gradle.api.file.Directory] or [org.gradle.api.file.RegularFile]
-     *   as defined by [KotlinSettingsScript.file].
+     *   as defined by [SettingsScriptApi.file].
      * - A [Sequence], [Array] or [Iterable] that contains objects of any supported type.
      *   The elements of the collection are recursively converted to files.
      * - A [org.gradle.api.file.FileCollection].
@@ -240,10 +247,10 @@ abstract class SettingsScriptApi(
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
      *
-     * @param paths The contents of the file collection. Evaluated as per [KotlinSettingsScript.files].
+     * @param paths The contents of the file collection. Evaluated as per [SettingsScriptApi.files].
      * @param configuration The block to use to configure the file collection.
      * @return The file collection.
-     * @see KotlinSettingsScript.files
+     * @see SettingsScriptApi.files
      */
     @Suppress("unused")
     fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
@@ -252,13 +259,13 @@ abstract class SettingsScriptApi(
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
      *
-     * The given `baseDir` path is evaluated as per [KotlinSettingsScript.file].
+     * The given `baseDir` path is evaluated as per [SettingsScriptApi.file].
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.
      *
-     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinSettingsScript.file].
+     * @param baseDir The base directory of the file tree. Evaluated as per [SettingsScriptApi.file].
      * @return The file tree.
      */
     @Suppress("unused")
@@ -268,10 +275,10 @@ abstract class SettingsScriptApi(
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
      *
-     * @param baseDir The base directory of the file tree. Evaluated as per [KotlinSettingsScript.file].
+     * @param baseDir The base directory of the file tree. Evaluated as per [SettingsScriptApi.file].
      * @param configuration The block to use to configure the file tree.
      * @return The file tree.
-     * @see [KotlinSettingsScript.fileTree]
+     * @see [SettingsScriptApi.fileTree]
      */
     @Suppress("unused")
     fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree =
@@ -280,15 +287,15 @@ abstract class SettingsScriptApi(
     /**
      * Creates a new [FileTree] which contains the contents of the given ZIP file.
      *
-     * The given `zipPath` path is evaluated as per [KotlinSettingsScript.file]
+     * The given `zipPath` path is evaluated as per [SettingsScriptApi.file]
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.
      *
-     * You can combine this method with the [KotlinSettingsScript.copy] method to unzip a ZIP file.
+     * You can combine this method with the [SettingsScriptApi.copy] method to unzip a ZIP file.
      *
-     * @param zipPath The ZIP file. Evaluated as per [KotlinSettingsScript.file].
+     * @param zipPath The ZIP file. Evaluated as per [SettingsScriptApi.file].
      * @return The file tree.
      */
     @Suppress("unused")
@@ -300,7 +307,7 @@ abstract class SettingsScriptApi(
      *
      * The given tarPath path can be:
      * - an instance of [org.gradle.api.resources.Resource],
-     * - any other object is evaluated as per [KotlinSettingsScript.file].
+     * - any other object is evaluated as per [SettingsScriptApi.file].
      *
      * The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
@@ -309,7 +316,7 @@ abstract class SettingsScriptApi(
      * Unless custom implementation of resources is passed,
      * the tar tree attempts to guess the compression based on the file extension.
      *
-     * You can combine this method with the [KotlinSettingsScript.copy] method to unzip a ZIP file.
+     * You can combine this method with the [SettingsScriptApi.copy] method to unzip a ZIP file.
      *
      * @param tarPath The TAR file or an instance of [org.gradle.api.resources.Resource].
      * @return The file tree.
@@ -350,7 +357,7 @@ abstract class SettingsScriptApi(
     /**
      * Creates a directory and returns a file pointing to it.
      *
-     * @param path The path for the directory to be created. Evaluated as per [KotlinSettingsScript.file].
+     * @param path The path for the directory to be created. Evaluated as per [SettingsScriptApi.file].
      * @return The created directory.
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
      */
@@ -361,9 +368,9 @@ abstract class SettingsScriptApi(
     /**
      * Deletes files and directories.
      *
-     * This will not follow symlinks. If you need to follow symlinks too use [KotlinSettingsScript.delete].
+     * This will not follow symlinks. If you need to follow symlinks too use [SettingsScriptApi.delete].
      *
-     * @param paths Any type of object accepted by [KotlinSettingsScript.file]
+     * @param paths Any type of object accepted by [SettingsScriptApi.file]
      * @return true if anything got deleted, false otherwise
      */
     @Suppress("unused")

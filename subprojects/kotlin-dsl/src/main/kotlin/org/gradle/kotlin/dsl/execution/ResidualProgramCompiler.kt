@@ -22,14 +22,15 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 
+import org.gradle.kotlin.dsl.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.KotlinBuildScript
-import org.gradle.kotlin.dsl.KotlinInitScript
-import org.gradle.kotlin.dsl.KotlinSettingsScript
 
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 
+import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
+import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.KotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.KotlinInitscriptBlock
@@ -61,6 +62,7 @@ import org.gradle.kotlin.dsl.support.bytecode.publicMethod
 
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
+import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 
 import org.gradle.plugin.management.internal.DefaultPluginRequests
 
@@ -78,12 +80,6 @@ import org.slf4j.Logger
 import java.io.File
 
 import kotlin.reflect.KClass
-
-import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.api.baseClass
-import kotlin.script.experimental.api.defaultImports
-import kotlin.script.experimental.api.hostConfiguration
-import kotlin.script.experimental.jvm.defaultJvmScriptingHostConfiguration
 
 
 internal
@@ -221,8 +217,9 @@ class ResidualProgramCompiler(
 
     private
     fun MethodVisitor.emitEval(source: ProgramSource) {
-        val precompiledScriptClass = compileStage1(source, stage1ScriptDefinition)
-        emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
+        val scriptDefinition = stage1ScriptDefinition
+        val precompiledScriptClass = compileStage1(source, scriptDefinition)
+        emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass, scriptDefinition)
     }
 
     private
@@ -294,10 +291,11 @@ class ResidualProgramCompiler(
 
     fun emitStage2ProgramFor(scriptFile: File, originalPath: String) {
 
+        val scriptDef = stage2ScriptDefinition
         val precompiledScriptClass = compileScript(
             scriptFile,
             originalPath,
-            stage2ScriptDefinition,
+            scriptDef,
             StableDisplayNameFor.stage2
         )
 
@@ -305,7 +303,10 @@ class ResidualProgramCompiler(
 
             overrideExecute {
 
-                emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass)
+                emitInstantiationOfPrecompiledScriptClass(
+                    precompiledScriptClass,
+                    scriptDef
+                )
             }
         }
     }
@@ -441,7 +442,8 @@ class ResidualProgramCompiler(
                 "Ljava/lang/String;" +
                 "Lorg/gradle/internal/hash/HashCode;" +
                 "Lorg/gradle/internal/classpath/ClassPath;" +
-                ")V")
+                ")V"
+        )
     }
 
     private
@@ -491,14 +493,32 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitInstantiationOfPrecompiledScriptClass(precompiledScriptClass: InternalName) {
+    fun MethodVisitor.emitInstantiationOfPrecompiledScriptClass(
+        precompiledScriptClass: InternalName,
+        scriptDefinition: ScriptDefinition
+    ) {
 
+        val implicitReceiver = implicitReceiverOf(scriptDefinition.baseClassType.fromClass!!)
         precompiledScriptClassInstantiation(precompiledScriptClass) {
 
             // ${precompiledScriptClass}(scriptHost)
             NEW(precompiledScriptClass)
-            ALOAD(Vars.ScriptHost)
-            INVOKESPECIAL(precompiledScriptClass, "<init>", kotlinScriptHostToVoid)
+            val constructorSignature =
+                if (implicitReceiver != null) {
+                    ALOAD(Vars.ScriptHost)
+                    ALOAD(Vars.ScriptHost)
+                    INVOKEVIRTUAL(
+                        KotlinScriptHost::class.internalName,
+                        "getTarget",
+                        "()Ljava/lang/Object;"
+                    )
+                    CHECKCAST(implicitReceiver)
+                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;L${implicitReceiver.internalName};)V"
+                } else {
+                    ALOAD(Vars.ScriptHost)
+                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)V"
+                }
+            INVOKESPECIAL(precompiledScriptClass, "<init>", constructorSignature)
         }
     }
 
@@ -656,8 +676,8 @@ class ResidualProgramCompiler(
         get() = scriptDefinitionFromTemplate(
             when (programTarget) {
                 ProgramTarget.Project -> KotlinBuildScript::class
-                ProgramTarget.Settings -> KotlinSettingsScript::class
-                ProgramTarget.Gradle -> KotlinInitScript::class
+                ProgramTarget.Settings -> CompiledKotlinSettingsScript::class
+                ProgramTarget.Gradle -> CompiledKotlinInitScript::class
             })
 
     private
@@ -668,27 +688,17 @@ class ResidualProgramCompiler(
     val buildscriptWithPluginsScriptDefinition
         get() = scriptDefinitionFromTemplate(KotlinBuildscriptAndPluginsBlock::class)
 
-
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
-        scriptDefinitionFromTemplate(template, implicitImports)
-}
+        scriptDefinitionFromTemplate(
+            template,
+            implicitImports,
+            implicitReceiverOf(template)
+        )
 
-
-fun scriptDefinitionFromTemplate(
-    template: KClass<out Any>,
-    implicitImports: List<String>
-): ScriptDefinition {
-    val hostConfiguration = defaultJvmScriptingHostConfiguration
-    return ScriptDefinition.FromConfigurations(
-        hostConfiguration = hostConfiguration,
-        compilationConfiguration = ScriptCompilationConfiguration {
-            baseClass(template)
-            defaultImports(implicitImports)
-            hostConfiguration(hostConfiguration)
-        },
-        evaluationConfiguration = null
-    )
+    private
+    fun implicitReceiverOf(template: KClass<*>) =
+        template.annotations.filterIsInstance<ImplicitReceiver>().map { it.type }.firstOrNull()
 }
 
 

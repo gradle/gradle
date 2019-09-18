@@ -294,6 +294,12 @@ fun MethodVisitor.PUTFIELD(owner: InternalName, name: String, desc: String) {
 
 
 internal
+fun MethodVisitor.CHECKCAST(type: KClass<*>) {
+    CHECKCAST(type.internalName)
+}
+
+
+internal
 fun MethodVisitor.CHECKCAST(type: InternalName) {
     visitTypeInsn(Opcodes.CHECKCAST, type)
 }

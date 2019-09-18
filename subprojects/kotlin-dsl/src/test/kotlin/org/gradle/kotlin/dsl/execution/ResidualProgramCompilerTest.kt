@@ -103,10 +103,10 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     @Test
     fun `Static(CloseTargetScope, Eval(source))`() {
 
-        val source =
-            ProgramSource(
-                "plugin.settings.gradle.kts",
-                "include(\"precompiled stage 2\")")
+        val source = ProgramSource(
+            "plugin.settings.gradle.kts",
+            "include(\"precompiled stage 2\")"
+        )
 
         val target = mock<Settings>()
         val programHost = mock<ExecutableProgram.Host>()
@@ -172,7 +172,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptTemplateId = stage2SettingsTemplateId,
                     // localClassPathHash = emptyHashCode, // only applicable once we have accessors
                     sourceHash = sourceHash,
-                    accessorsClassPath = null)
+                    accessorsClassPath = null
+                )
             }
 
             program.loadSecondStageFor(
@@ -180,7 +181,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 scriptHost,
                 stage2SettingsTemplateId,
                 sourceHash,
-                null)
+                null
+            )
 
             verify(programHost).compileSecondStageOf(
                 program,
@@ -197,10 +199,10 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     @Test
     fun `Dynamic(Static(ApplyDefaultPluginRequests, ApplyBasePlugins))`() {
 
-        val source =
-            ProgramSource(
-                "build.gradle.kts",
-                "task(\"precompiled stage 2\")")
+        val source = ProgramSource(
+            "build.gradle.kts",
+            "task(\"precompiled stage 2\")"
+        )
 
         val sourceHash = HashCode.fromInt(42)
         val target = mock<Project>()
@@ -229,7 +231,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptHost,
                     "Project/TopLevel/stage2",
                     sourceHash,
-                    accessorsClassPath)
+                    accessorsClassPath
+                )
 
                 verifyNoMoreInteractions()
             }
@@ -239,8 +242,10 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     @Test
     fun `Dynamic(Static(Eval(buildscript), CloseTargetScope))`() {
 
-        val buildscriptFragment =
-            fragment("buildscript", "println(\"stage 1\"); repositories")
+        val buildscriptFragment = fragment(
+            "buildscript",
+            "println(\"stage 1\"); repositories"
+        )
 
         val scriptSource =
             buildscriptFragment.source.map { text("println(\"stage 2\")") }
@@ -266,7 +271,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 ),
                 scriptSource
             ),
-            sourceHash) {
+            sourceHash
+        ) {
 
             val program = assertInstanceOf<ExecutableProgram.StagedProgram>(this)
 
@@ -282,7 +288,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptHost = scriptHost,
                     scriptTemplateId = stage2SettingsTemplateId,
                     sourceHash = sourceHash,
-                    accessorsClassPath = null)
+                    accessorsClassPath = null
+                )
             }
         }
     }
@@ -290,8 +297,11 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
     @Test
     fun `Static(ApplyPluginRequestsOf(plugins), ApplyBasePlugins)`() {
 
-        val fragment =
-            fragmentAtLine(3, "plugins", """id("stage-1")""")
+        val fragment = fragmentAtLine(
+            3,
+            "plugins",
+            """id("stage-1")"""
+        )
 
         val target = mock<Project>()
 
@@ -332,21 +342,25 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
         assertThat(
             pluginRequests.asIterable().map { it.toString() },
-            equalTo(listOf("[id: 'stage-1']")))
+            equalTo(listOf("[id: 'stage-1']"))
+        )
 
         assertThat(
             pluginRequests.single().lineNumber,
-            equalTo(3))
+            equalTo(3)
+        )
     }
 
     @Test
     fun `Dynamic(Static(ApplyPluginRequestsOf(plugins), ApplyBasePlugins))`() {
 
         val source = ProgramSource(
-            "build.gradle.kts", """
-            plugins { println("stage 1") }
-            print("stage 2")
-        """.replaceIndent())
+            "build.gradle.kts",
+            """
+                plugins { println("stage 1") }
+                print("stage 2")
+            """.replaceIndent()
+        )
 
         val fragment = source.fragment(0..6, 8..29)
         val stage1 = Program.Plugins(fragment)
@@ -356,7 +370,10 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
             stage2
         )
 
-        assertStagedTopLevelProjectProgram(stagedProgram, "stage 1\n")
+        assertStagedTopLevelProjectProgram(
+            stagedProgram,
+            "stage 1\n"
+        )
     }
 
     @Test
@@ -380,7 +397,10 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 stage2
             )
 
-        assertStagedTopLevelProjectProgram(stagedProgram, "stage 1\n")
+        assertStagedTopLevelProjectProgram(
+            stagedProgram,
+            "stage 1\n"
+        )
     }
 
     @Test
@@ -408,16 +428,17 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
         assertStagedTopLevelProjectProgram(
             stagedProgram,
-            expectedStage1Output = "stage 1 buildscript\nstage 1 plugins\n")
+            expectedStage1Output = "stage 1 buildscript\nstage 1 plugins\n"
+        )
     }
 
     @Test
     fun `Static(Eval(buildscript)) reports script exception back to host`() {
 
-        val fragment =
-            fragment(
-                "buildscript",
-                "throw IllegalStateException(\"BOOM!\")")
+        val fragment = fragment(
+            "buildscript",
+            "throw IllegalStateException(\"BOOM!\")"
+        )
 
         val programHost = mock<ExecutableProgram.Host>()
         val scriptHost = scriptHostWith(mock<Settings>())
@@ -430,7 +451,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                 verify(programHost).handleScriptException(
                     exception = any<IllegalStateException>(),
                     scriptClass = same(program.javaClass.classLoader.loadClass("Buildscript_gradle")),
-                    scriptHost = same(scriptHost))
+                    scriptHost = same(scriptHost)
+                )
             }
         }
     }
@@ -461,7 +483,13 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
             assertStandardOutputOf(expectedStage1Output) {
                 program.execute(programHost, scriptHost)
-                program.loadSecondStageFor(programHost, scriptHost, scriptTemplateId, sourceHash, accessorsClassPath)
+                program.loadSecondStageFor(
+                    programHost,
+                    scriptHost,
+                    scriptTemplateId,
+                    sourceHash,
+                    accessorsClassPath
+                )
             }
 
             assertThat(
@@ -473,7 +501,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
 
                 verify(programHost).applyPluginsTo(
                     scriptHost,
-                    DefaultPluginRequests.EMPTY)
+                    DefaultPluginRequests.EMPTY
+                )
 
                 verify(programHost).applyBasePluginsTo(target)
 
@@ -482,7 +511,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     scriptHost = scriptHost,
                     scriptTemplateId = scriptTemplateId,
                     sourceHash = sourceHash,
-                    accessorsClassPath = accessorsClassPath)
+                    accessorsClassPath = accessorsClassPath
+                )
 
                 verify(programHost).compileSecondStageOf(
                     program,
@@ -491,7 +521,8 @@ class ResidualProgramCompilerTest : TestWithTempFiles() {
                     sourceHash,
                     ProgramKind.TopLevel,
                     ProgramTarget.Project,
-                    accessorsClassPath)
+                    accessorsClassPath
+                )
 
                 verifyNoMoreInteractions()
             }

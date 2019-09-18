@@ -16,14 +16,25 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
 
+import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.plugins.PluginAware
+
+import org.gradle.kotlin.dsl.CompiledKotlinSettingsScript
+import org.gradle.kotlin.dsl.InitScriptApi
 import org.gradle.kotlin.dsl.KotlinBuildScript
-import org.gradle.kotlin.dsl.KotlinInitScript
-import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.ScriptHandlerScope
+
+import kotlin.reflect.KClass
+
+
+internal
+annotation class ImplicitReceiver(val type: KClass<*>)
 
 
 /**
@@ -45,7 +56,8 @@ abstract class KotlinBuildscriptBlock(host: KotlinScriptHost<Project>) : KotlinB
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
-abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) : KotlinSettingsScript(host) {
+@ImplicitReceiver(Settings::class)
+abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) : CompiledKotlinSettingsScript(host) {
 
     /**
      * Configures the build script classpath for settings.
@@ -58,10 +70,41 @@ abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) 
 }
 
 
+@ImplicitReceiver(Gradle::class)
+abstract class CompiledKotlinInitScript(
+    private val host: KotlinScriptHost<Gradle>
+) : InitScriptApi(host.target), PluginAware {
+
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    override val initscript: ScriptHandler
+        get() = host.scriptHandler
+
+    /**
+     * Applies zero or more plugins or scripts.
+     * <p>
+     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
+     * <p>
+     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
+     * @see [PluginAware.apply]
+     */
+    override fun apply(action: Action<in ObjectConfigurationAction>) =
+        host.applyObjectConfigurationAction(action)
+
+    override val fileOperations
+        get() = host.fileOperations
+
+    override val processOperations
+        get() = host.processOperations
+}
+
+
 /**
  * Base class for `initscript` block evaluation on scripts targeting Gradle.
  */
-abstract class KotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : KotlinInitScript(host) {
+@ImplicitReceiver(Gradle::class)
+abstract class KotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : CompiledKotlinInitScript(host) {
 
     /**
      * Configures the classpath of the init script.

@@ -38,9 +38,8 @@ import java.io.File
 
 /**
  * Facilitates the implementation of the [Settings] interface by delegation via subclassing.
- *
- * See [GradleDelegate] for why this is currently necessary.
  */
+@Deprecated("No longer required")
 abstract class SettingsDelegate : Settings {
 
     internal
