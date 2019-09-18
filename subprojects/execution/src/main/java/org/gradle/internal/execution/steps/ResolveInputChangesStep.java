@@ -84,7 +84,7 @@ public class ResolveInputChangesStep<C extends IncrementalChangesContext> implem
         ExecutionStateChanges changes = context.getChanges().get();
         InputChangesInternal inputChanges = changes.createInputChanges();
         if (!inputChanges.isIncremental()) {
-            LOGGER.info("All input files are considered out-of-date for incremental {}.", work.getDisplayName());
+            LOGGER.info("The input changes require a full rebuild for incremental {}.", work.getDisplayName());
         }
         return inputChanges;
     }
