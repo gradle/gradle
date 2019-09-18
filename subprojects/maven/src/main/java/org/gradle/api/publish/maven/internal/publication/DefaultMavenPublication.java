@@ -39,7 +39,6 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
-import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
@@ -141,7 +140,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final Set<MavenDependency> apiDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final Set<MavenDependency> importDependencyConstraints = new LinkedHashSet<MavenDependency>();
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
-    private final FeaturePreviews featurePreviews;
     private final ImmutableAttributesFactory immutableAttributesFactory;
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final PlatformSupport platformSupport;
@@ -161,7 +159,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     public DefaultMavenPublication(
         String name, MutableMavenProjectIdentity projectIdentity, NotationParser<Object, MavenArtifact> mavenArtifactParser, Instantiator instantiator,
         ObjectFactory objectFactory, ProjectDependencyPublicationResolver projectDependencyResolver, FileCollectionFactory fileCollectionFactory,
-        FeaturePreviews featurePreviews, ImmutableAttributesFactory immutableAttributesFactory,
+        ImmutableAttributesFactory immutableAttributesFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator, VersionMappingStrategyInternal versionMappingStrategy,
         PlatformSupport platformSupport) {
         this.name = name;
@@ -175,7 +173,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         publishableArtifacts = new CompositePublicationArtifactSet<>(MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
         pom = instantiator.newInstance(DefaultMavenPom.class, this, instantiator, objectFactory);
-        this.featurePreviews = featurePreviews;
     }
 
     @Override

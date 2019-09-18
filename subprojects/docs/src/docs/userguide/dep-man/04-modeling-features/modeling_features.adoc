@@ -26,6 +26,7 @@ In an ideal world, components shouldn't declare dependencies on explicit GAVs, b
 
 By modeling _capabilities_, the dependency management engine can be smarter and tell you whenever you have _incompatible capabilities_ in a dependency graph, or ask you to choose whenever different modules in a graph provide the same _capability_.
 
+[[sec:declaring-capabilities-external-modules]]
 === Declaring capabilities for external modules
 
 It's worth noting that Gradle supports declaring capabilities for components you build, but also for external components in case they didn't.
@@ -345,7 +346,3 @@ If you need to do this, then you will need to create additional variants followi
 
 [NOTE]
 Future versions of Gradle will provide ways to automatically build for different Java platforms.
-
-[[producing-different-artifacts]]
-=== Producing different artifacts
-

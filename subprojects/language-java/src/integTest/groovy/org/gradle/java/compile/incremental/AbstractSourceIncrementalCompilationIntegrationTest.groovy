@@ -16,7 +16,6 @@
 
 package org.gradle.java.compile.incremental
 
-
 import org.gradle.integtests.fixtures.CompiledLanguage
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -24,6 +23,191 @@ import spock.lang.Unroll
 abstract class AbstractSourceIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
 
     abstract void recompiledWithFailure(String expectedFailure, String... recompiledClasses)
+
+    def "changes to transitive private classes do not force recompilation"() {
+        source """class A {
+            private B b;
+        }"""
+        source """class B {
+            private C c;
+        }"""
+        source 'class C {}'
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        source """class C {
+            private String foo = "blah";
+        }"""
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'B', 'C'
+    }
+
+    class IncrementalLib {
+        void writeToProject() {
+            source 'class AccessedFromPackagePrivateField {}'
+            source 'class AccessedFromPrivateMethod {}'
+            source 'class AccessedFromPrivateMethodBody {}'
+            source 'class AccessedFromPrivateField {}'
+            source 'class AccessedFromPrivateClass {}'
+            source 'class AccessedFromPrivateClassPublicField {}'
+            source """class SomeClass {
+                java.util.List<Integer> field = new java.util.LinkedList<Integer>();
+
+                private AccessedFromPrivateField accessedFromPrivateField;
+
+                AccessedFromPackagePrivateField someField;
+
+                private AccessedFromPrivateMethod accessedFromPrivateMethod() {
+                    return null;
+                }
+
+                public String accessedFromPrivateMethodBody() {
+                    return new AccessedFromPrivateMethodBody().toString();
+                }
+
+                private java.util.Set<String> stuff(java.util.HashMap<String, String> map) {
+                    System.out.println(new Foo());
+                    return new java.util.HashSet<String>();
+                }
+
+                private class Foo {
+                    // Hint: this field won't appear in the ClassAnalysis for SomeClass
+                    public AccessedFromPrivateClassPublicField anotherField;
+
+                    Foo() {}
+
+                    public String toString() {
+                        return "" + new AccessedFromPrivateClass();
+                    }
+                }
+            }"""
+            source """class UsingSomeClass {
+                SomeClass someClassField;
+            }"""
+        }
+
+        void applyModificationToClassAccessedFromPrivateMethod() {
+            source """class AccessedFromPrivateMethod {
+                private String foo = "blah";
+            }"""
+        }
+
+        void applyModificationToClassAccessedFromPrivateMethodBody() {
+            source """class AccessedFromPrivateMethodBody {
+                private String foo = "blah";
+            }"""
+        }
+
+        void applyModificationToClassAccessedFromPackagePrivateField() {
+            source """class AccessedFromPackagePrivateField {
+                private String foo = "blah";
+            }"""
+        }
+
+        void applyModificationToClassAccessedFromPrivateField() {
+            source """class AccessedFromPrivateField {
+                private String foo = "blah";
+            }"""
+        }
+
+        void applyModificationToClassAccessedFromPrivateClassPublicField() {
+            source """class AccessedFromPrivateClassPublicField {
+                private String foo = "blah";
+            }"""
+        }
+
+        void applyModificationToClassAccessedFromPrivateClass() {
+            source """class AccessedFromPrivateClass {
+                private String foo = "blah";
+            }"""
+        }
+    }
+
+    def "change to class accessed from private method only recompile that class and the direct consumer"() {
+        def componentUnderTest = new IncrementalLib()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.applyModificationToClassAccessedFromPrivateMethod()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateMethod', 'SomeClass', 'SomeClass$Foo'
+    }
+
+    def "change to class accessed from private method body only recompile that class and the direct consumer"() {
+        def componentUnderTest = new IncrementalLib()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.applyModificationToClassAccessedFromPrivateMethodBody()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateMethodBody', 'SomeClass', 'SomeClass$Foo'
+    }
+
+    def "change to class accessed from package private field only recompile that class and transitive consumer"() {
+        def componentUnderTest = new IncrementalLib()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.applyModificationToClassAccessedFromPackagePrivateField()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'AccessedFromPackagePrivateField', 'SomeClass', 'SomeClass$Foo', 'UsingSomeClass'
+    }
+
+    def "change to class accessed from private field only recompile that class and direct consumer"() {
+        def componentUnderTest = new IncrementalLib()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.applyModificationToClassAccessedFromPrivateField()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateField', 'SomeClass', 'SomeClass$Foo'
+    }
+    def "change to class accessed from private inner class's public field only recompile that class and direct consumer"() {
+        def componentUnderTest = new IncrementalLib()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.applyModificationToClassAccessedFromPrivateClassPublicField()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateClassPublicField', 'SomeClass', 'SomeClass$Foo'
+    }
+
+    def "change to class accessed from private inner class's public method body only recompile that class and direct consumer"() {
+        def componentUnderTest = new IncrementalLib()
+        componentUnderTest.writeToProject()
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        componentUnderTest.applyModificationToClassAccessedFromPrivateClass()
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses 'AccessedFromPrivateClass', 'SomeClass', 'SomeClass$Foo'
+    }
 
     def "detects deletion of an isolated source class with an inner class"() {
         def a = source """class A {
@@ -244,7 +428,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         def a = source "enum A { FOO }"
         source "@B(A.FOO) class OnClass {}",
             "class OnMethod { @B(A.FOO) void foo() {} }",
-            "class OnField { @B(A.FOO) String foo; }",
+            "class OnField { public @B(A.FOO) String foo; }",
             "class OnParameter { void foo(@B(A.FOO) int x) {} }"
         outputs.snapshot { run language.compileTaskName }
 

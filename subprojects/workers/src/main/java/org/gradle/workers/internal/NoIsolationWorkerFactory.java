@@ -18,6 +18,7 @@ package org.gradle.workers.internal;
 
 import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -31,7 +32,6 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     private final BuildOperationExecutor buildOperationExecutor;
     private final ServiceRegistry parent;
     private WorkerExecutor workerExecutor;
-    private WorkerProtocol workerServer;
 
     public NoIsolationWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry parent) {
         this.buildOperationExecutor = buildOperationExecutor;
@@ -41,9 +41,6 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     // Attaches the owning WorkerExecutor to this factory
     public void setWorkerExecutor(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor;
-        DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry(parent);
-        serviceRegistry.add(WorkerExecutor.class, workerExecutor);
-        this.workerServer = new DefaultWorkerServer(serviceRegistry);
     }
 
     @Override
@@ -58,6 +55,9 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
                     public DefaultWorkResult execute(ActionExecutionSpec spec) {
                         DefaultWorkResult result;
                         try {
+                            DefaultServiceRegistry serviceRegistry = new WorkerPublicServicesBuilder(parent).withInternalServicesVisible(spec.isInternalServicesRequired()).build();
+                            serviceRegistry.add(WorkerExecutor.class, workerExecutor);
+                            WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry, parent.get(InstantiatorFactory.class));
                             result = ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<DefaultWorkResult>() {
                                 @Nullable
                                 @Override

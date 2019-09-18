@@ -58,7 +58,7 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
             ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(dependency.getGroup(), dependency.getModule()), dependency.getVersionConstraint(), dependency.getAttributes(), dependency.getRequestedCapabilities());
             List<ExcludeMetadata> excludes = dependency.getExcludes();
             IvyArtifactName dependencyArtifact = dependency.getDependencyArtifact();
-            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isInheriting(), dependency.getReason(), forcedDependencies, dependencyArtifact));
+            dependencies.add(new GradleDependencyMetadata(selector, excludes, false, dependency.isEndorsingStrictVersions(), dependency.getReason(), forcedDependencies, dependencyArtifact));
         }
         for (ComponentVariant.DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
             dependencies.add(new GradleDependencyMetadata(

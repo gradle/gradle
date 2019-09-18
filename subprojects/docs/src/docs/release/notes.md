@@ -11,13 +11,16 @@ We would like to thank the following community contributors to this release of G
 [Alex Saveau](https://github.com/SUPERCILEX),
 [Mike Kobit](https://github.com/mkobit),
 [Tom Eyckmans](https://github.com/teyckmans),
-[Robert Stupp](https://github.com/snazy),
+[Artur Dryomov](https://github.com/ming13),
+[szhem](https://github.com/szhem),
 [Nigel Banks](https://github.com/nigelgbanks),
 [Sergey Shatunov](https://github.com/Prototik),
 [Dan Sănduleac](https://github.com/dansanduleac),
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Ross Goldberg](https://github.com/rgoldberg),
-and [Robin Verduijn](https://github.com/robinverduijn).
+[jutoft](https://github.com/jutoft),
+[Robin Verduijn](https://github.com/robinverduijn),
+and [Robert Stupp](https://github.com/snazy).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -59,22 +62,22 @@ Earlier AGP versions are not supported.
 * Kotlin versions between 1.3.21 and 1.3.50 are tested.
 Earlier Kotlin versions are not supported.
 
-## Inherited strict versions with platforms
+## Endorse strict versions from platforms by default
 
-When depending on a platform component, Gradle will automatically inherit strict version constraints from the platform.
+When depending on a platform component, Gradle will automatically _endorse_ strict versions from the platform.
 This means that all _strict_ constraints defined in the platform will automatically be added to your dependency graph _as if they were first level constraints_.
-This behavior can be opted out by calling the `doNotInheritStrictVersions()` method:
+This behavior can be opted out by calling the `doNotEndorseStrictVersions()` method:
 
 ```
 dependencies {
     implementation(platform(project(':platform'))) {
-       doNotInheritStrictVersions()
+       doNotEndorseStrictVersions()
     }
     ...
 }
 ```
 
-More information about [strict constraints](userguide/rich_versions.adoc#rich-version-constraints) can be found in the documentation.
+More information about [strict version constraints](userguide/rich_versions.adoc#rich-version-constraints) can be found in the documentation.
 
 ## Support for Java 13 EA
 
@@ -133,11 +136,36 @@ In the same vein, doing file system operations such as `copy()`, `sync()` and `d
 
 See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`FileSystemOperations`](javadoc/org/gradle/api/file/FileSystemOperations.html) and [`ExecOperations`](javadoc/org/gradle/process/ExecOperations.html) api documentation for more details and examples.
 
-## Improving integrity of builds
+## Security
+
+### Improving integrity of builds
 
 Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
 
 TBD
+
+### Signing Plugin now uses SHA512 instead of SHA1
+
+This was contributed by [Vladimir Sitnikov](https://github.com/vlsi).
+
+A low severity security issue was reported in the Gradle signing plugin.
+
+More information can be found below:
+
+ - [Gradle GitHub Advisory](https://github.com/gradle/gradle/security/advisories/GHSA-mrm8-42q4-6rm7)
+ - [CVE-2019-16370](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16370)
+ 
+### Support for in-memory signing with subkeys
+
+Gradle now supports [in-memory signing](userguide/signing_plugin.html#sec:in-memory-keys) with subkeys.
+
+This was contributed by [szhem](https://github.com/szhem).
+
+## Wrapper reports download progress
+
+Gradle now reports the progress of the distribution downloaded. 
+
+Initially contributed by [Artur Dryomov](https://github.com/ming13).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

@@ -88,6 +88,7 @@ class WorkerExecutorFixture {
                 def isolationMode = IsolationMode.AUTO
                 @Internal
                 def forkMode = null
+                def additionalParameters = {}
 
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
@@ -108,10 +109,11 @@ class WorkerExecutorFixture {
                         if (this.forkMode != null) {
                             forkMode = this.forkMode
                         }
-                    }).submit(workActionClass) {
+                    }).submit(workActionClass) { parameters ->
                         files = list.collect { it as String }
                         outputDir = new File(outputFileDirPath)
                         bar = foo
+                        additionalParameters.call(parameters)
                     }
                 }
                 
@@ -390,7 +392,7 @@ class WorkerExecutorFixture {
                 fieldDeclarations += """
                     ${type} get${name.capitalize()}();
                 """
-                if (!type.startsWith("Property<")) {
+                if (!(type.startsWith("Property<") || type == "ConfigurableFileCollection")) {
                     fieldDeclarations += """
                         void set${name.capitalize()}(${type} ${name.uncapitalize()});
                     """

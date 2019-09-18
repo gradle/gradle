@@ -187,7 +187,6 @@ public class Install {
         }
         if (errorMessage != null) {
             logger.log("Could not set executable permissions for: " + gradleCommand.getAbsolutePath());
-            logger.log("Please do this manually if you want to use the Gradle UI.");
         }
     }
 

@@ -48,11 +48,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     private final String reason;
     private final boolean isTransitive;
     private final boolean isConstraint;
-    private final boolean isInheriting;
+    private final boolean isEndorsing;
 
     private boolean alwaysUseAttributeMatching;
 
-    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason, boolean inheriting) {
+    private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason, boolean endorsing) {
         this.configuration = configuration;
         this.componentId = componentId;
         this.dependencyDescriptor = dependencyDescriptor;
@@ -60,7 +60,7 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
         this.reason = reason;
         this.isTransitive = dependencyDescriptor.isTransitive();
         this.isConstraint = dependencyDescriptor.isConstraint();
-        this.isInheriting = inheriting;
+        this.isEndorsing = endorsing;
     }
 
     private ConfigurationBoundExternalDependencyMetadata(ConfigurationMetadata configuration, ModuleComponentIdentifier componentId, ExternalDependencyDescriptor dependencyDescriptor, boolean alwaysUseAttributeMatching, String reason) {
@@ -149,11 +149,11 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     @Override
-    public ModuleDependencyMetadata withInheritStrictVersions(boolean inheriting) {
-        if (this.isInheriting == inheriting) {
+    public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
+        if (this.isEndorsing == endorse) {
             return this;
         }
-        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason, inheriting);
+        return new ConfigurationBoundExternalDependencyMetadata(configuration, componentId, dependencyDescriptor, alwaysUseAttributeMatching, reason, endorse);
     }
 
     public ConfigurationBoundExternalDependencyMetadata withDescriptor(ExternalDependencyDescriptor descriptor) {
@@ -186,8 +186,8 @@ public class ConfigurationBoundExternalDependencyMetadata implements ModuleDepen
     }
 
     @Override
-    public boolean isInheriting() {
-        return isInheriting;
+    public boolean isEndorsingStrictVersions() {
+        return isEndorsing;
     }
 
     @Override

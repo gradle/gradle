@@ -16,7 +16,6 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -56,7 +55,6 @@ import javax.inject.Inject;
 /**
  * Base task for linking a native binary from object files and libraries.
  */
-@Incubating
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
     private final RegularFileProperty linkedFile;
     private final DirectoryProperty destinationDirectory;
@@ -209,7 +207,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     @Inject
-    public BuildOperationLoggerFactory getOperationLoggerFactory() {
+    protected BuildOperationLoggerFactory getOperationLoggerFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -219,7 +217,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     }
 
     @TaskAction
-    public void link() {
+    protected void link() {
         boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(
             getDeleter(),
             getOutputs().getPreviousOutputFiles(),

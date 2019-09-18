@@ -16,7 +16,6 @@
 
 package org.gradle.language.swift.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -34,13 +33,13 @@ import org.gradle.language.nativeplatform.internal.toolchains.ToolChainSelector;
 import org.gradle.language.swift.SwiftBinary;
 import org.gradle.language.swift.SwiftComponent;
 import org.gradle.language.swift.SwiftLibrary;
+import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.SwiftSharedLibrary;
 import org.gradle.language.swift.SwiftStaticLibrary;
-import org.gradle.language.swift.SwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftLibrary;
+import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.language.swift.internal.DefaultSwiftSharedLibrary;
 import org.gradle.language.swift.internal.DefaultSwiftStaticLibrary;
-import org.gradle.language.swift.internal.DefaultSwiftPlatform;
 import org.gradle.nativeplatform.Linkage;
 import org.gradle.nativeplatform.OperatingSystemFamily;
 import org.gradle.nativeplatform.TargetMachineFactory;
@@ -67,7 +66,6 @@ import static org.gradle.language.nativeplatform.internal.Dimensions.useHostAsDe
  *
  * @since 4.2
  */
-@Incubating
 public class SwiftLibraryPlugin implements Plugin<Project> {
     private final NativeComponentFactory componentFactory;
     private final ToolChainSelector toolChainSelector;

@@ -16,14 +16,11 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
-
 /**
  * A builder for configuring the architecture of a {@link TargetMachine} objects.
  *
  * @since 5.2
  */
-@Incubating
 public interface TargetMachineBuilder extends TargetMachine {
     /**
      * Returns a {@link TargetMachine} for the operating system of this machine and the x86 32-bit architecture

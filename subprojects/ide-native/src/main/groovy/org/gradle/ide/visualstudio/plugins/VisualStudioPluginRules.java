@@ -16,6 +16,7 @@
 
 package org.gradle.ide.visualstudio.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
@@ -33,6 +34,7 @@ import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.platform.base.BinaryContainer;
 
+@Incubating
 class VisualStudioPluginRules {
     static class VisualStudioExtensionRules extends RuleSource {
         @Model

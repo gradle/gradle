@@ -76,9 +76,9 @@ public interface DependencyMetadata {
     boolean isConstraint();
 
     /**
-     * Is this a dependency that pulls subgraph constraints from the target node up?
+     * Is this a dependency that "pulls up" strict version constraints from the target node?
      */
-    boolean isInheriting();
+    boolean isEndorsingStrictVersions();
 
     /**
      * An optional human readable reason why this dependency is used.

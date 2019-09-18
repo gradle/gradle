@@ -44,7 +44,7 @@ public class DependencyConstraintsMetadataAdapter extends AbstractDependenciesMe
     }
 
     @Override
-    protected boolean isInheriting(DependencyConstraintMetadata details) {
+    protected boolean isEndorsingStrictVersions(DependencyConstraintMetadata details) {
         return false;
     }
 }

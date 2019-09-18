@@ -570,3 +570,13 @@ include::{samplesPath}/userguide/java/fixtures/dependencyInsight.out[]
 The error message mentions the missing `com.google.code.gson:gson-test-fixtures` capability, which is indeed not defined for this library.
 That's because by convention, for projects that use the `java-test-fixtures` plugin, Gradle automatically creates test fixtures variants with a capability whose name is the name of the main component, with the appendix `-test-fixtures`.
 
+[NOTE]
+====
+If you publish your library and use test fixtures, but do not want to publish the fixtures, you can deactivate publishing of the _test fixtures variants_ as shown below.
+====
+
+.Disable publishing of test fixtures variants
+====
+include::sample[dir="userguide/java/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
+include::sample[dir="userguide/java/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
+====

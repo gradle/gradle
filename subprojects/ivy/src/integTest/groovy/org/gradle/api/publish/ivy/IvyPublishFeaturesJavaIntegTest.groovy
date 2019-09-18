@@ -45,7 +45,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             }
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                it.mapToOptional()
+                mapToOptional()
             }
         """
 
@@ -123,10 +123,10 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             }
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeature1RuntimeElements) {
-                it.mapToOptional()
+                mapToOptional()
             }
             components.java.addVariantsFromConfiguration(configurations.optionalFeature2RuntimeElements) {
-                it.mapToOptional()
+                mapToOptional()
             }
         """
 
@@ -185,7 +185,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             }
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                it.mapToOptional()
+                mapToOptional()
             }
             
             artifacts {     
@@ -280,7 +280,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             }
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                it.mapToOptional()
+                mapToOptional()
             }
             
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
@@ -356,9 +356,9 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 if (it.configurationVariant.name != 'alternate') {
-                    it.skip()
+                    skip()
                 } else {
-                    it.mapToOptional()
+                    mapToOptional()
                 } 
             }
             

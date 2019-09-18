@@ -76,6 +76,9 @@ The name of the lib directory inside the generated EAR. _Default value: `lib`_.
 `deploymentDescriptor` — link:{javadocPath}/org/gradle/plugins/ear/descriptor/DeploymentDescriptor.html[DeploymentDescriptor]::
 Metadata to generate a deployment descriptor file, e.g. `application.xml`. _Default value: A deployment descriptor with sensible defaults named `application.xml`_. If this file already exists in the `appDirName/META-INF` then the existing file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.
 
+`generateDeploymentDescriptor` — `Boolean`::
+Specifies if deploymentDescriptor should be generated. _Default value: `true`_.
+
 These properties are provided by a link:{groovyDslPath}/org.gradle.plugins.ear.EarPluginConvention.html[EarPluginConvention] convention object.
 
 [[sec:ear_default_settings]]

@@ -1,1 +1,1 @@
-rootProject.name = "declaring-dependencies-for-subgraph"
+rootProject.name = "declaring-dependencies-strict"

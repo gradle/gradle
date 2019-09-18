@@ -24,34 +24,6 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
 /**
  * Allows the build to provide rules that modify the metadata of depended-on software components.
  *
- * <p>Possible uses of component metadata rules are:
- * <ul>
- *     <li>Setting the status and status scheme of a component, overriding the value specified in the component descriptor.</li>
- *     <li>Declaring whether or not a component is 'changing', thus impacting the cache behaviour of the component.</li>
- * </ul>
- *
- * <p> Example:
- * <pre class='autoTested'>
- * dependencies {
- *     components {
- *         // Set the status and status scheme for every component belonging to a module in the group "org.foo"
- *         all { ComponentMetadataDetails details -&gt;
- *             if (details.id.group == "org.foo") {
- *                 def version = details.id.version
- *                 // assuming status is last part of version string
- *                 details.status = version.substring(version.lastIndexOf("-") + 1)
- *                 details.statusScheme = ["bronze", "silver", "gold", "platinum"]
- *             }
- *         }
- *
- *         // Treat all components in the module "org.foo:bar" as changing
- *         withModule("org.foo:bar") { ComponentMetadataDetails details -&gt;
- *             details.changing = true
- *         }
- *     }
- * }
- * </pre>
- *
  * @since 1.8
  */
 public interface ComponentMetadataHandler {

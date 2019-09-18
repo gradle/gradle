@@ -16,7 +16,6 @@
 
 package org.gradle.language.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.file.FileCollection;
  *
  * @since 4.5
  */
-@Incubating
 public interface ComponentWithObjectFiles extends ComponentWithNativeRuntime {
     /**
      * Returns the object files created for this component.

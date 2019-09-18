@@ -16,7 +16,6 @@
 
 package org.gradle.ide.visualstudio.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -61,7 +60,6 @@ import javax.inject.Inject;
 /**
  * A plugin for creating a Visual Studio solution for a gradle project.
  */
-@Incubating
 public class VisualStudioPlugin extends IdePlugin {
     private static final String LIFECYCLE_TASK_NAME = "visualStudio";
 

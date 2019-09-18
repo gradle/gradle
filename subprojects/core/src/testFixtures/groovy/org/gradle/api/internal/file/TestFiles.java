@@ -110,7 +110,7 @@ public class TestFiles {
         FileResolver fileResolver = resolver(basedDir);
         FileSystem fileSystem = fileSystem();
 
-        DefaultResourceHandler.Factory resourceHandlerFactory = new DefaultResourceHandler.Factory(
+        DefaultResourceHandler.Factory resourceHandlerFactory = DefaultResourceHandler.Factory.from(
             fileResolver,
             fileSystem,
             temporaryFileProvider,

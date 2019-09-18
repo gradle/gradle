@@ -17,5 +17,4 @@
 /**
  * Plugins for building from Swift language sources.
  */
-@org.gradle.api.Incubating
 package org.gradle.language.swift.plugins;

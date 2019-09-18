@@ -37,7 +37,7 @@ In the example, all versions are omitted from the dependency declaration.
 Instead, the versions are defined in the constraints block.
 The version definition for `commons-codec:1.11` is only taken into account if `commons-codec` is brought in as transitive dependency, since `commons-codec` is not defined as dependency in the project.
 Otherwise, the constraint has no effect.
-Dependency constraints can also define a <<rich_versions.adoc#,rich version constraint>> and support <<declaring_dependency_versions.adoc#sec:declaring_for_subgraph,subgraph version constraints>> to enforce a version even if it contradicts with the version defined by a transitive dependency (e.g. if the version needs to be downgraded).
+Dependency constraints can also define a <<rich_versions.adoc#,rich version constraint>> and support <<declaring_dependency_versions.adoc#sec:declaring_as_strict,strict versions>> to enforce a version even if it contradicts with the version defined by a transitive dependency (e.g. if the version needs to be downgraded).
 
 [NOTE]
 ====
@@ -54,7 +54,7 @@ Dependency constraints themselves can also be added transitively.
 === Sharing dependency versions between projects
 
 A <<dependency_management_terminology.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
-In most cases it's exclusively composed of link:#sec:adding-constraints-transitive-deps[dependency constraints] which will either _suggest_ dependency versions or _enforce_ some versions.
+In most cases it's exclusively composed of <<#sec:adding-constraints-transitive-deps,dependency constraints>> which will either _suggest_ dependency versions or _enforce_ some versions.
 As such, this is a perfect tool whenever you need to _share dependency versions between projects_.
 In this case, a project will typically be organized this way:
 
@@ -63,7 +63,7 @@ In this case, a project will typically be organized this way:
 
 In the Java ecosystem, Gradle provides a <<java_platform_plugin.adoc#java_platform_plugin,plugin>> for this purpose.
 
-It's also common to find platforms published as Maven BOMs which link:#sec:sub:bom_import[Gradle supports natively].
+It's also common to find platforms published as Maven BOMs which <<#sub:bom_import,Gradle supports natively>>.
 
 A dependency on a platform is created using the `platform` keyword:
 
@@ -80,7 +80,7 @@ This `platform` notation is a short-hand notation which actually performs severa
 * it sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[org.gradle.category attribute] to `platform`, which means that Gradle will select the _platform_ component of the dependency.
 * it set the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#inheritStrictVersions--[inheritStrictVersions] behavior by default, meaning that if the platform declares strict dependencies, they will be enforced.
 
-This means that by default, a dependency to a platform triggers the inheritance of all strict versions defined in that platform, which can be useful for platform authors to make sure that all consumers respect their decisions in terms of versions of dependencies.
+This means that by default, a dependency to a platform triggers the inheritance of all <<rich_versions.adoc#sec:strict-version,strict versions>> defined in that platform, which can be useful for platform authors to make sure that all consumers respect their decisions in terms of versions of dependencies.
 This can be turned off by explicitly calling the `doNotInheritStrictVersions` method.
 ====
 
@@ -187,6 +187,7 @@ Then we conflict resolve between `core:1.0` and `core:1.1`, which means that `co
 
 NOTE: This behavior is enforced for published components only if you use Gradle Module Metadata.
 
+[[sec:align-versions-virtual]]
 === Aligning versions of modules not published with Gradle
 
 Whenever the publisher doesn't use Gradle, like in our Jackson example, we can explain to Gradle that that all Jackson modules "belong to" the same platform and benefit from the same behavior as with native alignment:
@@ -230,19 +231,75 @@ This feature offers a fine grained control on which repository serve which artif
 Head over to <<declaring_repositories.adoc#sec:repository-content-filtering,the section on repository content filtering>> to know more about this feature.
 
 [[sec:enforcing_dependency_version]]
-== Forcing dependency versions
+== Overriding transitive dependency versions
 
 Gradle resolves any dependency version conflicts by selecting the latest version found in the dependency graph.
 Some projects might need to divert from the default behavior and enforce an earlier version of a dependency e.g. if the source code of the project depends on an older API of a dependency than some of the external libraries.
 
-[NOTE]
+[WARNING]
 ====
-Enforcing a version of a dependency requires a conscious decision.
+Forcing a version of a dependency requires a conscious decision.
 Changing the version of a transitive dependency might lead to runtime errors if external libraries do not properly function without them.
 Consider upgrading your source code to use a newer version of the library as an alternative approach.
 ====
 
-Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10. However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore. A dependency version can be enforced by declaring it in the build script and setting link:{javadocPath}/org/gradle/api/artifacts/ExternalDependency.html#setForce-boolean-[ExternalDependency.setForce(boolean)] to `true`.
+In general, forcing dependencies is done to downgrade a dependency.
+There might be different use cases for downgrading:
+
+- a bug was discovered in the latest release
+- your code depends on a lower version which is not binary compatible
+- your code doesn't depend on the code paths which need a higher version of a dependency
+
+In all situations, this is best expressed saying that your code _strictly depends on_ a version of a transitive.
+Using <<rich_versions.adoc#sec:strict-version,strict versions>>, you will effectively depend on the version you declare, even if a transitive dependency says otherwise.
+
+[NOTE]
+====
+Strict dependencies are to some extent similar to Maven's _nearest first_ strategy, but there are subtle differences:
+
+- _strict dependencies_ don't suffer an ordering problem: they are applied transitively to the subgraph, and it doesn't matter in which order dependencies are declared.
+- conflicting strict dependencies will trigger a build failure that you have to resolve
+- strict dependencies can be used with rich versions, meaning that <<#sec:strict-version-consequences,it's better to express the requirement in terms of a _strict range_ combined with a single _preferred version_>>.
+====
+
+Let's say a project uses the link:https://hc.apache.org/httpcomponents-client-ga/[HttpClient library] for performing HTTP calls. HttpClient pulls in link:https://commons.apache.org/proper/commons-codec/[Commons Codec] as transitive dependency with version 1.10.
+However, the production source code of the project requires an API from Commons Codec 1.9 which is not available in 1.10 anymore.
+A dependency version can be enforced by declaring it as strict it in the build script:
+
+.Setting a strict version
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency/groovy",files="build.gradle[tags=force-using-strictly]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/forceForDependency/kotlin",files="build.gradle.kts[tags=force-using-strictly]"]
+====
+
+[[sec:strict-version-consequences]]
+=== Consequences of using strict versions
+
+Using a strict version must be carefully considered, in particular by library authors.
+As the _producer_, a strict version will effectively behave like a _force_: the version declaration takes precedence over whatever is found in the transitive dependency graph.
+In particular, a _strict version_ will override any other _strict version_ on the same module found transitively.
+
+However, for consumers, strict versions are still considered globally during graph resolution and _may trigger an error_ if the consumer disagrees.
+
+For example, imagine that your project `B` _strictly_ depends on `C:1.0`.
+Now, a consumer, `A`, depends on both `B` and `C:1.1`.
+
+Then this would trigger a resolution error because `A` says it needs `C:1.1` but `B`, _within its subgraph_, strictly needs `1.0`.
+This means that if you choose a _single version_ in a strict constraint, then the version can _no longer be upgraded_, unless the consumer also sets a strict version constraint on the same module.
+
+In the example above, `A` would have to say it _strictly depends on 1.1_.
+
+For this reason, a good practice is that if you use _strict versions_, you should express them in terms of ranges and a preferred version within this range.
+For example, `B` might say, instead of `strictly 1.0`, that it _strictly depends_ on the `[1.0, 2.0[` range, but _prefers_ `1.0`.
+Then if a consumer chooses 1.1 (or any other version in the range), the build will _no longer fail_ (constraints are resolved).
+
+=== Forced dependencies vs strict dependencies
+
+Forcing dependencies via link:{javadocPath}/org/gradle/api/artifacts/ExternalDependency.html#setForce-boolean-[ExternalDependency.setForce(boolean)] is deprecated and no longer recommended:
+forced dependencies suffer an ordering issue which can be hard to diagnose and will not work well together with other rich version constraints.
+
+You should prefer <<#sec:enforcing_dependency_version,strict versions>> instead.
+If, for some reason, you can't use <<#sec:enforcing_dependency_version,strict versions>>, you can force a dependency doing this:
 
 .Enforcing a dependency version
 ====

@@ -16,14 +16,11 @@
 
 package org.gradle.ide.xcode;
 
-import org.gradle.api.Incubating;
-
 /**
  * A xcode project, created from C++ or Swift capable project.
  *
  * @since 4.2
  * @see <a href="https://developer.apple.com/library/content/featuredarticles/XcodeConcepts/Concept-Projects.html">XCode Project Concept</a>
  */
-@Incubating
 public interface XcodeProject {
 }

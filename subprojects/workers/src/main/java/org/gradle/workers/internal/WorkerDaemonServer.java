@@ -16,33 +16,77 @@
 
 package org.gradle.workers.internal;
 
+import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.MutationGuards;
+import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
+import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
+import org.gradle.api.internal.file.DefaultFileCollectionFactory;
+import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.DefaultFilePropertyFactory;
+import org.gradle.api.internal.file.DefaultFileSystemOperations;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FilePropertyFactory;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.model.DefaultObjectFactory;
+import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.resources.ReadableResource;
+import org.gradle.api.resources.ResourceHandler;
+import org.gradle.api.resources.TextResourceFactory;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.initialization.LegacyTypesSupport;
+import org.gradle.internal.Factory;
+import org.gradle.internal.file.Deleter;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.gradle.process.ExecOperations;
+import org.gradle.process.internal.DefaultExecOperations;
+import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
+import java.io.File;
 
 public class WorkerDaemonServer implements WorkerProtocol {
-    private final ServiceRegistry serviceRegistry;
-    private Worker isolatedClassloaderWorker;
+    private final ServiceRegistry internalServices;
+    private final LegacyTypesSupport legacyTypesSupport;
+    private final ActionExecutionSpecFactory actionExecutionSpecFactory;
+    private final InstantiatorFactory instantiatorFactory;
+    private ClassLoader workerClassLoader;
 
     @Inject
-    public WorkerDaemonServer(ServiceRegistry parent, RequestArgumentSerializers argumentSerializers) {
-        this.serviceRegistry = createWorkerDaemonServices(parent);
+    public WorkerDaemonServer(ServiceRegistry parentServices, RequestArgumentSerializers argumentSerializers) {
+        this.internalServices = createWorkerDaemonServices(parentServices);
+        this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
+        this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
+        this.instantiatorFactory = internalServices.get(InstantiatorFactory.class);
         argumentSerializers.add(WorkerDaemonMessageSerializer.create());
     }
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
         return ServiceRegistryBuilder.builder()
+                .displayName("worker daemon services")
                 .parent(parent)
                 .provider(new WorkerSharedGlobalScopeServices())
                 .provider(new WorkerDaemonServices())
@@ -52,22 +96,29 @@ public class WorkerDaemonServer implements WorkerProtocol {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure());
+            ServiceRegistry workServices = new WorkerPublicServicesBuilder(new RelativeFileWorkerServices(spec.getBaseDir(), internalServices))
+                    .withInternalServicesVisible(spec.isInternalServicesRequired())
+                    .build();
+            Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), workServices);
             return worker.execute(spec);
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
     }
 
-    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure) {
-        if (isolatedClassloaderWorker == null) {
-            if (classLoaderStructure instanceof FlatClassLoaderStructure) {
-                isolatedClassloaderWorker = new FlatClassLoaderWorker(this.getClass().getClassLoader(), serviceRegistry);
-            } else {
-                isolatedClassloaderWorker = new IsolatedClassloaderWorker(classLoaderStructure, this.getClass().getClassLoader(), serviceRegistry, true);
-            }
+    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
+        if (classLoaderStructure instanceof FlatClassLoaderStructure) {
+            return new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
+        } else {
+            return new IsolatedClassloaderWorker(getWorkerClassLoader(classLoaderStructure), workServices, actionExecutionSpecFactory, instantiatorFactory, true);
         }
-        return isolatedClassloaderWorker;
+    }
+
+    private ClassLoader getWorkerClassLoader(ClassLoaderStructure classLoaderStructure) {
+        if (workerClassLoader == null) {
+            this.workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(classLoaderStructure, this.getClass().getClassLoader(), legacyTypesSupport);
+        }
+        return workerClassLoader;
     }
 
     @Override
@@ -80,8 +131,8 @@ public class WorkerDaemonServer implements WorkerProtocol {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
-        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry, InstantiatorFactory instantiatorFactory) {
-            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry, instantiatorFactory);
+        ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
+            return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
         }
 
         DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
@@ -95,6 +146,116 @@ public class WorkerDaemonServer implements WorkerProtocol {
                 @Nullable
                 @Override
                 public HashCode getClassLoaderHash(@Nonnull ClassLoader classLoader) {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+
+        DomainObjectCollectionFactory createDomainObjectCollectionFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services) {
+            return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, CollectionCallbackActionDecorator.NOOP, MutationGuards.identity());
+        }
+    }
+
+    static class RelativeFileWorkerServices extends DefaultServiceRegistry {
+        private final File baseDir;
+
+        public RelativeFileWorkerServices(File baseDir, ServiceRegistry... parents) {
+            super("worker file services for "+ baseDir.getAbsolutePath(), parents);
+            this.baseDir = baseDir;
+        }
+
+        protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
+            return instantiatorFactory.injectAndDecorateLenient(this);
+        }
+
+        protected FileResolver createFileResolver(FileLookup lookup) {
+            return lookup.getFileResolver(baseDir);
+        }
+
+        protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
+            return instantiator.newInstance(DefaultFileSystemOperations.class, fileOperations);
+        }
+
+        protected DefaultFileOperations createFileOperations(
+                FileResolver fileResolver,
+                TemporaryFileProvider temporaryFileProvider,
+                Instantiator instantiator,
+                ServiceRegistry services,
+                DirectoryFileTreeFactory directoryFileTreeFactory,
+                StreamHasher streamHasher,
+                FileHasher fileHasher,
+                FileCollectionFactory fileCollectionFactory,
+                FileSystem fileSystem,
+                Deleter deleter
+        ) {
+            // We use a dummy implementation of this as creating a real resource handler would require us to add
+            // an additional jar to the worker runtime startup and a resource handler isn't actually needed in
+            // the worker process.
+            ResourceHandler resourceHandler = new ResourceHandler() {
+                @Override
+                public ReadableResource gzip(Object path) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public ReadableResource bzip2(Object path) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public TextResourceFactory getText() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+
+            return new DefaultFileOperations(
+                    fileResolver,
+                    temporaryFileProvider,
+                    instantiator,
+                    directoryFileTreeFactory,
+                    streamHasher,
+                    fileHasher,
+                    fileOperations -> resourceHandler,
+                    fileCollectionFactory,
+                    fileSystem,
+                    deleter
+            );
+        }
+
+        FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
+            return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory);
+        }
+
+        FilePropertyFactory createProjectFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+            return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
+        }
+
+        ObjectFactory createObjectFactory(Instantiator instantiator, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
+            return new DefaultObjectFactory(
+                    instantiator,
+                    namedObjectInstantiator,
+                    fileResolver,
+                    directoryFileTreeFactory,
+                    filePropertyFactory,
+                    fileCollectionFactory,
+                    domainObjectCollectionFactory);
+        }
+
+        ExecOperations createExecOperations(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ServiceRegistry services, ObjectFactory objectFactory) {
+            return instantiator.newInstance(DefaultExecOperations.class, execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory));
+        }
+
+        FileHasher createFileHasher() {
+            // Return a dummy implementation of this as creating a real file hasher drags numerous other services
+            // along with it, and a file hasher isn't actually needed on the worker process side at the moment.
+            return new FileHasher() {
+                @Override
+                public HashCode hash(File file) {
+                    throw new UnsupportedOperationException();
+                }
+
+                @Override
+                public HashCode hash(File file, long length, long lastModified) {
                     throw new UnsupportedOperationException();
                 }
             };

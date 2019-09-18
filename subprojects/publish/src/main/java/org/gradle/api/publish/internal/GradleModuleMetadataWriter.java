@@ -16,10 +16,15 @@
 
 package org.gradle.api.publish.internal;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Named;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
@@ -47,10 +52,12 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -85,6 +92,7 @@ public class GradleModuleMetadataWriter {
     }
 
     public void generateTo(PublicationInternal publication, Collection<? extends PublicationInternal> publications, Writer writer) throws IOException {
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
         Map<SoftwareComponent, ComponentData> coordinates = new HashMap<SoftwareComponent, ComponentData>();
         collectCoordinates(publications, coordinates);
@@ -97,9 +105,10 @@ public class GradleModuleMetadataWriter {
         JsonWriter jsonWriter = new JsonWriter(writer);
         jsonWriter.setHtmlSafe(false);
         jsonWriter.setIndent("  ");
-        writeComponentWithVariants(publication, publication.getComponent(), coordinates, owners, jsonWriter);
+        writeComponentWithVariants(publication, publication.getComponent(), coordinates, owners, jsonWriter, checker);
         jsonWriter.flush();
         writer.append('\n');
+        checker.validate();
     }
 
     private void collectOwners(Collection<? extends PublicationInternal> publications, Map<SoftwareComponent, SoftwareComponent> owners) {
@@ -123,12 +132,12 @@ public class GradleModuleMetadataWriter {
         }
     }
 
-    private void writeComponentWithVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
+    private void writeComponentWithVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         jsonWriter.beginObject();
         writeFormat(jsonWriter);
         writeIdentity(publication.getCoordinates(), publication.getAttributes(), component, componentCoordinates, owners, jsonWriter);
         writeCreator(jsonWriter);
-        writeVariants(publication, component, componentCoordinates, jsonWriter);
+        writeVariants(publication, component, componentCoordinates, jsonWriter, checker);
         jsonWriter.endObject();
     }
 
@@ -203,9 +212,10 @@ public class GradleModuleMetadataWriter {
         }
     }
 
-    private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter) throws IOException {
+    private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         boolean started = false;
         for (UsageContext usageContext : ((SoftwareComponentInternal) component).getUsages()) {
+            checker.registerVariant(usageContext.getName(), usageContext.getAttributes(),  usageContext.getCapabilities());
             if (!started) {
                 jsonWriter.name("variants");
                 jsonWriter.beginArray();
@@ -226,6 +236,7 @@ public class GradleModuleMetadataWriter {
                 assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
                     for (UsageContext usageContext : ((SoftwareComponentInternal) childComponent).getUsages()) {
+                        checker.registerVariant(usageContext.getName(), usageContext.getAttributes(),  usageContext.getCapabilities());
                         if (!started) {
                             jsonWriter.name("variants");
                             jsonWriter.beginArray();
@@ -451,9 +462,9 @@ public class GradleModuleMetadataWriter {
         writeAttributes(dependency.getAttributes(), jsonWriter);
         writeCapabilities("requestedCapabilities", dependency.getRequestedCapabilities(), jsonWriter);
 
-        boolean inheriting = dependency.isInheriting();
-        if (inheriting) {
-            jsonWriter.name("inheritStrictVersions");
+        boolean endorsing = dependency.isEndorsingStrictVersions();
+        if (endorsing) {
+            jsonWriter.name("endorseStrictVersions");
             jsonWriter.value(true);
         }
         String reason = dependency.getReason();
@@ -571,6 +582,85 @@ public class GradleModuleMetadataWriter {
         private ComponentData(ModuleVersionIdentifier coordinates, ImmutableAttributes attributes) {
             this.coordinates = coordinates;
             this.attributes = attributes;
+        }
+    }
+
+    @NotThreadSafe
+    public static class InvalidPublicationChecker {
+        private final String publicationName;
+        private final BiMap<String, VariantIdentity> variants = HashBiMap.create();
+        private List<String> errors;
+
+        public InvalidPublicationChecker(String publicationName) {
+            this.publicationName = publicationName;
+        }
+
+        public void registerVariant(String name, AttributeContainer attributes, Set<? extends Capability> capabilities) {
+            if (attributes.isEmpty()) {
+                failWith("Variant '" + name + "' must declare at least one attribute.");
+            }
+            if (variants.containsKey(name)) {
+                failWith("It is invalid to have multiple variants with the same name ('" + name + "')");
+            } else {
+                VariantIdentity identity = new VariantIdentity(attributes, capabilities);
+                if (variants.containsValue(identity)) {
+                    String found = variants.inverse().get(identity);
+                    failWith("Variants '" + found + "' and '" + name + "' have the same attributes and capabilities. Please make sure either attributes or capabilities are different.");
+                } else {
+                    variants.put(name, identity);
+                }
+            }
+        }
+
+        public void validate() {
+            if (variants.isEmpty()) {
+                failWith("This publication must publish at least one variant");
+            }
+            if (errors != null) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Invalid publication '" + publicationName + "'");
+                formatter.startChildren();
+                for (String error : errors) {
+                    formatter.node(error);
+                }
+                formatter.endChildren();
+                throw new InvalidUserCodeException(formatter.toString());
+            }
+        }
+
+        private void failWith(String message) {
+            if (errors == null) {
+                errors = Lists.newArrayList();
+            }
+            errors.add(message);
+        }
+
+        private static final class VariantIdentity {
+            private final AttributeContainer attributes;
+            private final Set<? extends Capability> capabilities;
+
+            private VariantIdentity(AttributeContainer attributes, Set<? extends Capability> capabilities) {
+                this.attributes = attributes;
+                this.capabilities = capabilities;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+                VariantIdentity that = (VariantIdentity) o;
+                return Objects.equal(attributes, that.attributes) &&
+                    Objects.equal(capabilities, that.capabilities);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hashCode(attributes, capabilities);
+            }
         }
     }
 }

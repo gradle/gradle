@@ -292,4 +292,10 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
     }
+
+    @Override
+    public T withoutDefaultVariants() {
+        backingModule.withoutDefaultVariants();
+        return t();
+    }
 }

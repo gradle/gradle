@@ -254,6 +254,27 @@ public class SigningExtension {
     }
 
     /**
+     * Use the supplied ascii-armored in-memory PGP secret key and password
+     * instead of reading it from a keyring.
+     * In case a signing subkey is provided, keyId must be provided as well.
+     *
+     * <pre><code>
+     * signing {
+     *     def keyId = findProperty("keyId")
+     *     def secretKey = findProperty("mySigningKey")
+     *     def password = findProperty("mySigningPassword")
+     *     useInMemoryPgpKeys(keyId, secretKey, password)
+     * }
+     * </code></pre>
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public void useInMemoryPgpKeys(@Nullable String defaultKeyId, @Nullable String defaultSecretKey, @Nullable String defaultPassword) {
+        setSignatories(new InMemoryPgpSignatoryProvider(defaultKeyId, defaultSecretKey, defaultPassword));
+    }
+
+    /**
      * The configuration that signature artifacts are added to.
      */
     public Configuration getConfiguration() {
