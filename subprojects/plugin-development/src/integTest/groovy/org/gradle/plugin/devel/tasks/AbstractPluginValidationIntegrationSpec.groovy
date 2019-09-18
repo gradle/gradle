@@ -374,7 +374,25 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     enum Severity {
-        WARNING("Warning"), ERROR("Error");
+        /**
+         * A validation warning, emitted as a deprecation warning during runtime.
+         */
+        WARNING("Warning"),
+
+        /**
+         * A validation warning emitted only when strict mode is enabled (never during runtime).
+         */
+        STRICT_WARNING("Warning"),
+
+        /**
+         * A validation error, emitted as a failure cause during runtime.
+         */
+        ERROR("Error"),
+
+        /**
+         * A validation error emitted only when strict mode is enabled (never during runtime).
+         */
+        STRICT_ERROR("Error");
 
         private final String displayName
 
