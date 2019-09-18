@@ -45,12 +45,12 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.internal.reflect.WorkValidationException;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -169,7 +169,7 @@ public class ValidatePlugins extends DefaultTask {
                 if (ignoreFailures.get()) {
                     getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"), toMessageList(problemMessages));
                 } else {
-                    throw new TaskValidationException(String.format("Plugin validation failed. See %s for more information on how to annotate task properties.", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")), toExceptionList(problemMessages));
+                    throw new WorkValidationException(String.format("Plugin validation failed. See %s for more information on how to annotate task properties.", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")), toExceptionList(problemMessages));
                 }
             } else {
                 getLogger().warn("Plugin validation finished with warnings:{}", toMessageList(problemMessages));
