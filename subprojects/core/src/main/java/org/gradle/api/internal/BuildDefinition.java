@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequests;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -89,7 +90,7 @@ public class BuildDefinition {
     private static StartParameter configure(StartParameter startParameter, File buildRootDir) {
         StartParameter includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
-        includedBuildStartParam.setSearchUpwards(false);
+        DeprecationLogger.whileDisabled(() -> includedBuildStartParam.setSearchUpwards(false));
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
         return includedBuildStartParam;
