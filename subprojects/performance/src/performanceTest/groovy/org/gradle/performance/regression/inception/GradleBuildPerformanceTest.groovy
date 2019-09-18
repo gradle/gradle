@@ -75,6 +75,7 @@ class GradleBuildPerformanceTest extends Specification {
         runner = new CrossBuildPerformanceTestRunner(
             new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)),
             resultStore,
+            resultStore,
             buildContext) {
 
             @Override

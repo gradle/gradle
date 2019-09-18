@@ -22,6 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.util.Git
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.maven.M2Installation
@@ -43,8 +44,8 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
     int warmUpRuns = 4
     int runs = 12
 
-    GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
-        super(experimentRunner, dataReporter, buildContext)
+    GradleVsMavenPerformanceTestRunner(TestDirectoryProvider testDirectoryProvider, GradleVsMavenBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<GradleVsMavenBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+        super(experimentRunner, resultsStore, dataReporter, buildContext)
         m2 = new M2Installation(testDirectoryProvider)
     }
 

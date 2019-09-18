@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import com.google.common.collect.ImmutableList
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -26,7 +27,11 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceTestResult
 import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.InvocationSettings
 import org.junit.Assume
+
+import java.util.function.Function
 
 abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTestResult> {
     final IntegrationTestBuildContext buildContext
@@ -40,12 +45,17 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     List<BuildExperimentSpec> specs = []
 
     final DataReporter<R> reporter
+    final ResultsStore resultsStore
 
     BuildExperimentListener buildExperimentListener
     InvocationCustomizer invocationCustomizer
 
-    public AbstractGradleBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
+    private final List<Function<InvocationSettings, BuildMutator>> buildMutators = []
+    private final List<String> measuredBuildOperations = []
+
+    public AbstractGradleBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         this.reporter = dataReporter
+        this.resultsStore = resultsStore
         this.experimentRunner = experimentRunner
         this.buildContext = buildContext
         this.gradleDistribution = new UnderDevelopmentGradleDistribution(buildContext)
@@ -75,6 +85,8 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         builder.setListener(buildExperimentListener)
         builder.setInvocationCustomizer(invocationCustomizer)
+        builder.setBuildMutators(buildMutators)
+        builder.setMeasuredBuildOperations(ImmutableList.copyOf(measuredBuildOperations))
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
@@ -95,7 +107,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert !specs.empty
         assert testId
 
-        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, specs.projectName.toSet(), (ResultsStore) reporter))
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, specs.projectName.toSet(), resultsStore))
 
         def results = newResult()
 
@@ -121,5 +133,13 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
     protected static String determineTeamCityBuildId() {
         ResultsStoreHelper.determineTeamCityBuildId()
+    }
+
+    void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
+        buildMutators.add(buildMutator)
+    }
+
+    List<String> getMeasuredBuildOperations() {
+        return measuredBuildOperations
     }
 }

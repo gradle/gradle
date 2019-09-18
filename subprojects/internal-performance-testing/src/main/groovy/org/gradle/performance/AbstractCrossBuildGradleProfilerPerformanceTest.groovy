@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +19,24 @@ package org.gradle.performance
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
-import org.gradle.performance.fixture.GradleInternalBuildExperimentRunner
-import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
+import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
+import org.gradle.performance.results.DataReporter
+import org.gradle.profiler.BenchmarkResultCollector
+import org.gradle.profiler.report.CsvGenerator
+import org.gradle.profiler.report.HtmlGenerator
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 @CleanupTestDirectory
-class AbstractCrossBuildPerformanceTest extends Specification {
+class AbstractCrossBuildGradleProfilerPerformanceTest extends Specification {
     private static final CrossBuildResultsStore RESULT_STORE = new CrossBuildResultsStore()
+    private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory"
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
@@ -44,18 +49,40 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     CrossBuildPerformanceTestRunner runner
 
     def setup() {
-        runner = new CrossBuildPerformanceTestRunner(new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)), RESULT_STORE, RESULT_STORE, buildContext) {
+        def debugArtifactsDirectoryPath = System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME)
+        def debugArtifactsDirectory = debugArtifactsDirectoryPath ? new File(debugArtifactsDirectoryPath) : temporaryFolder.testDirectory
+        println debugArtifactsDirectory.absolutePath
+        def resultCollector = new BenchmarkResultCollector(
+            new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv")),
+            new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))
+        )
+        def compositeReporter = new DataReporter<CrossBuildPerformanceResults>() {
+            @Override
+            void report(CrossBuildPerformanceResults results) {
+                RESULT_STORE.report(results)
+                resultCollector.summarizeResults { line ->
+                    System.out.println("  " + line)
+                }
+                resultCollector.write()
+            }
+
+            @Override
+            void close() throws IOException {
+                RESULT_STORE.close()
+            }
+        }
+        runner = new CrossBuildPerformanceTestRunner(new GradleProfilerBuildExperimentRunner(resultCollector), RESULT_STORE, compositeReporter, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
                 builder.workingDirectory = temporaryFolder.testDirectory
-                AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
+                AbstractCrossBuildGradleProfilerPerformanceTest.this.defaultSpec(builder)
             }
 
             @Override
             protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
                 super.finalizeSpec(builder)
-                AbstractCrossBuildPerformanceTest.this.finalizeSpec(builder)
+                AbstractCrossBuildGradleProfilerPerformanceTest.this.finalizeSpec(builder)
             }
         }
         performanceTestIdProvider.setTestSpec(runner)
