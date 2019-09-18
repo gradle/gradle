@@ -187,6 +187,7 @@ Then we conflict resolve between `core:1.0` and `core:1.1`, which means that `co
 
 NOTE: This behavior is enforced for published components only if you use Gradle Module Metadata.
 
+[[sec:align-versions-virtual]]
 === Aligning versions of modules not published with Gradle
 
 Whenever the publisher doesn't use Gradle, like in our Jackson example, we can explain to Gradle that that all Jackson modules "belong to" the same platform and benefit from the same behavior as with native alignment:
