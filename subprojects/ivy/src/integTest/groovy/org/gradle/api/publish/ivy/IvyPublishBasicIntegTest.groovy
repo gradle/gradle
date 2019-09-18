@@ -191,4 +191,46 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         module2.assertPublished()
     }
 
+    def "warns when trying to publish a transitive = false variant"() {
+        given:
+        def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            configurations {
+                apiElements {
+                    transitive = false
+                }
+                runtimeElements {
+                    transitive = false
+                }
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        succeeds 'publish'
+
+        then: "build warned about transitive = true variant"
+        outputContains("Publication ignores 'transitive = false' at configuration level.")
+    }
+
 }
