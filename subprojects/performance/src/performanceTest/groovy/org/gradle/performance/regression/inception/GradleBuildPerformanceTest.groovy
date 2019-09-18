@@ -19,7 +19,7 @@ import org.gradle.api.internal.tasks.DefaultTaskContainer
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.categories.PerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentSpec
-import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.CrossBuildGradleInternalPerformanceTestRunner
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleInternalBuildExperimentRunner
 import org.gradle.performance.fixture.GradleSessionProvider
@@ -66,13 +66,13 @@ class GradleBuildPerformanceTest extends Specification {
     @Shared
     def resultStore = new CrossBuildResultsStore()
 
-    CrossBuildPerformanceTestRunner runner
+    CrossBuildGradleInternalPerformanceTestRunner runner
 
     def warmupBuilds = 20
     def measuredBuilds = 20
 
     def setup() {
-        runner = new CrossBuildPerformanceTestRunner(
+        runner = new CrossBuildGradleInternalPerformanceTestRunner(
             new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)),
             resultStore,
             resultStore,

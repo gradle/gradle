@@ -25,7 +25,7 @@ import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
-class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
+class BuildScanPerformanceTestRunner extends CrossBuildGradleInternalPerformanceTestRunner {
     private final String pluginCommitSha
 
     BuildScanPerformanceTestRunner(GradleInternalBuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha, IntegrationTestBuildContext buildContext) {

@@ -26,8 +26,8 @@ import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
-class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
-    public CrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+class CrossBuildGradleInternalPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
+    public CrossBuildGradleInternalPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
         super(experimentRunner, resultsStore, dataReporter, buildContext)
     }
 
