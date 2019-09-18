@@ -54,10 +54,7 @@ public class ClasspathEntrySnapshot {
 
     public IntSet getAllConstants(DependentsSet dependents) {
         IntSet result = new IntOpenHashSet();
-        for (String cn : dependents.getAccessibleDependentClasses()) {
-            result.addAll(data.getClassAnalysis().getConstants(cn));
-        }
-        for (String cn : dependents.getPrivateDependentClasses()) {
+        for (String cn : dependents.getAllDependentClasses()) {
             result.addAll(data.getClassAnalysis().getConstants(cn));
         }
         return result;
