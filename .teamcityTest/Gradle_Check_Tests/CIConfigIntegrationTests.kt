@@ -4,10 +4,12 @@ import common.NoBuildCache
 import common.Os
 import configurations.FunctionalTest
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
+import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.SpecificBuild
 import model.Stage
 import model.StageNames
+import model.SubprojectSplit
 import model.TestCoverage
 import model.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -66,7 +68,7 @@ class CIConfigIntegrationTests {
                         !bucket.shouldBeSkippedInStage(stage) && !bucket.shouldBeSkipped(testCoverage)
                     }.forEach { subprojectBucket ->
                         if (subprojectBucket.hasTestsOf(testCoverage.testType)) {
-                            functionalTestCount += subprojectBucket.forTestType(testCoverage.testType).size
+                            functionalTestCount += subprojectBucket.createFunctionalTestsFor(m, stage, testCoverage).size
                         }
                     }
                     if (testCoverage.testType == TestType.soak) {
@@ -108,15 +110,83 @@ class CIConfigIntegrationTests {
         assertTrue(p.subProjects.size == 1)
     }
 
+    fun Project.searchSubproject(id: String): StageProject = (subProjects.find { it.id!!.value == id } as StageProject)
+
+    @Test
+    fun canSplitLargeProjects() {
+        val model = CIBuildModel()
+        val rootProject = RootProject(model)
+        val largeSubprojects = model.buildTypeBuckets.filterIsInstance<SubprojectSplit>()
+
+        fun FunctionalTest.isLargeProjectSplit(): Boolean {
+            return largeSubprojects.any { this.name.contains("(${it.subproject.name})") || this.name.contains("(${it.subproject.name}_") }
+        }
+
+        fun find(buildTypeName: String): String {
+            // Test Coverage - AllVersionsCrossVersion Java8 Oracle Linux (core_2) -> core_2
+            return """\((\w+(_\d+)?)\)""".toRegex().find(buildTypeName)!!.groupValues[1]
+        }
+
+        fun assertAllSplitsArePresent(functionalTests: List<FunctionalTest>) {
+            val projectNames = functionalTests.map { find(it.name) }.toSet()
+            val expectedProjectNames = largeSubprojects.flatMap { bucket ->
+                (1..bucket.total).map {
+                    if (it == 1) {
+                        bucket.subproject.name
+                    } else {
+                        "${bucket.subproject.name}_$it"
+                    }
+                }
+            }.toSet()
+            assertEquals(expectedProjectNames, projectNames)
+        }
+
+        fun assertCorrectParameters(functionalTests: List<FunctionalTest>) {
+            functionalTests.forEach {
+                // e.g. core_2
+                val projectNameWithSplit = find(it.name)
+                // e.g. core
+                val projectName = projectNameWithSplit.substringBefore('_')
+
+                if (it.name.contains("AllVersionsCrossVersion")) {
+                    // No split for AllVersionsCrossVersion
+                    assertTrue(projectName == projectNameWithSplit)
+                    return@forEach
+                }
+
+                val numberOfSplits = largeSubprojects.find { it.subproject.name == projectName }!!.total
+                val runnerStep = it.steps.items.find { it.name == "GRADLE_RUNNER" } as GradleBuildStep
+                if (projectNameWithSplit.contains("_")) {
+                    val split = projectNameWithSplit.substringAfter('_')
+                    assertTrue(runnerStep.tasks!!.startsWith("clean $projectName:") && runnerStep.gradleParams!!.contains("-PtestSplit=$split/$numberOfSplits"))
+                } else {
+                    assertTrue(runnerStep.tasks!!.startsWith("clean $projectName:") && runnerStep.gradleParams!!.contains("-PtestSplit=1/$numberOfSplits"))
+                }
+            }
+        }
+
+        fun assertLargeProjectsAreSplittedCorrectly(id: String) {
+            val functionalTestsWithSplit = rootProject.searchSubproject(id).functionalTests.filter(FunctionalTest::isLargeProjectSplit)
+
+            assertAllSplitsArePresent(functionalTestsWithSplit)
+            assertCorrectParameters(functionalTestsWithSplit)
+        }
+
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_QuickFeedbackLinuxOnly")
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_QuickFeedback")
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_ReadyforMerge")
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_ReadyforNightly")
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_ReadyforRelease")
+    }
+
     @Test
     fun canDeferSlowTestsToLaterStage() {
         val model = CIBuildModel()
         val rootProject = RootProject(model)
         val slowSubprojects = model.subProjects.filter { it.containsSlowTests }.map { it.name }
 
-        fun Project.searchSubproject(id: String): StageProject = (subProjects.find { it.id!!.value == id } as StageProject)
         fun FunctionalTest.isSlow(): Boolean = slowSubprojects.any { name.contains(it) }
-        fun Project.subprojectContainsSlowTests(name: String): Boolean = searchSubproject(name).functionalTests.any(FunctionalTest::isSlow)
+        fun Project.subprojectContainsSlowTests(id: String): Boolean = searchSubproject(id).functionalTests.any(FunctionalTest::isSlow)
 
         assertTrue(!rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_QuickFeedbackLinuxOnly"))
         assertTrue(!rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_QuickFeedback"))
