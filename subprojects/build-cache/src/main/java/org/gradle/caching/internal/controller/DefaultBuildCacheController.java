@@ -201,8 +201,8 @@ public class DefaultBuildCacheController implements BuildCacheController {
             buildOperationExecutor.run(new RunnableBuildOperation() {
                 @Override
                 public void run(BuildOperationContext context) {
-                    try {
-                        BuildCacheStoreCommand.Result result = command.store(new FileOutputStream(file));
+                    try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+                        BuildCacheStoreCommand.Result result = command.store(fileOutputStream);
                         context.setResult(new PackOperationResult(
                             result.getArtifactEntryCount(),
                             file.length()

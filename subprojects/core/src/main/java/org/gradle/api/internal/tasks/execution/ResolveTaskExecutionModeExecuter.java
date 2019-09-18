@@ -63,7 +63,7 @@ public class ResolveTaskExecutionModeExecuter implements TaskExecuter {
         } finally {
             context.setTaskExecutionMode(null);
             context.setTaskProperties(null);
-            LOGGER.debug("Removed task artifact state for {} from context.");
+            LOGGER.debug("Removed task artifact state for {} from context.", task);
         }
     }
 
