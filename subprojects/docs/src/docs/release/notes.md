@@ -18,7 +18,7 @@ We would like to thank the following community contributors to this release of G
 [Vladimir Sitnikov](https://github.com/vlsi),
 [Ross Goldberg](https://github.com/rgoldberg),
 [Robin Verduijn](https://github.com/robinverduijn),
-and [Robert Stupp](https://github.com/snazy.)
+and [Robert Stupp](https://github.com/snazy).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
