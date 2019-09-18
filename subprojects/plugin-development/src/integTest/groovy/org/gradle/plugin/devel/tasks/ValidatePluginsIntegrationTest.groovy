@@ -105,51 +105,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-    def "detects annotations on private getter methods"() {
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import java.io.File;
-
-            public class MyTask extends DefaultTask {
-                @Input
-                private long getBadTime() {
-                    return 0;
-                }
-
-                @Nested
-                public Options getOptions() {
-                    return new Options();
-                }
-
-                public static class Options {
-                    @Input
-                    private String getBadNested() {
-                        return "good";
-                    }
-                }
-                
-                @OutputDirectory
-                private File getOutputDir() {
-                    return new File("outputDir");
-                }
-                
-                @TaskAction
-                public void doStuff() { }
-            }
-        """
-
-        when:
-        fails "validatePlugins"
-
-        then:
-        reportFileContents() == """
-            Warning: Type 'MyTask': property 'badTime' is private and annotated with @Input.
-            Warning: Type 'MyTask': property 'options.badNested' is private and annotated with @Input.
-            Warning: Type 'MyTask': property 'outputDir' is private and annotated with @OutputDirectory.
-            """.stripIndent().trim()
-    }
-
     def "detects annotations on non-property methods"() {
         file("src/main/java/MyTask.java") << """
             import org.gradle.api.*;
