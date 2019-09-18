@@ -41,11 +41,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         def expectedWarnings = messages
             .findAll { message, severity -> severity == WARNING }
             .keySet()
-            .collect { removeTypePrefix(it) }
         def expectedErrors = messages
             .findAll { message, severity -> severity == ERROR }
             .keySet()
-            .collect { removeTypePrefix(it) }
 
         if (expectedWarnings) {
             executer.expectDeprecationWarnings(expectedWarnings.size())
@@ -59,11 +57,12 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         executedAndNotSkipped ":run"
 
         expectedWarnings.forEach { warning ->
-            assert output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+            // TODO Replace this with logging the type related to the property during runtime validation, too
+            assert(output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+                || output.contains("${removeTypePrefix(warning)} This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."))
         }
     }
 
-    // TODO Replace this with logging the type related to the property during runtime validation, too
     String removeTypePrefix(String message) {
         def matcher = message =~ /(?:Type '.*?': )?(.*)/
         assert matcher.matches()
