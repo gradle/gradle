@@ -149,6 +149,10 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
             // since we use the main source set, we need to make sure the compile classpath and runtime classpath are properly configured
             configurationContainer.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
             configurationContainer.getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
+
+            // and we also want the feature dependencies to be available on the test classpath
+            configurationContainer.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
+            configurationContainer.getByName(JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME).extendsFrom(impl);
         }
 
         final AdhocComponentWithVariants component = findComponent();
