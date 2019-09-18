@@ -70,6 +70,6 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
 
     @Override
     TestFile source(String path) {
-        return file("buildSrc/src/main/$path")
+        return file("buildSrc/$path")
     }
 }

@@ -47,7 +47,7 @@ import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationS
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
 
     def "detects missing annotations on Java properties"() {
-        source << """
+        javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
 
@@ -136,7 +136,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         file("input.txt").text = "input"
         file("input").createDir()
 
-        source << """
+        javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.model.*;
             import org.gradle.api.tasks.*;
@@ -179,7 +179,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     @Unroll
     def "task cannot have property with annotation @#annotation.simpleName"() {
-        source << """
+        javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
@@ -217,7 +217,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     def "validates task caching annotations"() {
-        source << """
+        javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
@@ -270,7 +270,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
     abstract TestFile source(String path)
 
-    TestFile getSource() {
-        source("java/MyTask.java")
+    TestFile getJavaTaskSource() {
+        source("src/main/java/MyTask.java")
+    }
+
+    TestFile getGroovyTaskSource() {
+        source("src/main/groovy/MyTask.groovy")
     }
 }

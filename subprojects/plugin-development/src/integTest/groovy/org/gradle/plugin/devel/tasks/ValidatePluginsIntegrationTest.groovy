@@ -61,7 +61,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
     @Override
     TestFile source(String path) {
-        return file("src/main/$path")
+        return file(path)
     }
 
     def "detects missing annotation on Groovy properties"() {
