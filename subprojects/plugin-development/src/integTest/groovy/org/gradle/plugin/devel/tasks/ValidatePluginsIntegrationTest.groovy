@@ -18,9 +18,6 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
-import org.gradle.api.file.ConfigurableFileCollection
-import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -106,39 +103,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies]
-    }
-
-    @Unroll
-    def "report setters for property of mutable type #type"() {
-        def myTask = """
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.tasks.InputFiles;
-
-            public class MyTask extends DefaultTask {
-                // getter and setter
-                @InputFiles public ${type} getMutablePropertyWithSetter() { return null; } 
-                public void setMutablePropertyWithSetter(${type} value) {} 
-
-                // just getter
-                @InputFiles public ${type} getMutablePropertyWithoutSetter() { return null; } 
-
-                // just setter
-                // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
-                public void setMutablePropertyWithoutGetter() {}                
-            }
-        """
-        file("src/main/java/MyTask.java") << myTask
-
-        when:
-        fails "validatePlugins"
-
-        then:
-        reportFileContents() == """
-            Warning: Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself
-            """.stripIndent().trim()
-
-        where:
-        type << [ConfigurableFileCollection.name, "${Property.name}<String>", RegularFileProperty.name]
     }
 
     def "detects problems with file inputs"() {

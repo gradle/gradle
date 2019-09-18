@@ -16,10 +16,12 @@
 
 package org.gradle.plugin.devel.tasks
 
-
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.model.ReplacedBy
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.Input
@@ -330,6 +332,45 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationSucceeds()
+    }
+
+    @Unroll
+    def "report setters for property of mutable type #type"() {
+        file("input.txt").text = "input"
+
+        javaTaskSource << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.InputFiles;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class MyTask extends DefaultTask {
+                private final ${type} mutableProperty = ${init};
+
+                // getter and setter
+                @InputFiles public ${type} getMutablePropertyWithSetter() { return mutableProperty; } 
+                public void setMutablePropertyWithSetter(${type} value) {} 
+
+                // just getter
+                @InputFiles public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; } 
+
+                // just setter
+                // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
+                public void setMutablePropertyWithoutGetter() {}
+                
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself": WARNING,
+        )
+
+        where:
+        type                            | init
+        ConfigurableFileCollection.name | "getProject().getObjects().fileCollection()"
+        "${Property.name}<String>"      | "getProject().getObjects().property(String.class).convention(\"value\")"
+        RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
     enum Severity {
