@@ -38,6 +38,8 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -588,6 +590,39 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can validate task classes using external types"() {
+        taskBuildFile << """
+            ${jcenterRepository()}
+
+            dependencies {
+                implementation 'com.typesafe:config:1.3.2'
+            }
+        """
+
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+            import java.io.File;
+            import com.typesafe.config.Config;
+
+            public class MyTask extends DefaultTask {
+                @Input
+                public long getGoodTime() {
+                    return 0;
+                }
+                
+                @Optional @Input
+                public Config getConfig() { return null; } 
+                
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationSucceeds()
+    }
+
     enum Severity {
         /**
          * A validation warning, emitted as a deprecation warning during runtime.
@@ -626,6 +661,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     abstract void assertValidationFailsWith(Map<String, Severity> messages)
 
     abstract TestFile source(String path)
+
+    abstract TestFile getTaskBuildFile()
 
     TestFile getJavaTaskSource() {
         source("src/main/java/MyTask.java")

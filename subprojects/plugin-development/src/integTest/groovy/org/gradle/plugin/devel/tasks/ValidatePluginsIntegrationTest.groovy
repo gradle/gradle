@@ -62,6 +62,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
+    @Override
+    TestFile getTaskBuildFile() {
+        return buildFile
+    }
+
     @Unroll
     def "task cannot have property with annotation @#annotation.simpleName"() {
         javaTaskSource << """
@@ -105,37 +110,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
-
-    @Requires(TestPrecondition.JDK8_OR_LATER)
-    def "can validate task classes using external types"() {
-        buildFile << """
-            ${jcenterRepository()}
-
-            dependencies {
-                implementation 'com.typesafe:config:1.3.2'
-            }
-        """
-
-        file("src/main/java/MyTask.java") << """
-            import org.gradle.api.*;
-            import org.gradle.api.tasks.*;
-            import java.io.File;
-            import com.typesafe.config.Config;
-
-            public class MyTask extends DefaultTask {
-                @Input
-                public long getGoodTime() {
-                    return 0;
-                }
-                
-                @Input
-                public Config getConfig() { return null; } 
-            }
-        """
-
-        expect:
-        succeeds "validatePlugins"
-    }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can validate task classes using types from other projects"() {
