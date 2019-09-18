@@ -24,6 +24,8 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
@@ -345,6 +347,7 @@ public class TestNGOptions extends TestFrameworkOptions {
      * Note: The suiteXmlFiles can be used in conjunction with the suiteXmlBuilder.
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
     public List<File> getSuiteXmlFiles() {
         return suiteXmlFiles;
     }
