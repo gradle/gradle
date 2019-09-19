@@ -47,6 +47,8 @@ class KotlinDslScriptsModelClient {
             addJvmArguments(request.jvmOptions)
             if (request.lenient) {
                 addJvmArguments(KotlinDslModelsParameters.LENIENT_MODE_SYSTEM_PROPERTY_DECLARATION)
+            } else {
+                addJvmArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
             }
 
             forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
@@ -122,7 +124,7 @@ class KotlinDslScriptsModelRequest {
         @Nullable File javaHome = null,
         List<String> jvmOptions = [],
         List<String> options = [],
-        Boolean lenient = true, // TODO distinguish classpath mode and leniency
+        Boolean lenient = false,
         String correlationId = newCorrelationId()
     ) {
         this.scripts = scripts

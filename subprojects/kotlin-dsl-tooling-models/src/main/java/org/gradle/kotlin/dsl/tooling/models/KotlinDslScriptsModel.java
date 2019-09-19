@@ -33,8 +33,11 @@ import java.util.Map;
  * If none are provided, then the model is built for all the Kotlin DSL scripts known to belong to this build.
  * See {@link KotlinDslScriptsModel#SCRIPTS_GRADLE_PROPERTY_NAME}.
  *
- * Optionally, the Gradle Kotlin DSL script provider can run in a lenient mode, ignoring, collecting and returning exceptions
- * in the built model by providing the system property <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath</code>.
+ * The Gradle Kotlin DSL script provider must be running in "classpath" mode.
+ * This is done by providing the system property <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath</code>.
+ * See {@link KotlinDslModelsParameters#CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION}.
+ * Optionally, it can also be set in a lenient mode, ignoring, collecting and returning exceptions
+ * in the built model by providing the system property value <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath-lenient</code>.
  * See {@link KotlinDslModelsParameters#LENIENT_MODE_SYSTEM_PROPERTY_DECLARATION}.
  *
  * Optionally, an identifier can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.cid</code>,

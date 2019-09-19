@@ -28,9 +28,13 @@ public final class KotlinDslModelsParameters {
 
     public static final String CORRELATION_ID_GRADLE_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.cid";
 
-    public static final String LENIENT_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.mode";
+    public static final String PROVIDER_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.mode";
 
-    public static final String LENIENT_MODE_SYSTEM_PROPERTY_VALUE = "classpath";
+    public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = "classpath";
 
-    public static final String LENIENT_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + LENIENT_MODE_SYSTEM_PROPERTY_NAME + "=" + LENIENT_MODE_SYSTEM_PROPERTY_VALUE;
+    public static final String LENIENT_MODE_SYSTEM_PROPERTY_VALUE = "classpath-lenient";
+
+    public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
+
+    public static final String LENIENT_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + LENIENT_MODE_SYSTEM_PROPERTY_VALUE;
 }

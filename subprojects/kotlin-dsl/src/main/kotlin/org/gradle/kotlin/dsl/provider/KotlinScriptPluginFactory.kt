@@ -60,10 +60,10 @@ class KotlinScriptPluginFactory @Inject internal constructor(
 
     private
     fun kotlinScriptOptions(): EnumSet<EvalOption> =
-        if (inClassPathMode()) classPathModeScriptOptions
+        if (inLenientMode()) lenientModeScriptOptions
         else defaultEvalOptions
 }
 
 
 private
-val classPathModeScriptOptions = EnumSet.of(EvalOption.IgnoreErrors)
+val lenientModeScriptOptions = EnumSet.of(EvalOption.IgnoreErrors)
