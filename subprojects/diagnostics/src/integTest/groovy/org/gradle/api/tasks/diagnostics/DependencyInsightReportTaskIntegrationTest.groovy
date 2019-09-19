@@ -1413,6 +1413,7 @@ org:middle:1.0 FAILED
       - Could not find org:middle:2.0.
         Searched in the following locations:
           - ${mavenRepoURL}/org/middle/2.0/middle-2.0.pom
+        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 
 org:middle:1.0 -> 2.0 FAILED
 \\--- org:top:1.0
@@ -1580,6 +1581,7 @@ org:leaf:1.0 FAILED
       - Could not find org:leaf:1.0.
         Searched in the following locations:
           - ${ivyRepoURL}/org/leaf/1.0/ivy-1.0.xml
+        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'ivy.xml' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 
 org:leaf:1.0 FAILED
 \\--- org:top:1.0

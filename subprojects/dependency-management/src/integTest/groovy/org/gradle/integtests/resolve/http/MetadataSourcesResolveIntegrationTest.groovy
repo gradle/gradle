@@ -176,9 +176,12 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         fails ":checkDeps"
 
         and:
+        def format = metadataSource == 'ivyDescriptor' ? 'ivy.xml' :
+            (metadataSource == 'mavenPom' ? 'Maven POM' : 'Gradle module')
         failure.assertHasCause("""Could not find org.test:projectA:1.1.
 Searched in the following locations:
   - ${metadataUri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in '$format' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:""")
     }
 }

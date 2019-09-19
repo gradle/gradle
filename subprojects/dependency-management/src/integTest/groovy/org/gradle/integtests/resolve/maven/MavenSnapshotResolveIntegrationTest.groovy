@@ -1034,6 +1034,7 @@ task retrieve(type: Sync) {
         failure.assertHasCause("""Could not find org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}.
 Searched in the following locations:
   - ${projectA.pom.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
     }
