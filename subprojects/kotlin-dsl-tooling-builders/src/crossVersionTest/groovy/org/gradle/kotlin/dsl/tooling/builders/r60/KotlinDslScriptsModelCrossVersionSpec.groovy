@@ -22,6 +22,8 @@ import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelClient
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelRequest
 import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
 
+import java.lang.reflect.Proxy
+
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 
 
@@ -178,6 +180,42 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
         bClassPath.contains(rootJar.name)
         !bClassPath.contains(aJar.name)
         bClassPath.contains(bJar.name)
+    }
+
+    def "multi-scripts model is dehydrated over the wire"() {
+
+        given:
+        withBuildSrc()
+        buildFileKts << ""
+
+        when:
+        def model = kotlinDslScriptsModelFor(buildFileKts)
+
+        then:
+        def source = Proxy.getInvocationHandler(model).sourceObject
+        source.scripts == [buildFileKts]
+
+        and:
+        def commonModel = source.commonModel
+        commonModel != null
+        commonModel.classPath.size() > 0
+        // commonModel.classPath.find { it.name == "buildSrc.jar" } != null // TODO
+        commonModel.sourcePath.size() > 0
+        commonModel.implicitImports.size() > 0
+
+        and:
+        def scriptModels = source.dehydratedScriptModels
+        scriptModels != null
+        scriptModels.size() == 1
+
+        and:
+        def buildFileKtsModel = source.dehydratedScriptModels.get(buildFileKts)
+        buildFileKtsModel != null
+        buildFileKtsModel.classPath.isEmpty()
+        buildFileKtsModel.sourcePath.isEmpty()
+        buildFileKtsModel.implicitImports.isEmpty()
+        buildFileKtsModel.editorReports.isEmpty()
+        buildFileKtsModel.exceptions.isEmpty()
     }
 
     private KotlinDslScriptsModel kotlinDslScriptsModelFor(File... scripts) {
