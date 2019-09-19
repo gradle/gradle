@@ -22,12 +22,9 @@ import org.gradle.performance.fixture.CrossBuildGradleProfilerPerformanceTestRun
 import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.CompositeDataReporter
 import org.gradle.performance.results.CrossBuildResultsStore
-import org.gradle.performance.results.DataReporter
-import org.gradle.profiler.BenchmarkResultCollector
-import org.gradle.profiler.report.CsvGenerator
-import org.gradle.profiler.report.HtmlGenerator
+import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -36,7 +33,6 @@ import spock.lang.Specification
 @CleanupTestDirectory
 class AbstractCrossBuildPerformanceTest extends Specification {
     private static final CrossBuildResultsStore RESULT_STORE = new CrossBuildResultsStore()
-    private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory"
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
@@ -49,29 +45,9 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     CrossBuildGradleProfilerPerformanceTestRunner runner
 
     def setup() {
-        def debugArtifactsDirectoryPath = System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME)
-        def debugArtifactsDirectory = debugArtifactsDirectoryPath ? new File(debugArtifactsDirectoryPath) : temporaryFolder.testDirectory
-        println debugArtifactsDirectory.absolutePath
-        def resultCollector = new BenchmarkResultCollector(
-            new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv")),
-            new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))
-        )
-        def compositeReporter = new DataReporter<CrossBuildPerformanceResults>() {
-            @Override
-            void report(CrossBuildPerformanceResults results) {
-                RESULT_STORE.report(results)
-                resultCollector.summarizeResults { line ->
-                    System.out.println("  " + line)
-                }
-                resultCollector.write()
-            }
-
-            @Override
-            void close() throws IOException {
-                RESULT_STORE.close()
-            }
-        }
-        runner = new CrossBuildGradleProfilerPerformanceTestRunner(new GradleProfilerBuildExperimentRunner(resultCollector), RESULT_STORE, compositeReporter, buildContext) {
+        def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
+        def compositeReporter = CompositeDataReporter.of(RESULT_STORE, gradleProfilerReporter)
+        runner = new CrossBuildGradleProfilerPerformanceTestRunner(new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()), RESULT_STORE, compositeReporter, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)

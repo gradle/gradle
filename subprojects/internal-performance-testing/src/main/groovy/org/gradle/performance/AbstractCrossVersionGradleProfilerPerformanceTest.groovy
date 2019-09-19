@@ -24,13 +24,10 @@ import org.gradle.performance.fixture.GradleProfilerBuildExperimentRunner
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.PerformanceTestIdProvider
-import org.gradle.performance.results.CrossVersionPerformanceResults
+import org.gradle.performance.results.CompositeDataReporter
 import org.gradle.performance.results.CrossVersionResultsStore
-import org.gradle.performance.results.DataReporter
+import org.gradle.performance.results.GradleProfilerReporter
 import org.gradle.performance.results.SlackReporter
-import org.gradle.profiler.BenchmarkResultCollector
-import org.gradle.profiler.report.CsvGenerator
-import org.gradle.profiler.report.HtmlGenerator
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -47,8 +44,6 @@ import spock.lang.Specification
 @CleanupTestDirectory
 class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
 
-    private static final String DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME = "org.gradle.performance.debugArtifactsDirectory"
-
     private static def resultStore = new CrossVersionResultsStore()
     private static def reporter = SlackReporter.wrap(resultStore)
 
@@ -63,30 +58,11 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()
 
     def setup() {
-        def debugArtifactsDirectoryPath = System.getProperty(DEBUG_ARTIFACTS_DIRECTORY_PROPERTY_NAME)
-        def debugArtifactsDirectory = debugArtifactsDirectoryPath ? new File(debugArtifactsDirectoryPath) : temporaryFolder.testDirectory
-        def resultCollector = new BenchmarkResultCollector(
-            new CsvGenerator(new File(debugArtifactsDirectory, "benchmark.csv")),
-            new HtmlGenerator(new File(debugArtifactsDirectory, "benchmark.html"))
-        )
+        def gradleProfilerReporter = new GradleProfilerReporter(temporaryFolder.testDirectory)
         def slackReporter = reporter
-        def compositeReporter = new DataReporter<CrossVersionPerformanceResults>() {
-            @Override
-            void report(CrossVersionPerformanceResults results) {
-                slackReporter.report(results)
-                resultCollector.summarizeResults { line ->
-                    System.out.println("  " + line)
-                }
-                resultCollector.write()
-            }
-
-            @Override
-            void close() throws IOException {
-                reporter.close()
-            }
-        }
+        def compositeReporter = CompositeDataReporter.of(slackReporter, gradleProfilerReporter)
         runner = new GradleProfilerCrossVersionPerformanceTestRunner(
-            new GradleProfilerBuildExperimentRunner(resultCollector),
+            new GradleProfilerBuildExperimentRunner(gradleProfilerReporter.getResultCollector()),
             resultStore,
             compositeReporter,
             new ReleasedVersionDistributions(buildContext),
