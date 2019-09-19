@@ -59,6 +59,14 @@ Its predecessor `IncrementalTaskInputs` has been deprecated.
 Forcing dependency versions using `force = true` on a first-level dependency is deprecated.
 Force has both a semantic and ordering issue which can be avoided by using a <<rich_versions.adoc#rich-version-constraints, strict version constraint>>.
 
+==== Invalid task definitions and configurations
+
+Problems with task definitions are called out in deprecation warnings like this:
+
+```
+Property 'options.configFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+```
+
 === Potential breaking changes
 
 ==== Android Gradle Plugin 3.3 and earlier is not supported anymore
