@@ -38,8 +38,6 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import javax.inject.Inject
@@ -590,7 +588,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can validate task classes using external types"() {
         taskBuildFile << """
             ${jcenterRepository()}
@@ -623,7 +620,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can validate task classes using types from other projects"() {
         taskSettingsFile << """
             include 'lib'
