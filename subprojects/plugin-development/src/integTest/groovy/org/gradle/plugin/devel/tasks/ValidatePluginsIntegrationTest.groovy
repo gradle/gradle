@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.transform.InputArtifactDependencies
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
+import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.ERROR
+import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
+
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
     def setup() {
@@ -84,16 +87,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        fails("validatePlugins")
-        failure.assertHasDescription("Execution failed for task ':validatePlugins'.")
-        failure.assertHasCause("Plugin validation failed. See")
-        failure.assertHasCause("Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.")
-        failure.assertHasCause("Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.")
-
-        reportFileContents() == """
-            Error: Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.
-            Error: Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.
-            """.stripIndent().trim()
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'options.nestedThing' is annotated with invalid property type @${annotation.simpleName}.": ERROR,
+            "Type 'MyTask': property 'thing' is annotated with invalid property type @${annotation.simpleName}.": ERROR,
+        )
 
         where:
         annotation << [InputArtifact, InputArtifactDependencies]
@@ -109,7 +106,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             
             validatePlugins.enableStricterValidation = project.hasProperty('strict')
         """
-        file("src/main/groovy/MyTask.groovy") << """
+
+        groovyTaskSource << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
 
@@ -129,17 +127,17 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        succeeds("validatePlugins")
+        assertValidationSucceeds()
 
         when:
-        fails "validatePlugins", "-Pstrict"
+        file("gradle.properties").text = "strict=true"
 
         then:
-        reportFileContents() == """
-            Warning: Type 'MyTask': property 'dirProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
-            Warning: Type 'MyTask': property 'fileProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
-            Warning: Type 'MyTask': property 'filesProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.
-            """.stripIndent().trim()
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'dirProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'fileProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'filesProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+        )
     }
 
     def "can validate task classes using external types"() {
@@ -278,17 +276,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        fails "validatePlugins"
-        failure.assertHasCause "Plugin validation failed"
-        failure.assertHasCause "Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation."
-        failure.assertHasCause "Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile."
-        failure.assertHasCause "Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation."
-
-        reportFileContents() == """
-            Error: Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation.
-            Error: Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile.
-            Error: Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation.
-            """.stripIndent().trim()
+        assertValidationFailsWith(
+            "Type 'MyTransformAction': property 'badTime' is not annotated with an input annotation.": ERROR,
+            "Type 'MyTransformAction': property 'inputFile' is annotated with invalid property type @InputFile.": ERROR,
+            "Type 'MyTransformAction': property 'oldThing' is not annotated with an input annotation.": ERROR,
+        )
     }
 
     def "can validate properties of an artifact transform parameters object"() {
@@ -345,19 +337,12 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         """
 
         expect:
-        fails "validatePlugins"
-        failure.assertHasCause "Plugin validation failed"
-        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation."
-        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties."
-        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact."
-        failure.assertHasCause "Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation."
-
-        reportFileContents() == """
-            Error: Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.
-            Error: Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties.
-            Error: Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.
-            Error: Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.
-            """.stripIndent().trim()
+        assertValidationFailsWith(
+            "Type 'MyTransformParameters': property 'badTime' is not annotated with an input annotation.": ERROR,
+            "Type 'MyTransformParameters': property 'incrementalNonFileInput' is annotated with @Incremental that is not allowed for @Input properties.": ERROR,
+            "Type 'MyTransformParameters': property 'inputFile' is annotated with invalid property type @InputArtifact.": ERROR,
+            "Type 'MyTransformParameters': property 'oldThing' is not annotated with an input annotation.": ERROR,
+        )
     }
 
     def "can run old task"() {
@@ -368,9 +353,5 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         then:
         executedAndNotSkipped(":validatePlugins")
         output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
-    }
-
-    private String reportFileContents() {
-        file("build/reports/plugin-development/validation-report.txt").text
     }
 }
