@@ -28,8 +28,9 @@ import java.util.Map;
  * Requires the <code>prepareKotlinBuildScriptModel</code> task to be executed before building the model.
  * See {@link KotlinDslModelsParameters#PREPARATION_TASK_NAME}
  *
- * The set of scripts must be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.scripts</code>,
+ * The set of scripts can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.scripts</code>,
  * as a list of absolute paths separated by <code>|</code>.
+ * If none are provided, then the model is built for all the Kotlin DSL scripts known to belong to this build.
  * See {@link KotlinDslScriptsModel#SCRIPTS_GRADLE_PROPERTY_NAME}.
  *
  * Optionally, the Gradle Kotlin DSL script provider can run in a lenient mode, ignoring, collecting and returning exceptions
