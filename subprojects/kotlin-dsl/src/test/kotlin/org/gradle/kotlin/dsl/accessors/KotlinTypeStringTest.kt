@@ -26,6 +26,14 @@ class KotlinTypeStringTest {
     }
 
     @Test
+    fun `#kotlinTypeStringFor Kotlin function type`() {
+        assertThat(
+            kotlinTypeStringFor(typeOf<(String) -> String>()),
+            equalTo("kotlin.jvm.functions.Function1<String, String>")
+        )
+    }
+
+    @Test
     fun `#kotlinTypeStringFor primitive type`() {
         assertPrimitiveTypeName<Boolean>(java.lang.Boolean.TYPE)
         assertPrimitiveTypeName<Char>(java.lang.Character.TYPE)

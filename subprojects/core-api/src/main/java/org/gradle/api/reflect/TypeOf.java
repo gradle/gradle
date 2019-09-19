@@ -205,6 +205,16 @@ public abstract class TypeOf<T> {
     }
 
     /**
+     * Returns the first declared lower-bound of the wildcard type expression represented by this type.
+     *
+     * @return null if no lower-bound has been explicitly declared.
+     */
+    @Nullable
+    public TypeOf<?> getLowerBound() {
+        return nullableTypeOf(type.getLowerBound());
+    }
+
+    /**
      * Is this type assignable from the given type?
      *
      * @param type the given type

@@ -194,12 +194,6 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
     @Issue("https://github.com/gradle/gradle/issues/10772")
     fun `accessors to **typed** kotlin lambda extensions are typed`() {
 
-        // TODO:kotlin-dsl Remove once above issue is fixed
-        exceptionRule.apply {
-            expect(ComparisonFailure::class.java)
-            expectMessage(containsString("lambdaExtension: kotlin.jvm.functions.Function1<? super java.lang.Object, ? extends java.lang.String>"))
-        }
-
         requireGradleDistributionOnEmbeddedExecuter()
 
         withDefaultSettings()
