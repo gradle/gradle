@@ -65,6 +65,16 @@ Secondary variants (*)
           - org.gradle.usage               = java-api
        - Artifacts
           - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+    - Variant : javadoc
+       - Attributes
+          - org.gradle.category            = documentation
+          - org.gradle.dependency.bundling = external
+          - org.gradle.docstype            = javadoc
+          - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+          - org.gradle.libraryelements     = jar
+          - org.gradle.usage               = java-api
+       - Artifacts
+          - build${File.separator}libs${File.separator}myLib-1.0-javadoc.jar (artifactType = jar)
 
 --------------------------------------------------
 Variant runtimeElements
@@ -102,6 +112,16 @@ Secondary variants (*)
           - org.gradle.usage               = java-runtime
        - Artifacts
           - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+    - Variant : sources
+       - Attributes
+          - org.gradle.category            = documentation
+          - org.gradle.dependency.bundling = external
+          - org.gradle.docstype            = sources
+          - org.gradle.jvm.version         = 11
+          - org.gradle.libraryelements     = jar
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build${File.separator}libs${File.separator}myLib-1.0-sources.jar (artifactType = jar)
 """
         and:
         doesNotHaveLegacyVariantsLegend()
@@ -222,6 +242,16 @@ Secondary variants (*)
           - org.gradle.usage               = java-api
        - Artifacts
           - build${File.separator}classes${File.separator}java${File.separator}main (artifactType = java-classes-directory)
+    - Variant : javadoc
+       - Attributes
+          - org.gradle.category            = documentation
+          - org.gradle.dependency.bundling = external
+          - org.gradle.docstype            = javadoc
+          - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+          - org.gradle.libraryelements     = jar
+          - org.gradle.usage               = java-api
+       - Artifacts
+          - build${File.separator}libs${File.separator}myLib-1.0-javadoc.jar (artifactType = jar)
 
 --------------------------------------------------
 Variant archives (l)
@@ -293,6 +323,16 @@ Secondary variants (*)
           - org.gradle.usage               = java-runtime
        - Artifacts
           - build${File.separator}resources${File.separator}main (artifactType = java-resources-directory)
+    - Variant : sources
+       - Attributes
+          - org.gradle.category            = documentation
+          - org.gradle.dependency.bundling = external
+          - org.gradle.docstype            = sources
+          - org.gradle.jvm.version         = 11
+          - org.gradle.libraryelements     = jar
+          - org.gradle.usage               = java-runtime
+       - Artifacts
+          - build${File.separator}libs${File.separator}myLib-1.0-sources.jar (artifactType = jar)
 
 --------------------------------------------------
 Variant testCompile (l)
