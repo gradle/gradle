@@ -17,7 +17,9 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.artifacts.Configuration;
 
 /**
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
@@ -69,5 +71,24 @@ public interface JavaPluginExtension {
      * @since 5.3
      */
     void disableAutoTargetJvm();
+
+    /**
+     * Automatically package Javadoc and source code during publishing and publish variants with '-javadoc.jar' and '-sources.jar'.
+     * This also publishes Javadoc and sources for all additional features registered via {@link JavaPluginExtension#registerFeature(String, Action)}.
+     * The publishing of individual Javadoc or Sources variants can be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}.
+     * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)}.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void publishJavadocAndSources();
+
+    /**
+     * Is Javadoc and source code publishing enabled?
+     *
+     * @since 6.0
+     */
+    @Incubating
+    boolean getPublishJavadocAndSources();
 
 }

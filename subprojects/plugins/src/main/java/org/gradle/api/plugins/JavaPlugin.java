@@ -48,9 +48,9 @@ import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -66,8 +66,12 @@ import java.util.concurrent.Callable;
 import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
 import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
+import static org.gradle.api.attributes.DocsType.JAVADOC;
+import static org.gradle.api.attributes.DocsType.SOURCES;
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureDocumentationVariantWithArtifact;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -280,8 +284,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
         configureConfigurations(project, javaConvention);
 
-        configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
+        configureJavadocAndSources(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
 
@@ -309,20 +313,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
-        Project project = pluginConvention.getProject();
-        project.getTasks().register(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
-            @Override
-            public void execute(Javadoc javadoc) {
-                final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
-                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-                javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
-                javadoc.setSource(mainSourceSet.getAllJava());
-            }
-        });
-    }
-
     private void configureArchivesAndComponent(Project project, final JavaPluginConvention pluginConvention) {
         TaskProvider<Jar> jar = project.getTasks().register(JAR_TASK_NAME, Jar.class, new Action<Jar>() {
             @Override
@@ -346,15 +336,24 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addJar(runtimeConfiguration, jarArtifact);
         addRuntimeVariants(project, runtimeElementsConfiguration, jarArtifact, pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME), processResources);
 
-        registerSoftwareComponents(project);
+        registerSoftwareComponents(project, pluginConvention);
     }
 
-    private void registerSoftwareComponents(Project project) {
+    private void configureJavadocAndSources(ProjectInternal project, JavaPluginConvention pluginConvention) {
+        TaskContainer tasks = project.getTasks();
+        ConfigurationContainer configurations = project.getConfigurations();
+        SourceSet main = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        configureJavaDocTask(null, main, project.getTasks());
+        configureDocumentationVariantWithArtifact(null, configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME), JAVADOC, main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), tasks, objectFactory);
+        configureDocumentationVariantWithArtifact(null, configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME), SOURCES, main.getSourcesJarTaskName(), main.getAllJava(), tasks, objectFactory);
+    }
+
+    private void registerSoftwareComponents(Project project, JavaPluginConvention pluginConvention) {
         ConfigurationContainer configurations = project.getConfigurations();
         // the main "Java" component
         AdhocComponentWithVariants java = softwareComponentFactory.adhoc("java");
-        java.addVariantsFromConfiguration(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME), new JavaConfigurationVariantMapping("compile", false));
-        java.addVariantsFromConfiguration(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME), new JavaConfigurationVariantMapping("runtime", false));
+        java.addVariantsFromConfiguration(configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME), new JavaConfigurationVariantMapping("compile", false, pluginConvention));
+        java.addVariantsFromConfiguration(configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME), new JavaConfigurationVariantMapping("runtime", false, pluginConvention));
         project.getComponents().add(java);
     }
 

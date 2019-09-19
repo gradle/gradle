@@ -18,28 +18,39 @@ package org.gradle.api.plugins.internal;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
+import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.plugins.BasePlugin;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -180,6 +191,35 @@ public class JvmPluginsHelper {
                 }
             }
         });
+    }
+
+    public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks) {
+        String javadocTaskName = sourceSet.getJavadocTaskName();
+        if (!tasks.getNames().contains(javadocTaskName)) {
+            tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
+                javadoc.setDescription("Generates Javadoc API documentation for the " + (featureName == null ? "main source code." : "'" + featureName + "' feature."));
+                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+                javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
+                javadoc.setSource(sourceSet.getAllJava());
+            });
+        }
+    }
+
+    public static void configureDocumentationVariantWithArtifact(@Nullable String featureName, Configuration configuration, String docsType, String jarTaskName, Object artifactSource, TaskContainer tasks, ObjectFactory objectFactory) {
+        ConfigurationVariantInternal variant = (ConfigurationVariantInternal) configuration.getOutgoing().getVariants().maybeCreate(docsType);
+        variant.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+        variant.getAttributes().attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
+
+        if (!tasks.getNames().contains(jarTaskName)) {
+            tasks.register(jarTaskName, Jar.class, jar -> {
+                jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
+                jar.setGroup(BasePlugin.BUILD_GROUP);
+                jar.from(artifactSource);
+                jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
+            });
+        }
+        TaskProvider<Task> jar = tasks.named(jarTaskName);
+        variant.artifact(new LazyPublishArtifact(jar));
     }
 
     /**

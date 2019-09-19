@@ -52,6 +52,10 @@ import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
 import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.attributes.Category.LIBRARY;
+import static org.gradle.api.attributes.DocsType.JAVADOC;
+import static org.gradle.api.attributes.DocsType.SOURCES;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureDocumentationVariantWithArtifact;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
@@ -142,6 +146,9 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configureCapabilities(runtimeElements);
         attachArtifactToConfiguration(apiElements);
         attachArtifactToConfiguration(runtimeElements);
+        configureJavaDocTask(name, sourceSet, tasks);
+        configureDocumentationVariantWithArtifact(name, apiElements, JAVADOC, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), tasks, objectFactory);
+        configureDocumentationVariantWithArtifact(name, runtimeElements, SOURCES, sourceSet.getSourcesJarTaskName(), sourceSet.getAllJava(), tasks, objectFactory);
 
         JvmPluginsHelper.configureClassesDirectoryVariant(sourceSet, javaPluginConvention.getProject(), apiElementsConfigurationName, Usage.JAVA_API);
 
@@ -157,8 +164,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
         final AdhocComponentWithVariants component = findComponent();
         if (component != null) {
-            component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
-            component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
+            component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true, javaPluginConvention));
+            component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true, javaPluginConvention));
         }
     }
 
