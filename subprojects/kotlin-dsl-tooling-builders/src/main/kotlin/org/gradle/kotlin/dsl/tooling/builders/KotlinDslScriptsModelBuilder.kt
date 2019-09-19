@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
@@ -145,10 +146,37 @@ fun Project.parameterFromRequest(): KotlinDslScriptsParameter =
         findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String,
         (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
             ?.split("|")
+            ?.asSequence()
+            ?.filter { it.isNotBlank() }
             ?.map(::canonicalFile)
+            ?.filter { it.isFile }
+            ?.toList()
             ?.takeIf { it.isNotEmpty() }
-            ?: throw IllegalArgumentException("${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME} property must be set and non empty")
+            ?: collectKotlinDslScripts()
     )
+
+
+// TODO:kotlin-dsl naive implementation for now, refine
+private
+fun Project.collectKotlinDslScripts(): List<File> = sequence<File> {
+
+    val extension = ".gradle.kts"
+
+    // Settings Script
+    val settingsScriptFile = File((project as ProjectInternal).gradle.settings.settingsScript.fileName)
+    if (settingsScriptFile.isFile && settingsScriptFile.name.endsWith(extension)) {
+        yield(settingsScriptFile)
+    }
+
+    allprojects.forEach { p ->
+
+        // Project Scripts
+        if (p.buildFile.isFile && p.buildFile.name.endsWith(extension)) {
+            yield(p.buildFile)
+        }
+
+    }
+}.toList()
 
 
 private

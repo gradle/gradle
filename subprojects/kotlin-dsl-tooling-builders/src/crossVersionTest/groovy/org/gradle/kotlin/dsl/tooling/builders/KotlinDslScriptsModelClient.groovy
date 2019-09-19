@@ -35,9 +35,6 @@ class KotlinDslScriptsModelClient {
      * @return the model for all requested scripts
      */
     KotlinDslScriptsModel fetchKotlinDslScriptsModel(ProjectConnection connection, KotlinDslScriptsModelRequest request) {
-        if (request.scripts.isEmpty()) {
-            throw new IllegalArgumentException("At least one script must be requested")
-        }
         return connection.model(KotlinDslScriptsModel).tap {
 
             if (request.environmentVariables != null && !request.environmentVariables.isEmpty()) {
@@ -56,10 +53,10 @@ class KotlinDslScriptsModelClient {
 
 
             addArguments(request.options)
-            addArguments(
-                "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${request.correlationId}",
-                "-P${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME}=${request.scripts.collect { it.canonicalPath }.join("|")}"
-            )
+            addArguments("-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${request.correlationId}")
+            if (!request.scripts.isEmpty()) {
+                addArguments("-P${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME}=${request.scripts.collect { it.canonicalPath }.join("|")}")
+            }
 
         }.get()
     }
