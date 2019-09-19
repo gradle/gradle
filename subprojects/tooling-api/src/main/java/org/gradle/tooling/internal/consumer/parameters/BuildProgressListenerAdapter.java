@@ -414,14 +414,14 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private TestOutputStartProgressEvent transformTestOutputStarted(InternalTestOutputStartedProgressEvent event, InternalTestOutputDescriptor descriptor) {
-        TestOutputDescriptor outputDescriptor = toTestOutputDescriptor(descriptor); // TODO add caching with #addDescriptor method
+        TestOutputDescriptor outputDescriptor = addDescriptor(event.getDescriptor(), toTestOutputDescriptor(descriptor));
         return new DefaultTestOutputStartEvent(event.getEventTime(), event.getDisplayName(), outputDescriptor);
     }
 
     private TestOutputFinishProgressEvent transformTestOutputFinished(InternalTestOutputFinishedProgressEvent event, InternalTestOutputDescriptor descriptor) {
-        TestOutputDescriptor outputDescriptor = toTestOutputDescriptor(descriptor); // TODO add caching with #addDescriptor method
-        Destination d = Destination.fromCode(event.getResult().getDestination());
-        return new DefaultTestOutputFinishEvent(event.getEventTime(), event.getDisplayName(), outputDescriptor, d, event.getResult().getMessage());
+        TestOutputDescriptor outputDescriptor = addDescriptor(event.getDescriptor(), toTestOutputDescriptor(descriptor));
+        Destination destination = Destination.fromCode(event.getResult().getDestination());
+        return new DefaultTestOutputFinishEvent(event.getEventTime(), event.getDisplayName(), outputDescriptor, destination, event.getResult().getMessage());
     }
 
     private StartEvent genericStartedEvent(InternalOperationStartedProgressEvent event) {

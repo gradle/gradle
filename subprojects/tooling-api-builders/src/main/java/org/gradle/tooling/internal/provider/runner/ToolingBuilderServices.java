@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -24,6 +25,9 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Arrays;
 
 public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
@@ -41,7 +45,7 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
             }
 
             ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration(ServiceRegistry services) {
-                return new ToolingApiSubscribableBuildActionRunnerRegistration(new CompositeOperationResultPostProcessor(services.getAll(OperationResultPostProcessor.class)));
+                return new ToolingApiSubscribableBuildActionRunnerRegistration(services.get(BuildOperationIdFactory.class), new CompositeOperationResultPostProcessor(services.getAll(OperationResultPostProcessor.class)));
             }
         });
     }

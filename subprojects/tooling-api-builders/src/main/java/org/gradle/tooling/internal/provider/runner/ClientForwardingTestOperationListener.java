@@ -25,6 +25,7 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -59,11 +60,13 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
 
     private final ProgressEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
+    private final BuildOperationIdFactory idFactory;
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
 
-    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
+    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationIdFactory idFactory) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
+        this.idFactory = idFactory;
     }
 
     @Override
@@ -82,20 +85,18 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
         }
     }
 
-    private int idx = 1;
-
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         if (progressEvent.getDetails() instanceof TestListenerBuildOperationAdapter.OutputProgress) {
             TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) progressEvent.getDetails();
-            TestOutputEvent event = progress.getOutput();
 
-            InternalOperationDescriptor descriptor = new DefaultTestOutputDescriptor(buildOperationId + "." + idx++, "todo", "todo", progress.getTestId());
-            eventConsumer.started(new DefaultTestOutputStartedProgressEvent(progressEvent.getTime(), descriptor));
+            InternalOperationDescriptor startDescriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), "output", "output", progress.getTestId());
+            eventConsumer.started(new DefaultTestOutputStartedProgressEvent(progressEvent.getTime(), startDescriptor));
 
             int destination = progress.getOutput().getDestination() == TestOutputEvent.Destination.StdErr ? Destination.StdErr.getCode() : Destination.StdOut.getCode();
             DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination , progress.getOutput().getMessage());
-            eventConsumer.finished(new DefaultTestOutputFinishedProgressEvent(progressEvent.getTime(), descriptor, result));
+            InternalOperationDescriptor finishDescriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), "output", "output", progress.getTestId());
+            eventConsumer.finished(new DefaultTestOutputFinishedProgressEvent(progressEvent.getTime(), finishDescriptor, result));
         }
     }
 
