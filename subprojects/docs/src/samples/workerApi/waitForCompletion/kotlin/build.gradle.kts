@@ -6,13 +6,17 @@ import javax.inject.Inject
 // The parameters for a single unit of work
 interface ReverseParameters : WorkParameters {
     val fileToReverse : Property<File>
-    val destinationFile : Property<File>
+    val destinationDir : Property<File>
 }
 
 // The implementation of a single unit of work
-abstract class ReverseFile : WorkAction<ReverseParameters> {
+abstract class ReverseFile @Inject constructor(val fileSystemOperations: FileSystemOperations) : WorkAction<ReverseParameters> {
     override fun execute() {
-        getParameters().destinationFile.get().writeText(getParameters().fileToReverse.get().readText().reversed())
+        fileSystemOperations.copy {
+            from(getParameters().fileToReverse)
+            into(getParameters().destinationDir)
+            filter { line: String -> line.reversed() }
+        }
     }
 }
 
@@ -31,7 +35,7 @@ open class ReverseFiles @Inject constructor(private val workerExecutor: WorkerEx
         source.forEach { file ->
             workQueue.submit(ReverseFile::class) {
                 fileToReverse.set(file)
-                destinationFile.set(project.file("$outputDir/${file.name}"))
+                destinationDir.set(outputDir)
             }
         }
 
