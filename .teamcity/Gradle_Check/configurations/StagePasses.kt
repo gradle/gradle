@@ -1,6 +1,8 @@
 package configurations
 
+import common.Os
 import common.applyDefaultSettings
+import common.buildToolGradleParameters
 import common.gradleWrapper
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
@@ -69,11 +71,19 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
         param("env.JAVA_HOME", buildJavaHome)
     }
 
+    val baseBuildType = this
+    val buildScanTags = model.buildScanTags + stage.id
+
+    val defaultGradleParameters = (
+        buildToolGradleParameters() +
+            baseBuildType.buildCache.gradleParameters(Os.linux) +
+            buildScanTags.map(::buildScanTag)
+        ).joinToString(" ")
     steps {
         gradleWrapper {
             name = "GRADLE_RUNNER"
             tasks = "createBuildReceipt"
-            gradleParams = "-PtimestampedVersion --daemon"
+            gradleParams = defaultGradleParameters
         }
         script {
             name = "CHECK_CLEAN_M2"
@@ -85,7 +95,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
                 name = "TAG_BUILD"
                 executionMode = BuildStep.ExecutionMode.ALWAYS
                 tasks = "tagBuild"
-                gradleParams = "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% ${buildScanTag("StagePasses")} --daemon"
+                gradleParams = "$defaultGradleParameters -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% ${buildScanTag("StagePasses")}"
             }
         }
     }
