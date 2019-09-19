@@ -339,13 +339,10 @@ include::sample[dir="userguide/files/archivesWithJavaPlugin/groovy",files="build
 include::sample[dir="userguide/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
 ====
 
-There are several options for publishing a JAR once it has been created:
+You can use one of the publishing plugins to publish the JARs created by a Java project:
 
- * the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>>
- * the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>
- * the `uploadArchives` task — the <<artifact_management.adoc#artifact_management,original publishing mechanism>> — which works with both Ivy and (if you apply the <<maven_plugin.adoc#maven_plugin,Maven Plugin>>) Maven
-
-The former two "Publish" plugins are the preferred options.
+ * <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>>
+ * <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>
 
 [[sec:jar_manifest]]
 === Modifying the JAR manifest
