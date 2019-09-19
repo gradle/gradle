@@ -15,8 +15,8 @@ import model.PerformanceTestType
 import model.Stage
 
 class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
-    uuid = type.asId(model)
-    id = AbsoluteId(uuid)
+    uuid = type.asUuid(model)
+    id = AbsoluteId(type.asId(model))
     name = "Performance ${type.name.capitalize()} Coordinator - Linux"
 
     applyPerformanceTestSettings(timeout = type.timeout)

@@ -41,7 +41,7 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
             functionalTests = listOf(
-                TestCoverage(1, TestType.quick, Os.linux, common.JvmCategory.MAX_VERSION.version, vendor = common.JvmCategory.MAX_VERSION.vendor)), omitsSlowProjects = true),
+                TestCoverage(1, TestType.quick, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)), omitsSlowProjects = true),
         Stage(StageNames.QUICK_FEEDBACK,
             functionalTests = listOf(
                 TestCoverage(2, TestType.quick, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
@@ -396,15 +396,18 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     forceRealizeDependencyManagement(false, true, false)
 }
 
-enum class PerformanceTestType(val taskId: String, val timeout: Int, val defaultBaselines: String = "", val extraParameters: String = "") {
+enum class PerformanceTestType(val taskId: String, val timeout: Int, val defaultBaselines: String = "", val extraParameters: String = "", val uuid: String? = null) {
     test("PerformanceTest", 420, "defaults"),
-    experiment("PerformanceExperiment", 420, "defaults"),
+    // TODO: Rename to `slow`
+    experiment("SlowPerformanceTest", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
     flakinessDetection("FlakinessDetection", 420, "flakiness-detection-commit"),
     historical("FullPerformanceTest", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
 
-    fun asId(model: CIBuildModel): String {
-        return "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
-    }
+    fun asId(model: CIBuildModel): String =
+        "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
+
+    fun asUuid(model: CIBuildModel): String =
+        uuid?.let { model.projectPrefix + it } ?: asId(model)
 }
 
 enum class Trigger {
