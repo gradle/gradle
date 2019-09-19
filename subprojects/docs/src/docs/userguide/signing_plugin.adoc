@@ -124,6 +124,18 @@ include::sample[dir="signing/in-memory/groovy",files="build.gradle[tags=signing]
 include::sample[dir="signing/in-memory/kotlin",files="build.gradle.kts[tags=signing]"]
 ====
 
+=== Using in-memory ascii-armored OpenPGP subkeys
+
+To prevent sharing of the master key and to keep it secure it is also possible to use in-memory ascii-armored subkeys.
+The main difference between using in-memory ascii-armored keys and subkeys is that it is necessary to specify key identifier as well.
+Using the following setup, you can pass the key identifier, secret key (in ascii-armored format) and the password using the `ORG_GRADLE_PROJECT_signingKeyId`, `ORG_GRADLE_PROJECT_signingKey` and `ORG_GRADLE_PROJECT_signingPassword`
+environment variables respectively:
+
+====
+include::sample[dir="signing/in-memory/groovy-subkey",files="build.gradle[tags=signing]"]
+include::sample[dir="signing/in-memory/kotlin-subkey",files="build.gradle.kts[tags=signing]"]
+====
+
 [[sec:subkeys]]
 === Using OpenPGP subkeys
 

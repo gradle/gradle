@@ -136,8 +136,6 @@ public class ClassSetAnalysis {
             if (!visitedClasses.add(d)) {
                 continue;
             }
-            // Don't filter nested classes here, otherwise class dependencies from inner classes will not be considered during recompilation,
-            // i.e. tests in org.gradle.java.compile.incremental.AbstractSourceIncrementalCompilationIntegrationTest would fail.
             privateResultClasses.add(d);
             DependentsSet currentDependents = getDependents(d);
             if (!currentDependents.isDependencyToAll()) {
@@ -149,8 +147,6 @@ public class ClassSetAnalysis {
             if (!visitedClasses.add(d)) {
                 continue;
             }
-            // Don't filter nested classes here, otherwise class dependencies from inner classes will not be considered during recompilation,
-            // i.e. tests in org.gradle.java.compile.incremental.AbstractSourceIncrementalCompilationIntegrationTest would fail.
             accessibleResultClasses.add(d);
             DependentsSet currentDependents = getDependents(d);
             if (!currentDependents.isDependencyToAll()) {

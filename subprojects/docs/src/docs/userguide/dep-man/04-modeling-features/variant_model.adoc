@@ -359,6 +359,28 @@ However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looki
 [[sub:ivy-mapping-to-variants]]
 === Mapping of Ivy files to variants
 
-Contrary to <<#sub:maven-mapping-to-variants, Maven>>, there is no derivation strategy implemented for Ivy files.
-This means that when you have a dependency on an Ivy module, Gradle does _not_ perform variant aware resolution.
-Instead, it uses a legacy "compatibility" mode.
+Contrary to <<#sub:maven-mapping-to-variants, Maven>>, there is no derivation strategy implemented for Ivy files by default.
+The reason fo this is that, contrary to pom, Ivy is a flexible format that allows you to publish arbitrary many and customized _configurations_.
+So there is not notion of compile/runtime scope or compile/runtime variants in Ivy in general.
+Only if you use the <<publishing_ivy.adoc#publishing_ivy,ivy-publish plugin>> to publish ivy files with Gradle, you get a structure that follows a similar pattern as pom files.
+But since there is not guarantee that *all* ivy metadata files consumed by a build follow this pattern, Gradle cannot enforce a derivation strategy based on it.
+
+However, if you want to implement a derivation strategy for _compile_ and _runtime_ variants for Ivy, you can do so with <<component_metadata_rules.adoc#sec:component_metadata_rules,component metadata rule>>.
+The component metadata rules API allows you to <<component_metadata_rules.adoc#sec:component_metadata_rules_details,access ivy configurations>> and create variants based on them.
+If you know that all the ivy modules your are consuming have been published with Gradle without further customizations of the `ivy.xml` file, you can add the following rule to your build:
+
+.Deriving compile and runtime variants for Ivy metadata
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+====
+
+The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.
+For each variant, it sets the corresponding <<#sec:variant-aware-matching,Java ecosystem attributes>>.
+Dependencies and artifacts of the variants are taken from the underlying configurations.
+If not all consumed ivy modules follow this pattern, the rule can be adjusted or only applied to a selected set of modules.
+
+For all ivy modules without variants, Gradle falls back to legacy configuration selection (i.e. Gradle does _not_ perform variant aware resolution for these modules).
+This means the either the `default` configuration or the configuration explicitly defined in the dependency to the corresponding module is selected.
+(Note that explicit configuration selection is only possible from build scripts or ivy metadata, and should be avoided in favor of variant selection.)
+

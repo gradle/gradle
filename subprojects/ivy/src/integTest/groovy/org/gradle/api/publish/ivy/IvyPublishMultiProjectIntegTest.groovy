@@ -134,7 +134,7 @@ class ExtraComp implements org.gradle.api.internal.component.SoftwareComponentIn
 }
 
 project(":project3") {
-    def e1 = new ExtraComp()
+    def e1 = new ExtraComp(variants: [components.java])
     def e2 = new ExtraComp(variants: [e1, components.java])
 
     publishing {

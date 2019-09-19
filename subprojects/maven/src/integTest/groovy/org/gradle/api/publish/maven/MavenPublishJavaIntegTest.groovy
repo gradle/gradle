@@ -1268,4 +1268,26 @@ include(':platform')
         failure.assertHasCause("Variant for configuration annotationProcessor does not exist in component java")
     }
 
+    def "fails if trying to publish a component with all variants filtered"() {
+        createBuildScripts("""
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java                        
+                    }
+                }
+            }            
+            configurations {
+                components.java.withVariantsFromConfiguration(apiElements) { skip() }
+                components.java.withVariantsFromConfiguration(runtimeElements) { skip() }                
+            }
+""")
+
+        when:
+        fails "publish"
+
+        then:
+        failure.assertHasCause("""Invalid publication 'maven':
+  - This publication must publish at least one variant""")
+    }
 }

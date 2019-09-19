@@ -465,7 +465,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
         ComponentState that = (ComponentState) o;
 
-        return that.resultId == resultId;
+        return that.resultId.equals(resultId);
 
     }
 

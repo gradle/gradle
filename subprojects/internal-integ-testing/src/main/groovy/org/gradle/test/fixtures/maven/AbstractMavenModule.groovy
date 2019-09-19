@@ -717,4 +717,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         action()
         return this
     }
+
+    @Override
+    MavenModule withoutDefaultVariants() {
+        variants.clear()
+        this
+    }
 }

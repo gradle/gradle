@@ -32,7 +32,7 @@ public class RegistryAwareClassLoaderHierarchyHasher extends ConfigurableClassLo
     private static Map<ClassLoader, String> collectKnownClassLoaders(ClassLoaderRegistry registry) {
         Map<ClassLoader, String> knownClassLoaders = Maps.newHashMap();
 
-        String javaVmVersion = String.format("%s|%s|%s", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.vendor"));
+        String javaVmVersion = String.format("%s|%s", System.getProperty("java.vm.name"), System.getProperty("java.vm.vendor"));
         ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
         if (systemClassLoader != null) {
             addClassLoader(knownClassLoaders, systemClassLoader, "system-app" + javaVmVersion);

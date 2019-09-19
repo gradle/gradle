@@ -83,7 +83,7 @@ public class PgpSignatory extends SignatorySupport {
     @Override
     public String getKeyId() {
         PgpKeyId id = new PgpKeyId(secretKey.getKeyID());
-        return id == null ? null : id.getAsHex();
+        return id.getAsHex();
     }
 
     private void feedGeneratorWith(InputStream toSign, PGPSignatureGenerator generator) throws IOException {

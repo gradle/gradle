@@ -12,7 +12,7 @@ We would like to thank the following community contributors to this release of G
 [Mike Kobit](https://github.com/mkobit),
 [Tom Eyckmans](https://github.com/teyckmans),
 [Artur Dryomov](https://github.com/ming13),
-[Robert Stupp](https://github.com/snazy),
+[szhem](https://github.com/szhem),
 [Nigel Banks](https://github.com/nigelgbanks),
 [Sergey Shatunov](https://github.com/Prototik),
 [Dan Sănduleac](https://github.com/dansanduleac),
@@ -103,6 +103,11 @@ To ensure Windows batch scripts retain the appropriate line endings, `gradle ini
 
 This was contributed by [Tom Eyckmans](https://github.com/teyckmans).
 
+## Improved Java/Groovy compilation avoidance
+
+The class analysis used as part of the incremental compilation will now exclude any classes that are an implementation details.
+It will help Gradle narrow the number of classes to recompile implementation detail changes.
+
 ## Features for plugin authors
 
 ### ConfigurableFileTree managed property methods
@@ -144,7 +149,9 @@ Gradle will now warn when resolving dependencies, text resources and script plug
 
 TBD
 
-### Signing Plugin now uses SHA512
+### Signing Plugin now uses SHA512 instead of SHA1
+
+This was contributed by [Vladimir Sitnikov](https://github.com/vlsi).
 
 A low severity security issue was reported in the Gradle signing plugin.
 
@@ -152,6 +159,12 @@ More information can be found below:
 
  - [Gradle GitHub Advisory](https://github.com/gradle/gradle/security/advisories/GHSA-mrm8-42q4-6rm7)
  - [CVE-2019-16370](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16370)
+ 
+### Support for in-memory signing with subkeys
+
+Gradle now supports [in-memory signing](userguide/signing_plugin.html#sec:in-memory-keys) with subkeys.
+
+This was contributed by [szhem](https://github.com/szhem).
 
 ## Wrapper reports download progress
 

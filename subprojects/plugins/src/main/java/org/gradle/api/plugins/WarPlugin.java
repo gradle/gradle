@@ -22,8 +22,11 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.java.WebApplication;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.model.ObjectFactory;
@@ -46,10 +49,12 @@ public class WarPlugin implements Plugin<Project> {
     public static final String WEB_APP_GROUP = "web application";
 
     private final ObjectFactory objectFactory;
+    private final ImmutableAttributesFactory attributesFactory;
 
     @Inject
-    public WarPlugin(ObjectFactory objectFactory) {
+    public WarPlugin(ObjectFactory objectFactory, ImmutableAttributesFactory attributesFactory) {
         this.objectFactory = objectFactory;
+        this.attributesFactory = attributesFactory;
     }
 
     @Override
@@ -112,6 +117,8 @@ public class WarPlugin implements Plugin<Project> {
     }
 
     private void configureComponent(Project project, PublishArtifact warArtifact) {
-        project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, "master"));
+        AttributeContainer attributes = attributesFactory.mutable()
+            .attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        project.getComponents().add(objectFactory.newInstance(WebApplication.class, warArtifact, "master", attributes));
     }
 }
