@@ -57,6 +57,11 @@ public enum OperationType {
      *
      * @since 5.1
      */
-    TRANSFORM
+    TRANSFORM,
+
+    /**
+     *  Flag for test output operation progress events.
+     */
+    TEST_OUTPUT
 
 }

@@ -160,6 +160,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private final ListenerBroadcast<ProgressListener> workItemProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> projectConfigurationProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final ListenerBroadcast<ProgressListener> transformProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
+    private final ListenerBroadcast<ProgressListener> testOutputProgressListeners = new ListenerBroadcast<ProgressListener>(ProgressListener.class);
     private final Map<Object, OperationDescriptor> descriptorCache = new HashMap<Object, OperationDescriptor>();
 
     BuildProgressListenerAdapter(Map<OperationType, List<ProgressListener>> listeners) {
@@ -170,6 +171,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         workItemProgressListeners.addAll(listeners.getOrDefault(OperationType.WORK_ITEM, noListeners));
         projectConfigurationProgressListeners.addAll(listeners.getOrDefault(OperationType.PROJECT_CONFIGURATION, noListeners));
         transformProgressListeners.addAll(listeners.getOrDefault(OperationType.TRANSFORM, noListeners));
+        testOutputProgressListeners.addAll(listeners.getOrDefault(OperationType.TEST_OUTPUT, noListeners));
     }
 
     @Override
@@ -193,6 +195,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         if (!transformProgressListeners.isEmpty()) {
             operations.add(InternalBuildProgressListener.TRANSFORM_EXECUTION);
         }
+        if (!testOutputProgressListeners.isEmpty()) {
+            operations.add(InternalBuildProgressListener.TEST_OUTPUT);
+        }
         return operations;
     }
 
@@ -202,11 +207,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private void doBroadcast(Object event) {
-        if (event instanceof InternalTestOperationOutputStartedProgressEvent) {
-            broadcastOutputStarted((InternalTestOperationOutputStartedProgressEvent)event);
-        } else if (event instanceof  InternalTestOperationOutputFinishedProgressEvent) {
-            broadcastOutputFinished((InternalTestOperationOutputFinishedProgressEvent)event);
-        } else if (event instanceof ProgressEvent) {
+        if (event instanceof ProgressEvent) {
             broadcastProgressEvent((ProgressEvent) event);
         } else if (event instanceof InternalTestProgressEvent) {
             // Special case for events defined prior to InternalProgressEvent
@@ -227,6 +228,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             projectConfigurationProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof TransformProgressEvent) {
             transformProgressListeners.getSource().statusChanged(event);
+        } else if (event instanceof TestOutputProgressEvent) {
+            testOutputProgressListeners.getSource().statusChanged(event);
         } else {
             // Everything else treat as a generic operation
             buildOperationProgressListeners.getSource().statusChanged(event);
@@ -250,6 +253,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             broadcastProjectConfigurationProgressEvent(progressEvent, (InternalProjectConfigurationDescriptor) descriptor);
         } else if (descriptor instanceof InternalTransformDescriptor) {
             broadcastTransformProgressEvent(progressEvent, (InternalTransformDescriptor) descriptor);
+        } else if (descriptor instanceof InternalTestOutputDescriptor) {
+            broadcastTestOutputProgressEvent(progressEvent, (InternalTestOutputDescriptor) descriptor);
         } else {
             // Everything else treat as a generic operation
             broadcastGenericProgressEvent(progressEvent);
@@ -281,6 +286,13 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         TransformProgressEvent transformProgressEvent = toTransformProgressEvent(event, descriptor);
         if (transformProgressEvent != null) {
             transformProgressListeners.getSource().statusChanged(transformProgressEvent);
+        }
+    }
+
+    private void broadcastTestOutputProgressEvent(InternalProgressEvent event, InternalTestOutputDescriptor descriptor) {
+        TestOutputProgressEvent outputProgressEvent = toTestOutputProgressEvent(event, descriptor);
+        if (outputProgressEvent != null) {
+            testOutputProgressListeners.getSource().statusChanged(outputProgressEvent);
         }
     }
 
