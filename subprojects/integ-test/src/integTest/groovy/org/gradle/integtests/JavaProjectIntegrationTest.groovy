@@ -227,11 +227,6 @@ project(':c') {
 allprojects {
     apply plugin: 'java'
 
-    task sourcesJar(type: Jar) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
     artifacts {
         archives sourcesJar
     }

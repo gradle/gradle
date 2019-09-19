@@ -107,32 +107,16 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
-    String getJavadocAndSourceJarsScript(String configurationName = null) {
-        def tasks = """
-            task("sourcesJar", type: Jar, dependsOn: classes) { 
-                classifier = 'sources' 
-                from sourceSets.main.allSource
-            } 
-
-            task("javadocJar", type: Jar, dependsOn: javadoc) { 
-                classifier = 'javadoc' 
-                from javadoc.destinationDir 
-            } 
+    String getJavadocAndSourceJarsScript(String configurationName) {
         """
-
-        if (configurationName == null) {
-            tasks
-        } else {
-            tasks + """
-                configurations {
-                    $configurationName
-                }
-                
-                artifacts {
-                    $configurationName sourcesJar, javadocJar
-                }
-            """
-        }
+            configurations {
+                $configurationName
+            }
+            
+            artifacts {
+                $configurationName sourcesJar, javadocJar
+            }
+        """
     }
 
     String uploadArchives() {
