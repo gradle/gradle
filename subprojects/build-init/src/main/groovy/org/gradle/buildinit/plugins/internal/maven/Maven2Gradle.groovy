@@ -80,7 +80,6 @@ class Maven2Gradle {
             subprojectsBuilder.plugin(null, "java")
             subprojectsBuilder.plugin(null, "maven-publish")
             compilerSettings(rootProject, subprojectsBuilder)
-            def sourcesJarTaskGenerated = packageSources(rootProject, subprojectsBuilder)
 
             repositoriesForProjects(allProjects, subprojectsBuilder)
             globalExclusions(rootProject, subprojectsBuilder)
@@ -88,7 +87,7 @@ class Maven2Gradle {
             def commonDeps = dependencies.get(rootProject.artifactId.text())
             declareDependencies(commonDeps, subprojectsBuilder)
             testNg(commonDeps, subprojectsBuilder)
-            configurePublishing(subprojectsBuilder, sourcesJarTaskGenerated)
+            configurePublishing(subprojectsBuilder, packagesSources(rootProject))
 
             modules(allProjects, false).each { module ->
                 def id = module.artifactId.text()
@@ -117,9 +116,6 @@ class Maven2Gradle {
                 if (packageTests(module, moduleScriptBuilder)) {
                     moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"))
                 }
-                if (packageJavadocs(module, moduleScriptBuilder)) {
-                    moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("javadocJar"))
-                }
 
                 moduleScriptBuilder.create().generate()
             }
@@ -133,10 +129,8 @@ class Maven2Gradle {
             descriptionForProject(this.effectivePom, scriptBuilder)
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
-            def sourcesJarTaskGenerated = packageSources(this.effectivePom, scriptBuilder)
             def testsJarTaskGenerated = packageTests(this.effectivePom, scriptBuilder)
-            def javadocJarGenerated = packageJavadocs(this.effectivePom, scriptBuilder)
-            configurePublishing(scriptBuilder, sourcesJarTaskGenerated, testsJarTaskGenerated, javadocJarGenerated)
+            configurePublishing(scriptBuilder, packagesSources(this.effectivePom) || packagesJavadocs(this.effectivePom), testsJarTaskGenerated)
 
             scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>()
@@ -154,19 +148,18 @@ class Maven2Gradle {
         scriptBuilder.create().generate()
     }
 
-    def configurePublishing(def builder, boolean sourcesJarTaskGenerated = false, boolean testsJarTaskGenerated = false, boolean javadocJarTaskGenerated = false) {
+    def configurePublishing(def builder, boolean publishesJavadocOrSources = false, boolean testsJarTaskGenerated = false) {
+        if (publishesJavadocOrSources) {
+            def javaExtension = builder.block(null, "java")
+            javaExtension.methodInvocation(null, "publishJavadocAndSources")
+        }
+
         def publishing = builder.block(null, "publishing")
         def publications = publishing.block(null, "publications")
         def mavenPublication = publications.block(null, "maven(MavenPublication)")
         mavenPublication.methodInvocation(null, "from", mavenPublication.propertyExpression("components.java"))
-        if (sourcesJarTaskGenerated) {
-            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("sourcesJar"))
-        }
         if (testsJarTaskGenerated) {
             mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("testsJar"))
-        }
-        if (javadocJarTaskGenerated) {
-            mavenPublication.methodInvocation(null, "artifact", mavenPublication.propertyExpression("javadocJar"))
         }
     }
 
@@ -376,26 +369,9 @@ class Maven2Gradle {
         }
     }
 
-    boolean packageSources(project, builder) {
+    boolean packagesSources(project) {
         def sourcePlugin = plugin('maven-source-plugin', project)
-        def sourceSets = []
-        if (sourcePlugin) {
-            if (pluginGoal('jar', sourcePlugin)) {
-                sourceSets += 'main'
-            } else if (pluginGoal('test-jar', sourcePlugin)) {
-                sourceSets += 'test'
-            }
-        }
-        if (!sourceSets.empty) {
-            builder.taskRegistration(null, "sourcesJar", "Jar") { task ->
-                task.propertyAssignment(null, "classifier", "sources")
-                sourceSets.each { sourceSet ->
-                    task.methodInvocation(null, "from", builder.propertyExpression("sourceSets.${sourceSet}.allJava"))
-                }
-            }
-            return true
-        }
-        return false
+        return sourcePlugin && pluginGoal('jar', sourcePlugin)
     }
 
     boolean packageTests(project, builder) {
@@ -410,16 +386,9 @@ class Maven2Gradle {
         return false
     }
 
-    boolean packageJavadocs(project, builder) {
+    boolean packagesJavadocs(project) {
         def jarPlugin = plugin('maven-javadoc-plugin', project)
-        if (pluginGoal('jar', jarPlugin)) {
-            builder.taskRegistration(null, "javadocJar", "Jar") { task ->
-                task.propertyAssignment(null, "classifier", "javadoc")
-                task.methodInvocation(null, "from", builder.propertyExpression("javadoc.destinationDir"))
-            }
-            return true
-        }
-        return false
+        return jarPlugin && pluginGoal('jar', jarPlugin)
     }
 
     private boolean duplicateDependency(dependency, project, allProjects) {
