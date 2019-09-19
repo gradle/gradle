@@ -88,6 +88,7 @@ class WorkerExecutorFixture {
                 def isolationMode = IsolationMode.AUTO
                 @Internal
                 def forkMode = null
+                @Internal
                 def additionalParameters = {}
 
                 @Inject
