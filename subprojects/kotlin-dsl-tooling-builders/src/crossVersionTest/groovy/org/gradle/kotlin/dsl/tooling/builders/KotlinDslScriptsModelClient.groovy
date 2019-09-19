@@ -122,7 +122,7 @@ class KotlinDslScriptsModelRequest {
         @Nullable File javaHome = null,
         List<String> jvmOptions = [],
         List<String> options = [],
-        Boolean lenient = false,
+        Boolean lenient = true, // TODO distinguish classpath mode and leniency
         String correlationId = newCorrelationId()
     ) {
         this.scripts = scripts
