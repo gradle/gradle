@@ -315,13 +315,16 @@ You can also learn more about configuring tests in the DSL reference for link:{g
 [[sec:java_packaging]]
 == Packaging and publishing
 
-How you package and potentially publish your Java project depends on what type of project it is. Libraries, applications, web applications and enterprise applications all have differing requirements. In this section, we will focus on the bare bones provided by the Java Plugin.
+How you package and potentially publish your Java project depends on what type of project it is.
+Libraries, applications, web applications and enterprise applications all have differing requirements.
+In this section, we will focus on the bare bones provided by the Java Plugin.
 
-The one and only packaging feature provided by the Java Plugin directly is a `jar` task that packages all the compiled production classes and resources into a single JAR. This JAR is then added as an artifact — as opposed to a dependency — in the `archives` configuration, hence why it is automatically built by the `assemble` task.
+By default, the Java Plugin provides the `jar` task that packages all the compiled production classes and resources into a single JAR.
+This JAR is also automatically built by the `assemble` task.
+Furthermore, the `javadocJar` and `sourcesJar` tasks are provided to package the Javadoc and the source code if so desired.
+These tasks can be can be called directly or the Java plugin can be configured to publish these Jars, which will cause them to run during publishing.
 
-If you want any other JAR or alternative archive built, you either have to apply an appropriate plugin or create the task manually. For example, if you want a task that generates a 'sources' JAR, define your own `Jar` task like so:
-
-.Defining a custom task to create a 'sources' JAR
+.Configure a project to publish Javadoc and sources
 ====
 include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
 include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
