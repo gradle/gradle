@@ -188,6 +188,12 @@ We promoted all API elements in `ide` and `tooling-api` sub-projects that were i
 * The [lazy configuration API](userguide/lazy_configuration.html) has been promoted.
 * Enabling [strict task validation](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-) has been promoted.
 
+### Update to the Scala Zinc compiler
+
+The Scala Zinc compiler has been upgraded to version 1.2.5, which only supports Scala 2.10+, meaning that Gradle no longer supports building for Scala 2.9.
+This fixes some Scala incremental compilation bugs and is reported as significantly improving performance.
+If you used to override the Zinc compiler version, be aware that the minimal version is now 1.2.0.
+
 <!--
 ### Example promoted
 -->

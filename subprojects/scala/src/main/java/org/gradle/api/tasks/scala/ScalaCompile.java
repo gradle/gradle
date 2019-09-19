@@ -96,7 +96,7 @@ public class ScalaCompile extends AbstractScalaCompile {
             ActionExecutionSpecFactory actionExecutionSpecFactory = getServices().get(ActionExecutionSpecFactory.class);
             ScalaCompilerFactory scalaCompilerFactory = new ScalaCompilerFactory(
                 getServices().get(WorkerDirectoryProvider.class).getWorkingDirectory(), workerDaemonFactory, getScalaClasspath(),
-                getZincClasspath(), getProject().getGradle().getGradleUserHomeDir(), forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
+                getZincClasspath(), forkOptionsFactory, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
             compiler = scalaCompilerFactory.newCompiler(spec);
         }
         return compiler;

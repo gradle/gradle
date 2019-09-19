@@ -49,6 +49,21 @@ class ScalaCompilerContinuousIntegrationTest extends AbstractCompilerContinuousI
         return 'object Foo { val bar = "" }'
     }
 
+    String getVerifyDaemonsTask() {
+        """
+            task verifyDaemons {
+                doLast {
+                    def daemons = services.get(WorkerDaemonClientsManager).allClients
+                    assert daemons.size() == 1
+                    daemons.first().forkOptions.with {
+                        assert keepAliveMode.toString() == 'DAEMON'
+                        assert ! classpath.findAll { f -> f.name.startsWith('zinc_') }.empty
+                    }
+                }
+            }
+"""
+    }
+
     @Override
     String getApplyAndConfigure() {
         return """

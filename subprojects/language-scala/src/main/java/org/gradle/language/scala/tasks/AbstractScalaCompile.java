@@ -46,6 +46,8 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.internal.file.Deleter;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.SingleMessageLogger;
+import org.gradle.internal.buildevents.BuildStartedTime;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -127,6 +129,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null
             ? ImmutableList.of()
             : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setBuildStartTimestamp(getServices().get(BuildStartedTime.class).getStartTime());
         return spec;
     }
 

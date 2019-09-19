@@ -93,7 +93,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
             .defaultDependencies(new Action<DependencySet>() {
                 @Override
                 public void execute(DependencySet dependencies) {
-                    dependencies.add(project.getDependencies().create("com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
+                    dependencies.add(project.getDependencies().create("org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
                 }
             });
 
