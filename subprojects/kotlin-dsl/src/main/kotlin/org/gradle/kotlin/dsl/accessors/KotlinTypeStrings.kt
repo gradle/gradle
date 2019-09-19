@@ -26,7 +26,7 @@ fun kotlinTypeStringFor(type: TypeOf<*>): String = type.run {
         isParameterized ->
             "$parameterizedTypeDefinition<${actualTypeArguments.joinToString(transform = ::kotlinTypeStringFor)}>"
         isWildcard ->
-            upperBound?.let(::kotlinTypeStringFor) ?: "Any"
+            (upperBound ?: lowerBound)?.let(::kotlinTypeStringFor) ?: "Any"
         else ->
             toString().let { primitiveTypeStrings[it] ?: it }
     }

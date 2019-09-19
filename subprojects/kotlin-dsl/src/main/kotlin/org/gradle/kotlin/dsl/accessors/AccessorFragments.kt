@@ -758,7 +758,7 @@ val TypeOf<*>.builder: KmTypeBuilder
             classOf(parameterizedTypeDefinition.concreteClass),
             actualTypeArguments.map { it.builder }
         )
-        isWildcard -> upperBound?.builder ?: KotlinType.any
+        isWildcard -> (upperBound ?: lowerBound)?.builder ?: KotlinType.any
         else -> classOf(concreteClass)
     }
 
