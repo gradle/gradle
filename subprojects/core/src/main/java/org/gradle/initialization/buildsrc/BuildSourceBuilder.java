@@ -35,6 +35,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.util.DeprecationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,7 +86,7 @@ public class BuildSourceBuilder {
         final StartParameter buildSrcStartParameter = containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
-        buildSrcStartParameter.setSearchUpwards(false);
+        DeprecationLogger.whileDisabled(() -> buildSrcStartParameter.setSearchUpwards(false));
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
         final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(buildSrcStartParameter, "buildSrc", buildSrcDir, publicBuildPath);
         assert buildSrcStartParameter.getBuildFile() == null;
