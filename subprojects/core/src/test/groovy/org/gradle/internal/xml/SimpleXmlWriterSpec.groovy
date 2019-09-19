@@ -75,6 +75,57 @@ class SimpleXmlWriterSpec extends Specification {
         item.@description.text() == "encoded: \t &lt; < > ' \n\r\"  "
     }
 
+    def "surrogates in attributes"() {
+        when:
+        writer.startElement("root")
+        writer.attribute("test", "丈, 😃, and नि")
+        writer.endElement()
+
+        then:
+        xml == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root test=\"丈, &#x1f603;, and नि\"/>"
+    }
+
+    def "surrogates in content"() {
+        when:
+        writer.startElement("root")
+        writer.startElement("a")
+        def v = "丈, 😃, and नि"
+        writer.characters(v)
+        writer.endElement()
+        writer.startElement("b")
+        writer.characters(v.toCharArray())
+        writer.endElement()
+        writer.endElement()
+
+        then:
+        xml == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><a>丈, &#x1f603;, and नि</a><b>丈, &#x1f603;, and नि</b></root>"
+    }
+
+    def "surrogates in comment"() {
+        when:
+        writer.startElement("root")
+        writer.comment("丈, 😃, and नि")
+        writer.endElement()
+
+        then:
+        xml == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><!-- 丈, &#x1f603;, and नि --></root>"
+    }
+
+    def "surrogates in CDATA"() {
+        when:
+        writer.startElement("root")
+        writer.startCDATA()
+        writer.characters("丈, 😃, and नि")
+        writer.endCDATA()
+        writer.startCDATA()
+        writer.characters("x丈, नि, 😃".toCharArray())
+        writer.endCDATA()
+        writer.endElement()
+
+        then:
+        xml == "<?xml version=\"1.0\" encoding=\"UTF-8\"?><root><![CDATA[丈, ]]>&#x1f603;<![CDATA[, and नि]]><![CDATA[x丈, नि, ]]>&#x1f603;<![CDATA[]]></root>"
+    }
+
     def "writes CDATA"() {
         when:
         writer.startElement("root")

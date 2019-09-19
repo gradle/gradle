@@ -92,20 +92,28 @@ class XmlValidationTest extends Specification {
 
     def "identifies illegal character"() {
         expect:
-        !XmlValidation.isLegalCharacter(character as char)
+        //	Char	   ::=   	#x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+        //	/* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. */
+        !XmlValidation.isLegalCharacter(character)
 
         where:
-        character | _
-        0x0019    | _
-        0xd800    | _
-        0xdfff    | _
-        0xfffe    | _
-        0x10000   | _
+        character      | _
+        0x8            | _
+        0xb            | _
+        0xf            | _
+        (0x20 - 1)     | _
+        (0xd7ff + 1)   | _
+        (0xe000 - 1)   | _
+        (0xfffd + 1)   | _
+        (0x10000 - 1)  | _
+        (0x10ffff + 1) | _
     }
 
     def "identifies legal character"() {
         expect:
-        XmlValidation.isLegalCharacter(character as char)
+        //	Char	   ::=   	#x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | [#x10000-#x10FFFF]
+        //	/* any Unicode character, excluding the surrogate blocks, FFFE, and FFFF. */
+        XmlValidation.isLegalCharacter(character)
 
         where:
         character | _
@@ -115,6 +123,6 @@ class XmlValidationTest extends Specification {
         0x0020    | _
         0xd7ff    | _
         0xe000    | _
-        0xfffd    | _
-    }
-}
+        0x10000   | _
+        0x10ffff  | _
+    }}
