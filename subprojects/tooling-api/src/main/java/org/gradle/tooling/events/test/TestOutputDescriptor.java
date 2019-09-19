@@ -19,6 +19,4 @@ package org.gradle.tooling.events.test;
 import org.gradle.tooling.events.OperationDescriptor;
 
 public interface TestOutputDescriptor extends OperationDescriptor {
-    String getDestination();
-    String getMessage();
 }

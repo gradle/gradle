@@ -16,10 +16,13 @@
 
 package org.gradle.tooling.internal.provider.events;
 
+import org.gradle.tooling.events.OperationResult;
+import org.gradle.tooling.events.test.TestOutputResult;
 import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestOperationOutputFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputResult;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,10 +31,12 @@ public class DefaultTestOutputFinishedProgressEvent implements InternalTestOpera
 
     private final long startTime;
     private final InternalOperationDescriptor descriptor;
+    private final InternalTestOutputResult result;
 
-    public DefaultTestOutputFinishedProgressEvent(long startTime, InternalOperationDescriptor descriptor) {
+    public DefaultTestOutputFinishedProgressEvent(long startTime, InternalOperationDescriptor descriptor, InternalTestOutputResult result) {
         this.startTime = startTime;
         this.descriptor = descriptor;
+        this.result = result;
     }
 
     @Override
@@ -50,22 +55,7 @@ public class DefaultTestOutputFinishedProgressEvent implements InternalTestOpera
     }
 
     @Override
-    public InternalOperationResult getResult() {
-        return new InternalOperationResult() {
-            @Override
-            public long getStartTime() {
-                return startTime;
-            }
-
-            @Override
-            public long getEndTime() {
-                return startTime;
-            }
-
-            @Override
-            public List<? extends InternalFailure> getFailures() {
-                return Collections.emptyList();
-            }
-        };
+    public InternalTestOutputResult getResult() {
+        return result;
     }
 }

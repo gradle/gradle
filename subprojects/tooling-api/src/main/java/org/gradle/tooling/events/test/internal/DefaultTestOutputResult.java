@@ -16,22 +16,28 @@
 
 package org.gradle.tooling.events.test.internal;
 
-import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.internal.DefaultFinishEvent;
-import org.gradle.tooling.events.test.TestOutputFinishProgressEvent;
+import org.gradle.tooling.events.OperationResult;
+import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
 import org.gradle.tooling.events.test.TestOutputResult;
 
-/**
- * Implementation of the {@code TestFinishEvent} interface.
- */
-public final class DefaultTestOutputFinishEvent extends DefaultFinishEvent implements TestOutputFinishProgressEvent {
+public final class DefaultTestOutputResult extends DefaultOperationSuccessResult implements OperationResult, TestOutputResult {
 
-    public DefaultTestOutputFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, String destination, String message) {
-        super(eventTime, displayName, descriptor, new DefaultTestOutputResult(eventTime, eventTime, destination, message));
+    private final String destination;
+    private final String message;
+
+    public DefaultTestOutputResult(long startTime, long endTime, String destination, String message) {
+        super(startTime, endTime);
+        this.destination = destination;
+        this.message = message;
     }
 
     @Override
-    public TestOutputResult getResult() {
-        return (TestOutputResult) super.getResult();
+    public String getDestination() {
+        return destination;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
     }
 }

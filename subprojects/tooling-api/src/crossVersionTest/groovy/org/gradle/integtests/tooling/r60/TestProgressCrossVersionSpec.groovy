@@ -70,10 +70,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        startEvents.find { event -> event.descriptor.message == "Winged Hussars" && event.descriptor.destination == "StdOut" }
-        startEvents.find { event -> event.descriptor.message == "The Last Battle" && event.descriptor.destination == "StdErr" }
-        finishEvents.find { event -> event.descriptor.message == "Winged Hussars" && event.descriptor.destination == "StdOut" }
-        finishEvents.find { event -> event.descriptor.message == "The Last Battle" && event.descriptor.destination == "StdErr" }
+        finishEvents.find { event -> event.result.message == "Winged Hussars" && event.result.destination == "StdOut" }
+        finishEvents.find { event -> event.result.message == "The Last Battle" && event.result.destination == "StdErr" }
     }
 
     def goodCode() {

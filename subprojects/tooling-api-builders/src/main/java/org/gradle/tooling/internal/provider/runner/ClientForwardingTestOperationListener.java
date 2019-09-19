@@ -41,6 +41,7 @@ import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestOutputDescriptor;
 import org.gradle.tooling.internal.provider.events.DefaultTestOutputFinishedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTestOutputResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestOutputStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
@@ -88,11 +89,12 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
             TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) progressEvent.getDetails();
             TestOutputEvent event = progress.getOutput();
 
-            InternalOperationDescriptor descriptor = new DefaultTestOutputDescriptor(buildOperationId + "." + idx++, "todo", "todo", progress.getTestId(), progress.getOutput().getDestination().name(), progress.getOutput().getMessage());
+            InternalOperationDescriptor descriptor = new DefaultTestOutputDescriptor(buildOperationId + "." + idx++, "todo", "todo", progress.getTestId());
             eventConsumer.started(new DefaultTestOutputStartedProgressEvent(progressEvent.getTime(), descriptor));
-            eventConsumer.finished(new DefaultTestOutputFinishedProgressEvent(progressEvent.getTime(), descriptor));
-        }
 
+            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), progress.getOutput().getDestination().name(), progress.getOutput().getMessage());
+            eventConsumer.finished(new DefaultTestOutputFinishedProgressEvent(progressEvent.getTime(), descriptor, result));
+        }
     }
 
     @Override

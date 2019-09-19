@@ -16,15 +16,10 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.tooling.events.FinishEvent;
+import org.gradle.tooling.events.OperationResult;
 
-/**
- * An event that informs about a test having started its execution.
- *
- * @since 6.0
- */
-public interface TestOutputFinishProgressEvent extends TestOutputProgressEvent, FinishEvent {
+public interface TestOutputResult extends OperationResult {
 
-    @Override
-    TestOutputResult getResult();
+    String getDestination();
+    String getMessage();
 }

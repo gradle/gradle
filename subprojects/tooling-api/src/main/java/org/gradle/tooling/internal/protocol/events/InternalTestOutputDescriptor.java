@@ -25,7 +25,4 @@ import java.util.Set;
  */
 public interface InternalTestOutputDescriptor extends InternalOperationDescriptor {
 
-    String getDestination();
-    String getMessage();
-
 }

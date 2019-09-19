@@ -16,19 +16,14 @@
 
 package org.gradle.tooling.events.test.internal;
 
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultStartEvent;
 import org.gradle.tooling.events.test.TestOutputDescriptor;
 import org.gradle.tooling.events.test.TestOutputStartProgressEvent;
 
 public final class DefaultTestOutputStartEvent extends DefaultStartEvent implements TestOutputStartProgressEvent {
 
-    public DefaultTestOutputStartEvent(long eventTime, String displayName, TestOutputDescriptor descriptor) {
+    public DefaultTestOutputStartEvent(long eventTime, String displayName, OperationDescriptor descriptor) {
         super(eventTime, displayName, descriptor);
     }
-
-    @Override
-    public TestOutputDescriptor getDescriptor() {
-        return (TestOutputDescriptor) super.getDescriptor();
-    }
-
 }

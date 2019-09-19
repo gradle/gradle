@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.events.test;
-
-import org.gradle.tooling.events.FinishEvent;
+package org.gradle.tooling.internal.protocol.events;
 
 /**
- * An event that informs about a test having started its execution.
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *
  * @since 6.0
  */
-public interface TestOutputFinishProgressEvent extends TestOutputProgressEvent, FinishEvent {
+public interface InternalTestOutputResult extends InternalOperationResult {
 
-    @Override
-    TestOutputResult getResult();
+    String getDestination();
+    String getMessage();
 }

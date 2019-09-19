@@ -27,16 +27,12 @@ public class DefaultTestOutputDescriptor implements Serializable, InternalTestOu
     private final String name;
     private final String displayName;
     private final Object parentId;
-    private final String destination;
-    private final String message;
 
-    public DefaultTestOutputDescriptor(Object id, String name, String displayName, Object parentId, String destination, String message) {
+    public DefaultTestOutputDescriptor(Object id, String name, String displayName, Object parentId) {
         this.id = id;
         this.name = name;
         this.displayName = displayName;
         this.parentId = parentId;
-        this.destination = destination;
-        this.message = message;
     }
 
     @Override
@@ -57,13 +53,5 @@ public class DefaultTestOutputDescriptor implements Serializable, InternalTestOu
     @Override
     public Object getParentId() {
         return parentId;
-    }
-
-    public String getDestination() {
-        return destination;
-    }
-
-    public String getMessage() {
-        return message;
     }
 }
