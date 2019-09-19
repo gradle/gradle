@@ -107,7 +107,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
         List<String> validationMessages = new ArrayList<>();
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
         DefaultWorkValidationContext parameterValidationContext = new DefaultWorkValidationContext(validationMessages);
-        actionMetadata.collectValidationFailures(null, parameterValidationContext);
+        actionMetadata.visitValidationFailures(null, parameterValidationContext);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
 
         // Should retain this on the metadata rather than calculate on each invocation

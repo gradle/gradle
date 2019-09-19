@@ -233,7 +233,7 @@ public class PropertyValidationAccess {
         public void visit(final Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeMetadata typeMetadata = getTypeMetadata();
             WorkValidationContext validationContext = new CollectingWorkValidationContext(topLevelBean, problems);
-            typeMetadata.collectValidationFailures(getPropertyName(), validationContext);
+            typeMetadata.visitValidationFailures(getPropertyName(), validationContext);
             for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
                 Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();

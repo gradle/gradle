@@ -196,7 +196,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public void collectValidationFailures(@Nullable String ownerPropertyPath, WorkValidationContext validationContext) {
+        public void visitValidationFailures(@Nullable String ownerPropertyPath, WorkValidationContext validationContext) {
             for (ValidationProblem problem : validationProblems) {
                 problem.collect(ownerPropertyPath, validationContext);
             }
