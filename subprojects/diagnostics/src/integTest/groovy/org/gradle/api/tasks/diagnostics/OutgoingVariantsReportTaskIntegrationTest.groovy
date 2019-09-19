@@ -117,7 +117,7 @@ Secondary variants (*)
           - org.gradle.category            = documentation
           - org.gradle.dependency.bundling = external
           - org.gradle.docstype            = sources
-          - org.gradle.jvm.version         = 11
+          - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
           - org.gradle.libraryelements     = jar
           - org.gradle.usage               = java-runtime
        - Artifacts
@@ -328,7 +328,7 @@ Secondary variants (*)
           - org.gradle.category            = documentation
           - org.gradle.dependency.bundling = external
           - org.gradle.docstype            = sources
-          - org.gradle.jvm.version         = 11
+          - org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
           - org.gradle.libraryelements     = jar
           - org.gradle.usage               = java-runtime
        - Artifacts
