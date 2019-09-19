@@ -11,7 +11,7 @@ dependencies {
 }
 
 // tag::zinc-dependency[]
-dependencies {
-    zinc("org.scala-sbt:zinc_2.12:1.2.1")
+scala {
+    zincVersion.set("1.2.1")
 }
 // end::zinc-dependency[]

@@ -98,7 +98,10 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
 
             dependencies {
                 implementation "org.scala-lang:scala-library:${scalaVersion}" 
-                zinc "org.scala-sbt:zinc_2.12:${zincVersion}"
+            }
+            
+            scala {
+                zincVersion = "${zincVersion}"
             }
             
             sourceCompatibility = '1.7'

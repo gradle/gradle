@@ -53,7 +53,6 @@ import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {

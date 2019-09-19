@@ -76,9 +76,12 @@ class ScalaCompilationFixture {
                         
             ${mavenCentralRepository()}
 
+            scala {
+                zincVersion = "${zincVersion}"
+            }
+            
             dependencies {
                 implementation "org.scala-lang:scala-library:${scalaVersion}" 
-                zinc "org.scala-sbt:zinc_2.12:${zincVersion}"
             }
             
             sourceSets {

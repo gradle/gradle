@@ -40,7 +40,7 @@ import sbt.internal.inc.Stamper;
 import scala.None$;
 import scala.Option;
 import scala.Some;
-import scala.collection.JavaConversions;
+import scala.collection.JavaConverters;
 import scala.collection.immutable.HashSet;
 import scala.collection.immutable.Set;
 import xsbti.T2;
@@ -226,7 +226,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
             if (result.isEmpty()) {
                 return new Some<Set<File>>(new HashSet<>());
             } else {
-                return new Some<Set<File>>(JavaConversions.asScalaBuffer(result).<File>toSet());
+                return new Some<Set<File>>(JavaConverters.asScalaBuffer(result).<File>toSet());
             }
         }
 

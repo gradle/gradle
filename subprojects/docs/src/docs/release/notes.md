@@ -107,6 +107,14 @@ To avoid these errors, Gradle has been employing workarounds in some but not all
 From now on Gradle uses these workarounds every time it removes file hierarchies.
 The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
 
+## Update to latest Zinc compiler
+
+The Zinc compiler has been upgraded to version 1.2.5. Gradle no longer supports building for Scala 2.9. 
+
+This fixes some Scala incremental compilation bugs and improves performance. 
+
+The minimum Zinc compiler supported by Gradle is 1.2.0 and the maximum version is 1.2.5.
+
 ## Automatic shortening of long classpaths on Windows
 
 When Gradle detects that a Java process command-line will exceed Windows's 32,768 character limit, Gradle will now attempt to shorten the command-line by passing the classpath of the Java application via a "classpath jar". 
@@ -247,12 +255,6 @@ We promoted all API elements in `ide` and `tooling-api` sub-projects that were i
 * All pre-5.0 incubating APIs have been promoted.
 * The [lazy configuration API](userguide/lazy_configuration.html) has been promoted.
 * Enabling [strict task validation](javadoc/org/gradle/plugin/devel/tasks/ValidateTaskProperties.html#setEnableStricterValidation-boolean-) has been promoted.
-
-### Update to the Scala Zinc compiler
-
-The Scala Zinc compiler has been upgraded to version 1.2.5, which only supports Scala 2.10+, meaning that Gradle no longer supports building for Scala 2.9.
-This fixes some Scala incremental compilation bugs and is reported as significantly improving performance.
-If you used to override the Zinc compiler version, be aware that the minimal version is now 1.2.0.
 
 <!--
 ### Example promoted

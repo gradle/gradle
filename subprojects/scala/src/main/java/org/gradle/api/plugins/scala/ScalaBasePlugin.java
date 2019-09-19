@@ -19,14 +19,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
-import org.gradle.api.ActionConfiguration;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
@@ -37,6 +35,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
+import org.gradle.api.internal.tasks.scala.DefaultScalaPluginExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -53,7 +52,7 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
+import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -78,24 +77,33 @@ public class ScalaBasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-        Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
-        configureConfigurations(project, incrementalAnalysisUsage);
 
         ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
+        ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", DefaultScalaPluginExtension.class);
+
+        Usage incrementalAnalysisUsage = objectFactory.named(Usage.class, "incremental-analysis");
+        configureConfigurations(project, incrementalAnalysisUsage, scalaPluginExtension);
 
         configureCompileDefaults(project, scalaRuntime);
         configureSourceSetDefaults(project, incrementalAnalysisUsage, objectFactory);
         configureScaladoc(project, scalaRuntime);
     }
 
-    private void configureConfigurations(final Project project, final Usage incrementalAnalysisUsage) {
-        project.getConfigurations().create(ZINC_CONFIGURATION_NAME).setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.")
-            .defaultDependencies(new Action<DependencySet>() {
-                @Override
-                public void execute(DependencySet dependencies) {
-                    dependencies.add(project.getDependencies().create("org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION));
+    private void configureConfigurations(final Project project, final Usage incrementalAnalysisUsage, ScalaPluginExtension scalaPluginExtension) {
+        Configuration zinc = project.getConfigurations().create(ZINC_CONFIGURATION_NAME);
+        zinc.setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.");
+        zinc.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.scala-sbt:zinc_2.12:" + scalaPluginExtension.getZincVersion().get())));
+
+        // Setup help for people using older versions of the Zinc compiler or the incompatible implementation.
+        VersionNumber minimumSupportedVersion = VersionNumber.parse("1.2.0");
+        zinc.getResolutionStrategy().componentSelection(rules -> {
+            rules.withModule("com.typesafe.zinc:zinc", selection -> selection.reject(String.format("Gradle is not compatible with the Typesafe version of the Zinc compiler. Please use org.scala-sbt:zinc_2.12:%s or newer.", minimumSupportedVersion)));
+            rules.withModule("org.scala-sbt:zinc_2.12", selection -> {
+                if (minimumSupportedVersion.compareTo(VersionNumber.parse(selection.getCandidate().getVersion())) > 0) {
+                    selection.reject(String.format("Gradle is not compatible with this version of the Zinc compiler. Please use %s or newer.", minimumSupportedVersion));
                 }
             });
+        });
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
         incrementalAnalysisElements.setVisible(false);
@@ -105,13 +113,10 @@ public class ScalaBasePlugin implements Plugin<Project> {
         incrementalAnalysisElements.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, incrementalAnalysisUsage);
 
         AttributeMatchingStrategy<Usage> matchingStrategy = project.getDependencies().getAttributesSchema().attribute(Usage.USAGE_ATTRIBUTE);
-        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, new Action<ActionConfiguration>() {
-            @Override
-            public void execute(ActionConfiguration actionConfiguration) {
-                actionConfiguration.params(incrementalAnalysisUsage);
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
-                actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-            }
+        matchingStrategy.getDisambiguationRules().add(UsageDisambiguationRules.class, actionConfiguration -> {
+            actionConfiguration.params(incrementalAnalysisUsage);
+            actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_API));
+            actionConfiguration.params(objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         });
     }
 
