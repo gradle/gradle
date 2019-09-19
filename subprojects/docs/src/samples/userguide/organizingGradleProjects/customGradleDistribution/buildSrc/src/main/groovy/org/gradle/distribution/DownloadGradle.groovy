@@ -16,11 +16,11 @@ class DownloadGradle extends DefaultTask {
     final Property<String> gradleVersion = project.objects.property(String).value("5.4")
 
     @Input
-    final Property<String> gradleDownloadBase = 
+    final Property<String> gradleDownloadBase =
         project.objects.property(String).convention("https://services.gradle.org/distributions")
 
     @OutputFile
-    final RegularFileProperty destinationFile = 
+    final RegularFileProperty destinationFile =
         project.objects.fileProperty().convention(project.layout.projectDirectory.dir("gradle-downloads/").file(downloadFileName))
 
     @TaskAction
@@ -34,7 +34,6 @@ class DownloadGradle extends DefaultTask {
         return gradleVersion.map { "gradle-" + it }
     }
 
-    @Internal
     private Provider<String> getDownloadFileName() {
         return distributionNameBase.map { it + "-bin.zip" }
     }

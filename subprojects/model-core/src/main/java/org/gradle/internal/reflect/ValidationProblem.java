@@ -19,5 +19,5 @@ package org.gradle.internal.reflect;
 import javax.annotation.Nullable;
 
 public interface ValidationProblem {
-    void collect(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext);
+    void collect(@Nullable String ownerPropertyPath, WorkValidationContext validationContext);
 }

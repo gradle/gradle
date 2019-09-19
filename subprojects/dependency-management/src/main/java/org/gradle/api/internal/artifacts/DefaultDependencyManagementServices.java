@@ -252,6 +252,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             ListenerManager listenerManager,
             OverlappingOutputDetector overlappingOutputDetector,
             TimeoutHandler timeoutHandler,
+            ValidateStep.ValidationWarningReporter validationWarningReporter,
             ValueSnapshotter valueSnapshotter
         ) {
             OutputChangeListener outputChangeListener = listenerManager.getBroadcaster(OutputChangeListener.class);
@@ -260,7 +261,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             // @formatter:off
             return new DefaultWorkExecutor<>(
                 new LoadExecutionStateStep<>(
-                new ValidateStep<>(
+                new ValidateStep<>(validationWarningReporter,
                 new CaptureStateBeforeExecutionStep(buildOperationExecutor, classLoaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
                 new NoOpCachingStateStep(
                 new ResolveChangesStep<>(changeDetector,

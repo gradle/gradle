@@ -17,20 +17,41 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
+import org.gradle.internal.reflect.WorkValidationContext;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
 
-public class DefaultTaskValidationContext extends DefaultParameterValidationContext implements TaskValidationContext {
+public class DefaultTaskValidationContext implements TaskValidationContext, WorkValidationContext {
     private final FileOperations fileOperations;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
+    private final WorkValidationContext delegate;
 
-    public DefaultTaskValidationContext(FileOperations fileOperations, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, Collection<String> messages) {
-        super(messages);
+    public DefaultTaskValidationContext(FileOperations fileOperations, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, WorkValidationContext delegate) {
         this.fileOperations = fileOperations;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
+        this.delegate = delegate;
+    }
+
+    @Override
+    public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
+        delegate.visitWarning(ownerPath, propertyName, message);
+    }
+
+    @Override
+    public void visitWarning(String message) {
+        delegate.visitWarning(message);
+    }
+
+    @Override
+    public void visitError(@Nullable String ownerPath, String propertyName, String message) {
+        delegate.visitError(ownerPath, propertyName, message);
+    }
+
+    @Override
+    public void visitError(String message) {
+        delegate.visitError(message);
     }
 
     @Override

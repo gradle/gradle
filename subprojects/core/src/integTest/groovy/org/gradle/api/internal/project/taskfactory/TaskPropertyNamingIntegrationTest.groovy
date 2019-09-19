@@ -388,6 +388,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.*
 
             class PrintInputsAndOutputs extends DefaultTask {
+                @Internal
                 Task task
                 @TaskAction
                 void printInputsAndOutputs() {

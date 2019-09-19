@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 import javax.inject.Inject
@@ -43,6 +44,7 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
             import ${ObjectFactory.name};
             import ${TaskAction.name};
             import ${Inject.name};
+            import ${Internal.name};
 
             public class SomeTask extends DefaultTask {
                 private final Property<Boolean> flag;
@@ -60,22 +62,27 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyLanguageInterOp
                     map = objectFactory.mapProperty(Integer.class, Boolean.class);
                 }
                 
+                @Internal
                 public Property<Boolean> getFlag() {
                     return flag;
                 }
 
+                @Internal
                 public Property<String> getMessage() {
                     return message;
                 }
                 
+                @Internal
                 public ListProperty<Integer> getList() {
                     return list;
                 }
                 
+                @Internal
                 public SetProperty<Integer> getSet() {
                     return set;
                 }
                 
+                @Internal
                 public MapProperty<Integer, Boolean> getMap() {
                     return map;
                 }

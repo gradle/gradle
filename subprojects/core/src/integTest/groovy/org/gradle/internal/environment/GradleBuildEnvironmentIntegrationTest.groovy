@@ -30,6 +30,7 @@ class GradleBuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.internal.environment.GradleBuildEnvironment
             import javax.inject.Inject
             class DaemonJudge extends DefaultTask {
+                @Internal
                 GradleBuildEnvironment buildEnvironment
 
                 @Inject

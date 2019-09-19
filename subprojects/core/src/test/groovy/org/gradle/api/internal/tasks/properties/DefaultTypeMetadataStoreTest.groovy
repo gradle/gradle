@@ -46,8 +46,8 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.ParameterValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
+import org.gradle.internal.reflect.WorkValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -78,7 +78,8 @@ class DefaultTypeMetadataStoreTest extends Specification {
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [CustomCacheable],
         ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + [SearchPath]) as Set<Class<? extends Annotation>>),
-        [Object, GroovyObject, DefaultTask],
+        ["java", "groovy"],
+        [DefaultTask],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS,
@@ -123,7 +124,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def annotationHandler = Stub(PropertyAnnotationHandler)
         _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
-        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, ParameterValidationContext context ->
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, WorkValidationContext context ->
             context.visitWarning(null, metadata.propertyName, "is broken")
         }
 
@@ -144,7 +145,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def annotationHandler = Stub(PropertyAnnotationHandler)
         _ * annotationHandler.propertyRelevant >> false
         _ * annotationHandler.annotationType >> SearchPath
-        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, ParameterValidationContext context ->
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, WorkValidationContext context ->
             context.visitWarning(null, metadata.propertyName, "is broken")
         }
 
@@ -162,7 +163,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     def "custom type annotation handler can inspect for static type problems"() {
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
-        _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, ParameterValidationContext context ->
+        _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, WorkValidationContext context ->
             context.visitWarning("type is broken")
         }
 
@@ -394,7 +395,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
     private static List<String> collectProblems(TypeMetadata metadata) {
         def result = []
-        metadata.collectValidationFailures(null, new DefaultParameterValidationContext(result))
+        metadata.collectValidationFailures(null, new DefaultWorkValidationContext(result))
         return result
     }
 

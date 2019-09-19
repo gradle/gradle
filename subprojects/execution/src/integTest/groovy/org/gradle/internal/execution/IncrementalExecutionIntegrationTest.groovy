@@ -58,6 +58,8 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
+import org.gradle.internal.reflect.WorkValidationContext
+import org.gradle.internal.reflect.WorkValidationException
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -72,6 +74,7 @@ import spock.lang.Specification
 
 import javax.annotation.Nullable
 import java.time.Duration
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
@@ -112,6 +115,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def buildCacheController = Mock(BuildCacheController)
     def buildOperationExecutor = new TestBuildOperationExecutor()
+    def validationWarningReporter = Mock(ValidateStep.ValidationWarningReporter)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")
@@ -139,7 +143,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         // @formatter:off
         new DefaultWorkExecutor<>(
             new LoadExecutionStateStep<>(
-            new ValidateStep<>(
+            new ValidateStep<>(validationWarningReporter,
             new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
@@ -556,9 +560,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     def "invalid work is not executed"() {
-        def validationError = new RuntimeException("Validation error")
         def invalidWork = builder
-            .withValidationError(validationError)
+            .withValidator({ validationContext ->
+                validationContext.visitError("Validation error")
+            })
             .withWork({ throw new RuntimeException("Should not get executed") })
             .build()
 
@@ -566,8 +571,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
         execute(invalidWork)
 
         then:
-        def ex = thrown Exception
-        ex == validationError
+        def ex = thrown WorkValidationException
+        ex.causes.size() == 1
+        ex.causes[0].message == "Validation error"
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
@@ -683,7 +689,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private Map<String, ? extends Collection<? extends File>> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
-        private Exception validationError
+        private Consumer<WorkValidationContext> validator
 
         UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
@@ -738,8 +744,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return this
         }
 
-        UnitOfWorkBuilder withValidationError(Exception validationError) {
-            this.validationError = validationError
+        UnitOfWorkBuilder withValidator(Consumer<WorkValidationContext> validator) {
+            this.validator = validator
             return this
         }
 
@@ -811,10 +817,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void validate() {
-                    if (validationError != null) {
-                        throw validationError
-                    }
+                void validate(WorkValidationContext validationContext) {
+                    validator?.accept(validationContext)
                 }
 
                 @Override

@@ -36,7 +36,7 @@ import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.ParameterValidationContext
+import org.gradle.internal.reflect.WorkValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
@@ -48,7 +48,7 @@ import static org.gradle.internal.service.scopes.ExecutionGlobalServices.PROPERT
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def visitor = Mock(PropertyVisitor)
-    def validationContext = Mock(ParameterValidationContext)
+    def validationContext = Mock(WorkValidationContext)
 
     def "visits properties"() {
         def task = project.tasks.create("myTask", MyTask)
@@ -238,7 +238,8 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
             [],
             ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
-            [Object, GroovyObject],
+            ["java", "groovy"],
+            [],
             [Object, GroovyObject],
             [ConfigurableFileCollection, Property],
             IGNORED_METHOD_ANNOTATIONS,

@@ -230,6 +230,7 @@ class WorkQueueIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
             import org.gradle.internal.exceptions.MultiCauseException
 
             class WorkItemTask extends DefaultTask {
+                @Internal
                 IsolationMode isolationMode = IsolationMode.AUTO
 
                 @Inject

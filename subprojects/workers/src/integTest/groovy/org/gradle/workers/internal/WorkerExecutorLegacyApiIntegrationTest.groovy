@@ -278,7 +278,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class MyTask extends DefaultTask {
-                final WorkerExecutor workerExecutor
+                private final WorkerExecutor workerExecutor
             
                 @OutputFile
                 File outputFile
@@ -368,14 +368,23 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class WorkerTask extends DefaultTask {
-                WorkerExecutor workerExecutor
+                private final WorkerExecutor workerExecutor
+
+                @Internal
                 String text
+                @Internal
                 String[] arrayOfThings
+                @Internal
                 ListProperty<String> listOfThings
+                @Internal
                 File outputFile
+                @Internal
                 IsolationMode isolationMode = IsolationMode.AUTO
+                @Internal
                 Class<?> runnableClass = TestRunnable.class
+                @Internal
                 String displayName
+                @Internal
                 Closure workerConfiguration
                 
                 @Inject

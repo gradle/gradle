@@ -36,7 +36,7 @@ import javax.inject.Inject;
  *     <li>
  *         <b>Properties taken into account during up-to-date checks:</b>
  *         <ul>
-*              <li>
+ *              <li>
  *                 {@literal @}{@link org.gradle.api.tasks.Input},
  *                 {@literal @}{@link org.gradle.api.tasks.Nested},
  *                 {@literal @}{@link org.gradle.api.tasks.InputFile},

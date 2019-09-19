@@ -68,7 +68,17 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore([], [:], [Object, GroovyObject], [Object, GroovyObject], [ConfigurableFileCollection, Property], [Internal], { false }, cacheFactory)
+    def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
+        [],
+        [:],
+        ["java", "groovy"],
+        [],
+        [Object, GroovyObject],
+        [ConfigurableFileCollection, Property],
+        [Internal],
+        { false },
+        cacheFactory
+    )
     def walker = new DefaultPropertyWalker(new DefaultTypeMetadataStore([], [new NoOpPropertyAnnotationHandler(Internal)], [], typeAnnotationMetadataStore, cacheFactory))
     def outputs = new DefaultTaskOutputs(task, taskStatusNagger, walker, fileCollectionFactory)
 

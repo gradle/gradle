@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
@@ -42,7 +41,6 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
@@ -50,7 +48,6 @@ import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerManager;
@@ -84,6 +81,8 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.WorkValidationException;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
@@ -99,7 +98,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
@@ -165,7 +163,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskExecution work = new TaskExecution(task, context, executionHistoryStore, fingerprinterRegistry, classLoaderHierarchyHasher);
         try {
             return executeIfValid(task, state, context, work);
-        } catch (TaskValidationException ex) {
+        } catch (WorkValidationException ex) {
             state.setOutcome(ex);
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
@@ -466,23 +464,9 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void validate() {
-            List<String> messages = new ArrayList<>();
+        public void validate(WorkValidationContext validationContext) {
             FileOperations fileOperations = ((ProjectInternal) task.getProject()).getFileOperations();
-            TaskValidationContext validationContext = new DefaultTaskValidationContext(fileOperations, reservedFileSystemLocationRegistry, messages);
-
-            context.getTaskProperties().validate(validationContext);
-            if (!messages.isEmpty()) {
-                String errorMessage = messages.size() == 1
-                    ? String.format("A problem was found with the configuration of %s.", task)
-                    : String.format("Some problems were found with the configuration of %s.", task);
-                List<InvalidUserDataException> causes = messages.stream()
-                    .limit(5)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList());
-                throw new TaskValidationException(errorMessage, causes);
-            }
+            context.getTaskProperties().validate(new DefaultTaskValidationContext(fileOperations, reservedFileSystemLocationRegistry, validationContext));
         }
 
         @Override

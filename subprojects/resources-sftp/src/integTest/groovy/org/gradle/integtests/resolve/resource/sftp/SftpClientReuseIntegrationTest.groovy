@@ -76,6 +76,7 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
             PasswordCredentials creds = new DefaultPasswordCredentials('sftp', 'sftp')
             
             class SftpTask extends DefaultTask {
+                @Internal
                 PasswordCredentials credentials 
 
                 @Inject

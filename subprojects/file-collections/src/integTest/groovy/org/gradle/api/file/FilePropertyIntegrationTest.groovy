@@ -23,6 +23,7 @@ class FilePropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can attach a calculated directory to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
+                @OutputDirectory
                 final DirectoryProperty outputDir = project.objects.directoryProperty()
                 
                 @TaskAction
@@ -50,6 +51,7 @@ class FilePropertyIntegrationTest extends AbstractIntegrationSpec {
     def "can attach a calculated file to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
+                @OutputFile
                 final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
@@ -740,16 +742,16 @@ task thing {
         buildFile << """
 class SomeTask extends DefaultTask {
     @Optional @InputFile
-    Property<RegularFile> inFile = project.objects.fileProperty()
+    final Property<RegularFile> inFile = project.objects.fileProperty()
     
     @Optional @InputDirectory
-    Property<Directory> inDir = project.objects.directoryProperty()
+    final Property<Directory> inDir = project.objects.directoryProperty()
     
     @Optional @OutputFile
-    Property<RegularFile> outFile = project.objects.fileProperty()
+    final Property<RegularFile> outFile = project.objects.fileProperty()
     
     @Optional @OutputDirectory
-    Property<Directory> outDir = project.objects.directoryProperty()
+    final Property<Directory> outDir = project.objects.directoryProperty()
     
     @TaskAction
     def go() { }
@@ -776,7 +778,7 @@ class SomeTask extends DefaultTask {
         buildFile << """
             class ProducerTask extends DefaultTask {
                 @Optional @OutputFile
-                Property<RegularFile> outFile = project.objects.fileProperty()
+                final Property<RegularFile> outFile = project.objects.fileProperty()
                 
                 @TaskAction
                 def go() { }
@@ -798,7 +800,7 @@ class SomeTask extends DefaultTask {
                 
                 @Optional
                 @OutputFile
-                Property<RegularFile> outputFile = project.objects.directoryProperty() 
+                final Property<RegularFile> outputFile = project.objects.directoryProperty() 
                 
                 @TaskAction
                 def go() { }

@@ -27,13 +27,13 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
     private TestBuildCache localCache = new TestBuildCache(file('local-cache'))
     private TestBuildCache remoteCache = new TestBuildCache(file('remote-cache'))
     private TestFile inputFile = file('input.txt')
-    private TestFile hiddenInputFile = file('hidden.txt')
+    private TestFile cacheOriginInputFile = file('cache-origin.txt')
     private TestFile outputFile = file('build/output.txt')
     private String cacheableTask = ':cacheableTask'
 
     def setup() {
         inputFile.text = 'This is the input'
-        hiddenInputFile.text = 'And this is not'
+        cacheOriginInputFile.text = 'And this is not'
 
         buildScript """           
             apply plugin: 'base'
@@ -44,7 +44,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
             task cacheableTask(type: MyTask) {
                 inputFile = file('input.txt')
                 outputFile = file('build/output.txt')
-                hiddenInput = file('hidden.txt')
+                cacheOrigin = file('cache-origin.txt')
             }
             
             @CacheableTask
@@ -55,10 +55,11 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File inputFile
-                File hiddenInput
+                @Internal
+                File cacheOrigin
 
                 @TaskAction void doSomething() {
-                    outputFile.text = inputFile.text + hiddenInput.text
+                    outputFile.text = inputFile.text + cacheOrigin.text
                 }
             }
         """.stripIndent()
@@ -110,7 +111,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     def 'pull from local first'() {
         pushToRemote()
-        hiddenInputFile.text = 'remote'
+        cacheOriginInputFile.text = 'remote'
 
         when:
         withBuildCache().run cacheableTask
@@ -122,7 +123,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         settingsFile.text = localCache.localCacheConfiguration()
-        hiddenInputFile.text = 'local'
+        cacheOriginInputFile.text = 'local'
         withBuildCache().run 'clean', cacheableTask
 
         then:
@@ -132,7 +133,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         pullOnly()
-        hiddenInputFile.text = 'remote'
+        cacheOriginInputFile.text = 'remote'
         withBuildCache().run 'clean', cacheableTask
 
         then:

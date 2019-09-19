@@ -1298,12 +1298,17 @@ task generate(type: TransformerTask) {
             task myTask(type: MyTask)
         '''
 
+        executer.expectDeprecationWarning()
+
         when:
         run 'myTask', '-Pprivate=first'
 
         then:
         def outputFile = file('build/output.txt')
         outputFile.text == 'first'
+        output.contains("Property 'myPrivateInput' is private and annotated with @Input. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+
+        executer.expectDeprecationWarning()
 
         when:
         run 'myTask', '-Pprivate=second'
@@ -1311,6 +1316,9 @@ task generate(type: TransformerTask) {
         then:
         skipped ':myTask'
         outputFile.text == 'first'
+        output.contains("Property 'myPrivateInput' is private and annotated with @Input. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+
+        executer.expectDeprecationWarning()
 
         when:
         outputFile.delete()
@@ -1319,6 +1327,7 @@ task generate(type: TransformerTask) {
         then:
         executedAndNotSkipped ':myTask'
         outputFile.text == 'second'
+        output.contains("Property 'myPrivateInput' is private and annotated with @Input. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
     }
 
     @ToBeImplemented("Private getters should be ignored")

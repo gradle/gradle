@@ -23,6 +23,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
+                @Internal
                 abstract Property<Integer> getCount()
                 
                 @TaskAction
@@ -49,6 +50,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
+                @Internal
                 abstract Property<Integer> getCount()
                 
                 @TaskAction
@@ -72,6 +74,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
+                @Internal
                 final Property<Integer> count = project.objects.property(Integer)
                 
                 @TaskAction
@@ -103,6 +106,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             public abstract class MyTask extends DefaultTask {
                 private final Property<Integer> count = getProject().getObjects().property(Integer.class);
                 
+                @Internal
                 public Property<Integer> getCount() {
                     return count;
                 }
@@ -184,8 +188,11 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             abstract class Bean {
+                @Internal
                 final String name
+                @Internal
                 abstract Property<String> getProp()
+
                 Bean(String name) {
                     this.name = name
                 }
@@ -220,6 +227,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             interface Params {
+                @Internal
                 Property<Integer> getCount()
             }
             abstract class MyTask extends DefaultTask {
@@ -252,6 +260,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             abstract class MyTask extends DefaultTask {
+                @Internal
                 abstract Property<String> getParam()
                 
                 MyTask() {

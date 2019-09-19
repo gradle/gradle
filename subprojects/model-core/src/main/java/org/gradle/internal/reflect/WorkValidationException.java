@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks;
+
+package org.gradle.internal.reflect;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
 import java.util.List;
 
 /**
- * A {@code TaskValidationException} is thrown when there is some validation problem with a task.
+ * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
  */
 @Contextual
-public class TaskValidationException extends DefaultMultiCauseException {
-    public TaskValidationException(String message, List<InvalidUserDataException> causes) {
+public class WorkValidationException extends DefaultMultiCauseException {
+    public WorkValidationException(String message, List<InvalidUserDataException> causes) {
         super(message, causes);
     }
 }

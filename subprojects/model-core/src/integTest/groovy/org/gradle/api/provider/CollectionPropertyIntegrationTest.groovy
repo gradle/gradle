@@ -23,7 +23,9 @@ class CollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
             class MyTask extends DefaultTask {
+                @Internal
                 final ListProperty<String> prop = project.objects.listProperty(String)
+                @Internal
                 List<String> expected = []
                 
                 @TaskAction

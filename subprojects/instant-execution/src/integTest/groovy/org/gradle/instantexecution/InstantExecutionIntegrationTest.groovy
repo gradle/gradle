@@ -175,6 +175,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeTask extends DefaultTask {
+                @Internal
                 final SomeBean bean
                 
                 SomeTask() {
@@ -400,7 +401,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeTask extends DefaultTask {
+                @Internal
                 final SomeBean bean = new SomeBean()
+                @Internal
                 ${type} value
 
                 @TaskAction
@@ -443,7 +446,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeTask extends DefaultTask {
+                @Internal
                 final SomeBean bean = project.objects.newInstance(SomeBean)
+                @Internal
                 ${type} value
 
                 @TaskAction
@@ -483,6 +488,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             import ${Inject.name}
 
             class SomeTask extends DefaultTask {
+                @Internal
                 ${type} value = ${reference} { throw new RuntimeException("broken!") }
 
                 @TaskAction
@@ -517,6 +523,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             import ${Inject.name}
 
             class SomeBean {
+                @Internal
                 final ${type} value
 
                 @Inject
@@ -526,7 +533,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeTask extends DefaultTask {
+                @Internal
                 final SomeBean bean = project.objects.newInstance(SomeBean)
+                @Internal
                 final ${type} value
 
                 @Inject
@@ -686,6 +695,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
             abstract class SomeTask extends DefaultTask {
 
+                @Internal
                 abstract Property<String> getValue()
 
                 @TaskAction

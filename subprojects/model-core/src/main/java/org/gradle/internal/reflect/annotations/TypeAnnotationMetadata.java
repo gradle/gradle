@@ -18,7 +18,7 @@ package org.gradle.internal.reflect.annotations;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
-import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.WorkValidationContext;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -39,5 +39,5 @@ public interface TypeAnnotationMetadata {
      */
     ImmutableSortedSet<PropertyAnnotationMetadata> getPropertiesAnnotationMetadata();
 
-    void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext);
+    void visitValidationFailures(@Nullable String ownerPath, WorkValidationContext validationContext);
 }

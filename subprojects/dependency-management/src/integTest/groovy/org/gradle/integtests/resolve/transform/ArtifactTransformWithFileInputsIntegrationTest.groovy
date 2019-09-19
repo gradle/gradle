@@ -280,7 +280,7 @@ class ArtifactTransformWithFileInputsIntegrationTest extends AbstractDependencyR
             
             class Producer extends DefaultTask {
                 @OutputFile
-                RegularFileProperty outputFile = project.objects.fileProperty()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
             
                 @TaskAction
                 def go() {

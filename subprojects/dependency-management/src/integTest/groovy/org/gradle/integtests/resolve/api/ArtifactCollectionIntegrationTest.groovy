@@ -49,6 +49,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
             }
 
             class TaskWithArtifactCollectionInput extends DefaultTask {
+                @Internal
                 ArtifactCollection artifacts
                 
                 @InputFiles

@@ -31,9 +31,9 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.ValidationProblem;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
@@ -156,7 +156,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         return null;
     }
 
-    private static class RecordingValidationContext implements ParameterValidationContext {
+    private static class RecordingValidationContext implements WorkValidationContext {
         private ImmutableList.Builder<ValidationProblem> builder = ImmutableList.builder();
 
         ImmutableList<ValidationProblem> getProblems() {
@@ -196,7 +196,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
         }
 
         @Override
-        public void collectValidationFailures(@Nullable String ownerPropertyPath, ParameterValidationContext validationContext) {
+        public void collectValidationFailures(@Nullable String ownerPropertyPath, WorkValidationContext validationContext) {
             for (ValidationProblem problem : validationProblems) {
                 problem.collect(ownerPropertyPath, validationContext);
             }

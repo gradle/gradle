@@ -22,10 +22,10 @@ interface ReverseParameters extends WorkParameters {
     Property<File> getDestinationFile()
 }
 
-// The implementation of a single unit of work. 
+// The implementation of a single unit of work.
 abstract class ReverseFile implements WorkAction<ReverseParameters> {
     @Override
-    public void execute() {
+    void execute() {
         parameters.destinationFile.get().text = parameters.fileToReverse.get().text.reverse()
     }
 }
@@ -33,14 +33,14 @@ abstract class ReverseFile implements WorkAction<ReverseParameters> {
 
 // tag::task-implementation[]
 class ReverseFiles extends SourceTask {
-    final WorkerExecutor workerExecutor
+    private final WorkerExecutor workerExecutor
 
     @OutputDirectory
     File outputDir
 
     // The WorkerExecutor will be injected by Gradle at runtime
     @Inject
-    public ReverseFiles(WorkerExecutor workerExecutor) {
+    ReverseFiles(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor
     }
 
@@ -48,7 +48,7 @@ class ReverseFiles extends SourceTask {
     void reverseFiles() {
         // Create a WorkQueue to submit work items
         WorkQueue workQueue = workerExecutor.noIsolation()
-        
+
         // Create and submit a unit of work for each file
         source.each { file ->
             workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->

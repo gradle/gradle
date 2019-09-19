@@ -173,7 +173,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "shows validation error when non-Optional @Input is null"() {
         buildFile << """
             class FooTask extends DefaultTask {
-               @Input
+               @InputFiles
                FileCollection bar
                
                @TaskAction

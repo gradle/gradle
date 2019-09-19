@@ -218,7 +218,7 @@ class WorkerExecutorCompositeBuildIntegrationTest extends AbstractIntegrationSpe
             
             public class TypedWorkerTask extends DefaultTask {
                 private final WorkerExecutor workerExecutor;
-                private RegularFileProperty outputFile;
+                private final RegularFileProperty outputFile;
                 
                 @Inject
                 public TypedWorkerTask(WorkerExecutor workerExecutor) {

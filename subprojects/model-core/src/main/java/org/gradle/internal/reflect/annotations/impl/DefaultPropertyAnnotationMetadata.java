@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,7 +72,7 @@ public class DefaultPropertyAnnotationMetadata implements PropertyAnnotationMeta
     }
 
     @Override
-    public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
+    public void visitValidationFailures(@Nullable String ownerPath, WorkValidationContext validationContext) {
         validationProblems.forEach(validationProblem -> validationContext.visitWarning(ownerPath, getPropertyName(), validationProblem));
     }
 

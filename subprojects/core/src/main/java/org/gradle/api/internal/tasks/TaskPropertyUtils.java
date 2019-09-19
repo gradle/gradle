@@ -16,22 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.api.tasks.TaskValidationException;
-import org.gradle.internal.reflect.ParameterValidationContext;
-import org.gradle.util.CollectionUtils;
-
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import static org.gradle.internal.reflect.ParameterValidationContext.decorateMessage;
+import org.gradle.internal.reflect.WorkValidationContext;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -39,11 +28,18 @@ public class TaskPropertyUtils {
      * Visits both properties declared via annotations on the properties of the task type as well as
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
-    public static void visitProperties(PropertyWalker propertyWalker, final TaskInternal task, final PropertyVisitor visitor) {
-        StrictErrorsOnlyContext validationContext = new StrictErrorsOnlyContext(task);
+    public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, PropertyVisitor visitor) {
+        visitProperties(propertyWalker, task, WorkValidationContext.NOOP, visitor);
+    }
+
+    /**
+     * Visits both properties declared via annotations on the properties of the task type as well as
+     * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
+     *
+     * Reports errors and warnings to the given validation context.
+     */
+    public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, WorkValidationContext validationContext, PropertyVisitor visitor) {
         propertyWalker.visitProperties(task, validationContext, visitor);
-        // Should instead forward these to the task's validation context
-        validationContext.assertNoProblems();
         if (!visitor.visitOutputFilePropertiesOnly()) {
             task.getInputs().visitRegisteredProperties(visitor);
         }
@@ -69,52 +65,5 @@ public class TaskPropertyUtils {
             throw new IllegalArgumentException("Property name must not be empty string");
         }
         return propertyName;
-    }
-
-    private static class StrictErrorsOnlyContext implements ParameterValidationContext {
-        private final TaskInternal task;
-        List<String> problems;
-
-        public StrictErrorsOnlyContext(TaskInternal task) {
-            this.task = task;
-        }
-
-        void assertNoProblems() {
-            if (problems == null) {
-                return;
-            }
-            String message;
-            Class<?> taskType = task instanceof GeneratedSubclass ? ((GeneratedSubclass) task).publicType() : task.getClass();
-            if (problems.size() == 1) {
-                message = String.format("A problem was found with the configuration of %s of type '%s'.", task, taskType.getName());
-            } else {
-                Collections.sort(problems);
-                message = String.format("Some problems were found with the configuration of %s of type '%s'.", task, taskType.getName());
-            }
-            throw new TaskValidationException(message, CollectionUtils.collect(problems, InvalidUserDataException::new));
-        }
-
-        @Override
-        public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
-            // Ignore for now
-        }
-
-        @Override
-        public void visitWarning(String message) {
-            // Ignore for now
-        }
-
-        @Override
-        public void visitError(String message) {
-            if (problems == null) {
-                problems = new ArrayList<>();
-            }
-            problems.add(message);
-        }
-
-        @Override
-        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
-            visitError(decorateMessage(ownerPath, propertyName, message));
-        }
     }
 }
