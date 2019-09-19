@@ -17,7 +17,7 @@
 package org.gradle.performance.regression.android
 
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.AbstractCleanupMutator
@@ -78,7 +78,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         SANTA_TRACKER       | true     | null       | null | 'assembleDebug'
     }
 
-    @Category(PerformanceExperiment)
+    @Category(SlowPerformanceRegressionTest)
     @Unroll
     def "clean #tasks on #testProject with clean transforms cache"() {
         given:
