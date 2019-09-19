@@ -48,7 +48,7 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
             details.skip();
         } else {
             details.mapToMavenScope(scope);
-            if (optional) {
+            if (optional || isDocumentationVariant(variant)) {
                 details.mapToOptional();
             }
         }
