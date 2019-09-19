@@ -76,14 +76,4 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     TestFile source(String path) {
         return file("buildSrc/$path")
     }
-
-    @Override
-    TestFile getTaskBuildFile() {
-        return file("buildSrc/build.gradle")
-    }
-
-    @Override
-    TestFile getTaskSettingsFile() {
-        return file("buildSrc/settings.gradle")
-    }
 }
