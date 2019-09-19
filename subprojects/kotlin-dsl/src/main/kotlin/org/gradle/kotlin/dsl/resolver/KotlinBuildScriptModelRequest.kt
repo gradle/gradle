@@ -176,7 +176,7 @@ private
 fun ProjectConnection.modelBuilderFor(parameters: FetchParameters) =
     model(KotlinBuildScriptModel::class.java).apply {
         setEnvironmentVariables(parameters.environmentVariables.takeIf { it.isNotEmpty() })
-        setJvmArguments(parameters.jvmOptions + KotlinDslModelsParameters.LENIENT_MODE_SYSTEM_PROPERTY_DECLARATION)
+        setJvmArguments(parameters.jvmOptions + KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
         forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
 
         val arguments = parameters.options.toMutableList()

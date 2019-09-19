@@ -21,12 +21,12 @@ import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 fun inClassPathMode() =
     providerModeSystemPropertyValue in listOf(
         KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE,
-        KotlinDslModelsParameters.LENIENT_MODE_SYSTEM_PROPERTY_VALUE
+        KotlinDslModelsParameters.STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE
     )
 
 
 fun inLenientMode() =
-    providerModeSystemPropertyValue == KotlinDslModelsParameters.LENIENT_MODE_SYSTEM_PROPERTY_VALUE
+    providerModeSystemPropertyValue == KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE
 
 
 private

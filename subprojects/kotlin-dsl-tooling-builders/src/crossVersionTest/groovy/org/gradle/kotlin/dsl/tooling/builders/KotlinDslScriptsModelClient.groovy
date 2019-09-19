@@ -46,9 +46,9 @@ class KotlinDslScriptsModelClient {
 
             addJvmArguments(request.jvmOptions)
             if (request.lenient) {
-                addJvmArguments(KotlinDslModelsParameters.LENIENT_MODE_SYSTEM_PROPERTY_DECLARATION)
-            } else {
                 addJvmArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+            } else {
+                addJvmArguments(KotlinDslModelsParameters.STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
             }
 
             forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)

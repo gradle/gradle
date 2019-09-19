@@ -36,9 +36,10 @@ import java.util.Map;
  * The Gradle Kotlin DSL script provider must be running in "classpath" mode.
  * This is done by providing the system property <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath</code>.
  * See {@link KotlinDslModelsParameters#CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION}.
- * Optionally, it can also be set in a lenient mode, ignoring, collecting and returning exceptions
- * in the built model by providing the system property value <code>-Dorg.gradle.kotlin.dsl.provider.mode=classpath-lenient</code>.
- * See {@link KotlinDslModelsParameters#LENIENT_MODE_SYSTEM_PROPERTY_DECLARATION}.
+ * In this mode, Gradle Kotlin DSL scripts compilation or evaluation failures will be ignored, collected and
+ * exceptions will be returned in the built model.
+ * Optionally, it can also be set in a strict mode by providing the system property value <code>-Dorg.gradle.kotlin.dsl.provider.mode=strict-classpath</code>.
+ * See {@link KotlinDslModelsParameters#STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION}.
  *
  * Optionally, an identifier can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.cid</code>,
  * it can then be used to correlate Gradle and TAPI client log statements.
