@@ -2,11 +2,11 @@
 > Task :processResources
 > Task :classes
 > Task :jar
-> Task :generateMetadataFileForMavenJavaPublication
-> Task :generatePomFileForMavenJavaPublication
 > Task :javadoc
 > Task :javadocJar
 > Task :sourcesJar
+> Task :generateMetadataFileForMavenJavaPublication
+> Task :generatePomFileForMavenJavaPublication
 > Task :signMavenJavaPublication
 
 BUILD SUCCESSFUL in 0s
