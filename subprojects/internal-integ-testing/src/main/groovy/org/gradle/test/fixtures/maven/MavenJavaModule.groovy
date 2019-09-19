@@ -17,19 +17,21 @@
 package org.gradle.test.fixtures.maven
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.java.TargetJvmVersion
+import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.util.GUtil
 
 class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements PublishedJavaModule {
     final MavenFileModule mavenModule
+    final boolean withDocumentation
     private final List<String> additionalArtifacts = []
 
-    MavenJavaModule(MavenFileModule mavenModule) {
+    MavenJavaModule(MavenFileModule mavenModule, boolean withDocumentation = false) {
         super(mavenModule)
         this.mavenModule = mavenModule
         this.mavenModule.attributes[TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name] = JavaVersion.current().majorVersion
+        this.withDocumentation = withDocumentation
     }
 
     @Override
@@ -50,27 +52,78 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
 
     void assertPublished(String pomPackaging, String artifactFileExtension) {
         super.assertPublished()
-
-        List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact(artifactFileExtension)]
-        expectedArtifacts.addAll(additionalArtifacts)
-        mavenModule.assertArtifactsPublished(expectedArtifacts)
+        assertArtifactsPublished(artifactFileExtension)
 
         // Verify Gradle metadata particulars
-        assert mavenModule.parsedModuleMetadata.variants*.name as Set == ['apiElements', 'runtimeElements'] as Set
+        def expectedVariants = ['apiElements', 'runtimeElements']
+        if (withDocumentation) {
+            expectedVariants.addAll(['apiElementsJavadoc', 'runtimeElementsSources'])
+        }
+        assert mavenModule.parsedModuleMetadata.variants*.name as Set == expectedVariants as Set
         def apiElements = mavenModule.parsedModuleMetadata.variant('apiElements')
         def runtimeElements = mavenModule.parsedModuleMetadata.variant('runtimeElements')
 
         assert apiElements.files*.name == [artifact(artifactFileExtension)]
         assert runtimeElements.files*.name == [artifact(artifactFileExtension)]
 
-        // Verify it contains some expected attributes
-        assert apiElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
-        assert apiElements.attributes.containsKey(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name)
-        assert runtimeElements.attributes.containsKey(Bundling.BUNDLING_ATTRIBUTE.name)
-        assert runtimeElements.attributes.containsKey(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name)
+        // Verify it contains expected attributes
+        def currentJavaVersion = JavaVersion.current().majorVersion.toInteger()
+        assertAttributes(apiElements, ["org.gradle.category": "library",
+                                       "org.gradle.dependency.bundling": "external",
+                                       "org.gradle.jvm.version": currentJavaVersion,
+                                       "org.gradle.libraryelements": "jar",
+                                       "org.gradle.usage": "java-api"])
+        assertAttributes(runtimeElements, ["org.gradle.category": "library",
+                                           "org.gradle.dependency.bundling": "external",
+                                           "org.gradle.jvm.version": currentJavaVersion,
+                                           "org.gradle.libraryelements": "jar",
+                                           "org.gradle.usage": "java-runtime"])
+
+        if (withDocumentation) {
+            assertDocumentationVariantsPublished()
+        }
 
         // Verify POM particulars
         assert mavenModule.parsedPom.packaging == pomPackaging
+    }
+
+    void assertArtifactsPublished(String artifactFileExtension = "jar") {
+        List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact(artifactFileExtension)]
+        if (withDocumentation) {
+            expectedArtifacts.addAll([artifact("javadoc", "jar"), artifact("sources", "jar")])
+        }
+        expectedArtifacts.addAll(additionalArtifacts)
+        mavenModule.assertArtifactsPublished(expectedArtifacts)
+    }
+
+    private void assertDocumentationVariantsPublished() {
+        def javadoc = mavenModule.parsedModuleMetadata.variant('apiElementsJavadoc')
+        def sources = mavenModule.parsedModuleMetadata.variant('runtimeElementsSources')
+
+        assert javadoc.files*.name == [artifact("javadoc", "jar")]
+        assert sources.files*.name == [artifact("sources", "jar")]
+
+        def currentJavaVersion = JavaVersion.current().majorVersion.toInteger()
+        assertAttributes(javadoc, ["org.gradle.category": "documentation",
+                                   "org.gradle.dependency.bundling": "external",
+                                   "org.gradle.docstype": "javadoc",
+                                   "org.gradle.jvm.version": currentJavaVersion,
+                                   "org.gradle.libraryelements": "jar",
+                                   "org.gradle.usage": "java-api"])
+        assertAttributes(sources, ["org.gradle.category": "documentation",
+                                   "org.gradle.dependency.bundling": "external",
+                                   "org.gradle.docstype": "sources",
+                                   "org.gradle.jvm.version": currentJavaVersion,
+                                   "org.gradle.libraryelements": "jar",
+                                   "org.gradle.usage": "java-runtime"])
+    }
+
+    private static void assertAttributes(GradleModuleMetadata.Variant variant, Map<String, Object> expected) {
+        assert variant.attributes.size() == expected.size()
+        expected.each { attribute, value ->
+            assert variant.attributes.containsKey(attribute)
+            assert variant.attributes[attribute] == value
+        }
     }
 
     void assertNoDependencies() {
@@ -78,27 +131,32 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         assertApiDependencies()
     }
 
-
     @Override
     void assertApiDependencies(String... expected) {
-        if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('apiElements').dependencies.empty
-            assert parsedPom.scopes.compile == null
-        } else {
-            assert parsedModuleMetadata.variant('apiElements').dependencies*.coords as Set == expected as Set
-            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
-            parsedPom.scopes.compile.assertDependsOn(mavenizeDependencies(expected))
+        assertDependencies('apiElements', 'compile', [], expected)
+        assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
+        if (withDocumentation) {
+            assertDependencies('apiElementsJavadoc', 'compile', [], expected)
+            assert parsedModuleMetadata.variant('runtimeElementsSources').dependencies*.coords.containsAll(expected)
         }
     }
 
     @Override
     void assertRuntimeDependencies(String... expected) {
+        def apiDependencies = parsedModuleMetadata.variant('apiElements').dependencies
+        assertDependencies('runtimeElements', 'runtime', apiDependencies, expected)
+        if (withDocumentation) {
+            assertDependencies('runtimeElementsSources', 'runtime', apiDependencies, expected)
+        }
+    }
+
+    private void assertDependencies(String variant, String mavenScope, List<GradleModuleMetadata.Dependency> additionalGMMDependencies, String... expected) {
         if (expected.length == 0) {
-            assert parsedModuleMetadata.variant('runtimeElements').dependencies.empty
-            assert parsedPom.scopes.runtime == null
+            assert parsedModuleMetadata.variant(variant).dependencies*.coords as Set == additionalGMMDependencies*.coords as Set
+            assert parsedPom.scopes."$mavenScope" == null
         } else {
-            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
-            parsedPom.scopes.runtime.assertDependsOn(mavenizeDependencies(expected))
+            assert parsedModuleMetadata.variant(variant).dependencies*.coords as Set == (additionalGMMDependencies*.coords as Set) + (expected as Set)
+            parsedPom.scopes."$mavenScope".assertDependsOn(mavenizeDependencies(expected))
         }
     }
 

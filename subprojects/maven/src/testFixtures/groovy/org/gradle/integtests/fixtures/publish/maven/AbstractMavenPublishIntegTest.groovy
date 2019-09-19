@@ -30,8 +30,8 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRep
 
 abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec implements GradleMetadataAwarePublishingSpec {
 
-    protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule) {
-        return new MavenJavaModule(mavenFileModule)
+    protected static MavenJavaModule javaLibrary(MavenFileModule mavenFileModule, boolean withDocumentation = false) {
+        return new MavenJavaModule(mavenFileModule, withDocumentation)
     }
 
     protected static MavenJavaPlatformModule javaPlatform(MavenFileModule mavenFileModule) {

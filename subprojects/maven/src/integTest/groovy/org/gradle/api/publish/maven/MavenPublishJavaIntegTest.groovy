@@ -592,21 +592,8 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
             executer.expectDeprecationWarning()
         }
         given:
-        file("settings.gradle") << '''
-            rootProject.name = 'publishTest' 
-            include "b"
-        '''
-        buildFile << """
-            apply plugin: "$plugin"
-            apply plugin: "maven-publish"
-
-            group = 'org.gradle.test'
-            version = '1.9'
-
+        createBuildScripts """
             publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
                 publications {
                     maven(MavenPublication) {
                         from components.java
@@ -618,6 +605,9 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                 $gradleConfiguration project(':b')
             }
         """
+        settingsFile << '''
+            include "b"
+        '''
 
         file('b/build.gradle') << """
             apply plugin: 'java'
@@ -702,6 +692,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
                     maven(MavenPublication) {
                         from components.java
                         $silenceMethod('runtimeElements')
+                        $silenceMethod('runtimeElementsSources')
                     }
                 }
             }
@@ -937,26 +928,6 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
         outputContains "Maven publication 'java' isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)"
     }
 
-    def createBuildScripts(def append) {
-        settingsFile << "rootProject.name = 'publishTest' "
-
-        buildFile << """
-            apply plugin: 'maven-publish'
-            apply plugin: 'java-library'
-
-            publishing {
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-            }
-            group = 'org.gradle.test'
-            version = '1.9'
-
-$append
-"""
-
-    }
-
     @Unroll
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
@@ -1111,7 +1082,7 @@ $append
         def mavenModule = javaLibrary.mavenModule
 
         mavenModule.assertPublished()
-        mavenModule.assertArtifactsPublished("publishTest-1.9.module", "publishTest-1.9.pom", "publishTest-1.9.jar")
+        javaLibrary.assertArtifactsPublished()
         mavenModule.parsedPom.scopes['import'] == null
 
         // Sadly this does not take care of the Gradle metadata
@@ -1248,8 +1219,10 @@ include(':platform')
             scopes['compile'].expectDependency('org:foo:1.0')
         }
         with(javaLibrary.parsedModuleMetadata) {
-            assert variants.collect { it.name } == ["apiElements"]
-            assert variants[0].dependencies.collect { it.toString() } == ["org:foo:1.0"]
+            variants.each {
+                assert it.name.startsWith("apiElements")
+                assert it.dependencies*.coords == ["org:foo:1.0"]
+            }
         }
     }
 
@@ -1289,5 +1262,25 @@ include(':platform')
         then:
         failure.assertHasCause("""Invalid publication 'maven':
   - This publication must publish at least one variant""")
+    }
+
+    def createBuildScripts(def append) {
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java-library'
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+            }
+            group = 'org.gradle.test'
+            version = '1.9'
+            
+            $append
+        """
+
     }
 }
