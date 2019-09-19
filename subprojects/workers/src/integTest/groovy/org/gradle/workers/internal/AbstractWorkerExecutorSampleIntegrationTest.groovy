@@ -41,7 +41,6 @@ abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractInteg
     def "creates expected content (#dsl)"() {
         when:
         executer.inDirectory(workerExecutorSample(dsl))
-        executer.withArgument("--stacktrace")
         succeeds "reverseFiles"
 
         then:
