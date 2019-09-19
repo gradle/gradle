@@ -28,7 +28,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
     final ImmutableList<String> measuredBuildOperations
 
-    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer, List<Function<InvocationSettings, BuildMutator>> buildMutators, ImmutableList<String> measuredBuildOperations) {
+    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, BuildExperimentListener listener, InvocationCustomizer invocationCustomizer, ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators, ImmutableList<String> measuredBuildOperations) {
         super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, listener, invocationCustomizer)
         this.invocation = invocation
         this.buildMutators = buildMutators
@@ -52,7 +52,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
         Integer warmUpCount
         Integer invocationCount
         BuildExperimentListener listener
-        List<Function<InvocationSettings, BuildMutator>> buildMutators
+        ImmutableList<Function<InvocationSettings, BuildMutator>> buildMutators
         ImmutableList<String> measuredBuildOperations
         InvocationCustomizer invocationCustomizer
 
