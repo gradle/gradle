@@ -23,14 +23,18 @@ import org.gradle.test.fixtures.PublishedJavaModule
 import org.gradle.util.GUtil
 
 class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements PublishedJavaModule {
+    final static String MAIN_FEATURE = 'main'
+
     final MavenFileModule mavenModule
     final boolean withDocumentation
+    final List<String> features
     private final List<String> additionalArtifacts = []
 
-    MavenJavaModule(MavenFileModule mavenModule, boolean withDocumentation = false) {
+    MavenJavaModule(MavenFileModule mavenModule, List<String> features, boolean withDocumentation) {
         super(mavenModule)
         this.mavenModule = mavenModule
         this.mavenModule.attributes[TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.name] = JavaVersion.current().majorVersion
+        this.features = features
         this.withDocumentation = withDocumentation
     }
 
@@ -50,21 +54,49 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         assertPublished(null, "jar")
     }
 
+    private static String variantName(String featureName, String baseName) {
+        if (featureName == MAIN_FEATURE) {
+            baseName
+        } else {
+            featureName + 'SourceSet' + baseName.capitalize()
+        }
+    }
+
+    private static String featurePrefix(String feature) {
+        feature == MAIN_FEATURE ? "" : "$feature-"
+    }
+
     void assertPublished(String pomPackaging, String artifactFileExtension) {
         super.assertPublished()
         assertArtifactsPublished(artifactFileExtension)
 
         // Verify Gradle metadata particulars
-        def expectedVariants = ['apiElements', 'runtimeElements']
-        if (withDocumentation) {
-            expectedVariants.addAll(['apiElementsJavadoc', 'runtimeElementsSources'])
+        def expectedVariants = []
+        features.each { feature ->
+            expectedVariants.addAll([variantName(feature, 'apiElements'), variantName(feature, 'runtimeElements')])
+            if (withDocumentation) {
+                expectedVariants.addAll([variantName(feature, 'apiElementsJavadoc'), variantName(feature, 'runtimeElementsSources')])
+            }
         }
         assert mavenModule.parsedModuleMetadata.variants*.name as Set == expectedVariants as Set
-        def apiElements = mavenModule.parsedModuleMetadata.variant('apiElements')
-        def runtimeElements = mavenModule.parsedModuleMetadata.variant('runtimeElements')
 
-        assert apiElements.files*.name == [artifact(artifactFileExtension)]
-        assert runtimeElements.files*.name == [artifact(artifactFileExtension)]
+        features.each { feature ->
+            assertMainVariantsPublished(feature, artifactFileExtension)
+            if (withDocumentation) {
+                assertDocumentationVariantsPublished(feature)
+            }
+        }
+
+        // Verify POM particulars
+        assert mavenModule.parsedPom.packaging == pomPackaging
+    }
+
+    private void assertMainVariantsPublished(String feature, String artifactFileExtension) {
+        def apiElements = mavenModule.parsedModuleMetadata.variant(variantName(feature, 'apiElements'))
+        def runtimeElements = mavenModule.parsedModuleMetadata.variant(variantName(feature, 'runtimeElements'))
+
+        assert apiElements.files*.name == [artifact(feature, artifactFileExtension)]
+        assert runtimeElements.files*.name == [artifact(feature, artifactFileExtension)]
 
         // Verify it contains expected attributes
         def currentJavaVersion = JavaVersion.current().majorVersion.toInteger()
@@ -78,30 +110,26 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
                                            "org.gradle.jvm.version": currentJavaVersion,
                                            "org.gradle.libraryelements": "jar",
                                            "org.gradle.usage": "java-runtime"])
-
-        if (withDocumentation) {
-            assertDocumentationVariantsPublished()
-        }
-
-        // Verify POM particulars
-        assert mavenModule.parsedPom.packaging == pomPackaging
     }
 
     void assertArtifactsPublished(String artifactFileExtension = "jar") {
-        List<String> expectedArtifacts = [artifact("module"), artifact("pom"), artifact(artifactFileExtension)]
-        if (withDocumentation) {
-            expectedArtifacts.addAll([artifact("javadoc", "jar"), artifact("sources", "jar")])
+        List<String> expectedArtifacts = [artifact("module"), artifact("pom")]
+        features.each { feature ->
+            expectedArtifacts.add(artifact(feature, artifactFileExtension))
+            if (withDocumentation) {
+                expectedArtifacts.addAll([artifact("${featurePrefix(feature)}javadoc", "jar"), artifact("${featurePrefix(feature)}sources", "jar")])
+            }
         }
         expectedArtifacts.addAll(additionalArtifacts)
         mavenModule.assertArtifactsPublished(expectedArtifacts)
     }
 
-    private void assertDocumentationVariantsPublished() {
-        def javadoc = mavenModule.parsedModuleMetadata.variant('apiElementsJavadoc')
-        def sources = mavenModule.parsedModuleMetadata.variant('runtimeElementsSources')
+    private void assertDocumentationVariantsPublished(String feature) {
+        def javadoc = mavenModule.parsedModuleMetadata.variant(variantName(feature, 'apiElementsJavadoc'))
+        def sources = mavenModule.parsedModuleMetadata.variant(variantName(feature, 'runtimeElementsSources'))
 
-        assert javadoc.files*.name == [artifact("javadoc", "jar")]
-        assert sources.files*.name == [artifact("sources", "jar")]
+        assert javadoc.files*.name == [artifact("${featurePrefix(feature)}javadoc", "jar")]
+        assert sources.files*.name == [artifact("${featurePrefix(feature)}sources", "jar")]
 
         def currentJavaVersion = JavaVersion.current().majorVersion.toInteger()
         assertAttributes(javadoc, ["org.gradle.category": "documentation",
@@ -133,36 +161,43 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
 
     @Override
     void assertApiDependencies(String... expected) {
-        assertDependencies('apiElements', 'compile', [], expected)
-        assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
-        if (withDocumentation) {
-            assertDependencies('apiElementsJavadoc', 'compile', [], expected)
-            assert parsedModuleMetadata.variant('runtimeElementsSources').dependencies*.coords.containsAll(expected)
+        features.each { feature ->
+            assertDependencies(feature, 'apiElements', 'compile', [], expected)
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
+            if (withDocumentation) {
+                assertDependencies(feature, 'apiElementsJavadoc', 'compile', [], expected)
+                assert parsedModuleMetadata.variant('runtimeElementsSources').dependencies*.coords.containsAll(expected)
+            }
         }
     }
 
     @Override
     void assertRuntimeDependencies(String... expected) {
-        def apiDependencies = parsedModuleMetadata.variant('apiElements').dependencies
-        assertDependencies('runtimeElements', 'runtime', apiDependencies, expected)
-        if (withDocumentation) {
-            assertDependencies('runtimeElementsSources', 'runtime', apiDependencies, expected)
+        features.each { feature ->
+            def apiDependencies = feature == MAIN_FEATURE ? parsedModuleMetadata.variant('apiElements').dependencies : []
+            assertDependencies(feature, 'runtimeElements', 'runtime', apiDependencies, expected)
+            if (withDocumentation) {
+                assertDependencies(feature, 'runtimeElementsSources', 'runtime', apiDependencies, expected)
+            }
         }
     }
 
-    private void assertDependencies(String variant, String mavenScope, List<GradleModuleMetadata.Dependency> additionalGMMDependencies, String... expected) {
-        if (expected.length == 0) {
-            assert parsedModuleMetadata.variant(variant).dependencies*.coords as Set == additionalGMMDependencies*.coords as Set
+    private void assertDependencies(String feature, String variant, String mavenScope, List<GradleModuleMetadata.Dependency> additionalGMMDependencies, String... expected) {
+        if (feature != MAIN_FEATURE) {
+            // no dependencies for optional features in this test
+            assert parsedModuleMetadata.variant(variantName(feature, variant)).dependencies.empty
+        } else if (expected.size() == 0) {
+            assert parsedModuleMetadata.variant(variantName(feature, variant)).dependencies*.coords as Set == additionalGMMDependencies*.coords as Set
             assert parsedPom.scopes."$mavenScope" == null
         } else {
-            assert parsedModuleMetadata.variant(variant).dependencies*.coords as Set == (additionalGMMDependencies*.coords as Set) + (expected as Set)
+            assert parsedModuleMetadata.variant(variantName(feature, variant)).dependencies*.coords as Set == (additionalGMMDependencies*.coords as Set) + (expected as Set)
             parsedPom.scopes."$mavenScope".assertDependsOn(mavenizeDependencies(expected))
         }
     }
 
     private String artifact(String classifier = null, String extension) {
         def artifactName = "${artifactId}-${publishArtifactVersion}"
-        if (GUtil.isTrue(classifier)) {
+        if (GUtil.isTrue(classifier) && classifier != MAIN_FEATURE) {
             artifactName += "-${classifier}"
         }
         if (GUtil.isTrue(extension)) {
