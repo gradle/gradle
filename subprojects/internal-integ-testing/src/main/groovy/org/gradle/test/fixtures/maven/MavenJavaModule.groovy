@@ -54,7 +54,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         assertPublished(null, "jar")
     }
 
-    private static String variantName(String featureName, String baseName) {
+    static String variantName(String featureName, String baseName) {
         if (featureName == MAIN_FEATURE) {
             baseName
         } else {
