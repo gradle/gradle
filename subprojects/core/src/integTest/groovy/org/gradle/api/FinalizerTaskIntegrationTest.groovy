@@ -267,6 +267,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
                 task work {
                     doLast {
                         sleep 1000
+                        println "executed \${path}"
                     }
                     finalizedBy(finalizer)
                 }
@@ -275,7 +276,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             configure(project(':b')) {
                 task work {
                     doLast {
-                        println "run after finalizer"
+                        println "executed \${path}"
                     }
                     mustRunAfter(":a:finalizer")
                 }
