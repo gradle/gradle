@@ -18,11 +18,14 @@ package org.gradle.performance.experiment.buildcache
 
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearBuildCacheMutator
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
+
+import java.util.function.Function
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
@@ -66,7 +69,7 @@ class LocalTaskOutputCacheCrossBuildPerformanceTest extends AbstractCrossBuildPe
             buildMutators([
                 { InvocationSettings invocationSettings ->
                     new ClearBuildCacheMutator(invocationSettings.gradleUserHome, AbstractCleanupMutator.CleanupSchedule.BUILD)
-                }
+                } as Function<InvocationSettings, BuildMutator>
             ])
             projectName(testProject.projectName).displayName("push-only").invocation {
                 tasksToRun(tasks.split(' ')).cleanTasks("clean").gradleOpts("-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}").args(
