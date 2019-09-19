@@ -20,12 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires([KOTLIN_SCRIPT])
-@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
     @Override

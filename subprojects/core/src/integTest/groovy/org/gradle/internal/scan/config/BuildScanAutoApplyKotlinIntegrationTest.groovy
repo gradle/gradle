@@ -20,12 +20,14 @@ import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.util.Requires
+import spock.lang.Ignore
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires([KOTLIN_SCRIPT])
+@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
     private final BuildScanPluginFixture fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())

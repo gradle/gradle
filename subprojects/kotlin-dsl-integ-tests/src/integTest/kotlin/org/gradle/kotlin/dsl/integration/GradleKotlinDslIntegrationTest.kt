@@ -33,9 +33,11 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
+import org.junit.Ignore
 import org.junit.Test
 
 
+@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test

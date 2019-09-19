@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.management.internal.autoapply;
 
-import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
