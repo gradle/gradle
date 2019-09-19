@@ -171,6 +171,12 @@
             "member": "Method org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt.withModule(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,java.lang.Object,org.gradle.api.Action)",
             "acceptation": "Reified versions of methods that are already de-incubated",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.reflect.TypeOf",
+            "member": "Method org.gradle.api.reflect.TypeOf.getLowerBound()",
+            "acceptation": "It goes with the already public API, getUpperBound",
+            "changes": []
         }
     ]
 }
