@@ -51,7 +51,6 @@ class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceT
             invocation {
                 gradleOptions = ["-Xms${groovyProject.daemonMemory}", "-Xmx${groovyProject.daemonMemory}"]
                 tasksToRun("help")
-                useDaemon()
             }
         }
 
@@ -64,7 +63,6 @@ class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceT
             invocation {
                 gradleOptions = ["-Xms${kotlinProject.daemonMemory}", "-Xmx${kotlinProject.daemonMemory}"]
                 tasksToRun("help")
-                useDaemon()
             }
         }
 
