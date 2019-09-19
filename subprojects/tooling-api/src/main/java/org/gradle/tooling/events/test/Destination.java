@@ -16,10 +16,30 @@
 
 package org.gradle.tooling.events.test;
 
-import org.gradle.tooling.events.OperationResult;
+import java.io.Serializable;
 
-public interface TestOutputResult extends OperationResult {
+public enum Destination implements Serializable {
+    StdOut(0),
+    StdErr(1);
 
-    Destination getDestination();
-    String getMessage();
+    private int code;
+
+     Destination(int code) {
+        this.code = code;
+    }
+
+    public int getCode() {
+         // TODO (donat) can we directly serialize the enum?
+        return code;
+    }
+
+    public static Destination fromCode(int code) {
+        for (Destination d : Destination.values()) {
+            if (d.code == code) {
+                 return d;
+            }
+        }
+        throw new RuntimeException("Cannot find destination with code " + code);
+    }
+
 }

@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
+import org.gradle.tooling.events.test.Destination
 import org.gradle.tooling.events.test.TestOutputFinishProgressEvent
 import org.gradle.tooling.events.test.TestOutputStartProgressEvent
 
@@ -70,8 +71,8 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        finishEvents.find { event -> event.result.message == "Winged Hussars" && event.result.destination == "StdOut" }
-        finishEvents.find { event -> event.result.message == "The Last Battle" && event.result.destination == "StdErr" }
+        finishEvents.find { event -> event.result.message == "Winged Hussars" && event.result.destination == Destination.StdOut }
+        finishEvents.find { event -> event.result.message == "The Last Battle" && event.result.destination == Destination.StdErr }
     }
 
     def goodCode() {

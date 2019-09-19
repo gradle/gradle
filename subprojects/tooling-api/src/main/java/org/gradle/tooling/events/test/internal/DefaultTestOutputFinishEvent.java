@@ -18,6 +18,7 @@ package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultFinishEvent;
+import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.TestOutputFinishProgressEvent;
 import org.gradle.tooling.events.test.TestOutputResult;
 
@@ -26,8 +27,8 @@ import org.gradle.tooling.events.test.TestOutputResult;
  */
 public final class DefaultTestOutputFinishEvent extends DefaultFinishEvent implements TestOutputFinishProgressEvent {
 
-    public DefaultTestOutputFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, String destination, String message) {
-        super(eventTime, displayName, descriptor, new DefaultTestOutputResult(eventTime, eventTime, destination, message));
+    public DefaultTestOutputFinishEvent(long eventTime, String displayName, OperationDescriptor descriptor, Destination destination, String message) {
+        super(eventTime, displayName, descriptor, new DefaultTestOutputResult(eventTime, eventTime,  destination, message));
     }
 
     @Override

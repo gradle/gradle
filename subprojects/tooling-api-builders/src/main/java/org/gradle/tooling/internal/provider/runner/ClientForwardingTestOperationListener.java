@@ -31,6 +31,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
@@ -92,7 +93,8 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
             InternalOperationDescriptor descriptor = new DefaultTestOutputDescriptor(buildOperationId + "." + idx++, "todo", "todo", progress.getTestId());
             eventConsumer.started(new DefaultTestOutputStartedProgressEvent(progressEvent.getTime(), descriptor));
 
-            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), progress.getOutput().getDestination().name(), progress.getOutput().getMessage());
+            int destination = progress.getOutput().getDestination() == TestOutputEvent.Destination.StdErr ? Destination.StdErr.getCode() : Destination.StdOut.getCode();
+            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination , progress.getOutput().getMessage());
             eventConsumer.finished(new DefaultTestOutputFinishedProgressEvent(progressEvent.getTime(), descriptor, result));
         }
     }

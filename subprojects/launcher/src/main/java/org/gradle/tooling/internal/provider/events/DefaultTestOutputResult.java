@@ -16,22 +16,23 @@
 
 package org.gradle.tooling.internal.provider.events;
 
+import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputResult;
 
 public class DefaultTestOutputResult extends AbstractResult implements InternalOperationResult, InternalTestOutputResult {
 
-    private final String destination;
+    private final int destination;
     private final String message;
 
-    public DefaultTestOutputResult(long startTime, long endTime, String destination, String message) {
+    public DefaultTestOutputResult(long startTime, long endTime, int destination, String message) {
         super(startTime, endTime, "succeeded");
         this.destination = destination;
         this.message = message;
     }
 
     @Override
-    public String getDestination() {
+    public int getDestination() {
         return destination;
     }
 

@@ -59,6 +59,7 @@ import org.gradle.tooling.events.task.internal.TaskExecutionDetails;
 import org.gradle.tooling.events.task.internal.java.DefaultAnnotationProcessorResult;
 import org.gradle.tooling.events.task.internal.java.DefaultJavaCompileTaskSuccessResult;
 import org.gradle.tooling.events.task.java.JavaCompileTaskOperationResult.AnnotationProcessorResult;
+import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.JvmTestKind;
 import org.gradle.tooling.events.test.TestFinishEvent;
 import org.gradle.tooling.events.test.TestOperationDescriptor;
@@ -419,7 +420,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     private TestOutputFinishProgressEvent transformTestOutputFinished(InternalTestOutputFinishedProgressEvent event, InternalTestOutputDescriptor descriptor) {
         TestOutputDescriptor outputDescriptor = toTestOutputDescriptor(descriptor); // TODO add caching with #addDescriptor method
-        return new DefaultTestOutputFinishEvent(event.getEventTime(), event.getDisplayName(), outputDescriptor, event.getResult().getDestination(), event.getResult().getMessage());
+        Destination d = Destination.fromCode(event.getResult().getDestination());
+        return new DefaultTestOutputFinishEvent(event.getEventTime(), event.getDisplayName(), outputDescriptor, d, event.getResult().getMessage());
     }
 
     private StartEvent genericStartedEvent(InternalOperationStartedProgressEvent event) {

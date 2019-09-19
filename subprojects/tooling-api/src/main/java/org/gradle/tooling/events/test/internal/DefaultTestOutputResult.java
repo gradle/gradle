@@ -18,21 +18,22 @@ package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.internal.DefaultOperationSuccessResult;
+import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.TestOutputResult;
 
 public final class DefaultTestOutputResult extends DefaultOperationSuccessResult implements OperationResult, TestOutputResult {
 
-    private final String destination;
+    private final Destination destination;
     private final String message;
 
-    public DefaultTestOutputResult(long startTime, long endTime, String destination, String message) {
+    public DefaultTestOutputResult(long startTime, long endTime, Destination destination, String message) {
         super(startTime, endTime);
         this.destination = destination;
         this.message = message;
     }
 
     @Override
-    public String getDestination() {
+    public Destination getDestination() {
         return destination;
     }
 
