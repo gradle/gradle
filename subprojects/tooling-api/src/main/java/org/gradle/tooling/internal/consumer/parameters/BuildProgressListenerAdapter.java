@@ -129,8 +129,8 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDesc
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestFailureResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestFinishedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestOperationOutputFinishedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalTestOperationOutputStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTestProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestResult;
@@ -368,10 +368,10 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private TestOutputProgressEvent toTestOutputProgressEvent(InternalProgressEvent event, InternalTestOutputDescriptor descriptor) {
-        if (event instanceof InternalTestOperationOutputStartedProgressEvent) {
-            return transformTestOutputStarted((InternalTestOperationOutputStartedProgressEvent) event, descriptor);
-        } else if (event instanceof InternalTestOperationOutputFinishedProgressEvent) {
-            return transformTestOutputFinished((InternalTestOperationOutputFinishedProgressEvent) event, descriptor);
+        if (event instanceof InternalTestOutputStartedProgressEvent) {
+            return transformTestOutputStarted((InternalTestOutputStartedProgressEvent) event, descriptor);
+        } else if (event instanceof InternalTestOutputFinishedProgressEvent) {
+            return transformTestOutputFinished((InternalTestOutputFinishedProgressEvent) event, descriptor);
         } else {
             return null;
         }
@@ -412,12 +412,12 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTransformStartEvent(event.getEventTime(), event.getDisplayName(), projectConfigurationDescriptor);
     }
 
-    private TestOutputStartProgressEvent transformTestOutputStarted(InternalTestOperationOutputStartedProgressEvent event, InternalTestOutputDescriptor descriptor) {
+    private TestOutputStartProgressEvent transformTestOutputStarted(InternalTestOutputStartedProgressEvent event, InternalTestOutputDescriptor descriptor) {
         TestOutputDescriptor outputDescriptor = toTestOutputDescriptor(descriptor); // TODO add caching with #addDescriptor method
         return new DefaultTestOutputStartEvent(event.getEventTime(), event.getDisplayName(), outputDescriptor);
     }
 
-    private TestOutputFinishProgressEvent transformTestOutputFinished(InternalTestOperationOutputFinishedProgressEvent event, InternalTestOutputDescriptor descriptor) {
+    private TestOutputFinishProgressEvent transformTestOutputFinished(InternalTestOutputFinishedProgressEvent event, InternalTestOutputDescriptor descriptor) {
         TestOutputDescriptor outputDescriptor = toTestOutputDescriptor(descriptor); // TODO add caching with #addDescriptor method
         return new DefaultTestOutputFinishEvent(event.getEventTime(), event.getDisplayName(), outputDescriptor, event.getResult().getDestination(), event.getResult().getMessage());
     }

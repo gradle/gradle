@@ -17,9 +17,9 @@
 package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTestOperationOutputStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputStartedProgressEvent;
 
-public class DefaultTestOutputStartedProgressEvent implements InternalTestOperationOutputStartedProgressEvent {
+public class DefaultTestOutputStartedProgressEvent implements InternalTestOutputStartedProgressEvent {
 
     private final long startTime;
     private final InternalOperationDescriptor descriptor;

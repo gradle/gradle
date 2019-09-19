@@ -16,18 +16,11 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.events.OperationResult;
-import org.gradle.tooling.events.test.TestOutputResult;
-import org.gradle.tooling.internal.protocol.InternalFailure;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
-import org.gradle.tooling.internal.protocol.events.InternalTestOperationOutputFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputResult;
 
-import java.util.Collections;
-import java.util.List;
-
-public class DefaultTestOutputFinishedProgressEvent implements InternalTestOperationOutputFinishedProgressEvent {
+public class DefaultTestOutputFinishedProgressEvent implements InternalTestOutputFinishedProgressEvent {
 
     private final long startTime;
     private final InternalOperationDescriptor descriptor;

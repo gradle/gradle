@@ -21,5 +21,7 @@ package org.gradle.tooling.internal.protocol.events;
  *
  * @since 6.0
  */
-public interface InternalTestOperationOutputStartedProgressEvent extends InternalOperationStartedProgressEvent {
+public interface InternalTestOutputFinishedProgressEvent extends InternalOperationFinishedProgressEvent {
+
+    InternalTestOutputResult getResult();
 }
