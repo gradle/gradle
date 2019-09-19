@@ -69,7 +69,7 @@ class KotlinDslScriptsModelRequest {
 
     /**
      * The set of scripts for which a model is requested.
-     * Must not be empty.
+     * If empty, the set of scripts known to participate in this build will be used.
      */
     final List<File> scripts
 
