@@ -81,7 +81,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/javaProject")
-    def javaProject() {
+    def "publish java project with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
         executer.inDirectory(sampleDir)

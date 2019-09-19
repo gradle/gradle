@@ -320,11 +320,6 @@ apply plugin:'maven'
 version = 1.0
 group =  "org.test"
 
-task sourcesJar(type: Jar) {
-        from sourceSets.main.allSource
-        classifier = 'sources'
-}
-
 task testJar(type: Jar) {
         baseName = project.name + '-tests'
 }

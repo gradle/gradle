@@ -15,23 +15,14 @@ repositories {
 }
 
 // tag::publish-custom-artifact[]
-task sourcesJar(type: Jar) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allJava
-}
-
-task javadocJar(type: Jar) {
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
+java {
+    publishJavadocAndSources()
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-
-            artifact sourcesJar
-            artifact javadocJar
         }
     }
 }
