@@ -28,6 +28,88 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 @TargetGradleVersion(">=6.0")
 class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
+    def "can fetch model for the scripts of a build"() {
+
+        given:
+        withBuildSrc()
+        def rootJar = withEmptyJar("classes_root.jar").canonicalFile
+        def aJar = withEmptyJar("classes_a.jar").canonicalFile
+        def bJar = withEmptyJar("classes_b.jar").canonicalFile
+
+        and:
+        def settings = withSettings("""
+            include("a", "b")
+        """)
+        def root = withBuildScript("""
+            buildscript {
+                dependencies {
+                    classpath(files("${escapeString(rootJar)}"))
+                }
+            }
+        """)
+        def a = withBuildScriptIn("a", """
+            buildscript {
+                dependencies {
+                    classpath(files("${escapeString(aJar)}"))
+                }
+            }
+        """)
+        def b = withBuildScriptIn("b", """
+            plugins {
+                `kotlin-dsl`
+            }
+            buildscript {
+                dependencies {
+                    classpath(files("${escapeString(bJar)}"))
+                }
+            }
+            $repositoriesBlock
+        """)
+        def foo = withFile("b/src/main/kotlin/foo/foo.gradle.kts", "")
+
+        when:
+        def model = kotlinDslScriptsModelFor()
+
+        then:
+        model.scriptModels.size() == 5
+        model.scriptModels.keySet() == [settings, root, a, b, foo] as Set
+
+        and:
+        def settingsClassPath = model.scriptModels[settings].classPath.collect { it.name }
+        !settingsClassPath.contains("buildSrc.jar")
+        !settingsClassPath.contains(rootJar.name)
+        !settingsClassPath.contains(aJar.name)
+        !settingsClassPath.contains(bJar.name)
+
+        and:
+        def rootClassPath = model.scriptModels[root].classPath.collect { it.name }
+        rootClassPath.contains("buildSrc.jar")
+        rootClassPath.contains(rootJar.name)
+        !rootClassPath.contains(aJar.name)
+        !rootClassPath.contains(bJar.name)
+
+        and:
+        def aClassPath = model.scriptModels[a].classPath.collect { it.name }
+        aClassPath.contains("buildSrc.jar")
+        aClassPath.contains(rootJar.name)
+        aClassPath.contains(aJar.name)
+        !aClassPath.contains(bJar.name)
+
+        and:
+        def bClassPath = model.scriptModels[b].classPath.collect { it.name }
+        bClassPath.contains("buildSrc.jar")
+        bClassPath.contains(rootJar.name)
+        !bClassPath.contains(aJar.name)
+        bClassPath.contains(bJar.name)
+
+        and:
+        def fooClassPath = model.scriptModels[foo].classPath.collect { it.name }
+        !fooClassPath.contains("buildSrc.jar")
+        !fooClassPath.contains(rootJar.name)
+        !fooClassPath.contains(aJar.name)
+        !fooClassPath.contains(bJar.name)
+    }
+
     def "can fetch model for a set of scripts"() {
 
         given:
