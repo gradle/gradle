@@ -18,9 +18,9 @@ package org.gradle.kotlin.dsl.tooling.builders
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.plugins.Convention
-import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.internal.time.Time
+import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
@@ -179,13 +179,15 @@ fun Project.collectKotlinDslScripts(): List<File> = sequence<File> {
 
         // Precompiled Scripts
         if (p.plugins.hasPlugin("org.gradle.kotlin.kotlin-dsl")) {
-            p.extensions.getByType(SourceSetContainer::class.java)
-                .filter { (it.extensions as Convention).plugins.containsKey("kotlin") }
-                .flatMap { it.allSource.asFileTree.matching { it.include("**/*$extension") }.files }
-                .forEach { yield(it) }
+            yieldAll(p.precompiledScriptPluginsSupport.collectScriptPluginFilesOf(p))
         }
     }
 }.toList()
+
+
+private
+val Project.precompiledScriptPluginsSupport
+    get() = serviceOf<PrecompiledScriptPluginsSupport>()
 
 
 private
