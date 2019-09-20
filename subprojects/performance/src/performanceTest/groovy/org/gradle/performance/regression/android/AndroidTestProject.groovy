@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
@@ -40,6 +41,13 @@ class AndroidTestProject {
         runner.gradleOpts = ["-Xms$memory", "-Xmx$memory"]
     }
 
+    void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
+        builder.projectName(templateName)
+        builder.invocation {
+            gradleOpts("-Xms$memory", "-Xmx$memory")
+        }
+    }
+
     @Override
     String toString() {
         templateName
@@ -47,10 +55,17 @@ class AndroidTestProject {
 }
 
 class IncrementalAndroidTestProject extends AndroidTestProject {
-    static final SANTA_TRACKER = new IncrementalAndroidTestProject(
+    static final SANTA_TRACKER_KOTLIN = new IncrementalAndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
         memory: '1g',
         pathToChange: 'snowballrun/src/main/java/com/google/android/apps/santatracker/doodles/snowballrun/BackgroundActor.java',
+        taskToRunForChange: ':santa-tracker:assembleDebug'
+    )
+
+    static final SANTA_TRACKER_JAVA = new IncrementalAndroidTestProject(
+        templateName: 'santaTrackerAndroidJavaBuild',
+        memory: '1g',
+        pathToChange: 'village/src/main/java/com/google/android/apps/santatracker/village/SnowFlake.java',
         taskToRunForChange: ':santa-tracker:assembleDebug'
     )
 
@@ -70,6 +85,26 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         runner.tasksToRun = [taskToRunForChange]
         runner.addBuildMutator { invocationSettings ->
             new ApplyNonAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+        }
+    }
+
+    void configureForNonAbiChange(GradleBuildExperimentSpec.GradleBuilder builder) {
+        configure(builder)
+        builder.invocation {
+            tasksToRun(taskToRunForChange)
+        }
+        builder.addBuildMutator { invocationSettings ->
+            new ApplyNonAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+        }
+    }
+
+    void configureForAbiChange(GradleBuildExperimentSpec.GradleBuilder builder) {
+        configure(builder)
+        builder.invocation {
+            tasksToRun(taskToRunForChange)
+        }
+        builder.addBuildMutator { invocationSettings ->
+            new ApplyAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 

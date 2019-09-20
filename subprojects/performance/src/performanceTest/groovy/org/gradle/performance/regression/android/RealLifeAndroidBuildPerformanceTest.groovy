@@ -25,7 +25,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.regression.android.AndroidTestProject.K9_ANDROID
 import static org.gradle.performance.regression.android.AndroidTestProject.LARGE_ANDROID_BUILD
-import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER
+import static org.gradle.performance.regression.android.IncrementalAndroidTestProject.SANTA_TRACKER_KOTLIN
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
@@ -43,7 +43,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.runs = runs
         runner.minimumVersion = "5.1.1"
         runner.targetVersions = ["6.0-20190823180744+0000"]
-        if (testProject == SANTA_TRACKER) {
+        if (testProject == SANTA_TRACKER_KOTLIN) {
             runner.targetVersions = ["5.6"]
         }
 
@@ -54,14 +54,14 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject         | parallel | warmUpRuns | runs | tasks
-        K9_ANDROID          | false    | null       | null | 'help'
-        K9_ANDROID          | false    | null       | null | 'assembleDebug'
+        testProject          | parallel | warmUpRuns | runs | tasks
+        K9_ANDROID           | false    | null       | null | 'help'
+        K9_ANDROID           | false    | null       | null | 'assembleDebug'
 //        K9_ANDROID    | false    | null       | null | 'clean k9mail:assembleDebug'
-        LARGE_ANDROID_BUILD | true     | null       | null | 'help'
-        LARGE_ANDROID_BUILD | true     | null       | null | 'assembleDebug'
-        LARGE_ANDROID_BUILD | true     | 2          | 8    | 'clean phthalic:assembleDebug'
-        SANTA_TRACKER       | true     | null       | null | 'assembleDebug'
+        LARGE_ANDROID_BUILD  | true     | null       | null | 'help'
+        LARGE_ANDROID_BUILD  | true     | null       | null | 'assembleDebug'
+        LARGE_ANDROID_BUILD  | true     | 2          | 8    | 'clean phthalic:assembleDebug'
+        SANTA_TRACKER_KOTLIN | true     | null       | null | 'assembleDebug'
     }
 
     @Category(SlowPerformanceRegressionTest)
@@ -87,10 +87,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject         | warmUpRuns | runs | tasks
-        LARGE_ANDROID_BUILD | 2          | 8    | 'phthalic:assembleDebug'
-        LARGE_ANDROID_BUILD | 2          | 8    | 'assembleDebug'
-        SANTA_TRACKER       | null       | null | 'assembleDebug'
+        testProject          | warmUpRuns | runs | tasks
+        LARGE_ANDROID_BUILD  | 2          | 8    | 'phthalic:assembleDebug'
+        LARGE_ANDROID_BUILD  | 2          | 8    | 'assembleDebug'
+        SANTA_TRACKER_KOTLIN | null       | null | 'assembleDebug'
     }
 
     @Unroll
@@ -108,7 +108,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << [SANTA_TRACKER]
+        testProject << [SANTA_TRACKER_KOTLIN]
     }
 
     @Unroll
@@ -126,6 +126,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << [SANTA_TRACKER]
+        testProject << [SANTA_TRACKER_KOTLIN]
     }
 }
