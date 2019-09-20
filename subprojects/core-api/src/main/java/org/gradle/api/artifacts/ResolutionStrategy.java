@@ -110,6 +110,15 @@ public interface ResolutionStrategy {
     ResolutionStrategy activateDependencyLocking();
 
     /**
+     * Deactivates dependency locking support in Gradle.
+     *
+     * @return this resolution strategy instance
+     * @since 6.0
+     */
+    ResolutionStrategy deactivateDependencyLocking();
+
+
+    /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.
      * <b>Appends</b> new forced modules to be considered when resolving dependencies.
      * <p>

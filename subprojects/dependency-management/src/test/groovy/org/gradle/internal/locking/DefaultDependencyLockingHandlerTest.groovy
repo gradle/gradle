@@ -45,4 +45,24 @@ class DefaultDependencyLockingHandlerTest extends Specification {
         1 * strategy.activateDependencyLocking()
     }
 
+    def 'deactivates dependency locking on configurations'() {
+        given:
+        ConfigurationContainer container = Mock()
+        Configuration configuration = Mock()
+        ResolutionStrategy strategy = Mock()
+        @Subject
+        def handler = new DefaultDependencyLockingHandler(container)
+
+        when:
+        handler.unlockAllConfigurations()
+
+        then:
+        1 * container.all(_ as Action) >> { Action action ->
+            action.execute(configuration)
+        }
+
+        1 * configuration.getResolutionStrategy() >> strategy
+        1 * strategy.deactivateDependencyLocking()
+    }
+
 }

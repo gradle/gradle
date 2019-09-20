@@ -32,4 +32,15 @@ public interface DependencyLockingHandler {
      *
      */
     void lockAllConfigurations();
+
+    /**
+     * Convenience method for doing:
+     *
+     * configurations.all {
+     *     resolutionStrategy.deactivateDependencyLocking()
+     * }
+     *
+     * @since 6.0
+     */
+    void unlockAllConfigurations();
 }

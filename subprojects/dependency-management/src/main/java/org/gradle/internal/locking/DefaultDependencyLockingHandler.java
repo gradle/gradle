@@ -30,6 +30,15 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
         }
     };
 
+
+    private static final Action<Configuration> DEACTIVATE_LOCKING = new Action<Configuration>() {
+        @Override
+        public void execute(Configuration configuration) {
+            configuration.getResolutionStrategy().deactivateDependencyLocking();
+        }
+    };
+
+
     private final ConfigurationContainer configurationContainer;
 
     public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer) {
@@ -39,5 +48,10 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
     @Override
     public void lockAllConfigurations() {
         configurationContainer.all(ACTIVATE_LOCKING);
+    }
+
+    @Override
+    public void unlockAllConfigurations() {
+        configurationContainer.all(DEACTIVATE_LOCKING);
     }
 }
