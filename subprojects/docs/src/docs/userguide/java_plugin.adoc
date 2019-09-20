@@ -15,7 +15,16 @@
 [[java_plugin]]
 = The Java Plugin
 
-The Java plugin adds Java compilation along with testing and bundling capabilities to a project. It serves as the basis for many of the other JVM language Gradle plugins. You can find a comprehensive introduction and overview to the Java Plugin in the <<building_java_projects.adoc#building_java_projects,Building Java Projects>> chapter.
+The Java plugin adds Java compilation along with testing and bundling capabilities to a project.
+It serves as the basis for many of the other JVM language Gradle plugins.
+You can find a comprehensive introduction and overview to the Java Plugin in the <<building_java_projects.adoc#building_java_projects,Building Java Projects>> chapter.
+
+[NOTE]
+====
+As indicated above, this plugin adds basic building blocks for working with JVM projects.
+Its feature set has been superseded by other plugins, offering more features based on your project type.
+Instead of applying it directly to your project, you should look into the `java-library` or `java-application` plugins or one of the supported alternative JVM language.
+====
 
 [[sec:java_usage]]
 == Usage

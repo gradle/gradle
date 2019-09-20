@@ -471,3 +471,12 @@ The platform has no source and no artifact of its own.
 It maps in the Maven world to a https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management[BOM].
 
 The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, which sets up the different configurations and publication components.
+
+[[sec:building_jvm_lang]]
+== Building other JVM language projects
+
+If you want to leverage the multi language aspect of the JVM, most of what was described here will still apply.
+
+Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins. Note that these can be further enhanced by combining them with the `java-library` plugin.
+
+And beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!
