@@ -229,23 +229,48 @@ include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjec
 include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/producer",files="build.gradle.kts[tags=disable_gradle_metadata_publication]"]
 ====
 
-[[sec:publishing-custom-components]]
-== Publishing custom components
-
-[[sub:software_component_factory]]
-=== Using the software component factory
+[[sec:adding-variants-to-existing-components]]
+== Modifying and adding variants to existing components for publishing
 
 Gradle's publication model is based on the notion of _components_, which are defined by plugins.
 For example, the Java Library plugin defines a `java` component which corresponds to a library, but the Java Platform plugin defines another kind of component, named `javaPlatform`, which is effectively a different kind of software component (a _platform_).
 
-If you are building a custom component (not a Java Library, not a Java Platform, not something supported natively by Gradle), Gradle provides a simple way to publish custom components.
-Declaring _what_ a component publishes can be done via the link:{javadocPath}org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
+Sometimes we want to add _more variants_ to or modify _existing variants_ of an existing component.
+For example, if you <<modeling_features.adoc#targeting-different-platforms, added a variant of a Java library for a different platform>>, you may just want to declare this additional variant on the `java` component itself.
+In general, declaring additional variants is often the best solution to publish _additional artifacts_.
 
-The first step is to create custom outgoing variants, following the instructions in <<modeling_features.adoc#sec:variant-aware-sharing, this chapter>>.
-At this stage, what you should have is variants which can be used in cross-project dependencies, but that we are now going to publish to external repositories.
+To perform such additions or modifications, the `AdhocComponentWithVariants` interface declares two methods called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
 
-To do this, you need to create what Gradle calls an _adhoc_ component.
-At the moment this is only possible via a plugin because you need to get a handle on the link:{javadocPath}org/gradle/api/component/SoftwareComponentFactory.html[SoftwareComponentFactory] :
+- the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
+- a customization action which allows you to _filter_ which variants are going to be published
+
+To utilise these methods, you must make sure that the `SoftwareComponent` you work with is itself an `AdhocComponentWithVariants`, which is the case for the components created by the Java plugins (Java, Java Library, Java Platform).
+Adding a variant is then very simple:
+
+.Adding a variant to an existing software component
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]"]
+====
+
+In other cases, you might want to modify a variant that was added by the one of the Java plugin already.
+For example, if you activate publishing of Javadoc and sources, these become additional variants of the `java` component.
+If you only want to publish one of them, e.g. only Javadoc but no sources, you can modify the `sources` variant to not being published:
+
+.Publish a java library with Javadoc but without sources
+====
+include::sample[dir="maven-publish/javaProject/groovy",files="build.gradle[tags=publish-modify-component]"]
+include::sample[dir="maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=publish-modify-component]"]
+====
+
+[[sec:publishing-custom-components]]
+== Creating and publishing custom components
+
+In the <<sec:adding-variants-to-existing-components, previous example>>, we have demonstrated how to extend or modify an existing component, like the components provided by a Java plugins.
+But Gradle also allows you to build a custom component (not a Java Library, not a Java Platform, not something supported natively by Gradle).
+
+To create a custom component, you first need to create an empty _adhoc_ component.
+At the moment, this is only possible via a plugin because you need to get a handle on the link:{javadocPath}org/gradle/api/component/SoftwareComponentFactory.html[SoftwareComponentFactory] :
 
 .Injecting the software component factory
 ====
@@ -253,7 +278,9 @@ include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjec
 include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=inject_software_component_factory]"]
 ====
 
-Then this factory can be used to create a new adhoc component to be published:
+Declaring _what_ a custom component publishes is still done via the link:{javadocPath}org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
+For a custom component, the first step is to create custom outgoing variants, following the instructions in <<modeling_features.adoc#sec:variant-aware-sharing, this chapter>>.
+At this stage, what you should have is variants which can be used in cross-project dependencies, but that we are now going to publish to external repositories.
 
 .Creating a custom, adhoc component
 ====
@@ -261,10 +288,8 @@ include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjec
 include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=create_adhoc_component]"]
 ====
 
-The `AdhocComponentWithVariants` component declares two methods called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
-
-- the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
-- a configuration which allows you to _filter out_ what variants are going to be published
+First we use the factory to create a new adhoc component.
+Then we add a variant through the `addVariantsFromConfiguration` method, which is described in more detail in the <<sec:adding-variants-to-existing-components,previous section>>.
 
 In simple cases, there's a one-to-one mapping between a `Configuration` and a variant, in which case you can publish all variants issued from a single `Configuration` because they are effectively the same thing.
 However, there are cases where a `Configuration` is associated with additional link:{javadocPath}org/gradle/api/artifacts/ConfigurationPublications.html[configuration publications] that we also call _secondary variants_.
@@ -276,25 +301,9 @@ If `addVariantsFromConfiguration` has already been called for a configuration, f
 When publishing an adhoc component like this:
 
 - Gradle Module Metadata will _exactly_ represent the published variants. In particular, all outgoing variants will inherit dependencies, artifacts and attributes of the published configuration.
-- Maven and Ivy metadata files will be generated, but you need to declare how the dependencies are mapped to Maven scopes via the {javadocPath}org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class.
+- Maven and Ivy metadata files will be generated, but you need to declare how the dependencies are mapped to Maven scopes via the link:{javadocPath}org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class.
 
 In practice, it means that components created this way can be consumed by Gradle the same way as if they were "local components".
-
-[[sub:adding-variants-to-existing-components]]
-=== Adding a variant to existing components
-
-In the <<sub:software_component_factory, previous example>>, we have demonstrated how to create an adhoc component.
-However, sometimes what we want to do is simply adding _more variants_ to an existing component.
-For example, if you <<modeling_features.adoc#targeting-different-platforms, added a variant of a Java library for a different platform>>, you may just want to declare this additional variant on the `java` component itself.
-
-To do this, you must make sure that the `SoftwareComponent` you work with is itself an `AdhocComponentWithVariants`, which is the case for the components created by the Java plugins (Java, Java Library, Java Platform).
-Adding a variant is then very simple:
-
-.Adding a variant to an existing software component
-====
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]"]
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]"]
-====
 
 [[sec:publishing_custom_artifacts_to_maven]]
 == Adding custom artifacts to a publication
@@ -313,32 +322,15 @@ That means, they are not referenced in the metadata at all and can then only be 
 In contrast to Gradle Module Metadata, Maven pom metadata will not contain information on additional artifacts regardless of whether they are added though a variant or directly, as variants can not be represented in the pom format.
 ====
 
-Users often need to include additional artifacts with a publication, one of the most common examples being that of "-sources" and "-javadoc" JARs for JVM libraries.
-This is easy to do for both Maven- and Ivy-compatible repositories via the `artifact` configuration.
+The following section describes how you publish artifacts directly if you are sure that metadata, for example Gradle or POM metadata, is irrelevant for your use case.
+For example, if your project doesn't need to be consumed by other projects and the only thing required as result of the publishing are the artifacts themselves.
 
-The following sample configures "-sources" and "-javadoc" JARs for a Java project and attaches them to the main (Maven) publication, i.e. the production JAR:
+In general, there are two options:
 
-.Adding an additional archive artifact to a MavenPublication
-====
-include::sample[dir="maven-publish/javaProject/groovy",files="build.gradle[tags=publish-custom-artifact]"]
-include::sample[dir="maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=publish-custom-artifact]"]
-====
+- Create a publication only with artifacts
+- Add artifacts to a publication based on a component with metadata (not recommended, instead <<sec:adding-variants-to-existing-components,adjust a component>> or use a <<#sec:publishing-custom-components,adhoc component publication>> which will both also produce metadata fitting your artifacts)
 
-There are several important things to note about the sample:
-
-* The `artifact()` method accepts archive tasks as an argument — like `sourcesJar` in the sample — as well as any type of argument accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)], such as a `File` instance or string file path.
-* Publishing plugins support different artifact configuration properties, so always check the plugin documentation for more details. The `classifier` and `extension` properties are supported by both the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>> and the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>.
-* Custom artifacts need to be distinct within a publication, typically via a unique combination of `classifier` and `extension`. See the documentation for the plugin you're using for the precise requirements.
-* If you use `artifact()` with an archive task, Gradle automatically populates the artifact's metadata with the `classifier` and `extension` properties from that task. That's why the above sample does not specify those properties in the artifact configurations.
-
-[[sec:publishing_custom_primary_artifact]]
-== Publishing a custom primary artifact (no component)
-
-If your project doesn't need to be consumed by other projects and that the only thing you want to do is publish artifacts (meaning that POM metadata for example is irrelevant), it is possible to do so.
-
-We still recommend to use <<#sub:software_component_factory,adhoc component publication>> which is safer and future-proof, but here's how you can do it.
-
-First, start by defining a custom artifact and attaching it to a Gradle <<dependency_management_terminology.adoc#sub:terminology_configuration,configuration>> of your choice.
+To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle <<dependency_management_terminology.adoc#sub:terminology_configuration,configuration>> of your choice.
 The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `archives` configuration:
 
 .Defining a custom artifact for a configuration
@@ -355,16 +347,14 @@ include::sample[dir="maven-publish/publish-artifact/groovy",files="build.gradle[
 include::sample[dir="maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact-publication]"]
 ====
 
-Now you can publish the RPM as well as depend on it from another project using the `project(path: ':my-project', configuration: 'archives')` syntax.
+* The `artifact()` method accepts _publish artifacts_ as argument — like `rpmArtifact` in the sample — as well as any type of argument accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)], such as a `File` instance, a string file path or a archive task.
+* Publishing plugins support different artifact configuration properties, so always check the plugin documentation for more details. The `classifier` and `extension` properties are supported by both the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>> and the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>.
+* Custom artifacts need to be distinct within a publication, typically via a unique combination of `classifier` and `extension`. See the documentation for the plugin you're using for the precise requirements.
+* If you use `artifact()` with an archive task, Gradle automatically populates the artifact's metadata with the `classifier` and `extension` properties from that task.
 
-[NOTE]
-====
-There is currently no easy way to define dependency information for a custom artifact.
-If this is what you need, then you should most likely define an <<#sub:software_component_factory,adhoc component>> instead.
-====
+Now you can publish the RPM.
 
-The `groupId` and `artifactId` properties are specific to Maven publications. See link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication] for the relevant Ivy properties.
-
+If you really want to add an artifact to a publication based on a component, instead of <<#sec:adding-variants-to-existing-components,adjusting the component>> itself, you can combine the `from components.someComponent` and `artifact someArtifact` notations.
 
 [[sec:publishing_maven:signing]]
 == Signing artifacts

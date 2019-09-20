@@ -14,9 +14,16 @@ repositories {
     mavenCentral()
 }
 
-// tag::publish-custom-artifact[]
+// tag::publish-modify-component[]
 java {
     publishJavadocAndSources()
+}
+
+val javaComponent = components["java"] as AdhocComponentWithVariants
+javaComponent.withVariantsFromConfiguration(configurations["runtimeElements"]) {
+    if (configurationVariant.name == "sources") {
+        skip()
+    }
 }
 
 publishing {
@@ -26,7 +33,7 @@ publishing {
         }
     }
 }
-// end::publish-custom-artifact[]
+// end::publish-modify-component[]
 
 // tag::repo-url-from-variable[]
 // tag::repo-url-from-project-property[]
