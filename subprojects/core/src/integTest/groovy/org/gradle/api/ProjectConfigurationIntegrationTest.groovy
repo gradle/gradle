@@ -32,4 +32,64 @@ class ProjectConfigurationIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains "the name: foobar"
     }
+
+    def "shows deprecation warning when calling Project#afterEvaluate(Closure) after the project was evaluated"() {
+        buildFile << '''
+            allprojects { p ->
+                println "[1] Adding afterEvaluate for $p.name"
+                p.afterEvaluate {
+                    println "[1] afterEvaluate $p.name"
+                }
+            }
+
+            project(':a') {
+                println "[2] Adding evaluationDependsOn"
+                evaluationDependsOn(':b')
+            }
+
+            allprojects { p ->
+                println "[3] Adding afterEvaluate for $p.name"
+                p.afterEvaluate {
+                    println "[3] afterEvaluate $p.name"
+                }
+            }
+        '''
+        settingsFile << "include 'a', 'b'"
+
+        expect:
+        executer.expectDeprecationWarning("Using method Project#afterEvaluate(Closure) when the project is already evaluated has been deprecated. This will fail with an error in Gradle 7.0. The configuration given is ignored because the project has already been evaluated. To apply this configuration, remove afterEvaluate.")
+        succeeds()
+    }
+
+    def "shows deprecation warning when calling Project#afterEvaluate(Action) after the project was evaluated"() {
+        buildFile << '''
+            allprojects { p ->
+                println "[1] Adding afterEvaluate for $p.name"
+                p.afterEvaluate new Action<Project>() {
+                    void execute(Project proj) {
+                        println "[1] afterEvaluate $proj.name"
+                    }
+                }
+            }
+
+            project(':a') {
+                println "[2] Adding evaluationDependsOn"
+                evaluationDependsOn(':b')
+            }
+
+            allprojects { p ->
+                println "[3] Adding afterEvaluate for $p.name"
+                p.afterEvaluate new Action<Project>() {
+                    void execute(Project proj) {
+                        println "[3] afterEvaluate $proj.name"
+                    }
+                }
+            }
+        '''
+        settingsFile << "include 'a', 'b'"
+
+        expect:
+        executer.expectDeprecationWarning("Using method Project#afterEvaluate(Action) when the project is already evaluated has been deprecated. This will fail with an error in Gradle 7.0. The configuration given is ignored because the project has already been evaluated. To apply this configuration, remove afterEvaluate.")
+        succeeds()
+    }
 }
