@@ -21,7 +21,7 @@ import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
-import org.gradle.internal.reflect.WorkValidationContext
+import org.gradle.internal.reflect.TypeValidationContext
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -35,6 +35,7 @@ import java.lang.annotation.Target
 import java.lang.reflect.Method
 
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     private static final COLOR = { "color" } as AnnotationCategory
@@ -712,25 +713,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         }
 
         List<String> actualErrors = []
-        def visitor = new WorkValidationContext() {
+        def visitor = new TypeValidationContext() {
             @Override
-            void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
-                actualErrors.add("Property '$propertyName' $message")
-            }
-
-            @Override
-            void visitWarning(String message) {
-                actualErrors.add(message)
-            }
-
-            @Override
-            void visitError(@Nullable String ownerPath, String propertyName, String message) {
-                actualErrors.add("Property '$propertyName' $message [STRICT]")
-            }
-
-            @Override
-            void visitError(String message) {
-                actualErrors.add("$message  [STRICT]")
+            void visitProblem(TypeValidationContext.Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
+                actualErrors.add(message.capitalize() + (severity == ERROR ? " [STRICT]" : ""))
             }
         }
         metadata.visitValidationFailures("owner", visitor)

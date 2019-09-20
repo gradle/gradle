@@ -57,19 +57,11 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         result.assertTaskNotSkipped(":run")
 
         expectedWarnings.forEach { warning ->
-            // TODO Replace this with logging the type related to the property during runtime validation, too
-            assert(output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
-                || output.contains("${removeTypePrefix(warning)} This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."))
+            assert output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         }
         expectedErrors.forEach { error ->
             failureHasCause(error)
         }
-    }
-
-    String removeTypePrefix(String message) {
-        def matcher = message =~ /(?:Type '.*?': )?(.*)/
-        assert matcher.matches()
-        matcher.group(1).capitalize()
     }
 
     @Override

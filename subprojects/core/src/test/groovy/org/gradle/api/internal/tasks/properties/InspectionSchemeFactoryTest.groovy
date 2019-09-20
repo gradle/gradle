@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
+import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import spock.lang.Specification
 
@@ -55,7 +56,7 @@ class InspectionSchemeFactoryTest extends Specification {
         expect:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
         def problems = []
-        metadata.visitValidationFailures(null, new DefaultWorkValidationContext(problems))
+        metadata.visitValidationFailures(null, new DefaultTypeValidationContext(problems))
         problems.empty
         metadata.propertiesMetadata.size() == 2
 
@@ -72,7 +73,7 @@ class InspectionSchemeFactoryTest extends Specification {
         expect:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
         def problems = []
-        metadata.visitValidationFailures(null, new DefaultWorkValidationContext(problems))
+        metadata.visitValidationFailures(null, new DefaultTypeValidationContext(problems))
         problems.empty
         metadata.propertiesMetadata.size() == 2
 

@@ -206,9 +206,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.": ERROR,
-            "Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.": ERROR,
-            "Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.": ERROR,
+            "Type 'MyTask': Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.": ERROR,
+            "Type 'MyTask': Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.": ERROR,
+            "Type 'MyTask': Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.": ERROR,
         )
     }
 
@@ -336,7 +336,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
-    def "report setters for property of mutable type #type"() {
+    def "reports setters for property of mutable type #type"() {
         file("input.txt").text = "input"
 
         javaTaskSource << """
@@ -364,7 +364,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself": WARNING,
+            "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself.": WARNING,
         )
 
         where:
@@ -529,8 +529,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask\$Options': non-property method 'notANestedGetter()' should not be annotated with: @Input": WARNING,
-            "Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask\$Options': non-property method 'notANestedGetter()' should not be annotated with: @Input.": WARNING,
+            "Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input.": WARNING,
         )
     }
 

@@ -16,8 +16,21 @@
 
 package org.gradle.internal.reflect;
 
-import javax.annotation.Nullable;
+import com.google.common.collect.ImmutableMap;
 
-public interface ValidationProblem {
-    void collect(@Nullable String ownerPropertyPath, WorkValidationContext validationContext);
+public class DefaultTypeValidationContext extends MessageFormattingTypeValidationContext {
+    private final ImmutableMap.Builder<String, Severity> problems = ImmutableMap.builder();
+
+    public DefaultTypeValidationContext(Class<?> rootType) {
+        super(rootType);
+    }
+
+    @Override
+    protected void recordProblem(Severity severity, String message) {
+        problems.put(message, severity);
+    }
+
+    public ImmutableMap<String, Severity> getProblems() {
+        return problems.build();
+    }
 }

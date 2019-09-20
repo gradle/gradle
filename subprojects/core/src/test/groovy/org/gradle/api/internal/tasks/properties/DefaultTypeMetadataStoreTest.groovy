@@ -46,8 +46,9 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
-import org.gradle.internal.reflect.WorkValidationContext
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -124,7 +125,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def annotationHandler = Stub(PropertyAnnotationHandler)
         _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
-        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, WorkValidationContext context ->
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
             context.visitWarning(null, metadata.propertyName, "is broken")
         }
 
@@ -145,7 +146,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def annotationHandler = Stub(PropertyAnnotationHandler)
         _ * annotationHandler.propertyRelevant >> false
         _ * annotationHandler.annotationType >> SearchPath
-        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, WorkValidationContext context ->
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
             context.visitWarning(null, metadata.propertyName, "is broken")
         }
 
@@ -163,7 +164,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     def "custom type annotation handler can inspect for static type problems"() {
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
-        _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, WorkValidationContext context ->
+        _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
             context.visitWarning("type is broken")
         }
 
@@ -395,7 +396,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
 
     private static List<String> collectProblems(TypeMetadata metadata) {
         def result = []
-        metadata.visitValidationFailures(null, new DefaultWorkValidationContext(result))
+        metadata.visitValidationFailures(null, new DefaultTypeValidationContext(result))
         return result
     }
 

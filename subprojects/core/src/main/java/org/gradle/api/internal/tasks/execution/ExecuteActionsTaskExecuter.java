@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -81,7 +82,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.reflect.WorkValidationException;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -466,7 +466,11 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public void validate(WorkValidationContext validationContext) {
             FileOperations fileOperations = ((ProjectInternal) task.getProject()).getFileOperations();
-            context.getTaskProperties().validate(new DefaultTaskValidationContext(fileOperations, reservedFileSystemLocationRegistry, validationContext));
+            context.getTaskProperties().validate(new DefaultTaskValidationContext(
+                fileOperations,
+                reservedFileSystemLocationRegistry,
+                validationContext.createContextFor(GeneratedSubclasses.unpackType(task))
+            ));
         }
 
         @Override

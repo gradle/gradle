@@ -17,7 +17,7 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.Result
-import org.gradle.internal.reflect.WorkValidationContext
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.internal.reflect.WorkValidationException
 
 class ValidateStepTest extends ContextInsensitiveStepSpec {
@@ -36,7 +36,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         1 * delegate.execute(_) >> { ctx ->
             delegateResult
         }
-        _ * work.validate(_ as WorkValidationContext) >> { validated = true }
+        _ * work.validate(_ as TypeValidationContext) >> { validated = true }
 
         then:
         validated
@@ -53,7 +53,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         ex.causes.size() == 1
         ex.causes[0].message == "Validation error"
 
-        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+        _ * work.validate(_ as TypeValidationContext) >> { TypeValidationContext validationContext ->
             validationContext.visitError("Validation error")
         }
         0 * _
@@ -70,7 +70,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         ex.causes[0].message == "Validation error #1"
         ex.causes[1].message == "Validation error #2"
 
-        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+        _ * work.validate(_ as TypeValidationContext) >> { TypeValidationContext validationContext ->
             validationContext.visitError("Validation error #1")
             validationContext.visitError("Validation error #2")
         }
@@ -82,7 +82,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         step.execute(context)
 
         then:
-        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+        _ * work.validate(_ as TypeValidationContext) >> { TypeValidationContext validationContext ->
             validationContext.visitWarning("Validation warning")
         }
 
@@ -99,7 +99,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         step.execute(context)
 
         then:
-        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+        _ * work.validate(_ as TypeValidationContext) >> { TypeValidationContext validationContext ->
             validationContext.visitWarning("Validation warning")
             validationContext.visitError("Validation error")
         }
