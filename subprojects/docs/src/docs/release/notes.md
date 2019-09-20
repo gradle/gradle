@@ -179,6 +179,11 @@ See the User Manual section on the “[Feature Lifecycle](userguide/feature_life
 
 The following are the features that have been promoted in this Gradle release.
 
+### C++ and Swift support
+
+We promoted all the new native plugins (i.e. `cpp-application`, `cpp-library`, `cpp-unit-test`, `swift-application`, `swift-library`, `xctest`, `visual-studio` and `xcode`).
+Note that all [software model plugins are still incubating and will be phased out](https://blog.gradle.org/state-and-future-of-the-gradle-software-model) instead of being promoted.
+
 ### New incremental tasks API
 
 The new [`InputChanges`](dsl/org.gradle.work.InputChanges.html) API for implementing incremental tasks has been promoted.
