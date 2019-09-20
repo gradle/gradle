@@ -225,7 +225,7 @@ class ProjectAccessorsClassPathTest : AbstractDslTest() {
                 tasks = listOf(
                     entry<TaskContainer, Delete>("clean")
                 ),
-                configurations = listOf("api")
+                configurations = listOf(ConfigurationEntry("api"))
             )
 
         val apiConfiguration = mock<NamedDomainObjectProvider<Configuration>>()

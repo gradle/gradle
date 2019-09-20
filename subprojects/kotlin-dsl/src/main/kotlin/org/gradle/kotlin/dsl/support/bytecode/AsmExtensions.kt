@@ -85,9 +85,15 @@ fun ClassVisitor.publicStaticMethod(
     desc: String,
     signature: String? = null,
     exceptions: Array<String>? = null,
-    methodBody: MethodVisitor.() -> Unit
+    deprecated: Boolean = false,
+    methodBody: MethodVisitor.() -> Unit,
+    annotations: MethodVisitor.() -> Unit
 ) {
-    method(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, name, desc, signature, exceptions, methodBody)
+    method(Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC + if (deprecated) {
+        Opcodes.ACC_DEPRECATED
+    } else {
+        0
+    }, name, desc, signature, exceptions, annotations, methodBody)
 }
 
 
@@ -97,9 +103,10 @@ fun ClassVisitor.publicMethod(
     desc: String,
     signature: String? = null,
     exceptions: Array<String>? = null,
+    annotations: MethodVisitor.() -> Unit = {},
     methodBody: MethodVisitor.() -> Unit
 ) {
-    method(Opcodes.ACC_PUBLIC, name, desc, signature, exceptions, methodBody)
+    method(Opcodes.ACC_PUBLIC, name, desc, signature, exceptions, annotations, methodBody)
 }
 
 
@@ -110,9 +117,11 @@ fun ClassVisitor.method(
     desc: String,
     signature: String? = null,
     exceptions: Array<String>? = null,
+    annotations: MethodVisitor.() -> Unit = {},
     methodBody: MethodVisitor.() -> Unit
 ) {
     visitMethod(access, name, desc, signature, exceptions).apply {
+        annotations()
         visitCode()
         methodBody()
         visitMaxs(0, 0)
@@ -304,6 +313,14 @@ fun MethodVisitor.ACONST_NULL() {
     visitInsn(Opcodes.ACONST_NULL)
 }
 
+
+internal
+fun MethodVisitor.kotlinDeprecation(message: String) {
+    visitAnnotation("Lkotlin/Deprecated;", true).apply {
+        visit("message", message)
+        visitEnd()
+    }
+}
 
 /**
  * A JVM internal type name (as in `java/lang/Object` instead of `java.lang.Object`).

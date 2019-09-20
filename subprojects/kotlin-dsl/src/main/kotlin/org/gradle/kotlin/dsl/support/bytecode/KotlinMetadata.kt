@@ -91,9 +91,11 @@ fun ClassVisitor.publicStaticMethod(
     jvmMethodSignature: JvmMethodSignature,
     signature: String? = null,
     exceptions: Array<String>? = null,
+    deprecated: Boolean = false,
+    annotations: MethodVisitor.() -> Unit = {},
     methodBody: MethodVisitor.() -> Unit
 ) = jvmMethodSignature.run {
-    publicStaticMethod(name, desc, signature, exceptions, methodBody)
+    publicStaticMethod(name, desc, signature, exceptions, deprecated, annotations, methodBody)
 }
 
 
