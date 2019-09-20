@@ -146,9 +146,39 @@ See the [user manual](userguide/custom_gradle_types.html#service_injection) for 
 
 ### Improving integrity of builds
 
-Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
+Gradle will now warn when resolving dependencies, text resources, and script plugins with the insecure HTTP protocol.
 
-TBD
+We encourage all users to switch to using HTTPS instead of HTTP.
+Free HTTPS certificates for your artifact server can be acquired from [Lets Encrypt](https://letsencrypt.org/).
+The use of HTTPS is important for [protecting your supply chain and the entire JVM ecosystem](https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb?source=friends_link&sk=3c99970c55a899ad9ef41f126efcde0e).
+
+For users that require the use of HTTP, Gradle has several new APIs to continue to allow HTTP.
+
+```kotlin
+repositories {
+    maven {
+        url = "http://my-company.example"
+        allowInsecureProtocol = true
+    }
+    ivy {
+        url = "http://my-company.example"
+        allowInsecureProtocol = true
+    }
+}
+```
+
+```groovy
+apply from: resources.text.fromInsecureUri("http://my-company.example/external.gradle")
+```
+
+On January 13th, 2020 through January 15th, 2020, some of the most widely used artifact servers in the JVM ecosystem
+will drop support for HTTP and will only support HTTPS. Their announcements can be found below:
+
+ - [Sonatype: Maven Central](https://central.sonatype.org/articles/2019/Apr/30/http-access-to-repo1mavenorg-and-repomavenapacheorg-is-being-deprecated/)
+ - [JFrog: JCenter](https://jfrog.com/blog/secure-jcenter-with-https/)
+ - [Pivotal: Spring](https://spring.io/blog/2019/09/16/goodbye-http-repo-spring-use-https)
+
+The Gradle team will be making an announcement soon about use of HTTP with `services.gradle.org` and `plugins.gradle.org`.
 
 ### Signing Plugin now uses SHA512 instead of SHA1
 
