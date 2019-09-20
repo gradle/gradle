@@ -396,15 +396,15 @@ public class SingleMessageLogger {
         RESOLUTION("resolve", true),
         ARTIFACT_DECLARATION("use", true);
 
-        private String usage;
-        private boolean inUserCode;
+        public final String usage;
+        public final boolean inUserCode;
 
         ConfigurationDeprecationType(String usage, boolean inUserCode) {
             this.usage = usage;
             this.inUserCode = inUserCode;
         }
 
-        private String displayName() {
+        public String displayName() {
             return name().toLowerCase().replace('_', ' ');
         }
     }
