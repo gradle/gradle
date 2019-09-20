@@ -105,10 +105,6 @@ buildTypes {
         tasks("performance:distributedPerformanceExperiment")
     }
 
-    create("distributedFullPerformanceTests") {
-        tasks("performance:distributedFullPerformanceTest")
-    }
-
     create("distributedHistoricalPerformanceTests") {
         tasks("performance:distributedHistoricalPerformanceTest")
     }

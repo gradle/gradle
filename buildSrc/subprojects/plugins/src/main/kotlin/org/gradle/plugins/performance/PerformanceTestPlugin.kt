@@ -290,11 +290,6 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel = "experiments"
             retryFailedScenarios()
         }
-        create("distributedFullPerformanceTest", DistributedPerformanceTest::class) {
-            configuredBaselines.set(Config.baseLineList)
-            checks = "none"
-            channel = "historical"
-        }
         create("distributedHistoricalPerformanceTest", DistributedPerformanceTest::class) {
             (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             configuredBaselines.set(Config.baseLineList)
