@@ -24,7 +24,6 @@ import org.gradle.launcher.cli.converter.PropertiesToStartParameterConverter;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildArgumentException;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -88,11 +87,9 @@ class ProviderStartParameterConverter {
             }
         }
 
-        DeprecationLogger.whileDisabled(() -> {
-            if (parameters.isSearchUpwards() != null) {
-                startParameter.setSearchUpwards(parameters.isSearchUpwards());
-            }
-        });
+        if (parameters.isSearchUpwards() != null) {
+            startParameter.setSearchUpwardsWithoutDeprecationWarning(parameters.isSearchUpwards());
+        }
 
         if (parameters.getBuildLogLevel() != null) {
             startParameter.setLogLevel(parameters.getBuildLogLevel());
