@@ -109,6 +109,10 @@ buildTypes {
         tasks("performance:distributedFullPerformanceTest")
     }
 
+    create("distributedHistoricalPerformanceTests") {
+        tasks("performance:distributedHistoricalPerformanceTest")
+    }
+
     create("distributedFlakinessDetections") {
         tasks("performance:distributedFlakinessDetection")
     }

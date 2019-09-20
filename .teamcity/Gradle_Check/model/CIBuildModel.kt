@@ -81,7 +81,7 @@ data class CIBuildModel(
         Stage(StageNames.HISTORICAL_PERFORMANCE,
             trigger = Trigger.weekly,
             performanceTests = listOf(
-                PerformanceTestType.historical, PerformanceTestType.flakinessDetection)),
+                PerformanceTestType.historical, PerformanceTestType.flakinessDetection, PerformanceTestType.experiment)),
         Stage(StageNames.EXPERIMENTAL,
             trigger = Trigger.never,
             runsIndependent = true,
@@ -399,8 +399,9 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
 enum class PerformanceTestType(val taskId: String, val displayName: String, val timeout: Int, val defaultBaselines: String = "", val extraParameters: String = "", val uuid: String? = null) {
     test("PerformanceTest", "Performance Regression Test", 420, "defaults"),
     slow("SlowPerformanceTest", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
+    experiment("PerformanceExperiment", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentOnlyCoordinator"),
     flakinessDetection("FlakinessDetection", "Flakiness Detection Performance Test", 420, "flakiness-detection-commit"),
-    historical("FullPerformanceTest", "Historical Performance Test", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
+    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
 
     fun asId(model: CIBuildModel): String =
         "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
