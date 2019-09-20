@@ -16,7 +16,7 @@
 package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.junit.experimental.categories.Category
@@ -76,7 +76,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
         'help' | _
     }
 
-    @Category(PerformanceExperiment)
+    @Category(SlowPerformanceRegressionTest)
     @Unroll
     def "buildSrc api change in #testProject comparing gradle"() {
         given:

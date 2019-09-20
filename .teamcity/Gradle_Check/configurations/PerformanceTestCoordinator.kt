@@ -15,13 +15,13 @@ import model.PerformanceTestType
 import model.Stage
 
 class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
-    uuid = type.asId(model)
-    id = AbsoluteId(uuid)
-    name = "Performance ${type.name.capitalize()} Coordinator - Linux"
+    uuid = type.asUuid(model)
+    id = AbsoluteId(type.asId(model))
+    name = "${type.displayName} Coordinator - Linux"
 
     applyPerformanceTestSettings(timeout = type.timeout)
 
-    if (type in listOf(PerformanceTestType.test, PerformanceTestType.experiment)) {
+    if (type in listOf(PerformanceTestType.test, PerformanceTestType.slow)) {
         features {
             publishBuildStatusToGithub(model)
         }

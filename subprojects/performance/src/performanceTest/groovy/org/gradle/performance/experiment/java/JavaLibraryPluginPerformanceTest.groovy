@@ -18,7 +18,7 @@ package org.gradle.performance.experiment.java
 
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.results.BaselineVersion
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.junit.experimental.categories.Category
@@ -26,7 +26,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT
 
-@Category(PerformanceExperiment)
+@Category(SlowPerformanceRegressionTest)
 class JavaLibraryPluginPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll

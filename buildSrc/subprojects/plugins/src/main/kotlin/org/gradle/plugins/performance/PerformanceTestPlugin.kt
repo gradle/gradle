@@ -72,6 +72,14 @@ private
 const val performanceExperimentCategory = "org.gradle.performance.categories.PerformanceExperiment"
 
 
+private
+const val performanceRegressionTestCategory = "org.gradle.performance.categories.PerformanceRegressionTest"
+
+
+private
+const val slowPerformanceRegressionTestCategory = "org.gradle.performance.categories.SlowPerformanceRegressionTest"
+
+
 @Suppress("unused")
 class PerformanceTestPlugin : Plugin<Project> {
 
@@ -230,7 +238,14 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         create("performanceTest") {
-            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            (options as JUnitOptions).apply {
+                includeCategories(performanceRegressionTestCategory)
+                excludeCategories(slowPerformanceRegressionTestCategory)
+            }
+        }
+
+        create("slowPerformanceTest") {
+            (options as JUnitOptions).includeCategories(slowPerformanceRegressionTestCategory)
         }
 
         create("performanceExperiment") {
@@ -258,7 +273,15 @@ class PerformanceTestPlugin : Plugin<Project> {
         }
 
         create("distributedPerformanceTest", DistributedPerformanceTest::class) {
-            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            (options as JUnitOptions).apply {
+                includeCategories(performanceRegressionTestCategory)
+                excludeCategories(slowPerformanceRegressionTestCategory)
+            }
+            channel = "commits"
+            retryFailedScenarios()
+        }
+        create("distributedSlowPerformanceTest", DistributedPerformanceTest::class) {
+            (options as JUnitOptions).includeCategories(slowPerformanceRegressionTestCategory)
             channel = "commits"
             retryFailedScenarios()
         }
@@ -267,13 +290,14 @@ class PerformanceTestPlugin : Plugin<Project> {
             channel = "experiments"
             retryFailedScenarios()
         }
-        create("distributedFullPerformanceTest", DistributedPerformanceTest::class) {
+        create("distributedHistoricalPerformanceTest", DistributedPerformanceTest::class) {
+            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
             configuredBaselines.set(Config.baseLineList)
             checks = "none"
             channel = "historical"
         }
         create("distributedFlakinessDetection", DistributedPerformanceTest::class) {
-            (options as JUnitOptions).excludeCategories(performanceExperimentCategory)
+            (options as JUnitOptions).includeCategories(performanceRegressionTestCategory)
             distributedPerformanceReporter.reportGeneratorClass = "org.gradle.performance.results.report.FlakinessReportGenerator"
             repeatScenarios(3)
             checks = "none"

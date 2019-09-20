@@ -18,7 +18,7 @@ package org.gradle.performance.regression.java
 
 import org.apache.commons.io.FileUtils
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
@@ -30,7 +30,7 @@ import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_
 import static org.gradle.performance.generator.JavaTestProject.LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL
 import static org.gradle.performance.generator.JavaTestProject.LARGE_MONOLITHIC_JAVA_PROJECT
 
-@Category(PerformanceExperiment)
+@Category(SlowPerformanceRegressionTest)
 class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     @Unroll
