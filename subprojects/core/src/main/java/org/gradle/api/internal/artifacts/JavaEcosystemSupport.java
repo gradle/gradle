@@ -25,6 +25,7 @@ import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.HasAttributes;
@@ -45,6 +46,7 @@ public abstract class JavaEcosystemSupport {
         configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
+        configureCategory(attributesSchema);
     }
 
     public static void configureDefaultTargetPlatform(HasAttributes configuration, JavaVersion version) {
@@ -88,6 +90,11 @@ public abstract class JavaEcosystemSupport {
         libraryElementsSchema.getDisambiguationRules().add(LibraryElementsDisambiguationRules.class, actionConfiguration -> {
             actionConfiguration.params(objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         });
+    }
+
+    private static void configureCategory(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<Category> libraryElementsSchema = attributesSchema.attribute(Category.CATEGORY_ATTRIBUTE);
+        libraryElementsSchema.getCompatibilityRules().add(CategoryCompatibilityRules.class);
     }
 
     @VisibleForTesting
@@ -250,6 +257,25 @@ public abstract class JavaEcosystemSupport {
                 if (Bundling.SHADOWED.equals(producerValueName)) {
                     details.compatible();
                 }
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static class CategoryCompatibilityRules implements AttributeCompatibilityRule<Category>, ReusableAction {
+
+        @Override
+        public void execute(CompatibilityCheckDetails<Category> details) {
+            Category consumerValue = details.getConsumerValue();
+            if (consumerValue == null) {
+                // consumer didn't express any preferences, everything fits
+                details.compatible();
+                return;
+            }
+            String consumerValueName = consumerValue.getName();
+            if (Category.DOCUMENTATION.equals(consumerValueName)) {
+                // In the absence of documentation, everything else can act as 'documentation'
+                details.compatible();
             }
         }
     }
