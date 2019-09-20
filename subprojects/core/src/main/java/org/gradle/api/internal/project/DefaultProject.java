@@ -997,6 +997,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void afterEvaluate(Action<? super Project> action) {
         assertMutatingMethodAllowed("afterEvaluate(Action)");
+        maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated("afterEvaluate(Action)");
         evaluationListener.add("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", action));
     }
 
@@ -1009,7 +1010,18 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public void afterEvaluate(Closure closure) {
         assertMutatingMethodAllowed("afterEvaluate(Closure)");
+        maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated("afterEvaluate(Closure)");
         evaluationListener.add(new ClosureBackedMethodInvocationDispatch("afterEvaluate", getListenerBuildOperationDecorator().decorate("Project.afterEvaluate", closure)));
+    }
+
+    private void maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated(String methodPrototype) {
+        if (!state.isUnconfigured() && !state.isConfiguring()) {
+            DeprecationLogger.nagUserOfDiscontinuedMethodInvocation("Project#" + methodPrototype + " when the project is already evaluated", getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated());
+        }
+    }
+
+    private static String getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated() {
+        return "The configuration given is ignored because the project has already been evaluated. To apply this configuration, remove afterEvaluate.";
     }
 
     @Override

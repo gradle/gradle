@@ -409,6 +409,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         applyScript(subBuildFile, scriptFile)
 
         when:
+        executer.expectDeprecationWarnings(2)
         run()
 
         then:
