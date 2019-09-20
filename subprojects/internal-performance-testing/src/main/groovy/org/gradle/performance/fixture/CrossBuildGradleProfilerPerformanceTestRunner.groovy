@@ -16,7 +16,6 @@
 
 package org.gradle.performance.fixture
 
-import com.google.common.collect.ImmutableList
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.performance.results.CrossBuildPerformanceResults
@@ -39,8 +38,8 @@ class CrossBuildGradleProfilerPerformanceTestRunner extends AbstractCrossBuildPe
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
-        builder.measuredBuildOperations = ImmutableList.copyOf(measuredBuildOperations)
-        builder.buildMutators = ImmutableList.copyOf(buildMutators)
+        builder.measuredBuildOperations.addAll(measuredBuildOperations)
+        builder.buildMutators.addAll(buildMutators)
     }
 
     void addBuildMutator(Function<InvocationSettings, BuildMutator> buildMutator) {
