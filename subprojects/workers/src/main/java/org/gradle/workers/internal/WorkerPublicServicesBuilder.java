@@ -17,7 +17,9 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.file.FileSystemOperations;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.ExecOperations;
@@ -43,6 +45,8 @@ public class WorkerPublicServicesBuilder {
             services.add(ObjectFactory.class, internalServices.get(ObjectFactory.class));
             services.add(FileSystemOperations.class, internalServices.get(FileSystemOperations.class));
             services.add(ExecOperations.class, internalServices.get(ExecOperations.class));
+            services.add(ProjectLayout.class, internalServices.get(ProjectLayout.class));
+            services.add(ProviderFactory.class, internalServices.get(ProviderFactory.class));
             return services;
         }
     }

@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.DefaultFileCollectionFactory;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.DefaultFileSystemOperations;
+import org.gradle.api.internal.file.DefaultProjectLayout;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileOperations;
@@ -243,6 +244,10 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
         ExecOperations createExecOperations(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ServiceRegistry services, ObjectFactory objectFactory) {
             return instantiator.newInstance(DefaultExecOperations.class, execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory));
+        }
+
+        protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+            return new DefaultProjectLayout(baseDir, fileResolver, () -> { throw new UnsupportedOperationException(); }, fileCollectionFactory);
         }
 
         FileHasher createFileHasher() {
