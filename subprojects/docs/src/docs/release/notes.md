@@ -20,6 +20,7 @@ We would like to thank the following community contributors to this release of G
 [Ross Goldberg](https://github.com/rgoldberg),
 [jutoft](https://github.com/jutoft),
 [Robin Verduijn](https://github.com/robinverduijn),
+[Pedro Tôrres](https://github.com/t0rr3sp3dr0),
 and [Robert Stupp](https://github.com/snazy).
 
 <!-- 
