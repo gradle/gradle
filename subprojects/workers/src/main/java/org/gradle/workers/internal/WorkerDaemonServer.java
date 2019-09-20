@@ -16,50 +16,31 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.file.DefaultFileCollectionFactory;
-import org.gradle.api.internal.file.DefaultFileOperations;
-import org.gradle.api.internal.file.DefaultFilePropertyFactory;
-import org.gradle.api.internal.file.DefaultFileSystemOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileLookup;
-import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.TemporaryFileProvider;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.model.DefaultObjectFactory;
-import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.initialization.LegacyTypesSupport;
-import org.gradle.internal.Factory;
-import org.gradle.internal.file.Deleter;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
+import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
-import org.gradle.process.ExecOperations;
-import org.gradle.process.internal.DefaultExecOperations;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
@@ -96,7 +77,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
-            ServiceRegistry workServices = new WorkerPublicServicesBuilder(new RelativeFileWorkerServices(spec.getBaseDir(), internalServices))
+            ServiceRegistry workServices = new WorkerPublicServicesBuilder(new WorkerProjectServices(spec.getBaseDir(), internalServices))
                     .withInternalServicesVisible(spec.isInternalServicesRequired())
                     .build();
             Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), workServices);
@@ -156,38 +137,24 @@ public class WorkerDaemonServer implements WorkerProtocol {
         }
     }
 
-    static class RelativeFileWorkerServices extends DefaultServiceRegistry {
+    static class WorkerProjectServices extends DefaultServiceRegistry {
         private final File baseDir;
 
-        public RelativeFileWorkerServices(File baseDir, ServiceRegistry... parents) {
+        public WorkerProjectServices(File baseDir, ServiceRegistry... parents) {
             super("worker file services for "+ baseDir.getAbsolutePath(), parents);
             this.baseDir = baseDir;
+            addProvider(new WorkerSharedProjectScopeServices(baseDir));
         }
 
         protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
             return instantiatorFactory.injectAndDecorateLenient(this);
         }
 
-        protected FileResolver createFileResolver(FileLookup lookup) {
-            return lookup.getFileResolver(baseDir);
+        protected ExecFactory createExecFactory(org.gradle.process.internal.ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
+            return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory);
         }
 
-        protected FileSystemOperations createFileSystemOperations(Instantiator instantiator, FileOperations fileOperations) {
-            return instantiator.newInstance(DefaultFileSystemOperations.class, fileOperations);
-        }
-
-        protected DefaultFileOperations createFileOperations(
-                FileResolver fileResolver,
-                TemporaryFileProvider temporaryFileProvider,
-                Instantiator instantiator,
-                ServiceRegistry services,
-                DirectoryFileTreeFactory directoryFileTreeFactory,
-                StreamHasher streamHasher,
-                FileHasher fileHasher,
-                FileCollectionFactory fileCollectionFactory,
-                FileSystem fileSystem,
-                Deleter deleter
-        ) {
+        protected DefaultResourceHandler.Factory createResourceHandlerFactory() {
             // We use a dummy implementation of this as creating a real resource handler would require us to add
             // an additional jar to the worker runtime startup and a resource handler isn't actually needed in
             // the worker process.
@@ -208,41 +175,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
                 }
             };
 
-            return new DefaultFileOperations(
-                    fileResolver,
-                    temporaryFileProvider,
-                    instantiator,
-                    directoryFileTreeFactory,
-                    streamHasher,
-                    fileHasher,
-                    fileOperations -> resourceHandler,
-                    fileCollectionFactory,
-                    fileSystem,
-                    deleter
-            );
-        }
-
-        FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory) {
-            return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory);
-        }
-
-        FilePropertyFactory createProjectFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-            return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
-        }
-
-        ObjectFactory createObjectFactory(Instantiator instantiator, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
-            return new DefaultObjectFactory(
-                    instantiator,
-                    namedObjectInstantiator,
-                    fileResolver,
-                    directoryFileTreeFactory,
-                    filePropertyFactory,
-                    fileCollectionFactory,
-                    domainObjectCollectionFactory);
-        }
-
-        ExecOperations createExecOperations(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ServiceRegistry services, ObjectFactory objectFactory) {
-            return instantiator.newInstance(DefaultExecOperations.class, execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory));
+            return fileOperations -> resourceHandler;
         }
 
         FileHasher createFileHasher() {

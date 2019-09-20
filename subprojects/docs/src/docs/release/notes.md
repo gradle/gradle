@@ -146,6 +146,8 @@ See the [user manual](userguide/custom_gradle_types.html#service_injection) for 
 
 The following services are now available for injection in `WorkAction` classes:
 - [ObjectFactory](javadoc/org/gradle/api/model/ObjectFactory.html)
+- [ProviderFactory](javadoc/org/gradle/api/provider/ProviderFactory.html)
+- [ProjectLayout](javadoc/org/gradle/api/file/ProjectLayout.html)
 - [FileSystemOperations](javadoc/org/gradle/api/file/FileSystemOperations.html)
 - [ExecOperations](javadoc/org/gradle/process/Execoperations.html)
 
@@ -170,6 +172,8 @@ abstract class ReverseFile implements WorkAction<ReverseParameters> {
     }
 }
 ```
+
+See the [user manual](userguide/custom_gradle_types.html#service_injection) for further information on injecting services into custom Gradle types.
 
 ## Security
 
