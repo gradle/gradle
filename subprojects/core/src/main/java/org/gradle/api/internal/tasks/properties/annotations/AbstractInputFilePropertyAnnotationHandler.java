@@ -31,7 +31,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.reflect.PropertyMetadata;
-import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
@@ -74,10 +73,6 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             value,
             getFilePropertyType()
         );
-    }
-
-    @Override
-    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, WorkValidationContext visitor) {
     }
 
     protected abstract InputFilePropertyType getFilePropertyType();
