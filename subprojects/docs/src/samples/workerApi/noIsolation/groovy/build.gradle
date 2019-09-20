@@ -18,15 +18,26 @@ import javax.inject.Inject
 // tag::unit-of-work[]
 // The parameters for a single unit of work
 interface ReverseParameters extends WorkParameters {
-    Property<File> getFileToReverse()
-    Property<File> getDestinationFile()
+    RegularFileProperty getFileToReverse()
+    DirectoryProperty getDestinationDir()
 }
 
 // The implementation of a single unit of work.
 abstract class ReverseFile implements WorkAction<ReverseParameters> {
+    private final FileSystemOperations fileSystemOperations
+
+    @Inject
+    public ReverseFile(FileSystemOperations fileSystemOperations) {
+        this.fileSystemOperations = fileSystemOperations
+    }
+
     @Override
     void execute() {
-        parameters.destinationFile.get().text = parameters.fileToReverse.get().text.reverse()
+        fileSystemOperations.copy {
+            from parameters.fileToReverse
+            into parameters.destinationDir
+            filter { String line -> line.reverse() }
+        }
     }
 }
 // end::unit-of-work[]
@@ -53,7 +64,7 @@ class ReverseFiles extends SourceTask {
         source.each { file ->
             workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->
                 parameters.fileToReverse = file
-                parameters.destinationFile = project.file("$outputDir/${file.name}")
+                parameters.destinationDir = outputDir
             }
         }
     }

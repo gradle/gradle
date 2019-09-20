@@ -142,6 +142,35 @@ In the same vein, doing file system operations such as `copy()`, `sync()` and `d
 
 See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`FileSystemOperations`](javadoc/org/gradle/api/file/FileSystemOperations.html) and [`ExecOperations`](javadoc/org/gradle/process/ExecOperations.html) api documentation for more details and examples.
 
+### Services available to Worker API actions
+
+The following services are now available for injection in `WorkAction` classes:
+- [ObjectFactory](javadoc/org/gradle/api/model/ObjectFactory.html)
+- [FileSystemOperations](javadoc/org/gradle/api/file/FileSystemOperations.html)
+- [ExecOperations](javadoc/org/gradle/process/Execoperations.html)
+
+These services can be injected by adding them to the constructor arguments of the `WorkAction` implementation:
+
+```
+abstract class ReverseFile implements WorkAction<ReverseParameters> {
+    private final FileSystemOperations fileSystemOperations
+
+    @Inject
+    public ReverseFile(FileSystemOperations fileSystemOperations) {
+        this.fileSystemOperations = fileSystemOperations
+    }
+
+    @Override
+    public void execute() {
+        fileSystemOperations.copy {
+            from parameters.fileToReverse
+            into parameters.destinationDir
+            filter { String line -> line.reverse() }
+        }
+    }
+}
+```
+
 ## Security
 
 ### Improving integrity of builds

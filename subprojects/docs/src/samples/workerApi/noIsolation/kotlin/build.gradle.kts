@@ -1,19 +1,21 @@
 // tag::unit-of-work[]
 
-import org.gradle.workers.WorkerExecutor
-
 import javax.inject.Inject
 
 // The parameters for a single unit of work
 interface ReverseParameters : WorkParameters {
-    val fileToReverse : Property<File>
-    val destinationFile : Property<File>
+    val fileToReverse : RegularFileProperty
+    val destinationDir : DirectoryProperty
 }
 
 // The implementation of a single unit of work
-abstract class ReverseFile : WorkAction<ReverseParameters> {
+abstract class ReverseFile @Inject constructor(val fileSystemOperations: FileSystemOperations) : WorkAction<ReverseParameters> {
     override fun execute() {
-        getParameters().destinationFile.get().writeText(getParameters().fileToReverse.get().readText().reversed())
+        fileSystemOperations.copy {
+            from(parameters.fileToReverse)
+            into(parameters.destinationDir)
+            filter { line: String -> line.reversed() }
+        }
     }
 }
 // end::unit-of-work[]
@@ -33,7 +35,7 @@ open class ReverseFiles @Inject constructor(private val workerExecutor: WorkerEx
         source.forEach { file ->
             workQueue.submit(ReverseFile::class) {
                 fileToReverse.set(file)
-                destinationFile.set(project.file("$outputDir/${file.name}"))
+                destinationDir.set(outputDir)
             }
         }
     }
