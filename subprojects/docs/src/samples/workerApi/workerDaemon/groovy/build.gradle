@@ -18,8 +18,8 @@ import javax.inject.Inject
 
 // The parameters for a single unit of work
 interface ReverseParameters extends WorkParameters {
-    Property<File> getFileToReverse()
-    Property<File> getDestinationDir()
+    RegularFileProperty getFileToReverse()
+    DirectoryProperty getDestinationDir()
 }
 
 // The implementation of a single unit of work.
@@ -33,7 +33,7 @@ abstract class ReverseFile implements WorkAction<ReverseParameters> {
 
     @Override
     void execute() {
-        def fileToReverse = parameters.fileToReverse.get()
+        def fileToReverse = parameters.fileToReverse.asFile.get()
         fileSystemOperations.copy {
             from fileToReverse
             into parameters.destinationDir

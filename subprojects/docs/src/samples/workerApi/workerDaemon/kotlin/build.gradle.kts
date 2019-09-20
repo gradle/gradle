@@ -14,23 +14,21 @@
  * limitations under the License.
  */
 
-import org.gradle.workers.WorkerExecutor
-
 import javax.inject.Inject
 
 // The parameters for a single unit of work
 interface ReverseParameters : WorkParameters {
-    val fileToReverse : Property<File>
-    val destinationDir : Property<File>
+    val fileToReverse : RegularFileProperty
+    val destinationDir : DirectoryProperty
 }
 
 // The implementation of a single unit of work
 abstract class ReverseFile @Inject constructor(val fileSystemOperations: FileSystemOperations) : WorkAction<ReverseParameters> {
     override fun execute() {
-        val fileToReverse = parameters.fileToReverse.get()
+        val fileToReverse = parameters.fileToReverse.asFile.get()
         fileSystemOperations.copy {
             from(fileToReverse)
-            into(getParameters().destinationDir)
+            into(parameters.destinationDir)
             filter { line: String -> line.reversed() }
         }
         if (java.lang.Boolean.getBoolean("org.gradle.sample.showFileSize")) {
