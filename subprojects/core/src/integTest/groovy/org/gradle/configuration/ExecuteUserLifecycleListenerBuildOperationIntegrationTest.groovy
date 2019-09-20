@@ -593,6 +593,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         initFile << addGradleListeners('init')
 
         when:
+        executer.expectDeprecationWarning()
         run()
 
         then:

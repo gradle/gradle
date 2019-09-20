@@ -72,6 +72,11 @@ Property 'options.configFile' is not annotated with an input or output annotatio
 In Gradle 5.0 we removed the `--no-search-upward` CLI parameter.
 The related APIs in `StartParameter` are now deprecated.
 
+==== `BuildListener#buildStarted` and `Gradle#buildStarted` has been deprecated
+
+These methods currently do not work as expected.
+They are being deprecated to avoid confusion.
+
 === Potential breaking changes
 
 ==== Android Gradle Plugin 3.3 and earlier is not supported anymore
