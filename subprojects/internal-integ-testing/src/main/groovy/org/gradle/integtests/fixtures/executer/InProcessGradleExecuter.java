@@ -562,6 +562,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         }
 
         @Override
+        public String getOutputLineThatContains(String text) {
+            return outputResult.getOutputLineThatContains(text);
+        }
+
+        @Override
         public ExecutionResult assertTasksExecutedInOrder(Object... taskPaths) {
             Set<String> expected = TaskOrderSpecs.exact(taskPaths).getTasks();
             assertTasksExecuted(expected);
