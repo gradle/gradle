@@ -20,7 +20,6 @@ import org.gradle.api.invocation.Gradle
 
 import org.gradle.kotlin.dsl.GradleDsl
 import org.gradle.kotlin.dsl.InitScriptApi
-import org.gradle.kotlin.dsl.KotlinScriptTemplate
 import org.gradle.kotlin.dsl.fileOperationsFor
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
@@ -32,7 +31,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
  *
  * @see PrecompiledProjectScript
  */
-@KotlinScriptTemplate
 @ScriptTemplateDefinition(
     resolver = PrecompiledScriptDependenciesResolver::class,
     scriptFilePattern = "^.+\\.init\\.gradle\\.kts$")

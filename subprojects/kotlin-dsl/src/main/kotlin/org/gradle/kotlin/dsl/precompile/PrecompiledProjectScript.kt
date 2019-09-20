@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.precompile
 import org.gradle.api.Project
 
 import org.gradle.kotlin.dsl.GradleDsl
-import org.gradle.kotlin.dsl.KotlinScriptTemplate
 import org.gradle.kotlin.dsl.ScriptHandlerScope
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 
@@ -50,7 +49,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
  * `src/main/kotlin/gradlebuild/code-quality.gradle.kts` would be exposed as the `gradlebuild.code-quality`
  * plugin, again assuming it has the matching package declaration.
  */
-@KotlinScriptTemplate
 @ScriptTemplateDefinition(
     resolver = PrecompiledScriptDependenciesResolver::class,
     scriptFilePattern = "^.*\\.gradle\\.kts$")

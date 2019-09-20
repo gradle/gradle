@@ -19,7 +19,6 @@ package org.gradle.kotlin.dsl.precompile
 import org.gradle.api.initialization.Settings
 
 import org.gradle.kotlin.dsl.GradleDsl
-import org.gradle.kotlin.dsl.KotlinScriptTemplate
 import org.gradle.kotlin.dsl.SettingsScriptApi
 import org.gradle.kotlin.dsl.fileOperationsFor
 
@@ -32,7 +31,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
  *
  * @see PrecompiledProjectScript
  */
-@KotlinScriptTemplate
 @ScriptTemplateDefinition(
     resolver = PrecompiledScriptDependenciesResolver::class,
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
