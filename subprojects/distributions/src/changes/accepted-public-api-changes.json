@@ -177,6 +177,62 @@
             "member": "Method org.gradle.api.reflect.TypeOf.getLowerBound()",
             "acceptation": "It goes with the already public API, getUpperBound",
             "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.CompiledKotlinSettingsScript",
+            "member": "Class org.gradle.kotlin.dsl.CompiledKotlinSettingsScript",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Interface has been added"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.CompiledKotlinSettingsScript",
+            "member": "Method org.gradle.kotlin.dsl.CompiledKotlinSettingsScript.getBuildscript()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.CompiledKotlinSettingsScript",
+            "member": "Constructor org.gradle.kotlin.dsl.CompiledKotlinSettingsScript(org.gradle.kotlin.dsl.support.KotlinScriptHost)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getFileOperations()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getInitscript()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.InitScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getProcessOperations()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinScriptTemplate",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.SettingsScriptApi",
+            "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getDelegate()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": []
         }
     ]
 }
