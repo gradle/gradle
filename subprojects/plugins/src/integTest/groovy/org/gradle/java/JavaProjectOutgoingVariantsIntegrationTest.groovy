@@ -43,10 +43,18 @@ allprojects {
 
 project(':other-java') {
     apply plugin: 'java'
+    java {
+        publishJavadoc()
+        publishSources()
+    }
 }
 
 project(':java') {
     apply plugin: 'java'
+    java {
+        publishJavadoc()
+        publishSources()
+    }
     dependencies {
         compile 'test:compile:1.0'
         compile project(':other-java')

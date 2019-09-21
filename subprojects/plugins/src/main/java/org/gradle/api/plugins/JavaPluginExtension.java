@@ -73,22 +73,24 @@ public interface JavaPluginExtension {
     void disableAutoTargetJvm();
 
     /**
-     * Automatically package Javadoc and source code during publishing and publish variants with '-javadoc.jar' and '-sources.jar'.
-     * This also publishes Javadoc and sources for all additional features registered via {@link JavaPluginExtension#registerFeature(String, Action)}.
-     * The publishing of individual Javadoc or Sources variants can be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}.
-     * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)}.
+     * Automatically package Javadoc during publishing and publish a variant with '-javadoc.jar'.
+     * The publishing of the Javadoc variant can also be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}
+     * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)},
+     * if it should only be built locally by calling or wiring the ':javadocJar' task.
      *
      * @since 6.0
      */
     @Incubating
-    void publishJavadocAndSources();
+    void publishJavadoc();
 
     /**
-     * Is Javadoc and source code publishing enabled?
+     * Automatically package source code during publishing and publish a variant with '-sources.jar'.
+     * The publishing of the sources variant can be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}
+     * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)},
+     * if it should only be built locally by calling or wiring the ':sourcesJar' task.
      *
      * @since 6.0
      */
     @Incubating
-    boolean getPublishJavadocAndSources();
-
+    void publishSources();
 }

@@ -53,7 +53,6 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     private JavaVersion targetCompat;
 
     private boolean autoTargetJvm = true;
-    private boolean publishJavadocAndSources = false;
 
     public DefaultJavaPluginConvention(ProjectInternal project, ObjectFactory objectFactory) {
         this.project = project;
@@ -191,15 +190,5 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
     @Override
     public boolean getAutoTargetJvmDisabled() {
         return !autoTargetJvm;
-    }
-
-    @Override
-    public void publishJavadocAndSources() {
-        this.publishJavadocAndSources = true;
-    }
-
-    @Override
-    public boolean getPublishJavadocAndSources() {
-        return publishJavadocAndSources;
     }
 }

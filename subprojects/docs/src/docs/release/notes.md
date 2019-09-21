@@ -90,14 +90,15 @@ You can now activate Javadoc and sources publishing for a Java Library or Java p
 
 ```
 java {
-    publishJavadocAndSources()
+    publishJavadoc()
+    publishSources()
 }
 ```
 
 Using the `maven-publish` or `ivy-publish` plugin, this will not only automatically create and publish a `-javadoc.jar` and `-sources.jar`, but also publish the information that these exist as variants in Gradle Module Metadata.
 This means that you can query for the Javadoc or sources _variant_ of a module and also retrieve the Javadoc (or sources) of its dependencies.
 This also works in multi-projects.
-Each Java and Java Library project now automatically provides the `javadocJar` and `sourcesJar` tasks.
+If activated, a Java and Java Library project automatically provides the `javadocJar` and `sourcesJar` tasks.
 
 ## More robust file deletion on Windows
 

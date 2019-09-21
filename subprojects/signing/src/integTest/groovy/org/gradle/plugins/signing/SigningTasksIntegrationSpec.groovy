@@ -56,6 +56,7 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         given:
         buildFile << """
             ${keyInfo.addAsPropertiesScript()}
+            ${javadocAndSourceJarsScript}
 
             signing {
                 ${signingConfiguration()}

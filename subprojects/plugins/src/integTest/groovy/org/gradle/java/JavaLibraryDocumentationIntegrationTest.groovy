@@ -22,9 +22,13 @@ import org.gradle.test.fixtures.archive.ZipTestFixture
 class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        buildFile << '''
+            subprojects {
+                apply plugin: 'java-library'
+            }
+        '''
         subproject('a') {
             'build.gradle'('''
-                apply plugin: 'java-library'
                 configurations {
                     javadoc {
                         canBeResolved = true; canBeConsumed = false
@@ -74,7 +78,6 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         }
         subproject('b') {
             'build.gradle'('''
-                apply plugin: 'java-library'
                 dependencies {
                     implementation project(':c')
                 }
@@ -89,9 +92,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
             }
         }
         subproject('c') {
-            'build.gradle'('''
-                apply plugin: 'java-library'
-            ''')
+            'build.gradle'('')
             src {
                 main {
                     java {
@@ -102,7 +103,50 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "javadoJar task is only created when publishing is requested"() {
+        when:
+        fails(':a:javadocJar')
+
+        then:
+        failure.assertHasDescription("Task 'javadocJar' not found in project ':a'. Some candidates are: 'javadoc'.")
+
+        when:
+        buildFile << '''
+            subprojects {
+                java { publishJavadoc() }
+            }
+        '''
+        then:
+        succeeds(':a:javadocJar')
+    }
+
+    def "sourcesJar task is only created when publishing is requested"() {
+        when:
+        fails(':a:sourcesJar')
+
+        then:
+        failure.assertHasDescription("Task 'sourcesJar' not found in project ':a'.")
+
+        when:
+        buildFile << '''
+            subprojects {
+                java { publishSources() }
+            }
+        '''
+        then:
+        succeeds(':a:sourcesJar')
+    }
+
     def "project packages own and runtime dependency sources if requested"() {
+        given:
+        buildFile << '''
+            subprojects {
+                java {
+                    publishSources()
+                }
+            }
+        '''
+
         when:
         succeeds 'a:collectSources'
 
@@ -116,6 +160,15 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "project generates and packages own and api dependency javadoc if requested"() {
+        given:
+        buildFile << '''
+            subprojects {
+                java {
+                    publishJavadoc()
+                }
+            }
+        '''
+
         when:
         succeeds 'a:collectJavadoc'
 

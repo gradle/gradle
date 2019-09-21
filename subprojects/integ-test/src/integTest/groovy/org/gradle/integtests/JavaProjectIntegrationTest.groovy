@@ -227,6 +227,10 @@ project(':c') {
 allprojects {
     apply plugin: 'java'
 
+    java {
+        publishSources()
+    }
+
     artifacts {
         archives sourcesJar
     }

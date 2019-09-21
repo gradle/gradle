@@ -320,6 +320,10 @@ apply plugin:'maven'
 version = 1.0
 group =  "org.test"
 
+java {
+    publishSources()
+}
+
 task testJar(type: Jar) {
         baseName = project.name + '-tests'
 }

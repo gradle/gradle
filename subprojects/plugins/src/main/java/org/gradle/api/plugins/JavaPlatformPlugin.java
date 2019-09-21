@@ -115,8 +115,8 @@ public class JavaPlatformPlugin implements Plugin<Project> {
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
         AdhocComponentWithVariants component = softwareComponentFactory.adhoc("javaPlatform");
         project.getComponents().add(component);
-        component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false, null));
-        component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false, null));
+        component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", false));
+        component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", false));
     }
 
     private void createConfigurations(Project project) {

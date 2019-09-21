@@ -28,10 +28,17 @@ import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
 import java.util.regex.Pattern;
+
+import static org.gradle.api.attributes.DocsType.JAVADOC;
+import static org.gradle.api.attributes.DocsType.SOURCES;
+import static org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureDocumentationVariantWithArtifact;
 
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final static Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
@@ -96,13 +103,19 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public void publishJavadocAndSources() {
-        convention.publishJavadocAndSources();
+    public void publishJavadoc() {
+        TaskContainer tasks = project.getTasks();
+        ConfigurationContainer configurations = project.getConfigurations();
+        SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        configureDocumentationVariantWithArtifact(null, configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME), JAVADOC, main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), tasks, objectFactory);
     }
 
     @Override
-    public boolean getPublishJavadocAndSources() {
-        return convention.getPublishJavadocAndSources();
+    public void publishSources() {
+        TaskContainer tasks = project.getTasks();
+        ConfigurationContainer configurations = project.getConfigurations();
+        SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        configureDocumentationVariantWithArtifact(null, configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME), SOURCES, main.getSourcesJarTaskName(), main.getAllJava(), tasks, objectFactory);
     }
 
     private static String validateFeatureName(String name) {

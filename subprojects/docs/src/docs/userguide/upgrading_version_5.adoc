@@ -112,15 +112,6 @@ This often caused large number of unnecessary requests when using multiple repos
 This change speeds up builds with many dependencies using multiple repositories.
 You can opt into the previous behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata source>>.
 
-==== Java plugins register javadocJar and sourcesJar tasks
-
-To provide better support for publishing of Javadoc and sources, the Java plugins (Java and Java Library) now register and configure the `javadocJar` and `sourcesJar` tasks.
-If you defined these tasks yourself, following the documentation and examples on the topic, you can remove your task definitions as the new tasks follow the configuration that has been recommended and documented before.
-If you have custom configurations of these tasks, you can change your task creation into a configuration of the existing tasks.
-If you maintain code that creates these tasks and is supposed to work with multiple Gradle versions, you can conditionally create the tasks (e.g. by checking `tasks.names.contains("javadocJar")`)
-
-Similarly, you can remove the custom artifact declarations `artifact javadocJar` and `artifact sourcesJar` from your publication and instead activate the built-in support for Javadoc and sources publishing: `java { publishJavadocAndSources() }`.
-
 ==== buildSrc classes are no longer visible from settings scripts
 
 Previously, the buildSrc project was built before applying the project's settings script and its classes were visible within the script.

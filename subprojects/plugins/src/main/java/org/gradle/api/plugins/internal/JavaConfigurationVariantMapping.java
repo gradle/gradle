@@ -20,10 +20,7 @@ import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.component.ConfigurationVariantDetails;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.specs.Spec;
-
-import javax.annotation.Nullable;
 
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.plugins.JavaBasePlugin.UNPUBLISHABLE_VARIANT_ARTIFACTS;
@@ -31,20 +28,16 @@ import static org.gradle.api.plugins.JavaBasePlugin.UNPUBLISHABLE_VARIANT_ARTIFA
 public class JavaConfigurationVariantMapping implements Action<ConfigurationVariantDetails> {
     private final String scope;
     private final boolean optional;
-    private final JavaPluginConvention javaPluginConvention;
 
-    public JavaConfigurationVariantMapping(String scope, boolean optional, @Nullable JavaPluginConvention javaPluginConvention) {
+    public JavaConfigurationVariantMapping(String scope, boolean optional) {
         this.scope = scope;
         this.optional = optional;
-        this.javaPluginConvention = javaPluginConvention;
     }
 
     @Override
     public void execute(ConfigurationVariantDetails details) {
         ConfigurationVariant variant = details.getConfigurationVariant();
-        if (isDocumentationPublishingDisabled() && isDocumentationVariant(variant)) {
-            details.skip();
-        } else if (UnpublishableArtifactTypeSpec.INSTANCE.isSatisfiedBy(variant)) {
+        if (UnpublishableArtifactTypeSpec.INSTANCE.isSatisfiedBy(variant)) {
             details.skip();
         } else {
             details.mapToMavenScope(scope);
@@ -52,10 +45,6 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
                 details.mapToOptional();
             }
         }
-    }
-
-    private boolean isDocumentationPublishingDisabled() {
-        return javaPluginConvention == null || !javaPluginConvention.getPublishJavadocAndSources();
     }
 
     private boolean isDocumentationVariant(ConfigurationVariant variant) {

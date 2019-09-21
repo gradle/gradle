@@ -6,6 +6,11 @@ plugins {
 group = "org.gradle.sample"
 version = "1.0"
 
+task<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allJava)
+}
+
 // tag::publishing[]
 publishing {
     publications {

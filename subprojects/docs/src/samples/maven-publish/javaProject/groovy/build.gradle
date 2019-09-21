@@ -16,7 +16,8 @@ repositories {
 
 // tag::publish-modify-component[]
 java {
-    publishJavadocAndSources()
+    publishJavadoc()
+    publishSources()
 }
 
 components.java.withVariantsFromConfiguration(configurations.runtimeElements) {

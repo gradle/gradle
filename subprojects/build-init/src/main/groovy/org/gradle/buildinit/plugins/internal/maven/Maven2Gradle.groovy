@@ -116,6 +116,10 @@ class Maven2Gradle {
                 if (packageTests(module, moduleScriptBuilder)) {
                     moduleScriptBuilder.methodInvocation(null, "publishing.publications.maven.artifact", moduleScriptBuilder.propertyExpression("testsJar"))
                 }
+                if (packagesJavadocs(module)) {
+                    def javaExtension = moduleScriptBuilder.block(null, "java")
+                    javaExtension.methodInvocation(null, "publishJavadoc")
+                }
 
                 moduleScriptBuilder.create().generate()
             }
@@ -130,7 +134,7 @@ class Maven2Gradle {
             compilerSettings(this.effectivePom, scriptBuilder)
             globalExclusions(this.effectivePom, scriptBuilder)
             def testsJarTaskGenerated = packageTests(this.effectivePom, scriptBuilder)
-            configurePublishing(scriptBuilder, packagesSources(this.effectivePom) || packagesJavadocs(this.effectivePom), testsJarTaskGenerated)
+            configurePublishing(scriptBuilder, packagesSources(this.effectivePom), testsJarTaskGenerated, packagesJavadocs(this.effectivePom))
 
             scriptBuilder.repositories().mavenLocal(null)
             Set<String> repoSet = new LinkedHashSet<String>()
@@ -148,12 +152,16 @@ class Maven2Gradle {
         scriptBuilder.create().generate()
     }
 
-    def configurePublishing(def builder, boolean publishesJavadocOrSources = false, boolean testsJarTaskGenerated = false) {
-        if (publishesJavadocOrSources) {
+    def configurePublishing(def builder, boolean publishesSources = false, boolean testsJarTaskGenerated = false, boolean publishesJavadoc = false) {
+        if (publishesSources || publishesJavadoc) {
             def javaExtension = builder.block(null, "java")
-            javaExtension.methodInvocation(null, "publishJavadocAndSources")
+            if (publishesSources) {
+                javaExtension.methodInvocation(null, "publishSources")
+            }
+            if (publishesJavadoc) {
+                javaExtension.methodInvocation(null, "publishJavadoc")
+            }
         }
-
         def publishing = builder.block(null, "publishing")
         def publications = publishing.block(null, "publications")
         def mavenPublication = publications.block(null, "maven(MavenPublication)")

@@ -68,10 +68,13 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         assertContainsPublishingConfig(file("build.gradle"), "    ")
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
     java {
-        publishJavadocAndSources()
+        publishSources()
     }'''))
         file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testsJar)")
-
+        file("webinar-impl/build.gradle").text.contains(TextUtil.toPlatformLineSeparators('''
+java {
+    publishJavadoc()
+}'''))
         when:
         run 'clean', 'build'
 
@@ -206,7 +209,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         then: 'sourcesJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             java {
-                publishJavadocAndSources()
+                publishSources()
             }
             '''.stripIndent().trim()))
         assertContainsPublishingConfig(buildFile)
@@ -247,7 +250,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         then: 'javadocJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             java {
-                publishJavadocAndSources()
+                publishJavadoc()
             }
             '''.stripIndent().trim()))
         assertContainsPublishingConfig(buildFile)

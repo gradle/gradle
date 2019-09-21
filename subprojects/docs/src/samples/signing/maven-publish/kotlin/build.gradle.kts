@@ -9,7 +9,8 @@ group = "com.example"
 version = "1.0"
 
 java {
-    publishJavadocAndSources()
+    publishJavadoc()
+    publishSources()
 }
 
 // tag::pom-customization[]

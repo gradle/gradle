@@ -321,8 +321,8 @@ In this section, we will focus on the bare bones provided by the Java Plugin.
 
 By default, the Java Plugin provides the `jar` task that packages all the compiled production classes and resources into a single JAR.
 This JAR is also automatically built by the `assemble` task.
-Furthermore, the `javadocJar` and `sourcesJar` tasks are provided to package the Javadoc and the source code if so desired.
-These tasks can be can be called directly or the Java plugin can be configured to publish these Jars, which will cause them to run during publishing.
+Furthermore, the plugin can be configured to provide the `javadocJar` and `sourcesJar` tasks to package Javadoc and source code if so desired.
+If a publishing plugin is used, these tasks will automatically run during publishing or can be called directly.
 
 .Configure a project to publish Javadoc and sources
 ====

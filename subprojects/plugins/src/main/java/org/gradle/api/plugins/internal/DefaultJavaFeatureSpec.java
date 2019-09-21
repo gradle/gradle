@@ -69,6 +69,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
     private boolean overrideDefaultCapability = true;
     private SourceSet sourceSet;
+    private boolean publishJavadoc = false;
+    private boolean publishSources = false;
 
     public DefaultJavaFeatureSpec(String name,
                                   Capability defaultCapability,
@@ -105,6 +107,16 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     @Override
     public void create() {
         setupConfigurations(sourceSet);
+    }
+
+    @Override
+    public void publishJavadoc() {
+        publishJavadoc = true;
+    }
+
+    @Override
+    public void publishSources() {
+        publishSources = true;
     }
 
     private void setupConfigurations(SourceSet sourceSet) {
@@ -147,9 +159,12 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         attachArtifactToConfiguration(apiElements);
         attachArtifactToConfiguration(runtimeElements);
         configureJavaDocTask(name, sourceSet, tasks);
-        configureDocumentationVariantWithArtifact(name, apiElements, JAVADOC, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), tasks, objectFactory);
-        configureDocumentationVariantWithArtifact(name, runtimeElements, SOURCES, sourceSet.getSourcesJarTaskName(), sourceSet.getAllJava(), tasks, objectFactory);
-
+        if (publishJavadoc) {
+            configureDocumentationVariantWithArtifact(name, apiElements, JAVADOC, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), tasks, objectFactory);
+        }
+        if (publishSources) {
+            configureDocumentationVariantWithArtifact(name, runtimeElements, SOURCES, sourceSet.getSourcesJarTaskName(), sourceSet.getAllJava(), tasks, objectFactory);
+        }
         JvmPluginsHelper.configureClassesDirectoryVariant(sourceSet, javaPluginConvention.getProject(), apiElementsConfigurationName, Usage.JAVA_API);
 
         if (mainSourceSet) {
@@ -164,8 +179,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
         final AdhocComponentWithVariants component = findComponent();
         if (component != null) {
-            component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true, javaPluginConvention));
-            component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true, javaPluginConvention));
+            component.addVariantsFromConfiguration(apiElements, new JavaConfigurationVariantMapping("compile", true));
+            component.addVariantsFromConfiguration(runtimeElements, new JavaConfigurationVariantMapping("runtime", true));
         }
     }
 

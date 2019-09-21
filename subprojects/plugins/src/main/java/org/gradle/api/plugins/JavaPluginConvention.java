@@ -18,9 +18,7 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -180,23 +178,4 @@ public abstract class JavaPluginConvention {
      * @since 5.3
      */
     public abstract boolean getAutoTargetJvmDisabled();
-
-    /**
-     * Automatically package Javadoc and source code during publishing and publish variants with '-javadoc.jar' and '-sources.jar'.
-     * This also publishes Javadoc and sources for all additional features registered via {@link JavaPluginExtension#registerFeature(String, Action)}.
-     * The publishing of individual Javadoc or Sources variants can be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}.
-     * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)}.
-     *
-     * @since 6.0
-     */
-    @Incubating
-    public abstract void publishJavadocAndSources();
-
-    /**
-     * Is Javadoc and source code publishing enabled?
-     *
-     * @since 6.0
-     */
-    @Incubating
-    public abstract boolean getPublishJavadocAndSources();
 }
