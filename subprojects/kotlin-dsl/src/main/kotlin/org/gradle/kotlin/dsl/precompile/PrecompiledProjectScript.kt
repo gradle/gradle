@@ -54,7 +54,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^.*\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class PrecompiledProjectScript(
+open class PrecompiledProjectScript(
     override val delegate: Project
 ) : ProjectDelegate() {
 
