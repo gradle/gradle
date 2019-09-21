@@ -17,10 +17,12 @@
 package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.ProcessOperations
 
 import org.gradle.kotlin.dsl.GradleDsl
 import org.gradle.kotlin.dsl.SettingsScriptApi
 import org.gradle.kotlin.dsl.fileOperationsFor
+import org.gradle.kotlin.dsl.support.serviceOf
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateDefinition
@@ -36,7 +38,9 @@ import kotlin.script.templates.ScriptTemplateDefinition
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target) {
+open class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target), Settings by target {
 
     override val fileOperations by lazy { fileOperationsFor(delegate) }
+
+    override val processOperations by lazy { delegate.serviceOf<ProcessOperations>() }
 }
