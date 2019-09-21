@@ -105,7 +105,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     @Override
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
-        DefaultTypeValidationContext validationContext = new DefaultTypeValidationContext(implementation);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType();
         actionMetadata.visitValidationFailures(null, validationContext);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
 

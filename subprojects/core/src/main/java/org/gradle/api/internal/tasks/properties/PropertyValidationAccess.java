@@ -150,7 +150,7 @@ public class PropertyValidationAccess {
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
         boolean stricterValidation = enableStricterValidation || cacheable;
 
-        DefaultTypeValidationContext validationContext = new DefaultTypeValidationContext(topLevelBean);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(topLevelBean);
         while (!queue.isEmpty()) {
             BeanTypeNode<?> node = queue.remove();
             node.visit(topLevelBean, stricterValidation, validationContext, queue, nodeFactory);
@@ -296,7 +296,7 @@ public class PropertyValidationAccess {
         @Override
         public void validate(@Nullable String ownerPath, PropertyMetadata metadata, TypeValidationContext validationContext) {
             if (stricterValidation && !metadata.hasAnnotationForCategory(NORMALIZATION)) {
-                validationContext.visitProblem(
+                validationContext.visitPropertyProblem(
                     Severity.WARNING,
                     ownerPath,
                     metadata.getPropertyName(),

@@ -562,7 +562,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def "invalid work is not executed"() {
         def invalidWork = builder
             .withValidator { validationContext ->
-                validationContext.createContextFor(Object).visitProblem(ERROR, "Validation error")
+                validationContext.createContextFor(Object).visitTypeProblem(ERROR, Object, "Validation error")
             }
             .withWork({ throw new RuntimeException("Should not get executed") })
             .build()

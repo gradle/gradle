@@ -395,9 +395,9 @@ class DefaultTypeMetadataStoreTest extends Specification {
     }
 
     private static List<String> collectProblems(TypeMetadata metadata) {
-        def result = []
-        metadata.visitValidationFailures(null, new DefaultTypeValidationContext(result))
-        return result
+        def validationContext = DefaultTypeValidationContext.withoutRootType()
+        metadata.visitValidationFailures(null, validationContext)
+        return validationContext.problems.keySet().toList()
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {

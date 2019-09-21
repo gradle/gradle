@@ -41,9 +41,11 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         def expectedWarnings = messages
             .findAll { message, severity -> severity == WARNING }
             .keySet()
+            .collect { removeTypeForProperties(it) }
         def expectedErrors = messages
             .findAll { message, severity -> severity == ERROR }
             .keySet()
+            .collect { removeTypeForProperties(it) }
 
         if (expectedWarnings) {
             executer.expectDeprecationWarnings(expectedWarnings.size())
@@ -62,6 +64,10 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         expectedErrors.forEach { error ->
             failureHasCause(error)
         }
+    }
+
+    static String removeTypeForProperties(String message) {
+        message.replaceAll(/Type '.*?': property/, "Property")
     }
 
     @Override

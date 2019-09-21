@@ -242,7 +242,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
         ImmutableList<PropertyAnnotationMetadataBuilder> propertyBuilders = convertMethodToPropertyBuilders(methodBuilders);
         ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName = collectFieldAnnotations(type);
-        return mergePropertiesAndFieldMetadata(propertyBuilders, fieldAnnotationsByPropertyName, validationContext);
+        return mergePropertiesAndFieldMetadata(type, propertyBuilders, fieldAnnotationsByPropertyName, validationContext);
     }
 
     private ImmutableList<PropertyAnnotationMetadataBuilder> convertMethodToPropertyBuilders(Map<String, PropertyAnnotationMetadataBuilder> methodBuilders) {
@@ -289,7 +289,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         return fieldAnnotationsByPropertyName.build();
     }
 
-    private ImmutableSortedSet<PropertyAnnotationMetadata> mergePropertiesAndFieldMetadata(ImmutableList<PropertyAnnotationMetadataBuilder> propertyBuilders, ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName, TypeValidationContext validationContext) {
+    private ImmutableSortedSet<PropertyAnnotationMetadata> mergePropertiesAndFieldMetadata(Class<?> type, ImmutableList<PropertyAnnotationMetadataBuilder> propertyBuilders, ImmutableMap<String, ImmutableMap<Class<? extends Annotation>, Annotation>> fieldAnnotationsByPropertyName, TypeValidationContext validationContext) {
         ImmutableSortedSet.Builder<PropertyAnnotationMetadata> propertiesMetadataBuilder = ImmutableSortedSet.naturalOrder();
         ImmutableSet.Builder<String> fieldsSeenBuilder = ImmutableSet.builderWithExpectedSize(fieldAnnotationsByPropertyName.size());
         for (PropertyAnnotationMetadataBuilder metadataBuilder : propertyBuilders) {
@@ -320,10 +320,11 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 .forEach(entry -> {
                     String fieldName = entry.getKey();
                     ImmutableMap<Class<? extends Annotation>, Annotation> fieldAnnotations = entry.getValue();
-                    validationContext.visitProblem(WARNING,
+                    validationContext.visitTypeProblem(WARNING,
+                        type,
                         String.format("field '%s' without corresponding getter has been annotated with %s",
-                        fieldName,
-                        simpleAnnotationNames(fieldAnnotations.keySet().stream()))
+                            fieldName,
+                            simpleAnnotationNames(fieldAnnotations.keySet().stream()))
                     );
                 });
         }
@@ -402,10 +403,10 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
     private void validateSetterForMutableType(Method setterMethod, PropertyAccessorType setterAccessorType, TypeValidationContext validationContext, String propertyName) {
         Class<?> setterType = setterAccessorType.propertyTypeFor(setterMethod);
         if (isSetterProhibitedForType(setterType)) {
-            String typeName = setterType.getName();
-            validationContext.visitProblem(WARNING,
-                String.format("property '%s' of mutable type '%s' is writable. Properties of this type should be read-only and mutated via the value itself",
-                    propertyName, typeName)
+            validationContext.visitPropertyProblem(WARNING,
+                propertyName,
+                String.format("of mutable type '%s' is writable. Properties of this type should be read-only and mutated via the value itself",
+                    setterType.getName())
             );
         }
     }
@@ -431,7 +432,8 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
 
     private static void validateNotAnnotated(String methodKind, Method method, Set<Class<? extends Annotation>> annotationTypes, TypeValidationContext validationContext) {
         if (!annotationTypes.isEmpty()) {
-            validationContext.visitProblem(WARNING,
+            validationContext.visitTypeProblem(WARNING,
+                method.getDeclaringClass(),
                 String.format("%s method '%s()' should not be annotated with: %s",
                     methodKind, method.getName(), simpleAnnotationNames(annotationTypes.stream())
             ));
@@ -498,7 +500,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         }
 
         public void recordProblem(String problem) {
-            validationContext.visitProblem(WARNING, propertyName, problem);
+            validationContext.visitPropertyProblem(WARNING, propertyName, problem);
         }
 
         public PropertyAnnotationMetadata build() {

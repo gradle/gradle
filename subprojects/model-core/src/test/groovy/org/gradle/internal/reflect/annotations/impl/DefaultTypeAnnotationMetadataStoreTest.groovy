@@ -713,13 +713,18 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         }
 
         List<String> actualErrors = []
-        def visitor = new TypeValidationContext() {
+        def validationContext = new TypeValidationContext() {
             @Override
-            void visitProblem(TypeValidationContext.Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
+            void visitTypeProblem(TypeValidationContext.Severity severity, Class<?> typeWithProblems, String message) {
+                actualErrors.add(message.capitalize() + (severity == ERROR ? " [STRICT]" : ""))
+            }
+
+            @Override
+            void visitPropertyProblem(TypeValidationContext.Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
                 actualErrors.add(message.capitalize() + (severity == ERROR ? " [STRICT]" : ""))
             }
         }
-        metadata.visitValidationFailures("owner", visitor)
+        metadata.visitValidationFailures(validationContext)
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors

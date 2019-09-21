@@ -19,6 +19,7 @@ package org.gradle.internal.reflect;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public interface TypeValidationContext {
     enum Severity {
@@ -38,58 +39,57 @@ public interface TypeValidationContext {
     }
 
     /**
-     * Visits a validation problem associated with the given property.
+     * Visits a validation problem associated with the given type.
      */
-    default void visitProblem(Severity severity, String message) {
-        visitProblem(severity, null, null, message);
+    void visitTypeProblem(Severity severity, Class<?> type, String message);
+
+    /**
+     * Visits a validation problem associated with the given property of the validated type.
+     */
+    default void visitPropertyProblem(Severity severity, String message) {
+        visitPropertyProblem(severity, null, null, message);
     }
 
     /**
-     * Visits a validation problem associated with the given property.
+     * Visits a validation problem associated with the given property of the validated type.
      */
-    default void visitProblem(Severity severity, @Nullable String property, String message) {
-        visitProblem(severity, null, property, message);
+    default void visitPropertyProblem(Severity severity, @Nullable String property, String message) {
+        visitPropertyProblem(severity, null, property, message);
     }
 
     /**
-     * Visits a validation problem associated with the given property.
+     * Visits a validation problem associated with the given (child) property of the validated type.
      */
-    void visitProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message);
+    void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message);
 
-    TypeValidationContext NOOP = (severity, parentProperty, property, message) -> {};
+    TypeValidationContext NOOP = new TypeValidationContext() {
+        @Override
+        public void visitTypeProblem(Severity severity, Class<?> type, String message) {}
+
+        @Override
+        public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {}
+    };
 
     class ReplayingTypeValidationContext implements TypeValidationContext {
-        private static class Problem {
-            private final Severity severity;
-            private final String parentProperty;
-            private final String property;
-            private final String message;
+        private final List<BiConsumer<String, TypeValidationContext>> problems = new ArrayList<>();
 
-            public Problem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-                this.severity = severity;
-                this.parentProperty = parentProperty;
-                this.property = property;
-                this.message = message;
-            }
-        }
-
-        private final List<Problem> problems = new ArrayList<>();
-
-        public ReplayingTypeValidationContext() {
+        @Override
+        public void visitTypeProblem(Severity severity, Class<?> type, String message) {
+            problems.add((ownerProperty, validationContext) -> validationContext.visitTypeProblem(severity, type, message));
         }
 
         @Override
-        public void visitProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-            problems.add(new Problem(severity, parentProperty, property, message));
+        public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
+            problems.add((ownerProperty, validationContext) -> validationContext.visitPropertyProblem(
+                severity,
+                combineParents(ownerProperty, parentProperty),
+                property,
+                message
+            ));
         }
 
-        public void replay(@Nullable String parentProperty, TypeValidationContext target) {
-            problems.forEach(problem -> target.visitProblem(
-                problem.severity,
-                combineParents(parentProperty, problem.parentProperty),
-                problem.property,
-                problem.message
-            ));
+        public void replay(@Nullable String ownerProperty, TypeValidationContext target) {
+            problems.forEach(problem -> problem.accept(ownerProperty, target));
         }
 
         @Nullable

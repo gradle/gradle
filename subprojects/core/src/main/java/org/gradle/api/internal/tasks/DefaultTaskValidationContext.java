@@ -35,8 +35,13 @@ public class DefaultTaskValidationContext implements TaskValidationContext, Type
     }
 
     @Override
-    public void visitProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
-        delegate.visitProblem(severity, parentProperty, property, message);
+    public void visitTypeProblem(Severity severity, Class<?> type, String message) {
+        delegate.visitTypeProblem(severity, type, message);
+    }
+
+    @Override
+    public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
+        delegate.visitPropertyProblem(severity, parentProperty, property, message);
     }
 
     @Override

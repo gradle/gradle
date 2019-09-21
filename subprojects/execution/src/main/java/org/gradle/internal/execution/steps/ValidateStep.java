@@ -78,7 +78,7 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
 
         @Override
         public TypeValidationContext createContextFor(Class<?> type) {
-            return new MessageFormattingTypeValidationContext(type) {
+            return new MessageFormattingTypeValidationContext(null) {
                 @Override
                 protected void recordProblem(Severity severity, String message) {
                     problems.put(severity, message);

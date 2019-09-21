@@ -106,7 +106,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
             Annotation normalizationAnnotation = propertyAnnotations.get(NORMALIZATION);
             Class<? extends Annotation> propertyType = determinePropertyType(typeAnnotation, normalizationAnnotation);
             if (propertyType == null) {
-                validationContext.visitProblem(WARNING,
+                validationContext.visitPropertyProblem(WARNING,
                     propertyAnnotationMetadata.getPropertyName(),
                     String.format("is not annotated with %s", displayName)
                 );
@@ -115,7 +115,7 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
 
             PropertyAnnotationHandler annotationHandler = propertyAnnotationHandlers.get(propertyType);
             if (annotationHandler == null) {
-                validationContext.visitProblem(ERROR,
+                validationContext.visitPropertyProblem(ERROR,
                     propertyAnnotationMetadata.getPropertyName(),
                     String.format("is annotated with invalid property type @%s",
                         propertyType.getSimpleName())
@@ -131,13 +131,13 @@ public class DefaultTypeMetadataStore implements TypeMetadataStore {
                 }
                 Class<? extends Annotation> annotationType = entry.getValue().annotationType();
                 if (!allowedModifiersForPropertyType.contains(annotationCategory)) {
-                    validationContext.visitProblem(WARNING,
+                    validationContext.visitPropertyProblem(WARNING,
                         propertyAnnotationMetadata.getPropertyName(),
                         String.format("is annotated with @%s that is not allowed for @%s properties",
                             annotationType.getSimpleName(), propertyType.getSimpleName())
                     );
                 } else if (!allowedPropertyModifiers.contains(annotationType)) {
-                    validationContext.visitProblem(ERROR,
+                    validationContext.visitPropertyProblem(ERROR,
                         propertyAnnotationMetadata.getPropertyName(),
                         String.format("has invalid annotation @%s",
                             annotationType.getSimpleName())

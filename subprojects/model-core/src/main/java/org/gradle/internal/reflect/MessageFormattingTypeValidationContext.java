@@ -21,18 +21,36 @@ import javax.annotation.Nullable;
 abstract public class MessageFormattingTypeValidationContext implements TypeValidationContext {
     private final Class<?> rootType;
 
-    public MessageFormattingTypeValidationContext(Class<?> rootType) {
+    public MessageFormattingTypeValidationContext(@Nullable Class<?> rootType) {
         this.rootType = rootType;
     }
 
     @Override
-    public void visitProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
+    public void visitTypeProblem(Severity severity, Class<?> type, String message) {
+        @SuppressWarnings("StringBufferReplaceableByString")
         StringBuilder builder = new StringBuilder();
         builder.append("Type '");
-        builder.append(rootType.getTypeName());
+        builder.append(type.getTypeName());
         builder.append("': ");
+        builder.append(message);
+        builder.append('.');
+        recordProblem(severity, builder.toString());
+    }
+
+    @Override
+    public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
+        StringBuilder builder = new StringBuilder();
+        if (rootType != null) {
+            builder.append("Type '");
+            builder.append(rootType.getTypeName());
+            builder.append("': ");
+        }
         if (property != null) {
-            builder.append("property '");
+            if (rootType == null) {
+                builder.append("Property '");
+            } else {
+                builder.append("property '");
+            }
             if (parentProperty != null) {
                 builder.append(parentProperty);
                 builder.append('.');

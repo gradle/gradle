@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.VariantTransformConfigurationException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
-import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -140,13 +139,13 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == AbsolutePathInputNormalizer.class) {
-                validationContext.visitProblem(WARNING,
+                validationContext.visitPropertyProblem(WARNING,
                     propertyName,
                     "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms"
                 );
             }
             if (normalizer == null) {
-                validationContext.visitProblem(WARNING,
+                validationContext.visitPropertyProblem(WARNING,
                     propertyName,
                     "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath"
                 );
@@ -265,7 +264,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-        DefaultTypeValidationContext validationContext = new DefaultTypeValidationContext(GeneratedSubclasses.unpackType(parameterObject));
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType();
         propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
             @Override
             public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
@@ -273,7 +272,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.visitProblem(WARNING,
+                        validationContext.visitPropertyProblem(WARNING,
                             propertyName,
                             "does not have a value specified"
                         );
@@ -291,7 +290,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
             @Override
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.visitProblem(WARNING,
+                validationContext.visitPropertyProblem(WARNING,
                     propertyName,
                     "is annotated with an output annotation"
                 );

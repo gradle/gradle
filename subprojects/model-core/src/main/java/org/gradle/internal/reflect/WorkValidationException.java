@@ -26,6 +26,7 @@ import java.util.List;
  * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
  */
 @Contextual
+// TODO Move this to :execution
 public class WorkValidationException extends DefaultMultiCauseException {
     public WorkValidationException(String message, List<InvalidUserDataException> causes) {
         super(message, causes);

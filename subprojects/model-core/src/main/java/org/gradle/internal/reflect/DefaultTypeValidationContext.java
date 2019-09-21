@@ -18,10 +18,20 @@ package org.gradle.internal.reflect;
 
 import com.google.common.collect.ImmutableMap;
 
+import javax.annotation.Nullable;
+
 public class DefaultTypeValidationContext extends MessageFormattingTypeValidationContext {
     private final ImmutableMap.Builder<String, Severity> problems = ImmutableMap.builder();
 
-    public DefaultTypeValidationContext(Class<?> rootType) {
+    public static DefaultTypeValidationContext withRootType(Class<?> rootType) {
+        return new DefaultTypeValidationContext(rootType);
+    }
+
+    public static DefaultTypeValidationContext withoutRootType() {
+        return new DefaultTypeValidationContext(null);
+    }
+
+    private DefaultTypeValidationContext(@Nullable Class<?> rootType) {
         super(rootType);
     }
 

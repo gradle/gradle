@@ -206,9 +206,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask': Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.": ERROR,
-            "Type 'MyTask': Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.": ERROR,
-            "Type 'MyTask': Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.": ERROR,
+            "Type 'MyTask\$Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.": ERROR,
+            "Type 'MyTask\$Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
+            "Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
         )
     }
 
@@ -580,11 +580,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask\$Options': setter method 'setReadWrite()' should not be annotated with: @Input": WARNING,
-            "Type 'MyTask\$Options': setter method 'setWriteOnly()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask\$Options': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
+            "Type 'MyTask\$Options': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
             "Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input": WARNING,
-            "Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
+            "Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
         )
     }
 
