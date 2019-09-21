@@ -77,7 +77,9 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         assertInstanceOf<PrecompiledSettingsScript>(
             instantiatePrecompiledScriptOf(
                 settings,
-                "My_settings_script_settings_gradle"))
+                "My_settings_script_settings_gradle"
+            )
+        )
 
         verify(settings).include("my-project")
     }
@@ -96,7 +98,9 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         assertInstanceOf<PrecompiledInitScript>(
             instantiatePrecompiledScriptOf(
                 gradle,
-                "My_gradle_script_init_gradle"))
+                "My_gradle_script_init_gradle"
+            )
+        )
 
         verify(gradle).useLogger("my-logger")
     }
@@ -130,7 +134,8 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
         assertThat(
             exception.message,
-            equalTo(expectedMessage))
+            equalTo(expectedMessage)
+        )
     }
 
     @Test
@@ -152,7 +157,8 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
         instantiatePrecompiledScriptOf(
             project,
-            "My_project_script_gradle")
+            "My_project_script_gradle"
+        )
 
         verify(tasks).create("jar", Jar::class.java)
     }
