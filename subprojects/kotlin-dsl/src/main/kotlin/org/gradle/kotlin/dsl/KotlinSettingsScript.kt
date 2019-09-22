@@ -22,7 +22,6 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.DefaultFileOperations
@@ -33,14 +32,11 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
-import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.delegates.PluginAwareDelegate
 import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -71,25 +67,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
 abstract class KotlinSettingsScript(
     host: KotlinScriptHost<Settings>
 ) : SettingsScriptApi(host.target), Settings /* TODO:kotlin-dsl configure as implicit receiver */
-
-
-@ImplicitReceiver(Settings::class)
-open class CompiledKotlinSettingsScript(
-    private val host: KotlinScriptHost<Settings>
-) : SettingsScriptApi(host.target), PluginAware by PluginAwareDelegate(host) {
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    val buildscript: ScriptHandler
-        get() = host.scriptHandler
-
-    override val fileOperations
-        get() = host.fileOperations
-
-    override val processOperations
-        get() = host.processOperations
-}
 
 
 /**

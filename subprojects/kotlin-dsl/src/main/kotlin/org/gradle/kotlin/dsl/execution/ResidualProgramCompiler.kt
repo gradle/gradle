@@ -23,7 +23,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
 
-import org.gradle.kotlin.dsl.CompiledKotlinSettingsScript
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction

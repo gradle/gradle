@@ -25,7 +25,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginAware
 
-import org.gradle.kotlin.dsl.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.InitScriptApi
 import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.ScriptHandlerScope
