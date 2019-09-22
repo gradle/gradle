@@ -33,7 +33,7 @@ import org.gradle.api.tasks.TaskAction
 
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.HashedClassPath
 
-import org.gradle.kotlin.dsl.support.KotlinPluginsBlock
+import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 
@@ -73,7 +73,7 @@ abstract class CompilePrecompiledScriptPluginPlugins : DefaultTask(), SharedAcce
                     sourceFiles.name,
                     scriptFiles,
                     scriptDefinitionFromTemplate(
-                        KotlinPluginsBlock::class,
+                        CompiledKotlinPluginsBlock::class,
                         implicitImportsForPrecompiledScriptPlugins()
                     ),
                     classPathFiles,

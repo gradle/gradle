@@ -27,20 +27,45 @@ import org.gradle.api.plugins.PluginAware
 
 import org.gradle.kotlin.dsl.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.InitScriptApi
-import org.gradle.kotlin.dsl.KotlinBuildScript
+import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.kotlin.dsl.support.delegates.PluginAwareDelegate
 
-import kotlin.reflect.KClass
 
+@ImplicitReceiver(Project::class)
+open class CompiledKotlinBuildScript(
+    private val host: KotlinScriptHost<Project>
+) {
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    val buildscript: ScriptHandler
+        get() = host.scriptHandler
 
-internal
-annotation class ImplicitReceiver(val type: KClass<*>)
+    /**
+     * Configures the build script classpath for this project.
+     *
+     * @see [Project.buildscript]
+     */
+    @Suppress("unused")
+    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
+        internalError()
 
+    /**
+     * Configures the plugin dependencies for this project.
+     *
+     * @see [PluginDependenciesSpec]
+     */
+    @Suppress("unused")
+    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
+        invalidPluginsCall()
+}
 
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
-abstract class KotlinBuildscriptBlock(host: KotlinScriptHost<Project>) : KotlinBuildScript(host) {
+@ImplicitReceiver(Project::class)
+abstract class CompiledKotlinBuildscriptBlock(host: KotlinScriptHost<Project>) : CompiledKotlinBuildScript(host) {
 
     /**
      * Configures the build script classpath for this project.
@@ -57,7 +82,7 @@ abstract class KotlinBuildscriptBlock(host: KotlinScriptHost<Project>) : KotlinB
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
 @ImplicitReceiver(Settings::class)
-abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) : CompiledKotlinSettingsScript(host) {
+abstract class CompiledKotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) : CompiledKotlinSettingsScript(host) {
 
     /**
      * Configures the build script classpath for settings.
@@ -73,7 +98,7 @@ abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) 
 @ImplicitReceiver(Gradle::class)
 abstract class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
-) : InitScriptApi(host.target), PluginAware {
+) : InitScriptApi(host.target), PluginAware by PluginAwareDelegate(host) {
 
     /**
      * The [ScriptHandler] for this script.
@@ -104,7 +129,7 @@ abstract class CompiledKotlinInitScript(
  * Base class for `initscript` block evaluation on scripts targeting Gradle.
  */
 @ImplicitReceiver(Gradle::class)
-abstract class KotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : CompiledKotlinInitScript(host) {
+abstract class CompiledKotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : CompiledKotlinInitScript(host) {
 
     /**
      * Configures the classpath of the init script.
@@ -113,3 +138,11 @@ abstract class KotlinInitscriptBlock(host: KotlinScriptHost<Gradle>) : CompiledK
         initscript.configureWith(block)
     }
 }
+
+
+internal
+fun invalidPluginsCall(): Nothing =
+    throw Exception(
+        "The plugins {} block must not be used here. "
+            + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
+    )

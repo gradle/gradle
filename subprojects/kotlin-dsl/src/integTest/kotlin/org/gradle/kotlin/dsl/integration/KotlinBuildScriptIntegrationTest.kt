@@ -17,6 +17,17 @@ import java.io.StringWriter
 class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
+    fun `Project receiver is undecorated`() {
+
+        withBuildScript("""
+            fun Project.implicitReceiver() = this
+            require(implicitReceiver() === rootProject)
+        """)
+
+        build("help")
+    }
+
+    @Test
     fun `scripts larger than 64KB are supported`() {
 
         withBuildScriptLargerThan64KB("""

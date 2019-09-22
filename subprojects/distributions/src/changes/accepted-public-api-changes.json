@@ -233,6 +233,20 @@
             "member": "Method org.gradle.kotlin.dsl.SettingsScriptApi.getDelegate()",
             "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
             "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
+            "member": "Constructor org.gradle.kotlin.dsl.KotlinBuildScript(org.gradle.kotlin.dsl.support.KotlinScriptHost)",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinBuildScript",
+            "member": "Constructor org.gradle.kotlin.dsl.KotlinBuildScript()",
+            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "changes": []
         }
     ]
 }

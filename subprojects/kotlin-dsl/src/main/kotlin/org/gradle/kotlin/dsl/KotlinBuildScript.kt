@@ -17,14 +17,11 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Project
-import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
-import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
 import org.gradle.kotlin.dsl.support.internalError
-
-import org.gradle.plugin.use.PluginDependenciesSpec
+import org.gradle.kotlin.dsl.support.invalidPluginsCall
 
 import kotlin.script.extensions.SamWithReceiverAnnotations
 import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
@@ -46,18 +43,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 ])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-abstract class KotlinBuildScript(
-    private val host: KotlinScriptHost<Project>
-) : ProjectDelegate() {
-
-    override val delegate: Project
-        get() = host.target
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
+abstract class KotlinBuildScript : ProjectDelegate() /* TODO:kotlin-dsl configure as implicit receiver */ {
 
     /**
      * Configures the build script classpath for this project.
@@ -75,8 +61,5 @@ abstract class KotlinBuildScript(
      */
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
-        throw Exception(
-            "The plugins {} block must not be used here. "
-                + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead."
-        )
+        invalidPluginsCall()
 }

@@ -25,8 +25,8 @@ import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 
-import org.hamcrest.CoreMatchers
-import org.hamcrest.MatcherAssert
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 
@@ -60,9 +60,9 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
                     .getDeclaredConstructor(FooHost::class.java, FooReceiver::class.java)
                     .newInstance(host, receiver)
 
-                MatcherAssert.assertThat(
+                assertThat(
                     receiver.bars,
-                    CoreMatchers.equalTo(1)
+                    equalTo(1)
                 )
             }
         }
