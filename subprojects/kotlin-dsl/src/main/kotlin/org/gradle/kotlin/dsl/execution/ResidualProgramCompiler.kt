@@ -237,7 +237,7 @@ class ResidualProgramCompiler(
                 pluginsBlockClassPath
             )
 
-        val implicitReceiver = implicitReceiverOf(scriptDefinition)!!
+        val implicitReceiverType = implicitReceiverOf(scriptDefinition)!!
         precompiledScriptClassInstantiation(precompiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
@@ -246,11 +246,11 @@ class ResidualProgramCompiler(
             ALOAD(Vars.ScriptHost)
             // ${plugins}(temp.createSpec(lineNumber))
             emitPluginRequestCollectorCreateSpecFor(plugins)
-            loadTarget() // implicit receiver
+            loadTargetOf(implicitReceiverType)
             INVOKESPECIAL(
                 precompiledBuildscriptWithPluginsBlock,
                 "<init>",
-                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;L${implicitReceiver.internalName};)V"
+                "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;Lorg/gradle/plugin/use/PluginDependenciesSpec;L${implicitReceiverType.internalName};)V"
             )
 
             emitApplyPluginsTo()
@@ -271,20 +271,22 @@ class ResidualProgramCompiler(
     private
     fun MethodVisitor.emitApplyBasePluginsTo() {
         ALOAD(Vars.ProgramHost)
-        loadTarget()
-        CHECKCAST(Project::class.internalName)
+        loadTargetOf(Project::class)
         invokeHost(
             "applyBasePluginsTo",
-            "(Lorg/gradle/api/Project;)V")
+            "(Lorg/gradle/api/Project;)V"
+        )
     }
 
     private
-    fun MethodVisitor.loadTarget() {
+    fun MethodVisitor.loadTargetOf(expectedType: KClass<*>) {
         ALOAD(Vars.ScriptHost)
         INVOKEVIRTUAL(
-                KotlinScriptHost::class.internalName,
-                "getTarget",
-                "()Ljava/lang/Object;")
+            KotlinScriptHost::class.internalName,
+            "getTarget",
+            "()Ljava/lang/Object;"
+        )
+        CHECKCAST(expectedType.internalName)
     }
 
     private
@@ -507,17 +509,16 @@ class ResidualProgramCompiler(
         scriptDefinition: ScriptDefinition
     ) {
 
-        val implicitReceiver = implicitReceiverOf(scriptDefinition)
+        val implicitReceiverType = implicitReceiverOf(scriptDefinition)
         precompiledScriptClassInstantiation(precompiledScriptClass) {
 
             // ${precompiledScriptClass}(scriptHost)
             NEW(precompiledScriptClass)
             val constructorSignature =
-                if (implicitReceiver != null) {
+                if (implicitReceiverType != null) {
                     ALOAD(Vars.ScriptHost)
-                    loadTarget()
-                    CHECKCAST(implicitReceiver)
-                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;L${implicitReceiver.internalName};)V"
+                    loadTargetOf(implicitReceiverType)
+                    "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;L${implicitReceiverType.internalName};)V"
                 } else {
                     ALOAD(Vars.ScriptHost)
                     "(Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;)V"
