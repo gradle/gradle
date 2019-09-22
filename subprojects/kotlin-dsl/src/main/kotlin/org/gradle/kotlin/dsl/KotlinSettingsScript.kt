@@ -15,7 +15,6 @@
  */
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -34,7 +33,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
@@ -42,6 +40,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.ImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.delegates.PluginAwareDelegate
 import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
@@ -75,9 +74,9 @@ abstract class KotlinSettingsScript(
 
 
 @ImplicitReceiver(Settings::class)
-abstract class CompiledKotlinSettingsScript(
+open class CompiledKotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
-) : SettingsScriptApi(host.target), PluginAware {
+) : SettingsScriptApi(host.target), PluginAware by PluginAwareDelegate(host) {
 
     /**
      * The [ScriptHandler] for this script.
@@ -90,9 +89,6 @@ abstract class CompiledKotlinSettingsScript(
 
     override val processOperations
         get() = host.processOperations
-
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.applyObjectConfigurationAction(action)
 }
 
 
