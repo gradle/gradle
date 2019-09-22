@@ -61,6 +61,7 @@ open class CompiledKotlinBuildScript(
         invalidPluginsCall()
 }
 
+
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
