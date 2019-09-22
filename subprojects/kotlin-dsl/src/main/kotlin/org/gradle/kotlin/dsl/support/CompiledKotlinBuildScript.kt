@@ -59,6 +59,18 @@ open class CompiledKotlinBuildScript(
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         invalidPluginsCall()
+
+    /**
+     * Applies zero or more plugins or scripts.
+     * <p>
+     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
+     * <p>
+     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
+     * @see [PluginAware.apply]
+     */
+    // Method is only required to disambiguate from the standard `T.apply(T.() -> Unit)` combinator
+    fun apply(action: Action<in ObjectConfigurationAction>) =
+        host.target.apply(action)
 }
 
 
@@ -83,7 +95,9 @@ abstract class CompiledKotlinBuildscriptBlock(host: KotlinScriptHost<Project>) :
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
 @ImplicitReceiver(Settings::class)
-abstract class CompiledKotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) : CompiledKotlinSettingsScript(host) {
+abstract class CompiledKotlinSettingsBuildscriptBlock(
+    host: KotlinScriptHost<Settings>
+) : CompiledKotlinSettingsScript(host) {
 
     /**
      * Configures the build script classpath for settings.
@@ -106,17 +120,6 @@ abstract class CompiledKotlinInitScript(
      */
     override val initscript: ScriptHandler
         get() = host.scriptHandler
-
-    /**
-     * Applies zero or more plugins or scripts.
-     * <p>
-     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
-     * <p>
-     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
-     * @see [PluginAware.apply]
-     */
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.applyObjectConfigurationAction(action)
 
     override val fileOperations
         get() = host.fileOperations
