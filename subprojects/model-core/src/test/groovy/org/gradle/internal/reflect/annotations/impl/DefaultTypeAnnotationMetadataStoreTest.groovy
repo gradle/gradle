@@ -712,7 +712,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             }
         }
 
-        def validationContext = DefaultTypeValidationContext.withoutRootType()
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
         metadata.visitValidationFailures(validationContext)
         List<String> actualErrors = validationContext.problems
             .collect({ message, severity -> ("$message" + (severity == ERROR ? " [STRICT]" : "") as String) })

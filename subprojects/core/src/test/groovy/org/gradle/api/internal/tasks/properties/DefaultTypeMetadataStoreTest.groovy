@@ -396,7 +396,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
     }
 
     private static List<String> collectProblems(TypeMetadata metadata) {
-        def validationContext = DefaultTypeValidationContext.withoutRootType()
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
         metadata.visitValidationFailures(null, validationContext)
         return validationContext.problems.keySet().toList()
     }
