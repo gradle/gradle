@@ -573,7 +573,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         then:
         def ex = thrown WorkValidationException
         ex.causes.size() == 1
-        ex.causes[0].message == "Validation error"
+        ex.causes[0].message == "Type 'java.lang.Object': Validation error"
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
