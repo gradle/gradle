@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
 /**
@@ -29,6 +30,9 @@ import spock.lang.Unroll
  *
  */
 class AndroidPluginsSmokeTest extends AbstractSmokeTest {
+
+
+    public static final String JAVA_COMPILE_DEPRECATION_MESSAGE = "Extending the JavaCompile task has been deprecated. This is scheduled to be removed in Gradle 7.0. Configure the task instead."
 
     def setup() {
         AndroidHome.assertIsSet()
@@ -77,9 +81,19 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
 
         when:
-        def result = runner('androidDependencies', 'build', 'connectedAndroidTest', '-x', 'lint').build()
+        def result = runner(
+            'androidDependencies',
+            'build',
+            'connectedAndroidTest',
+            '--warning-mode', 'all',
+            '-x', 'lint').build()
 
         then:
+        if (VersionNumber.parse(pluginVersion).baseVersion < VersionNumber.parse("3.6.0").baseVersion) {
+            assert result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
+        } else {
+            assert !result.output.contains(JAVA_COMPILE_DEPRECATION_MESSAGE)
+        }
         result.task(':assemble').outcome == TaskOutcome.SUCCESS
         result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
