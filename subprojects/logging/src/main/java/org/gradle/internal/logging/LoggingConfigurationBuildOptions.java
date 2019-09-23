@@ -178,7 +178,7 @@ public class LoggingConfigurationBuildOptions {
         public static final String GRADLE_PROPERTY = "org.gradle.warning.mode";
 
         public WarningsOption() {
-            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which mode of warnings to generate. Values are 'all', 'summary'(default) or 'none'"));
+            super(GRADLE_PROPERTY, CommandLineOptionConfiguration.create(LONG_OPTION, "Specifies which mode of warnings to generate. Values are 'all', 'fail', 'summary'(default) or 'none'"));
         }
 
         @Override

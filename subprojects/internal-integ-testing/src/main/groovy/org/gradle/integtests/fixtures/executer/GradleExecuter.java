@@ -423,7 +423,7 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter withConsole(ConsoleOutput consoleOutput);
 
     /**
-     * Executes the build with {@code "--warning-mode=none, summary, all"} argument.
+     * Executes the build with {@code "--warning-mode=none, summary, fail, all"} argument.
      *
      * @see WarningMode
      */
