@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.management.internal.autoapply;
 
+import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -55,12 +56,9 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         return buildDefinition.getInjectedPluginRequests();
     }
 
-    // We temporally disable auto apply functionality to fix a chicken egg problem with the gradle enterprise plugin that is
-    //    converted to be a settings plugin
     private boolean shouldApplyScanPlugin(Project target) {
-//        StartParameter startParameter = buildDefinition.getStartParameter();
-//        return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
-        return false;
+        StartParameter startParameter = buildDefinition.getStartParameter();
+        return startParameter.isBuildScan() && target.getParent() == null && target.getGradle().getParent() == null;
     }
 
     private static DefaultPluginRequest createScanPluginRequest() {
