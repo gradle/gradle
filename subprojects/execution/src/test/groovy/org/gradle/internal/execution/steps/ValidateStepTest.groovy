@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork.WorkValidationContext
-import org.gradle.internal.reflect.WorkValidationException
+import org.gradle.internal.execution.WorkValidationException
 
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING

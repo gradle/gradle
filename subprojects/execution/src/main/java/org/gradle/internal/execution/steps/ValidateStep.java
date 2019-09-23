@@ -23,10 +23,10 @@ import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
 import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext.Severity;
-import org.gradle.internal.reflect.WorkValidationException;
 
 import java.util.List;
 import java.util.stream.Collectors;
