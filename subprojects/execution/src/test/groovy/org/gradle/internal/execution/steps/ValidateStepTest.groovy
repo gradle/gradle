@@ -17,8 +17,11 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.Result
-import org.gradle.internal.reflect.TypeValidationContext
+import org.gradle.internal.execution.UnitOfWork.WorkValidationContext
 import org.gradle.internal.reflect.WorkValidationException
+
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class ValidateStepTest extends ContextInsensitiveStepSpec {
     def warningReporter = Mock(ValidateStep.ValidationWarningReporter)
@@ -36,7 +39,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         1 * delegate.execute(_) >> { ctx ->
             delegateResult
         }
-        _ * work.validate(_ as TypeValidationContext) >> { validated = true }
+        _ * work.validate(_ as  WorkValidationContext) >> { validated = true }
 
         then:
         validated
@@ -51,10 +54,10 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         def ex = thrown WorkValidationException
         ex.message == "A problem was found with the configuration of job ':test'."
         ex.causes.size() == 1
-        ex.causes[0].message == "Validation error"
+        ex.causes[0].message == "Type '$Object.name': Validation error."
 
-        _ * work.validate(_ as TypeValidationContext) >> { TypeValidationContext validationContext ->
-            validationContext.visitError("Validation error")
+        _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
+            validationContext.createContextFor(Object).visitTypeProblem(ERROR, Object, "Validation error")
         }
         0 * _
     }
@@ -67,12 +70,13 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         def ex = thrown WorkValidationException
         ex.message == "Some problems were found with the configuration of job ':test'."
         ex.causes.size() == 2
-        ex.causes[0].message == "Validation error #1"
-        ex.causes[1].message == "Validation error #2"
+        ex.causes[0].message == "Type '$Object.name': Validation error #1."
+        ex.causes[1].message == "Type '$Object.name': Validation error #2."
 
-        _ * work.validate(_ as TypeValidationContext) >> { TypeValidationContext validationContext ->
-            validationContext.visitError("Validation error #1")
-            validationContext.visitError("Validation error #2")
+        _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
+            def typeContext = validationContext.createContextFor(Object)
+            typeContext.visitTypeProblem(ERROR, Object, "Validation error #1")
+            typeContext.visitTypeProblem(ERROR, Object, "Validation error #2")
         }
         0 * _
     }
@@ -82,12 +86,12 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         step.execute(context)
 
         then:
-        _ * work.validate(_ as TypeValidationContext) >> { TypeValidationContext validationContext ->
-            validationContext.visitWarning("Validation warning")
+        _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
+            validationContext.createContextFor(Object).visitTypeProblem(WARNING, Object, "Validation warning")
         }
 
         then:
-        1 * warningReporter.reportValidationWarning("Validation warning")
+        1 * warningReporter.reportValidationWarning("Type '$Object.name': Validation warning.")
 
         then:
         1 * delegate.execute(context)
@@ -99,19 +103,20 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         step.execute(context)
 
         then:
-        _ * work.validate(_ as TypeValidationContext) >> { TypeValidationContext validationContext ->
-            validationContext.visitWarning("Validation warning")
-            validationContext.visitError("Validation error")
+        _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
+            def typeContext = validationContext.createContextFor(Object)
+            typeContext.visitTypeProblem(ERROR, Object, "Validation error")
+            typeContext.visitTypeProblem(WARNING, Object, "Validation warning")
         }
 
         then:
-        1 * warningReporter.reportValidationWarning("Validation warning")
+        1 * warningReporter.reportValidationWarning("Type '$Object.name': Validation warning.")
 
         then:
         def ex = thrown WorkValidationException
         ex.message == "A problem was found with the configuration of job ':test'."
         ex.causes.size() == 1
-        ex.causes[0].message == "Validation error"
+        ex.causes[0].message == "Type '$Object.name': Validation error."
         0 * _
     }
 }
