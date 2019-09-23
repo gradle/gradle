@@ -52,7 +52,6 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.util.VersionNumber;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -93,17 +92,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
         Configuration zinc = project.getConfigurations().create(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.");
         zinc.defaultDependencies(dependencies -> dependencies.add(project.getDependencies().create("org.scala-sbt:zinc_2.12:" + scalaPluginExtension.getZincVersion().get())));
-
-        // Setup help for people using older versions of the Zinc compiler or the incompatible implementation.
-        VersionNumber minimumSupportedVersion = VersionNumber.parse("1.2.0");
-        zinc.getResolutionStrategy().componentSelection(rules -> {
-            rules.withModule("com.typesafe.zinc:zinc", selection -> selection.reject(String.format("Gradle is not compatible with the Typesafe version of the Zinc compiler. Please use org.scala-sbt:zinc_2.12:%s or newer.", minimumSupportedVersion)));
-            rules.withModule("org.scala-sbt:zinc_2.12", selection -> {
-                if (minimumSupportedVersion.compareTo(VersionNumber.parse(selection.getCandidate().getVersion())) > 0) {
-                    selection.reject(String.format("Gradle is not compatible with this version of the Zinc compiler. Please use %s or newer.", minimumSupportedVersion));
-                }
-            });
-        });
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
         incrementalAnalysisElements.setVisible(false);
