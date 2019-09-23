@@ -284,6 +284,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter expectDeprecationWarning();
 
     /**
+     * Expects exactly the given deprecation warning.
+     */
+    GradleExecuter expectDeprecationWarning(String warning);
+
+    /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
      * the execution, the assertion fails.
      */

@@ -73,6 +73,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
@@ -150,7 +151,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean showStacktrace = true;
     private boolean renderWelcomeMessage;
 
-    private int expectedDeprecationWarnings;
+    private int expectedGenericDeprecationWarnings;
+    private List<String> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
@@ -219,7 +221,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         commandLineJvmOpts.clear();
         buildJvmOpts.clear();
         useOnlyRequestedJvmOpts = false;
-        expectedDeprecationWarnings = 0;
+        expectedGenericDeprecationWarnings = 0;
+        expectedDeprecationWarnings.clear();
         stackTraceChecksOn = true;
         renderWelcomeMessage = false;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
@@ -344,9 +347,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.noExtraLogging();
 
-        if (expectedDeprecationWarnings > 0) {
-            executer.expectDeprecationWarnings(expectedDeprecationWarnings);
+        if (expectedGenericDeprecationWarnings > 0) {
+            executer.expectDeprecationWarnings(expectedGenericDeprecationWarnings);
         }
+        expectedDeprecationWarnings.forEach(executer::expectDeprecationWarning);
         if (!eagerClassLoaderCreationChecksOn) {
             executer.withEagerClassLoaderCreationCheckDisabled();
         }
@@ -1132,7 +1136,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected Action<ExecutionResult> getResultAssertion() {
         return new Action<ExecutionResult>() {
-            int expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
+            List<String> expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
             boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
             boolean checkDeprecations = AbstractGradleExecuter.this.checkDeprecations;
 
@@ -1155,8 +1159,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
                 validate(error, "Standard error");
 
-                if (expectedDeprecationWarnings > 0) {
-                    throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedDeprecationWarnings));
+                if (!expectedDeprecationWarnings.isEmpty()) {
+                    throw new AssertionError(String.format("Expected the following deprecation warnings:%n%s",
+                        expectedDeprecationWarnings.stream().map(warning -> " - " + warning).collect(Collectors.joining("\n"))));
                 }
             }
 
@@ -1203,16 +1208,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         i++;
                     } else if (isDeprecationMessageInHelpDescription(line)) {
                         i++;
+                    } else if (expectedDeprecationWarnings.remove(line)) {
+                        // Deprecation warning is expected
+                        i++;
+                        i = skipStackTrace(lines, i);
                     } else if (line.matches(".*\\s+deprecated.*")) {
-                        if (checkDeprecations && expectedDeprecationWarnings <= 0) {
+                        if (checkDeprecations && expectedGenericDeprecationWarnings <= 0) {
                             throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                         }
-                        expectedDeprecationWarnings--;
+                        expectedGenericDeprecationWarnings--;
                         // skip over stack trace
                         i++;
-                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
-                            i++;
-                        }
+                        i = skipStackTrace(lines, i);
                     } else if (!expectStackTraces && !insideVariantDescriptionBlock && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                         // 2 or more lines that look like stack trace elements
                         throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
@@ -1220,6 +1227,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                         i++;
                     }
                 }
+            }
+
+            private int skipStackTrace(List<String> lines, int i) {
+                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                    i++;
+                }
+                return i;
             }
 
             private boolean isDeprecationMessageInHelpDescription(String s) {
@@ -1235,9 +1249,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter expectDeprecationWarnings(int count) {
-        Preconditions.checkState(expectedDeprecationWarnings == 0, "expected deprecation count is already set for this execution");
+        Preconditions.checkState(expectedGenericDeprecationWarnings == 0, "expected deprecation count is already set for this execution");
         Preconditions.checkArgument(count > 0, "expected deprecation count must be positive");
-        expectedDeprecationWarnings = count;
+        expectedGenericDeprecationWarnings = count;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter expectDeprecationWarning(String warning) {
+        expectedDeprecationWarnings.add(warning);
         return this;
     }
 
