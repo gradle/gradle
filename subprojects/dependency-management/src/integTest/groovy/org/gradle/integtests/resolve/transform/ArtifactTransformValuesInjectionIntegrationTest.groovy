@@ -251,13 +251,13 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
                 'is annotated with @Incremental that is not allowed for @Input properties',
             ],
             missingInput: 'does not have a value specified',
-            noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
-            noPathSensitivityDir: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
-            noPathSensitivityFile: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
-            outputDir: 'is annotated with invalid property type @OutputDirectory',
             'nested.outputDirectory': 'is annotated with invalid property type @OutputDirectory',
-            'nested.inputFile': 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            'nested.inputFile': 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
             'nested.stringProperty': 'is not annotated with an input annotation',
+            noPathSensitivity: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            noPathSensitivityDir: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            noPathSensitivityFile: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            outputDir: 'is annotated with invalid property type @OutputDirectory',
         )
     }
 
@@ -475,14 +475,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
         assertPropertyValidationErrors(
+            absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
             'conflictingAnnotations': [
                 'has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies; assuming @InputFile',
                 'is annotated with invalid property type @InputFile'
             ],
             inputFile: 'is annotated with invalid property type @InputFile',
+            noPathSensitivity: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
             notAnnotated: 'is not annotated with an input annotation',
-            noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
-            absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms'
         )
     }
 

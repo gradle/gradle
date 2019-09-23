@@ -77,10 +77,17 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
         private final ImmutableMultimap.Builder<Severity, String> problems = ImmutableMultimap.builder();
 
         @Override
-        public TypeValidationContext createContextFor(Class<?> type) {
+        public TypeValidationContext createContextFor(Class<?> type, boolean cacheable) {
             return new MessageFormattingTypeValidationContext(null) {
                 @Override
                 protected void recordProblem(Severity severity, String message) {
+                    if (severity == Severity.CACHEABLE_WARNING) {
+                        if (!cacheable) {
+                            return;
+                        } else {
+                            severity = Severity.WARNING;
+                        }
+                    }
                     problems.put(severity, message);
                 }
             };

@@ -46,6 +46,7 @@ import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
@@ -466,10 +467,13 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public void validate(WorkValidationContext validationContext) {
             FileOperations fileOperations = ((ProjectInternal) task.getProject()).getFileOperations();
+            Class<?> taskType = GeneratedSubclasses.unpackType(task);
+            // TODO This should probably use the task class info store
+            boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
             context.getTaskProperties().validate(new DefaultTaskValidationContext(
                 fileOperations,
                 reservedFileSystemLocationRegistry,
-                validationContext.createContextFor(GeneratedSubclasses.unpackType(task))
+                validationContext.createContextFor(taskType, cacheable)
             ));
         }
 

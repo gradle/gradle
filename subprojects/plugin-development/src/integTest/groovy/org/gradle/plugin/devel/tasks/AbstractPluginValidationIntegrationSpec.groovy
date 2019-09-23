@@ -37,14 +37,14 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import javax.inject.Inject
 
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.ERROR
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.STRICT_WARNING
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -147,7 +147,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import java.util.*;
 
             public class MyTask extends DefaultTask {
-                @${application}
+                ${application}
                 public ${type.name} getThing() {
                     return ${value};
                 }
@@ -160,23 +160,23 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
 
         where:
-        annotation        | application                   | type           | value
-        Inject            | Inject.name                   | ObjectFactory  | null
-        OptionValues      | "${OptionValues.name}(\"a\")" | List           | null
-        Internal          | 'Internal'                    | String         | null
-        ReplacedBy        | 'ReplacedBy("")'              | String         | null
-        Console           | 'Console'                     | Boolean        | null
-        Destroys          | 'Destroys'                    | FileCollection | null
-        LocalState        | 'LocalState'                  | FileCollection | null
-        InputFile         | 'InputFile'                   | File           | "new File(\"input.txt\")"
-        InputFiles        | 'InputFiles'                  | Set            | "new HashSet()"
-        InputDirectory    | 'InputDirectory'              | File           | "new File(\"input\")"
-        Input             | 'Input'                       | String         | "\"value\""
-        OutputFile        | 'OutputFile'                  | File           | "new File(\"output.txt\")"
-        OutputFiles       | 'OutputFiles'                 | Map            | "new HashMap<String, File>()"
-        OutputDirectory   | 'OutputDirectory'             | File           | "new File(\"output\")"
-        OutputDirectories | 'OutputDirectories'           | Map            | "new HashMap<String, File>()"
-        Nested            | 'Nested'                      | List           | "new ArrayList()"
+        annotation        | application                                                | type           | value
+        Inject            | "@$Inject.name"                                            | ObjectFactory  | null
+        OptionValues      | "@$OptionValues.name(\"a\")"                               | List           | null
+        Internal          | '@Internal'                                                | String         | null
+        ReplacedBy        | '@ReplacedBy("")'                                          | String         | null
+        Console           | '@Console'                                                 | Boolean        | null
+        Destroys          | '@Destroys'                                                | FileCollection | null
+        LocalState        | '@LocalState'                                              | FileCollection | null
+        InputFile         | '@InputFile @PathSensitive(PathSensitivity.NONE)'          | File           | "new File(\"input.txt\")"
+        InputFiles        | '@InputFiles @PathSensitive(PathSensitivity.NAME_ONLY)'    | Set            | "new HashSet()"
+        InputDirectory    | '@InputDirectory @PathSensitive(PathSensitivity.RELATIVE)' | File           | "new File(\"input\")"
+        Input             | '@Input'                                                   | String         | "\"value\""
+        OutputFile        | '@OutputFile'                                              | File           | "new File(\"output.txt\")"
+        OutputFiles       | '@OutputFiles'                                             | Map            | "new HashMap<String, File>()"
+        OutputDirectory   | '@OutputDirectory'                                         | File           | "new File(\"output\")"
+        OutputDirectories | '@OutputDirectories'                                       | Map            | "new HashMap<String, File>()"
+        Nested            | '@Nested'                                                  | List           | "new ArrayList()"
     }
 
     def "validates task caching annotations"() {
@@ -340,19 +340,20 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         file("input.txt").text = "input"
 
         javaTaskSource << """
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.tasks.InputFiles;
-            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
 
             public class MyTask extends DefaultTask {
                 private final ${type} mutableProperty = ${init};
 
                 // getter and setter
-                @InputFiles public ${type} getMutablePropertyWithSetter() { return mutableProperty; } 
+                @InputFiles @PathSensitive(PathSensitivity.NONE)
+                public ${type} getMutablePropertyWithSetter() { return mutableProperty; } 
                 public void setMutablePropertyWithSetter(${type} value) {} 
 
                 // just getter
-                @InputFiles public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; } 
+                @InputFiles @PathSensitive(PathSensitivity.NONE)
+                public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; } 
 
                 // just setter
                 // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
@@ -387,38 +388,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
             @CacheableTask
             public class MyTask extends DefaultTask {
-                @Input
-                public long getGoodTime() {
-                    return 0;
-                }
-
-                @Nested
-                public Options getOptions() {
-                    return new Options();
-                }
-
                 @javax.inject.Inject
                 org.gradle.api.internal.file.FileResolver fileResolver;
 
-                public long getBadTime() {
-                    return 0;
-                }
-
-                public static class Options {
-                    @Input
-                    public String getGoodNested() {
-                        return "good";
-                    }
-                    public String getBadNested(){
-                        return "bad";
-                    }
-                }
-                
-                @OutputDirectory
-                public File getOutputDir() {
-                    return new File("outputDir");
-                }
-                
                 @InputDirectory
                 @Optional
                 public File getInputDirectory() {
@@ -447,12 +419,10 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.": WARNING,
             "Type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.": WARNING,
-            "Type 'MyTask': property 'inputDirectory' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
-            "Type 'MyTask': property 'inputFile' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
-            "Type 'MyTask': property 'inputFiles' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
-            "Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'inputFile' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'inputFiles' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
         )
     }
 
@@ -623,42 +593,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    enum Severity {
-        /**
-         * A validation warning, emitted as a deprecation warning during runtime.
-         */
-        WARNING("Warning"),
-
-        /**
-         * A validation warning emitted only when strict mode is enabled (never during runtime).
-         */
-        STRICT_WARNING("Warning"),
-
-        /**
-         * A validation error, emitted as a failure cause during runtime.
-         */
-        ERROR("Error"),
-
-        /**
-         * A validation error emitted only when strict mode is enabled (never during runtime).
-         */
-        STRICT_ERROR("Error");
-
-        private final String displayName
-
-        Severity(String displayName) {
-            this.displayName = displayName
-        }
-
-        @Override
-        String toString() {
-            return displayName
-        }
-    }
-
     abstract void assertValidationSucceeds()
 
-    abstract void assertValidationFailsWith(Map<String, Severity> messages)
+    abstract void assertValidationFailsWith(Map<String, TypeValidationContext.Severity> messages)
 
     abstract TestFile source(String path)
 

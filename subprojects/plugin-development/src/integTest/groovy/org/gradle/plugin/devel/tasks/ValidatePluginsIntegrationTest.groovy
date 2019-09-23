@@ -18,11 +18,12 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.ERROR
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -38,7 +39,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @Override
-    void assertValidationFailsWith(Map<String, Severity> messages) {
+    void assertValidationFailsWith(Map<String, TypeValidationContext.Severity> messages) {
         fails "validatePlugins"
 
         def expectedReportContents = messages
@@ -134,9 +135,9 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
         then:
         assertValidationFailsWith(
-            "Type 'MyTask': property 'dirProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'fileProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": WARNING,
-            "Type 'MyTask': property 'filesProp' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'dirProp' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'fileProp' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'filesProp' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
         )
     }
 
@@ -256,6 +257,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
                 // Valid because it is annotated
                 @InputArtifact
+                @PathSensitive(PathSensitivity.NONE)
                 public abstract Provider<FileSystemLocation> getGoodInput();
 
                 // Invalid because it has no annotation
@@ -305,11 +307,13 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
                 // Valid because it is annotated
                 @InputFile
+                @PathSensitive(PathSensitivity.NONE)
                 File getGoodFileInput();
 
                 // Valid
                 @Incremental
                 @InputFiles
+                @PathSensitive(PathSensitivity.NONE)
                 FileCollection getGoodIncrementalInput();
 
                 // Valid

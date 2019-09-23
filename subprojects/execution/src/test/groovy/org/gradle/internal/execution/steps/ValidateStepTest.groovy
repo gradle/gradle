@@ -57,7 +57,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         ex.causes[0].message == "Type '$Object.name': Validation error."
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.createContextFor(Object).visitTypeProblem(ERROR, Object, "Validation error")
+            validationContext.createContextFor(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
         }
         0 * _
     }
@@ -74,7 +74,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         ex.causes[1].message == "Type '$Object.name': Validation error #2."
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            def typeContext = validationContext.createContextFor(Object)
+            def typeContext = validationContext.createContextFor(Object, true)
             typeContext.visitTypeProblem(ERROR, Object, "Validation error #1")
             typeContext.visitTypeProblem(ERROR, Object, "Validation error #2")
         }
@@ -87,7 +87,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.createContextFor(Object).visitTypeProblem(WARNING, Object, "Validation warning")
+            validationContext.createContextFor(Object, true).visitTypeProblem(WARNING, Object, "Validation warning")
         }
 
         then:
@@ -104,7 +104,7 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            def typeContext = validationContext.createContextFor(Object)
+            def typeContext = validationContext.createContextFor(Object, true)
             typeContext.visitTypeProblem(ERROR, Object, "Validation error")
             typeContext.visitTypeProblem(WARNING, Object, "Validation warning")
         }

@@ -144,12 +144,6 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                     "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms"
                 );
             }
-            if (normalizer == null) {
-                validationContext.visitPropertyProblem(WARNING,
-                    propertyName,
-                    "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath"
-                );
-            }
         }
     }
 
@@ -264,7 +258,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType();
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
         propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
             @Override
             public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {

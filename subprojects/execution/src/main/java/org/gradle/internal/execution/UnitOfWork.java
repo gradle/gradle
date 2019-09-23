@@ -87,7 +87,7 @@ public interface UnitOfWork extends CacheableEntity {
     void validate(WorkValidationContext validationContext);
 
     interface WorkValidationContext {
-        TypeValidationContext createContextFor(Class<?> type);
+        TypeValidationContext createContextFor(Class<?> type, boolean cacheable);
     }
 
     /**

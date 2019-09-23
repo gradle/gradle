@@ -21,22 +21,31 @@ import com.google.common.collect.ImmutableMap;
 import javax.annotation.Nullable;
 
 public class DefaultTypeValidationContext extends MessageFormattingTypeValidationContext {
+    private final boolean cacheable;
     private final ImmutableMap.Builder<String, Severity> problems = ImmutableMap.builder();
 
-    public static DefaultTypeValidationContext withRootType(Class<?> rootType) {
-        return new DefaultTypeValidationContext(rootType);
+    public static DefaultTypeValidationContext withRootType(Class<?> rootType, boolean cacheable) {
+        return new DefaultTypeValidationContext(rootType, cacheable);
     }
 
-    public static DefaultTypeValidationContext withoutRootType() {
-        return new DefaultTypeValidationContext(null);
+    public static DefaultTypeValidationContext withoutRootType(boolean cacheable) {
+        return new DefaultTypeValidationContext(null, cacheable);
     }
 
-    private DefaultTypeValidationContext(@Nullable Class<?> rootType) {
+    private DefaultTypeValidationContext(@Nullable Class<?> rootType, boolean cacheable) {
         super(rootType);
+        this.cacheable = cacheable;
     }
 
     @Override
     protected void recordProblem(Severity severity, String message) {
+        if (severity == Severity.CACHEABLE_WARNING) {
+            if (!cacheable) {
+                return;
+            } else {
+                severity = Severity.WARNING;
+            }
+        }
         problems.put(message, severity);
     }
 

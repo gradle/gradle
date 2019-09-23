@@ -105,9 +105,9 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     @Override
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable TransformParameters parameterObject) {
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType();
-        actionMetadata.visitValidationFailures(null, validationContext);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
+        actionMetadata.visitValidationFailures(null, validationContext);
 
         // Should retain this on the metadata rather than calculate on each invocation
         Class<? extends FileNormalizer> inputArtifactNormalizer = null;

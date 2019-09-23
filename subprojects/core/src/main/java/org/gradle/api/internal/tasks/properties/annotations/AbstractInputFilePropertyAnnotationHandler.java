@@ -31,11 +31,13 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.work.Incremental;
 
 import java.lang.annotation.Annotation;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.CACHEABLE_WARNING;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     @Override
@@ -73,6 +75,17 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
             value,
             getFilePropertyType()
         );
+    }
+
+    @Override
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
+        if (!propertyMetadata.hasAnnotationForCategory(NORMALIZATION)) {
+            validationContext.visitPropertyProblem(
+                CACHEABLE_WARNING,
+                propertyMetadata.getPropertyName(),
+                "is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE"
+            );
+        }
     }
 
     protected abstract InputFilePropertyType getFilePropertyType();

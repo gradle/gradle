@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Equivalence;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
@@ -28,9 +27,6 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
@@ -39,7 +35,6 @@ import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.TypeValidationContext;
-import org.gradle.internal.reflect.TypeValidationContext.Severity;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -48,7 +43,6 @@ import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 
 import javax.annotation.Nullable;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayDeque;
@@ -56,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
 
 /**
@@ -64,16 +57,6 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
  */
 @NonNullApi
 public class PropertyValidationAccess {
-    private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> PROPERTY_VALIDATORS = ImmutableMap.of(
-        InputFiles.class, new MissingNormalizationValidator(false),
-        InputFile.class, new MissingNormalizationValidator(false),
-        InputDirectory.class, new MissingNormalizationValidator(false)
-    );
-    private final static Map<Class<? extends Annotation>, ? extends PropertyValidator> STRICT_PROPERTY_VALIDATORS = ImmutableMap.of(
-        InputFiles.class, new MissingNormalizationValidator(true),
-        InputFile.class, new MissingNormalizationValidator(true),
-        InputDirectory.class, new MissingNormalizationValidator(true)
-    );
     private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
 
     private final TaskClassInfoStore taskClassInfoStore;
@@ -134,7 +117,7 @@ public class PropertyValidationAccess {
         boolean cacheable;
         boolean mapErrorsToWarnings;
         if (Task.class.isAssignableFrom(topLevelBean)) {
-            cacheable = taskClassInfoStore.getTaskClassInfo(Cast.uncheckedNonnullCast(topLevelBean)).isCacheable();
+            cacheable = enableStricterValidation || taskClassInfoStore.getTaskClassInfo(Cast.uncheckedNonnullCast(topLevelBean)).isCacheable();
             // Treat all errors as warnings, for backwards compatibility
             mapErrorsToWarnings = true;
         } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
@@ -148,12 +131,11 @@ public class PropertyValidationAccess {
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
-        boolean stricterValidation = enableStricterValidation || cacheable;
 
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(topLevelBean);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(topLevelBean, cacheable);
         while (!queue.isEmpty()) {
             BeanTypeNode<?> node = queue.remove();
-            node.visit(topLevelBean, stricterValidation, validationContext, queue, nodeFactory);
+            node.visit(topLevelBean, validationContext, queue, nodeFactory);
         }
         validationContext.getProblems()
             .forEach((message, severity) -> problems.put(message, severity == ERROR || !mapErrorsToWarnings));
@@ -198,7 +180,7 @@ public class PropertyValidationAccess {
             this.beanType = beanType;
         }
 
-        public abstract void visit(Class<?> topLevelBean, boolean stricterValidation, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
+        public abstract void visit(Class<?> topLevelBean, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory);
 
         public boolean nodeCreatesCycle(TypeToken<?> childType) {
             return findNodeCreatingCycle(childType, Equivalence.equals()) != null;
@@ -223,16 +205,11 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeMetadata typeMetadata = getTypeMetadata();
             typeMetadata.visitValidationFailures(getPropertyName(), validationContext);
             for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
-                Class<? extends Annotation> propertyType = propertyMetadata.getPropertyType();
-                PropertyValidator validator = stricterValidation ? STRICT_PROPERTY_VALIDATORS.get(propertyType) : PROPERTY_VALIDATORS.get(propertyType);
-                if (validator != null) {
-                    validator.validate(null, propertyMetadata, validationContext);
-                }
                 if (propertyMetadata.getPropertyType().equals(Nested.class)) {
                     TypeToken<?> beanType = unpackProvider(propertyMetadata.getGetterMethod());
                     nodeFactory.createAndAddToQueue(this, qualifiedPropertyName, beanType, queue);
@@ -263,7 +240,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Iterable.class, 0);
             nodeFactory.createAndAddToQueue(this, determinePropertyName(nestedType), nestedType, queue);
         }
@@ -276,33 +253,9 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void visit(Class<?> topLevelBean, boolean stricterValidation, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
+        public void visit(Class<?> topLevelBean, TypeValidationContext validationContext, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeToken<?> nestedType = extractNestedType(Map.class, 1);
             nodeFactory.createAndAddToQueue(this, getQualifiedPropertyName("<key>"), nestedType, queue);
-        }
-    }
-
-    private interface PropertyValidator {
-        void validate(@Nullable String ownerPath, PropertyMetadata metadata, TypeValidationContext validationContext);
-    }
-
-    private static class MissingNormalizationValidator implements PropertyValidator {
-        final boolean stricterValidation;
-
-        public MissingNormalizationValidator(boolean stricterValidation) {
-            this.stricterValidation = stricterValidation;
-        }
-
-        @Override
-        public void validate(@Nullable String ownerPath, PropertyMetadata metadata, TypeValidationContext validationContext) {
-            if (stricterValidation && !metadata.hasAnnotationForCategory(NORMALIZATION)) {
-                validationContext.visitPropertyProblem(
-                    Severity.WARNING,
-                    ownerPath,
-                    metadata.getPropertyName(),
-                    "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE"
-                );
-            }
         }
     }
 

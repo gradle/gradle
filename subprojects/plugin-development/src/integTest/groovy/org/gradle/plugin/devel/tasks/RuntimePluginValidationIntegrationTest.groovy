@@ -16,10 +16,11 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.ERROR
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -37,7 +38,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     }
 
     @Override
-    void assertValidationFailsWith(Map<String, Severity> messages) {
+    void assertValidationFailsWith(Map<String, TypeValidationContext.Severity> messages) {
         def expectedWarnings = messages
             .findAll { message, severity -> severity == WARNING }
             .keySet()
