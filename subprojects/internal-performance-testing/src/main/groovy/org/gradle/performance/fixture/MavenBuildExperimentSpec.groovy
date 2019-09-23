@@ -91,17 +91,7 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
         }
 
         @Override
-        void setBuildMutators(ImmutableList<Function<InvocationSettings, BuildMutator>> mutators) {
-            throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
-        }
-
-        @Override
         ImmutableList<Function<InvocationSettings, BuildMutator>> getBuildMutators() {
-            throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
-        }
-
-        @Override
-        void setMeasuredBuildOperations(ImmutableList<String> measuredBuildOperations) {
             throw new UnsupportedOperationException("Maven for Gradle profiler is not yet supported")
         }
 
