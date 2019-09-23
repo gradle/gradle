@@ -315,13 +315,16 @@ You can also learn more about configuring tests in the DSL reference for link:{g
 [[sec:java_packaging]]
 == Packaging and publishing
 
-How you package and potentially publish your Java project depends on what type of project it is. Libraries, applications, web applications and enterprise applications all have differing requirements. In this section, we will focus on the bare bones provided by the Java Plugin.
+How you package and potentially publish your Java project depends on what type of project it is.
+Libraries, applications, web applications and enterprise applications all have differing requirements.
+In this section, we will focus on the bare bones provided by the Java Plugin.
 
-The one and only packaging feature provided by the Java Plugin directly is a `jar` task that packages all the compiled production classes and resources into a single JAR. This JAR is then added as an artifact — as opposed to a dependency — in the `archives` configuration, hence why it is automatically built by the `assemble` task.
+By default, the Java Plugin provides the `jar` task that packages all the compiled production classes and resources into a single JAR.
+This JAR is also automatically built by the `assemble` task.
+Furthermore, the plugin can be configured to provide the `javadocJar` and `sourcesJar` tasks to package Javadoc and source code if so desired.
+If a publishing plugin is used, these tasks will automatically run during publishing or can be called directly.
 
-If you want any other JAR or alternative archive built, you either have to apply an appropriate plugin or create the task manually. For example, if you want a task that generates a 'sources' JAR, define your own `Jar` task like so:
-
-.Defining a custom task to create a 'sources' JAR
+.Configure a project to publish Javadoc and sources
 ====
 include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
 include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
@@ -339,13 +342,10 @@ include::sample[dir="userguide/files/archivesWithJavaPlugin/groovy",files="build
 include::sample[dir="userguide/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
 ====
 
-There are several options for publishing a JAR once it has been created:
+You can use one of the publishing plugins to publish the JARs created by a Java project:
 
- * the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>>
- * the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>
- * the `uploadArchives` task — the <<artifact_management.adoc#artifact_management,original publishing mechanism>> — which works with both Ivy and (if you apply the <<maven_plugin.adoc#maven_plugin,Maven Plugin>>) Maven
-
-The former two "Publish" plugins are the preferred options.
+ * <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>>
+ * <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>
 
 [[sec:jar_manifest]]
 === Modifying the JAR manifest

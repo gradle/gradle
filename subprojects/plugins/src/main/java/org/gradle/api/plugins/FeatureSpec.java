@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -45,4 +46,22 @@ public interface FeatureSpec {
      * @param version the version of the capability
      */
     void capability(String group, String name, String version);
+
+    /**
+     * Automatically package Javadoc during publishing and publish a variant with '-javadoc.jar'.
+     * See also {@link JavaPluginExtension#publishJavadoc()}.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void publishJavadoc();
+
+    /**
+     * Automatically package Javadoc during publishing and publish a variant with '-javadoc.jar'.
+     * See also {@link JavaPluginExtension#publishSources()} ()}.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void publishSources();
 }

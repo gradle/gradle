@@ -81,7 +81,7 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("maven-publish/javaProject")
-    def javaProject() {
+    def "publish java project with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
         executer.inDirectory(sampleDir)
@@ -97,7 +97,6 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         module.assertPublished()
         module.assertArtifactsPublished(
             "javaProject-1.0.jar",
-            "javaProject-1.0-sources.jar",
             "javaProject-1.0-javadoc.jar",
             "javaProject-1.0.pom",
             "javaProject-1.0.module")

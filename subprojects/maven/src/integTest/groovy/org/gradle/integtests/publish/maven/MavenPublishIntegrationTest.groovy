@@ -320,9 +320,8 @@ apply plugin:'maven'
 version = 1.0
 group =  "org.test"
 
-task sourcesJar(type: Jar) {
-        from sourceSets.main.allSource
-        classifier = 'sources'
+java {
+    publishSources()
 }
 
 task testJar(type: Jar) {

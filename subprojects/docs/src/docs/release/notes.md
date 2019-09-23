@@ -84,6 +84,22 @@ More information about [strict version constraints](userguide/rich_versions.adoc
 
 Gradle now supports running with Java 13 EA (tested with OpenJDK build 13-ea+32).
 
+## Javadoc and sources packaging and publishing is now a built-in feature of the Java plugins 
+
+You can now activate Javadoc and sources publishing for a Java Library or Java project:
+
+```
+java {
+    publishJavadoc()
+    publishSources()
+}
+```
+
+Using the `maven-publish` or `ivy-publish` plugin, this will not only automatically create and publish a `-javadoc.jar` and `-sources.jar`, but also publish the information that these exist as variants in Gradle Module Metadata.
+This means that you can query for the Javadoc or sources _variant_ of a module and also retrieve the Javadoc (or sources) of its dependencies.
+This also works in multi-projects.
+If activated, a Java and Java Library project automatically provides the `javadocJar` and `sourcesJar` tasks.
+
 ## More robust file deletion on Windows
 
 Deleting complex file hierarchies on Windows can sometimes be tricky, and errors like `Unable to delete directory ...` can happen at times.
