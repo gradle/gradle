@@ -164,6 +164,10 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
 }
 
 fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+    if (os == Os.macos) {
+        buildType.params.param("env.REPO_MIRROR_URLS", "")
+    }
+
     buildType.applyDefaultSettings(os, timeout)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
