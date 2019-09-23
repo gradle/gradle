@@ -53,14 +53,23 @@ class InspectionSchemeFactoryTest extends Specification {
         instantiationScheme.injectionAnnotations >> [Inject]
         def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
 
-        expect:
+        when:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
-        def problems = []
-        metadata.visitValidationFailures(null, new DefaultTypeValidationContext(problems))
-        problems.empty
+
+        then:
         metadata.propertiesMetadata.size() == 2
 
+        when:
+        def validationContext = DefaultTypeValidationContext.withoutRootType()
+        metadata.visitValidationFailures(null, validationContext)
+
+        then:
+        validationContext.problems.isEmpty()
+
+        when:
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
+
+        then:
         metadata.getAnnotationHandlerFor(properties.prop1) == handler1
         metadata.getAnnotationHandlerFor(properties.prop2) == handler2
     }
@@ -70,14 +79,23 @@ class InspectionSchemeFactoryTest extends Specification {
         instantiationScheme.injectionAnnotations >> [Thing2, Inject]
         def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
 
-        expect:
+        when:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
-        def problems = []
-        metadata.visitValidationFailures(null, new DefaultTypeValidationContext(problems))
-        problems.empty
+
+        then:
         metadata.propertiesMetadata.size() == 2
 
+        when:
+        def validationContext = DefaultTypeValidationContext.withoutRootType()
+        metadata.visitValidationFailures(null, validationContext)
+
+        then:
+        validationContext.problems.isEmpty()
+
+        when:
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
+
+        then:
         metadata.getAnnotationHandlerFor(properties.prop1) == handler1
         metadata.getAnnotationHandlerFor(properties.prop2) == handler2
     }

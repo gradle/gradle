@@ -62,6 +62,7 @@ import javax.inject.Inject
 import java.lang.annotation.Annotation
 
 import static ModifierAnnotationCategory.NORMALIZATION
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class DefaultTypeMetadataStoreTest extends Specification {
 
@@ -126,7 +127,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitWarning(null, metadata.propertyName, "is broken")
+            context.visitPropertyProblem(WARNING, metadata.propertyName, "is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
@@ -147,7 +148,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         _ * annotationHandler.propertyRelevant >> false
         _ * annotationHandler.annotationType >> SearchPath
         _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
-            context.visitWarning(null, metadata.propertyName, "is broken")
+            context.visitPropertyProblem(WARNING, metadata.propertyName, "is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
@@ -165,7 +166,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitWarning("type is broken")
+            context.visitTypeProblem(WARNING, Object, "type is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([typeAnnotationHandler], [], [], typeAnnotationMetadataStore, cacheFactory)
@@ -180,7 +181,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == ["type is broken"]
+        collectProblems(typeMetadata) == ["Type '$Object.name': type is broken." as String]
     }
 
     @Unroll
