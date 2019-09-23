@@ -14,6 +14,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2018_2.Parameter
 import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
 import model.CIBuildModel
@@ -164,6 +165,10 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
 }
 
 fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+    if (os == Os.macos) {
+        buildType.params.param("env.REPO_MIRROR_URLS", "")
+    }
+
     buildType.applyDefaultSettings(os, timeout)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
