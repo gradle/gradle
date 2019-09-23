@@ -46,6 +46,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class CustomTask extends DefaultTask {
+                @Internal
                 Thing thing
                 
                 @javax.inject.Inject
@@ -81,6 +82,7 @@ class ObjectFactoryNamedTypeIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class CustomTask extends DefaultTask {
+                @Internal
                 Thing thing
                 
                 @TaskAction

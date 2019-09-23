@@ -32,8 +32,11 @@ class WorkerExecutorParametersIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.workers.WorkerExecutor
             
             class ParameterTask extends DefaultTask {
-                WorkerExecutor workerExecutor
+                private final WorkerExecutor workerExecutor
+
+                @Internal
                 IsolationMode isolationMode
+                @Internal
                 Closure paramConfig
 
                 @Inject

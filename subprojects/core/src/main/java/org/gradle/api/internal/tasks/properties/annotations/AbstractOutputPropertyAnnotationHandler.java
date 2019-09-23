@@ -23,8 +23,8 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.WorkValidationContext;
 
 import static org.gradle.api.internal.tasks.properties.ModifierAnnotationCategory.OPTIONAL;
 
@@ -52,6 +52,6 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     }
 
     @Override
-    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, WorkValidationContext visitor) {
     }
 }

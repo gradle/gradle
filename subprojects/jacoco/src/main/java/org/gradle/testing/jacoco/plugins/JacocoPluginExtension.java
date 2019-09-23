@@ -29,6 +29,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskCollection;
@@ -168,6 +169,7 @@ public class JacocoPluginExtension {
             return jacoco.isEnabled() ? ImmutableList.of(jacoco.getAsJvmArg()) : Collections.<String>emptyList();
         }
 
+        @Internal
         @Override
         public String getName() {
             return "jacocoAgent";

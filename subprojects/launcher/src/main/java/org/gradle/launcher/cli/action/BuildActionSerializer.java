@@ -31,6 +31,7 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.ListSerializer;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SetSerializer;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -94,8 +95,8 @@ public class BuildActionSerializer {
             nullableFileSerializer.write(encoder, startParameter.getGradleHomeDir());
             nullableFileSerializer.write(encoder, startParameter.getProjectCacheDir());
             fileListSerializer.write(encoder, startParameter.getIncludedBuilds());
-            encoder.writeBoolean(startParameter.isUseEmptySettings());
-            encoder.writeBoolean(startParameter.isSearchUpwards());
+            encoder.writeBoolean(DeprecationLogger.whileDisabled(() -> startParameter.isUseEmptySettings()));
+            encoder.writeBoolean(DeprecationLogger.whileDisabled(() -> startParameter.isSearchUpwards()));
 
             // Other stuff
             NO_NULL_STRING_MAP_SERIALIZER.write(encoder, startParameter.getProjectProperties());
@@ -163,9 +164,10 @@ public class BuildActionSerializer {
             startParameter.setProjectCacheDir(nullableFileSerializer.read(decoder));
             startParameter.setIncludedBuilds(fileListSerializer.read(decoder));
             if (decoder.readBoolean()) {
-                startParameter.useEmptySettings();
+                DeprecationLogger.whileDisabled(startParameter::useEmptySettings);
             }
-            startParameter.setSearchUpwards(decoder.readBoolean());
+            boolean searchUpwards = decoder.readBoolean();
+            DeprecationLogger.whileDisabled(() -> startParameter.setSearchUpwards(searchUpwards));
 
             // Other stuff
             startParameter.setProjectProperties(NO_NULL_STRING_MAP_SERIALIZER.read(decoder));

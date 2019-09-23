@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
-import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 
@@ -55,7 +55,7 @@ public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     }
 
     @Override
-    public void visitValidationFailures(@Nullable String ownerPath, ParameterValidationContext validationContext) {
+    public void visitValidationFailures(@Nullable String ownerPath, WorkValidationContext validationContext) {
         problems.forEach(validationContext::visitWarning);
         properties.forEach(property -> property.visitValidationFailures(ownerPath, validationContext));
     }

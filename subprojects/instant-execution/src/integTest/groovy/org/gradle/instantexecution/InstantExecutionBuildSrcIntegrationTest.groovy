@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
 class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -25,11 +26,13 @@ class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIn
         file("buildSrc/src/main/java/CustomTask.java") << """
             import ${DefaultTask.name};
             import ${TaskAction.name};
+            import ${Internal.name};
             import ${Property.name};
 
             public class CustomTask extends DefaultTask {
                 private final Property<String> greeting = getProject().getObjects().property(String.class);
                  
+                @Internal
                 public Property<String> getGreeting() {
                     return greeting;
                 }

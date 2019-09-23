@@ -56,11 +56,13 @@ public interface VisualStudioTargetBinary {
     /**
      * Returns the target Visual Studio version of this binary.
      */
+    @Internal
     VersionNumber getVisualStudioVersion();
 
     /**
      * Returns the target SDK version of this binary.
      */
+    @Internal
     VersionNumber getSdkVersion();
 
     /**

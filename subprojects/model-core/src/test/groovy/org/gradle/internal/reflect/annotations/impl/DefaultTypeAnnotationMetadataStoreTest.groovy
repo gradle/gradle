@@ -21,9 +21,10 @@ import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
-import org.gradle.internal.reflect.ParameterValidationContext
+import org.gradle.internal.reflect.WorkValidationContext
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import javax.annotation.Nullable
 import javax.inject.Inject
@@ -41,7 +42,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def store = new DefaultTypeAnnotationMetadataStore(
         [TestType],
         [(Large): TYPE, (Small): TYPE, (Color): COLOR],
-        [Object, GroovyObject],
+        ["java", "groovy"],
+        [Object],
         [Object, GroovyObject],
         [MutableType, MutableSubType],
         [Ignored, Ignored2],
@@ -101,6 +103,16 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             @Inject
             String getInjectedProperty() { "injected" }
         }
+
+    @Unroll
+    def "ignores all properties on type #type.simpleName"() {
+        expect:
+        assertProperties type, [:]
+        where:
+        type << [int, EmptyGroovyObject, int[], Object[], Nullable]
+    }
+
+        class EmptyGroovyObject {}
 
     def "finds annotation on field"() {
         expect:
@@ -668,6 +680,11 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             void setSomething(String something) {}
         }
 
+    def "does not detect methods on type from ignored package"() {
+        expect:
+        assertProperties ArrayList, [:]
+    }
+
     void assertProperties(Class<?> type, Map<String, Map<AnnotationCategory, ?>> expectedProperties, List<String> expectedErrors = []) {
         def metadata = store.getTypeAnnotationMetadata(type)
         def actualPropertyNames = metadata.propertiesAnnotationMetadata*.propertyName.sort()
@@ -695,7 +712,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         }
 
         List<String> actualErrors = []
-        def visitor = new ParameterValidationContext() {
+        def visitor = new WorkValidationContext() {
             @Override
             void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
                 actualErrors.add("Property '$propertyName' $message")

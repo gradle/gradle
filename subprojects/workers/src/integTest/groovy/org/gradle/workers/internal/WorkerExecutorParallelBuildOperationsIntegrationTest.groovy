@@ -174,6 +174,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
             import org.gradle.test.FileHelper
 
             class MultipleWorkItemTask extends DefaultTask {
+                @Internal
                 def isolationMode = IsolationMode.NONE
 
                 @Inject

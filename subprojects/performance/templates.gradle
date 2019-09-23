@@ -357,7 +357,20 @@ tasks.register("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     branch = 'agp-3.6.0'
     doLast {
-        new File(outputDirectory, 'santa-tracker/google-services.json').text = """
+        addGoogleServicesJson(outputDirectory)
+    }
+}
+
+tasks.register("santaTrackerAndroidJavaBuild", RemoteProject) {
+    remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
+    branch = 'agp-3.6.0-java'
+    doLast {
+        addGoogleServicesJson(outputDirectory)
+    }
+}
+
+private void addGoogleServicesJson(File outputDirectory) {
+    new File(outputDirectory, 'santa-tracker/google-services.json').text = """
 {
   "project_info": {
     "project_number": "012345678912",
@@ -432,7 +445,6 @@ tasks.register("santaTrackerAndroidBuild", RemoteProject) {
   "configuration_version": "1"
 }
 """
-    }
 }
 
 tasks.register("excludeRuleMergingBuild", RemoteProject) {

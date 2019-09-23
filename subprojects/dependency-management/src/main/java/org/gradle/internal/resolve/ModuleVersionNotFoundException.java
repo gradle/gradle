@@ -132,5 +132,25 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
             builder.node(location);
         }
         builder.endChildren();
+        tryHintAboutArtifactSource(builder, locations);
+    }
+
+    // This method should ideally use more data to figure out if the message should be displayed
+    // or not. In particular, the ivy patterns can make it difficult to find out if an Ivy artifact
+    // source should be configured. At this stage, this information is lost, so we do a best effort
+    // based on the file locations.
+    private static void tryHintAboutArtifactSource(TreeFormatter builder, Collection<String> locations) {
+        if (locations.size() == 1) {
+            String singleLocation = locations.iterator().next();
+            boolean isPom = singleLocation.endsWith(".pom");
+            boolean isIvy = singleLocation.contains("ivy-") && singleLocation.endsWith(".xml");
+            boolean isModule = singleLocation.endsWith(".module");
+            String format = isPom ? "Maven POM" : (isIvy ? "ivy.xml" : (isModule ? "Gradle module" : null));
+            if (format != null) {
+                builder.node(
+                    String.format("If the artifact you are trying to retrieve can be found in the repository but without metadata in '%s' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.", format)
+                );
+            }
+        }
     }
 }

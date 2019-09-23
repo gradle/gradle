@@ -39,7 +39,7 @@
             </tr>
             <tr>
                 <td>runtimeClasspath</td>
-                <td><literal>sourceSet.output + project.configurations.runtime</literal> (or <literal>sourceSet.output + project.configurations.testRuntime</literal> for the <literal>test</literal> source set).</td>
+                <td><literal>sourceSet.output + project.configurations.runtimeClasspath</literal> (or <literal>sourceSet.output + project.configurations.testRuntimeClasspath</literal> for the <literal>test</literal> source set).</td>
             </tr>
         </table>
     </section>

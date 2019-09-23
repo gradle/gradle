@@ -18,29 +18,40 @@ import javax.inject.Inject
 // tag::unit-of-work[]
 // The parameters for a single unit of work
 interface ReverseParameters extends WorkParameters {
-    Property<File> getFileToReverse()
-    Property<File> getDestinationFile()
+    RegularFileProperty getFileToReverse()
+    DirectoryProperty getDestinationDir()
 }
 
-// The implementation of a single unit of work. 
+// The implementation of a single unit of work.
 abstract class ReverseFile implements WorkAction<ReverseParameters> {
+    private final FileSystemOperations fileSystemOperations
+
+    @Inject
+    public ReverseFile(FileSystemOperations fileSystemOperations) {
+        this.fileSystemOperations = fileSystemOperations
+    }
+
     @Override
-    public void execute() {
-        parameters.destinationFile.get().text = parameters.fileToReverse.get().text.reverse()
+    void execute() {
+        fileSystemOperations.copy {
+            from parameters.fileToReverse
+            into parameters.destinationDir
+            filter { String line -> line.reverse() }
+        }
     }
 }
 // end::unit-of-work[]
 
 // tag::task-implementation[]
 class ReverseFiles extends SourceTask {
-    final WorkerExecutor workerExecutor
+    private final WorkerExecutor workerExecutor
 
     @OutputDirectory
     File outputDir
 
     // The WorkerExecutor will be injected by Gradle at runtime
     @Inject
-    public ReverseFiles(WorkerExecutor workerExecutor) {
+    ReverseFiles(WorkerExecutor workerExecutor) {
         this.workerExecutor = workerExecutor
     }
 
@@ -48,12 +59,12 @@ class ReverseFiles extends SourceTask {
     void reverseFiles() {
         // Create a WorkQueue to submit work items
         WorkQueue workQueue = workerExecutor.noIsolation()
-        
+
         // Create and submit a unit of work for each file
         source.each { file ->
             workQueue.submit(ReverseFile.class) { ReverseParameters parameters ->
                 parameters.fileToReverse = file
-                parameters.destinationFile = project.file("$outputDir/${file.name}")
+                parameters.destinationDir = outputDir
             }
         }
     }

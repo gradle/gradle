@@ -65,10 +65,16 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         gradleFilesGenerated()
         file("build.gradle").text.contains("options.encoding = 'UTF-8'")
         !file("webinar-war/build.gradle").text.contains("'options.encoding'")
-        assertContainsPublishingConfig(file("build.gradle"), "    ", ["sourcesJar"])
+        assertContainsPublishingConfig(file("build.gradle"), "    ")
+        buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
+    java {
+        publishSources()
+    }'''))
         file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testsJar)")
-        file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(javadocJar)")
-
+        file("webinar-impl/build.gradle").text.contains(TextUtil.toPlatformLineSeparators('''
+java {
+    publishJavadoc()
+}'''))
         when:
         run 'clean', 'build'
 
@@ -202,12 +208,11 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
 
         then: 'sourcesJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
-            task sourcesJar(type: Jar) {
-                classifier = 'sources'
-                from(sourceSets.main.allJava)
+            java {
+                publishSources()
             }
             '''.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile, '', ['sourcesJar'])
+        assertContainsPublishingConfig(buildFile)
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'sourcesJar'
@@ -244,12 +249,11 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
 
         then: 'javadocJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
-            task javadocJar(type: Jar) {
-                classifier = 'javadoc'
-                from(javadoc.destinationDir)
+            java {
+                publishJavadoc()
             }
             '''.stripIndent().trim()))
-        assertContainsPublishingConfig(buildFile, '', ['javadocJar'])
+        assertContainsPublishingConfig(buildFile)
 
         when: 'the generated task is executed'
         run 'clean', 'build', 'javadocJar'

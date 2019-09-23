@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.WorkValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
 
-import static org.gradle.internal.reflect.ParameterValidationContext.decorateMessage;
+import static org.gradle.internal.reflect.WorkValidationContext.decorateMessage;
 
-public class DefaultParameterValidationContext implements ParameterValidationContext {
+public class DefaultWorkValidationContext implements WorkValidationContext {
     private final Collection<String> messages;
 
-    public DefaultParameterValidationContext(Collection<String> messages) {
+    public DefaultWorkValidationContext(Collection<String> messages) {
         this.messages = messages;
     }
 

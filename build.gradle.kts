@@ -97,12 +97,16 @@ buildTypes {
         tasks("performance:distributedPerformanceTest")
     }
 
+    create("distributedSlowPerformanceTests") {
+        tasks("performance:distributedSlowPerformanceTest")
+    }
+
     create("distributedPerformanceExperiments") {
         tasks("performance:distributedPerformanceExperiment")
     }
 
-    create("distributedFullPerformanceTests") {
-        tasks("performance:distributedFullPerformanceTest")
+    create("distributedHistoricalPerformanceTests") {
+        tasks("performance:distributedHistoricalPerformanceTest")
     }
 
     create("distributedFlakinessDetections") {

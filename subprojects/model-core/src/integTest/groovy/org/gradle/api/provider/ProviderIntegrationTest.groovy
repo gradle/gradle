@@ -16,6 +16,9 @@
 
 package org.gradle.api.provider
 
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
@@ -31,6 +34,7 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
             class MyTask extends DefaultTask {
                 Provider<String> text = project.provider { '$DEFAULT_TEXT' }
 
+                @Internal
                 String getText() {
                     text.get()
                 }
@@ -64,10 +68,11 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
     def "can inject and use provider factory via annotation"() {
         file("buildSrc/src/main/java/MyTask.java") << """
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.provider.Provider;
-            import org.gradle.api.provider.ProviderFactory;
-            import org.gradle.api.tasks.TaskAction;
+            import ${DefaultTask.name};
+            import ${Internal.name};
+            import ${Provider.name};
+            import ${ProviderFactory.name};
+            import ${TaskAction.name};
 
             import javax.inject.Inject;
             import java.util.concurrent.Callable;
@@ -85,10 +90,12 @@ class ProviderIntegrationTest extends AbstractIntegrationSpec {
                     });
                 }
                 
+                @Internal
                 public String getText() {
                     return text.get();
                 }
                 
+                @Internal
                 public Boolean getRenderText() {
                     return getProviderFactory().provider(new Callable<Boolean>() {
                         @Override

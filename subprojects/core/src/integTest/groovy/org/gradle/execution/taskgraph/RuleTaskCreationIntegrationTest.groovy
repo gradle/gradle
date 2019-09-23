@@ -562,9 +562,9 @@ foo configured
         fails "tasks"
 
         then:
-        failure.assertHasCause("Exception thrown while executing model rule: tasks.foo { ... } @ build.gradle line 40, column 17")
+        failure.assertHasCause("Exception thrown while executing model rule: tasks.foo { ... } @ build.gradle line 43, column 17")
         failure.assertHasCause("config failure")
-        failure.assertHasLineNumber(41)
+        failure.assertHasLineNumber(44)
     }
 
     def "can create task with invalid model space name"() {

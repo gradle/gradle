@@ -98,9 +98,9 @@ check.dependsOn integrationTest
 // end::integ-test-task[]
 
 // tag::defining-sources-jar-task[]
-task sourcesJar(type: Jar) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allJava
+java {
+    publishJavadoc()
+    publishSources()
 }
 // end::defining-sources-jar-task[]
 

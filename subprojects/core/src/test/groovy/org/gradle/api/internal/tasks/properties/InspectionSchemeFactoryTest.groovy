@@ -37,7 +37,8 @@ class InspectionSchemeFactoryTest extends Specification {
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
         [(Thing1): TYPE, (Thing2): TYPE],
-        [Object, GroovyObject],
+        ["java", "groovy"],
+        [],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
         [IgnoredThing],
@@ -54,7 +55,7 @@ class InspectionSchemeFactoryTest extends Specification {
         expect:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
         def problems = []
-        metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
+        metadata.collectValidationFailures(null, new DefaultWorkValidationContext(problems))
         problems.empty
         metadata.propertiesMetadata.size() == 2
 
@@ -71,7 +72,7 @@ class InspectionSchemeFactoryTest extends Specification {
         expect:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
         def problems = []
-        metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
+        metadata.collectValidationFailures(null, new DefaultWorkValidationContext(problems))
         problems.empty
         metadata.propertiesMetadata.size() == 2
 

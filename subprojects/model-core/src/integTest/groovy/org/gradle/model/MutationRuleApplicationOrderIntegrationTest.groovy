@@ -27,6 +27,7 @@ class MutationRuleApplicationOrderIntegrationTest extends AbstractIntegrationSpe
             }
 
             class EchoTask extends DefaultTask {
+                @Internal
                 MutationRecorder recorder
 
                 @TaskAction

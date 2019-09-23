@@ -7,15 +7,11 @@ import model.Stage
 import model.TestCoverage
 import model.TestType
 
-class FunctionalTest(model: CIBuildModel, testCoverage: TestCoverage, subProjects: List<String> = listOf(), stage: Stage, buildTypeName: String = "", extraParameters: String = "") : BaseGradleBuildType(model, stage = stage, init = {
-    uuid = testCoverage.asConfigurationId(model, buildTypeName)
+class FunctionalTest(model: CIBuildModel, uuid: String, name: String, description: String, testCoverage: TestCoverage, stage: Stage, subProjects: List<String> = listOf(), extraParameters: String = "") : BaseGradleBuildType(model, stage = stage, init = {
+    this.uuid = uuid
+    this.name = name
+    this.description = description
     id = AbsoluteId(uuid)
-    name = testCoverage.asName() + if (buildTypeName.isEmpty()) "" else " ($buildTypeName)"
-    description = "${testCoverage.asName()} for ${when (subProjects.size) {
-        0 -> "all projects "
-        1 -> "project ${if (buildTypeName.isEmpty()) subProjects[0] else buildTypeName}"
-        else -> "projects ${subProjects.joinToString(", ")}"
-    }}"
     val testTaskName = "${testCoverage.testType.name}Test"
     val testTasks = if (subProjects.isEmpty())
         testTaskName

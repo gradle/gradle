@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-import org.junit.Test;
+package org.gradle.api.publish.maven
 
-public class SomeTest {
+import org.gradle.test.fixtures.maven.MavenJavaModule
 
-    @Test
-    public void someTest() {
+class MavenPublishJavaWithFeaturesIntegTest extends AbstractMavenPublishJavaIntegTest {
+
+    boolean withDocs() {
+        false
     }
+
+    List<String> features() {
+        [MavenJavaModule.MAIN_FEATURE, "feature2", "feature3"]
+    }
+
 }

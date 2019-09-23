@@ -100,9 +100,9 @@ tasks.check { dependsOn(integrationTest) }
 // end::integ-test-task[]
 
 // tag::defining-sources-jar-task[]
-tasks.register<Jar>("sourcesJar") {
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allJava)
+java {
+    publishJavadoc()
+    publishSources()
 }
 // end::defining-sources-jar-task[]
 

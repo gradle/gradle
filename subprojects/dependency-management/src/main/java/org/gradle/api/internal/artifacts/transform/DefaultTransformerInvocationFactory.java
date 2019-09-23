@@ -56,6 +56,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -430,7 +431,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public void validate() {
+        public void validate(WorkValidationContext validationContext) {
         }
 
         @Override

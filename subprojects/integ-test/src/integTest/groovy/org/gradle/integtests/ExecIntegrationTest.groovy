@@ -142,6 +142,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         return """
             class InjectedServiceTask extends DefaultTask {
 
+                @Internal
                 final ExecOperations execOperations
 
                 @Inject

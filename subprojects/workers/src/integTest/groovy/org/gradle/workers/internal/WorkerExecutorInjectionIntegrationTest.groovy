@@ -60,7 +60,7 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
 
             class InjectingWorkerTask extends DefaultTask {
 
-                WorkerExecutor executor
+                private final WorkerExecutor executor
 
                 @Inject
                 InjectingWorkerTask(WorkerExecutor executor) {

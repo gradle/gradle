@@ -36,8 +36,8 @@ import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.service.DefaultServiceLocator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -232,7 +232,7 @@ public class PropertyValidationAccess {
         @Override
         public void visit(final Class<?> topLevelBean, boolean stricterValidation, ProblemCollector problems, Queue<BeanTypeNode<?>> queue, BeanTypeNodeFactory nodeFactory) {
             TypeMetadata typeMetadata = getTypeMetadata();
-            ParameterValidationContext validationContext = new CollectingParameterValidationContext(topLevelBean, problems);
+            WorkValidationContext validationContext = new CollectingWorkValidationContext(topLevelBean, problems);
             typeMetadata.collectValidationFailures(getPropertyName(), validationContext);
             for (PropertyMetadata propertyMetadata : typeMetadata.getPropertiesMetadata()) {
                 String qualifiedPropertyName = getQualifiedPropertyName(propertyMetadata.getPropertyName());
@@ -257,11 +257,11 @@ public class PropertyValidationAccess {
             return genericReturnType;
         }
 
-        private class CollectingParameterValidationContext implements ParameterValidationContext {
+        private class CollectingWorkValidationContext implements WorkValidationContext {
             private final Class<?> topLevelBean;
             private final ProblemCollector problems;
 
-            public CollectingParameterValidationContext(Class<?> topLevelBean, ProblemCollector problems) {
+            public CollectingWorkValidationContext(Class<?> topLevelBean, ProblemCollector problems) {
                 this.topLevelBean = topLevelBean;
                 this.problems = problems;
             }
@@ -326,7 +326,7 @@ public class PropertyValidationAccess {
     }
 
     private interface PropertyValidator {
-        void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext);
+        void validate(@Nullable String ownerPath, PropertyMetadata metadata, WorkValidationContext validationContext);
     }
 
     private static class MissingNormalizationValidator implements PropertyValidator {
@@ -337,7 +337,7 @@ public class PropertyValidationAccess {
         }
 
         @Override
-        public void validate(@Nullable String ownerPath, PropertyMetadata metadata, ParameterValidationContext validationContext) {
+        public void validate(@Nullable String ownerPath, PropertyMetadata metadata, WorkValidationContext validationContext) {
             if (stricterValidation && !metadata.hasAnnotationForCategory(NORMALIZATION)) {
                 validationContext.visitWarning(ownerPath, metadata.getPropertyName(), "is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE");
             }

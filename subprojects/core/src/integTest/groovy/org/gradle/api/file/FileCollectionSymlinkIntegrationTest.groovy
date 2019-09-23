@@ -360,7 +360,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec {
         output.text == "${[MODIFIED]}"
     }
 
-    def "broken symlink in #inputType fails validation"() {
+    def "broken symlink in #inputType.simpleName fails validation"() {
         def brokenInputFile = file('brokenInput').createLink("brokenInputFileTarget")
         buildFile << """
             class CustomTask extends DefaultTask {

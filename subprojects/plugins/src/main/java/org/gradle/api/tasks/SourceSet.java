@@ -17,6 +17,7 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.ExtensionAware;
@@ -112,9 +113,9 @@ public interface SourceSet extends ExtensionAware {
      */
     void setRuntimeClasspath(FileCollection classpath);
 
-   /**
+    /**
      * {@link SourceSetOutput} is a {@link FileCollection} of all output directories (compiled classes, processed resources, etc.)
-     *  and it provides means to configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
+     * and it provides means to configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
      *
      * @return The output dirs, as a {@link SourceSetOutput}.
      */
@@ -228,11 +229,41 @@ public interface SourceSet extends ExtensionAware {
     String getCompileTaskName(String language);
 
     /**
+     * Returns the name of the Javadoc task for this source set.
+     *
+     * @return The task name. Never returns null.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    String getJavadocTaskName();
+
+    /**
      * Returns the name of the Jar task for this source set.
      *
      * @return The task name. Never returns null.
      */
     String getJarTaskName();
+
+    /**
+     * Returns the name of the Javadoc Jar task for this source set.
+     *
+     * @return The task name. Never returns null.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    String getJavadocJarTaskName();
+
+    /**
+     * Returns the name of the Source Jar task for this source set.
+     *
+     * @return The task name. Never returns null.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    String getSourcesJarTaskName();
 
     /**
      * Returns the name of a task for this source set.
@@ -245,6 +276,7 @@ public interface SourceSet extends ExtensionAware {
 
     /**
      * Returns the name of the compile configuration for this source set.
+     *
      * @return The configuration name
      * @deprecated Use {@link #getImplementationConfigurationName()}, {@link #getApiConfigurationName()}, {@link #getCompileClasspathConfigurationName()} or {@link #getApiElementsConfigurationName()} instead.
      */
@@ -253,6 +285,7 @@ public interface SourceSet extends ExtensionAware {
 
     /**
      * Returns the name of the runtime configuration for this source set.
+     *
      * @return The runtime configuration name
      * @deprecated Use {@link #getRuntimeOnlyConfigurationName()}, {@link #getRuntimeClasspathConfigurationName()} or {@link #getRuntimeElementsConfigurationName()} instead.
      */
@@ -261,6 +294,7 @@ public interface SourceSet extends ExtensionAware {
 
     /**
      * Returns the name of the compile only configuration for this source set.
+     *
      * @return The compile only configuration name
      *
      * @since 2.12
@@ -269,6 +303,7 @@ public interface SourceSet extends ExtensionAware {
 
     /**
      * Returns the name of the compile classpath configuration for this source set.
+     *
      * @return The compile classpath configuration
      *
      * @since 2.12
@@ -300,6 +335,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the implementation configuration for this source set. The implementation
      * configuration should contain dependencies which are specific to the implementation of the component
      * (internal APIs).
+     *
      * @return The configuration name
      * @since 3.4
      */
@@ -344,4 +380,24 @@ public interface SourceSet extends ExtensionAware {
      * @since 3.4
      */
     String getRuntimeElementsConfigurationName();
+
+    /**
+     * Returns the name of the configuration that represents the variant that carries the
+     * Javadoc for this source set in packaged form. Used to publish a variant with a '-javadoc' zip.
+     *
+     * @return the name of the javadoc elements configuration.
+     * @since 6.0
+     */
+    @Incubating
+    String getJavadocElementsConfigurationName();
+
+    /**
+     * Returns the name of the configuration that represents the variant that carries the
+     * original source code in packaged form. Used to publish a variant with a '-sources' zip.
+     *
+     * @return the name of the sources elements configuration.
+     * @since 6.0
+     */
+    @Incubating
+    String getSourcesElementsConfigurationName();
 }

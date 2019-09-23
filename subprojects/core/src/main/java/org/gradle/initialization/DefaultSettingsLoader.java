@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.util.DeprecationLogger;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that modules is
@@ -68,7 +69,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
     private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter) {
         StartParameter noSearchParameter = startParameter.newInstance();
-        noSearchParameter.useEmptySettings();
+        DeprecationLogger.whileDisabled(noSearchParameter::useEmptySettings);
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
 
         // Set explicit build file, if required

@@ -22,8 +22,8 @@ import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.tasks.Destroys;
 import org.gradle.internal.reflect.AnnotationCategory;
-import org.gradle.internal.reflect.ParameterValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
+import org.gradle.internal.reflect.WorkValidationContext;
 
 import java.lang.annotation.Annotation;
 
@@ -56,6 +56,6 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
     }
 
     @Override
-    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, ParameterValidationContext visitor) {
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, WorkValidationContext visitor) {
     }
 }

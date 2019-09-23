@@ -26,6 +26,7 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.reflect.WorkValidationContext;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -81,9 +82,9 @@ public interface UnitOfWork extends CacheableEntity {
     long markExecutionTime();
 
     /**
-     * Validate the work's inputs and outputs, and throws an exception if violations are found.
+     * Validate the work definition and configuration.
      */
-    void validate();
+    void validate(WorkValidationContext validationContext);
 
     /**
      * Return a reason to disable caching for this work.

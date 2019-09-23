@@ -8,7 +8,6 @@ import common.distributedPerformanceTestParameters
 import common.gradleWrapper
 import common.performanceTestCommandLine
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep.ExecutionMode
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
 import model.CIBuildModel
@@ -16,13 +15,13 @@ import model.PerformanceTestType
 import model.Stage
 
 class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType, stage: Stage) : BaseGradleBuildType(model, stage = stage, init = {
-    uuid = type.asId(model)
-    id = AbsoluteId(uuid)
-    name = "Performance ${type.name.capitalize()} Coordinator - Linux"
+    uuid = type.asUuid(model)
+    id = AbsoluteId(type.asId(model))
+    name = "${type.displayName} Coordinator - Linux"
 
     applyPerformanceTestSettings(timeout = type.timeout)
 
-    if (type in listOf(PerformanceTestType.test, PerformanceTestType.experiment)) {
+    if (type in listOf(PerformanceTestType.test, PerformanceTestType.slow)) {
         features {
             publishBuildStatusToGithub(model)
         }
@@ -32,7 +31,7 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
         param("performance.baselines", type.defaultBaselines)
     }
 
-    fun BuildSteps.runner(runnerName: String, runnerTasks: String, extraParameters: String = "", runnerExecutionMode: BuildStep.ExecutionMode = ExecutionMode.DEFAULT) {
+    fun BuildSteps.runner(runnerName: String, runnerTasks: String, extraParameters: String = "", runnerExecutionMode: ExecutionMode = ExecutionMode.DEFAULT) {
         gradleWrapper {
             name = runnerName
             tasks = ""

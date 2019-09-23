@@ -17,9 +17,12 @@
 package org.gradle.internal.execution.steps
 
 import org.gradle.internal.execution.Result
+import org.gradle.internal.reflect.WorkValidationContext
+import org.gradle.internal.reflect.WorkValidationException
 
 class ValidateStepTest extends ContextInsensitiveStepSpec {
-    def step = new ValidateStep<>(delegate)
+    def warningReporter = Mock(ValidateStep.ValidationWarningReporter)
+    def step = new ValidateStep<>(warningReporter, delegate)
     def delegateResult = Mock(Result)
 
     def "executes work when there are no violations"() {
@@ -33,26 +36,82 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
         1 * delegate.execute(_) >> { ctx ->
             delegateResult
         }
-        _ * work.validate() >> { validated = true }
+        _ * work.validate(_ as WorkValidationContext) >> { validated = true }
 
         then:
         validated
         0 * _
     }
 
-    def "propagates failure when there are violations"() {
-        def failure = new RuntimeException("failure")
-
+    def "fails when there is a single violation"() {
         when:
         step.execute(context)
 
         then:
-        def ex = thrown Exception
-        ex == failure
+        def ex = thrown WorkValidationException
+        ex.message == "A problem was found with the configuration of job ':test'."
+        ex.causes.size() == 1
+        ex.causes[0].message == "Validation error"
 
-        _ * work.validate() >> {
-            throw failure
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.visitError("Validation error")
         }
+        0 * _
+    }
+
+    def "fails when there are multiple violations"() {
+        when:
+        step.execute(context)
+
+        then:
+        def ex = thrown WorkValidationException
+        ex.message == "Some problems were found with the configuration of job ':test'."
+        ex.causes.size() == 2
+        ex.causes[0].message == "Validation error #1"
+        ex.causes[1].message == "Validation error #2"
+
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.visitError("Validation error #1")
+            validationContext.visitError("Validation error #2")
+        }
+        0 * _
+    }
+
+    def "reports deprecation warning for validation warning"() {
+        when:
+        step.execute(context)
+
+        then:
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.visitWarning("Validation warning")
+        }
+
+        then:
+        1 * warningReporter.reportValidationWarning("Validation warning")
+
+        then:
+        1 * delegate.execute(context)
+        0 * _
+    }
+
+    def "reports deprecation warning even when there's also an error"() {
+        when:
+        step.execute(context)
+
+        then:
+        _ * work.validate(_ as WorkValidationContext) >> { WorkValidationContext validationContext ->
+            validationContext.visitWarning("Validation warning")
+            validationContext.visitError("Validation error")
+        }
+
+        then:
+        1 * warningReporter.reportValidationWarning("Validation warning")
+
+        then:
+        def ex = thrown WorkValidationException
+        ex.message == "A problem was found with the configuration of job ':test'."
+        ex.causes.size() == 1
+        ex.causes[0].message == "Validation error"
         0 * _
     }
 }

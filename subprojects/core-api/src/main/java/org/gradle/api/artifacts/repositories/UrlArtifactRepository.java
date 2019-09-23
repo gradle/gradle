@@ -58,36 +58,18 @@ public interface UrlArtifactRepository {
      * <p>
      * <b>Allowing communication over insecure protocols allows for a man-in-the-middle to impersonate the intended server,
      * and gives an attacker the ability to
-     * <a href="https://max.computer/blog/how-to-take-over-the-computer-of-any-java-or-clojure-or-scala-developer/">
-     *     serve malicious executable code onto the system.
-     * </a>
+     * <a href="https://max.computer/blog/how-to-take-over-the-computer-of-any-java-or-clojure-or-scala-developer/">serve malicious executable code onto the system.</a>
      * </b>
      * <p>
      * See also:
-     * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb?source=friends_link&sk=3c99970c55a899ad9ef41f126efcde0e">
-     *     Want to take over the Java ecosystem? All you need is a MITM!
-     * </a>
+     * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
      */
-    void setAllowInsecureProtocol(boolean allowInsecureProtocol);
+    boolean isAllowInsecureProtocol();
 
     /**
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
-     * <p>
-     * For security purposes this intentionally requires a user to opt-in to using insecure protocols on case by case basis.
-     * <p>
-     * Gradle intentionally does not offer a global system/gradle property that allows a universal disable of this check.
-     * <p>
-     * <b>Allowing communication over insecure protocols allows for a man-in-the-middle to impersonate the intended server,
-     * and gives an attacker the ability to
-     * <a href="https://max.computer/blog/how-to-take-over-the-computer-of-any-java-or-clojure-or-scala-developer/">
-     *     serve malicious executable code onto the system.
-     * </a>
-     * </b>
-     * <p>
-     * See also:
-     * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb?source=friends_link&sk=3c99970c55a899ad9ef41f126efcde0e">
-     *     Want to take over the Java ecosystem? All you need is a MITM!
-     * </a>
+     *
+     * @see #isAllowInsecureProtocol()
      */
-    boolean isAllowInsecureProtocol();
+    void setAllowInsecureProtocol(boolean allowInsecureProtocol);
 }

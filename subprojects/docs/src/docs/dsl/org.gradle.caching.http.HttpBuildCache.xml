@@ -29,6 +29,9 @@
             <tr>
                 <td>allowUntrustedServer</td>
             </tr>
+            <tr>
+                <td>allowInsecureProtocol</td>
+            </tr>
         </table>
     </section>
     <section>

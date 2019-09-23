@@ -30,7 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.tasks.properties.DefaultWorkValidationContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
@@ -106,7 +106,7 @@ public class DefaultTransformationRegistrationFactory implements TransformationR
     public ArtifactTransformRegistration create(ImmutableAttributes from, ImmutableAttributes to, Class<? extends TransformAction> implementation, @Nullable TransformParameters parameterObject) {
         List<String> validationMessages = new ArrayList<>();
         TypeMetadata actionMetadata = actionMetadataStore.getTypeMetadata(implementation);
-        DefaultParameterValidationContext parameterValidationContext = new DefaultParameterValidationContext(validationMessages);
+        DefaultWorkValidationContext parameterValidationContext = new DefaultWorkValidationContext(validationMessages);
         actionMetadata.collectValidationFailures(null, parameterValidationContext);
         boolean cacheable = implementation.isAnnotationPresent(CacheableTransform.class);
 

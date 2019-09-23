@@ -25,8 +25,10 @@ import spock.lang.Unroll
 class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     def setup() {
-        executer.noDeprecationChecks()
-        executer.withRepositoryMirrors()
+        executer.beforeExecute {
+            executer.noDeprecationChecks()
+            executer.withRepositoryMirrors()
+        }
     }
 
     @Unroll

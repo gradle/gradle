@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -50,7 +51,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -68,6 +68,7 @@ import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -190,6 +191,22 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
 
     /**
+     * The name of the javadoc elements configuration.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public static final String JAVADOC_ELEMENTS_CONFIGURATION_NAME = "javadocElements";
+
+    /**
+     * The name of the sources elements configuration.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public static final String SOURCES_ELEMENTS_CONFIGURATION_NAME = "sourcesElements";
+
+    /**
      * The name of the compile classpath configuration.
      *
      * @since 3.4
@@ -280,8 +297,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
         configureConfigurations(project, javaConvention);
 
-        configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
+        configureJavadocTask(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
 
@@ -305,20 +322,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(SourceSet sourceSet) {
                 buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput());
-            }
-        });
-    }
-
-    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
-        Project project = pluginConvention.getProject();
-        project.getTasks().register(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
-            @Override
-            public void execute(Javadoc javadoc) {
-                final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
-                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-                javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
-                javadoc.setSource(mainSourceSet.getAllJava());
             }
         });
     }
@@ -347,6 +350,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addRuntimeVariants(project, runtimeElementsConfiguration, jarArtifact, pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME), processResources);
 
         registerSoftwareComponents(project);
+    }
+
+    private void configureJavadocTask(ProjectInternal project, JavaPluginConvention pluginConvention) {
+        SourceSet main = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        configureJavaDocTask(null, main, project.getTasks());
     }
 
     private void registerSoftwareComponents(Project project) {

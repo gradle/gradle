@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -247,6 +248,57 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskOrder(any(":a:foo", ":b:foo"), ":a:finalizer")
+    }
+
+    @ToBeImplemented("https://github.com/gradle/gradle/issues/10549")
+    def "mustRunAfter is respected for finalizer without direct dependency"() {
+        settingsFile << """
+            include 'a'
+            include 'b'
+        """
+        buildFile << """
+            configure(project(':a')) {
+                task finalizer {
+                    doLast {
+                        println "finalized"
+                    }
+                }
+            
+                task work {
+                    doLast {
+                        sleep 1000
+                        println "executed \${path}"
+                    }
+                    finalizedBy(finalizer)
+                }
+            }
+            
+            configure(project(':b')) {
+                task work {
+                    doLast {
+                        println "executed \${path}"
+                    }
+                    mustRunAfter(":a:finalizer")
+                }
+            }
+        """
+
+        when:
+        run("work", "--parallel")
+        then:
+        // TODO: Should be:
+        // result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
+        result.assertTaskOrder(any(exact(":a:work", ":a:finalizer"), ":b:work"))
+
+        when: "Apply workaround"
+        buildFile << """
+            configure(project(':b')) {
+                work.mustRunAfter(":a:work")
+            }
+        """
+        run("work", "--parallel")
+        then:
+        result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
     }
 
     private void setupProject() {

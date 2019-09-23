@@ -117,6 +117,22 @@
             ]
         },
         {
+            "type": "org.gradle.api.tasks.TaskValidationException",
+            "member": "Class org.gradle.api.tasks.TaskValidationException",
+            "acceptation": "TaskValidationException is removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.tasks.TaskValidationException",
+            "member": "Constructor org.gradle.api.tasks.TaskValidationException(java.lang.String,java.util.List)",
+            "acceptation": "TaskValidationException is removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
+        },
+        {
             "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
             "member": "Class org.gradle.plugin.devel.tasks.ValidateTaskProperties",
             "acceptation": "ValidateTaskProperties is no longer a ConventionTask",
@@ -154,6 +170,12 @@
             "type": "org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt",
             "member": "Method org.gradle.kotlin.dsl.ComponentMetadataHandlerExtensionsKt.withModule(org.gradle.api.artifacts.dsl.ComponentMetadataHandler,java.lang.Object,org.gradle.api.Action)",
             "acceptation": "Reified versions of methods that are already de-incubated",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.reflect.TypeOf",
+            "member": "Method org.gradle.api.reflect.TypeOf.getLowerBound()",
+            "acceptation": "It goes with the already public API, getUpperBound",
             "changes": []
         }
     ]

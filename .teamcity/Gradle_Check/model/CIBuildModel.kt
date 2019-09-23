@@ -9,6 +9,7 @@ import common.builtInRemoteBuildCacheNode
 import configurations.BuildDistributions
 import configurations.CompileAll
 import configurations.DependenciesCheck
+import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
 import configurations.SmokeTests
@@ -40,7 +41,7 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.CompileAll, SpecificBuild.SanityCheck),
             functionalTests = listOf(
-                TestCoverage(1, TestType.quick, Os.linux, common.JvmCategory.MAX_VERSION.version, vendor = common.JvmCategory.MAX_VERSION.vendor)), omitsSlowProjects = true),
+                TestCoverage(1, TestType.quick, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)), omitsSlowProjects = true),
         Stage(StageNames.QUICK_FEEDBACK,
             functionalTests = listOf(
                 TestCoverage(2, TestType.quick, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
@@ -76,11 +77,11 @@ data class CIBuildModel(
                 TestCoverage(14, TestType.platform, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(15, TestType.forceRealizeDependencyManagement, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
             performanceTests = listOf(
-                PerformanceTestType.experiment)),
+                PerformanceTestType.slow)),
         Stage(StageNames.HISTORICAL_PERFORMANCE,
             trigger = Trigger.weekly,
             performanceTests = listOf(
-                PerformanceTestType.historical, PerformanceTestType.flakinessDetection)),
+                PerformanceTestType.historical, PerformanceTestType.flakinessDetection, PerformanceTestType.experiment)),
         Stage(StageNames.EXPERIMENTAL,
             trigger = Trigger.never,
             runsIndependent = true,
@@ -200,18 +201,22 @@ data class CIBuildModel(
 
     init {
         val subprojectMap = subProjects.map { it.name to it }.toMap()
-        val buckets = listOf(
-            listOf("resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp"),
-            listOf("platformBase", "platformJvm", "platformNative")
+        val buckets = mapOf(
+            "resources" to listOf("resources", "resourcesGcs", "resourcesHttp", "resourcesS3", "resourcesSftp"),
+            "platformBase" to listOf("platformBase", "platformJvm", "platformNative"),
+            "bucket1" to listOf("kotlinDslProviderPlugins", "buildCachePackaging", "native", "snapshots", "internalPerformanceTesting", "internalIntegTesting", "execution", "publish", "ear", "languageJvm"),
+            "bucket2" to listOf("baseServices", "processServices", "messaging", "buildProfile", "modelGroovy"),
+            "bucket3" to listOf("javascript", "fileCollections", "buildCache", "toolingNative", "buildCacheHttp"),
+            "bucket4" to listOf("antlr", "languageGroovy", "reporting", "diagnostics", "versionControl")
         )
-        val largeSubprojects = mapOf("integTest" to 3, "core" to 3, "dependencyManagement" to 3)
+        val largeSubprojects = mapOf("integTest" to 3, "core" to 4, "dependencyManagement" to 3, "toolingApi" to 2)
 
         val nonTrivialBuckets = listOf<BuildTypeBucket>(
             SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
-        ) + buckets.map { projectsInBucket ->
-            SubprojectBucket(name = projectsInBucket[0], subprojects = projectsInBucket.map { subprojectMap.getValue(it) })
+        ) + buckets.map { entry ->
+            SubprojectBucket(name = entry.key, subprojects = entry.value.map { subprojectMap.getValue(it) })
         } + largeSubprojects.map { entry ->
-            SubprojectSplit(subproject = subprojectMap.getValue(entry.key), number = 1, total = entry.value)
+            SubprojectSplit(subproject = subprojectMap.getValue(entry.key), total = entry.value)
         }
         val handledSubprojects = nonTrivialBuckets.flatMap { it.getSubprojectNames() }
         buildTypeBuckets = nonTrivialBuckets + subProjects.filter { !handledSubprojects.contains(it.name) }
@@ -224,42 +229,52 @@ interface BuildTypeBucket {
     // since we only have a small pool of macOS agents
     fun shouldBeSkipped(testCoverage: TestCoverage): Boolean
 
-    val name: String
-
     fun containsSlowTests(): Boolean
     fun shouldBeSkippedInStage(stage: Stage): Boolean
     fun hasTestsOf(testType: TestType): Boolean
-    fun extraParameters(): String
     fun getSubprojectNames(): List<String>
-    fun forTestType(testType: TestType): List<BuildTypeBucket> {
-        return listOf(this)
-    }
+
+    fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage): List<FunctionalTest>
 }
 
-data class SubprojectSplit(val subproject: GradleSubproject, val number: Int, val total: Int) : BuildTypeBucket by subproject, Validatable {
+data class SubprojectSplit(val subproject: GradleSubproject, val total: Int) : BuildTypeBucket by subproject, Validatable {
     override fun validate(consumer: ErrorConsumer) {
         if (total <= 1) {
             consumer.consumeError("Split number must be > 1: ${subproject.name} $total!")
         }
     }
 
-    override val name: String
-        get() = if (number == 1) subproject.name else "${subproject.name}_$number"
+    private fun getName(number: Int) = if (number == 1) subproject.name else "${subproject.name}_$number"
 
-    override fun extraParameters(): String = "-PtestSplit=$number/$total"
-
-    override fun forTestType(testType: TestType): List<BuildTypeBucket> {
-        return if (testType.supportTestSplit) {
-            (1..total).map {
-                SubprojectSplit(subproject, it, total)
-            }
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) =
+        if (testCoverage.testType.supportTestSplit) {
+            (1..total).map { createFunctionalTestsFor(model, stage, testCoverage, getName(it), "-PtestSplit=$it/$total") }
         } else {
-            listOf(subproject)
+            listOf(createFunctionalTestsFor(model, stage, testCoverage, getName(1), ""))
         }
-    }
+
+    private fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, name: String, parameter: String): FunctionalTest = FunctionalTest(model,
+        testCoverage.asConfigurationId(model, name),
+        "${testCoverage.asName()} ($name)",
+        "${testCoverage.asName()} for projects $name",
+        testCoverage,
+        stage,
+        listOf(subproject.name),
+        parameter
+    )
 }
 
-data class SubprojectBucket(override val name: String, val subprojects: List<GradleSubproject>) : BuildTypeBucket, Validatable {
+data class SubprojectBucket(val name: String, val subprojects: List<GradleSubproject>) : BuildTypeBucket, Validatable {
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) = listOf(
+        FunctionalTest(model, testCoverage.asConfigurationId(model, name),
+            "${testCoverage.asName()} (${subprojects.joinToString(", ") { it.name }})",
+            "${testCoverage.asName()} for ${subprojects.joinToString(", ") { it.name }}",
+            testCoverage,
+            stage,
+            subprojects.map { it.name }
+        )
+    )
+
     override fun getSubprojectNames(): List<String> {
         return subprojects.map { it.name }
     }
@@ -270,7 +285,7 @@ data class SubprojectBucket(override val name: String, val subprojects: List<Gra
         if (!hasSameProperties { it.unitTests } ||
             !hasSameProperties { it.functionalTests } ||
             !hasSameProperties { it.crossVersionTests }) {
-            consumer.consumeError("All merged subprojects must have same properties: ${subprojects.map { it.name }.joinToString(" ")}")
+            consumer.consumeError("All merged subprojects must have same properties: ${subprojects.joinToString(" ") { it.name }}")
         }
 
         Os.values().forEach {
@@ -292,11 +307,19 @@ data class SubprojectBucket(override val name: String, val subprojects: List<Gra
     override fun containsSlowTests() = subprojects.any { it.containsSlowTests }
 
     override fun hasTestsOf(testType: TestType) = subprojects.any { it.hasTestsOf(testType) }
-
-    override fun extraParameters() = ""
 }
 
-data class GradleSubproject(override val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) : BuildTypeBucket {
+data class GradleSubproject(val name: String, val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val containsSlowTests: Boolean = false) : BuildTypeBucket {
+    override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) = listOf(
+        FunctionalTest(model,
+            testCoverage.asConfigurationId(model, name),
+            "${testCoverage.asName()} ($name)",
+            "${testCoverage.asName()} for $name",
+            testCoverage,
+            stage,
+            listOf(name)
+        ))
+
     override fun getSubprojectNames(): List<String> {
         return listOf(name)
     }
@@ -308,8 +331,6 @@ data class GradleSubproject(override val name: String, val unitTests: Boolean = 
     override fun containsSlowTests() = containsSlowTests
 
     override fun hasTestsOf(testType: TestType) = (unitTests && testType.unitTests) || (functionalTests && testType.functionalTests) || (crossVersionTests && testType.crossVersionTests)
-
-    override fun extraParameters() = ""
 
     fun asDirectoryName(): String {
         return name.replace(Regex("([A-Z])")) { "-" + it.groups[1]!!.value.toLowerCase() }
@@ -343,7 +364,7 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     fun asConfigurationId(model: CIBuildModel, subproject: String = ""): String {
         val prefix = "${testCoveragePrefix}_"
         val shortenedSubprojectName = shortenSubprojectName(model.projectPrefix, prefix + subproject)
-        return model.projectPrefix + if (!subproject.isEmpty()) shortenedSubprojectName else "${prefix}0"
+        return model.projectPrefix + if (subproject.isNotEmpty()) shortenedSubprojectName else "${prefix}0"
     }
 
     private
@@ -375,15 +396,18 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     forceRealizeDependencyManagement(false, true, false)
 }
 
-enum class PerformanceTestType(val taskId: String, val timeout: Int, val defaultBaselines: String = "", val extraParameters: String = "") {
-    test("PerformanceTest", 420, "defaults"),
-    experiment("PerformanceExperiment", 420, "defaults"),
-    flakinessDetection("FlakinessDetection", 420, "flakiness-detection-commit"),
-    historical("FullPerformanceTest", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
+enum class PerformanceTestType(val taskId: String, val displayName: String, val timeout: Int, val defaultBaselines: String = "", val extraParameters: String = "", val uuid: String? = null) {
+    test("PerformanceTest", "Performance Regression Test", 420, "defaults"),
+    slow("SlowPerformanceTest", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
+    experiment("PerformanceExperiment", "Performance Experiment", 420, "defaults", uuid = "PerformanceExperimentOnlyCoordinator"),
+    flakinessDetection("FlakinessDetection", "Performance Test Flakiness Detection", 420, "flakiness-detection-commit"),
+    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
 
-    fun asId(model: CIBuildModel): String {
-        return "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
-    }
+    fun asId(model: CIBuildModel): String =
+        "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
+
+    fun asUuid(model: CIBuildModel): String =
+        uuid?.let { model.projectPrefix + it } ?: asId(model)
 }
 
 enum class Trigger {

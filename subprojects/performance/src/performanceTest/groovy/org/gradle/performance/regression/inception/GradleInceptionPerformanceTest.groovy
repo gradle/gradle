@@ -16,7 +16,7 @@
 package org.gradle.performance.regression.inception
 
 import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.junit.experimental.categories.Category
@@ -53,7 +53,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
     }
 
     def setup() {
-        def targetVersion = "6.0-20190906163506+0000"
+        def targetVersion = "6.0-20190918220850+0000"
         runner.targetVersions = [targetVersion]
         runner.minimumVersion = targetVersion
     }
@@ -64,8 +64,6 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
         runner.testProject = "gradleBuildCurrent"
         runner.tasksToRun = tasks.split(' ')
         runner.args = extraGradleBuildArguments()
-        runner.targetVersions = ["6.0-branch-revert_10756_revert_10546_lptr_validation_rename_validate_task_properties-20190917175811+0000"]
-        runner.minimumVersion = "6.0-branch-revert_10756_revert_10546_lptr_validation_rename_validate_task_properties-20190917175811+0000"
 
         when:
         def result = runner.run()
@@ -78,7 +76,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
         'help' | _
     }
 
-    @Category(PerformanceExperiment)
+    @Category(SlowPerformanceRegressionTest)
     @Unroll
     def "buildSrc api change in #testProject comparing gradle"() {
         given:

@@ -59,11 +59,41 @@ Its predecessor `IncrementalTaskInputs` has been deprecated.
 Forcing dependency versions using `force = true` on a first-level dependency is deprecated.
 Force has both a semantic and ordering issue which can be avoided by using a <<rich_versions.adoc#rich-version-constraints, strict version constraint>>.
 
+==== Invalid task definitions and configurations
+
+Problems with task definitions are called out in deprecation warnings like this:
+
+```
+Property 'options.configFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+```
+
+==== Search upwards related API in `StartParameter` has been deprecated
+
+In Gradle 5.0 we removed the `--no-search-upward` CLI parameter.
+The related APIs in `StartParameter` are now deprecated.
+
 === Potential breaking changes
 
 ==== Android Gradle Plugin 3.3 and earlier is not supported anymore
 
 Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
+
+==== Archive tasks fail on duplicate files
+
+Until now archive tasks defaulted to the `INCLUDE` duplicates strategy, allowing the same path to exist multiple times in an archive.
+
+In Gradle 6.0 we are switching to `FAIL`, prohibiting duplicate files in archives.
+If you still want to allow them, you can be specify that explicitly:
+
+```
+task archive(type: Zip) {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE // allow duplicates
+    archiveName = 'archive.zip'
+    from 'src'
+}
+```
+
+*Note* that `Copy` and `Sync` tasks are unaffected: they still use the `INCLUDE` duplicates strategy as default.
 
 ==== Local build cache is always a directory cache
 
@@ -594,30 +624,3 @@ Plugins that extend these types and override methods from the base class may no 
 Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 
 If your plugin/build only uses these types (and does not extend them), nothing has changed.
-
-===== Archive tasks fail on duplicate files
-
-Until now archive tasks defaulted to the `INCLUDE` duplicates strategy, allowing the same path to exist multiple times in an archive.
-
-In Gradle 6.0 we are switching to `FAIL`, prohibiting duplicate files in archives.
-If you still want to allow them, you can be specify that explicitly:
-
-```
-task archive(type: Zip) {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE // allow duplicates
-    archiveName = 'archive.zip'
-    from 'src'
-}
-```
-
-*Note* that `Copy` and `Sync` tasks are unaffected: they still use the `INCLUDE` duplicates strategy as default.
-
-
-////
-== Changes in detail
-
-[[rel5.X:title]]
-=== [5.X] Title
-
-Details...
-////

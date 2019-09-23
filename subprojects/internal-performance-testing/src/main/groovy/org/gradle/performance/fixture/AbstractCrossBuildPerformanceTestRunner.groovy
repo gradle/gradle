@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,27 @@
 
 package org.gradle.performance.fixture
 
+import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.util.Git
 import org.gradle.util.GradleVersion
 
-class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
-    public CrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
-        super(experimentRunner, dataReporter, buildContext)
+@CompileStatic
+abstract class AbstractCrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
+    AbstractCrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossBuildPerformanceResults> dataReporter, IntegrationTestBuildContext buildContext) {
+        super(experimentRunner, resultsStore, dataReporter, buildContext)
     }
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         super.defaultSpec(builder)
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
-            builder.invocation.distribution(gradleDistribution)
+            ((GradleBuildExperimentSpec.GradleBuilder) builder).invocation.distribution(gradleDistribution)
         }
     }
 
@@ -66,5 +69,4 @@ class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTest
     MeasuredOperationList operations(CrossBuildPerformanceResults result, BuildExperimentSpec spec) {
         result.buildResult(spec.displayInfo)
     }
-
 }

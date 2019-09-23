@@ -8,14 +8,9 @@ plugins {
 group = "com.example"
 version = "1.0"
 
-tasks.register<Jar>("sourcesJar") {
-    from(sourceSets.main.get().allJava)
-    archiveClassifier.set("sources")
-}
-
-tasks.register<Jar>("javadocJar") {
-    from(tasks.javadoc)
-    archiveClassifier.set("javadoc")
+java {
+    publishJavadoc()
+    publishSources()
 }
 
 // tag::pom-customization[]
@@ -27,8 +22,6 @@ publishing {
 // end::pom-customization[]
             artifactId = "my-library"
             from(components["java"])
-            artifact(tasks["sourcesJar"])
-            artifact(tasks["javadocJar"])
 // tag::versions-resolved[]
             versionMapping {
                 usage("java-api") {

@@ -74,7 +74,7 @@ class GradleModuleMetadata {
         return matches.first()
     }
 
-    Variant variant(String name, @DelegatesTo(value=Variant, strategy=Closure.DELEGATE_FIRST) Closure<Void> action) {
+    Variant variant(String name, @DelegatesTo(value=Variant, strategy=Closure.DELEGATE_FIRST) Closure<Variant> action) {
         def variant = variant(name)
         action.delegate = variant
         action.resolveStrategy = Closure.DELEGATE_FIRST

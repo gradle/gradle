@@ -46,6 +46,7 @@ task showMissing { doLast { println configurations.missing.files } }
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pom.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
 
@@ -59,6 +60,7 @@ Required by:
             .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${module.pom.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
 
@@ -106,11 +108,13 @@ task showMissing { doLast { println configurations.missing.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.pom.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :""")
 
@@ -183,12 +187,14 @@ task showMissing { doLast { println configurations.compile.files } }
                 .assertHasCause("""Could not find group:projectA:1.2.
 Searched in the following locations:
   - ${moduleA.pom.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project : > group:projectC:0.99
     project : > project :child1 > group:projectD:1.0GA""")
                 .assertHasCause("""Could not find group:projectB:1.0-milestone-9.
 Searched in the following locations:
   - ${moduleB.pom.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project : > project :child1 > group:projectD:1.0GA""")
 

@@ -25,9 +25,9 @@ final class TaskOptionFixture {
             import org.gradle.api.tasks.options.Option
         
             class SomeTask extends DefaultTask {
-                boolean first
-                String second
-                TestEnum third
+                private boolean first
+                private String second
+                private TestEnum third
         
                 @Option(option = "first", description = "configures 'first' field")
                 void setFirst(boolean first) {

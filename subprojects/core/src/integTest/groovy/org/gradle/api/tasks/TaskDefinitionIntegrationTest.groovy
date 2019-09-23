@@ -27,7 +27,9 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         import javax.inject.Inject
 
         class CustomTask extends DefaultTask {
+            @Internal
             final String message
+            @Internal
             final int number
 
             @Inject

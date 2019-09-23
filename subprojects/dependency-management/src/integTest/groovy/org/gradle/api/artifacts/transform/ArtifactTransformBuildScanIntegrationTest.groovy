@@ -18,7 +18,9 @@ package org.gradle.api.artifacts.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
+import spock.lang.Ignore
 
+@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec {
     def fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
 

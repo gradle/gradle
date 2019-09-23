@@ -122,6 +122,6 @@ class WrapperLoggingIntegrationTest extends AbstractWrapperIntegrationSpec {
         result = wrapperExecuter.run()
 
         then:
-        outputContains("........10%.........20%.........30%.........40%.........50%.........60%.........70%.........80%.........90%........100%")
+        outputContains("........10%.........20%.........30%.........40%.........50%.........60%.........70%.........80%.........90%.........100%")
     }
 }

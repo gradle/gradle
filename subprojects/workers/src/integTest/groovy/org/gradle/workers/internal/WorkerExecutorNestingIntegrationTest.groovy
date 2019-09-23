@@ -16,8 +16,10 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.api.tasks.Internal
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.work.DefaultConditionalExecutionQueue
+import org.gradle.workers.WorkerExecutor
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Unroll
 
@@ -193,9 +195,9 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
     WorkerExecutorFixture.WorkActionClass getFirstLevelExecution(String nestedIsolationMode) {
         def workerClass = fixture.workActionClass("FirstLevelExecution", "org.gradle.test", nestingParameterType)
-        workerClass.imports += ["org.gradle.workers.WorkerExecutor"]
+        workerClass.imports += [WorkerExecutor.name, Internal.name]
         workerClass.extraFields = """
-            WorkerExecutor executor
+            @Internal WorkerExecutor executor
             
             ${fixture.workerMethodTranslation}
         """
@@ -226,9 +228,14 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
         return """
             class NestingWorkerTask extends DefaultTask {
 
-                WorkerExecutor executor
+                @Internal
+                final WorkerExecutor executor
+
+                @Internal
                 boolean waitForChildren = false
+                @Internal
                 int submissions = 1
+                @Internal
                 int childSubmissions = 1
 
                 @Inject

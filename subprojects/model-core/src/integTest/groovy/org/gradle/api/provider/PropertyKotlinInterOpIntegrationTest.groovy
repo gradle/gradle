@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -41,12 +42,18 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInter
             import ${ObjectFactory.name}
             import ${TaskAction.name}
             import ${Inject.name}
+            import ${Internal.name}
 
             open class SomeTask @Inject constructor(objectFactory: ObjectFactory): DefaultTask() {
+                @Internal
                 val flag = objectFactory.property(Boolean::class.java)
+                @Internal
                 val message = objectFactory.property(String::class.java)
+                @Internal
                 val list = objectFactory.listProperty(Int::class.java)
+                @Internal
                 val set = objectFactory.setProperty(Int::class.java)
+                @Internal
                 val map = objectFactory.mapProperty(Int::class.java, Boolean::class.java)
                 
                 @TaskAction

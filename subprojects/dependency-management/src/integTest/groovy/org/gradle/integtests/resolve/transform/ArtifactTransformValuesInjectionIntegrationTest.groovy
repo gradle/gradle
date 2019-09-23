@@ -812,7 +812,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         buildFile << """
             @CacheableTransform
             class MyTask extends DefaultTask {
-                File getThing() { null }
+                @TaskAction void execute() {}
             }
 
             tasks.create('broken', MyTask)
@@ -820,9 +820,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         expect:
         fails('broken')
-        failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("Could not create task ':broken'.")
-        failure.assertHasCause("A problem was found with the configuration of task ':broken' of type 'MyTask'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':broken'.")
         failure.assertHasCause("Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
     }
 
@@ -846,8 +844,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         expect:
         // Probably should be eager
         fails('broken')
-        failure.assertHasDescription("Could not determine the dependencies of task ':broken'.")
-        failure.assertHasCause("Some problems were found with the configuration of task ':broken' of type 'MyTask'.")
+        failure.assertHasDescription("Some problems were found with the configuration of task ':broken'.")
         failure.assertHasCause("Cannot use @CacheableTask with type Options. This annotation can only be used with Task types.")
         failure.assertHasCause("Cannot use @CacheableTransform with type Options. This annotation can only be used with TransformAction types.")
     }

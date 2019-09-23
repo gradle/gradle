@@ -15,10 +15,9 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class SigningProjectSpec extends AbstractProjectBuilderSpec {
+abstract class SigningProjectSpec extends AbstractProjectBuilderSpec {
 
     static final DEFAULT_KEY_SET = "gradle"
 
@@ -97,15 +96,9 @@ class SigningProjectSpec extends AbstractProjectBuilderSpec {
 
     def useJavadocAndSourceJars() {
         apply plugin: "java"
-
-        task("sourcesJar", type: Jar, dependsOn: classes) {
-            classifier = 'sources'
-            from sourceSets.main.allSource
-        }
-
-        task("javadocJar", type: Jar, dependsOn: javadoc) {
-            classifier = 'javadoc'
-            from javadoc.destinationDir
+        java {
+            publishJavadoc()
+            publishSources()
         }
     }
 }

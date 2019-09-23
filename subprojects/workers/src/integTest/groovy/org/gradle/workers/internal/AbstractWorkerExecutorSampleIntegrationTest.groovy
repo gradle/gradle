@@ -63,6 +63,6 @@ abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractInteg
     void assertReversedFileIsPresentAndCorrect(String dsl, String author) {
         def reversedFile = workerExecutorSample(dsl).file("build/reversed/${author}.txt")
         assert reversedFile.exists()
-        assert reversedFile.text == workerExecutorSample(dsl).file("sources/${author}.txt").text.reverse()
+        assert reversedFile.readLines() == workerExecutorSample(dsl).file("sources/${author}.txt").readLines().collect { it.reverse() }
     }
 }
