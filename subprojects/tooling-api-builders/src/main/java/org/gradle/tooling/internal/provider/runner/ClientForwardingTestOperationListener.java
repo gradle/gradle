@@ -88,7 +88,7 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         if (progressEvent.getDetails() instanceof TestListenerBuildOperationAdapter.OutputProgress) {
             TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) progressEvent.getDetails();
-            InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), progress.getTestId());
+            InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), progress.getTestDescriptorId());
             DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), getDestination(progress.getOutput().getDestination()), progress.getOutput().getMessage());
             eventConsumer.progress(new DefaultTestOutputEvent(progressEvent.getTime(), descriptor, result));
         }

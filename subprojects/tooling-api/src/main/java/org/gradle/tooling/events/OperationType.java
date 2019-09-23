@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.events;
 
+import org.gradle.api.Incubating;
+
 /**
  * Enumerates the different types of operations for which progress events can be received.
  *
@@ -61,7 +63,10 @@ public enum OperationType {
 
     /**
      *  Flag for test output operation progress events.
+     *
+     * @since 6.0
      */
+    @Incubating
     TEST_OUTPUT
 
 }

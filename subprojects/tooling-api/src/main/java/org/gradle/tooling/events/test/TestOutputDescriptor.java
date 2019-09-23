@@ -16,7 +16,14 @@
 
 package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
+/**
+ * Describes a test output operation.
+ *
+ * @since 6.0
+ */
+@Incubating
 public interface TestOutputDescriptor extends OperationDescriptor {
 }

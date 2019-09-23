@@ -25,9 +25,6 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
 import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.Arrays;
 
 public class ToolingBuilderServices extends AbstractPluginServiceRegistry {

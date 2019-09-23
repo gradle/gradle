@@ -455,10 +455,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestOutputStore.Writer outputWriter = testOutputStore.writer();
         TestReportDataCollector testReportDataCollector = new TestReportDataCollector(results, outputWriter);
 
-
         addTestListener(testReportDataCollector);
         addTestOutputListener(testReportDataCollector);
-
 
         TestCountLogger testCountLogger = new TestCountLogger(getProgressLoggerFactory());
         addTestListener(testCountLogger);

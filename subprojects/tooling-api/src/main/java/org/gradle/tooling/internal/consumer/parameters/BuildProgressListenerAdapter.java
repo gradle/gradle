@@ -66,7 +66,6 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
 import org.gradle.tooling.events.test.TestOperationResult;
 import org.gradle.tooling.events.test.TestOutputDescriptor;
 import org.gradle.tooling.events.test.TestOutputEvent;
-import org.gradle.tooling.events.test.TestOutputProgressEvent;
 import org.gradle.tooling.events.test.TestProgressEvent;
 import org.gradle.tooling.events.test.TestStartEvent;
 import org.gradle.tooling.events.test.internal.DefaultJvmTestOperationDescriptor;
@@ -138,9 +137,6 @@ import org.gradle.tooling.internal.protocol.events.InternalTestSuccessResult;
 import org.gradle.tooling.internal.protocol.events.InternalTransformDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalWorkItemDescriptor;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -229,7 +225,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
             projectConfigurationProgressListeners.getSource().statusChanged(event);
         } else if (event instanceof TransformProgressEvent) {
             transformProgressListeners.getSource().statusChanged(event);
-        } else if (event instanceof TestOutputProgressEvent) {
+        } else if (event instanceof TestOutputEvent) {
             testOutputProgressListeners.getSource().statusChanged(event);
         } else {
             // Everything else treat as a generic operation
@@ -400,7 +396,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     private TestOutputEvent transformTestOutput(InternalTestOutputEvent event, InternalTestOutputDescriptor descriptor) {
         TestOutputDescriptor outputDescriptor = addDescriptor(event.getDescriptor(), toTestOutputDescriptor(descriptor));
         Destination destination = Destination.fromCode(event.getResult().getDestination());
-        return new DefaultTestOutputEvent(event.getEventTime(), outputDescriptor, destination, event.getResult().getMessage());
         return new DefaultTestOutputEvent(event.getEventTime(), outputDescriptor, destination, event.getResult().getMessage());
     }
 

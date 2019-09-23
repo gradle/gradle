@@ -16,9 +16,18 @@
 
 package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
+
 import java.io.Serializable;
 
+/**
+ * Enumerates possible output streams for {@link TestOutputEvent}.
+ *
+ * @since 6.0
+ */
+@Incubating
 public enum Destination implements Serializable {
+
     StdOut(0),
     StdErr(1);
 
@@ -38,6 +47,6 @@ public enum Destination implements Serializable {
                  return d;
             }
         }
-        throw new RuntimeException("Cannot find destination with code " + code);
+        throw new IllegalArgumentException("Cannot find destination with code " + code);
     }
 }

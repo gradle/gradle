@@ -23,7 +23,6 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 public class DefaultTestOutputOperationDescriptor extends DefaultOperationDescriptor implements TestOutputDescriptor {
 
-
     public DefaultTestOutputOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent) {
         super(internalDescriptor, parent);
     }

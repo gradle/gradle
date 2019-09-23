@@ -23,8 +23,6 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.test.Destination
 import org.gradle.tooling.events.test.TestOutputEvent
-import org.gradle.tooling.events.test.TestOutputFinishProgressEvent
-import org.gradle.tooling.events.test.TestOutputStartProgressEvent
 
 class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 

@@ -111,11 +111,11 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
 
     public static class OutputProgress implements ExecuteTestBuildOperationType.Output {
         private final TestOutputEvent event;
-        private final Object testId;
+        private final Object testDescriptorId;
 
-        private OutputProgress(TestOutputEvent event, Object testId) {
+        private OutputProgress(TestOutputEvent event, Object testDescriptorId) {
             this.event = event;
-            this.testId = testId;
+            this.testDescriptorId = testDescriptorId;
         }
 
         @Override
@@ -123,8 +123,8 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
             return event;
         }
 
-        public Object getTestId() {
-            return testId;
+        public Object getTestDescriptorId() {
+            return testDescriptorId;
         }
     }
 

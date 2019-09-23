@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.events.test;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
@@ -23,6 +24,7 @@ import org.gradle.tooling.events.ProgressEvent;
  *
  * @since 6.0
  */
+@Incubating
 public interface TestOutputEvent extends ProgressEvent {
 
     Destination getDestination();

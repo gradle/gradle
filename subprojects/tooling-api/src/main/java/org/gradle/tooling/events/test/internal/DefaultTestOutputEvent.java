@@ -19,7 +19,6 @@ package org.gradle.tooling.events.test.internal;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.TestOutputEvent;
-import org.gradle.tooling.events.test.TestOutputResult;
 
 /**
  * Implementation of the {@code TestFinishEvent} interface.
