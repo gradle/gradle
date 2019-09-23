@@ -98,7 +98,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = (
-                buildToolGradleParameters(daemon) +
+                buildToolGradleParameters(daemon, os = os) +
                     this@gradleRunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
                     "-PteamCityUsername=%teamcity.username.restbot%" +
@@ -120,7 +120,7 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
             tasks = "$gradleTasks tagBuild"
             executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
             gradleParams = (
-                buildToolGradleParameters(daemon) +
+                buildToolGradleParameters(daemon, os = os) +
                     this@gradleRerunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
                     "-PteamCityUsername=%teamcity.username.restbot%" +

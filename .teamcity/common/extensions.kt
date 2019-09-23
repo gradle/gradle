@@ -100,7 +100,7 @@ fun BuildSteps.checkCleanM2(os: Os = Os.linux) {
     }
 }
 
-fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
+fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true, os: Os = Os.linux): List<String> =
     listOf(
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
@@ -108,7 +108,8 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         if (isContinue) "--continue" else "",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         "-Dorg.gradle.internal.tasks.createops",
-        "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
+        // // https://github.com/gradle/gradle-private/issues/2725
+        if (os == Os.macos) "" else "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
     )
 
 fun buildToolParametersString(daemon: Boolean = true) = buildToolGradleParameters(daemon).joinToString(separator = " ")
