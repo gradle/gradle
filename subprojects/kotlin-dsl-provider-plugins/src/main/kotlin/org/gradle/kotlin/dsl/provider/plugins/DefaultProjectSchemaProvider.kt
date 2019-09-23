@@ -200,13 +200,13 @@ val Class<*>.firstNonSyntheticOrNull: Class<*>?
 private
 fun accessibleConfigurationsOf(project: Project) =
     project.configurations
+        .filter { isPublic(it.name) }
         .map(::toConfigurationEntry)
-        .filter { isPublic(it.target) }
 
 
 private
 fun toConfigurationEntry(configuration: Configuration) = (configuration as DeprecatableConfiguration).run {
-    ConfigurationEntry(configuration.name, configuration.declarationAlternatives?:listOf())
+    ConfigurationEntry(name, declarationAlternatives?:listOf())
 }
 
 
