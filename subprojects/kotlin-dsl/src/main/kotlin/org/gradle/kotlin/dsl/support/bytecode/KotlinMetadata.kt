@@ -311,3 +311,7 @@ val inlineGetterFlags = flagsOf(
 
 internal
 val publicFunctionFlags = flagsOf(Flag.IS_PUBLIC)
+
+
+internal
+val publicFunctionWithAnnotationsFlags = flagsOf(Flag.IS_PUBLIC, Flag.HAS_ANNOTATIONS)

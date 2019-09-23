@@ -38,6 +38,7 @@ import org.gradle.kotlin.dsl.support.bytecode.internalName
 import org.gradle.kotlin.dsl.support.bytecode.jvmGetterSignatureFor
 import org.gradle.kotlin.dsl.support.bytecode.kotlinDeprecation
 import org.gradle.kotlin.dsl.support.bytecode.publicFunctionFlags
+import org.gradle.kotlin.dsl.support.bytecode.publicFunctionWithAnnotationsFlags
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticMethod
 import org.gradle.kotlin.dsl.support.bytecode.publicStaticSyntheticMethod
 import org.gradle.kotlin.dsl.support.bytecode.visitOptionalParameter
@@ -66,7 +67,9 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
     val name = config.target
     val propertyName = name.original
     val className = "${propertyName.capitalize()}ConfigurationAccessorsKt"
-    val deprecationBlock = config.getDeclarationDeprecationBlock()
+    val (functionFlags, deprecationBlock) =
+        if (config.hasDeclarationDeprecations()) publicFunctionWithAnnotationsFlags to config.getDeclarationDeprecationBlock()
+        else publicFunctionFlags to ""
 
     className to sequenceOf(
         AccessorFragment(
@@ -95,6 +98,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     nullableReturnType = GradleType.dependency,
                     name = signature.name,
@@ -144,6 +148,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -231,7 +236,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
-                    functionFlags = publicFunctionFlags,
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyHandler,
                     returnType = GradleType.externalModuleDependency,
                     name = propertyName,
@@ -283,7 +288,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 }
             },
             metadata = {
-                writer.visitFunction(publicFunctionFlags, propertyName)!!.run {
+                writer.visitFunction(functionFlags, propertyName)!!.run {
                     visitTypeParameter(0, "T", 0, KmVariance.INVARIANT)!!.run {
                         visitUpperBound(0).with(GradleType.dependency)
                         visitEnd()
@@ -374,6 +379,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     returnType = GradleType.dependencyConstraint,
                     name = propertyName,
@@ -834,12 +840,10 @@ fun ConfigurationEntry<AccessorNameSpec>.getDeclarationDeprecationMessage() = if
     ""
 }
 
+
 private
-fun ConfigurationEntry<AccessorNameSpec>.getDeclarationDeprecationBlock() = if (hasDeclarationDeprecations()) {
+fun ConfigurationEntry<AccessorNameSpec>.getDeclarationDeprecationBlock() =
     "\n                    @Deprecated(message = \"${getDeclarationDeprecationMessage()}\")"
-} else {
-    ""
-}
 
 
 private
