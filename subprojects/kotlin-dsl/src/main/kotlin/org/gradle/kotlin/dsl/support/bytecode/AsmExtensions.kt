@@ -322,6 +322,7 @@ fun MethodVisitor.kotlinDeprecation(message: String) {
     }
 }
 
+
 /**
  * A JVM internal type name (as in `java/lang/Object` instead of `java.lang.Object`).
  */

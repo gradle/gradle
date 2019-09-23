@@ -851,11 +851,13 @@ fun quote(str: String) = "'$str'"
 
 
 private
-fun BytecodeFragmentScope.publicStaticMaybeDeprecatedMethod(jvmMethodSignature: JvmMethodSignature,
-                                                            config: ConfigurationEntry<AccessorNameSpec>,
-                                                            signature: String? = null,
-                                                            exceptions: Array<String>? = null,
-                                                            methodBody: MethodVisitor.() -> Unit) {
+fun BytecodeFragmentScope.publicStaticMaybeDeprecatedMethod(
+    jvmMethodSignature: JvmMethodSignature,
+    config: ConfigurationEntry<AccessorNameSpec>,
+    signature: String? = null,
+    exceptions: Array<String>? = null,
+    methodBody: MethodVisitor.() -> Unit
+) {
     if (config.hasDeclarationDeprecations()) {
         publicStaticMethod(jvmMethodSignature, signature, exceptions, true, {
             kotlinDeprecation(config.getDeclarationDeprecationMessage())
