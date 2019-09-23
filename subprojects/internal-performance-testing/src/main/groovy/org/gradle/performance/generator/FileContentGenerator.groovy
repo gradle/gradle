@@ -109,9 +109,16 @@ abstract class FileContentGenerator {
             }
 
             return includedProjects + """
-            if(org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version("4.6")) {
-            ${config.featurePreviews.collect { "enableFeaturePreview(\"$it\")" }.join("\n")}
-            }
+                def enableFeaturePreviewSafe(String feature) {
+                     try {
+                        enableFeaturePreview(feature)
+                        println "Enabled feature preview " + feature
+                     } catch(Exception ignored) {
+                        println "Failed to enable feature preview " + feature
+                     }
+                }
+
+                ${config.featurePreviews.collect { "enableFeaturePreviewSafe(\"$it\")" }.join("\n")}
             """
         }
     }
