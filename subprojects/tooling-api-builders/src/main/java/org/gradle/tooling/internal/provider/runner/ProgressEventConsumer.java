@@ -19,7 +19,9 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -46,6 +48,10 @@ class ProgressEventConsumer {
 
     void finished(InternalOperationFinishedProgressEvent event) {
         startedIds.remove(event.getDescriptor().getId());
+        delegate.dispatch(event);
+    }
+
+    void progress(InternalProgressEvent event) {
         delegate.dispatch(event);
     }
 }

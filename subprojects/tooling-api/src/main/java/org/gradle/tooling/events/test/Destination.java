@@ -29,8 +29,7 @@ public enum Destination implements Serializable {
     }
 
     public int getCode() {
-         // TODO (donat) can we directly serialize the enum?
-        return code;
+        return code; // TODO (donat) can we directly serialize the enum?
     }
 
     public static Destination fromCode(int code) {
@@ -41,5 +40,4 @@ public enum Destination implements Serializable {
         }
         throw new RuntimeException("Cannot find destination with code " + code);
     }
-
 }

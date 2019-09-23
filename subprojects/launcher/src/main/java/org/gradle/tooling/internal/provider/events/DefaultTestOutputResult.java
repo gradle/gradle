@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.events;
 
-import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.internal.protocol.events.InternalOperationResult;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputResult;
 

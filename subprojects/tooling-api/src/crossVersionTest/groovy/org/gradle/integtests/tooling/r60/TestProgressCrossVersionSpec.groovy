@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.test.Destination
+import org.gradle.tooling.events.test.TestOutputEvent
 import org.gradle.tooling.events.test.TestOutputFinishProgressEvent
 import org.gradle.tooling.events.test.TestOutputStartProgressEvent
 
@@ -50,8 +51,7 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
         """
 
         when:
-        def startEvents = []
-        def finishEvents = []
+        def events = []
         withConnection {
             ProjectConnection connection ->
                 connection.newBuild().forTasks('test').addProgressListener(
@@ -59,20 +59,16 @@ class TestProgressCrossVersionSpec extends ToolingApiSpecification {
 
                         @Override
                         void statusChanged(ProgressEvent event) {
-                            if (event instanceof TestOutputStartProgressEvent) {
-                                startEvents << event
-                            } else if (event instanceof TestOutputFinishProgressEvent) {
-                                finishEvents << event
+                            if (event instanceof TestOutputEvent) {
+                                events << event
                             }
-
                         }
                     }
                 ).run()
         }
 
         then:
-        finishEvents.find { event -> event.result.message == "Winged Hussars" && event.result.destination == Destination.StdOut }
-        finishEvents.find { event -> event.result.message == "The Last Battle" && event.result.destination == Destination.StdErr }
+        events.find { TestOutputEvent event -> event.message == "Winged Hussars" && event.destination == Destination.StdOut }
     }
 
     def goodCode() {

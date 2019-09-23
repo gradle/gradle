@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
-import org.gradle.tooling.events.test.Destination;
-
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  *

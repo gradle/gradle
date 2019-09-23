@@ -34,7 +34,7 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTestResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
@@ -42,9 +42,8 @@ import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestOutputDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTestOutputFinishedProgressEvent;
+import org.gradle.tooling.internal.provider.events.DefaultTestOutputEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestOutputResult;
-import org.gradle.tooling.internal.provider.events.DefaultTestOutputStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult;
@@ -89,14 +88,17 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
         if (progressEvent.getDetails() instanceof TestListenerBuildOperationAdapter.OutputProgress) {
             TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) progressEvent.getDetails();
+            InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), progress.getTestId());
+            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), getDestination(progress.getOutput().getDestination()), progress.getOutput().getMessage());
+            eventConsumer.progress(new DefaultTestOutputEvent(progressEvent.getTime(), descriptor, result));
+        }
+    }
 
-            InternalOperationDescriptor startDescriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), "output", "output", progress.getTestId());
-            eventConsumer.started(new DefaultTestOutputStartedProgressEvent(progressEvent.getTime(), startDescriptor));
-
-            int destination = progress.getOutput().getDestination() == TestOutputEvent.Destination.StdErr ? Destination.StdErr.getCode() : Destination.StdOut.getCode();
-            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), destination , progress.getOutput().getMessage());
-            InternalOperationDescriptor finishDescriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), "output", "output", progress.getTestId());
-            eventConsumer.finished(new DefaultTestOutputFinishedProgressEvent(progressEvent.getTime(), finishDescriptor, result));
+    private int getDestination(TestOutputEvent.Destination destination) {
+        switch (destination) {
+            case StdOut: return Destination.StdOut.getCode();
+            case StdErr: return Destination.StdErr.getCode();
+            default: throw new IllegalStateException("Unknown output destination type: " + destination);
         }
     }
 

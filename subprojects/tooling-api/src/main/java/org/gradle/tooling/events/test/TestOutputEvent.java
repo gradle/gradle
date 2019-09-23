@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.protocol.events;
+package org.gradle.tooling.events.test;
+
+import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * An event that informs about a test having started its execution.
  *
  * @since 6.0
  */
-public interface InternalTestOutputFinishedProgressEvent extends InternalOperationFinishedProgressEvent {
+public interface TestOutputEvent extends ProgressEvent {
 
-    InternalTestOutputResult getResult();
+    Destination getDestination();
+    String getMessage();
 }

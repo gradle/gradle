@@ -17,29 +17,23 @@
 package org.gradle.tooling.internal.provider.events;
 
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTestOutputFinishedProgressEvent;
+import org.gradle.tooling.internal.protocol.events.InternalTestOutputEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputResult;
 
-public class DefaultTestOutputFinishedProgressEvent implements InternalTestOutputFinishedProgressEvent {
+public class DefaultTestOutputEvent extends AbstractProgressEvent<InternalOperationDescriptor> implements InternalTestOutputEvent {
 
-    private final long startTime;
     private final InternalOperationDescriptor descriptor;
     private final InternalTestOutputResult result;
 
-    public DefaultTestOutputFinishedProgressEvent(long startTime, InternalOperationDescriptor descriptor, InternalTestOutputResult result) {
-        this.startTime = startTime;
+    public DefaultTestOutputEvent(long startTime, InternalOperationDescriptor descriptor, InternalTestOutputResult result) {
+        super(startTime, descriptor);
         this.descriptor = descriptor;
         this.result = result;
     }
 
     @Override
-    public long getEventTime() {
-        return startTime;
-    }
-
-    @Override
     public String getDisplayName() {
-        return "output started";
+        return "output";
     }
 
     @Override
