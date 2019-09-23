@@ -327,7 +327,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
                 """
             },
             bytecode = {
-                publicStaticMethod(signature) {
+                publicStaticMaybeDeprecatedMethod(signature, config) {
                     ALOAD(0)
                     LDC(propertyName)
                     ALOAD(1)
@@ -337,6 +337,7 @@ fun fragmentsForConfiguration(accessor: Accessor.ForConfiguration): Fragments = 
             },
             metadata = {
                 writer.writeFunctionOf(
+                    functionFlags = functionFlags,
                     receiverType = GradleType.dependencyConstraintHandler,
                     nullableReturnType = GradleType.dependencyConstraint,
                     name = propertyName,
