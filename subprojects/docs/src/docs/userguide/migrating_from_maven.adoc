@@ -137,7 +137,7 @@ Use the `publish` task provided by the <<publishing_maven#publishing_maven:tasks
 This will publish your package to all configured publication repositories.
 There are also other tasks that allow you to publish to a single repository even when multiple ones are defined.
 +
-Note that the Maven Publish Plugin does not publish *source and Javadoc JARs* by default, but this can easily be configured as explained <<publishing#sec:publishing_custom_artifacts_to_maven,elsewhere in the user manual>>.
+Note that the Maven Publish Plugin does not publish *source and Javadoc JARs* _by default_, but this can easily be activated as explained in <<building_java_projects.adoc#sec:java_packaging,the guide for building java projects>>.
 
 [[migmvn:automatic_conversion]]
 == Performing an automatic conversion
@@ -172,7 +172,7 @@ Options include:
  * <<working_with_files#sec:creating_archives_example,Creating custom archive tasks>>
  * Using a suitable community plugin from the https://plugins.gradle.org/[Gradle Plugin Portal]
 
-If you're lucky and don't have many plugins or much in the way of customisation in your Maven build, you can simply run
+If your Maven build does not have many plugins or much in the way of customisation, you can simply run
 
 [listing.terminal]
 ----
@@ -222,7 +222,7 @@ include::sample[dir="userguide/mavenMigration/basic/kotlin",files="build.gradle.
 ====
 <1> Attaches version 1.2.12 of Log4J to the `implementation` configuration (scope)
 
-The string identifier takes the form "__<groupId>__:__<artifactId>__:__<version>__", although Gradle refers to them as "group", "module" and "version".
+The string identifier takes the Maven values of `groupId`, `artifactId` and `version`, although Gradle refers to them as `group`, `module` and `version`.
 
 The above example raises an obvious question: what is that `implementation` configuration?
 It's one of the standard dependency configurations provided by the <<java_plugin#tab:configurations,Java Plugin>> and is often used as a substitute for Maven's default `compile` scope.
@@ -294,7 +294,7 @@ You can also use the `repositories {}` block to configure custom repositories, a
 
 Lastly, Gradle allows you to resolve dependencies against the <<declaring_repositories.adoc#sub:maven_local,local Maven cache/repository>>.
 This helps Gradle builds interoperate with Maven builds, but it shouldn't be a technique that you use if you don't need that interoperability.
-If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a file:// URL.
+If you want to share published artifacts via the filesystem, consider configuring a <<declaring_repositories.adoc#sec:maven_repo,custom Maven repository>> with a `file://` URL.
 
 You might also be interested in learning about Gradle's own <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>>, which behaves more reliably than Maven's and can be used safely by multiple concurrent Gradle processes.
 
@@ -309,7 +309,7 @@ On a per-project basis, you can use:
 
  * <<controlling_transitive_dependencies#sec:adding-constraints-transitive-deps,Dependency constraints>>
  * <<migmvn:using_boms,Bills of materials>> (Maven BOMs)
- * <<controlling_transitive_dependencies#sec:enforcing_dependency_version,Version forcing>>
+ * <<controlling_transitive_dependencies#sec:enforcing_dependency_version,Overriding transitive versions>>
 
 There are even more, specialized options listed in the <<customizing_dependency_resolution_behavior#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>> chapter.
 
@@ -406,8 +406,12 @@ include::{samplesPath}/userguide/mavenMigration/multiModule/projects.out[]
 +
 This basically involves creating a root project build script that injects shared configuration into the appropriate subprojects.
 
-One notable feature that's missing is a standard way to share dependency versions across projects in a multi-project build.
-A common approach is to use <<writing_build_scripts#sec:extra_properties,extra properties>> in the root build script to store the versions, since those properties are visible from subprojects as well.
+[[migmvn:sub:sharing-versions]]
+=== Sharing versions across projects
+
+If you want to replicate the Maven pattern of having dependency versions declared in the `dependencyManagement` section of the root POM file, the best approach is to leverage the `java-platform` plugin.
+You will need to add a dedicated project for this and consume it in the regular projects of your build.
+See <<java_platform_plugin.adoc#,the documentation>> for more details on this pattern.
 
 [[migmvn:profiles_and_properties]]
 == Migrating Maven profiles and properties
