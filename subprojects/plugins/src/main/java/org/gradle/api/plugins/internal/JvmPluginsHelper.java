@@ -25,9 +25,15 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
+import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.Capability;
+import org.gradle.api.component.AdhocComponentWithVariants;
+import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
@@ -205,10 +211,17 @@ public class JvmPluginsHelper {
         }
     }
 
-    public static void configureDocumentationVariantWithArtifact(@Nullable String featureName, Configuration configuration, String docsType, String jarTaskName, Object artifactSource, TaskContainer tasks, ObjectFactory objectFactory) {
-        ConfigurationVariantInternal variant = (ConfigurationVariantInternal) configuration.getOutgoing().getVariants().maybeCreate(docsType);
+    public static void configureDocumentationVariantWithArtifact(String variantName, @Nullable String featureName, String docsType, List<Capability> capabilities, String jarTaskName, Object artifactSource, @Nullable AdhocComponentWithVariants component, ConfigurationContainer configurations, TaskContainer tasks, ObjectFactory objectFactory) {
+        Configuration variant = configurations.maybeCreate(variantName);
+        variant.setVisible(false);
+        variant.setDescription(docsType + " elements for " + (featureName == null ? "main" : featureName) + ".");
+        variant.setCanBeResolved(false);
+        variant.setCanBeConsumed(true);
+        variant.getAttributes().attribute(Usage.USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         variant.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.DOCUMENTATION));
+        variant.getAttributes().attribute(Bundling.BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
         variant.getAttributes().attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objectFactory.named(DocsType.class, docsType));
+        capabilities.forEach(variant.getOutgoing()::capability);
 
         if (!tasks.getNames().contains(jarTaskName)) {
             tasks.register(jarTaskName, Jar.class, jar -> {
@@ -219,7 +232,19 @@ public class JvmPluginsHelper {
             });
         }
         TaskProvider<Task> jar = tasks.named(jarTaskName);
-        variant.artifact(new LazyPublishArtifact(jar));
+        variant.getOutgoing().artifact(new LazyPublishArtifact(jar));
+        if (component != null) {
+            component.addVariantsFromConfiguration(variant, new JavaConfigurationVariantMapping("runtime", true));
+        }
+    }
+
+    @Nullable
+    public static AdhocComponentWithVariants findJavaComponent(SoftwareComponentContainer components) {
+        SoftwareComponent component = components.findByName("java");
+        if (component instanceof AdhocComponentWithVariants) {
+            return (AdhocComponentWithVariants) component;
+        }
+        return null;
     }
 
     /**

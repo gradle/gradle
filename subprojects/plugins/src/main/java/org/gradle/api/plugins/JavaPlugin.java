@@ -17,6 +17,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -188,6 +189,22 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      * @since 3.4
      */
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
+
+    /**
+     * The name of the javadoc elements configuration.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public static final String JAVADOC_ELEMENTS_CONFIGURATION_NAME = "javadocElements";
+
+    /**
+     * The name of the sources elements configuration.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public static final String SOURCES_ELEMENTS_CONFIGURATION_NAME = "sourcesElements";
 
     /**
      * The name of the compile classpath configuration.

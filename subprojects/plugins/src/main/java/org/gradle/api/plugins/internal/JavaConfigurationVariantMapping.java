@@ -18,11 +18,9 @@ package org.gradle.api.plugins.internal;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.specs.Spec;
 
-import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.plugins.JavaBasePlugin.UNPUBLISHABLE_VARIANT_ARTIFACTS;
 
 public class JavaConfigurationVariantMapping implements Action<ConfigurationVariantDetails> {
@@ -41,15 +39,10 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
             details.skip();
         } else {
             details.mapToMavenScope(scope);
-            if (optional || isDocumentationVariant(variant)) {
+            if (optional) {
                 details.mapToOptional();
             }
         }
-    }
-
-    private boolean isDocumentationVariant(ConfigurationVariant variant) {
-        Category category = variant.getAttributes().getAttribute(CATEGORY_ATTRIBUTE);
-        return category != null && Category.DOCUMENTATION.equals(category.getName());
     }
 
     private static class UnpublishableArtifactTypeSpec implements Spec<ConfigurationVariant> {

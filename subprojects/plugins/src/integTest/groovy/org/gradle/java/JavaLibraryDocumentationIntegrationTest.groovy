@@ -32,18 +32,14 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
                 configurations {
                     javadoc {
                         canBeResolved = true; canBeConsumed = false
-                        extendsFrom compileClasspath
                         attributes {
-                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
                         }
                     }
                     sources {
                         canBeResolved = true; canBeConsumed = false
-                        extendsFrom compileClasspath
                         attributes {
-                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                             attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                             attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
                         }
@@ -103,7 +99,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "javadoJar task is only created when publishing is requested"() {
+    def "javadocJar task is only created when publishing is requested"() {
         when:
         fails(':a:javadocJar')
 
@@ -144,6 +140,9 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
                 java {
                     publishSources()
                 }
+                configurations {
+                    sourcesElements.extendsFrom api, implementation
+                }
             }
         '''
 
@@ -165,6 +164,9 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
             subprojects {
                 java {
                     publishJavadoc()
+                }
+                configurations {
+                    javadocElements.extendsFrom api
                 }
             }
         '''

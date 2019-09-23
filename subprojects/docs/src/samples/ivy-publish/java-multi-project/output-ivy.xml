@@ -10,21 +10,19 @@
     <description>The first project</description>
   </info>
   <configurations>
-    <conf name="apiElementsJavadoc" visibility="public"/>
     <conf name="compile" visibility="public"/>
     <conf name="default" visibility="public" extends="runtime"/>
+    <conf name="javadocElements" visibility="public"/>
     <conf name="runtime" visibility="public"/>
-    <conf name="runtimeElementsSources" visibility="public"/>
+    <conf name="sourcesElements" visibility="public"/>
   </configurations>
   <publications>
     <artifact name="project1" type="jar" ext="jar" conf="compile,runtime"/>
-    <artifact name="project1" type="jar" ext="jar" conf="apiElementsJavadoc" m:classifier="javadoc"/>
-    <artifact name="project1" type="jar" ext="jar" conf="runtimeElementsSources" m:classifier="sources"/>
+    <artifact name="project1" type="jar" ext="jar" conf="javadocElements" m:classifier="javadoc"/>
+    <artifact name="project1" type="jar" ext="jar" conf="sourcesElements" m:classifier="sources"/>
   </publications>
   <dependencies>
     <dependency org="junit" name="junit" rev="4.12" conf="runtime-&gt;default"/>
     <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="runtime-&gt;default"/>
-    <dependency org="junit" name="junit" rev="4.12" conf="runtimeElementsSources-&gt;default"/>
-    <dependency org="org.gradle.sample" name="project2" rev="1.0" conf="runtimeElementsSources-&gt;default"/>
   </dependencies>
 </ivy-module>

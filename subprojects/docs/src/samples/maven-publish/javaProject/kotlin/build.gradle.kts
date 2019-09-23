@@ -21,10 +21,8 @@ java {
 }
 
 val javaComponent = components["java"] as AdhocComponentWithVariants
-javaComponent.withVariantsFromConfiguration(configurations["runtimeElements"]) {
-    if (configurationVariant.name == "sources") {
-        skip()
-    }
+javaComponent.withVariantsFromConfiguration(configurations["sourcesElements"]) {
+    skip()
 }
 
 publishing {

@@ -75,7 +75,7 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         features.each { feature ->
             expectedVariants.addAll([variantName(feature, 'apiElements'), variantName(feature, 'runtimeElements')])
             if (withDocumentation) {
-                expectedVariants.addAll([variantName(feature, 'apiElementsJavadoc'), variantName(feature, 'runtimeElementsSources')])
+                expectedVariants.addAll([variantName(feature, 'javadocElements'), variantName(feature, 'sourcesElements')])
             }
         }
         assert mavenModule.parsedModuleMetadata.variants*.name as Set == expectedVariants as Set
@@ -125,24 +125,19 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
     }
 
     private void assertDocumentationVariantsPublished(String feature) {
-        def javadoc = mavenModule.parsedModuleMetadata.variant(variantName(feature, 'apiElementsJavadoc'))
-        def sources = mavenModule.parsedModuleMetadata.variant(variantName(feature, 'runtimeElementsSources'))
+        def javadoc = mavenModule.parsedModuleMetadata.variant(variantName(feature, 'javadocElements'))
+        def sources = mavenModule.parsedModuleMetadata.variant(variantName(feature, 'sourcesElements'))
 
         assert javadoc.files*.name == [artifact("${featurePrefix(feature)}javadoc", "jar")]
         assert sources.files*.name == [artifact("${featurePrefix(feature)}sources", "jar")]
 
-        def currentJavaVersion = JavaVersion.current().majorVersion.toInteger()
         assertAttributes(javadoc, ["org.gradle.category": "documentation",
                                    "org.gradle.dependency.bundling": "external",
                                    "org.gradle.docstype": "javadoc",
-                                   "org.gradle.jvm.version": currentJavaVersion,
-                                   "org.gradle.libraryelements": "jar",
-                                   "org.gradle.usage": "java-api"])
+                                   "org.gradle.usage": "java-runtime"])
         assertAttributes(sources, ["org.gradle.category": "documentation",
                                    "org.gradle.dependency.bundling": "external",
                                    "org.gradle.docstype": "sources",
-                                   "org.gradle.jvm.version": currentJavaVersion,
-                                   "org.gradle.libraryelements": "jar",
                                    "org.gradle.usage": "java-runtime"])
     }
 
@@ -164,10 +159,6 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
         features.each { feature ->
             assertDependencies(feature, 'apiElements', 'compile', [], expected)
             assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
-            if (withDocumentation) {
-                assertDependencies(feature, 'apiElementsJavadoc', 'compile', [], expected)
-                assert parsedModuleMetadata.variant('runtimeElementsSources').dependencies*.coords.containsAll(expected)
-            }
         }
     }
 
@@ -177,7 +168,9 @@ class MavenJavaModule extends DelegatingMavenModule<MavenFileModule> implements 
             def apiDependencies = feature == MAIN_FEATURE ? parsedModuleMetadata.variant('apiElements').dependencies : []
             assertDependencies(feature, 'runtimeElements', 'runtime', apiDependencies, expected)
             if (withDocumentation) {
-                assertDependencies(feature, 'runtimeElementsSources', 'runtime', apiDependencies, expected)
+                // documentation never has dependencies by default
+                assert parsedModuleMetadata.variant(variantName(feature, 'javadocElements')).dependencies.empty
+                assert parsedModuleMetadata.variant(variantName(feature, 'sourcesElements')).dependencies.empty
             }
         }
     }

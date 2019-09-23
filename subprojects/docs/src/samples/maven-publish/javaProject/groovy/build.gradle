@@ -20,10 +20,8 @@ java {
     publishSources()
 }
 
-components.java.withVariantsFromConfiguration(configurations.runtimeElements) {
-    if (configurationVariant.name == "sources") {
-        skip()
-    }
+components.java.withVariantsFromConfiguration(configurations.sourcesElements) {
+    skip()
 }
 
 publishing {

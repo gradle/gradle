@@ -380,4 +380,24 @@ public interface SourceSet extends ExtensionAware {
      * @since 3.4
      */
     String getRuntimeElementsConfigurationName();
+
+    /**
+     * Returns the name of the configuration that represents the variant that carries the
+     * Javadoc for this source set in packaged form. Used to publish a variant with a '-javadoc' zip.
+     *
+     * @return the name of the javadoc elements configuration.
+     * @since 6.0
+     */
+    @Incubating
+    String getJavadocElementsConfigurationName();
+
+    /**
+     * Returns the name of the configuration that represents the variant that carries the
+     * original source code in packaged form. Used to publish a variant with a '-sources' zip.
+     *
+     * @return the name of the sources elements configuration.
+     * @since 6.0
+     */
+    @Incubating
+    String getSourcesElementsConfigurationName();
 }

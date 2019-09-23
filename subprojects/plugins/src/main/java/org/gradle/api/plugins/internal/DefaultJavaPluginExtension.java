@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.JavaVersion;
@@ -36,9 +37,10 @@ import java.util.regex.Pattern;
 
 import static org.gradle.api.attributes.DocsType.JAVADOC;
 import static org.gradle.api.attributes.DocsType.SOURCES;
-import static org.gradle.api.plugins.JavaPlugin.API_ELEMENTS_CONFIGURATION_NAME;
-import static org.gradle.api.plugins.JavaPlugin.RUNTIME_ELEMENTS_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureDocumentationVariantWithArtifact;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.findJavaComponent;
 
 public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final static Pattern VALID_FEATURE_NAME = Pattern.compile("[a-zA-Z0-9]+");
@@ -107,7 +109,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(null, configurations.getByName(API_ELEMENTS_CONFIGURATION_NAME), JAVADOC, main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), tasks, objectFactory);
+        configureDocumentationVariantWithArtifact(JAVADOC_ELEMENTS_CONFIGURATION_NAME, null, JAVADOC, ImmutableList.of(), main.getJavadocJarTaskName(), tasks.named(main.getJavadocTaskName()), findJavaComponent(components), configurations, tasks, objectFactory);
     }
 
     @Override
@@ -115,7 +117,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(null, configurations.getByName(RUNTIME_ELEMENTS_CONFIGURATION_NAME), SOURCES, main.getSourcesJarTaskName(), main.getAllJava(), tasks, objectFactory);
+        configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllJava(), findJavaComponent(components), configurations, tasks, objectFactory);
     }
 
     private static String validateFeatureName(String name) {

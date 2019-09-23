@@ -316,37 +316,30 @@ project(':consumer') {
     def "provides api javadoc variant"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
                 configurations.consume.attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                 configurations.consume.attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.JAVADOC))
                 dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
                 dependencies.attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.LibraryElementsCompatibilityRules)
-                dependencies.attributesSchema.attribute(Category.CATEGORY_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.CategoryCompatibilityRules)
             }
 """
 
         when:
         resolve()
         then:
-        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":other-java:javadoc", ":other-java:javadocJar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:javadoc", ":java:javadocJar", ":consumer:resolve")
-        outputContains("files: [java-javadoc.jar, file-dep.jar, compile-1.0.jar, other-java-javadoc.jar, runtime-1.0.jar]")
-        outputContains("file-dep.jar {artifactType=jar}")
-        outputContains("compile-1.0.jar (test:compile:1.0) ${moduleAttributesWithoutJavaPlugin('java-api')}")
-        outputContains("other-java-javadoc.jar (project :other-java) {artifactType=jar, org.gradle.category=documentation, org.gradle.dependency.bundling=external, org.gradle.docstype=javadoc, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}")
-        outputContains("java-javadoc.jar (project :java) {artifactType=jar, org.gradle.category=documentation, org.gradle.dependency.bundling=external, org.gradle.docstype=javadoc, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-api}")
+        result.assertTasksExecuted(":other-java:compileJava", ":other-java:processResources", ":other-java:classes", ":other-java:jar", ":java:compileJava", ":java:processResources", ":java:classes", ":java:javadoc", ":java:javadocJar", ":consumer:resolve")
+        outputContains("files: [java-javadoc.jar]")
+        outputContains("java-javadoc.jar (project :java) {artifactType=jar, org.gradle.category=documentation, org.gradle.dependency.bundling=external, org.gradle.docstype=javadoc, org.gradle.usage=java-runtime}")
     }
 
     def "provides runtime sources variant"() {
         buildFile << """
             project(':consumer') {
-                configurations.consume.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
                 configurations.consume.attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
                 configurations.consume.attributes.attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
                 configurations.consume.attributes.attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
                 dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.UsageCompatibilityRules)
                 dependencies.attributesSchema.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.LibraryElementsCompatibilityRules)
-                dependencies.attributesSchema.attribute(Category.CATEGORY_ATTRIBUTE).compatibilityRules.add(org.gradle.api.internal.artifacts.JavaEcosystemSupport.CategoryCompatibilityRules)
             }
 """
 
@@ -354,12 +347,9 @@ project(':consumer') {
         resolve()
 
         then:
-        result.assertTasksExecuted(":other-java:sourcesJar", ":java:sourcesJar", ":consumer:resolve")
-        outputContains("files: [java-sources.jar, file-dep.jar, compile-1.0.jar, other-java-sources.jar, implementation-1.0.jar, runtime-1.0.jar, runtime-only-1.0.jar]")
-        outputContains("file-dep.jar {artifactType=jar}")
-        outputContains("compile-1.0.jar (test:compile:1.0) ${moduleAttributesWithoutJavaPlugin('java-runtime')}")
-        outputContains("other-java-sources.jar (project :other-java) {artifactType=jar, org.gradle.category=documentation, org.gradle.dependency.bundling=external, org.gradle.docstype=sources, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
-        outputContains("java-sources.jar (project :java) {artifactType=jar, org.gradle.category=documentation, org.gradle.dependency.bundling=external, org.gradle.docstype=sources, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
+        result.assertTasksExecuted(":java:sourcesJar", ":consumer:resolve")
+        outputContains("files: [java-sources.jar]")
+        outputContains("java-sources.jar (project :java) {artifactType=jar, org.gradle.category=documentation, org.gradle.dependency.bundling=external, org.gradle.docstype=sources, org.gradle.usage=java-runtime}")
     }
 
     String moduleAttributesWithoutJavaPlugin(String usage) {

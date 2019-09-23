@@ -201,6 +201,16 @@ public abstract class DefaultSourceSet implements SourceSet {
     }
 
     @Override
+    public String getJavadocElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.JAVADOC_ELEMENTS_CONFIGURATION_NAME);
+    }
+
+    @Override
+    public String getSourcesElementsConfigurationName() {
+        return configurationNameOf(JavaPlugin.SOURCES_ELEMENTS_CONFIGURATION_NAME);
+    }
+
+    @Override
     public SourceSetOutput getOutput() {
         return output;
     }

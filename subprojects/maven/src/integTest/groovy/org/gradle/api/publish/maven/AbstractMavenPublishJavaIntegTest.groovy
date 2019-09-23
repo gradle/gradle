@@ -647,7 +647,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                     maven(MavenPublication) {
                         from components.java
                         $silenceMethod('runtimeElements')
-                        $silenceMethod('runtimeElementsSources')
                     }
                 }
             }
@@ -1175,6 +1174,10 @@ include(':platform')
             ${features().collect { """
                 components.java.withVariantsFromConfiguration(configurations.${MavenJavaModule.variantName(it, 'apiElements')}) { skip() }
                 components.java.withVariantsFromConfiguration(configurations.${MavenJavaModule.variantName(it, 'runtimeElements')}) { skip() }
+                if (${withDocs()}) {
+                    components.java.withVariantsFromConfiguration(configurations.${MavenJavaModule.variantName(it, 'javadocElements')}) { skip() }
+                    components.java.withVariantsFromConfiguration(configurations.${MavenJavaModule.variantName(it, 'sourcesElements')}) { skip() }
+                }
             """ }.join('')}
         """)
 
