@@ -80,6 +80,16 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         }
     }
 
+    void configureForAbiChange(GradleBuildExperimentSpec.GradleBuilder builder) {
+        configure(builder)
+        builder.invocation {
+            tasksToRun(taskToRunForChange)
+        }
+        builder.addBuildMutator { invocationSettings ->
+            new ApplyAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
+        }
+    }
+
     void configureForNonAbiChange(GradleProfilerCrossVersionPerformanceTestRunner runner) {
         configure(runner)
         runner.tasksToRun = [taskToRunForChange]
@@ -95,16 +105,6 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
         }
         builder.addBuildMutator { invocationSettings ->
             new ApplyNonAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
-        }
-    }
-
-    void configureForAbiChange(GradleBuildExperimentSpec.GradleBuilder builder) {
-        configure(builder)
-        builder.invocation {
-            tasksToRun(taskToRunForChange)
-        }
-        builder.addBuildMutator { invocationSettings ->
-            new ApplyAbiChangeToJavaSourceFileMutator(getFileToChange(invocationSettings))
         }
     }
 
