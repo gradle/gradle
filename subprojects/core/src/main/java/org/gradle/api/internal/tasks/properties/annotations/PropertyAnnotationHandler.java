@@ -61,5 +61,5 @@ public interface PropertyAnnotationHandler {
     /**
      * Visits problems associated with the given property, if any.
      */
-    default void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext visitor) {};
+    default void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {}
 }

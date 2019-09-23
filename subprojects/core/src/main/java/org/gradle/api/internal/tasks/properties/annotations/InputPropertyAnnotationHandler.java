@@ -59,18 +59,18 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
     }
 
     @Override
-    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext visitor) {
+    public void validatePropertyMetadata(PropertyMetadata propertyMetadata, TypeValidationContext validationContext) {
         Class<?> valueType = propertyMetadata.getGetterMethod().getReturnType();
         if (File.class.isAssignableFrom(valueType)
             || java.nio.file.Path.class.isAssignableFrom(valueType)
             || FileCollection.class.isAssignableFrom(valueType)) {
-            visitor.visitPropertyProblem(WARNING,
+            validationContext.visitPropertyProblem(WARNING,
                 propertyMetadata.getPropertyName(),
                 String.format("has @Input annotation used on property of type %s", valueType.getName())
             );
         }
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {
-            visitor.visitPropertyProblem(WARNING,
+            validationContext.visitPropertyProblem(WARNING,
                 propertyMetadata.getPropertyName(),
                 String.format("@Input properties with primitive type '%s' cannot be @Optional", valueType.getName())
             );
