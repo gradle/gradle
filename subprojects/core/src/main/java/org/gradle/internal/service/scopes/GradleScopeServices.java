@@ -49,6 +49,7 @@ import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
 import org.gradle.execution.DefaultBuildWorkExecutor;
 import org.gradle.execution.DefaultTasksBuildExecutionAction;
+import org.gradle.execution.DeprecateUndefinedBuildWorkExecutor;
 import org.gradle.execution.DryRunBuildExecutionAction;
 import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
 import org.gradle.execution.IncludedBuildLifecycleBuildWorkExecutor;
@@ -153,11 +154,12 @@ public class GradleScopeServices extends DefaultServiceRegistry {
 
     BuildWorkExecutor createBuildExecuter(StyledTextOutputFactory textOutputFactory, IncludedBuildControllers includedBuildControllers, BuildOperationExecutor buildOperationExecutor) {
         return new BuildOperationFiringBuildWorkerExecutor(
-            new IncludedBuildLifecycleBuildWorkExecutor(
-                new DefaultBuildWorkExecutor(
-                    asList(new DryRunBuildExecutionAction(textOutputFactory),
-                        new SelectedTaskExecutionAction())),
-                includedBuildControllers),
+            new DeprecateUndefinedBuildWorkExecutor(
+                new IncludedBuildLifecycleBuildWorkExecutor(
+                    new DefaultBuildWorkExecutor(
+                        asList(new DryRunBuildExecutionAction(textOutputFactory),
+                            new SelectedTaskExecutionAction())),
+                    includedBuildControllers)),
             buildOperationExecutor);
     }
 
