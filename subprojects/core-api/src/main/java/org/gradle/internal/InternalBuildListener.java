@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.gradle.internal;
 
-import org.gradle.BuildAdapter;
+import org.gradle.BuildListener;
 import org.gradle.api.invocation.Gradle;
 
-public class InternalBuildAdapter extends BuildAdapter implements InternalBuildListener {
-
-    // Internal usage of this callback is fine only the public API is being deprecated
-    @Override
-    @SuppressWarnings("deprecation")
-    public void buildStarted(Gradle gradle) {
-    }
+public interface InternalBuildListener extends BuildListener, InternalListener {
+    /**
+     * <p>Called when the build is started.</p>
+     *
+     * @param gradle The build which is being started. Never null.
+     */
+    void buildStarted(Gradle gradle);
 }

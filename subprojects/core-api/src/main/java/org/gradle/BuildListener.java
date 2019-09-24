@@ -30,6 +30,7 @@ public interface BuildListener {
      *
      * @param gradle The build which is being started. Never null.
      */
+    @Deprecated
     void buildStarted(Gradle gradle);
 
     /**

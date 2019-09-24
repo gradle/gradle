@@ -17,7 +17,9 @@
 package org.gradle.invocation;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -58,6 +60,7 @@ import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
@@ -336,11 +339,13 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void buildStarted(Closure closure) {
+        DeprecationLogger.nagUserOfDeprecated("Gradle#buildStarted(Closure)");
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
     }
 
     @Override
     public void buildStarted(Action<? super Gradle> action) {
+        DeprecationLogger.nagUserOfDeprecated("Gradle#buildStarted(Action)");
         buildListenerBroadcast.add("buildStarted", action);
     }
 
@@ -400,6 +405,9 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void addListener(Object listener) {
+        if (listener instanceof BuildListener) {
+            nagBuildStartedDeprecationIfOverriden(((BuildListener) listener).getClass());
+        }
         addListener("Gradle.addListener", listener);
     }
 
@@ -425,7 +433,18 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void addBuildListener(BuildListener buildListener) {
+        nagBuildStartedDeprecationIfOverriden(buildListener.getClass());
         addListener("Gradle.addBuildListener", buildListener);
+    }
+
+    private void nagBuildStartedDeprecationIfOverriden(Class<? extends BuildListener> buildListenerClass) {
+        try {
+            if (!ImmutableSet.of(BuildAdapter.class, InternalBuildAdapter.class).contains(buildListenerClass.getMethod("buildStarted", Gradle.class).getDeclaringClass())) {
+                DeprecationLogger.nagUserOfDeprecated("BuildListener#buildStarted(Gradle)");
+            }
+        } catch (NoSuchMethodException e) {
+            assert false; // There's always a method named buildStarted
+        }
     }
 
     @Override
