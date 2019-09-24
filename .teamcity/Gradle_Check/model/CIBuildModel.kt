@@ -161,6 +161,7 @@ data class CIBuildModel(
         GradleSubproject("scala"),
         GradleSubproject("signing"),
         GradleSubproject("snapshots"),
+        GradleSubproject("samples", unitTests = false, functionalTests = true),
         GradleSubproject("testKit"),
         GradleSubproject("testingBase"),
         GradleSubproject("testingJvm"),
