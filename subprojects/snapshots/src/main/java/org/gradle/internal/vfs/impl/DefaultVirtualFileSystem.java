@@ -18,6 +18,7 @@ package org.gradle.internal.vfs.impl;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
@@ -42,14 +43,14 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private static final Splitter FILE_PATH_SPLITTER = File.separatorChar != '/'
         ? Splitter.on(CharMatcher.anyOf("/" + File.separator))
         : Splitter.on('/');
-    private final Node root = new RootNode();
+    private final RootNode root = new RootNode();
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
 
-    public DefaultVirtualFileSystem(Stat stat, DirectorySnapshotter directorySnapshotter, FileHasher hasher) {
+    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, String... defaultExcludes) {
         this.stat = stat;
-        this.directorySnapshotter = directorySnapshotter;
+        this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
         this.hasher = hasher;
     }
 
@@ -61,8 +62,12 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor) {
-        readLocation(location)
-            .accept(new FileSystemSnapshotFilter.FilteringVisitor(filter.getAsSnapshotPredicate(), visitor, new AtomicBoolean(false)));
+        if (filter.isEmpty()) {
+            read(location, visitor);
+        } else {
+            readLocation(location)
+                .accept(new FileSystemSnapshotFilter.FilteringVisitor(filter.getAsSnapshotPredicate(), visitor, new AtomicBoolean(false)));
+        }
     }
 
     protected Node createNode(String location, Node parent) {
@@ -115,6 +120,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             }
         });
         action.run();
+    }
+
+    @Override
+    public void invalidateAll() {
+        root.clear();
     }
 
     @Nullable

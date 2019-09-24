@@ -98,6 +98,8 @@ import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.time.Clock;
+import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.VfsFileSystemSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -182,8 +184,11 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptSourceHasher();
     }
 
-    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, VirtualFileSystem vfs) {
+        boolean vfsEnabled = System.getProperty(GradleUserHomeScopeServices.ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
+        return vfsEnabled
+            ? new VfsFileSystemSnapshotter(vfs)
+            : new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
     FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, Stat stat) {

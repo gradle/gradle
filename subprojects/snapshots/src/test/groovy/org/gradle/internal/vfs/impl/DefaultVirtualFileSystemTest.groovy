@@ -29,7 +29,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
 import org.gradle.internal.snapshot.SnapshottingFilter
-import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -49,7 +48,7 @@ class DefaultVirtualFileSystemTest extends Specification {
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
-    def vfs = new DefaultVirtualFileSystem(stat, new DirectorySnapshotter(fileHasher, new StringInterner()), fileHasher)
+    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat)
 
     def "can read a file"() {
         TestFile someFile = temporaryFolder.file("some/subdir/someFile").createFile()

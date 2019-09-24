@@ -93,6 +93,9 @@ import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
+import org.gradle.internal.vfs.impl.VfsFileSystemSnapshotter;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -107,6 +110,7 @@ import java.util.List;
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
  */
 public class GradleUserHomeScopeServices {
+    public static final String ENABLE_VFS_SYSTEM_PROPERTY_NAME = "org.gradle.experimental.enable.vfs";
     private final ServiceRegistry globalServices;
 
     public GradleUserHomeScopeServices(ServiceRegistry globalServices) {
@@ -188,8 +192,37 @@ public class GradleUserHomeScopeServices {
         return fileSystemMirror;
     }
 
-    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager) {
+        DefaultVirtualFileSystem vfs = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
+        listenerManager.addListener(new OutputChangeListener() {
+            @Override
+            public void beforeOutputChange() {
+                vfs.invalidateAll();
+            }
+
+            @Override
+            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+                vfs.update(affectedOutputPaths, () -> {});
+            }
+        });
+        listenerManager.addListener(new RootBuildLifecycleListener() {
+            @Override
+            public void afterStart() {
+            }
+
+            @Override
+            public void beforeComplete() {
+                vfs.invalidateAll();
+            }
+        });
+        return vfs;
+    }
+
+    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, VirtualFileSystem vfs) {
+        boolean vfsEnabled = System.getProperty(ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
+        return vfsEnabled
+            ? new VfsFileSystemSnapshotter(vfs)
+            : new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
     FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, Stat stat) {

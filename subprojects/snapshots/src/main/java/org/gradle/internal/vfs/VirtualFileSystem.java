@@ -26,4 +26,6 @@ public interface VirtualFileSystem {
     void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor);
 
     void update(Iterable<String> locations, Runnable action);
+
+    void invalidateAll();
 }

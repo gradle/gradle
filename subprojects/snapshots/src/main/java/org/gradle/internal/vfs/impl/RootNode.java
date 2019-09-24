@@ -82,4 +82,8 @@ public class RootNode extends AbstractNodeWithMutableChildren {
     public String getChildAbsolutePath(String name) {
         return name;
     }
+
+    public void clear() {
+        getChildren().clear();
+    }
 }
