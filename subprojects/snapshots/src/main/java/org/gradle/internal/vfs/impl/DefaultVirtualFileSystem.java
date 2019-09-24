@@ -55,13 +55,13 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void read(String location, FileSystemSnapshotVisitor visitor) {
+    public synchronized void read(String location, FileSystemSnapshotVisitor visitor) {
         readLocation(location)
             .accept(visitor);
     }
 
     @Override
-    public void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor) {
+    public synchronized void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor) {
         if (filter.isEmpty()) {
             read(location, visitor);
         } else {
@@ -110,7 +110,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void update(Iterable<String> locations, Runnable action) {
+    public synchronized void update(Iterable<String> locations, Runnable action) {
         locations.forEach(location -> {
             List<String> pathSegments = getPathSegments(location);
             Node parentLocation = findParentNotCreating(pathSegments);
@@ -123,7 +123,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void invalidateAll() {
+    public synchronized void invalidateAll() {
         root.clear();
     }
 
