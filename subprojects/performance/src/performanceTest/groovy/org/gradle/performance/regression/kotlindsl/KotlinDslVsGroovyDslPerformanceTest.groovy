@@ -39,8 +39,8 @@ class KotlinDslVsGroovyDslPerformanceTest extends AbstractCrossBuildPerformanceT
         def kotlinDslBuildName = 'Kotlin DSL build'
 
         and:
-        def warmupBuilds = 20
-        def measuredBuilds = 40
+        def warmupBuilds = 1
+        def measuredBuilds = 1
 
         and:
         runner.baseline {
