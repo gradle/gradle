@@ -152,7 +152,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean renderWelcomeMessage;
 
     private int expectedGenericDeprecationWarnings;
-    private List<String> expectedDeprecationWarnings = new ArrayList<>();
+    private final List<String> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
@@ -1136,9 +1136,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected Action<ExecutionResult> getResultAssertion() {
         return new Action<ExecutionResult>() {
-            List<String> expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
-            boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
-            boolean checkDeprecations = AbstractGradleExecuter.this.checkDeprecations;
+            private int expectedGenericDeprecationWarnings = AbstractGradleExecuter.this.expectedGenericDeprecationWarnings;
+            private final List<String> expectedDeprecationWarnings = new ArrayList<>(AbstractGradleExecuter.this.expectedDeprecationWarnings);
+            private final boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
+            private final boolean checkDeprecations = AbstractGradleExecuter.this.checkDeprecations;
 
             @Override
             public void execute(ExecutionResult executionResult) {
@@ -1161,7 +1162,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
                 if (!expectedDeprecationWarnings.isEmpty()) {
                     throw new AssertionError(String.format("Expected the following deprecation warnings:%n%s",
-                        expectedDeprecationWarnings.stream().map(warning -> " - " + warning).collect(Collectors.joining("\n"))));
+                        expectedDeprecationWarnings.stream()
+                            .map(warning -> " - " + warning)
+                            .collect(Collectors.joining("\n"))));
+                }
+                if (expectedGenericDeprecationWarnings > 0) {
+                    throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedGenericDeprecationWarnings));
                 }
             }
 
