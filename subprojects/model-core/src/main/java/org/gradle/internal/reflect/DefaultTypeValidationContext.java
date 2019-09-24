@@ -39,14 +39,10 @@ public class DefaultTypeValidationContext extends MessageFormattingTypeValidatio
 
     @Override
     protected void recordProblem(Severity severity, String message) {
-        if (severity == Severity.CACHEABLE_WARNING) {
-            if (!cacheable) {
-                return;
-            } else {
-                severity = Severity.WARNING;
-            }
+        if (severity == Severity.CACHEABILITY_WARNING && !cacheable) {
+            return;
         }
-        problems.put(message, severity);
+        problems.put(message, severity.toReportableSeverity());
     }
 
     public ImmutableMap<String, Severity> getProblems() {

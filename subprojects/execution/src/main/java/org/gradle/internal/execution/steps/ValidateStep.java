@@ -81,14 +81,10 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
             return new MessageFormattingTypeValidationContext(null) {
                 @Override
                 protected void recordProblem(Severity severity, String message) {
-                    if (severity == Severity.CACHEABLE_WARNING) {
-                        if (!cacheable) {
-                            return;
-                        } else {
-                            severity = Severity.WARNING;
-                        }
+                    if (severity == Severity.CACHEABILITY_WARNING && !cacheable) {
+                        return;
                     }
-                    problems.put(severity, message);
+                    problems.put(severity.toReportableSeverity(), message);
                 }
             };
         }
