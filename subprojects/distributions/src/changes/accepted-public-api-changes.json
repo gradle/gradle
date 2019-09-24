@@ -177,6 +177,12 @@
             "member": "Method org.gradle.api.reflect.TypeOf.getLowerBound()",
             "acceptation": "It goes with the already public API, getUpperBound",
             "changes": []
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.doUseEmptySettings()",
+            "acceptation": "Method added to work around the deprecation of useEmptySettings(). Users are not intended to extend the StartParameter class.",
+            "changes": []
         }
     ]
 }

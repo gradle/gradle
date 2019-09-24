@@ -30,7 +30,6 @@ import org.gradle.cli.SystemPropertiesCommandLineConverter;
 import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.HashMap;
@@ -86,7 +85,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         if (layout.getProjectDir() != null) {
             startParameter.setProjectDir(layout.getProjectDir());
         }
-        DeprecationLogger.whileDisabled(() -> startParameter.setSearchUpwards(layout.getSearchUpwards()));
+        startParameter.setSearchUpwardsWithoutDeprecationWarning(layout.getSearchUpwards());
 
         if (!options.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(options.getExtraArguments());

@@ -15,7 +15,8 @@
  */
 package org.gradle.initialization.layout
 
-import org.gradle.StartParameter
+
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -240,7 +241,7 @@ class BuildLayoutFactoryTest extends Specification {
         currentDir.createFile(settingsFilename)
         def rootDir = tmpDir.createDir("root")
         def settingsFile = rootDir.createFile(overrideSettingsFilename)
-        def startParameter = new StartParameter()
+        def startParameter = new StartParameterInternal()
         startParameter.currentDir = currentDir
         startParameter.settingsFile = settingsFile
         def config = new BuildLayoutConfiguration(startParameter)
@@ -264,7 +265,7 @@ class BuildLayoutFactoryTest extends Specification {
         and:
         def currentDir = tmpDir.createDir("current")
         currentDir.createFile(settingsFilename)
-        def startParameter = new StartParameter()
+        def startParameter = new StartParameterInternal()
         startParameter.currentDir = currentDir
         startParameter.useEmptySettings()
         def config = new BuildLayoutConfiguration(startParameter)
