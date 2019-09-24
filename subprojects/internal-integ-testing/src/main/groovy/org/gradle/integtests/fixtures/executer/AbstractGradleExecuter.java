@@ -48,6 +48,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServices;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -1020,6 +1021,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (interactive) {
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
         }
+
+        // Enable VFS
+        properties.put(GradleUserHomeScopeServices.ENABLE_VFS_SYSTEM_PROPERTY_NAME, "true");
 
         properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
 
