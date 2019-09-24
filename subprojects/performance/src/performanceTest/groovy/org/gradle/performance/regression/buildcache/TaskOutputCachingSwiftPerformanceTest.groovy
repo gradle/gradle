@@ -23,7 +23,7 @@ class TaskOutputCachingSwiftPerformanceTest extends AbstractTaskOutputCachingPer
 
     def setup() {
         runner.minimumVersion = "4.5"
-        runner.targetVersions = ["6.0-20190920115514+0000"]
+        runner.targetVersions = ["6.0-20190823180744+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 
