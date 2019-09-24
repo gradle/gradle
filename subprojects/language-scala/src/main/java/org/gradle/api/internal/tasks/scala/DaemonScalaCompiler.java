@@ -53,6 +53,7 @@ import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
 import java.io.File;
+import java.util.Collections;
 
 public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends AbstractDaemonCompiler<T> {
     private final Class<? extends Compiler<T>> compilerClass;
@@ -85,6 +86,7 @@ public class DaemonScalaCompiler<T extends ScalaJavaJointCompileSpec> extends Ab
         ScalaForkOptions scalaOptions = spec.getScalaCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(mergeForkOptions(javaOptions, scalaOptions));
         javaForkOptions.setWorkingDir(daemonWorkingDir);
+        javaForkOptions.setEnvironment(Collections.emptyMap());
 
         ClassPath compilerClasspath = classPathRegistry.getClassPath("SCALA-COMPILER").plus(DefaultClassPath.of(zincClasspath));
 

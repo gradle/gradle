@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import org.gradle.api.Buildable;
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
@@ -22,6 +24,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -94,7 +97,10 @@ public class ScalaRuntime {
                     throw new AssertionError(String.format("Unexpectedly failed to parse version of Scala Jar file: %s in %s", scalaLibraryJar, project));
                 }
 
-                return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion));
+                String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
+                DefaultExternalModuleDependency compilerBridgeJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                compilerBridgeJar.setTransitive(false);
+                return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion), compilerBridgeJar);
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)

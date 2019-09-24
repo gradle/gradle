@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":languageJvm"))
 
     implementation(library("groovy")) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
+    implementation(library("ant"))
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("inject"))
@@ -38,12 +39,6 @@ dependencies {
     integTestImplementation(library("commons_lang"))
     integTestImplementation(library("ant"))
 
-    // keep in sync with ScalaLanguagePlugin code
-    compileOnly("com.typesafe.zinc:zinc:0.3.15") {
-        because("this dependency is downloaded by the antlr plugin; version should be in sync with ScalaLanguagePlugin code")
-    }
-
-
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
@@ -51,7 +46,10 @@ dependencies {
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(testFixtures(project(":languageJvm")))
+
+    compileOnly("org.scala-sbt:zinc_2.12:1.2.5")
 }
+
 
 gradlebuildJava {
     moduleType = ModuleType.CORE

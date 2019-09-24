@@ -44,18 +44,18 @@ class LanguageScalaCompilationFixture {
                  * Can live in a house.
                  * Has a name and an age.
                  */
-                class Person(val name: String, val age: Int)''',
+                class Person''',
             '''                 
                 /**
                  * A person.
                  * Can live in a house.
                  * Has a name, age and a height.
                  */
-                class Person(val name: String, val age: Int, val height: Int)''')
+                class Person(val name: String = "foo", val age: Int = 1, val height: Int = 2)''')
         classDependingOnBasicClassSource = new ScalaClass(
             'House',
             'class House(val owner: Person)',
-            'class House(val owner: Person, val residents: List[Person])'
+            'class House(val owner: Person = new Person())'
         )
         independentClassSource = new ScalaClass(
             'Other',
