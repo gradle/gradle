@@ -84,6 +84,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.service.scopes.GradleUserHomeScopeServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
@@ -124,6 +125,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final FileCollectionFactory fileCollectionFactory;
+    private final boolean vfsEnabled = System.getProperty(GradleUserHomeScopeServices.ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -352,7 +354,12 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public Optional<? extends Iterable<String>> getChangingOutputs() {
-            return Optional.empty();
+            if (!vfsEnabled) {
+                return Optional.empty();
+            }
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
+            visitOutputProperties((propertyName, type, root) -> builder.add(root.getAbsolutePath()));
+            return Optional.of(builder.build());
         }
 
         @Override
