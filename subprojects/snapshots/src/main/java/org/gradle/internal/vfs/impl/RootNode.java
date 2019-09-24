@@ -18,6 +18,10 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
+import javax.annotation.Nullable;
+import java.io.File;
+import java.util.function.Function;
+
 public class RootNode extends AbstractNodeWithMutableChildren {
 
     @Override
@@ -31,12 +35,51 @@ public class RootNode extends AbstractNodeWithMutableChildren {
     }
 
     @Override
+    public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+        if (name.isEmpty()) {
+            return new Node() {
+                @Override
+                public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+                    return RootNode.super.getOrCreateChild(name, nodeSupplier, this);
+                }
+
+                @Nullable
+                @Override
+                public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
+                    return RootNode.super.replaceChild(name, nodeSupplier, replacement, this);
+                }
+
+                @Override
+                public String getAbsolutePath() {
+                    return "/";
+                }
+
+                @Override
+                public String getChildAbsolutePath(String name) {
+                    return File.separatorChar + name;
+                }
+
+                @Override
+                public Type getType() {
+                    return RootNode.this.getType();
+                }
+
+                @Override
+                public void accept(FileSystemSnapshotVisitor visitor) {
+                    RootNode.this.accept(visitor);
+                }
+            };
+        }
+        return super.getOrCreateChild(name, nodeSupplier);
+    }
+
+    @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
         throw new UnsupportedOperationException("Cannot visit root node");
     }
 
     @Override
     public String getChildAbsolutePath(String name) {
-        return null;
+        return name;
     }
 }

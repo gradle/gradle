@@ -25,13 +25,25 @@ public abstract class AbstractNodeWithMutableChildren implements Node {
 
     @Override
     public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
-        return children.computeIfAbsent(name, key -> nodeSupplier.apply(this));
+        return getOrCreateChild(name, nodeSupplier, this);
+    }
+
+    protected Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier, Node parent) {
+        return children.computeIfAbsent(name, key -> nodeSupplier.apply(parent));
     }
 
     @Override
     public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
+        return replaceChild(name, nodeSupplier, replacement, this);
+    }
+
+    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement, Node parent) {
         return children.compute(name, (key, current) -> current == null
-            ? nodeSupplier.apply(this)
+            ? nodeSupplier.apply(parent)
             : replacement.apply(current));
+    }
+
+    public Map<String, Node> getChildren() {
+        return children;
     }
 }

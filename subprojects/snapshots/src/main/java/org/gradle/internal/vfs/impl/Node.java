@@ -19,6 +19,7 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.util.function.Function;
 
 public interface Node {
@@ -31,7 +32,7 @@ public interface Node {
     void accept(FileSystemSnapshotVisitor visitor);
 
     default String getChildAbsolutePath(String name) {
-        return getAbsolutePath() + "/" + name;
+        return getAbsolutePath() + File.separatorChar + name;
     }
 
     enum Type {

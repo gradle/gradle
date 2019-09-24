@@ -16,6 +16,8 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.base.Splitter;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
@@ -29,12 +31,15 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
     // On Windows, / and \ are separators, on Unix only / is a separator.
-    private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
+    private static final Splitter FILE_PATH_SPLITTER = File.separatorChar != '/'
+        ? Splitter.on(CharMatcher.anyOf("/" + File.separator))
+        : Splitter.on('/');
     private final Node root = new RootNode();
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
@@ -70,10 +75,10 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     private Node findLocation(String location, Function<Node, Node> nodeCreator) {
-        String[] pathSegments = getPathSegments(location);
+        List<String> pathSegments = getPathSegments(location);
         Node parent = findParent(pathSegments);
         return parent.replaceChild(
-            pathSegments[pathSegments.length - 1],
+            pathSegments.get(pathSegments.size() - 1),
             nodeCreator,
             current -> current.getType() != Node.Type.UNKNOWN
                 ? current
@@ -81,10 +86,10 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         );
     }
 
-    private Node findParent(String[] pathSegments) {
+    private Node findParent(List<String> pathSegments) {
         Node foundNode = root;
-        for (int i = 0; i < pathSegments.length - 1; i++) {
-            String pathSegment = pathSegments[i];
+        for (int i = 0; i < pathSegments.size() - 1; i++) {
+            String pathSegment = pathSegments.get(i);
             foundNode = foundNode.getOrCreateChild(pathSegment, parent -> new DefaultNode(pathSegment, parent));
         }
         return foundNode;
@@ -93,10 +98,10 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void update(Iterable<String> locations, Runnable action) {
         locations.forEach(location -> {
-            String[] pathSegments = getPathSegments(location);
+            List<String> pathSegments = getPathSegments(location);
             Node parentLocation = findParentNotCreating(pathSegments);
             if (parentLocation != null) {
-                String name = pathSegments[pathSegments.length - 1];
+                String name = pathSegments.get(pathSegments.size() - 1);
                 parentLocation.replaceChild(name, parent -> null, nodeToBeReplaced -> null);
             }
         });
@@ -104,10 +109,10 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Nullable
-    private Node findParentNotCreating(String[] pathSegments) {
+    private Node findParentNotCreating(List<String> pathSegments) {
         Node foundNode = root;
-        for (int i = 0; i < pathSegments.length - 1; i++) {
-            String pathSegment = pathSegments[i];
+        for (int i = 0; i < pathSegments.size() - 1; i++) {
+            String pathSegment = pathSegments.get(i);
             foundNode = foundNode.getOrCreateChild(pathSegment, parent -> null);
             if (foundNode == null) {
                 return null;
@@ -116,7 +121,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         return foundNode;
     }
 
-    public static String[] getPathSegments(String path) {
-        return path.split(FILE_PATH_SEPARATORS);
+    private static List<String> getPathSegments(String path) {
+        return FILE_PATH_SPLITTER.splitToList(path);
     }
 }
