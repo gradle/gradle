@@ -55,8 +55,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         String branch = decoder.readNullableString();
         if (branch == null) {
             return newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilities);
-        }
-        else {
+        } else {
             return IvyModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(group, name), versionConstraint, attributes, capabilities, branch);
         }
     }
@@ -93,6 +92,7 @@ public class ModuleComponentSelectorSerializer implements Serializer<ModuleCompo
         writeVersionConstraint(encoder, version);
         writeAttributes(encoder, attributes);
         writeCapabilities(encoder, capabilities);
+        encoder.writeNullableString(null); // branch
     }
 
     public void writeVersionConstraint(Encoder encoder, VersionConstraint cst) throws IOException {

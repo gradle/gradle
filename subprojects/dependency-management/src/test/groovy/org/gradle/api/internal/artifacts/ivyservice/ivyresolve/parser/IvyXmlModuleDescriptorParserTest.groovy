@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.IvyModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata
 import org.gradle.internal.hash.HashUtil
@@ -41,6 +42,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.component.ArtifactType.IVY_DESCRIPTOR
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
+import static org.gradle.internal.component.external.model.IvyModuleComponentSelector.newSelector as newIvySelector
 
 class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule
@@ -333,7 +335,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        metadata.id == componentId("myorg", "mymodule", "myrev")
+        metadata.id == componentId("myorg", "mymodule", "myrev", "branch")
         metadata.status == "status"
 
         metadata.extraAttributes.size() == 1
@@ -746,6 +748,10 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version)
     }
 
+    static componentId(String group, String module, String version, String branch) {
+        IvyModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version, branch)
+    }
+
     void assertArtifact(String name, String extension, String type, String classifier) {
         def artifactName = metadata.artifactDefinitions*.artifactName.find({it.name == name})
         assert artifactName.name == name
@@ -770,7 +776,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         // conf="myconf1" => equivalent to myconf1->myconf1
         dd = getDependency(dependencies, "yourmodule1")
-        assert dd.selector == newSelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule1"), new DefaultMutableVersionConstraint("1.1"))
+        assert dd.selector == newIvySelector(DefaultModuleIdentifier.newId("yourorg", "yourmodule1"), new DefaultMutableVersionConstraint("1.1"), "trunk")
         assert dd.dynamicConstraintVersion == "1+"
         assert dd.confMappings == map(myconf1: ["myconf1"])
         assert dd.dependencyArtifacts.empty

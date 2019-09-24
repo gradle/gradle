@@ -62,8 +62,7 @@ public class DefaultIvyDescriptorMetadataSource extends AbstractRepositoryMetada
             versionLister.listVersions(module, metaDataArtifact,
                 ((IvyModuleComponentSelector)dependency.getSelector()).getBranch(),
                 ivyPatterns, result);
-        }
-        else {
+        } else {
             versionLister.listVersions(module, metaDataArtifact, ivyPatterns, result);
         }
     }

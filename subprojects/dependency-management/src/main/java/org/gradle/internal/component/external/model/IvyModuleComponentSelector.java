@@ -27,7 +27,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.Collection;
 import java.util.List;
 
 public class IvyModuleComponentSelector extends DefaultModuleComponentSelector implements ModuleComponentSelector {

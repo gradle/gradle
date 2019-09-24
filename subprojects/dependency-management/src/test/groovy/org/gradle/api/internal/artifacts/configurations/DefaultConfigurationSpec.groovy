@@ -1626,7 +1626,7 @@ class DefaultConfigurationSpec extends Specification {
         when:
         def configurationDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
         def otherConfSimilarDependency = dependency("dumpgroup1", "dumpname1", "dumpversion1");
-        def otherConfDependency = dependency("dumpgroup2", "dumpname2", "dumpversion2");
+        def otherConfDependency = dependency("dumpgroup2", "dumpname2", "dumpversion2", "branch");
         def otherConf = conf("dumpConf");
         otherConf.getDependencies().add(otherConfDependency);
         otherConf.getDependencies().add(otherConfSimilarDependency);
@@ -1638,12 +1638,12 @@ class DefaultConfigurationSpec extends Specification {
         configuration.dump() == """
 Configuration:  class='class org.gradle.api.internal.artifacts.configurations.DefaultConfiguration'  name='conf'  hashcode='${configuration.hashCode()}'
 Local Dependencies:
-   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
+   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default', branch='null'}
 Local Artifacts:
    none
 All Dependencies:
-   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default'}
-   DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default'}
+   DefaultExternalModuleDependency{group='dumpgroup1', name='dumpname1', version='dumpversion1', configuration='default', branch='null'}
+   DefaultExternalModuleDependency{group='dumpgroup2', name='dumpname2', version='dumpversion2', configuration='default', branch='branch'}
 All Artifacts:
    none"""
     }
@@ -1740,6 +1740,10 @@ All Artifacts:
 
     private dependency(String group, String name, String version) {
         new DefaultExternalModuleDependency(group, name, version);
+    }
+
+    private dependency(String group, String name, String version, String branch) {
+        new DefaultExternalModuleDependency(group, name, version, null, branch);
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":") {

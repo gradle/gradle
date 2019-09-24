@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionCon
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ImmutableCapability;
-import org.gradle.internal.component.external.model.IvyModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.IvyModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;

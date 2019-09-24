@@ -69,13 +69,23 @@ public class IvyResourcePattern extends AbstractResourcePattern implements Resou
 
     @Override
     public ExternalResourceName toModuleVersionPath(ModuleComponentIdentifier componentIdentifier) {
-        ImmutableMap<String, String> attributes = ImmutableMap.of(
-            "organisation", componentIdentifier.getGroup(),
-            "module", componentIdentifier.getModule(),
-            "artifact", componentIdentifier.getModule(),
-            "revision", componentIdentifier.getVersion(),
-            "branch", ((IvyModuleComponentIdentifier)componentIdentifier).getBranch()
-        );
+        ImmutableMap<String, String> attributes;
+        if (componentIdentifier instanceof IvyModuleComponentIdentifier) {
+            attributes = ImmutableMap.of(
+                "organisation", componentIdentifier.getGroup(),
+                "module", componentIdentifier.getModule(),
+                "artifact", componentIdentifier.getModule(),
+                "revision", componentIdentifier.getVersion(),
+                "branch", ((IvyModuleComponentIdentifier)componentIdentifier).getBranch()
+            );
+        } else {
+            attributes = ImmutableMap.of(
+                "organisation", componentIdentifier.getGroup(),
+                "module", componentIdentifier.getModule(),
+                "artifact", componentIdentifier.getModule(),
+                "revision", componentIdentifier.getVersion()
+            );
+        }
         ExternalResourceName resolve = getBase().getRoot().resolve(substituteTokens(getPathWithoutArtifactPart(), attributes));
         return resolve;
     }

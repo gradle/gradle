@@ -96,6 +96,7 @@
      * @param configuration the optional configuration of the module to be added as a dependency.
      * @param classifier the optional classifier of the module artifact to be added as a dependency.
      * @param ext the optional extension of the module artifact to be added as a dependency.
+     * @param branch the optional branch of the module artifact to be added as a dependency.
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      *
@@ -109,9 +110,10 @@
         configuration: String? = null,
         classifier: String? = null,
         ext: String? = null,
+        branch: String? = null,
         dependencyConfiguration: Action<ExternalModuleDependency>? = null
     ): ExternalModuleDependency = addExternalModuleDependencyTo(
-        this, "api", group, name, version, configuration, classifier, ext, dependencyConfiguration
+        this, "api", group, name, version, configuration, classifier, ext, branch, dependencyConfiguration
     )
 
 
