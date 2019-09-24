@@ -27,9 +27,9 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
@@ -48,11 +48,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void read(String location, FileSystemSnapshotVisitor visitor) {
-        findLocation(location, parent -> createNode(location))
+        findLocation(location, parent -> createNode(location, parent))
             .accept(visitor);
     }
 
-    protected Node createNode(String location) {
+    protected Node createNode(String location, Node parent) {
         File file = new File(location);
         FileMetadataSnapshot stat = this.stat.stat(file);
         switch (stat.getType()) {
@@ -63,7 +63,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 return new MissingFileNode(location, file.getName());
             case Directory:
                 DirectorySnapshot directorySnapshot = (DirectorySnapshot) directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
-                return new CompleteDirectoryNode(directorySnapshot);
+                return new CompleteDirectoryNode(parent, directorySnapshot);
             default:
                 throw new UnsupportedOperationException();
         }
@@ -72,7 +72,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private Node findLocation(String location, Function<Node, Node> nodeCreator) {
         String[] pathSegments = getPathSegments(location);
         Node parent = findParent(pathSegments);
-        return parent.getChild(
+        return parent.replaceChild(
             pathSegments[pathSegments.length - 1],
             nodeCreator,
             current -> current.getType() != Node.Type.UNKNOWN
@@ -85,13 +85,35 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         Node foundNode = root;
         for (int i = 0; i < pathSegments.length - 1; i++) {
             String pathSegment = pathSegments[i];
-            foundNode = foundNode.getChild(pathSegment, parent -> new DefaultNode(pathSegment, parent));
+            foundNode = foundNode.getOrCreateChild(pathSegment, parent -> new DefaultNode(pathSegment, parent));
         }
         return foundNode;
     }
 
     @Override
-    public void update(Iterable<String> locations, Consumer<Invalidator> action) {
+    public void update(Iterable<String> locations, Runnable action) {
+        locations.forEach(location -> {
+            String[] pathSegments = getPathSegments(location);
+            Node parentLocation = findParentNotCreating(pathSegments);
+            if (parentLocation != null) {
+                String name = pathSegments[pathSegments.length - 1];
+                parentLocation.replaceChild(name, parent -> null, nodeToBeReplaced -> null);
+            }
+        });
+        action.run();
+    }
+
+    @Nullable
+    private Node findParentNotCreating(String[] pathSegments) {
+        Node foundNode = root;
+        for (int i = 0; i < pathSegments.length - 1; i++) {
+            String pathSegment = pathSegments[i];
+            foundNode = foundNode.getOrCreateChild(pathSegment, parent -> null);
+            if (foundNode == null) {
+                return null;
+            }
+        }
+        return foundNode;
     }
 
     public static String[] getPathSegments(String path) {

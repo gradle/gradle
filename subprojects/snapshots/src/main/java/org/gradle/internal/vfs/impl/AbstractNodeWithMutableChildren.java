@@ -16,27 +16,22 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
-public class DefaultNode extends AbstractNodeWithMutableChildren {
-    private final String absolutePath;
+public abstract class AbstractNodeWithMutableChildren implements Node {
+    private final Map<String, Node> children = new HashMap<>();
 
-    public DefaultNode(String name, Node parent) {
-        this.absolutePath = parent.getChildAbsolutePath(name);
+    @Override
+    public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+        return children.computeIfAbsent(name, key -> nodeSupplier.apply(this));
     }
 
     @Override
-    public Type getType() {
-        return Type.UNKNOWN;
-    }
-
-    @Override
-    public String getAbsolutePath() {
-        return absolutePath;
-    }
-
-    @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
-        throw new UnsupportedOperationException("Cannot query contents of Node: too much unknown. Path " + getAbsolutePath());
+    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
+        return children.compute(name, (key, current) -> current == null
+            ? nodeSupplier.apply(this)
+            : replacement.apply(current));
     }
 }

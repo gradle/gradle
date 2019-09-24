@@ -24,6 +24,7 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
@@ -44,33 +45,25 @@ class DefaultVirtualFileSystemTest extends Specification {
     def vfs = new DefaultVirtualFileSystem(stat, new DirectorySnapshotter(fileHasher, new StringInterner()), fileHasher)
 
     def "can read a file"() {
-        TestFile someFile
-        temporaryFolder.file("some/subdir").create {
-            someFile = file("someFile")
-        }
+        TestFile someFile = temporaryFolder.file("some/subdir/someFile").createFile()
 
         when:
         allowFileSystemAccess(true)
         def snapshot = readFromVfs(someFile)
         then:
-        snapshot.type == FileType.RegularFile
-        snapshot.absolutePath == someFile.absolutePath
-        snapshot.hash.toString() == "f571933bb948577b1f9f3076fb8fc7c6"
+        assertIsFileSnapshot(snapshot, someFile)
 
         when:
         allowFileSystemAccess(false)
         snapshot = readFromVfs(someFile)
         then:
-        snapshot.type == FileType.RegularFile
-        snapshot.absolutePath == someFile.absolutePath
-        snapshot.hash.toString() == "f571933bb948577b1f9f3076fb8fc7c6"
+        assertIsFileSnapshot(snapshot, someFile)
 
         def missingSubfile = someFile.file("subfile/which/is/deep.txt")
         when:
         snapshot = readFromVfs(missingSubfile)
         then:
-        snapshot.type == FileType.Missing
-        snapshot.absolutePath == missingSubfile.absolutePath
+        assertIsMissingFileSnapshot(snapshot, missingSubfile)
     }
 
     def "can read a missing file"() {
@@ -81,32 +74,25 @@ class DefaultVirtualFileSystemTest extends Specification {
         allowFileSystemAccess(true)
         def snapshot = readFromVfs(someFile)
         then:
-        snapshot.type == FileType.Missing
-        snapshot.absolutePath == someFile.absolutePath
-        snapshot.name == someFile.name
+        assertIsMissingFileSnapshot(snapshot, someFile)
 
         when:
-        fileHasher.allowHashing(false)
-        stat.allowStat(false)
+        allowFileSystemAccess(false)
         snapshot = readFromVfs(someFile)
         then:
-        snapshot.type == FileType.Missing
-        snapshot.absolutePath == someFile.absolutePath
-        snapshot.name == someFile.name
+        assertIsMissingFileSnapshot(snapshot, someFile)
 
         def missingSubfile = someFile.file("subfile")
         when:
         snapshot = readFromVfs(missingSubfile)
         then:
-        snapshot.type == FileType.Missing
-        snapshot.absolutePath == missingSubfile.absolutePath
+        assertIsMissingFileSnapshot(snapshot, missingSubfile)
 
         when:
         allowFileSystemAccess(true)
         snapshot = readFromVfs(regularParent)
         then:
-        snapshot.type == FileType.RegularFile
-        snapshot.absolutePath == regularParent.absolutePath
+        assertIsFileSnapshot(snapshot, regularParent)
     }
 
     def "can read a directory"() {
@@ -127,14 +113,57 @@ class DefaultVirtualFileSystemTest extends Specification {
         allowFileSystemAccess(true)
         def snapshot = readFromVfs(someDir)
         then:
-        snapshot.type == FileType.Directory
+        assertIsDirectorySnapshot(snapshot, someDir)
 
         when:
         allowFileSystemAccess(false)
-        snapshot = readFromVfs(someDir.file("sub"))
+        def subDir = someDir.file("sub")
+        snapshot = readFromVfs(subDir)
         then:
-        snapshot.type == FileType.Directory
-        snapshot.children*.name == ["inSub", "subsub"]
+        assertIsDirectorySnapshot(snapshot, subDir)
+    }
+
+    def "invalidate regular file"() {
+        def parentDir = temporaryFolder.file("in/some")
+        def someFile = parentDir.file("directory/somefile.txt").createFile()
+        when:
+        allowFileSystemAccess(true)
+        def snapshot = readFromVfs(someFile)
+        then:
+        assertIsFileSnapshot(snapshot, someFile)
+
+        when:
+        allowFileSystemAccess(false)
+        vfs.update([someFile.absolutePath]) {
+            someFile << "Updated"
+        }
+
+        and:
+        allowFileSystemAccess(true)
+        snapshot = readFromVfs(someFile)
+
+        then:
+        someFile.text == "Updated"
+        assertIsFileSnapshot(snapshot, someFile)
+
+        when:
+        snapshot = readFromVfs(parentDir)
+        allowFileSystemAccess(false)
+        then:
+        assertIsDirectorySnapshot(snapshot, parentDir)
+        and:
+        assertIsFileSnapshot(readFromVfs(someFile), someFile)
+
+        when:
+        vfs.update([someFile.absolutePath]) {
+            someFile.text = "Updated again"
+        }
+        and:
+        allowFileSystemAccess(true)
+        snapshot = readFromVfs(someFile)
+        then:
+        someFile.text == "Updated again"
+        assertIsFileSnapshot(snapshot, someFile)
     }
 
     private allowFileSystemAccess(boolean allow) {
@@ -142,9 +171,9 @@ class DefaultVirtualFileSystemTest extends Specification {
         stat.allowStat(allow)
     }
 
-    private FileSystemLocationSnapshot readFromVfs(File someFile) {
+    private FileSystemLocationSnapshot readFromVfs(File file) {
         def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
-        vfs.read(someFile.absolutePath, builder)
+        vfs.read(file.absolutePath, builder)
         return builder.result
     }
 
@@ -210,5 +239,29 @@ class DefaultVirtualFileSystemTest extends Specification {
         void allowStat(boolean allowed) {
             this.statAllowed = allowed
         }
+    }
+
+    void assertIsFileSnapshot(FileSystemLocationSnapshot snapshot, File file) {
+        assert snapshot.absolutePath == file.absolutePath
+        assert snapshot.name == file.name
+        assert snapshot.type == FileType.RegularFile
+        assert snapshot.hash == hashFile(file)
+    }
+
+    void assertIsMissingFileSnapshot(FileSystemLocationSnapshot snapshot, File file) {
+        assert snapshot.absolutePath == file.absolutePath
+        assert snapshot.name == file.name
+        assert snapshot.type == FileType.Missing
+    }
+
+    void assertIsDirectorySnapshot(FileSystemLocationSnapshot snapshot, File file) {
+        assert snapshot.absolutePath == file.absolutePath
+        assert snapshot.name == file.name
+        assert snapshot.type == FileType.Directory
+        assert (((DirectorySnapshot) snapshot).children*.name as Set) == (file.list() as Set)
+    }
+
+    private HashCode hashFile(File file) {
+        TestFiles.fileHasher().hash(file)
     }
 }

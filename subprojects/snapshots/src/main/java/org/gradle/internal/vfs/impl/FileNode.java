@@ -29,12 +29,12 @@ public class FileNode implements Node {
     }
 
     @Override
-    public Node getChild(String name, Function<Node, Node> nodeSupplier) {
+    public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
         return new MissingFileNode(this.getChildAbsolutePath(name), name);
     }
 
     @Override
-    public Node getChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
+    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
         return new MissingFileNode(this.getChildAbsolutePath(name), name);
     }
 

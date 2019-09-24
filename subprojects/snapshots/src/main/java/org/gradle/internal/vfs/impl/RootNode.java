@@ -18,24 +18,7 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
-public class RootNode implements Node {
-    private final Map<String, Node> children = new HashMap<>();
-
-    @Override
-    public Node getChild(String name, Function<Node, Node> nodeSupplier) {
-        return children.computeIfAbsent(name, key -> nodeSupplier.apply(this));
-    }
-
-    @Override
-    public Node getChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
-        return children.compute(name, (key, current) -> current == null
-            ? nodeSupplier.apply(this)
-            : replacement.apply(current));
-    }
+public class RootNode extends AbstractNodeWithMutableChildren {
 
     @Override
     public String getAbsolutePath() {
@@ -50,5 +33,10 @@ public class RootNode implements Node {
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
         throw new UnsupportedOperationException("Cannot visit root node");
+    }
+
+    @Override
+    public String getChildAbsolutePath(String name) {
+        return null;
     }
 }

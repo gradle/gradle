@@ -18,13 +18,11 @@ package org.gradle.internal.vfs;
 
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
-import java.util.function.Consumer;
-
 public interface VirtualFileSystem {
 
     void read(String location, FileSystemSnapshotVisitor visitor);
 
-    void update(Iterable<String> locations, Consumer<Invalidator> action);
+    void update(Iterable<String> locations, Runnable action);
 
     interface Invalidator {
         void invalidateAll();

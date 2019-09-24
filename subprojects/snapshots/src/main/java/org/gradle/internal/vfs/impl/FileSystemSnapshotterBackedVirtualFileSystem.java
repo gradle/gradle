@@ -22,7 +22,6 @@ import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
-import java.util.function.Consumer;
 
 public class FileSystemSnapshotterBackedVirtualFileSystem implements VirtualFileSystem {
 
@@ -40,7 +39,8 @@ public class FileSystemSnapshotterBackedVirtualFileSystem implements VirtualFile
     }
 
     @Override
-    public void update(Iterable<String> locations, Consumer<Invalidator> action) {
-        action.accept(fileSystemMirror::beforeOutputChange);
+    public void update(Iterable<String> locations, Runnable action) {
+        fileSystemMirror.beforeOutputChange();
+        action.run();
     }
 }
