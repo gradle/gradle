@@ -52,7 +52,7 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
         project.apply plugin: 'java'
-        RepoScriptBlockUtil.configureJcenter(project.repositories)
+        RepoScriptBlockUtil.configureJcenter(project.buildscript.repositories)
         def testTask = project.tasks.getByName('test')
         JacocoTaskExtension extension = testTask.extensions.getByType(JacocoTaskExtension)
 
@@ -108,5 +108,17 @@ class JacocoPluginSpec extends AbstractProjectBuilderSpec {
         jacocoTestCoverageVerificationTask.group == LifecycleBasePlugin.VERIFICATION_GROUP
         jacocoTestReportTask.description == 'Generates code coverage report for the test task.'
         jacocoTestCoverageVerificationTask.description == 'Verifies code coverage metrics based on specified rules for the test task.'
+    }
+
+    @Issue("gradle/gradle#10837")
+    def "declares configurations on buildscript scope"() {
+        given:
+        project.apply plugin: 'jacoco'
+
+        expect:
+        project.getConfigurations().findByName(JacocoPlugin.AGENT_CONFIGURATION_NAME) == null
+        project.getConfigurations().findByName(JacocoPlugin.ANT_CONFIGURATION_NAME) == null
+        project.getBuildscript().getConfigurations().getByName(JacocoPlugin.AGENT_CONFIGURATION_NAME) != null
+        project.getBuildscript().getConfigurations().getByName(JacocoPlugin.ANT_CONFIGURATION_NAME) != null
     }
 }

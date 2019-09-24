@@ -38,6 +38,10 @@ class JavaProjectUnderTest {
             apply plugin: 'java'
             apply plugin: 'jacoco'
 
+            buildscript {
+                ${mavenCentralRepository()}
+            }
+
             ${mavenCentralRepository()}
 
             dependencies {

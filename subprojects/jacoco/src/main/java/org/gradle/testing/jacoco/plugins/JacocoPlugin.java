@@ -93,11 +93,11 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      * Creates the configurations used by plugin.
      */
     private void addJacocoConfigurations() {
-        Configuration agentConf = project.getConfigurations().create(AGENT_CONFIGURATION_NAME);
+        Configuration agentConf = project.getBuildscript().getConfigurations().create(AGENT_CONFIGURATION_NAME);
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
-        Configuration antConf = project.getConfigurations().create(ANT_CONFIGURATION_NAME);
+        Configuration antConf = project.getBuildscript().getConfigurations().create(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
@@ -110,12 +110,12 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param extension the extension that has the tool version to use
      */
     private void configureAgentDependencies(JacocoAgentJar jacocoAgentJar, final JacocoPluginExtension extension) {
-        final Configuration config = project.getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
+        final Configuration config = project.getBuildscript().getConfigurations().getAt(AGENT_CONFIGURATION_NAME);
         jacocoAgentJar.setAgentConf(config);
         config.defaultDependencies(new Action<DependencySet>() {
             @Override
             public void execute(DependencySet dependencies) {
-                dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.agent:" + extension.getToolVersion()));
+                dependencies.add(project.getBuildscript().getDependencies().create("org.jacoco:org.jacoco.agent:" + extension.getToolVersion()));
             }
         });
     }
@@ -127,7 +127,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param extension the JacocoPluginExtension
      */
     private void configureTaskClasspathDefaults(final JacocoPluginExtension extension) {
-        final Configuration config = this.project.getConfigurations().getAt(ANT_CONFIGURATION_NAME);
+        final Configuration config = this.project.getBuildscript().getConfigurations().getAt(ANT_CONFIGURATION_NAME);
         project.getTasks().withType(JacocoBase.class).configureEach(new Action<JacocoBase>() {
             @Override
             public void execute(JacocoBase task) {
@@ -137,7 +137,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         config.defaultDependencies(new Action<DependencySet>() {
             @Override
             public void execute(DependencySet dependencies) {
-                dependencies.add(project.getDependencies().create("org.jacoco:org.jacoco.ant:" + extension.getToolVersion()));
+                dependencies.add(project.getBuildscript().getDependencies().create("org.jacoco:org.jacoco.ant:" + extension.getToolVersion()));
             }
         });
     }

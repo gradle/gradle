@@ -65,28 +65,49 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "dependencies report shows default jacoco dependencies"() {
-        when: succeeds("dependencies", "--configuration", "jacocoAgent")
-        then: output.contains "org.jacoco:org.jacoco.agent:"
-
-        when: succeeds("dependencies", "--configuration", "jacocoAnt")
-        then: output.contains "org.jacoco:org.jacoco.ant:"
+        buildFile << """
+            // the buildEnvironment task only displays the "classpath" configuration of the buildscript
+            task buildScriptDependencies(type: org.gradle.api.tasks.diagnostics.DependencyReportTask) {
+                configurations = project.buildscript.configurations
+            }
+        """
+        when: succeeds("buildScriptDependencies")
+        then:
+        int jacocoAgentIdx = output.indexOf("jacocoAgent")
+        jacocoAgentIdx > -1
+        int jacocoAgentDepIdx = output.indexOf "org.jacoco:org.jacoco.agent:"
+        jacocoAgentDepIdx > jacocoAgentIdx
+        int jacocoAntIdx = output.indexOf("jacocoAnt")
+        jacocoAntIdx > jacocoAgentDepIdx
+        int jacocoAntDepIdx =  output.indexOf "org.jacoco:org.jacoco.ant:"
+        jacocoAntDepIdx > jacocoAntIdx
     }
 
     void "allows configuring tool dependencies explicitly"() {
         when:
         buildFile << """
-            dependencies {
+            buildscript.dependencies {
                 //downgrade version:
                 jacocoAgent "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
                 jacocoAnt "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
             }
+            
+            // the buildEnvironment task only displays the "classpath" configuration of the buildscript
+            task buildScriptDependencies(type: org.gradle.api.tasks.diagnostics.DependencyReportTask) {
+                configurations = project.buildscript.configurations
+            }
         """
 
-        succeeds("dependencies", "--configuration", "jacocoAgent")
-        then: output.contains "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
-
-        when: succeeds("dependencies", "--configuration", "jacocoAnt")
-        then: output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
+        succeeds("buildScriptDependencies") // --configuration jacocoAgent does not work
+        then:
+        int jacocoAgentIdx = output.indexOf("jacocoAgent")
+        jacocoAgentIdx > -1
+        int jacocoAgentDepIdx = output.indexOf "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
+        jacocoAgentDepIdx > jacocoAgentIdx
+        int jacocoAntIdx = output.indexOf("jacocoAnt")
+        jacocoAntIdx > jacocoAgentDepIdx
+        int jacocoAntDepIdx =  output.indexOf "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
+        jacocoAntDepIdx > jacocoAntIdx
     }
 
     void jacocoReportIsIncremental() {
