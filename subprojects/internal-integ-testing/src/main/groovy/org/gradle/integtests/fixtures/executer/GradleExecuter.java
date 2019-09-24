@@ -280,7 +280,10 @@ public interface GradleExecuter extends Stoppable {
      * or no warning is produced at all, the assertion fails.
      *
      * @see #expectDeprecationWarnings(int)
+     *
+     * @deprecated Use {@link #expectDeprecationWarning(String)} instead.
      */
+    @Deprecated
     GradleExecuter expectDeprecationWarning();
 
     /**
@@ -291,7 +294,10 @@ public interface GradleExecuter extends Stoppable {
     /**
      * Expects exactly the given number of deprecation warnings. If fewer or more warnings are produced during
      * the execution, the assertion fails.
+     *
+     * @deprecated Use {@link #expectDeprecationWarning(String)} instead.
      */
+    @Deprecated
     GradleExecuter expectDeprecationWarnings(int count);
 
     /**
