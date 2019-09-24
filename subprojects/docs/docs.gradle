@@ -280,9 +280,24 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
+def userguideAddSourceLinks = tasks.register("userguideAddSourceLinks", Sync) {
+    def adocDir = file("${buildDir}/adocs")
+
+    into(adocDir)
+    from("src/docs/userguide") {
+        include("**/*.adoc")
+    }
+    doLast {
+        fileTree(adocDir).each {
+            if (it.name != 'userguide_single.adoc') {
+                it.text = ":description: ${it.path - adocDir.path}\n\n${it.text}"
+            }
+        }
+    }
+}
 
 def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
-    dependsOn css, samples, defaultImports
+    dependsOn css, samples, defaultImports, userguideAddSourceLinks
     finalizedBy("checkDeadInternalLinks")
 
     duplicatesStrategy = DuplicatesStrategy.FAIL
@@ -299,9 +314,7 @@ def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
     from(generatedResourcesDir) {
         into(generatedResourcesDir.name)
     }
-    from fileTree("src/docs/userguide").matching {
-        include "**/*.adoc"
-    }.files
+    from { fileTree(userguideAddSourceLinks.get().destinationDir).files }
 }
 
 def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciidoctorTask) {
