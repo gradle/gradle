@@ -25,6 +25,7 @@ import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
@@ -47,6 +48,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
     }
 
+    @Ignore("Re-enable after rebaselining")
     @Unroll
     def "#tasks on #testProject"() {
         given:
