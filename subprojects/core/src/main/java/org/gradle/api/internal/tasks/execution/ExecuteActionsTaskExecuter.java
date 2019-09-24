@@ -359,6 +359,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             }
             ImmutableList.Builder<String> builder = ImmutableList.builder();
             visitOutputProperties((propertyName, type, root) -> builder.add(root.getAbsolutePath()));
+            context.getTaskProperties().getDestroyableFiles().forEach(file -> builder.add(file.getAbsolutePath()));
             return Optional.of(builder.build());
         }
 
