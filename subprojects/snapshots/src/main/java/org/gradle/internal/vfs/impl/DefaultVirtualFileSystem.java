@@ -26,7 +26,9 @@ import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
+import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import javax.annotation.Nullable;
@@ -53,8 +55,14 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void read(String location, FileSystemSnapshotVisitor visitor) {
-        findLocation(location, parent -> createNode(location, parent))
+        readLocation(location)
             .accept(visitor);
+    }
+
+    @Override
+    public void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor) {
+        readLocation(location)
+            .accept(new FileSystemSnapshotFilter.FilteringVisitor(filter.getAsSnapshotPredicate(), visitor, new AtomicBoolean(false)));
     }
 
     protected Node createNode(String location, Node parent) {
@@ -74,8 +82,9 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         }
     }
 
-    private Node findLocation(String location, Function<Node, Node> nodeCreator) {
+    private Node readLocation(String location) {
         List<String> pathSegments = getPathSegments(location);
+        Function<Node, Node> nodeCreator = parent -> createNode(location, parent);
         Node parent = findParent(pathSegments);
         return parent.replaceChild(
             pathSegments.get(pathSegments.size() - 1),

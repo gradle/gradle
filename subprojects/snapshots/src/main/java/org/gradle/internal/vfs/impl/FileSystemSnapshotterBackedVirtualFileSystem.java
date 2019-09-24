@@ -18,6 +18,7 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
@@ -36,6 +37,11 @@ public class FileSystemSnapshotterBackedVirtualFileSystem implements VirtualFile
     @Override
     public void read(String location, FileSystemSnapshotVisitor visitor) {
         fileSystemSnapshotter.snapshot(new File(location)).accept(visitor);
+    }
+
+    @Override
+    public void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor) {
+        fileSystemSnapshotter.snapshotDirectoryTree(new File(location), filter).accept(visitor);
     }
 
     @Override

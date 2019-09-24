@@ -17,14 +17,13 @@
 package org.gradle.internal.vfs;
 
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.SnapshottingFilter;
 
 public interface VirtualFileSystem {
 
     void read(String location, FileSystemSnapshotVisitor visitor);
 
-    void update(Iterable<String> locations, Runnable action);
+    void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor);
 
-    interface Invalidator {
-        void invalidateAll();
-    }
+    void update(Iterable<String> locations, Runnable action);
 }

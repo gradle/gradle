@@ -26,13 +26,20 @@ import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
+import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import javax.annotation.Nullable
+import java.nio.file.Path
+import java.nio.file.attribute.BasicFileAttributes
+import java.util.function.Predicate
 
 @CleanupTestDirectory
 class DefaultVirtualFileSystemTest extends Specification {
@@ -166,6 +173,36 @@ class DefaultVirtualFileSystemTest extends Specification {
         assertIsFileSnapshot(snapshot, someFile)
     }
 
+    def "can filter parts of the filesystem"() {
+        def d = temporaryFolder.createDir("d")
+        d.createFile("f1")
+        def excludedFile = d.createFile("d1/f2")
+        def includedFile = d.createFile("d1/f1")
+
+        when:
+        allowFileSystemAccess(true)
+        def snapshot = readFromVfs(d, new FileNameFilter({ name -> name.endsWith('1')}))
+        def visitor = new RelativePathCapturingVisitor()
+        snapshot.accept(visitor)
+        then:
+        assertIsDirectorySnapshot(snapshot, d)
+        visitor.relativePaths == ["d1", "d1/f1", "f1"]
+
+        when:
+        allowFileSystemAccess(false)
+        snapshot = readFromVfs(includedFile)
+        then:
+        assertIsFileSnapshot(snapshot, includedFile)
+
+        when:
+        // Currently, we snapshot everything not respecting any filters.
+        // When this changes, a FS access will be necessary here.
+        // allowFileSystemAccess(true)
+        snapshot = readFromVfs(excludedFile)
+        then:
+        assertIsFileSnapshot(snapshot, excludedFile)
+    }
+
     private allowFileSystemAccess(boolean allow) {
         fileHasher.allowHashing(allow)
         stat.allowStat(allow)
@@ -174,6 +211,12 @@ class DefaultVirtualFileSystemTest extends Specification {
     private FileSystemLocationSnapshot readFromVfs(File file) {
         def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
         vfs.read(file.absolutePath, builder)
+        return builder.result
+    }
+
+    private FileSystemLocationSnapshot readFromVfs(File file, SnapshottingFilter filter) {
+        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
+        vfs.read(file.absolutePath, filter, builder)
         return builder.result
     }
 
@@ -263,5 +306,75 @@ class DefaultVirtualFileSystemTest extends Specification {
 
     private HashCode hashFile(File file) {
         TestFiles.fileHasher().hash(file)
+    }
+
+    private static class FileNameFilter implements SnapshottingFilter {
+        private final Predicate<String> predicate
+
+        FileNameFilter(Predicate<String> predicate) {
+            this.predicate = predicate
+        }
+
+        @Override
+        boolean isEmpty() {
+            return false
+        }
+
+        @Override
+        FileSystemSnapshotPredicate getAsSnapshotPredicate() {
+            return new FileSystemSnapshotPredicate() {
+                @Override
+                boolean test(FileSystemLocationSnapshot fileSystemLocationSnapshot, Iterable<String> relativePath) {
+                    return fileSystemLocationSnapshot.getType() == FileType.Directory || predicate.test(fileSystemLocationSnapshot.name)
+                }
+            }
+        }
+
+        @Override
+        DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
+            return new DirectoryWalkerPredicate() {
+                @Override
+                boolean test(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
+                    return isDirectory || predicate.test(name)
+                }
+            }
+        }
+    }
+
+    static class RelativePathCapturingVisitor implements FileSystemSnapshotVisitor {
+        private Deque<String> relativePath = new ArrayDeque<String>()
+        private boolean seenRoot = false
+        private final List<String> relativePaths = []
+
+        @Override
+        boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            if (!seenRoot) {
+                seenRoot = true
+            } else {
+                relativePath.addLast(directorySnapshot.name)
+                relativePaths.add(relativePath.join("/"))
+            }
+            return true
+        }
+
+        @Override
+        void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            relativePath.addLast(fileSnapshot.name)
+            relativePaths.add(relativePath.join("/"))
+            relativePath.removeLast()
+        }
+
+        @Override
+        void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            if (relativePath.isEmpty()) {
+                seenRoot = false
+            } else {
+                relativePath.removeLast()
+            }
+        }
+
+        List<String> getRelativePaths() {
+            return relativePaths
+        }
     }
 }
