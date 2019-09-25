@@ -27,7 +27,7 @@ import java.nio.charset.Charset
 @TestReproducibleArchives
 class ZipIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'ensure duplicates not included by default'() {
+    def 'deprecation warning on duplicates with default strategy'() {
         given:
         createTestFiles()
         buildFile << '''
@@ -40,10 +40,9 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
             }
         '''
 
-        when:
-        fails 'zip'
-        then:
-        failure.assertHasCause('Encountered duplicate path "file1.txt" during copy operation configured with DuplicatesStrategy.FAIL')
+        expect:
+        executer.expectDeprecationWarning('Encountered duplicate path during copy operation configured with default duplicates strategy. Allowing duplicates with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths.')
+        succeeds 'zip'
     }
 
     def 'ensure duplicates can be included in zip'() {
