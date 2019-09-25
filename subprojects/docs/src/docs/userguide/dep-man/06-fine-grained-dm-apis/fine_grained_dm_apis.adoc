@@ -41,12 +41,4 @@ include::artifact_transforms.adoc[leveloffset=+1]
 
 include::variant_aware_plugins.adoc[leveloffset=+1]
 
-[[adding-new-attributes]]
-=== Adding new attributes
-
-[[attribute-compat-rules]]
-=== Attribute compatibility rules
-
-[[attribute-disamb-rules]]
-=== Attribute disambiguation rules
 
