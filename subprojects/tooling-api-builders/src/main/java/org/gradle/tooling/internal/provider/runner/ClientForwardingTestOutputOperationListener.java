@@ -72,6 +72,6 @@ class ClientForwardingTestOutputOperationListener implements BuildOperationListe
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-        delegate.finished(buildOperation,finishEvent);
+        delegate.finished(buildOperation, finishEvent);
     }
 }
