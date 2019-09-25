@@ -111,7 +111,7 @@ import java.util.List;
  */
 public class GradleUserHomeScopeServices {
     public static final String ENABLE_VFS_SYSTEM_PROPERTY_NAME = "org.gradle.experimental.enable.vfs";
-    public static final boolean VFS_ENABLED = System.getProperty(ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
+    public static final boolean VFS_ENABLED = true;
     private final ServiceRegistry globalServices;
 
     public GradleUserHomeScopeServices(ServiceRegistry globalServices) {
