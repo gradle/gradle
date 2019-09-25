@@ -191,7 +191,11 @@ public class JavaCompilerArgumentsBuilder {
         if (spec.getSourceCompatibility() == null || JavaVersion.toVersion(spec.getSourceCompatibility()).compareTo(JavaVersion.VERSION_1_6) >= 0) {
             List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
             if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
-                args.add("-proc:none");
+                if (!compilerArgs.contains("--processor-module-path")) {
+                    args.add("-proc:none");
+                }
+            } else if (compilerArgs.contains("--processor-module-path")) {
+                LOGGER.warn("You specified both --processor-module-path and an annotation processor path. These options are mutually exclusive. Ignoring annotation processor path.");
             } else {
                 args.add("-processorpath");
                 args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
