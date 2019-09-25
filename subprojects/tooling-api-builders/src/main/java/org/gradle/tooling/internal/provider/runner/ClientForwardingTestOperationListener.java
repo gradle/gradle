@@ -20,30 +20,22 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
-import org.gradle.api.internal.tasks.testing.operations.TestListenerBuildOperationAdapter;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
 import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 import org.gradle.tooling.internal.provider.events.AbstractTestResult;
 import org.gradle.tooling.internal.provider.events.DefaultFailure;
 import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
 import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestOutputDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTestOutputEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestOutputResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
 import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
 import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult;
@@ -59,13 +51,11 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
 
     private final ProgressEventConsumer eventConsumer;
     private final BuildClientSubscriptions clientSubscriptions;
-    private final BuildOperationIdFactory idFactory;
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
 
-    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationIdFactory idFactory) {
+    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
-        this.idFactory = idFactory;
     }
 
     @Override
@@ -86,20 +76,6 @@ class ClientForwardingTestOperationListener implements BuildOperationListener {
 
     @Override
     public void progress(OperationIdentifier buildOperationId, OperationProgressEvent progressEvent) {
-        if (progressEvent.getDetails() instanceof TestListenerBuildOperationAdapter.OutputProgress) {
-            TestListenerBuildOperationAdapter.OutputProgress progress = (TestListenerBuildOperationAdapter.OutputProgress) progressEvent.getDetails();
-            InternalTestOutputDescriptor descriptor = new DefaultTestOutputDescriptor(new OperationIdentifier(idFactory.nextId()), progress.getTestDescriptorId());
-            DefaultTestOutputResult result = new DefaultTestOutputResult(progressEvent.getTime(), progressEvent.getTime(), getDestination(progress.getOutput().getDestination()), progress.getOutput().getMessage());
-            eventConsumer.progress(new DefaultTestOutputEvent(progressEvent.getTime(), descriptor, result));
-        }
-    }
-
-    private int getDestination(TestOutputEvent.Destination destination) {
-        switch (destination) {
-            case StdOut: return Destination.StdOut.getCode();
-            case StdErr: return Destination.StdErr.getCode();
-            default: throw new IllegalStateException("Unknown output destination type: " + destination);
-        }
     }
 
     @Override

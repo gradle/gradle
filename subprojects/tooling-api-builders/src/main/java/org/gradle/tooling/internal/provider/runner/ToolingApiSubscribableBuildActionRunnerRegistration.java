@@ -54,7 +54,11 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
         List<Object> listeners = new ArrayList<Object>();
         listeners.add(parentTracker);
         if (clientSubscriptions.isRequested(OperationType.TEST)) {
-            listeners.add(new ClientForwardingTestOperationListener(progressEventConsumer, clientSubscriptions, idFactory));
+            BuildOperationListener buildListener = new ClientForwardingTestOperationListener(progressEventConsumer, clientSubscriptions);
+            if (clientSubscriptions.isRequested(OperationType.TEST_OUTPUT)) {
+                buildListener = new ClientForwardingTestOutputOperationListener(buildListener, progressEventConsumer, idFactory);
+            }
+            listeners.add(buildListener);
         }
         if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
             BuildOperationListener buildListener = NO_OP;

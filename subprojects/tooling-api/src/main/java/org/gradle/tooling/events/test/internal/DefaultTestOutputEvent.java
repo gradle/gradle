@@ -21,7 +21,7 @@ import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.TestOutputEvent;
 
 /**
- * Implementation of the {@code TestFinishEvent} interface.
+ * Implementation of the {@code TestOutputEvent} interface.
  */
 public final class DefaultTestOutputEvent implements TestOutputEvent {
 
@@ -60,5 +60,10 @@ public final class DefaultTestOutputEvent implements TestOutputEvent {
     @Override
     public OperationDescriptor getDescriptor() {
         return descriptor;
+    }
+
+    @Override
+    public String toString() {
+        return getDisplayName();
     }
 }
