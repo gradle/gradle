@@ -166,7 +166,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
         _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
-            context.visitTypeProblem(WARNING, Object, "type is broken")
+            context.visitTypeProblem(WARNING, type, "type is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([typeAnnotationHandler], [], [], typeAnnotationMetadataStore, cacheFactory)
@@ -181,7 +181,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == ["Type '$Object.name': type is broken." as String]
+        collectProblems(typeMetadata) == ["Type 'DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation': type is broken." as String]
     }
 
     @Unroll
