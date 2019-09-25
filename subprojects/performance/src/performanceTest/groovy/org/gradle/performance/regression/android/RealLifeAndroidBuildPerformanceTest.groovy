@@ -43,11 +43,8 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        runner.minimumVersion = "5.1.1"
+        runner.minimumVersion = "5.6.1" // AGP 3.6 requires 5.6.1+
         runner.targetVersions = ["6.0-20190823180744+0000"]
-        if (testProject == SANTA_TRACKER_KOTLIN) {
-            runner.targetVersions = ["5.6.1"]
-        }
 
         when:
         def result = runner.run()
