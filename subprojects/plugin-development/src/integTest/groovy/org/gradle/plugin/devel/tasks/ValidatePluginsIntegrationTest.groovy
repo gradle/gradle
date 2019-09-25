@@ -358,4 +358,62 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         executedAndNotSkipped(":validatePlugins")
         output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
     }
+
+    def "tests only classes from plugin source set"() {
+        buildFile << """
+            configurations {
+                plugin
+            }
+            
+            dependencies {
+                plugin gradleApi()
+            }
+
+            sourceSets {
+                plugin {
+                    java {
+                        srcDir 'src/plugin/java'
+                        compileClasspath = configurations.plugin
+                    }
+                }
+            }
+    
+            gradlePlugin {
+                pluginSourceSet sourceSets.plugin
+            }
+        """
+
+        file("src/main/java/MainTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public class MainTask extends DefaultTask {
+                // WIll not be called out because it's in the main source set
+                public long getBadProperty() {
+                    return 0;
+                }
+                
+                @TaskAction public void execute() {} 
+            }
+        """
+
+        file("src/plugin/java/PluginTask.java") << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public class PluginTask extends DefaultTask {
+                // WIll be called out because it's among the plugin's sources
+                public long getBadProperty() {
+                    return 0;
+                }
+                
+                @TaskAction public void execute() {} 
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'PluginTask': property 'badProperty' is not annotated with an input or output annotation.": WARNING,
+        )
+    }
 }
