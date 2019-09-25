@@ -280,7 +280,7 @@ In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnosti
 
 ==== Calling afterEvaluate on an evaluated project has been deprecated
 
-Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate`.
+Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
 To avoid confusion, this scenario will become an error in Gradle 7.0.
 Until then, a deprecation warning will be shown.
 
