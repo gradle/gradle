@@ -58,8 +58,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.reflect.WorkValidationContext
-import org.gradle.internal.reflect.WorkValidationException
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -79,6 +77,7 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 
 class IncrementalExecutionIntegrationTest extends Specification {
 
@@ -561,9 +560,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def "invalid work is not executed"() {
         def invalidWork = builder
-            .withValidator({ validationContext ->
-                validationContext.visitError("Validation error")
-            })
+            .withValidator { validationContext ->
+                validationContext.createContextFor(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
+            }
             .withWork({ throw new RuntimeException("Should not get executed") })
             .build()
 
@@ -572,8 +571,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         def ex = thrown WorkValidationException
-        ex.causes.size() == 1
-        ex.causes[0].message == "Validation error"
+        ex.causes*.message as List == ["Type 'java.lang.Object': Validation error."]
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
@@ -689,7 +687,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private Map<String, ? extends Collection<? extends File>> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
-        private Consumer<WorkValidationContext> validator
+        private Consumer<UnitOfWork.WorkValidationContext> validator
 
         UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
@@ -744,7 +742,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return this
         }
 
-        UnitOfWorkBuilder withValidator(Consumer<WorkValidationContext> validator) {
+        UnitOfWorkBuilder withValidator(Consumer<UnitOfWork.WorkValidationContext> validator) {
             this.validator = validator
             return this
         }
@@ -817,7 +815,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void validate(WorkValidationContext validationContext) {
+                void validate(UnitOfWork.WorkValidationContext validationContext) {
                     validator?.accept(validationContext)
                 }
 

@@ -674,6 +674,7 @@ task someTask(type: SomeTask) {
                 }        
                 
                 @InputFile
+                @PathSensitive(PathSensitivity.NONE)
                 File getInputFile() {
                     count("inputFile", ++inputFileCount)
                     return project.file('input.txt')

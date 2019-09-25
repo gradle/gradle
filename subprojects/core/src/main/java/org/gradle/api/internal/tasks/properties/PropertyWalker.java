@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 
 /**
  * Walks properties declared by the type.
  */
 public interface PropertyWalker {
-    void visitProperties(Object instance, WorkValidationContext validationContext, PropertyVisitor visitor);
+    void visitProperties(Object instance, TypeValidationContext validationContext, PropertyVisitor visitor);
 }

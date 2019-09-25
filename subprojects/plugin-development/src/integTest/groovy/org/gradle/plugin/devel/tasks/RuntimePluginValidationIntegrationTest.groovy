@@ -16,10 +16,11 @@
 
 package org.gradle.plugin.devel.tasks
 
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.ERROR
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationIntegrationSpec {
 
@@ -37,13 +38,15 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     }
 
     @Override
-    void assertValidationFailsWith(Map<String, Severity> messages) {
+    void assertValidationFailsWith(Map<String, TypeValidationContext.Severity> messages) {
         def expectedWarnings = messages
             .findAll { message, severity -> severity == WARNING }
             .keySet()
+            .collect { removeTypeForProperties(it) }
         def expectedErrors = messages
             .findAll { message, severity -> severity == ERROR }
             .keySet()
+            .collect { removeTypeForProperties(it) }
 
         if (expectedWarnings) {
             executer.expectDeprecationWarnings(expectedWarnings.size())
@@ -57,19 +60,15 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         result.assertTaskNotSkipped(":run")
 
         expectedWarnings.forEach { warning ->
-            // TODO Replace this with logging the type related to the property during runtime validation, too
-            assert(output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
-                || output.contains("${removeTypePrefix(warning)} This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."))
+            assert output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         }
         expectedErrors.forEach { error ->
             failureHasCause(error)
         }
     }
 
-    String removeTypePrefix(String message) {
-        def matcher = message =~ /(?:Type '.*?': )?(.*)/
-        assert matcher.matches()
-        matcher.group(1).capitalize()
+    static String removeTypeForProperties(String message) {
+        message.replaceAll(/Type '.*?': property/, "Property")
     }
 
     @Override

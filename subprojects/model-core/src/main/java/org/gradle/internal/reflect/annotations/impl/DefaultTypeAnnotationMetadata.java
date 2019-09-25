@@ -17,26 +17,25 @@
 package org.gradle.internal.reflect.annotations.impl;
 
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.annotations.PropertyAnnotationMetadata;
 import org.gradle.internal.reflect.annotations.TypeAnnotationMetadata;
 
-import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 
 public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     private final ImmutableBiMap<Class<? extends Annotation>, Annotation> annotations;
     private final ImmutableSortedSet<PropertyAnnotationMetadata> properties;
-    private final ImmutableList<String> problems;
+    private final ReplayingTypeValidationContext validationProblems;
 
-    public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties, Iterable<String> problems) {
+    public DefaultTypeAnnotationMetadata(Iterable<? extends Annotation> annotations, Iterable<? extends PropertyAnnotationMetadata> properties, ReplayingTypeValidationContext validationProblems) {
         this.annotations = ImmutableBiMap.copyOf(Maps.uniqueIndex(annotations, Annotation::annotationType));
         this.properties = ImmutableSortedSet.copyOf(properties);
-        this.problems = ImmutableList.copyOf(problems);
+        this.validationProblems = validationProblems;
     }
 
     @Override
@@ -55,8 +54,7 @@ public class DefaultTypeAnnotationMetadata implements TypeAnnotationMetadata {
     }
 
     @Override
-    public void visitValidationFailures(@Nullable String ownerPath, WorkValidationContext validationContext) {
-        problems.forEach(validationContext::visitWarning);
-        properties.forEach(property -> property.visitValidationFailures(ownerPath, validationContext));
+    public void visitValidationFailures(TypeValidationContext validationContext) {
+        validationProblems.replay(null, validationContext);
     }
 }

@@ -74,8 +74,8 @@ class PropertyValidationAccessTest extends Specification {
     def "warns about missing @PathSensitive annotation for @CacheableTask"() {
         expect:
         assertHasValidationProblems(CacheableTaskWithoutPathSensitivity, [
-            "property 'inputFile' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE",
-            "property 'inputFiles' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE"
+            "property 'inputFile' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE",
+            "property 'inputFiles' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE"
         ])
     }
 

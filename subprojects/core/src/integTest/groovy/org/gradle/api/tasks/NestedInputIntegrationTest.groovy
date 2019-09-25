@@ -36,6 +36,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class NestedBeanWithInput {
                 @Input${kind}
+                @PathSensitive(PathSensitivity.NONE)
                 ${type.name} input
             }
             
@@ -795,7 +796,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 import org.gradle.api.tasks.*
 
                 class NestedBean {
-                    @InputFile File input
+                    @InputFile @PathSensitive(PathSensitivity.NONE) File input
                     @OutputFile File output
                 }
             '''

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
@@ -28,7 +27,7 @@ import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -46,7 +45,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private final boolean hasSourceFiles;
     private final FileCollection sourceFiles;
     private final boolean hasDeclaredOutputs;
-    private final Map<String, ValidationProblemSeverity> validationProblems;
+    private final ReplayingTypeValidationContext validationProblems;
     private final FileCollection outputFiles;
     private final FileCollection localStateFiles;
     private final FileCollection destroyableFiles;
@@ -60,7 +59,7 @@ public class DefaultTaskProperties implements TaskProperties {
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
         ValidationVisitor validationVisitor = new ValidationVisitor();
-        RecordingValidationContext validationContext = new RecordingValidationContext();
+        ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
         try {
             TaskPropertyUtils.visitProperties(propertyWalker, task, validationContext, new CompositePropertyVisitor(
                 inputPropertiesVisitor,
@@ -83,7 +82,7 @@ public class DefaultTaskProperties implements TaskProperties {
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
             validationVisitor.getTaskPropertySpecs(),
-            validationContext.getProblems());
+            validationContext);
     }
 
     private DefaultTaskProperties(
@@ -95,7 +94,7 @@ public class DefaultTaskProperties implements TaskProperties {
         FileCollection localStateFiles,
         FileCollection destroyableFiles,
         List<ValidatingProperty> validatingProperties,
-        Map<String, ValidationProblemSeverity> validationProblems
+        ReplayingTypeValidationContext validationProblems
     ) {
         this.validatingProperties = validatingProperties;
         this.validationProblems = validationProblems;
@@ -189,7 +188,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
     @Override
     public void validate(TaskValidationContext validationContext) {
-        validationProblems.forEach((message, severity) -> severity.visit(validationContext, message));
+        validationProblems.replay(null, validationContext);
         for (ValidatingProperty validatingProperty : validatingProperties) {
             validatingProperty.validate(validationContext);
         }
@@ -275,50 +274,6 @@ public class DefaultTaskProperties implements TaskProperties {
 
         public List<ValidatingProperty> getTaskPropertySpecs() {
             return taskPropertySpecs;
-        }
-    }
-
-    private enum ValidationProblemSeverity {
-        WARNING {
-            @Override
-            void visit(WorkValidationContext validationContext, String message) {
-                validationContext.visitWarning(message);
-            }
-        }, ERROR {
-            @Override
-            void visit(WorkValidationContext validationContext, String message) {
-                validationContext.visitError(message);
-            }
-        };
-
-        abstract void visit(WorkValidationContext validationContext, String message);
-    }
-
-    private static class RecordingValidationContext implements WorkValidationContext {
-        private final ImmutableMap.Builder<String, ValidationProblemSeverity> problems = ImmutableMap.builder();
-
-        @Override
-        public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
-            visitWarning(WorkValidationContext.decorateMessage(ownerPath, propertyName, message));
-        }
-
-        @Override
-        public void visitWarning(String message) {
-            problems.put(message, ValidationProblemSeverity.WARNING);
-        }
-
-        @Override
-        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
-            visitError(WorkValidationContext.decorateMessage(ownerPath, propertyName, message));
-        }
-
-        @Override
-        public void visitError(String message) {
-            problems.put(message, ValidationProblemSeverity.ERROR);
-        }
-
-        public ImmutableMap<String, ValidationProblemSeverity> getProblems() {
-            return problems.build();
         }
     }
 }

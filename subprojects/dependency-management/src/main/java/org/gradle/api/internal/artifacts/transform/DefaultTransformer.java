@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.InvalidUserDataException;
@@ -32,7 +33,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.properties.DefaultWorkValidationContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
@@ -61,7 +61,8 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.DefaultTypeValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
@@ -75,11 +76,11 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING;
 
 public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
@@ -135,13 +136,13 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
         this.cacheable = cacheable;
     }
 
-    public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, WorkValidationContext workValidationContext) {
+    public static void validateInputFileNormalizer(String propertyName, @Nullable Class<? extends FileNormalizer> normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == AbsolutePathInputNormalizer.class) {
-                workValidationContext.visitWarning(null, propertyName, "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms");
-            }
-            if (normalizer == null) {
-                workValidationContext.visitWarning(null, propertyName, "has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath");
+                validationContext.visitPropertyProblem(WARNING,
+                    propertyName,
+                    "is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms"
+                );
             }
         }
     }
@@ -192,7 +193,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         if (parameterObject != null) {
-            parameterPropertyWalker.visitProperties(parameterObject, WorkValidationContext.NOOP, new PropertyVisitor.Adapter() {
+            parameterPropertyWalker.visitProperties(parameterObject, TypeValidationContext.NOOP, new PropertyVisitor.Adapter() {
                 @Override
                 public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                     context.add(value.getTaskDependencies());
@@ -257,8 +258,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
     ) {
         ImmutableSortedMap.Builder<String, ValueSnapshot> inputParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
         ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> inputFileParameterFingerprintsBuilder = ImmutableSortedMap.naturalOrder();
-        List<String> validationMessages = new ArrayList<>();
-        DefaultWorkValidationContext validationContext = new DefaultWorkValidationContext(validationMessages);
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withoutRootType(cacheable);
         propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor.Adapter() {
             @Override
             public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
@@ -266,7 +266,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
                     Object preparedValue = InputParameterUtils.prepareInputParameterValue(value);
 
                     if (preparedValue == null && !optional) {
-                        validationContext.visitWarning(null, propertyName, "does not have a value specified");
+                        validationContext.visitPropertyProblem(WARNING,
+                            propertyName,
+                            "does not have a value specified"
+                        );
                     }
 
                     inputParameterFingerprintsBuilder.put(propertyName, valueSnapshotter.snapshot(preparedValue));
@@ -281,7 +284,10 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
             @Override
             public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-                validationContext.visitWarning(null, propertyName, "is annotated with an output annotation");
+                validationContext.visitPropertyProblem(WARNING,
+                    propertyName,
+                    "is annotated with an output annotation"
+                );
             }
 
             @Override
@@ -294,10 +300,11 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
             }
         });
 
+        ImmutableMap<String, TypeValidationContext.Severity> validationMessages = validationContext.getProblems();
         if (!validationMessages.isEmpty()) {
             throw new DefaultMultiCauseException(
                 String.format(validationMessages.size() == 1 ? "A problem was found with the configuration of the artifact transform parameter %s." : "Some problems were found with the configuration of the artifact transform parameter %s.", getParameterObjectDisplayName(parameterObject)),
-                validationMessages.stream().sorted().map(InvalidUserDataException::new).collect(Collectors.toList())
+                validationMessages.keySet().stream().sorted().map(InvalidUserDataException::new).collect(Collectors.toList())
             );
         }
 

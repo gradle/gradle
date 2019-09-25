@@ -21,6 +21,7 @@ import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.regression.android.AndroidTestProject.K9_ANDROID
@@ -33,6 +34,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
     }
 
+    @Ignore("Re-enable after rebaselining")
     @Unroll
     def "#tasks on #testProject"() {
         given:

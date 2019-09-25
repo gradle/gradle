@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
+    implementation(project(":execution"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
     implementation(project(":maven"))

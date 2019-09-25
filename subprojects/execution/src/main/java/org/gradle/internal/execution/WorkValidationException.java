@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.reflect;
+package org.gradle.internal.execution;
 
-import javax.annotation.Nullable;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
-public interface ValidationProblem {
-    void collect(@Nullable String ownerPropertyPath, WorkValidationContext validationContext);
+import java.util.List;
+
+/**
+ * A {@code WorkValidationException} is thrown when there is some validation problem with a work item.
+ */
+@Contextual
+public class WorkValidationException extends DefaultMultiCauseException {
+    public WorkValidationException(String message, List<InvalidUserDataException> causes) {
+        super(message, causes);
+    }
 }

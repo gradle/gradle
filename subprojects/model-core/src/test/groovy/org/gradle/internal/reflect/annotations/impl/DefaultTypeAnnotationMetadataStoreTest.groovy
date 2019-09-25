@@ -21,7 +21,7 @@ import groovy.transform.PackageScope
 import org.gradle.api.file.FileCollection
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.reflect.AnnotationCategory
-import org.gradle.internal.reflect.WorkValidationContext
+import org.gradle.internal.reflect.DefaultTypeValidationContext
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -35,6 +35,7 @@ import java.lang.annotation.Target
 import java.lang.reflect.Method
 
 import static org.gradle.internal.reflect.AnnotationCategory.TYPE
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 
 class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     private static final COLOR = { "color" } as AnnotationCategory
@@ -82,7 +83,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             privateProperty: [(TYPE): Small],
             injectedProperty: [(TYPE): Inject],
         ], [
-            "Property 'privateProperty' is private and annotated with @$Small.simpleName"
+            "Property 'privateProperty' is private and annotated with @$Small.simpleName."
         ]
     }
 
@@ -140,7 +141,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithConflictingFieldAndMethodAnnotation, [
             property: [(TYPE): Small],
         ], [
-            "Property 'property' has conflicting type annotations declared: @Small, @Large; assuming @Small"
+            "Property 'property' has conflicting type annotations declared: @Small, @Large; assuming @Small."
         ]
     }
 
@@ -156,7 +157,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
-            "Type '$TypeWithFieldOnlyAnnotation.name': field 'property' without corresponding getter has been annotated with @Large"
+            "Type '$TypeWithFieldOnlyAnnotation.name': field 'property' without corresponding getter has been annotated with @Large."
         ]
     }
 
@@ -188,7 +189,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithIsAndGetProperty, [
             bool: [(TYPE): Small],
         ], [
-            "Property 'bool' has redundant getters: 'getBool()' and 'isBool()'"
+            "Property 'bool' has redundant getters: 'getBool()' and 'isBool()'."
         ]
         store.getTypeAnnotationMetadata(TypeWithIsAndGetProperty).propertiesAnnotationMetadata[0].method.name == "getBool"
     }
@@ -256,7 +257,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithIgnoredPropertyWithOtherAnnotations, [
             ignoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredProperty' getter 'getIgnoredProperty()' annotated with @Ignored should not be also annotated with @Color"
+            "Property 'ignoredProperty' getter 'getIgnoredProperty()' annotated with @Ignored should not be also annotated with @Color."
         ]
     }
 
@@ -271,7 +272,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
             twiceIgnoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'twiceIgnoredProperty' getter 'getTwiceIgnoredProperty()' annotated with @Ignored should not be also annotated with @Ignored2"
+            "Property 'twiceIgnoredProperty' getter 'getTwiceIgnoredProperty()' annotated with @Ignored should not be also annotated with @Ignored2."
         ]
     }
 
@@ -367,7 +368,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithImplementedPropertyFromInterfaces, [
             overriddenProperty: [(COLOR): { it instanceof Color && it.declaredBy() == "first-interface" }]
         ], [
-            "Property 'overriddenProperty' has conflicting color annotations inherited (from interface): @Color, @Color; assuming @Color"
+            "Property 'overriddenProperty' has conflicting color annotations inherited (from interface): @Color, @Color; assuming @Color."
         ]
     }
 
@@ -505,8 +506,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             largeThenSmall: [(TYPE): Large],
             smallThenLarge: [(TYPE): Small]
         ], [
-            "Property 'largeThenSmall' has conflicting type annotations declared: @Large, @Small; assuming @Large",
-            "Property 'smallThenLarge' has conflicting type annotations declared: @Small, @Large; assuming @Small"
+            "Property 'largeThenSmall' has conflicting type annotations declared: @Large, @Small; assuming @Large.",
+            "Property 'smallThenLarge' has conflicting type annotations declared: @Small, @Large; assuming @Small."
         ]
     }
 
@@ -526,7 +527,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties WithBothFieldAndGetterAnnotation, [
             inputFiles: [(COLOR): { it instanceof Color && it.declaredBy() == "method" }]
         ], [
-            "Property 'inputFiles' has conflicting color annotations declared: @Color, @Color; assuming @Color"
+            "Property 'inputFiles' has conflicting color annotations declared: @Color, @Color; assuming @Color."
         ]
     }
 
@@ -549,8 +550,8 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             mutableSubTypeWithSetter: [(TYPE): Small],
             mutableTypeWithSetter: [(TYPE): Small]
         ], [
-            "Type '${TypeWithPropertiesWithMutableProperties.name}': property 'mutableSubTypeWithSetter' of mutable type '${MutableSubType.name}' is writable. Properties of this type should be read-only and mutated via the value itself",
-            "Type '${TypeWithPropertiesWithMutableProperties.name}': property 'mutableTypeWithSetter' of mutable type '${MutableType.name}' is writable. Properties of this type should be read-only and mutated via the value itself"
+            "Property 'mutableSubTypeWithSetter' of mutable type '${MutableSubType.name}' is writable. Properties of this type should be read-only and mutated via the value itself.",
+            "Property 'mutableTypeWithSetter' of mutable type '${MutableType.name}' is writable. Properties of this type should be read-only and mutated via the value itself."
         ]
     }
 
@@ -598,7 +599,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties WithAnnotationsOnPrivateProperty, [
             privateInput: [(TYPE): Large]
         ], [
-            "Property 'privateInput' is private and annotated with @${Large.simpleName}"
+            "Property 'privateInput' is private and annotated with @${Large.simpleName}."
         ]
     }
 
@@ -658,10 +659,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "warns about annotations on non-getter methods"() {
         expect:
         assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
-            "Type '$TypeWithAnnotatedNonGetterMethods.name': non-property method 'doSomething()' should not be annotated with: @Large",
-            "Type '$TypeWithAnnotatedNonGetterMethods.name': setter method 'setSomething()' should not be annotated with: @Large",
-            "Type '$TypeWithAnnotatedNonGetterMethods.name': static method 'doStatic()' should not be annotated with: @Large",
-            "Type '$TypeWithAnnotatedNonGetterMethods.name': static method 'getStatic()' should not be annotated with: @Small",
+            "Type '$TypeWithAnnotatedNonGetterMethods.name': non-property method 'doSomething()' should not be annotated with: @Large.",
+            "Type '$TypeWithAnnotatedNonGetterMethods.name': setter method 'setSomething()' should not be annotated with: @Large.",
+            "Type '$TypeWithAnnotatedNonGetterMethods.name': static method 'doStatic()' should not be annotated with: @Large.",
+            "Type '$TypeWithAnnotatedNonGetterMethods.name': static method 'getStatic()' should not be annotated with: @Small.",
         ]
     }
 
@@ -711,29 +712,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
             }
         }
 
-        List<String> actualErrors = []
-        def visitor = new WorkValidationContext() {
-            @Override
-            void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
-                actualErrors.add("Property '$propertyName' $message")
-            }
-
-            @Override
-            void visitWarning(String message) {
-                actualErrors.add(message)
-            }
-
-            @Override
-            void visitError(@Nullable String ownerPath, String propertyName, String message) {
-                actualErrors.add("Property '$propertyName' $message [STRICT]")
-            }
-
-            @Override
-            void visitError(String message) {
-                actualErrors.add("$message  [STRICT]")
-            }
-        }
-        metadata.visitValidationFailures("owner", visitor)
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        metadata.visitValidationFailures(validationContext)
+        List<String> actualErrors = validationContext.problems
+            .collect({ message, severity -> ("$message" + (severity == ERROR ? " [STRICT]" : "") as String) })
         actualErrors.sort()
         expectedErrors.sort()
         assert actualErrors == expectedErrors
