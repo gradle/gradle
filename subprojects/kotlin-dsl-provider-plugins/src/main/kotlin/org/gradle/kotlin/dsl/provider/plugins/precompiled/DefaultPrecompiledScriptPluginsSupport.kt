@@ -32,9 +32,9 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.provider.inClassPathMode

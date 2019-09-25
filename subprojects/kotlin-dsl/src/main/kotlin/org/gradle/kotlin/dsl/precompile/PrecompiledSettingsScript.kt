@@ -18,26 +18,18 @@ package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.ProcessOperations
-
-import org.gradle.kotlin.dsl.GradleDsl
-import org.gradle.kotlin.dsl.SettingsScriptApi
-import org.gradle.kotlin.dsl.fileOperationsFor
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Script template definition for precompiled Kotlin script targeting [Settings] instances.
+ * Legacy script template definition for precompiled Kotlin script targeting [Settings] instances.
+ *
+ * Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0.
  *
  * @see PrecompiledProjectScript
  */
-@ScriptTemplateDefinition(
-    resolver = PrecompiledScriptDependenciesResolver::class,
-    scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-@GradleDsl
+@Deprecated("Kept for backward compatibility")
 open class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target), Settings by target {
 
     override val fileOperations by lazy { fileOperationsFor(delegate) }

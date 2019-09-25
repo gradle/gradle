@@ -18,26 +18,18 @@ package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.invocation.Gradle
-
-import org.gradle.kotlin.dsl.GradleDsl
-import org.gradle.kotlin.dsl.InitScriptApi
-import org.gradle.kotlin.dsl.fileOperationsFor
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.support.serviceOf
-
-import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Script template definition for precompiled Kotlin script targeting [Gradle] instances.
+ * Legacy script template definition for precompiled Kotlin script targeting [Gradle] instances.
+ *
+ * Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0.
  *
  * @see PrecompiledProjectScript
  */
-@ScriptTemplateDefinition(
-    resolver = PrecompiledScriptDependenciesResolver::class,
-    scriptFilePattern = "^.+\\.init\\.gradle\\.kts$")
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-@GradleDsl
+@Deprecated("Kept for backward compatibility")
 open class PrecompiledInitScript(target: Gradle) : InitScriptApi(target), Gradle by target {
 
     override val fileOperations by lazy { fileOperationsFor(delegate, null) }

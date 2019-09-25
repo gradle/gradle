@@ -19,9 +19,9 @@ import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.withFolders
 
-import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
-import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
+import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
