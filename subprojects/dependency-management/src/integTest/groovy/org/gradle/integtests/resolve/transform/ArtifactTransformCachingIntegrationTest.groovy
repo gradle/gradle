@@ -91,7 +91,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         fails "badTask", "--continue"
         then:
         ['lib', 'app', 'util'].each {
-            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask'.")
+            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
             failure.assertHasCause("The output ${file("${it}/build/${forbiddenPath}")} must not be in a reserved location.")
         }
     }

@@ -571,7 +571,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         def ex = thrown WorkValidationException
-        ex.causes*.message as List == ["Type 'java.lang.Object': Validation error."]
+        ex.causes*.message as List == ["Type '$Object.simpleName': Validation error."]
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {

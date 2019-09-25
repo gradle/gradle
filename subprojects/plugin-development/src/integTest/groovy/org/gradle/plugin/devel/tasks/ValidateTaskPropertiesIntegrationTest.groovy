@@ -17,8 +17,9 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Unroll
 
-class ValidatePluginsConfiguredByPluginIntegrationTest extends AbstractIntegrationSpec {
+class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
@@ -26,9 +27,39 @@ class ValidatePluginsConfiguredByPluginIntegrationTest extends AbstractIntegrati
         """
     }
 
-    def "detects missing annotations on Java properties"() {
+    @Unroll
+    def "delegates to validatePlugins and emits deprecation warning when configuration is changed via #methodCall for validateTaskProperties"() {
         buildFile << """
-            validatePlugins {
+            validateTaskProperties {
+                ${methodCall}
+            }
+
+            ${check ? "assert validatePlugins." + check : ""}
+        """
+
+        executer.expectDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
+
+        expect:
+        succeeds "help"
+
+        where:
+        methodCall                        | check
+        "getIgnoreFailures()"             | null
+        "ignoreFailures = true"           | "ignoreFailures.get() == true"
+        "ignoreFailures = false"          | "ignoreFailures.get() == false"
+        "getFailOnWarning()"              | null
+        "failOnWarning = true"            | "failOnWarning.get() == true"
+        "failOnWarning = false"           | "failOnWarning.get() == false"
+        "getClasses()"                    | null
+        "getClasspath()"                  | null
+        "getEnableStricterValidation()"   | null
+        "enableStricterValidation = true" | "enableStricterValidation.get() == true"
+        "getOutputFile()"                 | null
+    }
+
+    def "detects missing annotations on Java properties while emitting deprecation warning"() {
+        buildFile << """
+            validateTaskProperties {
                 failOnWarning = true
             }
         """
@@ -107,17 +138,19 @@ class ValidatePluginsConfiguredByPluginIntegrationTest extends AbstractIntegrati
             }
         """
 
+        executer.expectDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
+
         expect:
-        fails "check"
+        fails "validateTaskProperties"
         failure.assertHasCause "Plugin validation failed"
-        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation."
 
         file("build/reports/plugin-development/validation-report.txt").text == """
-            Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-            Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation.
             """.stripIndent().trim()
     }
 }

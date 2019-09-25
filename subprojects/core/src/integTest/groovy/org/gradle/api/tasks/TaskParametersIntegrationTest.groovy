@@ -470,7 +470,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("No value has been specified for property 'input'.")
     }
 
@@ -495,7 +495,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("No value has been specified for property 'input'.")
 
         where:
@@ -527,7 +527,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("No value has been specified for property 'output'.")
 
         where:
@@ -560,7 +560,7 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("$type '${file("missing")}' specified for property 'input' does not exist.")
 
         where:
@@ -582,7 +582,7 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type.")
 
         where:

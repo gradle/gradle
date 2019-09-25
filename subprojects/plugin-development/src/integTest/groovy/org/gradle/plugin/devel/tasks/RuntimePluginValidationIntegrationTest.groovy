@@ -48,9 +48,9 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
             .keySet()
             .collect { removeTypeForProperties(it) }
 
-        if (expectedWarnings) {
-            executer.expectDeprecationWarnings(expectedWarnings.size())
-            executer.withFullDeprecationStackTraceDisabled()
+        executer.withFullDeprecationStackTraceDisabled()
+        expectedWarnings.forEach { warning ->
+            executer.expectDeprecationWarning("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
         }
         if (expectedErrors) {
             fails "run"
@@ -59,8 +59,15 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         }
         result.assertTaskNotSkipped(":run")
 
-        expectedWarnings.forEach { warning ->
-            assert output.contains("$warning This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+        switch (expectedErrors.size()) {
+            case 0:
+                break
+            case 1:
+                failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
+                break
+            default:
+                failure.assertHasDescription("Some problems were found with the configuration of task ':run' (type 'MyTask').")
+                break
         }
         expectedErrors.forEach { error ->
             failureHasCause(error)

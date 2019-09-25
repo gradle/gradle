@@ -326,8 +326,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        failure.assertHasCause("Type 'MakeGreen\$Parameters': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
-        failure.assertHasCause("Type 'MakeGreen\$Parameters': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
+        failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
+        failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
     }
 
     @Unroll
@@ -820,7 +820,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         expect:
         fails('broken')
-        failure.assertHasDescription("A problem was found with the configuration of task ':broken'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
         failure.assertHasCause("Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
     }
 
@@ -844,7 +844,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         expect:
         // Probably should be eager
         fails('broken')
-        failure.assertHasDescription("Some problems were found with the configuration of task ':broken'.")
+        failure.assertHasDescription("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
         failure.assertHasCause("Type 'Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
         failure.assertHasCause("Type 'Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
     }
