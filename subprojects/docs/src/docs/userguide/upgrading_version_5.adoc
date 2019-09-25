@@ -77,18 +77,14 @@ The related APIs in `StartParameter` are now deprecated.
 These methods currently do not work as expected.
 They are being deprecated to avoid confusion.
 
-=== Potential breaking changes
+==== Copy or archive duplicate paths without explicitly specifying a duplicates strategy has been deprecated
 
-==== Android Gradle Plugin 3.3 and earlier is not supported anymore
+Copy and archive tasks default to the `INCLUDE` duplicates strategy, allowing the same path to be copied multiple times to the destination or to exist multiple times in an archive.
 
-Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
+Trying to copy or archive duplicate paths without explicitly specifying a duplicates strategy is now deprecated.
+This is to prevent user from accidentally creating https://github.com/gradle/gradle/issues/9990["grossly invalid zip files" that trigger zip bomb detection].
 
-==== Archive tasks fail on duplicate files
-
-Until now archive tasks defaulted to the `INCLUDE` duplicates strategy, allowing the same path to exist multiple times in an archive.
-
-In Gradle 6.0 we are switching to `FAIL`, prohibiting duplicate files in archives.
-If you still want to allow them, you can be specify that explicitly:
+If you still want to allow them, you can specify that explicitly:
 
 ```
 task archive(type: Zip) {
@@ -98,7 +94,11 @@ task archive(type: Zip) {
 }
 ```
 
-*Note* that `Copy` and `Sync` tasks are unaffected: they still use the `INCLUDE` duplicates strategy as default.
+=== Potential breaking changes
+
+==== Android Gradle Plugin 3.3 and earlier is not supported anymore
+
+Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
 ==== Local build cache is always a directory cache
 
