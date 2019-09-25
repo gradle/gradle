@@ -353,6 +353,10 @@ In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnosti
 
 Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
 
+==== New Tooling API progress event
+
+In Gradle 6.0 we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the task outputs. This new event breaks the convention of having a `StartEvent`-`FinisEvent` pair to express progress. Instead `TaskOutputEvent` is a simple `ProgressEvent`.
+
 ==== Miscellaneous
 
 The following breaking changes will appear as deprecation warnings with Gradle 5.6:
