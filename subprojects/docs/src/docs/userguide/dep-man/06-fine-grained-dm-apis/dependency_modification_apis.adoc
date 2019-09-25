@@ -1,5 +1,4 @@
-[[fine-grained-dm-apis]]
-= Fine-grained dependency management APIs
+= Modifying dependencies before resolution
 
 [[sec:configuration_defaults]]
 == Setting default configuration dependencies
@@ -14,10 +13,7 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/defaul
 include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
 ====
 
-[[adding-dm-resolution-hooks]]
-== Adding dependency resolution hooks
-
-=== Changing configuration dependencies prior to resolution
+== Changing configuration dependencies prior to resolution
 
 At times, a plugin may want to modify the dependencies of a configuration before it is resolved.
 The `withDependencies` method permits dependencies to be added, removed or modified programmatically.
@@ -28,17 +24,5 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/withDe
 include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
 ====
 
-[[resolution-result-api]]
-== The ResolutionResult API
-
-[[artifact-view-api]]
-== The ArtifactView API
-
-[[artifact-resolution-queries]]
-== Artifact resolution queries
-
-include::artifact_transforms.adoc[leveloffset=+1]
-
-include::variant_aware_plugins.adoc[leveloffset=+1]
 
 

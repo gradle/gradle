@@ -1,0 +1,3 @@
+// TODO https://github.com/gradle/gradle/issues/10868
+// [[resolution_result_api]]
+// = The ResolutionResult API
