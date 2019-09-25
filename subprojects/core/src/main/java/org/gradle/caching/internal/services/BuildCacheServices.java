@@ -88,8 +88,7 @@ public class BuildCacheServices {
         FileSystemMirror fileSystemMirror,
         StringInterner stringInterner,
         VirtualFileSystem virtualFileSystem) {
-        boolean useVfs = System.getProperty(GradleUserHomeScopeServices.ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
-        return new BuildCacheCommandFactory(packer, originMetadataFactory, fileSystemMirror, stringInterner, useVfs ? virtualFileSystem : null);
+        return new BuildCacheCommandFactory(packer, originMetadataFactory, fileSystemMirror, stringInterner, GradleUserHomeScopeServices.VFS_ENABLED ? virtualFileSystem : null);
     }
 
     BuildCacheController createBuildCacheController(

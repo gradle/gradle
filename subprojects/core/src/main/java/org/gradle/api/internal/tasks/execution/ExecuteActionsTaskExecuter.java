@@ -125,7 +125,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final FileCollectionFactory fileCollectionFactory;
-    private final boolean vfsEnabled = System.getProperty(GradleUserHomeScopeServices.ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
+    private final boolean vfsEnabled = GradleUserHomeScopeServices.VFS_ENABLED;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,

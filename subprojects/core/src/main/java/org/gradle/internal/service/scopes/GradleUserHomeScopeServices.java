@@ -111,6 +111,7 @@ import java.util.List;
  */
 public class GradleUserHomeScopeServices {
     public static final String ENABLE_VFS_SYSTEM_PROPERTY_NAME = "org.gradle.experimental.enable.vfs";
+    public static final boolean VFS_ENABLED = System.getProperty(ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
     private final ServiceRegistry globalServices;
 
     public GradleUserHomeScopeServices(ServiceRegistry globalServices) {
@@ -219,8 +220,7 @@ public class GradleUserHomeScopeServices {
     }
 
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, VirtualFileSystem vfs) {
-        boolean vfsEnabled = System.getProperty(ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
-        return vfsEnabled
+        return VFS_ENABLED
             ? new VfsFileSystemSnapshotter(vfs, stringInterner, hasher)
             : new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
