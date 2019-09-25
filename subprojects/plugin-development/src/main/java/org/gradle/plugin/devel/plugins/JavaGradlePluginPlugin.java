@@ -257,7 +257,6 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
             task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
             task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
-            task.dependsOn((Callable<Object>) () -> extension.getPluginSourceSet().getOutput());
             task.mustRunAfter(naggerTask);
         });
         project.getTasks().register(VALIDATE_TASK_PROPERTIES_TASK_NAME, org.gradle.plugin.devel.tasks.ValidateTaskProperties.class, validatorTask, (Runnable) JavaGradlePluginPlugin::nagAboutDeprecatedValidateTaskPropertiesTask)
