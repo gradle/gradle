@@ -402,6 +402,30 @@ Runtime only dependencies for the given source set.
 `__sourceSet__RuntimeClasspath` extends `__sourceSet__RuntimeOnly, __sourceSet__Runtime, __sourceSet__Implementation`::
 Runtime classpath contains elements of the implementation, as well as runtime only elements.
 
+[[sec:java-extension]]
+== Contributed extension
+
+The Java plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.JavaPluginExtension.html[`java` extension] to the project.
+This allows to configure a number of Java related properties inside a dedicated DSL block.
+
+.Using the `java` extension
+====
+include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=java-extension]"]
+include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+====
+
+`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
+Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion].
+
+`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
+Java version to generate classes for. Default value: `__sourceCompatibility__`.
+
+`publishJavadoc()`::
+Automatically package Javadoc during publishing and publish a variant `javadocElements` with an artifact `-javadoc.jar`.
+
+`publishSources()`::
+Automatically package source code during publishing and publish a variant `sourceElements` with an artifact `-sources.jar`.
+
 == Convention properties
 
 The Java Plugin adds a number of convention properties to the project, shown below. You can use these properties in your build script as though they were properties of the project object.
@@ -452,12 +476,6 @@ The name of the directory to use to cache source dependency information, relativ
 `(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
 Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
 
-`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
-Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion]. Can also set using a String or a Number, e.g. `'1.5'` or `1.5`.
-
-`link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
-Java version to generate classes for. Default value: `__sourceCompatibility__`. Can also set using a String or Number, e.g. `'1.5'` or `1.5`.
-
 `String archivesBaseName`::
 The basename to use for archives, such as JAR or ZIP files. Default value: `__projectName__`
 
@@ -476,6 +494,8 @@ See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapte
 
 `components.java`::
 A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_setup.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
+
+See also the <<#sec:java-extension,`java` extension>>.
 
 [[sec:incremental_compile]]
 == Incremental Java compilation

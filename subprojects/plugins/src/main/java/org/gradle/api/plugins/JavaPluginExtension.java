@@ -75,7 +75,7 @@ public interface JavaPluginExtension {
     void disableAutoTargetJvm();
 
     /**
-     * Automatically package Javadoc during publishing and publish a variant with '-javadoc.jar'.
+     * Automatically package Javadoc during publishing and publish a variant 'javadocElements' with an artifact '-javadoc.jar'.
      * <P>
      * The publishing of the Javadoc variant can also be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}
      * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)},
@@ -87,7 +87,7 @@ public interface JavaPluginExtension {
     void publishJavadoc();
 
     /**
-     * Automatically package source code during publishing and publish a variant with '-sources.jar'.
+     * Automatically package source code during publishing and publish a variant 'sourceElements' with an artifact '-sources.jar'.
      * <P>
      * The publishing of the sources variant can be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}
      * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)},
