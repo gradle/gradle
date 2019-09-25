@@ -1,2 +1,0 @@
- - Full Gradle Module Metadata support
- - Support for Java 13
