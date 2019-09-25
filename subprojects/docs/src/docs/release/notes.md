@@ -101,6 +101,22 @@ This means that you can query for the Javadoc or sources _variant_ of a module a
 This also works in multi-projects.
 If activated, a Java and Java Library project automatically provides the `javadocJar` and `sourcesJar` tasks.
 
+## Problems with task definitions called out during build
+
+Tasks that define their inputs or outputs incorrectly can cause problems when running incremental builds or when using the the build cache.
+As part of an ongoing effort to bring these problems to light Gradle now displays these problems as deprecation warnings during the build.
+When such problems are encountered, Gradle will show warnings like these on the console:
+
+```
+> Task :myTask
+Property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+Property 'outputFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+```
+
+Note that you need to run the build with `--warning-mode=all` to see the individual problems.
+
+The warnings also show up in build scans.
+
 ## More robust file deletion on Windows
 
 Deleting complex file hierarchies on Windows can sometimes be tricky, and errors like `Unable to delete directory ...` can happen at times.
