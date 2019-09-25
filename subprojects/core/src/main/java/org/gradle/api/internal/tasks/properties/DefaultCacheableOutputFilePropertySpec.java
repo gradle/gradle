@@ -48,4 +48,9 @@ public class DefaultCacheableOutputFilePropertySpec extends AbstractFileProperty
     public TreeType getOutputType() {
         return outputType;
     }
+
+    @Override
+    public File getRoot() {
+        return getOutputFile();
+    }
 }

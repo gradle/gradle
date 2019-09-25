@@ -18,6 +18,9 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.internal.file.TreeType;
 
+import java.io.File;
+
 public interface OutputFilePropertySpec extends FilePropertySpec {
     TreeType getOutputType();
+    File getRoot();
 }

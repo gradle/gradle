@@ -343,7 +343,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         where:
         inputAnnotation << [InputFiles.name, InputDirectory.name]
     }
-    
+
     @Issue("https://github.com/gradle/gradle/issues/6592")
     def "missing directory is ignored"() {
         buildFile << """

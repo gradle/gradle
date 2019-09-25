@@ -16,7 +16,7 @@
 
 package org.gradle.internal.execution.steps
 
-import com.google.common.collect.ImmutableList
+
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
@@ -185,8 +185,8 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.of(new OverlappingOutputs("test", "/absolute/path"))
         _ * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableFileCollection.of(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableFileCollection.of(outputs.file))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir)
+            visitor.visitOutputProperty("file", TreeType.FILE, outputs.file)
         }
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
         1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("dir", outputs.dirFingerprint, "file", outputs.fileFingerprint)
@@ -198,8 +198,8 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         _ * context.beforeExecutionState >> Optional.of(beforeExecutionState)
         1 * beforeExecutionState.detectedOverlappingOutputs >> Optional.empty()
         _ * work.visitOutputProperties(_) >> { OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableList.of(outputs.dir))
-            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableList.of(outputs.file))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, outputs.dir)
+            visitor.visitOutputProperty("file", TreeType.FILE, outputs.file)
         }
     }
 

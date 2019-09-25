@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps
 
-import com.google.common.collect.ImmutableList
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.file.TreeType
@@ -30,22 +29,16 @@ class CreateOutputsStepTest extends ContextInsensitiveStepSpec {
 
         then:
         _ * work.visitOutputProperties(_ as UnitOfWork.OutputPropertyVisitor) >> { UnitOfWork.OutputPropertyVisitor visitor ->
-            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, ImmutableList.of(file("outDir")))
-            visitor.visitOutputProperty("dirs", TreeType.DIRECTORY, ImmutableList.of(file("outDir1"), file("outDir2")))
-            visitor.visitOutputProperty("file", TreeType.FILE, ImmutableList.of(file("parent/outFile")))
-            visitor.visitOutputProperty("files", TreeType.FILE, ImmutableList.of(file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")))
+            visitor.visitOutputProperty("dir", TreeType.DIRECTORY, file("outDir"))
+            visitor.visitOutputProperty("file", TreeType.FILE, file("parent/outFile"))
         }
 
         then:
-        def allDirs = ["outDir", "outDir1", "outDir2"].collect { file(it) }
-        def allFiles = ["parent/outFile", "parent1/outFile1", "parent2/outFile1", "parent2/outFile2"].collect { file(it) }
-        allDirs.each {
-            assert it.isDirectory()
-        }
-        allFiles.each {
-            assert it.parentFile.isDirectory()
-            assert !it.exists()
-        }
+        file("outDir").isDirectory()
+
+        def outFile = file("parent/outFile")
+        outFile.parentFile.isDirectory()
+        !outFile.exists()
 
         then:
         1 * delegate.execute(context)

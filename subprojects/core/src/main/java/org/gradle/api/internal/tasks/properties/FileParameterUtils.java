@@ -17,8 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -29,20 +27,20 @@ import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.MutableBoolean;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 import org.gradle.util.DeferredUtil;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 public class FileParameterUtils {
@@ -131,46 +129,39 @@ public class FileParameterUtils {
                 consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType));
             }
         } else {
-            final List<File> roots = Lists.newArrayList();
-            final MutableBoolean nonFileRoot = new MutableBoolean();
             FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(unpackedValue);
+            AtomicInteger index = new AtomicInteger(0);
             outputFileCollection.visitStructure(new FileCollectionStructureVisitor() {
                 @Override
                 public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
-                    Iterables.addAll(roots, contents);
+                    for (File content : contents) {
+                        FileCollectionInternal outputFiles = fileCollectionFactory.fixed(content);
+                        consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (index.incrementAndGet()), outputFiles, outputType));
+                    }
                 }
 
                 @Override
                 public void visitGenericFileTree(FileTreeInternal fileTree) {
-                    nonFileRoot.set(true);
+                    DeprecationLogger.nagUserOfDeprecatedThing("What the hell is this, don't use it as on output. It is currently ignored");
                 }
 
                 @Override
                 public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
-                    nonFileRoot.set(true);
+                    DeprecationLogger.nagUserOfDeprecatedThing("What the hell is this, don't use it as on output. It is currently ignored");
                 }
 
                 @Override
                 public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                     // We could support an unfiltered DirectoryFileTree here as a cacheable root,
                     // but because @OutputDirectory also doesn't support it we choose not to.
-                    nonFileRoot.set(true);
+                    consumer.accept(new CompositeOutputFilePropertySpec(
+                        propertyName,
+                        new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileTree),
+                        root,
+                        TreeType.DIRECTORY
+                    ));
                 }
             });
-
-            if (nonFileRoot.get()) {
-                consumer.accept(new CompositeOutputFilePropertySpec(
-                    propertyName,
-                    new PropertyFileCollection(ownerDisplayName, propertyName, "output", outputFileCollection),
-                    outputType)
-                );
-            } else {
-                int index = 0;
-                for (File root : roots) {
-                    FileCollectionInternal outputFiles = fileCollectionFactory.fixed(root);
-                    consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (++index), outputFiles, outputType));
-                }
-            }
         }
     }
 }
