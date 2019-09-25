@@ -286,7 +286,7 @@ A configuration is also a file collection, hence why it can be used in the `from
 
 Projects that use Ivy to manage dependencies often also use it for publishing JARs and other artifacts to repositories. If you're migrating such a build, then you'll be glad to know that Gradle has built-in support for publishing artifacts to Ivy-compatible repositories.
 
-Before you attempt to migrate this particular aspect of your build, read the <<publishing#publishing_overview,Publishing>> chapter to learn about Gradle's publishing model.
+Before you attempt to migrate this particular aspect of your build, read the <<publishing_setup.adoc#publishing_overview,Publishing>> chapter to learn about Gradle's publishing model.
 That chapter's examples are based on Maven repositories, but the same model is used for Ivy repositories as well.
 
 The basic migration process looks like this:
@@ -303,7 +303,7 @@ Let's say you have defined a publication named "myLibrary" and a repository name
  * `<publish>` -> `publishMyLibraryPublicationToMyRepoRepository`
 
 There is also a convenient `publish` task that publishes _all_ publications to _all_ repositories.
-If you'd prefer to limit which publications go to which repositories, check out the <<publishing.adoc#sec:publishing_maven:conditional_publishing,relevant section of the Publishing chapter>>.
+If you'd prefer to limit which publications go to which repositories, check out the <<publishing_customization.adoc#sec:publishing_maven:conditional_publishing,relevant section of the Publishing chapter>>.
 
 .On dependency versions
 [NOTE]

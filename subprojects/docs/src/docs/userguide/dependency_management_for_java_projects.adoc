@@ -104,4 +104,4 @@ To find out more about defining repositories, have a look at <<declaring_reposit
 [[sec:publishing_artifacts_java_tutorial]]
 == Publishing artifacts
 
-To learn more about publishing artifacts, have a look at <<publishing.adoc#publishing-components,publishing plugins>>.
+To learn more about publishing artifacts, have a look at <<publishing_setup.adoc#,publishing plugins>>.

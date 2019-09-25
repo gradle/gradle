@@ -41,7 +41,7 @@ Dependency constraints can also define a <<rich_versions.adoc#,rich version cons
 
 [NOTE]
 ====
-Dependency constraints are only published when using <<publishing.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.
+Dependency constraints are only published when using <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>.
 This means that currently they are only fully supported if Gradle is used for publishing and consuming (i.e. they are 'lost' when consuming modules with Maven or Ivy).
 ====
 
