@@ -687,7 +687,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         "test.tar"  | "tarTree" | "createTar"
     }
 
-    def 'ensure duplicates not included in tar by default'() {
+    def 'emit deprecation warning when duplicates are included in tar for default duplicates strategy'() {
         given:
         createFilesStructureForDupeTests()
         buildFile << '''
@@ -699,10 +699,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 archiveName = 'test.tar'
             }
             '''
-        when:
-        fails 'tar'
-        then:
-        failure.assertHasCause('Encountered duplicate path "file1.txt" during copy operation configured with DuplicatesStrategy.FAIL')
+        expect:
+        executer.expectDeprecationWarning('Encountered duplicate path during copy operation configured with default duplicates strategy. Allowing duplicates with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths.')
+        succeeds 'tar'
     }
 
     def 'ensure duplicates can be included in tar'() {
