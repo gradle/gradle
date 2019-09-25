@@ -19,15 +19,17 @@ package org.gradle.smoketests
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
 abstract class AbstractSmokeTest extends Specification {
 
@@ -158,13 +160,26 @@ abstract class AbstractSmokeTest extends Specification {
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
-            .withArguments(tasks.toList() + ['-s'] + repoMirrorParameters()) as DefaultGradleRunner
+            .forwardOutput()
+            .withArguments(tasks.toList() + outputParameters() + repoMirrorParameters()) as DefaultGradleRunner
         gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError")
+    }
+
+    private static List<String> outputParameters() {
+        return [
+            '--stacktrace',
+            '--warning-mode=all',
+            "-D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=false" as String,
+        ]
     }
 
     private static List<String> repoMirrorParameters() {
         String mirrorInitScriptPath = createMirrorInitScript().absolutePath
-        return ['-I', mirrorInitScriptPath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString(), "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}".toString()]
+        return [
+            '--init-script', mirrorInitScriptPath,
+            "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
+            "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+        ]
     }
 
     protected void useSample(String sampleDirectory) {
@@ -190,5 +205,27 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected static String googleRepository() {
         RepoScriptBlockUtil.googleRepository()
+    }
+
+    protected static void expectNoDeprecationWarnings(BuildResult result) {
+        verifyDeprecationWarnings(result, [])
+    }
+
+    protected static void expectDeprecationWarnings(BuildResult result, String... warnings) {
+        if (warnings.length == 0) {
+            throw new IllegalArgumentException("Use expectNoDeprecationWarnings() when no deprecation warnings are to be expected")
+        }
+        verifyDeprecationWarnings(result, warnings as List)
+    }
+
+    private static void verifyDeprecationWarnings(BuildResult result, List<String> remainingWarnings) {
+        def lines = result.output.readLines()
+        lines.eachWithIndex { String line, int lineIndex ->
+            if (remainingWarnings.remove(line)) {
+                return
+            }
+            assert !line.contains("deprecated"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
+        }
+        assert remainingWarnings.empty, "Expected ${remainingWarnings.size()} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
     }
 }

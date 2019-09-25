@@ -83,6 +83,16 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':assemble').outcome == TaskOutcome.SUCCESS
         result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
+        if (pluginVersion == TestedVersions.androidGradle.latest()) {
+            expectDeprecationWarnings(result,
+                "Property 'outputScope' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+                "Property 'tmpDir' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+                "Property 'lintOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+                "Property 'deviceProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+                "Property 'testData' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            )
+        }
+
         where:
         pluginVersion << TestedVersions.androidGradle
     }
@@ -170,6 +180,14 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:assemble').outcome == TaskOutcome.SUCCESS
         result.task(':library:assemble').outcome == TaskOutcome.SUCCESS
         result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
+
+        if (pluginVersion == TestedVersions.androidGradle.latest()) {
+            expectDeprecationWarnings(result,
+                "Property 'excludeListProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+                "Property 'packageNameSupplier' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+                "Property 'lintOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            )
+        }
 
         where:
         pluginVersion << TestedVersions.androidGradle

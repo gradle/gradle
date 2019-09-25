@@ -38,6 +38,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
+        if (version == TestedVersions.kotlin.latest()) {
+            expectNoDeprecationWarnings(result)
+        }
+
         where:
         [version, workers] << [TestedVersions.kotlin.versions, [true, false]].combinations()
     }
@@ -57,6 +61,11 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':testDebugUnitTestCoverage').outcome == SUCCESS
+
+        if (kotlinPluginVersion == TestedVersions.kotlin.latest()
+            && androidPluginVersion == TestedVersions.androidGradle.latest()) {
+            expectNoDeprecationWarnings(result)
+        }
 
         where:
         [kotlinPluginVersion, androidPluginVersion, workers] << [
@@ -79,6 +88,12 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         then:
         result.task(':compileKotlin2Js').outcome == SUCCESS
+
+        if (version == TestedVersions.kotlin.latest()) {
+            expectDeprecationWarnings(result,
+                "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
+            )
+        }
 
         where:
         [version, workers] << [TestedVersions.kotlin.versions, [true, false]].combinations()
