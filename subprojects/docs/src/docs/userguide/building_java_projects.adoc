@@ -145,7 +145,7 @@ We have only scratched the surface here, so we recommend that you read the dedic
 
  * Defining a custom <<declaring_repositories.adoc#sec:maven_repo,Maven\->> or <<declaring_repositories.adoc#sec:ivy_repositories,Ivy-compatible>> repository
  * Using dependencies from a <<declaring_repositories.adoc#sub:flat_dir_resolver,local filesystem directory>>
- * Declaring dependencies with <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
+ * Declaring dependencies with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
  * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
  * <<controlling_transitive_dependencies.adoc#controlling-transitive-dependencies,Controlling transitive dependencies and their versions>>
  * Testing your fixes to a 3rd-party dependency via <<composite_builds.adoc#composite-builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)

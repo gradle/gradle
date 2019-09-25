@@ -117,7 +117,7 @@ When multiple are defined, they are inspected _in the order they were added_.
 This process results in a list of candidate versions that are then matched to the dynamic version expressed.
 At this point, <<#sub:resolution-strategy,version conflict resolution>> is resumed.
 
-Note that Gradle caches the version information, more information can be found in the section <<declaring_dependency_versions.adoc#sec:controlling-dynamic-version-caching,Controlling dynamic version caching>>.
+Note that Gradle caches the version information, more information can be found in the section <<dynamic_versions.adoc#sec:controlling-dynamic-version-caching,Controlling dynamic version caching>>.
 
 === Obtaining module metadata
 

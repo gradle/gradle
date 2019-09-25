@@ -310,7 +310,7 @@ It is therefore recommended to only modify this attribute, if any, on the compon
 A dedicated API `setStatus(value)` is available for this.
 To modify another attribute for all variants of a component `withAllVariants { attributes {} }` should be utilised instead.
 
-A module's status is taken into consideration when a <<declaring_dependency_versions.adoc#sec:dynamic_versions_and_changing_modules,_latest_ version selector>> is resolved. Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status.
+A module's status is taken into consideration when a <<dynamic_versions.adoc#sec:dynamic_versions_and_changing_modules,_latest_ version selector>> is resolved. Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status.
 For example, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status as explained below), whereas `latest.release` will select the highest module version with status `release`.
 
 The interpretation of the status can be influenced by changing a module's _status scheme_ through the `setStatusScheme(valueList)` API.
