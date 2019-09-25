@@ -21,20 +21,20 @@ import spock.lang.Specification
 class RootNodeTest extends Specification {
 
     def "can add unix style children"() {
-        def node = new RootNode();
+        def node = new RootNode()
 
         def directChild = node
             .getOrCreateChild("") { parent -> new DefaultNode("", parent) }
             .getOrCreateChild("var") { parent -> new DefaultNode("var", parent) }
         expect:
-        directChild.absolutePath == "/var"
+        directChild.absolutePath == "${File.separator}var"
         directChild
             .getOrCreateChild("log") { parent -> new DefaultNode("log", parent) }
             .absolutePath == ["", "var", "log"].join(File.separator)
     }
 
     def "can add Windows style children"() {
-        def node = new RootNode();
+        def node = new RootNode()
 
         def directChild = node
             .getOrCreateChild("C:") { parent -> new DefaultNode("C:", parent) }
