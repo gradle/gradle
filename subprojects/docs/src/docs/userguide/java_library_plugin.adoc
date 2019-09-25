@@ -15,7 +15,9 @@
 [[java_library_plugin]]
 = The Java Library Plugin
 
-The Java Library plugin expands the capabilities of the Java plugin by providing specific knowledge about Java libraries. In particular, a Java library exposes an API to consumers (i.e., other projects using the Java or the Java Library plugin). All the source sets, tasks and configurations exposed by the Java plugin are implicitly available when using this plugin.
+The Java Library plugin expands the capabilities of the <<java_plugin.adoc#,Java plugin>> by providing specific knowledge about Java libraries.
+In particular, a Java library exposes an API to consumers (i.e., other projects using the Java or the Java Library plugin).
+All the source sets, tasks and configurations exposed by the Java plugin are implicitly available when using this plugin.
 
 
 [[sec:java_library_usage]]
