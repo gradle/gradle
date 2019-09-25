@@ -457,7 +457,7 @@ Features:
 The following options affect how builds are executed, by changing what is built or how dependencies are resolved.
 
 `--include-build`::
-Run the build as a composite, including the specified build. See <<composite_builds.adoc#composite-builds, Composite Builds>>.
+Run the build as a composite, including the specified build. See <<composite_builds.adoc#composite_builds, Composite Builds>>.
 
 `--offline`::
 Specifies that the build should operate without accessing network resources. Learn more about <<dynamic_versions.adoc#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.

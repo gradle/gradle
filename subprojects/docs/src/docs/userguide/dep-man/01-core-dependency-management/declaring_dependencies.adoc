@@ -278,6 +278,12 @@ include::sample[dir="userguide/dependencyManagement/declaringDependencies/projec
 include::sample[dir="userguide/dependencyManagement/declaringDependencies/projectDependencies/kotlin",files="build.gradle.kts[tags=project-dependencies]"]
 ====
 
+=== Local forks of module dependencies
+
+A module dependency can be substituted by a dependency to a local fork of the sources of that module, if the module itself is built with Gradle.
+This can be done by utilising <<composite_builds.adoc#defining_composite_builds,composite builds>>.
+This allows you, for example, to fix an issue in a library you use in an application by using, and building, a locally patched version instead of the published binary version.
+The details of this are described in the section on <<composite_builds.adoc#defining_composite_builds,composite builds>>.
 
 [[sub:gradle_distribution_dependencies]]
 === Gradle distribution-specific dependencies

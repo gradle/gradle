@@ -1,4 +1,4 @@
-[[composite-builds]]
+[[composite_builds]]
 = Composite builds
 
 [[composite_build_intro]]
