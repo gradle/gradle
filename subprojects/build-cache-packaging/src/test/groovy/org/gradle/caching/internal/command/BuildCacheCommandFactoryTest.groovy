@@ -48,7 +48,7 @@ class BuildCacheCommandFactoryTest extends Specification {
     def originFactory = Mock(OriginMetadataFactory)
     def fileSystemMirror = Mock(FileSystemMirror)
     def stringInterner = new StringInterner()
-    def commandFactory = new BuildCacheCommandFactory(packer, originFactory, fileSystemMirror, stringInterner)
+    def commandFactory = new BuildCacheCommandFactory(packer, originFactory, fileSystemMirror, stringInterner, null)
 
     def key = Mock(BuildCacheKey)
 

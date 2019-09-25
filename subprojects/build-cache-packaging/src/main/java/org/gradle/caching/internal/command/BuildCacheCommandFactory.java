@@ -35,7 +35,9 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,12 +51,14 @@ public class BuildCacheCommandFactory {
     private final OriginMetadataFactory originMetadataFactory;
     private final FileSystemMirror fileSystemMirror;
     private final Interner<String> stringInterner;
+    private final VirtualFileSystem virtualFileSystem;
 
-    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, Interner<String> stringInterner) {
+    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, Interner<String> stringInterner, @Nullable VirtualFileSystem virtualFileSystem) {
         this.packer = packer;
         this.originMetadataFactory = originMetadataFactory;
         this.fileSystemMirror = fileSystemMirror;
         this.stringInterner = stringInterner;
+        this.virtualFileSystem = virtualFileSystem;
     }
 
     public BuildCacheLoadCommand<LoadMetadata> createLoad(BuildCacheKey cacheKey, CacheableEntity entity) {
@@ -121,8 +125,13 @@ public class BuildCacheCommandFactory {
                 List<FileSystemSnapshot> roots = new ArrayList<>();
 
                 if (treeSnapshot == null) {
-                    fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.missing());
-                    fileSystemMirror.putSnapshot(new MissingFileSnapshot(internedAbsolutePath, root.getName()));
+                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath, root.getName());
+                    if (virtualFileSystem == null) {
+                        fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.missing());
+                        fileSystemMirror.putSnapshot(missingFileSnapshot);
+                    } else {
+                        virtualFileSystem.updateWithKnownSnapshot(internedAbsolutePath, missingFileSnapshot);
+                    }
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
                     return;
                 }
@@ -137,8 +146,12 @@ public class BuildCacheCommandFactory {
                         break;
                     case DIRECTORY:
                         roots.add(treeSnapshot);
-                        fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.directory());
-                        fileSystemMirror.putSnapshot(treeSnapshot);
+                        if (virtualFileSystem == null) {
+                            fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.directory());
+                            fileSystemMirror.putSnapshot(treeSnapshot);
+                        } else {
+                            virtualFileSystem.updateWithKnownSnapshot(internedAbsolutePath, treeSnapshot);
+                        }
                         break;
                     default:
                         throw new AssertionError();

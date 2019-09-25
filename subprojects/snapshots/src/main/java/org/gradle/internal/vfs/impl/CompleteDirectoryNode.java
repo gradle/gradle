@@ -88,14 +88,16 @@ public class CompleteDirectoryNode implements Node {
             : new MissingFileNode(getChildAbsolutePath(name), name);
     }
 
-    private Node convertToNode(FileSystemLocationSnapshot snapshot, Node parent) {
+    public static Node convertToNode(FileSystemLocationSnapshot snapshot, Node parent) {
         switch (snapshot.getType()) {
             case RegularFile:
                 return new FileNode((RegularFileSnapshot) snapshot);
             case Directory:
                 return new CompleteDirectoryNode(parent, (DirectorySnapshot) snapshot);
+            case Missing:
+                return new MissingFileNode(snapshot.getAbsolutePath(), snapshot.getName());
             default:
-                throw new AssertionError("A complete directory cannot have missing files as children");
+                throw new AssertionError("Unknown type: " + snapshot.getType());
         }
     }
 

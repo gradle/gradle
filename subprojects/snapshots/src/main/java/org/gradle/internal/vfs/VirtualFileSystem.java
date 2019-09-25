@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs;
 
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
@@ -28,4 +29,6 @@ public interface VirtualFileSystem {
     void update(Iterable<String> locations, Runnable action);
 
     void invalidateAll();
+
+    void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot);
 }

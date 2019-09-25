@@ -25,6 +25,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -125,6 +126,17 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     @Override
     public synchronized void invalidateAll() {
         root.clear();
+    }
+
+    @Override
+    public void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot) {
+        List<String> pathSegments = getPathSegments(location);
+        Node parent = findParent(pathSegments);
+        parent.replaceChild(
+            pathSegments.get(pathSegments.size() - 1),
+            it -> CompleteDirectoryNode.convertToNode(snapshot, parent),
+            toReplace -> CompleteDirectoryNode.convertToNode(snapshot, parent)
+        );
     }
 
     @Nullable
