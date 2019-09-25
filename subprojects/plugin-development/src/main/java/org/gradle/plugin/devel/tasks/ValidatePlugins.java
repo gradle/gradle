@@ -62,22 +62,19 @@ public abstract class ValidatePlugins extends DefaultTask {
     private final Property<Boolean> ignoreFailures;
     private final Property<Boolean> failOnWarning;
 
-    @Inject
-    public ValidatePlugins(ObjectFactory objects) {
-        this.classes = objects.fileCollection();
-        this.classpath = objects.fileCollection();
-        this.outputFile = objects.fileProperty();
-        this.enableStricterValidation = objects.property(Boolean.class).convention(false);
-        this.ignoreFailures = objects.property(Boolean.class).convention(false);
-        this.failOnWarning = objects.property(Boolean.class).convention(true);
+    public ValidatePlugins() {
+        this.classes = getObjects().fileCollection();
+        this.classpath = getObjects().fileCollection();
+        this.outputFile = getObjects().fileProperty();
+        this.enableStricterValidation = getObjects().property(Boolean.class).convention(false);
+        this.ignoreFailures = getObjects().property(Boolean.class).convention(false);
+        this.failOnWarning = getObjects().property(Boolean.class).convention(true);
     }
-
-    @Inject
-    abstract protected WorkerExecutor getWorkerExecutor();
 
     @TaskAction
     public void validateTaskClasses() throws IOException {
-        getWorkerExecutor().classLoaderIsolation(spec -> spec.getClasspath().setFrom(getClasses(), getClasspath()))
+        getWorkerExecutor()
+            .classLoaderIsolation(spec -> spec.getClasspath().setFrom(getClasses(), getClasspath()))
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
                 params.getOutputFile().value(getOutputFile());
@@ -92,12 +89,17 @@ public abstract class ValidatePlugins extends DefaultTask {
         } else {
             if (failOnWarning.get() || problemMessages.stream().anyMatch(line -> line.startsWith("Error:"))) {
                 if (ignoreFailures.get()) {
-                    getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"), toMessageList(problemMessages));
+                    getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}",
+                        getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"),
+                        toMessageList(problemMessages));
                 } else {
-                    throw new WorkValidationException(String.format("Plugin validation failed. See %s for more information on how to annotate task properties.", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")), toExceptionList(problemMessages));
+                    throw new WorkValidationException(String.format("Plugin validation failed. See %s for more information on how to annotate task properties.",
+                        getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")),
+                        toExceptionList(problemMessages));
                 }
             } else {
-                getLogger().warn("Plugin validation finished with warnings:{}", toMessageList(problemMessages));
+                getLogger().warn("Plugin validation finished with warnings:{}",
+                    toMessageList(problemMessages));
             }
         }
     }
@@ -167,7 +169,11 @@ public abstract class ValidatePlugins extends DefaultTask {
     }
 
     @Inject
-    protected DocumentationRegistry getDocumentationRegistry() {
-        throw new UnsupportedOperationException();
-    }
+    abstract protected ObjectFactory getObjects();
+
+    @Inject
+    abstract protected DocumentationRegistry getDocumentationRegistry();
+
+    @Inject
+    abstract protected WorkerExecutor getWorkerExecutor();
 }
