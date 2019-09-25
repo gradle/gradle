@@ -23,13 +23,18 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.transform.CacheableTransform;
+import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 import org.objectweb.asm.ClassReader;
@@ -41,6 +46,8 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
 
 public abstract class ValidateAction implements WorkAction<ValidateAction.Params> {
     public interface Params extends WorkParameters {
@@ -77,7 +84,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                     } catch (IllegalAccessError | NoClassDefFoundError | ClassNotFoundException e) {
                         throw new GradleException("Could not load class: " + className, e);
                     }
-                    PropertyValidationAccess.collectValidationProblems(clazz, taskValidationProblems, params.getEnableStricterValidation().get());
+                    collectValidationProblems(clazz, taskValidationProblems, params.getEnableStricterValidation().get());
                 }
             }
         });
@@ -85,7 +92,28 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         storeResults(problemMessages, params.getOutputFile());
     }
 
-    private void storeResults(List<String> problemMessages, RegularFileProperty outputFile) {
+    private static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
+        boolean cacheable;
+        boolean mapErrorsToWarnings;
+        if (Task.class.isAssignableFrom(topLevelBean)) {
+            cacheable = enableStricterValidation || topLevelBean.isAnnotationPresent(CacheableTask.class);
+            // Treat all errors as warnings, for backwards compatibility
+            mapErrorsToWarnings = true;
+        } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
+            cacheable = topLevelBean.isAnnotationPresent(CacheableTransform.class);
+            mapErrorsToWarnings = false;
+        } else {
+            cacheable = false;
+            mapErrorsToWarnings = false;
+        }
+
+        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(topLevelBean, cacheable);
+        PropertyValidationAccess.collectValidationProblems(topLevelBean, validationContext);
+        validationContext.getProblems()
+            .forEach((message, severity) -> problems.put(message, severity == ERROR || !mapErrorsToWarnings));
+    }
+
+    private static void storeResults(List<String> problemMessages, RegularFileProperty outputFile) {
         if (outputFile.isPresent()) {
             File output = outputFile.get().getAsFile();
             try {

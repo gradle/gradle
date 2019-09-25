@@ -16,27 +16,21 @@
 
 package org.gradle.plugin.devel.tasks.internal;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Equivalence;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Named;
 import org.gradle.api.NonNullApi;
-import org.gradle.api.Task;
-import org.gradle.api.artifacts.transform.CacheableTransform;
-import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
-import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.service.DefaultServiceLocator;
@@ -53,8 +47,6 @@ import java.util.ArrayDeque;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-
-import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
 
 /**
  * Class for easy access to property validation from the validator task.
@@ -87,17 +79,12 @@ public class PropertyValidationAccess {
         this.typeSchemes = services.getAll(TypeScheme.class);
     }
 
-    @VisibleForTesting
-    public static void collectTaskValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
-        INSTANCE.collectTypeValidationProblems(topLevelBean, problems, enableStricterValidation);
-    }
-
     @SuppressWarnings("unused")
-    public static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
-        INSTANCE.collectTypeValidationProblems(topLevelBean, problems, enableStricterValidation);
+    public static void collectValidationProblems(Class<?> topLevelBean, TypeValidationContext validationContext) {
+        INSTANCE.collectTypeValidationProblems(topLevelBean, validationContext);
     }
 
-    private void collectTypeValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
+    private void collectTypeValidationProblems(Class<?> topLevelBean, TypeValidationContext validationContext) {
         // Skip this for now
         if (topLevelBean.equals(TaskInternal.class)) {
             return;
@@ -115,31 +102,14 @@ public class PropertyValidationAccess {
             return;
         }
 
-        boolean cacheable;
-        boolean mapErrorsToWarnings;
-        if (Task.class.isAssignableFrom(topLevelBean)) {
-            cacheable = enableStricterValidation || topLevelBean.isAnnotationPresent(CacheableTask.class);
-            // Treat all errors as warnings, for backwards compatibility
-            mapErrorsToWarnings = true;
-        } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
-            cacheable = topLevelBean.isAnnotationPresent(CacheableTransform.class);
-            mapErrorsToWarnings = false;
-        } else {
-            cacheable = false;
-            mapErrorsToWarnings = false;
-        }
-
         Queue<BeanTypeNode<?>> queue = new ArrayDeque<>();
         BeanTypeNodeFactory nodeFactory = new BeanTypeNodeFactory(metadataStore);
         queue.add(nodeFactory.createRootNode(TypeToken.of(topLevelBean)));
 
-        DefaultTypeValidationContext validationContext = DefaultTypeValidationContext.withRootType(topLevelBean, cacheable);
         while (!queue.isEmpty()) {
             BeanTypeNode<?> node = queue.remove();
             node.visit(topLevelBean, validationContext, queue, nodeFactory);
         }
-        validationContext.getProblems()
-            .forEach((message, severity) -> problems.put(message, severity == ERROR || !mapErrorsToWarnings));
     }
 
     private static class BeanTypeNodeFactory {
