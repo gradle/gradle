@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.event.ListenerManager
 import org.gradle.invocation.DefaultGradle
 import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -350,7 +351,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
                 
                 private Object readResolve() {
                     return new OtherBean(prop: "[\$value]")
-                } 
+                }
             }
 
             class OtherBean implements Serializable {
@@ -434,6 +435,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
         FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
         ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
+        ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
     }
 
     @Unroll
