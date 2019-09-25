@@ -52,6 +52,8 @@ class PartialEvaluator(
 
         is Program.Empty -> reduceEmptyProgram()
 
+        is Program.PluginManagement -> stage1WithPluginManagement(program)
+
         is Program.Buildscript -> reduceBuildscriptProgram(program)
 
         is Program.Plugins -> stage1WithPlugins(program)
@@ -94,12 +96,12 @@ class PartialEvaluator(
 
         Static(
             SetupEmbeddedKotlin,
-            Eval(buildscriptSourceFor(program)),
+            Eval(fragmentHolderSourceFor(program)),
             CloseTargetScope
         )
 
     private
-    fun buildscriptSourceFor(program: Program.Buildscript): ProgramSource {
+    fun fragmentHolderSourceFor(program: Program.FragmentHolder): ProgramSource {
 
         val fragment = program.fragment
         val section = fragment.section
@@ -159,7 +161,7 @@ class PartialEvaluator(
 
                 ProgramTarget.Project -> Static(
                     SetupEmbeddedKotlin,
-                    Eval(buildscriptSourceFor(stage1)),
+                    Eval(fragmentHolderSourceFor(stage1)),
                     ApplyDefaultPluginRequests,
                     ApplyBasePlugins
                 )
@@ -172,10 +174,24 @@ class PartialEvaluator(
 
     private
     fun stage1WithPlugins(stage1: Program.Stage1): Static =
+        when (programTarget) {
+            ProgramTarget.Project -> Static(
+                SetupEmbeddedKotlin,
+                ApplyPluginRequestsOf(stage1),
+                ApplyBasePlugins
+            )
+            else -> Static(
+                SetupEmbeddedKotlin,
+                ApplyPluginRequestsOf(stage1)
+            )
+        }
 
-        Static(
+    private
+    fun stage1WithPluginManagement(program: Program.PluginManagement): Static {
+        return Static(
             SetupEmbeddedKotlin,
-            ApplyPluginRequestsOf(stage1),
-            ApplyBasePlugins
+            Eval(fragmentHolderSourceFor(program)),
+            CloseTargetScope
         )
+    }
 }

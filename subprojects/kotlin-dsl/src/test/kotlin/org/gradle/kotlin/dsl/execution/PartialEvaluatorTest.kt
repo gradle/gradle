@@ -126,10 +126,31 @@ class PartialEvaluatorTest {
     }
 
     @Test
+    fun `a top-level Settings plugins block`() {
+
+        val program =
+            Program.Plugins(fragment("plugins", "..."))
+
+        assertThat(
+            "reduces to static program that applies plugin requests without the base plugin",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    ApplyPluginRequestsOf(program)
+                )))
+    }
+
+    @Test
     fun `a top-level Project buildscript block followed by plugins block`() {
 
         val program =
             Program.Stage1Sequence(
+                null,
                 Program.Buildscript(fragment("buildscript", "...")),
                 Program.Plugins(fragment("plugins", "...")))
 
@@ -149,11 +170,35 @@ class PartialEvaluatorTest {
     }
 
     @Test
+    fun `a top-level Settings buildscript block followed by plugins block`() {
+
+        val program =
+            Program.Stage1Sequence(
+                null,
+                Program.Buildscript(fragment("buildscript", "...")),
+                Program.Plugins(fragment("plugins", "...")))
+
+        assertThat(
+            "reduces to static program that applies plugin requests without base plugins",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    ApplyPluginRequestsOf(program)
+                )))
+    }
+
+    @Test
     fun `a non-empty top-level Project script with a buildscript block followed by plugins block`() {
 
         val program =
             Program.Staged(
                 Program.Stage1Sequence(
+                    null,
                     Program.Buildscript(fragment("buildscript", "...")),
                     Program.Plugins(fragment("plugins", "..."))
                 ),

@@ -25,6 +25,8 @@ import org.gradle.kotlin.dsl.KotlinInitScript
 import org.gradle.kotlin.dsl.KotlinSettingsScript
 import org.gradle.kotlin.dsl.ScriptHandlerScope
 
+import org.gradle.plugin.management.PluginManagementSpec
+
 
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
@@ -54,6 +56,15 @@ abstract class KotlinSettingsBuildscriptBlock(host: KotlinScriptHost<Settings>) 
      */
     override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
         buildscript.configureWith(block)
+    }
+
+    /**
+     * Configures the build script plugin management settings.
+     *
+     * @see [Settings.getPluginManagement]
+     */
+    override fun pluginManagement(configuration: PluginManagementSpec.() -> Unit) {
+        pluginManagement.configuration()
     }
 }
 
