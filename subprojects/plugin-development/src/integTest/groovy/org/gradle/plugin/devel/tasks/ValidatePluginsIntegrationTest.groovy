@@ -361,19 +361,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
 
     def "tests only classes from plugin source set"() {
         buildFile << """
-            configurations {
-                plugin
-            }
-            
-            dependencies {
-                plugin gradleApi()
-            }
-
             sourceSets {
                 plugin {
                     java {
                         srcDir 'src/plugin/java'
-                        compileClasspath = configurations.plugin
+                        compileClasspath = configurations.compileClasspath
                     }
                 }
             }
