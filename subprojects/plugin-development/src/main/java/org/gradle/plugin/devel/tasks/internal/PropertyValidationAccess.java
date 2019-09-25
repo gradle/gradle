@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties;
+package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Equivalence;
@@ -25,6 +25,10 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
+import org.gradle.api.internal.tasks.properties.TypeMetadata;
+import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
+import org.gradle.api.internal.tasks.properties.TypeScheme;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;

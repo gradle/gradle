@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.properties
+package org.gradle.plugin.devel.tasks.internal
 
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.DefaultTask

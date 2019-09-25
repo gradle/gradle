@@ -28,7 +28,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.tasks.properties.PropertyValidationAccess;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.workers.WorkAction;
