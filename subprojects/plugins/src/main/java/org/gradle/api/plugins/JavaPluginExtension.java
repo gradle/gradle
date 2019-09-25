@@ -63,7 +63,9 @@ public interface JavaPluginExtension {
     /**
      * If this method is called, Gradle will not automatically try to fetch
      * dependencies which have a JVM version compatible with the target compatibility
-     * of this module. This should be used whenever the default behavior is not
+     * of this module.
+     * <P>
+     * This should be used whenever the default behavior is not
      * applicable, in particular when for some reason it's not possible to split
      * a module and that this module only has some classes which require dependencies
      * on higher versions.
@@ -74,6 +76,7 @@ public interface JavaPluginExtension {
 
     /**
      * Automatically package Javadoc during publishing and publish a variant with '-javadoc.jar'.
+     * <P>
      * The publishing of the Javadoc variant can also be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}
      * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)},
      * if it should only be built locally by calling or wiring the ':javadocJar' task.
@@ -85,6 +88,7 @@ public interface JavaPluginExtension {
 
     /**
      * Automatically package source code during publishing and publish a variant with '-sources.jar'.
+     * <P>
      * The publishing of the sources variant can be disabled using {@link org.gradle.api.component.ConfigurationVariantDetails#skip()}
      * through {@link org.gradle.api.component.AdhocComponentWithVariants#withVariantsFromConfiguration(Configuration, Action)},
      * if it should only be built locally by calling or wiring the ':sourcesJar' task.
