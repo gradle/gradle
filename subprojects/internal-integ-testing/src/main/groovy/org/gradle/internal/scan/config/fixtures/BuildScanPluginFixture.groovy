@@ -101,7 +101,6 @@ For more information on how to apply the build scan plugin, please visit https:/
         }
 
         def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedBuildScanPlugin.ID.id))
-        builder.packageName = PACKAGE_NAME
         builder.addPlugin("""
             project.gradle.buildFinished {
                 println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${runtimeVersion}'
