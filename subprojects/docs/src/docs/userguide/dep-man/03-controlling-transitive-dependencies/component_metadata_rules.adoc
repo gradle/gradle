@@ -54,7 +54,7 @@ Variants can be addressed for modification through the following methods:
 The following details of each variant can be adjusted:
 
 - The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant - `attributes {}` block
-- The <<modeling_features.adoc#declaring-component-capabilities,capabilities>> the variant provides - `withCapabilities { }` block
+- The <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides - `withCapabilities { }` block
 - The <<declaring_dependencies.adoc#,dependencies>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencies {}` block
 - The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencyConstraints {}` block
 - The location of the published files that make up the actual content of the variant - `withFiles { }` block
@@ -63,7 +63,7 @@ There are also a few properties of the whole component that can be changed:
 
 - The _component level attributes_, currently the only meaningful attribute there is `org.gradle.status`
 - The _status scheme_ to influence interpretation of the `org.gradle.status` attribute during version selection
-- The _belongsTo_ property for <<modeling_features.adoc#sec:declaring-capabilities-external-modules,version alignment through virtual platforms>>
+- The _belongsTo_ property for <<component_capabilities.adoc#sec:declaring-capabilities-external-modules,version alignment through virtual platforms>>
 
 Depending on the format of the metadata of a module, it is mapped differently to the variant-centric representation of the metadata:
 
@@ -110,7 +110,7 @@ Dependency constraints can be inspected and modified the same way in the `withDe
 If we take a closer look at the Jaxen 1.1.4 pom, we observe that the _dom4j_, _jdom_ and _xerces_ dependencies are still there but marked as _optional_.
 Optional dependencies in poms are not automatically processed by Gradle nor Maven.
 The reason is that they indicate that there are <<feature_variants.adoc#,optional feature variants>> provided by the Jaxen library which require one or more of these dependencies, but the information what these features are and which dependency belongs to which is missing.
-Such information cannot be represented in pom files, but in Gradle Module Metadata through variants and <<modeling_features.adoc#declaring-component-capabilities,capabilities>>.
+Such information cannot be represented in pom files, but in Gradle Module Metadata through variants and <<component_capabilities.adoc#declaring-component-capabilities,capabilities>>.
 Hence, we can add this information in a rule as well.
 
 .Rule to add optional feature to Jaxen metadata
@@ -271,7 +271,7 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/metada
 
 Another usage of capabilities is to express that two different modules, for example `log4j` and `log4j-over-slf4j`, provide alternative implementations of the same thing.
 By declaring that both provide the same capability, Gradle only accepts one of them in a dependency graph.
-This example, and how it can be tackled with a component metadata rule, is described in detail in the  <<modeling_features.adoc#sec:declaring-capabilities-external-modules,feature modelling>> section.
+This example, and how it can be tackled with a component metadata rule, is described in detail in the  <<component_capabilities.adoc#sec:declaring-capabilities-external-modules,feature modelling>> section.
 
 == Making Ivy modules variant-aware ==
 
