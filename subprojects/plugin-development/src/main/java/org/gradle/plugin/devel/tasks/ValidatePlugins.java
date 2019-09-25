@@ -16,21 +16,10 @@
 
 package org.gradle.plugin.devel.tasks;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.io.Files;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.EmptyFileVisitor;
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.model.ObjectFactory;
@@ -39,30 +28,19 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.classanalysis.AsmConstants;
-import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClassLoaderUtils;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.execution.WorkValidationException;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Opcodes;
+import org.gradle.plugin.devel.tasks.internal.ValidateAction;
+import org.gradle.workers.WorkerExecutor;
 
 import javax.inject.Inject;
-import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Collection;
+import java.nio.file.Files;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -76,7 +54,7 @@ import java.util.stream.Collectors;
  */
 @CacheableTask
 @Incubating
-public class ValidatePlugins extends DefaultTask {
+public abstract class ValidatePlugins extends DefaultTask {
     private final ConfigurableFileCollection classes;
     private final ConfigurableFileCollection classpath;
     private final RegularFileProperty outputFile;
@@ -94,78 +72,25 @@ public class ValidatePlugins extends DefaultTask {
         this.failOnWarning = objects.property(Boolean.class).convention(true);
     }
 
+    @Inject
+    abstract protected WorkerExecutor getWorkerExecutor();
+
     @TaskAction
     public void validateTaskClasses() throws IOException {
-        ClassLoader previousContextClassLoader = Thread.currentThread().getContextClassLoader();
-        ClassPath classPath = DefaultClassPath.of(Iterables.concat(getClasses(), getClasspath()));
-        ClassLoader classLoader = getClassLoaderFactory().createIsolatedClassLoader("task-loader", classPath);
-        Thread.currentThread().setContextClassLoader(classLoader);
-        try {
-            validateTaskClasses(classLoader);
-        } finally {
-            Thread.currentThread().setContextClassLoader(previousContextClassLoader);
-            ClassLoaderUtils.tryClose(classLoader);
-        }
-    }
+        getWorkerExecutor().classLoaderIsolation(spec -> spec.getClasspath().setFrom(getClasses(), getClasspath()))
+            .submit(ValidateAction.class, params -> {
+                params.getClasses().setFrom(getClasses());
+                params.getOutputFile().value(getOutputFile());
+                params.getEnableStricterValidation().value(getEnableStricterValidation());
+            });
+        getWorkerExecutor().await();
 
-    private void validateTaskClasses(final ClassLoader classLoader) throws IOException {
-        final Map<String, Boolean> taskValidationProblems = Maps.newTreeMap();
-        final Method validatorMethod;
-        try {
-            Class<?> validatorClass = classLoader.loadClass("org.gradle.api.internal.tasks.properties.PropertyValidationAccess");
-            validatorMethod = validatorClass.getMethod("collectValidationProblems", Class.class, Map.class, Boolean.TYPE);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
+        List<String> problemMessages = Files.readAllLines(getOutputFile().get().getAsFile().toPath());
 
-        getClasses().getAsFileTree().visit(new EmptyFileVisitor() {
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                if (!fileDetails.getPath().endsWith(".class")) {
-                    return;
-                }
-                ClassReader reader;
-                try {
-                    reader = new ClassReader(Files.asByteSource(fileDetails.getFile()).read());
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-                List<String> classNames = Lists.newArrayList();
-                reader.accept(new TaskNameCollectorVisitor(classNames), ClassReader.SKIP_CODE);
-                for (String className : classNames) {
-                    Class<?> clazz;
-                    try {
-                        clazz = classLoader.loadClass(className);
-                    } catch (IllegalAccessError | NoClassDefFoundError | ClassNotFoundException e) {
-                        throw new GradleException("Could not load class: " + className, e);
-                    }
-                    try {
-                        validatorMethod.invoke(null, clazz, taskValidationProblems, enableStricterValidation.get());
-                    } catch (IllegalAccessException | InvocationTargetException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        });
-        List<String> problemMessages = toProblemMessages(taskValidationProblems);
-        storeResults(problemMessages);
-        communicateResult(problemMessages, taskValidationProblems.containsValue(Boolean.TRUE));
-    }
-
-    private void storeResults(List<String> problemMessages) throws IOException {
-        if (outputFile.isPresent()) {
-            File output = outputFile.get().getAsFile();
-            //noinspection ResultOfMethodCallIgnored
-            output.createNewFile();
-            Files.asCharSink(output, Charsets.UTF_8).write(Joiner.on('\n').join(problemMessages));
-        }
-    }
-
-    private void communicateResult(List<String> problemMessages, boolean hasErrors) {
         if (problemMessages.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (hasErrors || failOnWarning.get()) {
+            if (failOnWarning.get() || problemMessages.stream().anyMatch(line -> line.startsWith("Error:"))) {
                 if (ignoreFailures.get()) {
                     getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"), toMessageList(problemMessages));
                 } else {
@@ -175,19 +100,6 @@ public class ValidatePlugins extends DefaultTask {
                 getLogger().warn("Plugin validation finished with warnings:{}", toMessageList(problemMessages));
             }
         }
-    }
-
-    private static List<String> toProblemMessages(Map<String, Boolean> problems) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        for (Map.Entry<String, Boolean> entry : problems.entrySet()) {
-            String problem = entry.getKey();
-            Boolean error = entry.getValue();
-            builder.add(String.format("%s: %s",
-                Boolean.TRUE.equals(error) ? "Error" : "Warning",
-                problem
-            ));
-        }
-        return builder.build();
     }
 
     private static CharSequence toMessageList(List<String> problemMessages) {
@@ -249,35 +161,13 @@ public class ValidatePlugins extends DefaultTask {
     /**
      * Returns the output file to store the report in.
      */
-    @Optional
     @OutputFile
     public RegularFileProperty getOutputFile() {
         return outputFile;
     }
 
     @Inject
-    protected ClassLoaderFactory getClassLoaderFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
     protected DocumentationRegistry getDocumentationRegistry() {
         throw new UnsupportedOperationException();
-    }
-
-    private static class TaskNameCollectorVisitor extends ClassVisitor {
-        private final Collection<String> classNames;
-
-        public TaskNameCollectorVisitor(Collection<String> classNames) {
-            super(AsmConstants.ASM_LEVEL);
-            this.classNames = classNames;
-        }
-
-        @Override
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            if ((access & Opcodes.ACC_PUBLIC) != 0) {
-                classNames.add(name.replace('/', '.'));
-            }
-        }
     }
 }
