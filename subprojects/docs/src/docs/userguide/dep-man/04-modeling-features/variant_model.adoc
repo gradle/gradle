@@ -273,7 +273,7 @@ These are then grouped into two sections:
 There cannot be any mismatched attributes as the variant would not be a candidate then.
 Similarly, the set of displayed variants also excludes the ones that have been disambiguated.
 
-In the example above, the fix does not lie in attribute matching but in <<controlling_transitive_dependencies.adoc#sub:capabilities,capability matching>>, which are shown next to the variant name.
+In the example above, the fix does not lie in attribute matching but in <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,capability matching>>, which are shown next to the variant name.
 Because these two variants effectively provide the same attributes and capabilities, they cannot be disambiguated.
 So in this case, the fix is most likely to provide different capabilities on the producer side (`project :lib`) and express a capability choice on the consumer side (`project :ui`).
 
@@ -352,7 +352,7 @@ All dependencies of those scopes are considered _runtime dependencies_.
 ** the `enforced-platform-compile` is similar to `platform-compile` but all the constraints are _forced_
 ** the `enforced-platform-runtime` is similar to `platform-runtime` but all the constraints are _forced_
 
-You can understand more about the use of platform and enforced platforms variants by looking at the <<controlling_transitive_dependencies#sub:bom_import, importing BOMs>> section of the manual.
+You can understand more about the use of platform and enforced platforms variants by looking at the <<platforms.adoc#sub:bom_import, importing BOMs>> section of the manual.
 By default, whenever you declare a dependency on a Maven module, Gradle is going to look for the `library` variants.
 However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looking for one of the "platform" variants, which allows you to import the constraints from the POM files, instead of the dependencies.
 

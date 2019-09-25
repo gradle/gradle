@@ -49,7 +49,7 @@ Metadata is the data that describes the module in more detail e.g. the coordinat
 As part of the metadata, a module can define that other modules are needed for it to work properly.
 For example, the JUnit 5 platform module also requires the platform commons module.
 Gradle automatically resolves those additional modules, so called _transitive dependencies_.
-If needed, you can <<controlling_transitive_dependencies.adoc#,customize the behavior the handling of transitive dependencies>> to your project's requirements.
+If needed, you can <<dependency_constraints.adoc#,customize the behavior the handling of transitive dependencies>> to your project's requirements.
 
 Projects with tens or hundreds of declared dependencies can easily suffer from dependency hell.
 Gradle provides sufficient tooling to visualize, navigate and analyze the dependency graph of a project either with the help of a link:https://scans.gradle.com/get-started[build scan] or built-in tasks.

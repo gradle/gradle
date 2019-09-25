@@ -6,7 +6,7 @@ Sometimes, this metadata is incomplete or incorrect.
 To manipulate such incomplete metadata from within the build script, Gradle offers an API to write _component metadata rules_.
 These rules take effect after a module's metadata has been downloaded, but before it is used in dependency resolution.
 
-== Basics of writing a component metadata rule ==
+== Basics of writing a component metadata rule
 
 Component metadata rules are applied in the components (link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ComponentMetadataHandler.html[ComponentMetadataHandler]) section of the dependencies block (link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[DependencyHandler]) of a build script.
 The rules can be defined in two different ways:
@@ -56,7 +56,7 @@ The following details of each variant can be adjusted:
 - The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant - `attributes {}` block
 - The <<modeling_features.adoc#declaring-component-capabilities,capabilities>> the variant provides - `withCapabilities { }` block
 - The <<declaring_dependencies.adoc#,dependencies>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencies {}` block
-- The <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencyConstraints {}` block
+- The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencyConstraints {}` block
 - The location of the published files that make up the actual content of the variant - `withFiles { }` block
 
 There are also a few properties of the whole component that can be changed:
@@ -298,7 +298,7 @@ While all the examples above made modifications to variants of a component, ther
 This information can influence the <<dependency_resolution.adoc#,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
-It is explained in detail in the section on <<controlling_transitive_dependencies.adoc#sec:align-versions-virtual,aligning versions of modules not published with Gradle>>.
+It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-virtual,aligning versions of modules not published with Gradle>>.
 
 == Modifying metadata on the component level for version selection based on status
 

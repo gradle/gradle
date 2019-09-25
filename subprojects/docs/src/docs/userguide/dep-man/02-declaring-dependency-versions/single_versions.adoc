@@ -74,7 +74,7 @@ which means that the engine **must** select a version between 1.7 (included) and
 [[sec:declaring_without_version]]
 == Declaring a dependency without version
 
-A recommended practice for larger projects is to declare dependencies without versions and use <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> for version declaration.
+A recommended practice for larger projects is to declare dependencies without versions and use <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> for version declaration.
 The advantage is that dependency constraints allow you to manage versions of all dependencies, including transitive ones, in one place.
 
 .Declaring a dependency without version

@@ -25,7 +25,7 @@ That is when the dependency graph contains module that provide the same implemen
 The following sections will explain in detail how Gradle attempts to resolve these conflicts.
 
 The dependency resolution process is highly customizable to meet enterprise requirements.
-For more information, see the chapter on <<controlling_transitive_dependencies.adoc#,Controlling transitive dependencies>>.
+For more information, see the chapter on <<dependency_constraints.adoc#,Controlling transitive dependencies>>.
 
 [[sec:version-conflict]]
 == Version conflict resolution
@@ -94,7 +94,7 @@ A conflict occurs the moment two modules either:
 * Attempt to select incompatible variants,
 * Declare the same capability
 
-Learn more about handling these type of conflicts in <<controlling_transitive_dependencies.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
+Learn more about handling these type of conflicts in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
 
 [[sec:how-gradle-downloads-deps]]
 == How Gradle retrieves dependency metadata?

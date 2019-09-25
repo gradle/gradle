@@ -116,7 +116,7 @@ Gradle Module Metadata is a unique format aimed at improving dependency resoluti
 In particular, Gradle Module Metadata supports:
 
 - <<rich_versions.adoc#rich-version-constraints,rich version constraints>>
-- <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
+- <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
 - <<modeling_features.adoc#declaring-component-capabilities,component capabilities>>
 - <<variant_model.adoc#understanding-variant-selection,variant-aware resolution>>
 
@@ -124,7 +124,7 @@ Publication of Gradle Module Metadata will enable better dependency management f
 
 - early discovery of problems by detecting <<modeling_features.adoc#declaring-component-capabilities,incompatible modules>>
 - consistent selection of <<modeling_features.adoc#targeting-different-platforms,platform-specific dependencies>>
-- native <<controlling_transitive_dependencies#sec:version_alignment, dependency version alignement>>
+- native <<dependency_version_alignment.adoc#version_alignment, dependency version alignement>>
 - automatically getting dependencies for specific <<feature_variants.adoc#,features of your library>>
 
 Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc#,Maven Publish plugin>> or the <<publishing_ivy.adoc#,Ivy Publish plugin>>.
@@ -147,7 +147,7 @@ The table below summarizes how some Gradle specific features are mapped to Maven
 |===
 |Gradle|Maven|Ivy|Description
 
-|<<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
+|<<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
 |`<dependencyManagement>` dependencies
 |Not published
 |Gradle dependency constraints are _transitive_, while Maven's dependency management block _isn't_
