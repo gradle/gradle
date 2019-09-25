@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import org.gradle.model.internal.type.ModelType;
+
 import javax.annotation.Nullable;
 
 abstract public class MessageFormattingTypeValidationContext implements TypeValidationContext {
@@ -30,7 +32,7 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
         @SuppressWarnings("StringBufferReplaceableByString")
         StringBuilder builder = new StringBuilder();
         builder.append("Type '");
-        builder.append(type.getTypeName());
+        builder.append(ModelType.of(type).getDisplayName());
         builder.append("': ");
         builder.append(message);
         builder.append('.');
@@ -42,7 +44,7 @@ abstract public class MessageFormattingTypeValidationContext implements TypeVali
         StringBuilder builder = new StringBuilder();
         if (rootType != null) {
             builder.append("Type '");
-            builder.append(rootType.getTypeName());
+            builder.append(ModelType.of(rootType).getDisplayName());
             builder.append("': ");
         }
         if (property != null) {
