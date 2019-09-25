@@ -28,6 +28,7 @@ import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.reflect.TypeValidationContext.Severity;
+import org.gradle.model.internal.type.ModelType;
 
 import java.util.stream.Collectors;
 
@@ -75,8 +76,12 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
 
     private static String describeTypesChecked(ImmutableList<Class<?>> types) {
         return types.size() == 1
-            ? "type '" + types.get(0).getName() + "'"
-            : "types '" + types.stream().map(Class::getName).collect(Collectors.joining("', '")) + "'";
+            ? "type '" + getTypeDisplayName(types.get(0)) + "'"
+            : "types '" + types.stream().map(ValidateStep::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
+    }
+
+    private static String getTypeDisplayName(Class<?> type) {
+        return ModelType.of(type).getDisplayName();
     }
 
     public interface ValidationWarningReporter {

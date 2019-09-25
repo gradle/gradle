@@ -30,6 +30,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
+import org.gradle.model.internal.type.ModelType
 import spock.lang.Specification
 
 import java.nio.file.Path
@@ -257,6 +258,6 @@ class PropertyValidationAccessTest extends Specification {
     }
 
     private static Set<String> validationProblems(Class<?> task, List messages) {
-        messages.collect { "Type '${task.name}': ${it}." }*.toString() as Set
+        messages.collect { "Type '${ModelType.of(task).displayName}': ${it}." }*.toString() as Set
     }
 }

@@ -157,7 +157,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "warns about annotation on field without getter"() {
         expect:
         assertProperties TypeWithFieldOnlyAnnotation, [:], [
-            "Type '$TypeWithFieldOnlyAnnotation.name': field 'property' without corresponding getter has been annotated with @Large."
+            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithFieldOnlyAnnotation': field 'property' without corresponding getter has been annotated with @Large."
         ]
     }
 
@@ -659,10 +659,10 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
     def "warns about annotations on non-getter methods"() {
         expect:
         assertProperties TypeWithAnnotatedNonGetterMethods, [:], [
-            "Type '$TypeWithAnnotatedNonGetterMethods.name': non-property method 'doSomething()' should not be annotated with: @Large.",
-            "Type '$TypeWithAnnotatedNonGetterMethods.name': setter method 'setSomething()' should not be annotated with: @Large.",
-            "Type '$TypeWithAnnotatedNonGetterMethods.name': static method 'doStatic()' should not be annotated with: @Large.",
-            "Type '$TypeWithAnnotatedNonGetterMethods.name': static method 'getStatic()' should not be annotated with: @Small.",
+            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': non-property method 'doSomething()' should not be annotated with: @Large.",
+            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': setter method 'setSomething()' should not be annotated with: @Large.",
+            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': static method 'doStatic()' should not be annotated with: @Large.",
+            "Type 'DefaultTypeAnnotationMetadataStoreTest.TypeWithAnnotatedNonGetterMethods': static method 'getStatic()' should not be annotated with: @Small.",
         ]
     }
 

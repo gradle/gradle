@@ -52,12 +52,12 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
         then:
         def ex = thrown WorkValidationException
-        ex.message == "A problem was found with the configuration of job ':test'."
+        ex.message == "A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType')."
         ex.causes.size() == 1
-        ex.causes[0].message == "Type '$Object.name': Validation error."
+        ex.causes[0].message == "Type '$Object.simpleName': Validation error."
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.createContextFor(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
+            validationContext.createContextFor(JobType, true).visitTypeProblem(ERROR, Object, "Validation error")
         }
         0 * _
     }
@@ -68,15 +68,14 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
         then:
         def ex = thrown WorkValidationException
-        ex.message == "Some problems were found with the configuration of job ':test'."
+        ex.message == "Some problems were found with the configuration of job ':test' (types 'ValidateStepTest.JobType', 'ValidateStepTest.SecondaryJobType')."
         ex.causes.size() == 2
-        ex.causes[0].message == "Type '$Object.name': Validation error #1."
-        ex.causes[1].message == "Type '$Object.name': Validation error #2."
+        ex.causes[0].message == "Type '$Object.simpleName': Validation error #1."
+        ex.causes[1].message == "Type '$Object.simpleName': Validation error #2."
 
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            def typeContext = validationContext.createContextFor(Object, true)
-            typeContext.visitTypeProblem(ERROR, Object, "Validation error #1")
-            typeContext.visitTypeProblem(ERROR, Object, "Validation error #2")
+            validationContext.createContextFor(JobType, true).visitTypeProblem(ERROR, Object, "Validation error #1")
+            validationContext.createContextFor(SecondaryJobType, true).visitTypeProblem(ERROR, Object, "Validation error #2")
         }
         0 * _
     }
@@ -87,11 +86,11 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            validationContext.createContextFor(Object, true).visitTypeProblem(WARNING, Object, "Validation warning")
+            validationContext.createContextFor(JobType, true).visitTypeProblem(WARNING, Object, "Validation warning")
         }
 
         then:
-        1 * warningReporter.reportValidationWarning("Type '$Object.name': Validation warning.")
+        1 * warningReporter.reportValidationWarning("Type '$Object.simpleName': Validation warning.")
 
         then:
         1 * delegate.execute(context)
@@ -104,19 +103,23 @@ class ValidateStepTest extends ContextInsensitiveStepSpec {
 
         then:
         _ * work.validate(_ as  WorkValidationContext) >> {  WorkValidationContext validationContext ->
-            def typeContext = validationContext.createContextFor(Object, true)
+            def typeContext = validationContext.createContextFor(JobType, true)
             typeContext.visitTypeProblem(ERROR, Object, "Validation error")
             typeContext.visitTypeProblem(WARNING, Object, "Validation warning")
         }
 
         then:
-        1 * warningReporter.reportValidationWarning("Type '$Object.name': Validation warning.")
+        1 * warningReporter.reportValidationWarning("Type '$Object.simpleName': Validation warning.")
 
         then:
         def ex = thrown WorkValidationException
-        ex.message == "A problem was found with the configuration of job ':test'."
+        ex.message == "A problem was found with the configuration of job ':test' (type 'ValidateStepTest.JobType')."
         ex.causes.size() == 1
-        ex.causes[0].message == "Type '$Object.name': Validation error."
+        ex.causes[0].message == "Type '$Object.simpleName': Validation error."
         0 * _
     }
+
+    interface JobType {}
+
+    interface SecondaryJobType {}
 }
