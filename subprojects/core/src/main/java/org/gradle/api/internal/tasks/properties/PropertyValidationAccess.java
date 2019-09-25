@@ -61,8 +61,7 @@ public class PropertyValidationAccess {
 
     private final List<TypeScheme> typeSchemes;
 
-    @VisibleForTesting
-    PropertyValidationAccess() {
+    private PropertyValidationAccess() {
         ServiceRegistryBuilder builder = ServiceRegistryBuilder.builder().displayName("Global services");
         // Should reuse `GlobalScopeServices` here, however this requires a bunch of stuff in order to discover the plugin service registries
         // For now, re-implement the discovery here
@@ -81,7 +80,7 @@ public class PropertyValidationAccess {
             }
         });
         ServiceRegistry services = builder.build();
-        typeSchemes = services.getAll(TypeScheme.class);
+        this.typeSchemes = services.getAll(TypeScheme.class);
     }
 
     @VisibleForTesting
