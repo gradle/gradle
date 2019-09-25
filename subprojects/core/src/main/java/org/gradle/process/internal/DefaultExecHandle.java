@@ -64,6 +64,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     private static final Logger LOGGER = Logging.getLogger(DefaultExecHandle.class);
 
+    private static final Joiner ARGUMENT_JOINER = Joiner.on(' ').useForNull("null");
+
     private final String displayName;
 
     /**
@@ -252,8 +254,8 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     @Override
     public ExecHandle start() {
-        LOGGER.info("Starting process '{}'. Working directory: {} Command: {}",
-                displayName, directory, command + ' ' + Joiner.on(' ').useForNull("null").join(arguments));
+        LOGGER.info("Starting process '{}'. Working directory: {} Command: {} {}",
+                displayName, directory, command, ARGUMENT_JOINER.join(arguments));
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Environment for process '{}': {}", displayName, environment);
         }
