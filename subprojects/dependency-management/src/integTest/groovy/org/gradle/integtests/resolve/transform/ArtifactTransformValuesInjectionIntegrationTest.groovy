@@ -244,7 +244,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             extension: 'is not annotated with an input annotation',
             fileInput: [
                 'does not have a value specified',
-                'has @Input annotation used on property of type java.io.File',
+                'has @Input annotation used on property of type \'File\'',
             ],
             incrementalNonFileInput: [
                 'does not have a value specified',
