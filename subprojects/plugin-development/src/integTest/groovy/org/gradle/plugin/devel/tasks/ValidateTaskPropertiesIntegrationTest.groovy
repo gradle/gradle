@@ -19,7 +19,7 @@ package org.gradle.plugin.devel.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIntegrationSpec {
+class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << """
@@ -37,13 +37,10 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
             ${check ? "assert validatePlugins." + check : ""}
         """
 
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
 
-        when:
-        run "help"
-
-        then:
-        output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
+        expect:
+        succeeds "help"
 
         where:
         methodCall                        | check
@@ -141,20 +138,19 @@ class ValidateTaskPropertiesConfiguredByPluginIntegrationTest extends AbstractIn
             }
         """
 
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
 
         expect:
         fails "validateTaskProperties"
         failure.assertHasCause "Plugin validation failed"
-        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation."
-        failure.assertHasCause "Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation."
+        failure.assertHasCause "Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation."
 
         file("build/reports/plugin-development/validation-report.txt").text == """
-            Warning: Type 'com.example.MyTask': property 'badTime' is not annotated with an input or output annotation.
-            Warning: Type 'com.example.MyTask': property 'options.badNested' is not annotated with an input or output annotation.
-            Warning: Type 'com.example.MyTask': property 'ter' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.
+            Warning: Type 'MyTask': property 'ter' is not annotated with an input or output annotation.
             """.stripIndent().trim()
-        output.contains "The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead."
     }
 }
