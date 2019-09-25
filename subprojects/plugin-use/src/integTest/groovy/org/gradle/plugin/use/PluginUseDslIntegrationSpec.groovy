@@ -109,10 +109,10 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
 
     def "settings scripts can have plugin blocks"() {
         when:
-        settingsFile << """
-            plugins {
-                id "noop" version "1.0"
-            }
+        settingsFile.text = """
+          plugins {
+            id "noop" version "1.0"
+          }
         """
 
         then:
