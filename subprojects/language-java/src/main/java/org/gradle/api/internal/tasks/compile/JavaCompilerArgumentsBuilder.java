@@ -92,12 +92,12 @@ public class JavaCompilerArgumentsBuilder {
 
     private void validateCompilerArgs(List<String> compilerArgs) {
         for (String arg : compilerArgs) {
-            if ("-sourcepath".equals(arg) || "--source-path".equals(arg)) {
+            if ("-sourcepath".equals(arg) || isDoubleDashArgument(arg, "--source-path")) {
                 throw new InvalidUserDataException("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. " +
                     "Use the `CompileOptions.sourcepath` property instead.");
             }
 
-            if ("-processorpath".equals(arg) || "--processor-path".equals(arg)) {
+            if ("-processorpath".equals(arg) || isDoubleDashArgument(arg, "--processor-path")) {
                 throw new InvalidUserDataException("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. " +
                     "Use the `CompileOptions.annotationProcessorPath` property instead.");
             }
@@ -191,11 +191,16 @@ public class JavaCompilerArgumentsBuilder {
         if (spec.getSourceCompatibility() == null || JavaVersion.toVersion(spec.getSourceCompatibility()).compareTo(JavaVersion.VERSION_1_6) >= 0) {
             List<File> annotationProcessorPath = spec.getAnnotationProcessorPath();
             if (annotationProcessorPath == null || annotationProcessorPath.isEmpty()) {
-                args.add("-proc:none");
+                if (!containsDoubleDashArgument(compilerArgs, "--processor-module-path")) {
+                    args.add("-proc:none");
+                }
+            } else if (containsDoubleDashArgument(compilerArgs, "--processor-module-path")) {
+                LOGGER.warn("You specified both --processor-module-path and an annotation processor path. These options are mutually exclusive. Ignoring annotation processor path.");
             } else {
                 args.add("-processorpath");
                 args.add(Joiner.on(File.pathSeparator).join(annotationProcessorPath));
             }
+
             if (compileOptions.getAnnotationProcessorGeneratedSourcesDirectory() != null) {
                 args.add("-s");
                 args.add(compileOptions.getAnnotationProcessorGeneratedSourcesDirectory().getPath());
@@ -217,7 +222,7 @@ public class JavaCompilerArgumentsBuilder {
         Collection<File> sourcepath = compileOptions.getSourcepath();
         boolean emptySourcePath = sourcepath == null || sourcepath.isEmpty();
 
-        if (compilerArgs.contains("--module-source-path")) {
+        if (containsDoubleDashArgument(compilerArgs, "--module-source-path")) {
             if (!emptySourcePath) {
                 LOGGER.warn("You specified both --module-source-path and a sourcepath. These options are mutually exclusive. Ignoring sourcepath.");
             }
@@ -246,7 +251,7 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     private boolean releaseOptionIsSet(List<String> compilerArgs) {
-        return compilerArgs != null && compilerArgs.contains("--release");
+        return compilerArgs != null && containsDoubleDashArgument(compilerArgs, "--release");
     }
 
     private void addClasspath() {
@@ -267,5 +272,30 @@ public class JavaCompilerArgumentsBuilder {
         for (File file : spec.getSourceFiles()) {
             args.add(file.getPath());
         }
+    }
+
+    private boolean containsDoubleDashArgument(List<String> compilerArgs, String doubleDashArg) {
+        int doubleDashArgLength = doubleDashArg.length();
+
+        for (String compilerArg : compilerArgs) {
+            if (
+                compilerArg != null &&
+                compilerArg.startsWith(doubleDashArg) &&
+                (compilerArg.length() == doubleDashArgLength || compilerArg.charAt(doubleDashArgLength) == '=')
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isDoubleDashArgument(String compilerArg, String doubleDashArg) {
+        if (compilerArg == null) {
+            return false;
+        }
+
+        int doubleDashArgLength = doubleDashArg.length();
+
+        return compilerArg.startsWith(doubleDashArg) && (compilerArg.length() == doubleDashArgLength || compilerArg.charAt(doubleDashArgLength) == '=');
     }
 }
