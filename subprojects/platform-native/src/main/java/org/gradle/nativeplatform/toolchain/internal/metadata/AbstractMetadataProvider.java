@@ -82,9 +82,15 @@ public abstract class AbstractMetadataProvider<T extends CompilerMetadata> imple
         int exitValue = result.getExitValue();
         if (exitValue == 0) {
             return Pair.of(buffer.readAsString(), errorBuffer.readAsString());
-        } else {
-            return null;
+        } else if (exitValue == 69) {
+            // After an Xcode upgrade, running clang will frequently fail in a mysterious way.
+            // Make the failure very obvious by throwing this back up to the user.
+            String errorBufferAsString = errorBuffer.readAsString();
+            if (errorBufferAsString.contains("Agreeing to the Xcode")) {
+                throw new IllegalStateException("You will be unable to use Xcode's tool chain until you accept the Xcode license.\n" + errorBufferAsString);
+            }
         }
+        return null;
     }
 
     protected abstract List<String> compilerArgs();
