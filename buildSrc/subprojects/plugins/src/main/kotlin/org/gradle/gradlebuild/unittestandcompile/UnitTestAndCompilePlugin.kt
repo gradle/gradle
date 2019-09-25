@@ -245,8 +245,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun collectMirrorUrls(): Map<String, String> =
-    // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
-        System.getenv("REPO_MIRROR_URLS")?.split(',')?.associate { nameToUrl ->
+        // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...
+        System.getenv("REPO_MIRROR_URLS")?.ifBlank { null }?.split(',')?.associate { nameToUrl ->
             val (name, url) = nameToUrl.split(':', limit = 2)
             name to url
         } ?: emptyMap()
