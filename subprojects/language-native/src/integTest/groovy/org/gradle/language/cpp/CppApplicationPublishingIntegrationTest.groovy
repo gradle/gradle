@@ -38,7 +38,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     def consumer = file("consumer").createDir()
 
     def setup() {
-        when:
         consumer.file("settings.gradle").createFile()
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
@@ -69,6 +68,10 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 })
             }
         """
+    }
+
+    private void expectDuplicatesStrategyWarning(String name = 'app') {
+        executer.expectDeprecationWarning("Encountered duplicate path during copy operation configured with default duplicates strategy. Allowing duplicates with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: \"${name}\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths.")
     }
 
     def "can publish the binaries of an application to a Maven repository"() {
@@ -154,6 +157,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:test:1.2'
             }
         """
+        expectDuplicatesStrategyWarning('test')
         executer.inDirectory(consumer)
         run("install")
 
@@ -234,6 +238,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:app:1.2'
             }
         """
+        expectDuplicatesStrategyWarning()
         executer.inDirectory(consumer)
         run("install")
 
@@ -327,6 +332,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:app:1.2'
             }
         """
+        expectDuplicatesStrategyWarning()
         executer.inDirectory(consumer)
         run("install")
 
@@ -405,6 +411,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:testApp:1.2'
             }
         """
+        expectDuplicatesStrategyWarning("testApp")
         executer.inDirectory(consumer)
         run("install")
 
@@ -452,6 +459,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:test:1.2'
             }
         """
+        expectDuplicatesStrategyWarning("test")
         executer.inDirectory(consumer)
         run("install")
 
@@ -503,6 +511,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:test:1.2'
             }
         """
+        expectDuplicatesStrategyWarning("test")
         executer.inDirectory(consumer)
         run("install")
 

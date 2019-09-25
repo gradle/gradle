@@ -19,7 +19,6 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFile;
@@ -263,7 +262,6 @@ public class InstallExecutable extends DefaultTask {
             copySpec.into(binaryDir);
             copySpec.from(executableFile);
             copySpec.from(libs);
-            copySpec.setDuplicatesStrategy(DuplicatesStrategy.INCLUDE);
         });
     }
 }
