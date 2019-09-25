@@ -25,8 +25,8 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.transform.CacheableTransform;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
 import org.gradle.internal.Cast;
@@ -59,7 +59,6 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
 public class PropertyValidationAccess {
     private static final PropertyValidationAccess INSTANCE = new PropertyValidationAccess();
 
-    private final TaskClassInfoStore taskClassInfoStore;
     private final List<TypeScheme> typeSchemes;
 
     @VisibleForTesting
@@ -82,7 +81,6 @@ public class PropertyValidationAccess {
             }
         });
         ServiceRegistry services = builder.build();
-        taskClassInfoStore = services.get(TaskClassInfoStore.class);
         typeSchemes = services.getAll(TypeScheme.class);
     }
 
@@ -117,7 +115,7 @@ public class PropertyValidationAccess {
         boolean cacheable;
         boolean mapErrorsToWarnings;
         if (Task.class.isAssignableFrom(topLevelBean)) {
-            cacheable = enableStricterValidation || taskClassInfoStore.getTaskClassInfo(Cast.uncheckedNonnullCast(topLevelBean)).isCacheable();
+            cacheable = enableStricterValidation || topLevelBean.isAnnotationPresent(CacheableTask.class);
             // Treat all errors as warnings, for backwards compatibility
             mapErrorsToWarnings = true;
         } else if (TransformAction.class.isAssignableFrom(topLevelBean)) {
