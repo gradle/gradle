@@ -77,9 +77,9 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         switch (stat.getType()) {
             case RegularFile:
                 HashCode hash = hasher.hash(file);
-                return new FileNode(new RegularFileSnapshot(location, file.getName(), hash, FileMetadata.from(stat)));
+                return new FileNode(parent, new RegularFileSnapshot(location, file.getName(), hash, FileMetadata.from(stat)));
             case Missing:
-                return new MissingFileNode(location, file.getName());
+                return new MissingFileNode(parent, location, file.getName());
             case Directory:
                 DirectorySnapshot directorySnapshot = (DirectorySnapshot) directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
                 return new CompleteDirectoryNode(parent, directorySnapshot);
@@ -95,10 +95,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         return parent.replaceChild(
             pathSegments.get(pathSegments.size() - 1),
             nodeCreator,
-            current -> current.getType() != Node.Type.UNKNOWN
-                ? current
-                : nodeCreator.apply(parent)
-        );
+            current -> current.getType() == Node.Type.UNKNOWN);
     }
 
     private Node findParent(List<String> pathSegments) {
@@ -117,7 +114,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             Node parentLocation = findParentNotCreating(pathSegments);
             if (parentLocation != null) {
                 String name = pathSegments.get(pathSegments.size() - 1);
-                parentLocation.replaceChild(name, parent -> null, nodeToBeReplaced -> null);
+                parentLocation.removeChild(name);
             }
         });
         action.run();
@@ -135,8 +132,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         parent.replaceChild(
             pathSegments.get(pathSegments.size() - 1),
             it -> CompleteDirectoryNode.convertToNode(snapshot, parent),
-            toReplace -> CompleteDirectoryNode.convertToNode(snapshot, parent)
-        );
+            old -> true);
     }
 
     @Nullable

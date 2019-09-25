@@ -18,14 +18,14 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public interface Node {
     Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier);
-    @Nullable
-    Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement);
+    Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting);
+    void removeChild(String name);
     String getAbsolutePath();
     Type getType();
 

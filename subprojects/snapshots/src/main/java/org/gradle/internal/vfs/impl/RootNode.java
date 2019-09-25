@@ -18,9 +18,9 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class RootNode extends AbstractNodeWithMutableChildren {
 
@@ -43,10 +43,14 @@ public class RootNode extends AbstractNodeWithMutableChildren {
                     return RootNode.super.getOrCreateChild(name, nodeSupplier, this);
                 }
 
-                @Nullable
                 @Override
-                public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
-                    return RootNode.super.replaceChild(name, nodeSupplier, replacement, this);
+                public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
+                    return RootNode.super.replaceChild(name, nodeSupplier, null, this);
+                }
+
+                @Override
+                public void removeChild(String name) {
+                    RootNode.super.removeChild(name);
                 }
 
                 @Override

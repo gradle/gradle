@@ -172,6 +172,33 @@ class DefaultVirtualFileSystemTest extends Specification {
         assertIsFileSnapshot(snapshot, someFile)
     }
 
+    def "invalidated non-existing file in known directory"() {
+        def dir = temporaryFolder.createDir("some/dir")
+        def existingFileInDir = dir.file("someFile.txt").createFile()
+        def nonExistingFileInDir = dir.file("subdir/nonExisting.txt")
+
+        when:
+        allowFileSystemAccess(true)
+        def snapshot = readFromVfs(dir)
+        then:
+        assertIsDirectorySnapshot(snapshot, dir)
+        assertIsFileSnapshot(readFromVfs(existingFileInDir), existingFileInDir)
+
+        when:
+        allowFileSystemAccess(false)
+        vfs.update([nonExistingFileInDir.absolutePath]) {
+            nonExistingFileInDir.text = "created"
+        }
+        then:
+        assertIsFileSnapshot(readFromVfs(existingFileInDir), existingFileInDir)
+
+        when:
+        allowFileSystemAccess(true)
+        snapshot = readFromVfs(nonExistingFileInDir)
+        then:
+        assertIsFileSnapshot(snapshot, nonExistingFileInDir)
+    }
+
     def "can filter parts of the filesystem"() {
         def d = temporaryFolder.createDir("d")
         d.createFile("f1")

@@ -19,6 +19,7 @@ package org.gradle.internal.vfs.impl;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public abstract class AbstractNodeWithMutableChildren implements Node {
     private final Map<String, Node> children = new HashMap<>();
@@ -33,14 +34,22 @@ public abstract class AbstractNodeWithMutableChildren implements Node {
     }
 
     @Override
-    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
-        return replaceChild(name, nodeSupplier, replacement, this);
+    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
+        return replaceChild(name, nodeSupplier, shouldReplaceExisting, this);
     }
 
-    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement, Node parent) {
-        return children.compute(name, (key, current) -> current == null
-            ? nodeSupplier.apply(parent)
-            : replacement.apply(current));
+    @Override
+    public void removeChild(String name) {
+        children.remove(name);
+    }
+
+    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting, Node parent) {
+        return children.compute(
+            name,
+            (key, current) -> (current == null || shouldReplaceExisting.test(current))
+                ? nodeSupplier.apply(parent)
+                : current
+        );
     }
 
     public Map<String, Node> getChildren() {

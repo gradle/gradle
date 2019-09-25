@@ -21,8 +21,10 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class CompleteDirectoryNode implements Node {
@@ -46,17 +48,27 @@ public class CompleteDirectoryNode implements Node {
     }
 
     @Override
-    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
+    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
         FileSystemLocationSnapshot snapshot = childrenMap.get(name);
         if (snapshot == null) {
-            return new MissingFileNode(getChildAbsolutePath(name), name);
+            return new MissingFileNode(this, getChildAbsolutePath(name), name);
         }
         Node currentChild = convertToNode(snapshot, this);
-        Node replacedChild = replacement.apply(currentChild);
-        if (currentChild == replacedChild) {
+        if (!shouldReplaceExisting.test(currentChild)) {
             return currentChild;
         }
+        Node replacedChild = nodeSupplier.apply(currentChild);
+        replaceByMutableNodeWithReplacedSnapshot(snapshot, replacedChild);
+        return replacedChild;
+    }
 
+    @Override
+    public void removeChild(String name) {
+        FileSystemLocationSnapshot snapshot = childrenMap.get(name);
+        replaceByMutableNodeWithReplacedSnapshot(snapshot, null);
+    }
+
+    protected void replaceByMutableNodeWithReplacedSnapshot(@Nullable FileSystemLocationSnapshot snapshot, @Nullable Node replacement) {
         DefaultNode replacementForCurrentNode = new DefaultNode(directorySnapshot.getName(), parent);
         directorySnapshot.getChildren().forEach(childSnapshot -> {
             if (childSnapshot != snapshot) {
@@ -64,38 +76,34 @@ public class CompleteDirectoryNode implements Node {
                     childSnapshot.getName(),
                     parent -> convertToNode(childSnapshot, parent)
                 );
-            } else {
-                if (replacedChild != null) {
-                    replacementForCurrentNode.getOrCreateChild(
-                        childSnapshot.getName(),
-                        parent -> replacedChild
-                    );
-                }
+            } else if (snapshot != null && replacement != null) {
+                replacementForCurrentNode.getOrCreateChild(
+                    snapshot.getName(),
+                    originalNode -> replacementForCurrentNode
+                );
             }
         });
         parent.replaceChild(
             directorySnapshot.getName(),
-            parent -> { throw new AssertionError("Parent doesn't have current node as a child"); },
-            originalNode -> replacementForCurrentNode
-        );
-        return replacedChild;
+            parent -> replacementForCurrentNode,
+            old -> true);
     }
 
     private Node getChildOrMissing(String name) {
         FileSystemLocationSnapshot fileSystemLocationSnapshot = childrenMap.get(name);
         return fileSystemLocationSnapshot != null
             ? convertToNode(fileSystemLocationSnapshot, this)
-            : new MissingFileNode(getChildAbsolutePath(name), name);
+            : new MissingFileNode(this, getChildAbsolutePath(name), name);
     }
 
     public static Node convertToNode(FileSystemLocationSnapshot snapshot, Node parent) {
         switch (snapshot.getType()) {
             case RegularFile:
-                return new FileNode((RegularFileSnapshot) snapshot);
+                return new FileNode(parent, (RegularFileSnapshot) snapshot);
             case Directory:
                 return new CompleteDirectoryNode(parent, (DirectorySnapshot) snapshot);
             case Missing:
-                return new MissingFileNode(snapshot.getAbsolutePath(), snapshot.getName());
+                return new MissingFileNode(parent, snapshot.getAbsolutePath(), snapshot.getName());
             default:
                 throw new AssertionError("Unknown type: " + snapshot.getType());
         }

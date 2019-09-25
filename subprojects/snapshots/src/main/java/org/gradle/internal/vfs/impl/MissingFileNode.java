@@ -20,25 +20,33 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
-public class MissingFileNode implements Node{
+public class MissingFileNode implements Node {
 
+    private final Node parent;
     private final String absolutePath;
     private final String name;
 
-    public MissingFileNode(String absolutePath, String name) {
+    public MissingFileNode(Node parent, String absolutePath, String name) {
+        this.parent = parent;
         this.absolutePath = absolutePath;
         this.name = name;
     }
 
     @Override
     public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
-        return new MissingFileNode(getChildAbsolutePath(name), name);
+        return new MissingFileNode(this, getChildAbsolutePath(name), name);
     }
 
     @Override
-    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Function<Node, Node> replacement) {
-        return new MissingFileNode(getChildAbsolutePath(name), name);
+    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
+        return new MissingFileNode(this, getChildAbsolutePath(name), name);
+    }
+
+    @Override
+    public void removeChild(String name) {
+        parent.removeChild(this.name);
     }
 
     @Override
