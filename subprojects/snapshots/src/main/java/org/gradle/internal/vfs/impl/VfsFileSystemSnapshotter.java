@@ -16,7 +16,9 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
@@ -36,9 +38,13 @@ import java.util.function.Consumer;
 public class VfsFileSystemSnapshotter implements FileSystemSnapshotter {
 
     private final VirtualFileSystem virtualFileSystem;
+    private final Interner<String> stringInterner;
+    private final FileHasher fileHasher;
 
-    public VfsFileSystemSnapshotter(VirtualFileSystem virtualFileSystem) {
+    public VfsFileSystemSnapshotter(VirtualFileSystem virtualFileSystem, Interner<String> stringInterner, FileHasher fileHasher) {
         this.virtualFileSystem = virtualFileSystem;
+        this.stringInterner = stringInterner;
+        this.fileHasher = fileHasher;
     }
 
     @Nullable
@@ -85,6 +91,8 @@ public class VfsFileSystemSnapshotter implements FileSystemSnapshotter {
 
     @Override
     public FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
-        throw new UnsupportedOperationException("Arbitrary trees are currently not supported for the Virtual File System");
+        FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner, fileHasher);
+        buildAction.accept(builder);
+        return builder.build();
     }
 }

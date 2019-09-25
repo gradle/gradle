@@ -187,7 +187,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, VirtualFileSystem vfs) {
         boolean vfsEnabled = System.getProperty(GradleUserHomeScopeServices.ENABLE_VFS_SYSTEM_PROPERTY_NAME) != null;
         return vfsEnabled
-            ? new VfsFileSystemSnapshotter(vfs)
+            ? new VfsFileSystemSnapshotter(vfs, stringInterner, hasher)
             : new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
