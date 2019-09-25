@@ -186,9 +186,15 @@ Dependency substitution rules take care of replacing the module dependency with 
 [[sec:ivy_dynamic_resolve_mode]]
 == Enabling Ivy dynamic resolve mode
 
-Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode. Normally, Gradle will use the `rev` attribute for each dependency definition included in an `ivy.xml` file. In dynamic resolve mode, Gradle will instead prefer the `revConstraint` attribute over the `rev` attribute for a given dependency definition. If the `revConstraint` attribute is not present, the `rev` attribute is used instead.
+Gradle's Ivy repository implementations support the equivalent to Ivy's dynamic resolve mode.
+Normally, Gradle will use the `rev` attribute for each dependency definition included in an `ivy.xml` file.
+In dynamic resolve mode, Gradle will instead prefer the `revConstraint` attribute over the `rev` attribute for a given dependency definition.
+If the `revConstraint` attribute is not present, the `rev` attribute is used instead.
 
-To enable dynamic resolve mode, you need to set the appropriate option on the repository definition. A couple of examples are shown below. Note that dynamic resolve mode is only available for Gradle's Ivy repositories. It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
+To enable dynamic resolve mode, you need to set the appropriate option on the repository definition.
+A couple of examples are shown below.
+Note that dynamic resolve mode is only available for Gradle's Ivy repositories.
+It is not available for Maven repositories, or custom Ivy `DependencyResolver` implementations.
 
 .Enabling dynamic resolve mode
 ====
