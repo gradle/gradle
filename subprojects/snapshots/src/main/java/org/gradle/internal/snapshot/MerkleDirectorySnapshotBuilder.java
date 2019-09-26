@@ -119,7 +119,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
     /**
      * If the snapshot which is visited is a merkle directory snapshot, no need to make a copy.
      */
-    public void setResult(FileSystemLocationSnapshot result) {
+    public void resultKnown(FileSystemLocationSnapshot result) {
         this.result = result;
     }
 }

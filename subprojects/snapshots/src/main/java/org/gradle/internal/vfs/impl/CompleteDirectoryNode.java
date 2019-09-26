@@ -123,7 +123,7 @@ public class CompleteDirectoryNode implements Node {
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
         if (visitor instanceof MerkleDirectorySnapshotBuilder) {
-            ((MerkleDirectorySnapshotBuilder) visitor).setResult(directorySnapshot);
+            ((MerkleDirectorySnapshotBuilder) visitor).resultKnown(directorySnapshot);
         } else {
             directorySnapshot.accept(visitor);
         }
