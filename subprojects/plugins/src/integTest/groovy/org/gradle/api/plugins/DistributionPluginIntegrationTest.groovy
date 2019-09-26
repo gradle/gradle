@@ -131,7 +131,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             """
         then:
         runAndFail('customDistZip')
-        failure.assertHasCause "Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."
+        failure.assertHasCause "Distribution 'custom' must not have an empty distributionBaseName."
     }
 
     def createDistributionWithoutVersion() {

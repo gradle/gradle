@@ -18,6 +18,7 @@ package org.gradle.api.distribution.plugins;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.PublishArtifact;
@@ -100,6 +101,16 @@ public class DistributionPlugin implements Plugin<ProjectInternal> {
             addAssembleTask(project, assembleTaskName, dist, zipTaskName, tarTaskName);
         });
         distributions.create(MAIN_DISTRIBUTION_NAME);
+
+        // TODO: Maintain old behavior of checking for empty-string distribution base names.
+        // It would be nice if we could do this as validation on the property itself.
+        project.afterEvaluate(p -> {
+            distributions.forEach(distribution -> {
+                if (distribution.getDistributionBaseName().get().equals("")) {
+                    throw new GradleException(String.format("Distribution '%s' must not have an empty distributionBaseName.", distribution.getName()));
+                }
+            });
+        });
     }
 
     private <T extends AbstractArchiveTask> void addArchiveTask(final Project project, String taskName, Class<T> type, final Distribution distribution) {
