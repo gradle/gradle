@@ -59,7 +59,18 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-open class PrecompiledInitScript(@Suppress("unused_parameter") target: Gradle)
+open class PrecompiledInitScript(
+    target: Gradle
+) : KotlinScriptAdapter(KotlinScriptAdapterHost(target)) {
+
+    private
+    class KotlinScriptAdapterHost(val gradle: Gradle) : Host {
+        override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
+        override fun getLogging(): LoggingManager = gradle.serviceOf()
+        override fun getFileOperations(): FileOperations = fileOperationsFor(gradle, null)
+        override fun getProcessOperations(): ProcessOperations = gradle.serviceOf()
+    }
+}
 
 
 /**
