@@ -6,6 +6,7 @@ import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -29,6 +30,8 @@ import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+
+import org.jetbrains.kotlin.name.NameUtils
 
 import org.junit.Test
 
@@ -374,4 +377,47 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             )
         }
     }
+
+    @Test
+    fun `precompiled project script template honors HasImplicitReceiver`() {
+
+        assertHasImplicitReceiverIsHonoredByScriptOf<Project>("my-project-plugin.gradle.kts")
+    }
+
+    @Test
+    fun `precompiled settings script template honors HasImplicitReceiver`() {
+
+        assertHasImplicitReceiverIsHonoredByScriptOf<Settings>("my-settings-plugin.settings.gradle.kts")
+    }
+
+    @Test
+    fun `precompiled init script template honors HasImplicitReceiver`() {
+
+        assertHasImplicitReceiverIsHonoredByScriptOf<Gradle>("my-init-plugin.init.gradle.kts")
+    }
+
+    private
+    inline fun <reified T : Any> assertHasImplicitReceiverIsHonoredByScriptOf(fileName: String) {
+
+        // Action<T> <=> T.() -> Unit because HasImplicitReceiver
+        givenPrecompiledKotlinScript(fileName, """
+            fun <T> applyActionTo(a: T, action: ${Action::class.qualifiedName}<T>) = action(a)
+            object receiver
+            applyActionTo(receiver) {
+                require(this === receiver)
+                print("42!")
+            }
+        """)
+
+        assertStandardOutputOf("42!") {
+            instantiatePrecompiledScriptOf(
+                mock<T>(),
+                scriptClassNameForFile(fileName)
+            )
+        }
+    }
+
+    private
+    fun scriptClassNameForFile(fileName: String) =
+        NameUtils.getScriptNameForFile(fileName).asString()
 }
