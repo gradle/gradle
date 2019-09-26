@@ -5,6 +5,7 @@ plugins {
 // Fake NPM task that would normally execute npm with its provided arguments
 open class NpmTask : DefaultTask() {
 
+    @get:Input
     val args = project.objects.listProperty<String>()
 
     @TaskAction

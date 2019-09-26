@@ -1,5 +1,6 @@
 // tag::add-property[]
 class GreetingTask extends DefaultTask {
+    @Input
     String greeting = 'hello from GreetingTask'
 
     @TaskAction

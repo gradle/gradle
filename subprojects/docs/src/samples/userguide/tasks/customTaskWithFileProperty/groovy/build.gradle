@@ -4,6 +4,7 @@ class GreetingToFileTask extends DefaultTask {
 
     def destination
 
+    @OutputFile
     File getDestination() {
         project.file(destination)
     }
