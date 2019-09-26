@@ -60,4 +60,9 @@ public class FileNode implements Node {
     public void accept(FileSystemSnapshotVisitor visitor) {
         visitor.visitFile(snapshot);
     }
+
+    @Override
+    public void underLock(Runnable action) {
+        parent.underLock(action);
+    }
 }

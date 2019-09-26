@@ -72,6 +72,11 @@ public class RootNode extends AbstractNodeWithMutableChildren {
                 public void accept(FileSystemSnapshotVisitor visitor) {
                     RootNode.this.accept(visitor);
                 }
+
+                @Override
+                public void underLock(Runnable action) {
+                    RootNode.super.underLock(action);
+                }
             };
         }
         return super.getOrCreateChild(name, nodeSupplier);

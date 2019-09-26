@@ -63,4 +63,9 @@ public class MissingFileNode implements Node {
     public void accept(FileSystemSnapshotVisitor visitor) {
         visitor.visitFile(new MissingFileSnapshot(absolutePath, name));
     }
+
+    @Override
+    public void underLock(Runnable action) {
+        parent.underLock(action);
+    }
 }

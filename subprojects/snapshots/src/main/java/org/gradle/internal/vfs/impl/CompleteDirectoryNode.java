@@ -129,4 +129,8 @@ public class CompleteDirectoryNode implements Node {
         }
     }
 
+    @Override
+    public void underLock(Runnable action) {
+        parent.underLock(action);
+    }
 }

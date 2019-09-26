@@ -35,6 +35,8 @@ public interface Node {
         return getAbsolutePath() + File.separatorChar + name;
     }
 
+    void underLock(Runnable action);
+
     enum Type {
         FILE,
         DIRECTORY,

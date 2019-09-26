@@ -16,13 +16,13 @@
 
 package org.gradle.internal.vfs.impl;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public abstract class AbstractNodeWithMutableChildren implements Node {
-    private final Map<String, Node> children = new HashMap<>();
+    private final ConcurrentHashMap<String, Node> children = new ConcurrentHashMap<>();
 
     @Override
     public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
@@ -50,6 +50,11 @@ public abstract class AbstractNodeWithMutableChildren implements Node {
                 ? nodeSupplier.apply(parent)
                 : current
         );
+    }
+
+    @Override
+    public synchronized void underLock(Runnable action) {
+        action.run();
     }
 
     public Map<String, Node> getChildren() {
