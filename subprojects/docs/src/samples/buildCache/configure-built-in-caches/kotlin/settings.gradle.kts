@@ -10,7 +10,7 @@ buildCache {
 // tag::configure-http-build-cache[]
 buildCache {
     remote<HttpBuildCache> {
-        url = uri("http://example.com:8123/cache/")
+        url = uri("https://example.com:8123/cache/")
         credentials {
             username = "build-cache-user"
             password = "some-complicated-password"
