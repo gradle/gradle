@@ -1,5 +1,5 @@
 [[single-version-declarations]]
-= Single version declarations
+= Declaring Versions and Ranges
 
 The simplest version declaration is a _simple string_ representing the version to use.
 Gradle supports different ways of declaring a version string:

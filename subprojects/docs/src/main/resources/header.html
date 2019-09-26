@@ -167,7 +167,6 @@
             <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-sustainable-builds" aria-expanded="false" aria-controls="authoring-sustainable-builds">Authoring Sustainable Builds</a>
                 <ul id="authoring-sustainable-builds">
                     <li><a href="organizing_gradle_projects.html">Organizing Build Logic</a></li>
-                    <li><a href="composite_builds.html">Composing Gradle Builds</a></li>
                     <li><a href="authoring_maintainable_build_scripts.html">Following Best Practices</a></li>
                 </ul>
             </li>
@@ -185,45 +184,52 @@
             </li>
         </ul>
 
-        <h3 id="managing-dependencies">Managing Dependencies</h3>
+        <h3 id="managing-dependencies">Working with Dependencies</h3>
         <ul>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#learning-the-basics-dependency-management" aria-expanded="false" aria-controls="learning-the-basics-dependency-management">Learning the Basics</a>
                 <ul id="learning-the-basics-dependency-management">
                     <li><a href="core_dependency_management.html">What is Dependency Management?</a></li>
                     <li><a href="declaring_repositories.html">Declaring Repositories</a></li>
                     <li><a href="declaring_dependencies.html">Declaring Dependencies</a></li>
-                    <li><a href="library_vs_application.html">Developing Libraries</a></li>
-                    <li><a href="viewing_debugging_dependencies.html">Debugging Dependencies</a></li>
-                    <li><a href="dependency_resolution.html">Dependency Resolution</a></li>
+                    <li><a href="library_vs_application.html">Understanding Library and Application Differences</a></li>
+                    <li><a href="viewing_debugging_dependencies.html">Viewing and Debugging Dependencies</a></li>
+                    <li><a href="dependency_resolution.html">Understanding Resolution</a></li>
                 </ul>
             </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependency-versions" aria-expanded="false" aria-controls="declaring-dependency-versions">Choosing Versions</a>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependency-versions" aria-expanded="false" aria-controls="declaring-dependency-versions">Declaring Versions</a>
                 <ul id="declaring-dependency-versions">
-                    <li><a href="single_versions.html">Declaring a Simple Version</a></li>
-                    <li><a href="rich_versions.html">Declaring a Rich Version</a></li>
+                    <li><a href="single_versions.html">Declaring Versions and Ranges</a></li>
+                    <li><a href="rich_versions.html">Declaring Rich Versions</a></li>
                     <li><a href="dynamic_versions.html">Handling Changing Versions</a></li>
                     <li><a href="dependency_locking.html">Locking Versions</a></li>
                 </ul>
             </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#controlling-transitive-dependencies" aria-expanded="false" aria-controls="controlling-transitive-dependencies">Controlling Transitives</a>
                 <ul id="controlling-transitive-dependencies">
-                    <li><a href="dependency_constraints.html">Declaring Constraints</a></li>
-                    <li><a href="platforms.html">Using Platforms</a></li>
-                    <li><a href="dependency_alignment.html">Aligning Dependencies</a></li>
-                    <li><a href="dependency_capability_conflict.html">Managing Conflicting Dependencies</a></li>
+                    <li><a href="dependency_constraints.html">Upgrading Versions</a></li>
+                    <li><a href="dependency_downgrade_and_exclude.html">Downgrading and Excluding</a></li>
+                    <li><a href="platforms.html">Sharing Versions</a></li>
+                    <li><a href="dependency_version_alignment.html">Aligning Dependencies</a></li>
+                    <li><a href="dependency_capability_conflict.html">Handling Mutually Exclusive Dependencies</a></li>
                     <li><a href="component_metadata_rules.html">Fixing Metadata</a></li>
                     <li><a href="resolution_rules.html">Customizing Resolution</a></li>
                 </ul>
             </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#modeling-features" aria-expanded="false" aria-controls="modeling-features">Utilizing Variants</a>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#modeling-features" aria-expanded="false" aria-controls="modeling-features">Producing and Consuming Variants of Libraries</a>
                 <ul id="modeling-features">
-                    <li><a href="component_capabilities.html">Declaring Capabilities</a></li>
-                    <li><a href="feature_variants.html">Modeling Feature Variants</a></li>
-                    <li><a href="variant_model.html">Understanding Variant Selection</a></li>
-                    <li><a href="cross_project_publications.html">Adding Variants to Subprojects</a></li>
+                    <li><a href="component_capabilities.html">Declaring Capabilities of a Library</a></li>
+                    <li><a href="feature_variants.html">Modeling Feature Variants and Optional Dependencies</a></li>
+                    <li><a href="variant_model.html">Debugging Variant Selection</a></li>
+                    <li><a href="cross_project_publications.html">Sharing Outputs of Projects</a></li>
+                    <li><a href="artifact_transforms.html">Transforming Artifacts</a></li>
                 </ul>
             </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing" aria-expanded="false" aria-controls="publishing">Publishing Modules</a>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#multi-repo" aria-expanded="false" aria-controls="multi-repo">Working in a Multi-repo Environment</a>
+                <ul id="multi-repo">
+                    <li><a href="composite_builds.html">Composing Builds</a></li>
+                </ul>
+            </li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing" aria-expanded="false" aria-controls="publishing">Publishing Libraries</a>
                 <ul id="publishing">
                     <li><a href="publishing_setup.html">Setting up Publishing</a></li>
                     <li><a href="publishing_gradle_module_metadata.html">Understanding Gradle Module Metadata</a></li>
@@ -231,12 +237,9 @@
                     <li><a href="publishing_customization.html">Customizing Publishing</a></li>
                 </ul>
             </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#fine_grained_dm_apis" aria-expanded="false" aria-controls="fine_grained_dm_apis">Fine-grained Apis</a>
-                <ul id="fine_grained_dm_apis">
-                    <li><a href="dependency_modification_apis.html">Modifying Dependencies</a></li>
-                    <li><a href="variant_aware_plugins.html">Writing Variant-aware Plugins</a></li>
-                    <li><a href="artifact_transforms.html">Transforming Artifacts</a></li>
-                    <!-- <li><a href="resolution_result_api.html">Accessing the Resolution Result</a></li> -->
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#variant-aware-plugins" aria-expanded="false" aria-controls="variant-aware-plugins">Writing Variant-aware Plugins</a>
+                <ul id="variant-aware-plugins">
+                    <li><a href="variant_attributes.html">Declaring Attributes</a></li>
                 </ul>
             </li>
             <li><a href="dependency_management_terminology.html">Terminology</a></li>

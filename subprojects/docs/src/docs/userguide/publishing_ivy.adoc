@@ -198,6 +198,6 @@ Gradle will emit a warning that such a configuration is published. The recommend
 
 While Ivy supports the concept of a https://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html#_forcing_revision[`force` on a dependency], Gradle will not map its own deprecated `force` declarations to it.
 
-Instead, it is recommended to replace the Gradle `force` with a <<rich_versions.adoc#sec:strict-version,`strictly` version>>, which provides <<dependency_constraints.adoc#sec:enforcing_dependency_version,better semantics>> and is supported by the Gradle Module Metadata format.
+Instead, it is recommended to replace the Gradle `force` with a <<rich_versions.adoc#sec:strict-version,`strictly` version>>, which provides <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,better semantics>> and is supported by the Gradle Module Metadata format.
 
 Note that if you absolutely need to publish a force, you can still <<#sec:modifying_the_generated_module_descriptor,modify the produced `ivy.xml`>>.

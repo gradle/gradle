@@ -1,5 +1,5 @@
 [[sec:component_metadata_rules]]
-= Using component metadata rules
+= Fixing metadata with component metadata rules
 
 Each module that is pulled from a repository has metadata associated with it, such as its group, name, version as well as the different variants it provides with their artifacts and dependencies.
 Sometimes, this metadata is incomplete or incorrect.
@@ -304,7 +304,7 @@ It is explained in detail in the section on <<dependency_version_alignment.adoc#
 
 Gradle and Gradle Module Metadata also allow attributes to be set on the whole component instead of a single variant.
 Each of these attributes carries special semantics as they influence version selection which is done _before_ variant selection.
-While variant selection can handle <<variant_aware_plugins.adoc#sec:abm_declaring_attributes,any custom attribute>>, version selection only considers attributes for which specific semantics are implemented.
+While variant selection can handle <<variant_attributes.adoc#abm_declaring_attributes,any custom attribute>>, version selection only considers attributes for which specific semantics are implemented.
 At the moment, the only attribute with meaning here is `org.gradle.status`.
 It is therefore recommended to only modify this attribute, if any, on the component level.
 A dedicated API `setStatus(value)` is available for this.

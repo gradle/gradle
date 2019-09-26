@@ -1,5 +1,5 @@
 [[composite_builds]]
-= Composite builds
+= Composing builds
 
 [[composite_build_intro]]
 == What is a composite build?

@@ -1,4 +1,4 @@
-= Dependency resolution
+= Understanding dependency resolution
 
 This chapter covers the way dependency resolution works _inside_ Gradle.
 After covering how you can declare <<declaring_repositories.adoc#,repositories>> and <<declaring_dependencies.adoc#,dependencies>>, it makes sense to explain how these declarations come together during dependency resolution.

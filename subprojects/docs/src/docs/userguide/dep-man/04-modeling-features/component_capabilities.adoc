@@ -1,5 +1,5 @@
 [[declaring-component-capabilities]]
-= Declaring component capabilities
+= Declaring Capabilities of a Library
 
 == Capabilities as first-level concept
 

@@ -183,6 +183,66 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/condit
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
 Dependency substitution rules take care of replacing the module dependency with the project dependency, but do not implicitly include the project in the build.
 
+[[sec:disabling_resolution_transitive_dependencies]]
+== Disabling transitive resolution
+
+By default Gradle resolves all transitive dependencies specified by the dependency metadata.
+Sometimes this behavior may not be desirable e.g. if the metadata is incorrect or defines a large graph of transitive dependencies.
+You can tell Gradle to disable transitive dependency management for a dependency by setting link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#setTransitive-boolean-[ModuleDependency.setTransitive(boolean)] to `false`.
+As a result only the main artifact will be resolved for the declared dependency.
+
+.Disabling transitive dependency resolution for a declared dependency
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency/kotlin",files="build.gradle.kts[tags=transitive-per-dependency]"]
+====
+
+[NOTE]
+====
+Disabling transitive dependency resolution will likely require you to declare the necessary runtime dependencies in your build script which otherwise would have been resolved automatically. Not doing so might lead to runtime classpath issues.
+====
+
+A project can decide to disable transitive dependency resolution completely.
+You either don't want to rely on the metadata published to the consumed repositories or you want to gain full control over the dependencies in your graph.
+For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#setTransitive-boolean-[Configuration.setTransitive(boolean)].
+
+.Disabling transitive dependency resolution on the configuration-level
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
+====
+
+== Changing configuration dependencies prior to resolution
+
+At times, a plugin may want to modify the dependencies of a configuration before it is resolved.
+The `withDependencies` method permits dependencies to be added, removed or modified programmatically.
+
+.Modifying dependencies on a configuration
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
+====
+
+[[sec:configuration_defaults]]
+== Setting default configuration dependencies
+
+A configuration can be configured with default dependencies to be used if no dependencies are explicitly set for the configuration.
+A primary use case of this functionality is for developing plugins that make use of versioned tools that the user might override.
+By specifying default dependencies, the plugin can use a default version of the tool only if the user has not specified a particular version to use.
+
+.Specifying default dependencies on a configuration
+====
+include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
+====
+
+== Matching dependencies to repositories
+
+Gradle exposes an API to declare what a repository may or may not contain.
+This feature offers a fine grained control on which repository serve which artifacts, which can be one way of controlling the source of dependencies.
+
+Head over to <<declaring_repositories.adoc#sec:repository-content-filtering,the section on repository content filtering>> to know more about this feature.
+
 [[sec:ivy_dynamic_resolve_mode]]
 == Enabling Ivy dynamic resolve mode
 

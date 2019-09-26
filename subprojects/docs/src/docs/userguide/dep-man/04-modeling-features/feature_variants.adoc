@@ -2,7 +2,7 @@
 :metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[feature_variants]]
-= Feature variants and optional dependencies
+= Modeling feature variants and optional dependencies
 
 Gradle supports the concept of _feature variants_: when building a library, it's often the case that some features should only be available when some dependencies are present, or when special artifacts are used.
 

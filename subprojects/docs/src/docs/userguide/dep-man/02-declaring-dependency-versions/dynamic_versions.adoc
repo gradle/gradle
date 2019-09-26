@@ -1,5 +1,5 @@
 [[sec:dynamic_versions_and_changing_modules]]
-= Dealing with versions which change over time
+= Handling versions which change over time
 
 There are many situations when you want to use the latest version of a particular module dependency, or the latest in a range of versions.
 This can be a requirement during development, or you may be developing a library that is designed to work with a range of dependency versions.

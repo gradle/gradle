@@ -1,5 +1,5 @@
 [[sec:understanding-diff-libraries-and-apps]]
-= Developing libraries
+= Understanding the difference between libraries and applications
 
 [[sub:producers-vs-consumers]]
 == Producers vs consumers
@@ -56,8 +56,8 @@ A lot of the problems Gradle handles are about fixing the mismatch between the e
 
 However, some projects are easier than others:
 
-- if you are at the end of the consumption chain, that is to say you build an _application_, then there are effectively _no consumer_ of your project (apart from final customers): adding <<dependency_constraints.adoc#sec:excluding-transitive-deps,exclusions>> will have no other consequence than fixing your problem.
-- however if you are a library, adding <<dependency_constraints.adoc#sec:excluding-transitive-deps,exclusions>> may prevent consumers from working properly, because they would exercise a path of the code that you don't
+- if you are at the end of the consumption chain, that is to say you build an _application_, then there are effectively _no consumer_ of your project (apart from final customers): adding <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps,exclusions>> will have no other consequence than fixing your problem.
+- however if you are a library, adding <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps,exclusions>> may prevent consumers from working properly, because they would exercise a path of the code that you don't
 
 Always keep in mind that the solution you choose to fix a problem can "leak" to your consumers.
 This documentation aims at guiding you to find the right solution to the right problem, and more importantly, make decisions which help the resolution engine to take the right decisions in case of conflicts.
