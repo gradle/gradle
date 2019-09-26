@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.api.logging.configuration.WarningMode
+
 class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
 
      def util = new AutoTestedSamplesUtil()
@@ -27,7 +29,10 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             def settingsFile = testFile('settings.gradle')
             def fileToTest = tagSuffix == 'Settings' ? settingsFile : buildFile
             fileToTest.text = sample
-            executer.withTasks('help').withArguments("-s")
+            executer
+                .withTasks('help')
+                .withArguments("--stacktrace")
+                .withWarningMode(WarningMode.Fail)
             beforeSample()
             executer.run()
             fileToTest.delete()
