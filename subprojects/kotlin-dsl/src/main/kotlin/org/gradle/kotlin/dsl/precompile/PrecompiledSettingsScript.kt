@@ -30,7 +30,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
  * @see PrecompiledProjectScript
  */
 @Deprecated("Kept for backward compatibility")
-open class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target), Settings by target {
+open class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target) {
 
     override val fileOperations by lazy { fileOperationsFor(delegate) }
 
