@@ -11,6 +11,7 @@ import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -57,6 +58,10 @@ class ScriptApiTest {
     @Test
     fun `compiled init script template implements script api`() =
         assertScriptApiOf<CompiledKotlinInitScript>()
+
+    @Test
+    fun `compiled settings script template implements script api`() =
+        assertScriptApiOf<CompiledKotlinSettingsScript>()
 
     @Ignore("wip")
     @Test
