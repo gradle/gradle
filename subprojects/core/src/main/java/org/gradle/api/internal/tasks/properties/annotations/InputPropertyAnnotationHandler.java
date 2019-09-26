@@ -25,6 +25,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.internal.reflect.AnnotationCategory;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.model.internal.type.ModelType;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -66,7 +67,7 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
             || FileCollection.class.isAssignableFrom(valueType)) {
             validationContext.visitPropertyProblem(WARNING,
                 propertyMetadata.getPropertyName(),
-                String.format("has @Input annotation used on property of type %s", valueType.getName())
+                String.format("has @Input annotation used on property of type '%s'", ModelType.of(valueType).getDisplayName())
             );
         }
         if (valueType.isPrimitive() && propertyMetadata.isAnnotationPresent(Optional.class)) {

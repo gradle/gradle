@@ -13,15 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@NonNullApi
+package org.gradle.plugin.devel.tasks.internal;
 
-package org.gradle.api.internal.tasks.properties;
-
-import java.util.Map;
-
-@Deprecated
-@SuppressWarnings("unused")
-public class PropertyValidationAccess {
-    public static void collectValidationProblems(Class<?> topLevelBean, Map<String, Boolean> problems, boolean enableStricterValidation) {
-        System.err.println(">>> Temporarily ignore validation, needs bumping wrapper on master to remove");
-    }
-}
+import org.gradle.api.NonNullApi;

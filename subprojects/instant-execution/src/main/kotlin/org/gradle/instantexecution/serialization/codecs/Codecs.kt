@@ -180,6 +180,7 @@ class Codecs(
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<WorkerExecutor>())
+        bind(ownerService<ListenerManager>())
 
         bind(EnumCodec)
         bind(ProxyCodec)

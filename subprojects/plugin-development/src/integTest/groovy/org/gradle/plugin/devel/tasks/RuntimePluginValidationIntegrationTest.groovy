@@ -29,6 +29,20 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
         buildFile << """
             tasks.register("run", MyTask)
         """
+
+        executer.withFullDeprecationStackTraceDisabled()
+    }
+
+    final String iterableSymbol = '.$0'
+
+    @Override
+    String getNameSymbolFor(String name) {
+        ".$name\$0"
+    }
+
+    @Override
+    String getKeySymbolFor(String name) {
+        ".$name"
     }
 
     @Override
@@ -81,5 +95,39 @@ class RuntimePluginValidationIntegrationTest extends AbstractPluginValidationInt
     @Override
     TestFile source(String path) {
         return file("buildSrc/$path")
+    }
+
+    def "supports recursive types"() {
+        groovyTaskSource << """
+            import org.gradle.api.*
+            import org.gradle.api.tasks.*
+
+            class MyTask extends DefaultTask {
+                @Nested
+                Tree tree = new Tree(
+                        left: new Tree([:]),
+                        right: new Tree([:])
+                    )
+                
+                public static class Tree {
+                    @Optional @Nested
+                    Tree left
+            
+                    @Optional @Nested
+                    Tree right
+            
+                    String nonAnnotated
+                }
+                
+                @TaskAction void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Property 'tree.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Property 'tree.left.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Property 'tree.right.nonAnnotated' is not annotated with an input or output annotation.": WARNING,
+        )
     }
 }
