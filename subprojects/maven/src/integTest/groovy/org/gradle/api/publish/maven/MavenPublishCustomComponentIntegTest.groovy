@@ -16,13 +16,12 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest {
     def publishedModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    def "can publish custom component with no usages or variants"() {
+    def "cannot publish custom component with no usages or variants"() {
         createBuildScripts("""
             publishing {
                 publications {
@@ -34,39 +33,11 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
 """)
 
         when:
-        run "publish"
+        fails "publish"
 
         then:
-        publishedModule.assertPublished()
-        publishedModule.parsedPom.scopes.isEmpty()
-        publishedModule.parsedModuleMetadata.variants.isEmpty()
-    }
-
-    def "can enable module metadata publishing via property"() {
-        // Don't enable via command line argument
-        disableModuleMetadataPublishing()
-
-        // Instead enable via property
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-
-        createBuildScripts("""
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-                        from new MySoftwareComponent()
-                    }
-                }
-            }
-""")
-
-
-        when:
-        run "publish"
-
-        then:
-        publishedModule.assertPublished()
-        publishedModule.parsedPom.scopes.isEmpty()
-        publishedModule.parsedModuleMetadata.variants.isEmpty()
+        failure.assertHasCause """Invalid publication 'maven':
+  - This publication must publish at least one variant"""
     }
 
     def "can publish custom component with usages"() {
@@ -140,6 +111,14 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                     maven { url "${mavenRepo.uri}" }
                 }
             }
+            
+            class TestAttributes {
+                // shared mutable state for tests, don't do this at home!
+                static AttributeContainer INSTANCE
+            }
+            TestAttributes.INSTANCE = project.services.get(org.gradle.api.internal.attributes.ImmutableAttributesFactory)
+               .mutable()
+               .attribute(Attribute.of("test.attribute", String), "value")
 
             class MySoftwareComponent implements org.gradle.api.internal.component.SoftwareComponentInternal {
                 String name = 'comp'
@@ -158,7 +137,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                 class MyUsageContext implements org.gradle.api.internal.component.UsageContext {
                     String name = "usage"
                     Usage usage = { "usageName" }
-                    AttributeContainer attributes = org.gradle.api.internal.attributes.ImmutableAttributes.EMPTY
+                    AttributeContainer attributes = TestAttributes.INSTANCE
                     Set<PublishArtifact> artifacts = [ publishedArtifact ]
                     Set<ModuleDependency> dependencies = [ publishedDependency ]
                     Set<DependencyConstraint> dependencyConstraints = []

@@ -175,7 +175,7 @@ fun importsRequiredBy(vararg candidateTypes: TypeAccessibility): List<String> =
 internal
 sealed class Accessor {
 
-    data class ForConfiguration(val name: AccessorNameSpec) : Accessor()
+    data class ForConfiguration(val config: ConfigurationEntry<AccessorNameSpec>) : Accessor()
 
     data class ForExtension(val spec: TypedAccessorSpec) : Accessor()
 
@@ -196,10 +196,10 @@ fun accessorsFor(schema: ProjectSchema<TypeAccessibility>): Sequence<Accessor> =
             yieldAll(uniqueAccessorsFor(tasks).map(Accessor::ForTask))
             yieldAll(uniqueAccessorsFor(containerElements).map(Accessor::ForContainerElement))
 
-            val configurationNames = configurations.map(::AccessorNameSpec).asSequence()
+            val configurationNames = configurations.map { it.map(::AccessorNameSpec) }.asSequence()
             yieldAll(
                 uniqueAccessorsFrom(
-                    configurationNames.map(::configurationAccessorSpec)
+                    configurationNames.map { it.target }.map(::configurationAccessorSpec)
                 ).map(Accessor::ForContainerElement)
             )
             yieldAll(configurationNames.map(Accessor::ForConfiguration))

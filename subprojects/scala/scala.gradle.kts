@@ -43,6 +43,7 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":files"))
     testImplementation(library("slf4j_api"))
     testImplementation(library("commons_io"))
     testImplementation(testFixtures(project(":core")))

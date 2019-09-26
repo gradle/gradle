@@ -65,7 +65,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
             invocation {
                 args(*jobArgs)
                 tasksToRun(*tasks)
-                useDaemon()
                 gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
@@ -83,7 +82,6 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                 args(*jobArgs)
                 args("-DenableScan=true")
                 tasksToRun(*tasks)
-                useDaemon()
                 gradleOpts(*opts)
                 if (withFailure) {
                     expectFailure()
@@ -187,9 +185,16 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                         repositories {
                             maven {
                                 url 'https://repo.gradle.org/gradle/enterprise-libs-snapshots-local/'
+                                credentials {
+                                    username = System.getenv("ARTIFACTORY_USERNAME")
+                                    password = System.getenv("ARTIFACTORY_PASSWORD")
+                                }
+                                authentication {
+                                    basic(BasicAuthentication)
+                                }
                             }
                         }
-                    
+
                         dependencies {
                             classpath "com.gradle:build-scan-plugin:${buildScanPluginVersion}"
                         }

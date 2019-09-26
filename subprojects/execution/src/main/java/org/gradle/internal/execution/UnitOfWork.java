@@ -26,6 +26,7 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -81,9 +82,13 @@ public interface UnitOfWork extends CacheableEntity {
     long markExecutionTime();
 
     /**
-     * Validate the work's inputs and outputs, and throws an exception if violations are found.
+     * Validate the work definition and configuration.
      */
-    void validate();
+    void validate(WorkValidationContext validationContext);
+
+    interface WorkValidationContext {
+        TypeValidationContext createContextFor(Class<?> type, boolean cacheable);
+    }
 
     /**
      * Return a reason to disable caching for this work.
@@ -98,13 +103,6 @@ public interface UnitOfWork extends CacheableEntity {
      */
     default Optional<ExecutionOutcome> skipIfInputsEmpty(ImmutableSortedMap<String, FileCollectionFingerprint> outputFilesAfterPreviousExecution) {
         return Optional.empty();
-    }
-
-    /**
-     * Returns whether the execution history should be stored.
-     */
-    default boolean isTaskHistoryMaintained() {
-        return true;
     }
 
     /**
@@ -203,7 +201,13 @@ public interface UnitOfWork extends CacheableEntity {
         }
     }
 
-    ExecutionHistoryStore getExecutionHistoryStore();
+    /**
+     * Returns the {@link ExecutionHistoryStore} to use to store the execution state of this work.
+     * When {@link Optional#empty()} no execution history will be maintained.
+     */
+    default Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
+        return Optional.empty();
+    }
 
     /**
      * This is a temporary measure for Gradle tasks to track a legacy measurement of all input snapshotting together.

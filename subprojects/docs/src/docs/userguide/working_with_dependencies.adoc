@@ -17,11 +17,17 @@
 
 Gradle provides an extensive API for navigating, inspecting and post-processing metadata and artifacts of resolved dependencies.
 
-The main entry point for this functionality is the link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration] API. To learn more about the fundamentals of configurations, see <<managing_dependency_configurations.adoc#managing_dependency_configurations,Managing Dependency Configurations>>.
+The main entry point for this functionality is the link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html[Configuration] API.
+To learn more about the fundamentals of configurations, see <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,What are dependency configurations>>.
 
 == Iterating over dependencies assigned to a configuration
 
-Sometimes you'll want to implement logic based on the dependencies declared in the build script of a project e.g. to inspect them in a Gradle plugin. You can iterate over the set of dependencies assigned to a configuration with the help of the method link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:dependencies[Configuration.getDependencies()]. Alternatively, you can also use link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:allDependencies[Configuration.getAllDependencies()] to include the dependencies declared in <<managing_dependency_configurations.adoc#sub:inheriting_dependencies_from_other_configurations,superconfigurations>>. These APIs only return the declared dependencies and do not trigger <<introduction_dependency_management.adoc#sec:dependency_resolution,dependency resolution>>. Therefore, the dependency sets do not include transitive dependencies. Calling the APIs during the <<build_lifecycle.adoc#sec:build_phases,configuration phase of the build lifecycle>> does not result in a significant performance impact.
+Sometimes you'll want to implement logic based on the dependencies declared in the build script of a project e.g. to inspect them in a Gradle plugin.
+You can iterate over the set of dependencies assigned to a configuration with the help of the method link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:dependencies[Configuration.getDependencies()].
+Alternatively, you can also use link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:allDependencies[Configuration.getAllDependencies()] to include the dependencies declared in <<declaring_dependencies.adoc#sub:config-inheritance-composition,superconfigurations>>.
+These APIs only return the declared dependencies and do not trigger <<dependency_resolution.adoc#sec:how-gradle-downloads-deps,dependency resolution>>.
+Therefore, the dependency sets do not include transitive dependencies.
+Calling the APIs during the <<build_lifecycle.adoc#sec:build_phases,configuration phase of the build lifecycle>> does not result in a significant performance impact.
 
 .Iterating over the dependencies assigned to a configuration
 ====
@@ -32,9 +38,12 @@ include::sample[dir="userguide/dependencyManagement/workingWithDependencies/iter
 
 == Iterating over artifacts resolved for a module
 
-None of the <<inspecting_dependencies.adoc#inspecting_dependencies,dependency reporting>> helps you with inspecting or further processing the underlying, resolved artifacts of a module. A typical use case for accessing the artifacts is to copy them into a specific directory or filter out files of interest based on a specific file extension.
+None of the <<viewing_debugging_dependencies.adoc#sec:listing_dependencies,dependency reporting>> helps you with inspecting or further processing the underlying, resolved artifacts of a module.
+A typical use case for accessing the artifacts is to copy them into a specific directory or filter out files of interest based on a specific file extension.
 
-You can iterate over the complete set of artifacts resolved for a module with the help of the method link:{javadocPath}/org/gradle/api/file/FileCollection.html#getFiles--[FileCollection.getFiles()]. Every file instance returned from the method points to its location in the <<dependency_cache.adoc#dependency_cache,dependency cache>>. Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
+You can iterate over the complete set of artifacts resolved for a module with the help of the method link:{javadocPath}/org/gradle/api/file/FileCollection.html#getFiles--[FileCollection.getFiles()].
+Every file instance returned from the method points to its location in the <<dependency_resolution.adoc#sec:dependency_cache,dependency cache>>.
+Using this method on a `Configuration` instance is possible as the interface extends `FileCollection`.
 
 .Iterating over the artifacts resolved for a module
 ====

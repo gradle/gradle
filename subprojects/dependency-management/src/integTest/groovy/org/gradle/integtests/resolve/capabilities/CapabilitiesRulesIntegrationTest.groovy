@@ -68,7 +68,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
 
         then:
         def variant = 'runtime'
-        if (!isGradleMetadataEnabled() && useIvy()) {
+        if (!isGradleMetadataPublished() && useIvy()) {
             variant = 'default'
         }
         failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:

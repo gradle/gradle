@@ -30,11 +30,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class DefaultFileSystemMirror implements FileSystemMirror {
     // Maps from interned absolute path for a file to metadata for the file.
-    private final Map<String, FileMetadataSnapshot> metadata = new ConcurrentHashMap<String, FileMetadataSnapshot>();
-    private final Map<String, FileMetadataSnapshot> cacheMetadata = new ConcurrentHashMap<String, FileMetadataSnapshot>();
+    private final Map<String, FileMetadataSnapshot> metadata = new ConcurrentHashMap<>();
+    private final Map<String, FileMetadataSnapshot> cacheMetadata = new ConcurrentHashMap<>();
     // Maps from interned absolute path for a file to snapshot for the file.
-    private final Map<String, FileSystemLocationSnapshot> files = new ConcurrentHashMap<String, FileSystemLocationSnapshot>();
-    private final Map<String, FileSystemLocationSnapshot> cacheFiles = new ConcurrentHashMap<String, FileSystemLocationSnapshot>();
+    private final Map<String, FileSystemLocationSnapshot> files = new ConcurrentHashMap<>();
+    private final Map<String, FileSystemLocationSnapshot> cacheFiles = new ConcurrentHashMap<>();
 
     private final WellKnownFileLocations wellKnownFileLocations;
 

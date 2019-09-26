@@ -16,13 +16,10 @@
 
 package org.gradle.api.component;
 
-import org.gradle.api.Incubating;
-
 /**
  * Represents a component that can be published.
  *
  * @since 4.7
  */
-@Incubating
 public interface PublishableComponent extends SoftwareComponent, ComponentWithCoordinates {
 }

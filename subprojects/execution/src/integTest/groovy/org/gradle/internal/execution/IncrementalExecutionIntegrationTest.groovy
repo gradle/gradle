@@ -37,14 +37,14 @@ import org.gradle.internal.execution.steps.CatchExceptionStep
 import org.gradle.internal.execution.steps.CleanupOutputsStep
 import org.gradle.internal.execution.steps.CreateOutputsStep
 import org.gradle.internal.execution.steps.ExecuteStep
-import org.gradle.internal.execution.steps.LoadPreviousExecutionStateStep
+import org.gradle.internal.execution.steps.LoadExecutionStateStep
 import org.gradle.internal.execution.steps.RecordOutputsStep
 import org.gradle.internal.execution.steps.ResolveCachingStateStep
 import org.gradle.internal.execution.steps.ResolveChangesStep
 import org.gradle.internal.execution.steps.ResolveInputChangesStep
 import org.gradle.internal.execution.steps.SkipUpToDateStep
 import org.gradle.internal.execution.steps.SnapshotOutputsStep
-import org.gradle.internal.execution.steps.StoreSnapshotsStep
+import org.gradle.internal.execution.steps.StoreExecutionStateStep
 import org.gradle.internal.execution.steps.ValidateStep
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -57,6 +57,7 @@ import org.gradle.internal.fingerprint.overlap.impl.DefaultOverlappingOutputDete
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -71,10 +72,12 @@ import spock.lang.Specification
 
 import javax.annotation.Nullable
 import java.time.Duration
+import java.util.function.Consumer
 import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 
 class IncrementalExecutionIntegrationTest extends Specification {
 
@@ -110,6 +113,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
     def valueSnapshotter = new DefaultValueSnapshotter(classloaderHierarchyHasher, null)
     def buildCacheController = Mock(BuildCacheController)
+    def buildOperationExecutor = new TestBuildOperationExecutor()
+    def validationWarningReporter = Mock(ValidateStep.ValidationWarningReporter)
 
     final outputFile = temporaryFolder.file("output-file")
     final outputDir = temporaryFolder.file("output-dir")
@@ -131,26 +136,27 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def changeDetector = new DefaultExecutionStateChangeDetector()
     def overlappingOutputDetector = new DefaultOverlappingOutputDetector()
+    def deleter = TestFiles.deleter()
 
     WorkExecutor<ExecutionRequestContext, CachingResult> getExecutor() {
         // @formatter:off
         new DefaultWorkExecutor<>(
-            new LoadPreviousExecutionStateStep<>(
-            new ValidateStep<>(
-            new CaptureStateBeforeExecutionStep<>(classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
+            new LoadExecutionStateStep<>(
+            new ValidateStep<>(validationWarningReporter,
+            new CaptureStateBeforeExecutionStep<>(buildOperationExecutor, classloaderHierarchyHasher, valueSnapshotter, overlappingOutputDetector,
             new ResolveCachingStateStep<>(buildCacheController, false,
             new ResolveChangesStep<>(changeDetector,
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
-            new StoreSnapshotsStep<>(
-            new SnapshotOutputsStep<>(buildInvocationScopeId.getId(),
+            new StoreExecutionStateStep<>(
+            new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(
             new ResolveInputChangesStep<>(
-            new CleanupOutputsStep<>(
-            new ExecuteStep<InputChangesContext>()
-        )))))))))))))))
+            new CleanupOutputsStep<>(deleter,
+            new ExecuteStep<>(
+        ))))))))))))))))
         // @formatter:on
     }
 
@@ -553,9 +559,10 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     def "invalid work is not executed"() {
-        def validationError = new RuntimeException("Validation error")
         def invalidWork = builder
-            .withValidationError(validationError)
+            .withValidator { validationContext ->
+                validationContext.createContextFor(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
+            }
             .withWork({ throw new RuntimeException("Should not get executed") })
             .build()
 
@@ -563,8 +570,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
         execute(invalidWork)
 
         then:
-        def ex = thrown Exception
-        ex == validationError
+        def ex = thrown WorkValidationException
+        ex.causes*.message as List == ["Type '$Object.simpleName': Validation error."]
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
@@ -680,7 +687,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private Map<String, ? extends Collection<? extends File>> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
-        private Exception validationError
+        private Consumer<UnitOfWork.WorkValidationContext> validator
 
         UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
@@ -735,8 +742,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return this
         }
 
-        UnitOfWorkBuilder withValidationError(Exception validationError) {
-            this.validationError = validationError
+        UnitOfWorkBuilder withValidator(Consumer<UnitOfWork.WorkValidationContext> validator) {
+            this.validator = validator
             return this
         }
 
@@ -755,8 +762,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                ExecutionHistoryStore getExecutionHistoryStore() {
-                    return IncrementalExecutionIntegrationTest.this.executionHistoryStore
+                Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
+                    return Optional.of(IncrementalExecutionIntegrationTest.this.executionHistoryStore)
                 }
 
                 @Override
@@ -808,10 +815,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void validate() {
-                    if (validationError != null) {
-                        throw validationError
-                    }
+                void validate(UnitOfWork.WorkValidationContext validationContext) {
+                    validator?.accept(validationContext)
                 }
 
                 @Override

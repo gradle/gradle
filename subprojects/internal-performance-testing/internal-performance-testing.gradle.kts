@@ -35,6 +35,10 @@ dependencies {
     reports("jquery:jquery.min:1.11.0@js")
     reports("flot:flot:0.8.1:min@js")
 
+    api(library("gradleProfiler")) {
+        because("Consumers need to instantiate BuildMutators")
+    }
+
     implementation(project(":baseServices"))
     implementation(project(":native"))
     implementation(project(":cli"))
@@ -61,7 +65,7 @@ dependencies {
     implementation(library("jsch"))
     implementation(library("commons_math"))
     implementation(library("jcl_to_slf4j"))
-    implementation("org.openjdk.jmc:flightrecorder:7.0.0-SNAPSHOT")
+    implementation("org.gradle.org.openjdk.jmc:flightrecorder:7.0.0-alpha01")
     implementation("org.gradle.ci.health:tagging:0.63")
     implementation(testLibrary("mina"))
     implementation(testLibrary("jetty"))
@@ -91,4 +95,3 @@ tasks.jar {
 
     from(files(deferred{ flamegraph.map { zipTree(it) } }))
 }
-

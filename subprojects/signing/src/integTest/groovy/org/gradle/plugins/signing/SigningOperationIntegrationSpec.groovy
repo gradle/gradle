@@ -17,16 +17,15 @@
 package org.gradle.plugins.signing
 
 class SigningOperationIntegrationSpec extends SigningIntegrationSpec {
-    def "direct creation of SignOperation is deprecated"() {
+    def "direct creation of SignOperation fails"() {
         buildFile << """
             new SignOperation()
         """
 
         when:
-        executer.expectDeprecationWarning()
-        succeeds()
+        fails()
 
         then:
-        outputContains("Creating instances of SignOperation has been deprecated. This will fail with an error in Gradle 6.0.")
+        failure.assertHasErrorOutput("You cannot create an instance from the abstract class 'org.gradle.plugins.signing.SignOperation'.")
     }
 }

@@ -35,20 +35,22 @@ import org.gradle.api.tasks.LocalState
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.reflect.ParameterValidationContext
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.PROCESSED_PROPERTY_TYPE_ANNOTATIONS
-import static org.gradle.api.internal.tasks.properties.annotations.TaskAnnotations.UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS
+import static org.gradle.internal.service.scopes.ExecutionGlobalServices.IGNORED_METHOD_ANNOTATIONS
+import static org.gradle.internal.service.scopes.ExecutionGlobalServices.PROPERTY_TYPE_ANNOTATIONS
 
 class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
     def services = ServiceRegistryBuilder.builder().provider(new ExecutionGlobalServices()).build()
     def visitor = Mock(PropertyVisitor)
-    def validationContext = Mock(ParameterValidationContext)
+    def validationContext = Mock(TypeValidationContext)
 
     def "visits properties"() {
         def task = project.tasks.create("myTask", MyTask)
@@ -81,9 +83,11 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         String myProperty = "myValue"
 
         @InputFile
+        @PathSensitive(PathSensitivity.NONE)
         File inputFile = new File("some-location")
 
         @InputFiles
+        @PathSensitive(PathSensitivity.NONE)
         FileCollection inputFiles = ImmutableFileCollection.of(new File("files"))
 
         @OutputFile
@@ -105,6 +109,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         String nestedInput = 'nested'
 
         @InputDirectory
+        @PathSensitive(PathSensitivity.NONE)
         File inputDir
 
         @OutputDirectory
@@ -237,15 +242,16 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
         def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
         def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
             [],
-            ModifierAnnotationCategory.asMap((PROCESSED_PROPERTY_TYPE_ANNOTATIONS + UNPROCESSED_PROPERTY_TYPE_ANNOTATIONS) as Class[]),
-            [Object, GroovyObject],
+            ModifierAnnotationCategory.asMap(PROPERTY_TYPE_ANNOTATIONS),
+            ["java", "groovy"],
+            [],
             [Object, GroovyObject],
             [ConfigurableFileCollection, Property],
-            Internal,
+            IGNORED_METHOD_ANNOTATIONS,
             { false },
             cacheFactory
         )
-        def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [], typeAnnotationMetadataStore, cacheFactory)
+        def typeMetadataStore = new DefaultTypeMetadataStore([], services.getAll(PropertyAnnotationHandler), [PathSensitive], typeAnnotationMetadataStore, cacheFactory)
         new DefaultPropertyWalker(typeMetadataStore).visitProperties(task, validationContext, visitor)
     }
 }

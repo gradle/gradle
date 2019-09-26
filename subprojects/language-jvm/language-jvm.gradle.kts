@@ -10,6 +10,7 @@ dependencies {
     api(library("jsr305"))
 
     implementation(project(":baseServices"))
+    implementation(project(":files"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":fileCollections"))
@@ -28,7 +29,7 @@ dependencies {
     testImplementation(project(":resources"))
     testImplementation(project(":snapshots"))
     testImplementation(testFixtures(project(":core")))
-    
+
     testRuntimeOnly(project(":languageJava"))
     testRuntimeOnly(project(":runtimeApiInfo"))
 

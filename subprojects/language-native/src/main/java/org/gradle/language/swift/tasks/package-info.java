@@ -17,5 +17,4 @@
 /**
  * Tasks for compiling Swift sources for a native runtime.
  */
-@org.gradle.api.Incubating
 package org.gradle.language.swift.tasks;

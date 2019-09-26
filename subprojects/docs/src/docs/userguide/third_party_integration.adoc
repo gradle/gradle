@@ -17,6 +17,7 @@
 
 Gradle can be integrated with many different third-party tools such as IDEs and continuous integration platforms. Here we look at some of the more common ones as well as how to integrate your own tool with Gradle.
 
+[[ides]]
 == IDEs
 
 Android Studio::

@@ -229,4 +229,21 @@ dependencies {
         }
     }
 
+    def "mixing variant aware and artifact selection is forbidden"() {
+        buildFile << """
+            dependencies {
+                conf('org:lib:1.0:indy') {
+                    capabilities {
+                        requireCapability("org:lib")
+                    }
+                }
+            }
+        """
+
+        when:
+        fails ':checkDeps'
+
+        then:
+        failureHasCause('Cannot add attributes or capabilities on a dependency that specifies artifacts or configuration information')
+    }
 }

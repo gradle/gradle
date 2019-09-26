@@ -36,7 +36,6 @@ class MavenPublishGcsErrorsIntegrationTest extends AbstractMavenPublishIntegTest
     public final GcsServer server = new GcsServer(temporaryFolder)
 
     def setup() {
-        disableModuleMetadataPublishing()
         executer.withArgument('-i')
         executer.withArgument("-D${GCS_ENDPOINT_PROPERTY}=${server.uri}")
         executer.withArgument("-D${GCS_SERVICE_PATH_PROPERTY}=/")

@@ -42,6 +42,9 @@ task someTask
         """
         buildFile << """
             allprojects {
+                tasks.withType(AbstractScalaCompile) {
+                    options.fork = true
+                }
                 repositories {
                     ${jcenterRepository()}
                 }
@@ -73,6 +76,7 @@ task someTask
 
         expect:
         succeeds(":a:classes", "--parallel")
+        true
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6735")
@@ -208,6 +212,7 @@ task someTask
             class Foo
         """
         expect:
+        executer.expectDeprecationWarning()
         succeeds("install")
     }
 }

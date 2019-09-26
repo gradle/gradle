@@ -24,9 +24,13 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             abstract class AbstractVerificationTask<K, V> extends DefaultTask {
 
+                @Internal
                 final MapProperty<K, V> prop
+                @Internal
                 Map<K, V> expected = [:]
+                @Internal
                 final Class<K> keyType
+                @Internal
                 final Class<V> valueType
                 
                 AbstractVerificationTask(Class<K> keyType, Class<V> valueType) {
@@ -151,7 +155,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('The value for this property cannot be changed any further.')
     }
 
-    def "task @Input property is implicitly finalized and changes ignored when task starts execution"() {
+    def "task @Input property is implicitly finalized when task starts execution"() {
         given:
         buildFile << '''
             class SomeTask extends DefaultTask {
@@ -163,10 +167,6 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 
                 @TaskAction
                 void go() {
-                    prop.set(['ignoredKey': 'ignoredValue'])
-                    prop.put('ignoredKey', 'ignoredValue')
-                    prop.putAll(['ignoredKey': 'ignoredValue'])
-                    prop.empty()
                     outputFile.get().asFile.text = prop.get()
                 }
             }
@@ -174,7 +174,7 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             task thing(type: SomeTask) {
                 prop = ['key1': 'value1']
                 outputFile = layout.buildDirectory.file('out.txt')
-                doLast {
+                doFirst {
                     prop.set(['ignoredKey': 'ignoredValue'])
                 }
             }
@@ -189,22 +189,14 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
             thing.dependsOn before
-            
-            task after {
-                dependsOn thing
-                doLast {
-                    thing.prop = ['ignoredKey': 'ignoredValue']
-                    assert thing.prop.get() == ['finalKey': 'finalValue']
-                }
-            }
             '''.stripIndent()
 
         when:
-        executer.expectDeprecationWarning()
-        run('after')
+        fails('thing')
 
         then:
-        file('build/out.txt').text == '[finalKey:finalValue]'
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
     }
 
     def "task ad hoc input property is implicitly finalized and changes ignored when task starts execution"() {
@@ -223,11 +215,11 @@ class MapPropertyIntegrationTest extends AbstractIntegrationSpec {
             '''.stripIndent()
 
         when:
-        executer.expectDeprecationWarning()
-        run('thing')
+        fails('thing')
 
         then:
-        output.contains('prop = [key1:value1]')
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {

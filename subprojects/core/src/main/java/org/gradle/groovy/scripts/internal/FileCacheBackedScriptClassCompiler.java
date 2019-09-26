@@ -19,8 +19,8 @@ import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -71,16 +71,16 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
     @Override
     public <T extends Script, M> CompiledScript<T, M> compile(final ScriptSource source,
-                                                              final ClassLoader classLoader,
-                                                              final ClassLoaderId classLoaderId,
+                                                              final ClassLoaderScope targetScope,
                                                               final CompileOperation<M> operation,
                                                               final Class<T> scriptBaseClass,
                                                               final Action<? super ClassNode> verifier) {
         assert source.getResource().isContentCached();
         if (source.getResource().getHasEmptyContent()) {
-            return emptyCompiledScript(classLoaderId, operation);
+            return emptyCompiledScript(operation);
         }
 
+        ClassLoader classLoader = targetScope.getExportClassLoader();
         HashCode sourceHashCode = source.getResource().getContentHash();
         final String sourceHash = HashUtil.compactStringFor(sourceHashCode.toByteArray());
         final String dslId = operation.getId();
@@ -107,14 +107,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             File remappedClassesDir = classesDir(remappedClassesCache);
             File remappedMetadataDir = metadataDir(remappedClassesCache);
 
-            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
+            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass);
         } finally {
             remappedClassesCache.close();
         }
     }
 
-    private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {
-        classLoaderCache.remove(classLoaderId);
+    private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(CompileOperation<M> operation) {
         return new EmptyCompiledScript<T, M>(operation);
     }
 

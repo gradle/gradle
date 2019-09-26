@@ -16,7 +16,6 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Describable;
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -111,7 +110,6 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @return The output directory for this set of sources.
      * @since 4.0
      */
-    @Incubating
     File getOutputDir();
 
     /**
@@ -120,7 +118,6 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @param provider provides output directory for this source directory set
      * @since 4.0
      */
-    @Incubating
     void setOutputDir(Provider<File> provider);
 
     /**
@@ -129,6 +126,5 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @param outputDir output directory for this source directory set
      * @since 4.0
      */
-    @Incubating
     void setOutputDir(File outputDir);
 }

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
+import spock.lang.Unroll
 
 class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,6 +43,34 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         noExceptionThrown()
+    }
+
+    @Unroll
+    def "shows deprecation warning when accessing #displayName when configuring GradleBuild task"() {
+        given:
+        settingsFile << "rootProject.name = 'parent'"
+        buildFile << """
+            task buildInBuild(type:GradleBuild) {
+                buildFile = 'other.gradle'
+            }
+
+            ${codeUnderTest}
+        """
+        file('other.gradle') << 'assert true'
+
+        when:
+        executer.expectDeprecationWarning()
+        run 'buildInBuild'
+
+        then:
+        outputContains("${displayName} has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+
+        where:
+        displayName                                | codeUnderTest
+        "StartParameter#setSearchUpwards(boolean)" | "buildInBuild.startParameter.searchUpwards = true"
+        "StartParameter#isSearchUpwards()"         | "buildInBuild.startParameter.searchUpwards"
+        "StartParameter#useEmptySettings()"        | "buildInBuild.startParameter.useEmptySettings()"
+        "StartParameter#isUseEmptySettings()"      | "buildInBuild.startParameter.useEmptySettings"
     }
 
     def "nested build can use Gradle home directory that is different to outer build"() {

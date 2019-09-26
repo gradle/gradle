@@ -44,11 +44,13 @@ Actively using Gradle is a great way to learn about it, so once you've installed
  * {guidesUrl}/building-cpp-libraries/[Building C++ libraries]
  * {guidesUrl}/creating-build-scans/[Creating build scans]
 
-There are also many other {guidesUrl}/[tutorials and guides] available, which you can filter by category — for example {guidesUrl}/?q=Fundamentals[Fundamentals]. 
+There are also many other {guidesUrl}/[tutorials and guides] available, which you can filter by category — for example {guidesUrl}/?q=Fundamentals[Fundamentals].
 
 == Command line vs IDEs
 
-Some folks are hard-core command-line users, while others prefer to never leave the comfort of their IDE. Many people happily use both and Gradle endeavors not to discriminate. Gradle is supported by <<third_party_integration#ides,several major IDEs>> and everything that can be done from the <<command_line_interface#command_line_interface,command line>> is available to IDEs via the <<embedding#embedding,Tooling API>>.
+Some folks are hard-core command-line users, while others prefer to never leave the comfort of their IDE.
+Many people happily use both and Gradle endeavors not to discriminate.
+Gradle is supported by <<third_party_integration#ides,several major IDEs>> and everything that can be done from the <<command_line_interface#command_line_interface,command line>> is available to IDEs via the <<embedding#embedding,Tooling API>>.
 
 Android Studio and IntelliJ IDEA users should consider using <<kotlin_dsl#kotlin_dsl,Kotlin DSL build scripts>> for the superior IDE support when editing them.
 

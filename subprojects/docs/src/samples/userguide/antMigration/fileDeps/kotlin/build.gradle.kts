@@ -30,13 +30,13 @@ tasks {
 val tmpDistDir by extra { file("$buildDir/dist") }
 
 tasks {
-    register<Jar>("javadocJar") {
+    register<Jar>("javadocJarArchive") {
         from(javadoc)  // <1>
         archiveClassifier.set("javadoc")
     }
 
     register<Copy>("unpackJavadocs") {
-        from(zipTree(named<Jar>("javadocJar").get().archiveFile))  // <2>
+        from(zipTree(named<Jar>("javadocJarArchive").get().archiveFile))  // <2>
         into(tmpDistDir)  // <3>
     }
 }

@@ -41,14 +41,20 @@ public enum JavaVersion {
      *
      * @since 5.0
      */
-    @Incubating
     VERSION_12,
+
+    /**
+     * Java 13 major version.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    VERSION_13,
 
     /**
      * Higher version of Java.
      * @since 4.7
      */
-    @Incubating
     VERSION_HIGHER;
     // Since Java 9, version should be X instead of 1.X
     // However, to keep backward compatibility, we change from 11
@@ -162,27 +168,27 @@ public enum JavaVersion {
     }
 
     public boolean isJava5Compatible() {
-        return this.compareTo(VERSION_1_5) >= 0;
+        return isCompatibleWith(VERSION_1_5);
     }
 
     public boolean isJava6Compatible() {
-        return this.compareTo(VERSION_1_6) >= 0;
+        return isCompatibleWith(VERSION_1_6);
     }
 
     public boolean isJava7Compatible() {
-        return this.compareTo(VERSION_1_7) >= 0;
+        return isCompatibleWith(VERSION_1_7);
     }
 
     public boolean isJava8Compatible() {
-        return this.compareTo(VERSION_1_8) >= 0;
+        return isCompatibleWith(VERSION_1_8);
     }
 
     public boolean isJava9Compatible() {
-        return this.compareTo(VERSION_1_9) >= 0;
+        return isCompatibleWith(VERSION_1_9);
     }
 
     public boolean isJava10Compatible() {
-        return this.compareTo(VERSION_1_10) >= 0;
+        return isCompatibleWith(VERSION_1_10);
     }
 
     /**
@@ -191,7 +197,7 @@ public enum JavaVersion {
      * @since 4.7
      */
     public boolean isJava11Compatible() {
-        return this.compareTo(VERSION_11) >= 0;
+        return isCompatibleWith(VERSION_11);
     }
 
     /**
@@ -201,7 +207,17 @@ public enum JavaVersion {
      */
     @Incubating
     public boolean isJava12Compatible() {
-        return this.compareTo(VERSION_12) >= 0;
+        return isCompatibleWith(VERSION_12);
+    }
+
+    /**
+     * Returns if this version is compatible with the given version
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public boolean isCompatibleWith(JavaVersion otherVersion) {
+        return this.compareTo(otherVersion) >= 0;
     }
 
     @Override

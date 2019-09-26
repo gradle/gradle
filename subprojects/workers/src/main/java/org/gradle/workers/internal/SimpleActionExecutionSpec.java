@@ -16,39 +16,28 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.workers.WorkerExecution;
-import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
 
-public class SimpleActionExecutionSpec<T extends WorkerParameters> implements ActionExecutionSpec<T> {
-    private final Class<? extends WorkerExecution<T>> implementationClass;
-    private final String displayName;
+import java.io.File;
+
+public class SimpleActionExecutionSpec<T extends WorkParameters> extends AbstractActionExecutionSpec<T> {
+    private final Class<? extends WorkAction<T>> implementationClass;
     private final T params;
-    private final ClassLoaderStructure classLoaderStructure;
 
-    public SimpleActionExecutionSpec(Class<? extends WorkerExecution<T>> implementationClass, String displayName, T params, ClassLoaderStructure classLoaderStructure) {
+    public SimpleActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, T params, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+        super(displayName, baseDir, usesInternalServices, classLoaderStructure);
         this.implementationClass = implementationClass;
-        this.displayName = displayName;
         this.params = params;
-        this.classLoaderStructure = classLoaderStructure;
     }
 
     @Override
-    public Class<? extends WorkerExecution<T>> getImplementationClass() {
+    public Class<? extends WorkAction<T>> getImplementationClass() {
         return implementationClass;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
     }
 
     @Override
     public T getParameters() {
         return params;
-    }
-
-    @Override
-    public ClassLoaderStructure getClassLoaderStructure() {
-        return classLoaderStructure;
     }
 }

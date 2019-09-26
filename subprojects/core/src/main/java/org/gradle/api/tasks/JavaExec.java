@@ -17,16 +17,18 @@
 package org.gradle.api.tasks;
 
 import org.apache.tools.ant.types.Commandline;
-import org.gradle.api.Incubating;
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.DslExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.JavaExecAction;
 
@@ -79,16 +81,35 @@ import java.util.Map;
  * <pre>
  * gradle someJavaExecTask --debug-jvm
  * </pre>
+ * <p>
+ * Also, debug configuration can be explicitly set in {@link #debugOptions(Action)}:
+ * <pre>
+ * task runApp(type: JavaExec) {
+ *    ...
+ *
+ *    debugOptions {
+ *        enabled = true
+ *        port = 5566
+ *        server = true
+ *        suspend = false
+ *    }
+ * }
+ * </pre>
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
 
     public JavaExec() {
-        javaExecHandleBuilder = getExecActionFactory().newJavaExecAction();
+        javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
     }
 
     @Inject
     protected ExecActionFactory getExecActionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected DslExecActionFactory getDslExecActionFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -305,6 +326,16 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         javaExecHandleBuilder.setDebug(enabled);
     }
 
+    @Override
+    public JavaDebugOptions getDebugOptions() {
+        return javaExecHandleBuilder.getDebugOptions();
+    }
+
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        javaExecHandleBuilder.debugOptions(action);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -347,8 +378,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @return this
      * @since 4.9
      */
-    @Incubating
-    @Option(option = "args", description = "Command line arguments passed to the main class. [INCUBATING]")
+    @Option(option = "args", description = "Command line arguments passed to the main class.")
     public JavaExec setArgsString(String args) {
         return setArgs(Arrays.asList(Commandline.translateCommandline(args)));
     }
@@ -438,7 +468,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * @since 5.2
      */
     @Input
-    @Incubating
     public JavaVersion getJavaVersion() {
         return getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());
     }

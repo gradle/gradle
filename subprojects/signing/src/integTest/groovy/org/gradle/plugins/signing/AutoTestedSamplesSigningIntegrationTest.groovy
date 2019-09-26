@@ -24,4 +24,9 @@ class AutoTestedSamplesSigningIntegrationTest extends AbstractAutoTestedSamplesT
     void runSamples() {
         runSamplesFrom("subprojects/signing/src/main")
     }
+
+    @Override
+    void beforeSample() {
+        executer.expectDeprecationWarning()
+    }
 }

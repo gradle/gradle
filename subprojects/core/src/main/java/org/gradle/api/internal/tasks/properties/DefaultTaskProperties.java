@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Iterables;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -29,6 +27,7 @@ import org.gradle.api.internal.tasks.TaskPropertyUtils;
 import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.internal.reflect.TypeValidationContext.ReplayingTypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -46,10 +45,11 @@ public class DefaultTaskProperties implements TaskProperties {
     private final boolean hasSourceFiles;
     private final FileCollection sourceFiles;
     private final boolean hasDeclaredOutputs;
+    private final ReplayingTypeValidationContext validationProblems;
     private final FileCollection outputFiles;
     private final FileCollection localStateFiles;
-    private FileCollection destroyableFiles;
-    private List<ValidatingProperty> validatingProperties;
+    private final FileCollection destroyableFiles;
+    private final List<ValidatingProperty> validatingProperties;
 
     public static TaskProperties resolve(PropertyWalker propertyWalker, FileCollectionFactory fileCollectionFactory, TaskInternal task) {
         String beanName = task.toString();
@@ -59,8 +59,9 @@ public class DefaultTaskProperties implements TaskProperties {
         GetLocalStateVisitor localStateVisitor = new GetLocalStateVisitor(beanName, fileCollectionFactory);
         GetDestroyablesVisitor destroyablesVisitor = new GetDestroyablesVisitor(beanName, fileCollectionFactory);
         ValidationVisitor validationVisitor = new ValidationVisitor();
+        ReplayingTypeValidationContext validationContext = new ReplayingTypeValidationContext();
         try {
-            TaskPropertyUtils.visitProperties(propertyWalker, task, new CompositePropertyVisitor(
+            TaskPropertyUtils.visitProperties(propertyWalker, task, validationContext, new CompositePropertyVisitor(
                 inputPropertiesVisitor,
                 inputFilesVisitor,
                 outputFilesVisitor,
@@ -80,7 +81,8 @@ public class DefaultTaskProperties implements TaskProperties {
             outputFilesVisitor.hasDeclaredOutputs(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
-            validationVisitor.getTaskPropertySpecs());
+            validationVisitor.getTaskPropertySpecs(),
+            validationContext);
     }
 
     private DefaultTaskProperties(
@@ -91,9 +93,11 @@ public class DefaultTaskProperties implements TaskProperties {
         boolean hasDeclaredOutputs,
         FileCollection localStateFiles,
         FileCollection destroyableFiles,
-        List<ValidatingProperty> validatingProperties
+        List<ValidatingProperty> validatingProperties,
+        ReplayingTypeValidationContext validationProblems
     ) {
         this.validatingProperties = validatingProperties;
+        this.validationProblems = validationProblems;
 
         this.inputPropertyValues = inputPropertyValues;
         this.inputFileProperties = inputFileProperties;
@@ -128,13 +132,8 @@ public class DefaultTaskProperties implements TaskProperties {
                 }
             }
         };
-        this.hasSourceFiles = Iterables.any(inputFileProperties, new Predicate<InputFilePropertySpec>() {
-            @Override
-            @SuppressWarnings("NullableProblems")
-            public boolean apply(InputFilePropertySpec property) {
-                return property.isSkipWhenEmpty();
-            }
-        });
+        this.hasSourceFiles = inputFileProperties.stream()
+            .anyMatch(InputFilePropertySpec::isSkipWhenEmpty);
         this.outputFiles = new CompositeFileCollection() {
             @Override
             public String getDisplayName() {
@@ -189,6 +188,7 @@ public class DefaultTaskProperties implements TaskProperties {
 
     @Override
     public void validate(TaskValidationContext validationContext) {
+        validationProblems.replay(null, validationContext);
         for (ValidatingProperty validatingProperty : validatingProperties) {
             validatingProperty.validate(validationContext);
         }
@@ -217,7 +217,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private static class GetLocalStateVisitor extends PropertyVisitor.Adapter {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
-        private List<Object> localState = new ArrayList<Object>();
+        private List<Object> localState = new ArrayList<>();
 
         public GetLocalStateVisitor(String beanName, FileCollectionFactory fileCollectionFactory) {
             this.beanName = beanName;
@@ -237,7 +237,7 @@ public class DefaultTaskProperties implements TaskProperties {
     private static class GetDestroyablesVisitor extends PropertyVisitor.Adapter {
         private final String beanName;
         private final FileCollectionFactory fileCollectionFactory;
-        private List<Object> destroyables = new ArrayList<Object>();
+        private List<Object> destroyables = new ArrayList<>();
 
         public GetDestroyablesVisitor(String beanName, FileCollectionFactory fileCollectionFactory) {
             this.beanName = beanName;
@@ -255,7 +255,7 @@ public class DefaultTaskProperties implements TaskProperties {
     }
 
     private static class ValidationVisitor extends PropertyVisitor.Adapter {
-        private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<ValidatingProperty>();
+        private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
 
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {

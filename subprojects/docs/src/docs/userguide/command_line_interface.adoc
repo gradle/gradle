@@ -248,7 +248,7 @@ This will give you a link to a web-based report, where you can find dependency i
 
 image::gradle-core-test-build-scan-dependencies.png[Build Scan dependencies report]
 
-Learn more in <<inspecting_dependencies.adoc#inspecting_dependencies,Inspecting Dependencies>>.
+Learn more in <<viewing_debugging_dependencies.adoc#,Viewing and debugging dependencies>>.
 
 === Listing project dependencies
 
@@ -258,7 +258,7 @@ Running `gradle dependencies` gives you a list of the dependencies of the select
 $ gradle dependencies
 ----
 
-Concrete examples of build scripts and output available in the <<inspecting_dependencies.adoc#inspecting_dependencies,Inspecting Dependencies>>.
+Concrete examples of build scripts and output available in the <<viewing_debugging_dependencies.adoc#,Viewing and debugging dependencies>>.
 
 Running `gradle buildEnvironment` visualises the buildscript dependencies of the selected project, similarly to how `gradle dependencies` visualizes the dependencies of the software being built.
 
@@ -457,25 +457,25 @@ Features:
 The following options affect how builds are executed, by changing what is built or how dependencies are resolved.
 
 `--include-build`::
-Run the build as a composite, including the specified build. See <<composite_builds.adoc#composite_builds, Composite Builds>>.
+Run the build as a composite, including the specified build. See <<composite_builds.adoc#composite-builds, Composite Builds>>.
 
 `--offline`::
-Specifies that the build should operate without accessing network resources. Learn more about <<troubleshooting_dependency_resolution.adoc#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
+Specifies that the build should operate without accessing network resources. Learn more about <<declaring_dependency_versions.adoc#sec:controlling_dependency_caching_command_line,options to override dependency caching>>.
 
 `--refresh-dependencies`::
-Refresh the state of dependencies. Learn more about how to use this in the <<troubleshooting_dependency_resolution.adoc#sec:controlling_dependency_caching_command_line,dependency management docs>>.
+Refresh the state of dependencies. Learn more about how to use this in the <<declaring_dependency_versions.adoc#sec:controlling_dependency_caching_command_line,dependency management docs>>.
 
 `--dry-run`::
 Run Gradle with all task actions disabled. Use this to show which task would have executed.
 
 `--write-locks`::
 Indicates that all resolved configurations that are _lockable_ should have their lock state persisted.
-Learn more about this in <<dependency_locking.adoc#dependency_locking,dependency locking>>.
+Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency locking>>.
 
 `--update-locks <group:name>[,<group:name>]*`::
 Indicates that versions for the specified modules have to be updated in the lock file.
 This flag also implies `--write-locks`.
-Learn more about this in <<dependency_locking.adoc#dependency_locking,dependency locking>>.
+Learn more about this in <<dependency_locking.adoc#dependency-locking,dependency locking>>.
 
 `---no-rebuild`::
 Do not rebuild project dependencies.

@@ -18,6 +18,7 @@ import org.gradle.build.BuildReceipt
 import org.gradle.build.Install
 import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
 import org.gradle.gradlebuild.ProjectGroups.javaProjects
+import org.gradle.gradlebuild.ProjectGroups.kotlinJsProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
@@ -32,7 +33,7 @@ plugins {
     // We have to apply it here at the moment, so that when the build scan plugin is auto-applied via --scan can detect that
     // the plugin has been already applied. For that the plugin has to be applied with the new plugin DSL syntax.
     com.gradle.`build-scan`
-    id("org.gradle.ci.tag-single-build") version("0.67")
+    id("org.gradle.ci.tag-single-build") version("0.69")
 }
 
 defaultTasks("assemble")
@@ -96,12 +97,16 @@ buildTypes {
         tasks("performance:distributedPerformanceTest")
     }
 
+    create("distributedSlowPerformanceTests") {
+        tasks("performance:distributedSlowPerformanceTest")
+    }
+
     create("distributedPerformanceExperiments") {
         tasks("performance:distributedPerformanceExperiment")
     }
 
-    create("distributedFullPerformanceTests") {
-        tasks("performance:distributedFullPerformanceTest")
+    create("distributedHistoricalPerformanceTests") {
+        tasks("performance:distributedHistoricalPerformanceTest")
     }
 
     create("distributedFlakinessDetections") {
@@ -159,13 +164,6 @@ allprojects {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
-        maven {
-            name = "sonatype-snapshots"
-            url = uri("https://oss.sonatype.org/content/repositories/snapshots")
-            content {
-                includeGroup("org.openjdk.jmc")
-            }
-        }
     }
 
     // patchExternalModules lives in the root project - we need to activate normalization there, too.
@@ -211,7 +209,11 @@ subprojects {
     }
 
     apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
-    apply(plugin = "gradlebuild.task-properties-validation")
+
+    if (project !in kotlinJsProjects) {
+        apply(plugin = "gradlebuild.task-properties-validation")
+    }
+
     apply(plugin = "gradlebuild.test-files-cleanup")
 }
 
@@ -343,6 +345,7 @@ dependencies {
     gradlePlugins(project(":testKit"))
 
     coreRuntimeExtensions(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
+    coreRuntimeExtensions(project(":instantExecution"))
     coreRuntimeExtensions(project(":pluginUse"))
     coreRuntimeExtensions(project(":workers"))
     coreRuntimeExtensions(project(":kotlinDslProviderPlugins"))

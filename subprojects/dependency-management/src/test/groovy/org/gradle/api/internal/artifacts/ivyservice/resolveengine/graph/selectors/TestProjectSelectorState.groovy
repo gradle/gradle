@@ -80,5 +80,10 @@ class TestProjectSelectorState implements ResolvableSelectorState {
     boolean isFromLock() {
         return false
     }
+
+    @Override
+    boolean hasStrongOpinion() {
+        return false
+    }
 }
 

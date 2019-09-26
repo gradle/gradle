@@ -131,7 +131,9 @@ include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=c
 
 You'll get the same behavior as before except with one extra level of directory in the destination, i.e. `toArchive/reports`.
 
-One thing to note is how the `include()` directive applies only to the `from()`, whereas the directive in the previous section applied to the whole task. These different levels of granularity in the copy specification allow you to easily handle most requirements that you will come across. You can learn more about this in the section on <<Using child specifications,child specifications>>.
+One thing to note is how the `include()` directive applies only to the `from()`, whereas the directive in the previous section applied to the whole task.
+These different levels of granularity in the copy specification allow you to easily handle most requirements that you will come across.
+You can learn more about this in the section on <<sub:using_child_copy_specifications,child specifications>>.
 
 [[sec:creating_archives_example]]
 == Creating archives (zip, tar, etc.)
@@ -150,6 +152,9 @@ Notice how we specify the destination and name of the archive instead of an `int
 
 Each type of archive has its own task type, the most common ones being link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Tar.html[Tar] and link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar]. They all share most of the configuration options of `Copy`, including filtering and renaming.
 
+One notable difference between the `Copy` and `Sync` tasks and the archive tasks is that duplicate files are not allowed in the latter by default.
+The duplicates strategy can be changed by setting the link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html#org.gradle.api.tasks.bundling.AbstractArchiveTask:duplicatesStrategy[duplicatesStrategy] to e.g. link:{javadocPath}/org/gradle/api/file/DuplicatesStrategy.html#INCLUDE[DuplicatesStrategy.INCLUDE].
+
 One of the most common scenarios involves copying files into specified subdirectories of the archive. For example, let's say you want to package all PDFs into a `docs` directory in the root of the archive. This `docs` directory doesn't exist in the source location, so you have to create it as part of the archive. You do this by adding an `into()` declaration for just the PDFs:
 
 .Using the Base Plugin for its archive name convention
@@ -163,7 +168,8 @@ As you can see, you can have multiple `from()` declarations in a copy specificat
 [[sec:unpacking_archives_example]]
 == Unpacking archives
 
-Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system onto the local file system — or even into another archive. Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files (<<File trees,file trees>>).
+Archives are effectively self-contained file systems, so unpacking them is a case of copying the files from that file system onto the local file system — or even into another archive. \
+Gradle enables this by providing some wrapper functions that make archives available as hierarchical collections of files (<<sec:file_trees,file trees>>).
 
 The two functions of interest are link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:zipTree(java.lang.Object)[Project.zipTree(java.lang.Object)] and link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:tarTree(java.lang.Object)[Project.tarTree(java.lang.Object)], which produce a link:{javadocPath}/org/gradle/api/file/FileTree.html[FileTree] from a corresponding archive file. That file tree can then be used in a `from()` specification, like so:
 
@@ -348,7 +354,9 @@ The `file()` method can be used to configure any task that has a property of typ
 [[sec:file_collections]]
 === File collections
 
-A _file collection_ is simply a set of file paths that's represented by the link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] interface. _Any_ file paths. It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory. You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<managing_dependency_configurations.adoc#managing_dependency_configurations,dependency configurations>>.
+A _file collection_ is simply a set of file paths that's represented by the link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] interface. _Any_ file paths.
+It's important to understand that the file paths don't have to be related in any way, so they don't have to be in the same directory or even have a shared parent directory.
+You will also find that many parts of the Gradle API use `FileCollection`, such as the copying API discussed later in this chapter and <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,dependency configurations>>.
 
 The recommended way to specify a collection of files is to use the link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#files-java.lang.Object++...++-[ProjectLayout.files(java.lang.Object++...++)] method, which returns a `FileCollection` instance.
 This method is very flexible and allows you to pass multiple strings, `File` instances, collections of strings, collections of ``File``s, and more.
@@ -560,6 +568,7 @@ include::sample[dir="userguide/files/copy/kotlin",files="build.gradle.kts[tags=c
 
 Note that the lazy configuration of `into()` is different from a <<#sub:using_child_copy_specifications,child specification>>, even though the syntax is similar. Keep an eye on the number of arguments to distinguish between them.
 
+[[filtering_files]]
 === Filtering files
 
 You've already seen that you can filter file collections and file trees directly in a `Copy` task, but you can also apply filtering in any copy specification through the link:{javadocPath}/org/gradle/api/file/CopySpec.html#include-java.lang.String++...++-[CopySpec.include(java.lang.String...)] and link:{javadocPath}/org/gradle/api/file/CopySpec.html#exclude-java.lang.String++...++-[CopySpec.exclude(java.lang.String...)] methods.
@@ -580,7 +589,7 @@ A question you may ask yourself at this point is what happens when inclusion and
 
 Bear these rules in mind when creating combined inclusion and exclusion specifications so that you end up with the exact behavior you want.
 
-Note that the inclusions and exclusions in the above example will apply to _all_ `from()` configurations. If you want to apply filtering to a subset of the copied files, you'll need to use <<Using child specifications,child specifications>>.
+Note that the inclusions and exclusions in the above example will apply to _all_ `from()` configurations. If you want to apply filtering to a subset of the copied files, you'll need to use <<sub:using_child_copy_specifications,child specifications>>.
 
 [[sec:renaming_files]]
 === Renaming files

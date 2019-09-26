@@ -42,7 +42,12 @@ abstract class AbstractIvyRemoteLegacyPublishIntegrationTest extends AbstractInt
     }
 
     @Issue("GRADLE-3440")
-    public void "can publish using uploadArchives"() {
+    void "can publish using uploadArchives"() {
+        // We expect 'The compile/runtime configuration has been deprecated for removal.' for using this legacy mechanism in the traditional way.
+        executer.expectDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead.")
+        executer.expectDeprecationWarning("The runtime configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the runtimeOnly configuration instead.")
+        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. Use the 'ivy-publish' plugin instead")
+
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -120,7 +125,7 @@ uploadArchives {
         progressLogger.uploadProgressLogged(module.ivy.uri)
     }
 
-    public void "does not upload meta-data file when artifact upload fails"() {
+    void "does not upload meta-data file when artifact upload fails"() {
         given:
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -141,6 +146,7 @@ uploadArchives {
         module.jar.expectUploadBroken()
 
         when:
+        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. Use the 'ivy-publish' plugin instead")
         fails 'uploadArchives'
 
         then:

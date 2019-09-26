@@ -61,7 +61,7 @@ We have already seen how to define tasks using strings for task names in <<tutor
 
 [NOTE]
 ====
-The task configuration APIs are described in more detail in the <<task_configuration_avoidance,task configuration avoidance chapter>>.
+The task configuration APIs are described in more detail in the <<task_configuration_avoidance#,task configuration avoidance chapter>>.
 ====
 
 .Defining tasks using strings for task names
@@ -345,26 +345,6 @@ include::sample[dir="userguide/tasks/defineAndConfigure/groovy",files="build.gra
 include::sample[dir="userguide/tasks/defineAndConfigure/kotlin",files="build.gradle.kts[tags=all]"]
 ====
 
-
-[[sec:replacing_tasks]]
-== Replacing tasks
-
-Sometimes you want to replace a task. For example, if you want to exchange a task added by the Java plugin with a custom task of a different type. You can achieve this with:
-
-.Overwriting a task
-====
-include::sample[dir="userguide/tutorial/replaceTask/groovy",files="build.gradle[]"]
-include::sample[dir="userguide/tutorial/replaceTask/kotlin",files="build.gradle.kts[]"]
-
-.Output of **`gradle -q copy`**
-----
-> gradle -q copy
-include::{samplesPath}/userguide/tutorial/replaceTask/replaceTask.out[]
-----
-====
-
-This will replace a task of type `Copy` with the task you've defined, because it uses the same name. When you define the new task, you have to set the `overwrite` property to true. Otherwise Gradle throws an exception, saying that a task with that name already exists.
-
 [[sec:skipping_tasks]]
 == Skipping tasks
 
@@ -647,13 +627,13 @@ Using a file tree turns <<build_cache.adoc#sec:task_output_caching, caching>> of
 | Any type
 | Indicates that the property has been replaced by another and should be ignored as an input or output.
 
-| [#skip-when-empty]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
+| [[skip-when-empty]]`@link:{javadocPath}/org/gradle/api/tasks/SkipWhenEmpty.html[SkipWhenEmpty]`
 | `File`+++*+++
 | Used with `@InputFiles` or `@InputDirectory` to tell Gradle to skip the task if the corresponding files or directory are empty, along with all other input files declared with this annotation. Tasks that have been skipped due to all of their input files that were declared with this annotation being empty will result in a distinct “no source” outcome. For example, `NO-SOURCE` will be emitted in the console output.
 
 Implies `<<#incremental,@Incremental>>`.
 
-| [#incremental]`@link:{javadocPath}/org/gradle/work/Incremental.html[Incremental]`
+| [[incremental]]`@link:{javadocPath}/org/gradle/work/Incremental.html[Incremental]`
 | `Provider<FileSystemLocation>` or `FileCollection`
 | Used with `@InputFiles` or `@InputDirectory` to instruct Gradle to track changes to the annotated file property, so the changes can be queried via `@link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges.getFileChanges()]`. Required for <<custom_tasks.adoc#incremental_tasks,incremental tasks>>.
 
@@ -1255,7 +1235,7 @@ Lifecycle tasks are tasks that do not do work themselves. They typically do not 
 
 The Base Plugin defines several <<base_plugin#sec:base_tasks,standard lifecycle tasks>>, such as `build`, `assemble`, and `check`. All the core language plugins, like the <<java_plugin#java_plugin,Java Plugin>>, apply the Base Plugin and hence have the same base set of lifecycle tasks.
 
-Unless a lifecycle task has actions, its <<sec:task_outcomes,outcome>> is determined by its task dependencies. If any of those dependencies are executed, the lifecycle task will be considered `EXECUTED`. If all of the task dependencies are up to date, skipped or from cache, the lifecycle task will be considered `UP-TO-DATE`.
+Unless a lifecycle task has actions, its <<#sec:task_outcomes,outcome>> is determined by its task dependencies. If any of those dependencies are executed, the lifecycle task will be considered `EXECUTED`. If all of the task dependencies are up to date, skipped or from cache, the lifecycle task will be considered `UP-TO-DATE`.
 
 [[sec:the_idea_behind_gradle_tasks]]
 == Summary

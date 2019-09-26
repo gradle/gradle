@@ -20,6 +20,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
@@ -55,6 +56,11 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public ConfigurableFileTree fileTree() {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing file trees");
+    }
+
+    @Override
     public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType) {
         throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object container");
     }
@@ -71,7 +77,7 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> Property<T> property(Class<T> valueType) {
-        return new DefaultProperty<T>(valueType);
+        return new DefaultProperty<>(valueType);
     }
 
     @Override

@@ -1,0 +1,4 @@
+task download(type: Download) {
+    resource.hostName = "gradle.org"
+    resource.path =  "training"
+}

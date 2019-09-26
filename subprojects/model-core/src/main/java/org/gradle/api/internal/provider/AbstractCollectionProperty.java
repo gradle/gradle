@@ -27,6 +27,7 @@ import org.gradle.api.internal.provider.Collectors.SingleElement;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.HasMultipleValues;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -48,6 +49,11 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         this.collectionType = collectionType;
         this.elementType = elementType;
         valueCollector = new ValidatingValueCollector<T>(collectionType, elementType, ValueSanitizers.forType(elementType));
+    }
+
+    @Override
+    protected ValueSupplier getSupplier() {
+        return value;
     }
 
     /**
@@ -111,12 +117,26 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         return elementType;
     }
 
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (super.maybeVisitBuildDependencies(context)) {
-            return true;
+    /**
+     * Unpacks this property into a list of element providers.
+     */
+    public List<ProviderInternal<? extends Iterable<? extends T>>> getProviders() {
+        List<ProviderInternal<? extends Iterable<? extends T>>> sources = new ArrayList<>();
+        value.visit(sources);
+        return sources;
+    }
+
+    /**
+     * Sets the value of this property the given list of element providers.
+     */
+    public void providers(List<ProviderInternal<? extends Iterable<? extends T>>> providers) {
+        if (!beforeMutate()) {
+            return;
         }
-        return value.maybeVisitBuildDependencies(context);
+        value = defaultValue;
+        for (ProviderInternal<? extends Iterable<? extends T>> provider : providers) {
+            value = new PlusCollector<>(value, new ElementsFromCollectionProvider<>(provider));
+        }
     }
 
     @Override
@@ -129,7 +149,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     public C get() {
         beforeRead();
         List<T> values = new ArrayList<T>();
-        value.collectInto(valueCollector, values);
+        value.collectInto(getDisplayName(), valueCollector, values);
         return fromValue(values);
     }
 
@@ -257,7 +277,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public String toString() {
+    protected String describeContents() {
         return String.format("%s(%s, %s)", collectionType.getSimpleName().toLowerCase(), elementType, value.toString());
     }
 
@@ -281,9 +301,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public void collectInto(ValueCollector<T> collector, Collection<T> dest) {
-            left.collectInto(collector, dest);
-            right.collectInto(collector, dest);
+        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
+            left.collectInto(owner, collector, dest);
+            right.collectInto(owner, collector, dest);
         }
 
         @Override
@@ -295,11 +315,27 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
+        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
+            left.visit(sources);
+            right.visit(sources);
+        }
+
+        @Override
         public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
             if (left.maybeVisitBuildDependencies(context)) {
                 return right.maybeVisitBuildDependencies(context);
             }
             return false;
+        }
+
+        @Override
+        public boolean isContentProducedByTask() {
+            return left.isContentProducedByTask() || right.isContentProducedByTask();
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return left.isValueProducedByTask() || right.isValueProducedByTask();
         }
     }
 }

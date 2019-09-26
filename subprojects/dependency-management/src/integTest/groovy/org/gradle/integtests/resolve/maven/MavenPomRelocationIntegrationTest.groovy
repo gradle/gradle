@@ -120,7 +120,6 @@ class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolution
         and:
         original.pom.expectGet()
         newModule.pom.expectGet()
-        newModule.artifact.expectHead()
 
         expect:
         fails "retrieve"

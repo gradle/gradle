@@ -16,6 +16,7 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.OutputNormalizer;
@@ -23,7 +24,7 @@ import org.gradle.internal.fingerprint.OutputNormalizer;
 public class OutputFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
     public OutputFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {
-        super(AbsolutePathFingerprintingStrategy.IGNORE_MISSING, fileCollectionSnapshotter);
+        super(AbsolutePathFingerprintingStrategy.IGNORE_MISSING, Preconditions.checkNotNull(fileCollectionSnapshotter));
     }
 
     @Override

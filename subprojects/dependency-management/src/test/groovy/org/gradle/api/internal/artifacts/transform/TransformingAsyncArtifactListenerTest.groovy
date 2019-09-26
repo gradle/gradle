@@ -24,14 +24,13 @@ import org.gradle.internal.Try
 import org.gradle.internal.operations.BuildOperation
 import org.gradle.internal.operations.BuildOperationQueue
 import spock.lang.Specification
-import spock.lang.Unroll
 
 class TransformingAsyncArtifactListenerTest extends Specification {
     def transformation = Mock(Transformation)
     CacheableInvocation<TransformationSubject> invocation = Mock(CacheableInvocation)
     def operationQueue = Mock(BuildOperationQueue)
     def transformationNodeRegistry = Mock(TransformationNodeRegistry)
-    def listener  = new TransformingAsyncArtifactListener(transformation, null, operationQueue, Maps.newHashMap(), Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry)
+    def listener  = new TransformingAsyncArtifactListener(transformation, operationQueue, Maps.newHashMap(), Mock(ExecutionGraphDependenciesResolver), transformationNodeRegistry)
     def file = new File("foo")
     def artifactFile = new File("foo-artifact")
     def artifactId = Stub(ComponentArtifactIdentifier)
@@ -41,37 +40,25 @@ class TransformingAsyncArtifactListenerTest extends Specification {
     }
     def node = Mock(TransformationNode)
 
-    @Unroll
-    def "adds expensive #type transformations to the build operation queue"() {
+    def "adds expensive artifact transformations to the build operation queue"() {
         when:
-        listener."${type}Available"(this."${type}")
+        listener.artifactAvailable(artifact)
 
         then:
-        if (type == 'artifact') {
-            1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.empty()
-        }
+        1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.empty()
         1 * transformation.createInvocation(_, _, _) >> invocation
         1 * invocation.getCachedResult() >> Optional.empty()
         1 * operationQueue.add(_ as BuildOperation)
-
-        where:
-        type << ['file', 'artifact']
     }
 
-    @Unroll
-    def "runs cheap #type transformations immediately when not scheduled"() {
+    def "runs cheap artifact transformations immediately when not scheduled"() {
         when:
-        listener."${type}Available"(this."${type}")
+        listener.artifactAvailable(artifact)
 
         then:
-        if (type == 'artifact') {
-            1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.empty()
-        }
-        1 * transformation.createInvocation({ it.files == [this."${type == 'file' ? 'file' : 'artifactFile'}"] }, _ as ExecutionGraphDependenciesResolver, _) >> invocation
+        1 * transformationNodeRegistry.getIfExecuted(artifactId, transformation) >> Optional.empty()
+        1 * transformation.createInvocation({ it.files == [this.artifactFile] }, _ as ExecutionGraphDependenciesResolver, _) >> invocation
         1 * invocation.getCachedResult() >> Optional.of(Try.successful(TransformationSubject.initial(file)))
-
-        where:
-        type << ['file', 'artifact']
     }
 
     def "re-uses scheduled artifact transformation result"() {

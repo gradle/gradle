@@ -86,6 +86,7 @@ uploadArchives {
         module.ivy.sha1.expectPut('testuser', 'password')
 
         when:
+        executer.expectDeprecationWarning()
         run 'uploadArchives'
 
         then:
@@ -126,6 +127,7 @@ uploadArchives {
         server.allowPut('/repo/org.gradle/publish/2/publish-2.jar', 'testuser', 'password')
 
         when:
+        executer.expectDeprecationWarning()
         fails 'uploadArchives'
 
         then:
@@ -163,6 +165,7 @@ uploadArchives {
         server.addBroken("/")
 
         then:
+        executer.expectDeprecationWarning()
         fails 'uploadArchives'
 
         and:
@@ -174,12 +177,13 @@ uploadArchives {
         server.stop()
 
         then:
+        executer.expectDeprecationWarning()
         fails 'uploadArchives'
 
         and:
         failure.assertHasDescription('Execution failed for task \':uploadArchives\'.')
         failure.assertHasCause('Could not publish configuration \'archives\'')
-        failure.assertThatCause(matchesRegexp(".*?Connect to localhost:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
+        failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
     public void usesFirstConfiguredPatternForPublication() {
@@ -210,6 +214,7 @@ uploadArchives {
         module.ivy.sha1.expectPut()
 
         when:
+        executer.expectDeprecationWarning()
         run 'uploadArchives'
 
         then:

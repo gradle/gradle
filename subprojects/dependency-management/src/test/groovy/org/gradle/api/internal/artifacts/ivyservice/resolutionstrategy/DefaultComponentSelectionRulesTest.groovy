@@ -37,7 +37,7 @@ class DefaultComponentSelectionRulesTest extends Specification {
     static final MODULE = "module"
 
     RuleActionAdapter adapter = Mock(RuleActionAdapter)
-    DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(new DefaultImmutableModuleIdentifierFactory(), adapter, adapter)
+    DefaultComponentSelectionRules rules = new DefaultComponentSelectionRules(new DefaultImmutableModuleIdentifierFactory(), adapter)
     def ruleAction = Mock(RuleAction)
     def ruleSource = new Object()
 

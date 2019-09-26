@@ -21,24 +21,15 @@ import org.gradle.api.Task;
 import org.gradle.execution.plan.DependencyResolver;
 import org.gradle.execution.plan.Node;
 
-import java.util.Collection;
-
 /**
  * Resolves dependencies to {@link TransformationNode} objects.
  */
 public class TransformationNodeDependencyResolver implements DependencyResolver {
-    private final TransformationNodeRegistry transformationNodeRegistry;
-
-    public TransformationNodeDependencyResolver(TransformationNodeRegistry transformationNodeRegistry) {
-        this.transformationNodeRegistry = transformationNodeRegistry;
-    }
-
     @Override
     public boolean resolve(Task task, Object node, Action<? super Node> resolveAction) {
         if (node instanceof DefaultTransformationDependency) {
             DefaultTransformationDependency transformation = (DefaultTransformationDependency) node;
-            Collection<TransformationNode> transformations = transformationNodeRegistry.getOrCreate(transformation.getArtifacts(), transformation.getTransformation(), transformation.getDependenciesResolver());
-            for (TransformationNode transformationNode : transformations) {
+            for (TransformationNode transformationNode : transformation.getNodes()) {
                 resolveAction.execute(transformationNode);
             }
             return true;

@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.state.Managed;
 import org.gradle.util.GUtil;
 
@@ -27,20 +29,25 @@ import javax.annotation.Nullable;
 /**
  * A partial {@link Provider} implementation.
  */
-public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
+public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, ScalarSupplier<T>, Managed {
     @Override
     public <S> ProviderInternal<S> map(final Transformer<? extends S, ? super T> transformer) {
-        return new TransformBackedProvider<S, T>(transformer, this);
+        return new TransformBackedProvider<>(transformer, this);
     }
 
     @Override
     public <S> Provider<S> flatMap(final Transformer<? extends Provider<? extends S>, ? super T> transformer) {
-        return new FlatMapProvider<S, T>(this, transformer);
+        return new FlatMapProvider<>(this, transformer);
     }
 
     @Override
     public boolean isPresent() {
         return getOrNull() != null;
+    }
+
+    @Override
+    public T get(DisplayName owner) throws IllegalStateException {
+        return get();
     }
 
     @Override
@@ -54,12 +61,12 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public Provider<T> orElse(T value) {
-        return new OrElseFixedValueProvider<T>(this, value);
+        return new OrElseFixedValueProvider<>(this, value);
     }
 
     @Override
     public Provider<T> orElse(Provider<? extends T> provider) {
-        return new OrElseProvider<T>(this, Providers.internal(provider));
+        return new OrElseProvider<>(this, Providers.internal(provider));
     }
 
     @Override
@@ -69,17 +76,40 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
+    public boolean isValueProducedByTask() {
+        return false;
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return false;
+    }
+
+    @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
         return false;
     }
 
     @Override
-    public ProviderInternal<T> withFinalValue() {
-        T value = getOrNull();
-        if (value == null) {
-            return Providers.notDefined();
+    public ProviderInternal<T> asProvider() {
+        return this;
+    }
+
+    @Override
+    public ScalarSupplier<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
+        if (getType() != null && !targetType.isAssignableFrom(getType())) {
+            throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner.getDisplayName(), targetType.getName(), getType().getName()));
+        } else if (getType() == null) {
+            return new TypeSanitizingProvider<>(owner, sanitizer, targetType, this);
+        } else {
+            return this;
         }
-        return Providers.of(value);
+    }
+
+    @Override
+    public ScalarSupplier<T> withFinalValue() {
+        T value = getOrNull();
+        return Providers.nullableValue(value);
     }
 
     @Override
@@ -235,6 +265,28 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
                 value = right.getOrNull();
             }
             return value;
+        }
+    }
+
+    private static class TypeSanitizingProvider<T> extends AbstractMappingProvider<T, T> {
+        private final DisplayName owner;
+        private final ValueSanitizer<? super T> sanitizer;
+        private final Class<? super T> targetType;
+
+        public TypeSanitizingProvider(DisplayName owner, ValueSanitizer<? super T> sanitizer, Class<? super T> targetType, ProviderInternal<? extends T> delegate) {
+            super(Cast.uncheckedNonnullCast(targetType), delegate);
+            this.owner = owner;
+            this.sanitizer = sanitizer;
+            this.targetType = targetType;
+        }
+
+        @Override
+        protected T mapValue(T v) {
+            v = Cast.uncheckedCast(sanitizer.sanitize(v));
+            if (targetType.isInstance(v)) {
+                return v;
+            }
+            throw new IllegalArgumentException(String.format("Cannot get the value of %s of type %s as the provider associated with this property returned a value of type %s.", owner.getDisplayName(), targetType.getName(), v.getClass().getName()));
         }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.transform;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.StartEvent;
 
 /**
@@ -24,6 +23,5 @@ import org.gradle.tooling.events.StartEvent;
  *
  * @since 5.1
  */
-@Incubating
 public interface TransformStartEvent extends TransformProgressEvent, StartEvent {
 }

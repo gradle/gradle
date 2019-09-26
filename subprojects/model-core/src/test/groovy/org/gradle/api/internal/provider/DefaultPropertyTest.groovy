@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
-import org.gradle.api.provider.Property
 import org.gradle.internal.state.ManagedFactory
 
 class DefaultPropertyTest extends PropertySpec<String> {
@@ -74,7 +73,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == "No value has been specified for ${displayName}."
     }
 
     def "toString() does not realize value"() {
@@ -100,17 +99,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
         property.getOrNull() == null
         property.getOrElse(someValue()) == someValue()
         property.getOrElse(null) == null
-    }
-
-    def "fails when get method is called when the property has no initial value"() {
-        def property = new DefaultProperty<String>(String)
-
-        when:
-        property.get()
-
-        then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for this provider."
     }
 
     def "fails when value is set using incompatible type"() {
@@ -142,72 +130,94 @@ class DefaultPropertyTest extends PropertySpec<String> {
         !property.present
     }
 
-    def "can set value to a provider whose type is not known"() {
-        def provider = Mock(ProviderInternal)
-
-        given:
-        provider.get() >>> ["a", "b", "c"]
-        provider.map(_) >> provider
-
-        def propertyState = new DefaultProperty<String>(String)
-
-        when:
-        propertyState.set(provider)
-
-        then:
-        propertyState.get() == "a"
-        propertyState.get() == "b"
-        propertyState.get() == "c"
-    }
-
     def "can set value to a provider whose type is compatible"() {
+        def supplier = Mock(ScalarSupplier)
         def provider = Mock(ProviderInternal)
 
         given:
-        provider.getType() >> Integer
-        provider.get() >>> [1, 2, 3]
+        provider.asSupplier(_, _, _) >> supplier
+        supplier.get(_) >>> [1, 2, 3]
 
-        def propertyState = new DefaultProperty<Number>(Number)
+        def property = new DefaultProperty<Number>(Number)
 
         when:
-        propertyState.set(provider)
+        property.set(provider)
 
         then:
-        propertyState.get() == 1
-        propertyState.get() == 2
-        propertyState.get() == 3
+        property.get() == 1
+        property.get() == 2
+        property.get() == 3
     }
 
     def "fails when provider produces an incompatible value"() {
-        def provider = Mock(ProviderInternal)
-        def transform = null
+        def provider = new DefaultProvider({ 12 })
 
         given:
-        provider.map(_) >> { transform = it[0]; provider }
-        provider.get() >> { transform.transform(12) }
-        provider.getOrNull() >> { transform.transform(12) }
-
-        def propertyState = new DefaultProperty<Boolean>(Boolean)
-        propertyState.set(provider)
+        def property = new DefaultProperty<Boolean>(Boolean)
+        property.set(provider)
 
         when:
-        propertyState.get()
+        property.get()
 
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
 
         when:
-        propertyState.getOrNull()
+        property.getOrNull()
 
         then:
         def e2 = thrown(IllegalArgumentException)
         e2.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
     }
 
+    def "fails when convention is set using incompatible value"() {
+        def property = new DefaultProperty<Boolean>(Boolean)
+
+        when:
+        property.convention(12)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the value of a property of type java.lang.Boolean using an instance of type java.lang.Integer."
+
+        and:
+        !property.present
+    }
+
+    def "fails when convention is set using provider whose value is known to be incompatible"() {
+        def property = new DefaultProperty<Boolean>(Boolean)
+        def other = new DefaultProperty<Number>(Number)
+
+        when:
+        property.convention(other)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Cannot set the value of a property of type java.lang.Boolean using a provider of type java.lang.Number."
+
+        and:
+        !property.present
+    }
+
+    def "fails when convention is set using provider that returns incompatible value"() {
+        def provider = new DefaultProvider({ 12 })
+
+        given:
+        def property = new DefaultProperty<Boolean>(Boolean)
+        property.convention(provider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == 'Cannot get the value of a property of type java.lang.Boolean as the provider associated with this property returned a value of type java.lang.Integer.'
+    }
+
     def "mapped provider is live"() {
         def transformer = Mock(Transformer)
-        def provider = Mock(ProviderInternal)
+        def provider = provider("abc")
 
         def property = new DefaultProperty<String>(String)
 
@@ -237,7 +247,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
         property.set(provider)
 
         then:
-        _ * provider.type >> String
         0 * _
 
         when:
@@ -245,14 +254,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         then:
         r2 == "cba"
-        1 * provider.get() >> "abc"
         1 * transformer.transform("abc") >> "cba"
         0 * _
-    }
-
-    private Property<Boolean> createBooleanPropertyState(Boolean value) {
-        def propertyState = new DefaultProperty<Boolean>(Boolean)
-        propertyState.set(value)
-        propertyState
     }
 }

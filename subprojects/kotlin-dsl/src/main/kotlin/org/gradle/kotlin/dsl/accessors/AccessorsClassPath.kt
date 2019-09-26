@@ -510,7 +510,7 @@ fun hashCodeFor(schema: TypedProjectSchema): HashCode = Hashing.newHasher().run 
     putAll(schema.conventions)
     putAll(schema.tasks)
     putAll(schema.containerElements)
-    putAllSorted(schema.configurations)
+    putAllSorted(schema.configurations.map { it.target })
     hash()
 }
 

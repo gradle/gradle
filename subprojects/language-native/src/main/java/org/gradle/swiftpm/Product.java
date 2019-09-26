@@ -16,7 +16,6 @@
 
 package org.gradle.swiftpm;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -25,7 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * @since 4.6
  */
-@HasInternalProtocol @Incubating
+@HasInternalProtocol
 public interface Product extends Named {
     /**
      * Returns the name of this product.

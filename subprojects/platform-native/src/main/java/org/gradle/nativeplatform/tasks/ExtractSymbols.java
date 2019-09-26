@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Incubating;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -47,7 +46,6 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
  *
  * @since 4.5
  */
-@Incubating
 public class ExtractSymbols extends DefaultTask {
     private final RegularFileProperty binaryFile;
     private final RegularFileProperty symbolFile;
@@ -103,7 +101,7 @@ public class ExtractSymbols extends DefaultTask {
     // TODO: Need to track version/implementation of symbol extraction tool.
 
     @TaskAction
-    public void extractSymbols() {
+    protected void extractSymbols() {
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());
 
         SymbolExtractorSpec spec = new DefaultSymbolExtractorSpec();

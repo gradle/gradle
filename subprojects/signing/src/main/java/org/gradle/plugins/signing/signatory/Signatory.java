@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.signing.signatory;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 
@@ -26,7 +25,6 @@ import java.io.OutputStream;
  * A signatory is an object capable of providing a signature for an arbitrary stream of bytes.
  * @since 4.5
  */
-@Incubating
 public interface Signatory {
 
     /**

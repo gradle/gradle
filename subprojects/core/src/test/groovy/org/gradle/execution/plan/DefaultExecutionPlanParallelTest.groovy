@@ -30,39 +30,46 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.resources.ResourceLock
-import org.gradle.internal.resources.ResourceLockState
+import org.gradle.internal.resources.DefaultResourceLockCoordinationService
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
-import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-import org.gradle.util.Path
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.util.TestUtil.createChildProject
-
-class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
+class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
 
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
     DefaultExecutionPlan executionPlan
-    def lockSetup = new LockSetup()
+    def lease = Stub(WorkerLeaseRegistry.WorkerLease)
 
     def setup() {
+        _ * lease.tryLock() >> true
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(lockSetup.workerLeaseService, project.gradle, taskNodeFactory, dependencyResolver)
+        def coordinationService = new DefaultResourceLockCoordinationService()
+        def sharedResourceLeaseRegistry = new SharedResourceLeaseRegistry(coordinationService)
+        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
+    }
+
+    TaskInternal task(Map<String, ?> options = [:], String name) {
+        def task = createTask(name, options.project ?: this.project, options.type ?: TaskInternal)
+        _ * task.taskDependencies >> taskDependencyResolvingTo(task, options.dependsOn ?: [])
+        _ * task.finalizedBy >> taskDependencyResolvingTo(task, options.finalizedBy ?: [])
+        _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, [])
+        _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
+        return task
     }
 
     def "multiple tasks with async work from the same project can run in parallel"() {
         given:
-        def foo = project.task("foo", type: Async)
-        def bar = project.task("bar", type: Async)
-        def baz = project.task("baz", type: Async)
+        def foo = task("foo", type: Async)
+        def bar = task("bar", type: Async)
+        def baz = task("baz", type: Async)
 
         when:
         addToGraphAndPopulate(foo, bar, baz)
@@ -75,14 +82,14 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     def "one non-async task per project is allowed"() {
         given:
         //2 projects, 2 non parallelizable tasks each
-        def projectA = createChildProject(project, "a")
-        def projectB = createChildProject(project, "b")
+        def projectA = project(project, "a")
+        def projectB = project(project, "b")
 
-        def fooA = projectA.task("foo")
-        def barA = projectA.task("bar")
+        def fooA = task("foo", project: projectA)
+        def barA = task("bar", project: projectA)
 
-        def fooB = projectB.task("foo")
-        def barB = projectB.task("bar")
+        def fooB = task("foo", project: projectB)
+        def barB = task("bar", project: projectB)
 
         when:
         addToGraphAndPopulate(fooA, barA, fooB, barB)
@@ -90,25 +97,25 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def taskNode2 = selectNextTaskNode()
 
         then:
-        lockSetup.lockedProjects.size() == 2
-        taskNode1.task.project != taskNode2.task.project
+        lockedProjects == [projectA, projectB] as Set
+        !taskNode1.task.project.is(taskNode2.task.project)
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(taskNode1)
-        executionPlan.nodeComplete(taskNode2)
+        executionPlan.finishedExecuting(taskNode1)
+        executionPlan.finishedExecuting(taskNode2)
         def taskNode3 = selectNextTaskNode()
         def taskNode4 = selectNextTaskNode()
 
         then:
-        lockSetup.lockedProjects.size() == 2
-        taskNode3.task.project != taskNode4.task.project
+        lockedProjects == [projectA, projectB] as Set
+        !taskNode3.task.project.is(taskNode4.task.project)
     }
 
     def "a non-async task can start while an async task from the same project is waiting for work to complete"() {
         given:
-        def bar = project.task("bar", type: Async)
-        def foo = project.task("foo")
+        def bar = task("bar", type: Async)
+        def foo = task("foo")
 
         when:
         addToGraphAndPopulate(foo, bar)
@@ -125,8 +132,8 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "an async task does not start while a non-async task from the same project is running"() {
         given:
-        def a = project.task("a")
-        def b = project.task("b", type: Async)
+        def a = task("a")
+        def b = task("b", type: Async)
 
         when:
         addToGraphAndPopulate(a, b)
@@ -134,21 +141,21 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         then:
         nonAsyncTaskNode.task == a
         selectNextTask() == null
-        lockSetup.lockedProjects.size() == 1
+        lockedProjects.size() == 1
 
         when:
-        executionPlan.nodeComplete(nonAsyncTaskNode)
+        executionPlan.finishedExecuting(nonAsyncTaskNode)
         def asyncTask = selectNextTask()
         then:
         asyncTask == b
-        lockSetup.lockedProjects.empty
+        lockedProjects.empty
     }
 
     @Unroll
     def "two tasks with #relation relationship are not executed in parallel"() {
         given:
-        Task a = project.task("a", type: Async)
-        Task b = project.task("b", type: Async)."${relation}"(a)
+        Task a = task("a", type: Async)
+        Task b = task("b", type: Async, ("${relation}".toString()): [a])
 
         when:
         addToGraphAndPopulate(a, b)
@@ -156,10 +163,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         then:
         firstTaskNode.task == a
         selectNextTask() == null
-        lockSetup.lockedProjects.empty
+        lockedProjects.empty
 
         when:
-        executionPlan.nodeComplete(firstTaskNode)
+        executionPlan.finishedExecuting(firstTaskNode)
         def secondTask = selectNextTask()
         then:
         secondTask == b
@@ -168,10 +175,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         relation << ["dependsOn", "mustRunAfter"]
     }
 
-    def "two tasks with should run after ordering are executed in parallel" () {
+    def "two tasks with should run after ordering are executed in parallel"() {
         given:
-        def a = project.task("a", type: Async)
-        def b = project.task("b", type: Async)
+        def a = task("a", type: Async)
+        def b = task("b", type: Async)
         b.shouldRunAfter(a)
 
         when:
@@ -186,12 +193,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "task is not available for execution until all of its dependencies that are executed in parallel complete"() {
         given:
-        Task a = project.task("a", type: Async)
-        Task b = project.task("b", type: Async)
-        Task c = project.task("c", type: Async).dependsOn(a, b)
+        Task a = task("a", type: Async)
+        Task b = task("b", type: Async)
+        Task c = task("c", type: Async, dependsOn: [a, b])
 
         when:
-        addToGraphAndPopulate(a,b,c)
+        addToGraphAndPopulate(a, b, c)
 
         def firstTaskNode = selectNextTaskNode()
         def secondTaskNode = selectNextTaskNode()
@@ -200,12 +207,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(firstTaskNode)
+        executionPlan.finishedExecuting(firstTaskNode)
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(secondTaskNode)
+        executionPlan.finishedExecuting(secondTaskNode)
         then:
         selectNextTask() == c
 
@@ -215,12 +222,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def sharedFile = file("output")
 
         given:
-        Task a = project.task("a", type: AsyncWithOutputFile) {
-            outputFile = sharedFile
-        }
-        Task b = project.task("b", type: AsyncWithOutputFile) {
-            delegate.outputFile = sharedFile
-        }
+        Task a = task("a", type: AsyncWithOutputFile)
+        _ * a.outputFile >> sharedFile
+        Task b = task("b", type: AsyncWithOutputFile)
+        _ * b.outputFile >> sharedFile
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -230,12 +235,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def sharedFile = file("output")
 
         given:
-        Task a = project.task("a", type: AsyncWithOutputFile) {
-            outputFile = sharedFile
-        }
-        Task b = project.task("b", type: AsyncWithLocalState) {
-            localStateFile = sharedFile
-        }
+        Task a = task("a", type: AsyncWithOutputFile)
+        _ * a.outputFile >> sharedFile
+        Task b = task("b", type: AsyncWithLocalState)
+        _ * b.localStateFile >> sharedFile
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -243,12 +246,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that writes into a directory that is an output of a running task is not started"() {
         given:
-        Task a = project.task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir")
-        }
-        Task b = project.task("b", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir").file("outputSubdir").file("output")
-        }
+        Task a = task("a", type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("outputDir")
+        Task b = task("b", type: AsyncWithOutputDirectory)
+        _ * b.outputDirectory >> file("outputDir").file("outputSubdir").file("output")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -256,12 +257,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that writes into an ancestor directory of a file that is an output of a running task is not started"() {
         given:
-        Task a = project.task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir").file("outputSubdir").file("output")
-        }
-        Task b = project.task("b", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir")
-        }
+        Task a = task("a", type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("outputDir").file("outputSubdir").file("output")
+        Task b = task("b", type: AsyncWithOutputDirectory)
+        _ * b.outputDirectory >> file("outputDir")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -275,12 +274,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         fs.createSymbolicLink(symlink, taskOutput)
 
         and:
-        Task a = project.task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = taskOutput
-        }
-        Task b = project.task("b", type: AsyncWithOutputFile) {
-            outputFile = symlink.file("fileUnderSymlink")
-        }
+        Task a = task("a", type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> taskOutput
+        Task b = task("b", type: AsyncWithOutputFile)
+        _ * b.outputFile >> symlink.file("fileUnderSymlink")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -292,13 +289,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         def firstTaskNode = selectNextTaskNode()
 
         assert selectNextTask() == null
-        assert lockSetup.lockedProjects.empty
+        assert lockedProjects.empty
 
-        executionPlan.nodeComplete(firstTaskNode)
+        executionPlan.finishedExecuting(firstTaskNode)
         def secondTask = selectNextTask()
 
         assert [firstTaskNode.task, secondTask] as Set == [first, second] as Set
-
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -314,12 +310,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         file("tmp").createFile().delete()
 
         and:
-        Task a = project.task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = taskOutput
-        }
-        Task b = project.task("b", type: AsyncWithOutputDirectory) {
-            outputDirectory = symlink
-        }
+        Task a = task("a", type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> taskOutput
+        Task b = task("b", type: AsyncWithOutputDirectory)
+        _ * b.outputDirectory >> symlink
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -341,12 +335,10 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         file("tmp").createFile().delete()
 
         and:
-        Task a = project.task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = taskOutput
-        }
-        Task b = project.task("b", type: AsyncWithLocalState) {
-            localStateFile = symlink
-        }
+        Task a = task("a", type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> taskOutput
+        Task b = task("b", type: AsyncWithLocalState)
+        _ * b.localStateFile >> symlink
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -357,12 +349,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "tasks from two different projects that have the same file in outputs are not executed in parallel"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputFile) {
-            outputFile = file("output")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithOutputFile) {
-            outputFile = file("output")
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputFile)
+        _ * a.outputFile >> file("output")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithOutputFile)
+        _ * b.outputFile >> file("output")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -370,12 +362,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task from different project that writes into a directory that is an output of currently running task is not started"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithOutputFile) {
-            outputFile = file("outputDir").file("outputSubdir").file("output")
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("outputDir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithOutputFile)
+        _ * b.outputFile >> file("outputDir").file("outputSubdir").file("output")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -383,12 +375,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that destroys a directory that is an output of a currently running task is not started"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithDestroysFile) {
-            destroysFile = file("outputDir")
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("outputDir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithDestroysFile)
+        _ * b.destroysFile >> file("outputDir")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -396,12 +388,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that writes to a directory that is being destroyed by a currently running task is not started"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithDestroysFile) {
-            destroysFile = file("outputDir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir")
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithDestroysFile)
+        _ * a.destroysFile >> file("outputDir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithOutputDirectory)
+        _ * b.outputDirectory >> file("outputDir")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -409,12 +401,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that destroys an ancestor directory of an output of a currently running task is not started"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir").file("outputSubdir").file("output")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithDestroysFile) {
-            destroysFile = file("outputDir")
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("outputDir").file("outputSubdir").file("output")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithDestroysFile)
+        _ * b.destroysFile >> file("outputDir")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -422,12 +414,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that writes to an ancestor of a directory that is being destroyed by a currently running task is not started"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithDestroysFile) {
-            destroysFile = file("outputDir").file("outputSubdir").file("output")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("outputDir")
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithDestroysFile)
+        _ * a.destroysFile >> file("outputDir").file("outputSubdir").file("output")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithOutputDirectory)
+        _ * b.outputDirectory >> file("outputDir")
 
         expect:
         tasksAreNotExecutedInParallel(a, b)
@@ -435,19 +427,17 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that destroys an intermediate input is not started"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("inputDir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithDestroysFile) {
-            destroysFile = file("inputDir")
-        }
-        Task c = createChildProject(project, "c").task("c", type: AsyncWithInputDirectory) {
-            inputDirectory = file("inputDir")
-            dependsOn a
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("inputDir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithDestroysFile)
+        _ * b.destroysFile >> file("inputDir")
+        def projectC = project(project, "c")
+        Task c = task("c", project: projectC, type: AsyncWithInputDirectory, dependsOn: [a])
+        _ * c.inputDirectory >> file("inputDir")
 
         file("inputDir").file("inputSubdir").file("foo").file("bar") << "bar"
-
 
         expect:
         destroyerRunsLast(a, c, b)
@@ -461,13 +451,13 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         assert producerInfo.task == producer
         assert selectNextTask() == null
 
-        executionPlan.nodeComplete(producerInfo)
+        executionPlan.finishedExecuting(producerInfo)
         def consumerInfo = selectNextTaskNode()
 
         assert consumerInfo.task == consumer
         assert selectNextTask() == null
 
-        executionPlan.nodeComplete(consumerInfo)
+        executionPlan.finishedExecuting(consumerInfo)
         def destroyerInfo = selectNextTaskNode()
 
         assert destroyerInfo.task == destroyer
@@ -475,16 +465,15 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that destroys an ancestor of an intermediate input is not started"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("inputDir").file("inputSubdir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithDestroysFile) {
-            destroysFile = file("inputDir")
-        }
-        Task c = createChildProject(project, "c").task("c", type: AsyncWithInputDirectory) {
-            inputDirectory = file("inputDir").file("inputSubdir")
-            dependsOn a
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("inputDir").file("inputSubdir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithDestroysFile)
+        _ * b.destroysFile >> file("inputDir")
+        def projectC = project(project, "c")
+        Task c = task("c", project: projectC, type: AsyncWithInputDirectory, dependsOn: [a])
+        _ * c.inputDirectory >> file("inputDir").file("inputSubdir")
 
         file("inputDir").file("inputSubdir").file("foo").file("bar") << "bar"
 
@@ -494,16 +483,15 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that destroys a descendant of an intermediate input is not started"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("inputDir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithDestroysFile) {
-            destroysFile = file("inputDir").file("inputSubdir").file("foo")
-        }
-        Task c = createChildProject(project, "c").task("c", type: AsyncWithInputDirectory) {
-            inputDirectory = file("inputDir")
-            dependsOn a
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("inputDir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithDestroysFile)
+        _ * b.destroysFile >> file("inputDir").file("inputSubdir").file("foo")
+        def projectC = project(project, "c")
+        Task c = task("c", project: projectC, type: AsyncWithInputDirectory, dependsOn: [a])
+        _ * c.inputDirectory >> file("inputDir")
 
         file("inputDir").file("inputSubdir").file("foo").file("bar") << "bar"
 
@@ -513,16 +501,15 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that destroys an intermediate input can be started if it's ordered first"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("inputDir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithDestroysFile) {
-            destroysFile = file("inputDir")
-        }
-        Task c = createChildProject(project, "c").task("c", type: AsyncWithInputDirectory) {
-            inputDirectory = file("inputDir")
-            dependsOn a
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("inputDir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithDestroysFile)
+        _ * b.destroysFile >> file("inputDir")
+        def projectC = project(project, "c")
+        Task c = task("c", project: projectC, type: AsyncWithInputDirectory, dependsOn: [a])
+        _ * c.inputDirectory >> file("inputDir")
 
         file("inputDir").file("inputSubdir").file("foo").file("bar") << "bar"
 
@@ -539,13 +526,13 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         assert destroyerInfo.task == destroyer
         assert selectNextTask() == null
 
-        executionPlan.nodeComplete(destroyerInfo)
+        executionPlan.finishedExecuting(destroyerInfo)
         def producerInfo = selectNextTaskNode()
 
         assert producerInfo.task == producer
         assert selectNextTask() == null
 
-        executionPlan.nodeComplete(producerInfo)
+        executionPlan.finishedExecuting(producerInfo)
         def consumerInfo = selectNextTaskNode()
 
         assert consumerInfo.task == consumer
@@ -553,16 +540,15 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that destroys an ancestor of an intermediate input can be started if it's ordered first"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("inputDir").file("inputSubdir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithDestroysFile) {
-            destroysFile = file("inputDir")
-        }
-        Task c = createChildProject(project, "c").task("c", type: AsyncWithInputDirectory) {
-            inputDirectory = file("inputDir").file("inputSubdir")
-            dependsOn a
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("inputDir").file("inputSubdir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithDestroysFile)
+        _ * b.destroysFile >> file("inputDir")
+        def projectC = project(project, "c")
+        Task c = task("c", project: projectC, type: AsyncWithInputDirectory, dependsOn: [a])
+        _ * c.inputDirectory >> file("inputDir").file("inputSubdir")
 
         file("inputDir").file("inputSubdir").file("foo").file("bar") << "bar"
 
@@ -572,16 +558,15 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
 
     def "a task that destroys a descendant of an intermediate input can be started if it's ordered first"() {
         given:
-        Task a = createChildProject(project, "a").task("a", type: AsyncWithOutputDirectory) {
-            outputDirectory = file("inputDir")
-        }
-        Task b = createChildProject(project, "b").task("b", type: AsyncWithDestroysFile) {
-            destroysFile = file("inputDir").file("inputSubdir").file("foo")
-        }
-        Task c = createChildProject(project, "c").task("c", type: AsyncWithInputDirectory) {
-            inputDirectory = file("inputDir")
-            dependsOn a
-        }
+        def projectA = project(project, "a")
+        Task a = task("a", project: projectA, type: AsyncWithOutputDirectory)
+        _ * a.outputDirectory >> file("inputDir")
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: AsyncWithDestroysFile)
+        _ * b.destroysFile >> file("inputDir").file("inputSubdir").file("foo")
+        def projectC = project(project, "c")
+        Task c = task("c", project: projectC, type: AsyncWithInputDirectory, dependsOn: [a])
+        _ * c.inputDirectory >> file("inputDir")
 
         file("inputDir").file("inputSubdir").file("foo").file("bar") << "bar"
 
@@ -590,12 +575,12 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     }
 
     def "finalizer runs after the last task to be finalized"() {
-        def projectA = createChildProject(project, "a")
         given:
-        Task finalizer = projectA.task("finalizer")
-        Task a = projectA.task("a", type: Async)
-        Task b = createChildProject(project, "b").task("b", type: Async)
-        [a, b]*.finalizedBy(finalizer)
+        def projectA = project(project, "a")
+        Task finalizer = task("finalizer", project: projectA)
+        Task a = task("a", project: projectA, type: Async, finalizedBy: [finalizer])
+        def projectB = project(project, "b")
+        Task b = task("b", project: projectB, type: Async, finalizedBy: [finalizer])
 
         when:
         addToGraphAndPopulate(a, b)
@@ -608,13 +593,13 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(firstInfo)
+        executionPlan.finishedExecuting(firstInfo)
 
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(secondInfo)
+        executionPlan.finishedExecuting(secondInfo)
         def finalizerInfo = selectNextTaskNode()
 
         then:
@@ -624,15 +609,11 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     @Issue("https://github.com/gradle/gradle/issues/8253")
     def "dependency of dependency of finalizer is scheduled when another task depends on the dependency"() {
         given:
-        Task finalizer = project.task("finalizer", type: Async)
-        Task finalized = project.task("finalized", type: Async)
-        Task dependency = project.task("dependency", type: Async)
-        Task otherTaskWithDependency = project.task("otherTaskWithDependency", type: Async)
-        Task dependencyOfDependency = project.task("dependencyOfDependency", type: Async)
-        finalized.finalizedBy(finalizer)
-        finalizer.dependsOn(dependency)
-        dependency.dependsOn(dependencyOfDependency)
-        otherTaskWithDependency.dependsOn(dependency)
+        Task dependencyOfDependency = task("dependencyOfDependency", type: Async)
+        Task dependency = task("dependency", type: Async, dependsOn: [dependencyOfDependency])
+        Task finalizer = task("finalizer", type: Async, dependsOn: [dependency])
+        Task finalized = task("finalized", type: Async, finalizedBy: [finalizer])
+        Task otherTaskWithDependency = task("otherTaskWithDependency", type: Async, dependsOn: [dependency])
 
         when:
         executionPlan.addEntryTasks([finalized])
@@ -648,36 +629,110 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(dependencyOfDependencyNode)
+        executionPlan.finishedExecuting(dependencyOfDependencyNode)
         def dependencyNode = selectNextTaskNode()
         then:
         dependencyNode.task == dependency
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(dependencyNode)
+        executionPlan.finishedExecuting(dependencyNode)
         def otherTaskWithDependencyNode = selectNextTaskNode()
         then:
         otherTaskWithDependencyNode.task == otherTaskWithDependency
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(otherTaskWithDependencyNode)
+        executionPlan.finishedExecuting(otherTaskWithDependencyNode)
         then:
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(finalizedNode)
+        executionPlan.finishedExecuting(finalizedNode)
         then:
         selectNextTask() == finalizer
         selectNextTask() == null
     }
 
+    def "must run after is sometimes not respected for finalizers"() {
+        Task dependency = task("dependency", type: Async)
+        Task finalizer = task("finalizer", type: Async)
+        Task finalized = task("finalized", type: Async, dependsOn: [dependency], finalizedBy: [finalizer])
+        Task mustRunAfter = task("mustRunAfter", type: Async, mustRunAfter: [finalizer])
+
+        when:
+        executionPlan.addEntryTasks([finalized])
+        executionPlan.addEntryTasks([mustRunAfter])
+        executionPlan.determineExecutionPlan()
+
+        and:
+        def dependencyNode = selectNextTaskNode()
+        def mustRunAfterNode = selectNextTaskNode()
+        then:
+        selectNextTaskNode() == null
+        dependencyNode.task == dependency
+        mustRunAfterNode.task == mustRunAfter
+
+        when:
+        executionPlan.finishedExecuting(dependencyNode)
+
+        def finalizedNode = selectNextTaskNode()
+        then:
+        selectNextTaskNode() == null
+        finalizedNode.task == finalized
+
+        when:
+        executionPlan.finishedExecuting(finalizedNode)
+
+        def finalizerNode = selectNextTaskNode()
+        then:
+        selectNextTaskNode() == null
+        finalizerNode.task == finalizer
+    }
+
+    def "must run after is sometimes respected for finalizers"() {
+        Task dependency = task("dependency", type: Async)
+        Task finalizer = task("finalizer", type: Async)
+        Task finalized = task("finalized", type: Async, dependsOn: [dependency], finalizedBy: [finalizer])
+        Task mustRunAfter = task("mustRunAfter", type: Async, mustRunAfter: [finalizer])
+
+        when:
+        executionPlan.addEntryTasks([finalized])
+        executionPlan.addEntryTasks([mustRunAfter])
+        executionPlan.determineExecutionPlan()
+
+        and:
+        def dependencyNode = selectNextTaskNode()
+        then:
+        dependencyNode.task == dependency
+
+        when:
+        executionPlan.finishedExecuting(dependencyNode)
+
+        def finalizedNode = selectNextTaskNode()
+        then:
+        finalizedNode.task == finalized
+
+        when:
+        executionPlan.finishedExecuting(finalizedNode)
+
+        def finalizerNode = selectNextTaskNode()
+        then:
+        selectNextTaskNode() == null
+        finalizerNode.task == finalizer
+
+        when:
+        executionPlan.finishedExecuting(finalizerNode)
+        then:
+        selectNextTask() == mustRunAfter
+        selectNextTask() == null
+    }
+
     def "handles an exception while walking the task graph when an enforced task is present"() {
         given:
-        Task finalizer = project.task("finalizer", type: BrokenTask)
-        Task finalized = project.task("finalized")
-        finalized.finalizedBy finalizer
+        Task finalizer = task("finalizer", type: BrokenTask)
+        _ * finalizer.outputFiles >> { throw new RuntimeException("broken") }
+        Task finalized = task("finalized", finalizedBy: [finalizer])
 
         when:
         addToGraphAndPopulate(finalized)
@@ -688,15 +743,14 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
         selectNextTask() == null
 
         when:
-        executionPlan.nodeComplete(finalizedInfo)
+        executionPlan.finishedExecuting(finalizedInfo)
         selectNextTask()
 
         then:
         Exception e = thrown()
-        e.message.contains("Execution failed for task ':finalizer'")
+        e.message.contains("Execution failed for task :finalizer")
 
         when:
-        lockSetup.currentState.releaseLocks()
         executionPlan.abortAllAndFail(e)
 
         then:
@@ -757,134 +811,14 @@ class DefaultExecutionPlanParallelTest extends AbstractProjectBuilderSpec {
     }
 
     private TaskNode selectNextTaskNode() {
-        def nextTaskNode = executionPlan.selectNext(lockSetup.workerLease, lockSetup.createResourceLockState())
+        def nextTaskNode
+        recordLocks {
+            nextTaskNode = executionPlan.selectNext(lease, resourceLockState)
+        }
         if (nextTaskNode?.task instanceof Async) {
             def project = (ProjectInternal) nextTaskNode.task.project
-            lockSetup.projectLocks.get(project.identityPath).unlock()
+            project.mutationState.accessLock.unlock()
         }
         return nextTaskNode
-    }
-
-    class LockSetup {
-        int availableWorkerLeases = 5
-        Set<Path> lockedProjects = [] as Set
-        Map<Path, ResourceLock> projectLocks = [:]
-        ResourceLockState currentState
-
-        ResourceLockState createResourceLockState() {
-            currentState = new ResourceLockState() {
-                private Set<ResourceLock> lockedResources = [] as Set
-
-                @Override
-                void registerLocked(ResourceLock resourceLock) {
-                    lockedResources.add(resourceLock)
-                }
-
-                @Override
-                void registerUnlocked(ResourceLock resourceLock) {
-                }
-
-                @Override
-                void releaseLocks() {
-                    lockedResources.each {
-                        it.unlock()
-                    }
-                    lockedResources.clear()
-                }
-            }
-            return currentState
-        }
-        WorkerLeaseService workerLeaseService = [
-            getProjectLock: { Path gradlePath, Path projectPath ->
-                if (!projectLocks.containsKey(projectPath)) {
-                    projectLocks[projectPath] = new StubProjectLock(lockedProjects, projectPath)
-                }
-                return projectLocks[projectPath]
-            }
-        ] as WorkerLeaseService
-
-        WorkerLeaseRegistry.WorkerLease getWorkerLease() {
-            return new StubWorkerLease(this)
-        }
-    }
-
-    class StubProjectLock implements ResourceLock {
-        boolean locked = false
-        private final String projectPath
-        private final Set<Path> lockedProjects
-
-        StubProjectLock(Set<Path> lockedProjects, Path projectPath) {
-            this.lockedProjects = lockedProjects
-            this.projectPath = projectPath
-        }
-
-        @Override
-        boolean isLockedByCurrentThread() {
-            return locked
-        }
-
-        @Override
-        boolean tryLock() {
-            if (!locked) {
-                locked = true
-                lockSetup.currentState?.registerLocked(this)
-                lockedProjects.add(projectPath)
-                return true
-            }
-            return false
-        }
-
-        @Override
-        void unlock() {
-            if (locked) {
-                assert lockedProjects.contains(projectPath)
-                lockedProjects.remove(projectPath)
-                locked = false
-            }
-        }
-
-        @Override
-        String getDisplayName() { "Project lock for ${projectPath}" }
-    }
-
-    class StubWorkerLease implements WorkerLeaseRegistry.WorkerLease {
-        boolean locked = false
-        private final LockSetup lockSetup
-
-        StubWorkerLease(LockSetup lockSetup) {
-            this.lockSetup = lockSetup
-        }
-
-        @Override
-        WorkerLeaseRegistry.WorkerLease createChild() { null }
-
-        @Override
-        WorkerLeaseRegistry.WorkerLeaseCompletion startChild() { null }
-
-        @Override
-        boolean isLockedByCurrentThread() {
-            return locked
-        }
-
-        @Override
-        boolean tryLock() {
-            if (!locked && lockSetup.availableWorkerLeases > 0) {
-                lockSetup.availableWorkerLeases--
-                lockSetup.currentState?.registerLocked(this)
-                locked = true
-            }
-            return locked
-        }
-
-        @Override
-        void unlock() {
-            if (locked) {
-                locked = false
-                lockSetup.availableWorkerLeases++
-            }
-        }
-
-        @Override
-        String getDisplayName() { return "Mock worker lease" }
     }
 }

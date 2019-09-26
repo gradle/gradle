@@ -16,7 +16,6 @@
 
 package org.gradle.api.file;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
@@ -30,7 +29,6 @@ import java.io.File;
  *
  * @since 4.1
  */
-@Incubating
 public interface ProjectLayout {
     /**
      * Returns the project directory.
@@ -43,47 +41,16 @@ public interface ProjectLayout {
     DirectoryProperty getBuildDirectory();
 
     /**
-     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
-     *
-     * @since 4.3
-     * @deprecated Replaced by {@link ObjectFactory#directoryProperty()}
-     */
-    @Deprecated
-    DirectoryProperty directoryProperty();
-
-    /**
-     * Creates a new {@link DirectoryProperty} that uses the project directory to resolve relative paths, if required. The property has the initial provider specified.
-     *
-     * @param initialProvider initial provider for the property
-     * @since 4.4
-     * @deprecated Replaced by {@link ObjectFactory#directoryProperty()}
-     */
-    @Deprecated
-    DirectoryProperty directoryProperty(Provider<? extends Directory> initialProvider);
-
-    /**
-     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve relative paths, if required. The property has no initial value.
-     *
-     * @since 4.3
-     * @deprecated Replaced by {@link ObjectFactory#fileProperty()}
-     */
-    @Deprecated
-    RegularFileProperty fileProperty();
-
-    /**
-     * Creates a new {@link RegularFileProperty} that uses the project directory to resolve relative paths, if required. The property has the initial provider specified.
-     *
-     * @param initialProvider initial provider for the property
-     * @since 4.4
-     * @deprecated Replaced by {@link ObjectFactory#fileProperty()}
-     */
-    @Deprecated
-    RegularFileProperty fileProperty(Provider<? extends RegularFile> initialProvider);
-
-    /**
      * Creates a {@link RegularFile} provider whose location is calculated from the given {@link Provider}.
      */
     Provider<RegularFile> file(Provider<File> file);
+
+    /**
+     * Creates a {@link Directory} provider whose location is calculated from the given {@link Provider}.
+     *
+     * @since 6.0
+     */
+    Provider<Directory> dir(Provider<File> file);
 
     /**
      * <p>Creates a {@link FileCollection} containing the given files, as defined by {@link Project#files(Object...)}.

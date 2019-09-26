@@ -23,12 +23,12 @@ import spock.lang.Issue
 
 class ComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
     String getDefaultStatus() {
-        GradleMetadataResolveRunner.useIvy()?'integration':'release'
+        GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
 
     def setup() {
         buildFile <<
-"""
+            """
 dependencies {
     conf 'org.test:projectA:1.0'
 }
@@ -87,7 +87,7 @@ dependencies {
         }
 
         buildFile <<
-                """
+            """
 class UpdatingRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
             context.details.status "integration.changed" // verify that 'details' is enhanced
@@ -129,7 +129,7 @@ dependencies {
         }
 
         buildFile <<
-                """
+            """
 class UpdatingRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
             assert !context.details.changing
@@ -161,7 +161,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    def "can apply all rule types to all modules" () {
+    def "can apply all rule types to all modules"() {
         repository {
             'org.test:projectA:1.0'()
         }
@@ -227,7 +227,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    def "can apply all rule types by module" () {
+    def "can apply all rule types by module"() {
         repository {
             'org.test:projectA:1.0'()
         }
@@ -333,7 +333,7 @@ dependencies {
     }
 
     @RequiredFeatures(
-        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="maven")
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     )
     def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
         given:
@@ -384,7 +384,7 @@ resolve.doLast {
         buildFile << """
 class IvyRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
-        assert context.getDescriptor(IvyModuleDescriptor) ${GradleMetadataResolveRunner.useIvy()? '!=' : '=='} null
+        assert context.getDescriptor(IvyModuleDescriptor) ${GradleMetadataResolveRunner.useIvy() ? '!=' : '=='} null
     }
 }
 
@@ -473,5 +473,35 @@ task res {
 
         then:
         succeeds ':sub:res', ':res'
+    }
+
+    def "dependency injection works if class-based and inline rules are combined"() {
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        when:
+        buildFile << """
+            class ClassBasedRule implements ComponentMetadataRule {
+                @javax.inject.Inject
+                ObjectFactory getObjects() { }
+                void execute(ComponentMetadataContext context) { getObjects() }
+            }
+            dependencies {
+                conf 'org.test:projectA:1.0'
+                components {
+                    all(ClassBasedRule)
+                    all {}
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
     }
 }

@@ -46,7 +46,6 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
 
         module = mavenHttpRepo.module('org', 'producer', '1.0')
                 .withModuleMetadata()
-                .withGradleMetadataRedirection()
                 .adhocVariants()
                 .variant("apiElementsJdk6", [
                 'org.gradle.dependency.bundling': 'external',

@@ -25,7 +25,33 @@ import org.gradle.api.Incubating;
  *
  * @since 4.5
  */
-@Incubating
 public interface DirectDependencyMetadata extends DependencyMetadata<DirectDependencyMetadata> {
+
+    /**
+     * Endorse version constraints with {@link VersionConstraint#getStrictVersion()} strict versions} from the target module.
+     *
+     * Endorsing strict versions of another module/platform means that all strict versions will be interpreted during dependency
+     * resolution as if they where defined by the endorsing module itself.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void endorseStrictVersions();
+
+    /**
+     * Resets the {@link #isEndorsingStrictVersions()} state of this dependency.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void doNotEndorseStrictVersions();
+
+    /**
+     * Are the {@link VersionConstraint#getStrictVersion()} strict version} dependency constraints of the target module inherited?
+     *
+     * @since 6.0
+     */
+    @Incubating
+    boolean isEndorsingStrictVersions();
 
 }

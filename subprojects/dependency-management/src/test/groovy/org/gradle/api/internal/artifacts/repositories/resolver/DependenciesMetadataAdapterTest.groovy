@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+import org.gradle.api.artifacts.DirectDependencyMetadata
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.notations.DependencyMetadataNotationParser
-import org.gradle.internal.component.external.model.GradleDependencyMetadata
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.util.AttributeTestUtil
@@ -30,9 +31,11 @@ import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
-class DependenciesMetadataAdapterTest extends Specification {
-    List<DependencyMetadata> dependenciesMetadata = []
+abstract class DependenciesMetadataAdapterTest extends Specification {
+    List<ModuleDependencyMetadata> dependenciesMetadata = []
     TestDependenciesMetadataAdapter adapter
+
+    abstract ModuleDependencyMetadata newDependency(ModuleComponentSelector requested);
 
     def setup() {
         fillDependencyList(0)
@@ -64,6 +67,7 @@ class DependenciesMetadataAdapterTest extends Specification {
         when:
         adapter.add("org.gradle.test:module1") {
             it.version { it.require '1.0' }
+            it.endorseStrictVersions()
         }
 
         then:
@@ -71,6 +75,7 @@ class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].selector.group == "org.gradle.test"
         dependenciesMetadata[0].selector.module == "module1"
         dependenciesMetadata[0].selector.version == "1.0"
+        dependenciesMetadata[0].isEndorsingStrictVersions()
     }
 
     def "add via map id with action propagate to the underlying dependency list"() {
@@ -191,16 +196,28 @@ class DependenciesMetadataAdapterTest extends Specification {
         dependenciesMetadata[0].selector.attributes.getAttribute(attr) == 'foo'
     }
 
+    def "can modify dependency inheritance state"() {
+        given:
+        fillDependencyList(1)
+
+        when:
+        adapter.get(0).endorseStrictVersions()
+
+        then:
+        dependenciesMetadata.size() == 1
+        dependenciesMetadata[0].isEndorsingStrictVersions()
+    }
+
     private fillDependencyList(int size) {
         dependenciesMetadata = []
         for (int i = 0; i < size; i++) {
             ModuleComponentSelector requested = newSelector(DefaultModuleIdentifier.newId("org.gradle.test", "module$size"), "1.0")
-            dependenciesMetadata += [ new GradleDependencyMetadata(requested, [], false, null, false) ]
+            dependenciesMetadata += [newDependency(requested)]
         }
         adapter = new TestDependenciesMetadataAdapter(dependenciesMetadata)
     }
 
-    class TestDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter {
+    class TestDependenciesMetadataAdapter extends AbstractDependenciesMetadataAdapter<DirectDependencyMetadata> {
         TestDependenciesMetadataAdapter(List<DependencyMetadata> dependenciesMetadata) {
             super(AttributeTestUtil.attributesFactory(), dependenciesMetadata, TestUtil.instantiatorFactory().decorateLenient(), DependencyMetadataNotationParser.parser(DirectInstantiator.INSTANCE, DirectDependencyMetadataImpl.class, SimpleMapInterner.notThreadSafe()))
         }
@@ -213,6 +230,11 @@ class DependenciesMetadataAdapterTest extends Specification {
         @Override
         protected boolean isConstraint() {
             return false
+        }
+
+        @Override
+        protected boolean isEndorsingStrictVersions(DirectDependencyMetadata details) {
+            return details.isEndorsingStrictVersions()
         }
     }
 }

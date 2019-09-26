@@ -18,10 +18,10 @@ package org.gradle.performance
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
-import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
+import org.gradle.performance.fixture.CrossBuildGradleInternalPerformanceTestRunner
+import org.gradle.performance.fixture.GradleInternalBuildExperimentRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.MeasuredOperation
@@ -45,7 +45,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
     def resultStore = new BuildScanResultsStore()
 
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
-    CrossBuildPerformanceTestRunner runner
+    CrossBuildGradleInternalPerformanceTestRunner runner
 
     @Shared
     String pluginVersionNumber = resolvePluginVersion()
@@ -56,7 +56,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
         def buildStampJsonData = new JsonSlurper().parse(buildStampJsonFile) as Map<String, ?>
         assert buildStampJsonData.commitId
         def pluginCommitId = buildStampJsonData.commitId as String
-        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, pluginCommitId, buildContext) {
+        runner = new BuildScanPerformanceTestRunner(new GradleInternalBuildExperimentRunner(new GradleSessionProvider(buildContext)), resultStore, resultStore, pluginCommitId, buildContext) {
             @Override
             protected void defaultSpec(BuildExperimentSpec.Builder builder) {
                 super.defaultSpec(builder)
@@ -85,7 +85,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
         def rawResults = results.buildResult(name)
         def shift = rawResults.totalTime.median.value * maxPercentageShift / 100
         baselineResults.results.addAll(rawResults.collect {
-            new MeasuredOperation([start: it.start, end: it.end, totalTime: Amount.valueOf(it.totalTime.value + shift, it.totalTime.units), exception: it.exception])
+            new MeasuredOperation([totalTime: Amount.valueOf(it.totalTime.value + shift, it.totalTime.units), exception: it.exception])
         })
         return baselineResults
     }

@@ -15,7 +15,7 @@
 [[cpp_unit_test_plugin]]
 = {cpp} Unit Test
 
-The {cpp} Unit Test Plugin provides the tasks, configurations and conventions for integrating with a {cpp} executable-based testing framework, such as https://github.com/google/googletest[Google Test]. 
+The {cpp} Unit Test Plugin provides the tasks, configurations and conventions for integrating with a {cpp} executable-based testing framework, such as https://github.com/google/googletest[Google Test].
 
 [[sec:cpp_unit_test_usage]]
 == Usage
@@ -204,7 +204,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 
 link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:toolChain[toolChain]:: <<building_cpp_projects.adoc#cpp_supported_tool_chain,automatically selected based on target machine>>
+link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.language.cpp.tasks.CppCompile:toolChain[toolChain]:: <<building_cpp_projects.adoc#sec:cpp_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:cpp_unit_test_link_task]]
 === `linkTest__Variant__` Task
@@ -226,7 +226,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: <<building_cpp_projects.adoc#cpp_supported_tool_chain,automatically selected based on target machine>>
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gradle.nativeplatform.tasks.LinkExecutable:toolChain[toolChain]:: <<building_cpp_projects.adoc#sec:cpp_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:cpp_unit_test_install_task]]
 === `installTest__Variant__` Task

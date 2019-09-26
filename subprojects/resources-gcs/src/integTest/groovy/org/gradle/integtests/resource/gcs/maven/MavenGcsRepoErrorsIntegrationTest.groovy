@@ -87,7 +87,6 @@ repositories {
         buildFile << mavenGcsRepoDsl()
         when:
         module.pom.expectDownloadMissing()
-        module.artifact.expectMetadataRetrieveMissing()
         then:
         fails 'retrieve'
 
@@ -98,7 +97,7 @@ repositories {
             """Could not find org.gradle:test:1.85.
 Searched in the following locations:
   - ${module.pom.uri}
-  - ${module.artifact.uri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
 """)
     }

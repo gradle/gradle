@@ -21,7 +21,7 @@ If you are coming from another native build system, these concepts may be unfami
 We will look at {cpp} projects in detail in this chapter, but most of the topics will apply to other supported native languages as well.
 If you don’t have much experience with building native projects with Gradle, take a look at the {cpp} tutorials for step-by-step instructions on how to build various types of basic {cpp} projects as well as some common use cases.
 
-The {cpp} plugins covered in this chapter were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend users to use those plugins over <<native_software.adoc#native_binaries,the older Native plugins>> that you may find references to.
+The {cpp} plugins covered in this chapter were https://blog.gradle.org/introducing-the-new-cpp-plugins[introduced in 2018] and we recommend users to use those plugins over <<native_software.adoc#,the older Native plugins>> that you may find references to.
 
 [[sec:cpp_introduction]]
 == Introduction
@@ -67,7 +67,7 @@ You can find a list of them in the <<plugin_reference.adoc#native_languages,nati
 
 Gradle’s {cpp} support uses a `ConfigurableFileCollection` directly from the link:{groovyDslPath}/org.gradle.language.cpp.CppApplication.html[application] or link:{groovyDslPath}/org.gradle.language.cpp.CppLibrary.html[library] script block to configure the set of sources to compile.
 
-Libraries make a distinction between private (implementation details) and public (exported to consumer) headers. 
+Libraries make a distinction between private (implementation details) and public (exported to consumer) headers.
 
 You can also configure sources for each binary build for those cases where sources are compiled only on certain target machines.
 
@@ -81,9 +81,9 @@ Test sources are configured on each test suite script block. See <<cpp_testing.a
 
 The vast majority of projects rely on other projects, so managing your project's dependencies is an important part of building any project.
 Dependency management is a big topic, so we will only focus on the basics for {cpp} projects here.
-If you’d like to dive into the details, check out the <<introduction_dependency_management.adoc#introduction_dependency_management,introduction to dependency management>>.
+If you’d like to dive into the details, check out the <<core_dependency_management.adoc#,introduction to dependency management>>.
 
-Gradle provides support for consuming pre-built binaries from Maven repositories published by Gradle footnote:[Unfortunately, Conan and Nuget repositories aren’t yet support as core features]. 
+Gradle provides support for consuming pre-built binaries from Maven repositories published by Gradle footnote:[Unfortunately, Conan and Nuget repositories aren’t yet support as core features].
 
 We will cover how to add dependencies between projects within a multi-build project.
 
@@ -119,15 +119,15 @@ You can learn more about these and how they relate to one another in the <<plugi
 
 Be aware that the <<cpp_library_plugin.adoc#,{cpp} Library Plugin>> creates an additional configuration - `api` - for dependencies that are required for compiling and linking both the module and any modules that depend on it.
 
-We have only scratched the surface here, so we recommend that you read the <<introduction_dependency_management.adoc#,dedicated dependency management chapters>> once you’re comfortable with the basics of building {cpp} projects with Gradle.
+We have only scratched the surface here, so we recommend that you read the <<core_dependency_management.adoc#,dedicated dependency management chapters>> once you’re comfortable with the basics of building {cpp} projects with Gradle.
 
 Some common scenarios that require further reading include:
 
- * Defining a custom <<repository_types.adoc#maven_repo,Maven-compatible>> repository
- * Declaring dependencies with <<declaring_dependencies.adoc#declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependencies.adoc#declaring_dependency_with_dynamic_version,dynamic>> (range) versions
- * Declaring a sibling <<declaring_dependencies.adoc#declaring_project_dependency,project as a dependency>>
- * <<managing_transitive_dependencies.adoc#managing_transitive_dependencies,Controlling transitive dependencies and their versions>>
- * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<repository_types.adoc#maven_local,Maven Local>>)
+ * Defining a custom <<declaring_repositories.adoc#sec:maven_repo,Maven-compatible>> repository
+ * Declaring dependencies with <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
+ * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
+ * <<controlling_transitive_dependencies.adoc#,Controlling transitive dependencies and their versions>>
+ * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite-builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
 
 You’ll discover that Gradle has a rich API for working with dependencies - one that takes time to master, but is straightforward to use for common scenarios.
 
@@ -137,13 +137,13 @@ Compiling both your code can be trivially easy if you follow the conventions:
 
 1. Put your source code under the _src/main/cpp_ directory
 2. Declare your compile dependencies in the `implementation` configurations (see the previous section)
-3. Run the `assemble` task 
+3. Run the `assemble` task
 
 We recommend that you follow these conventions wherever possible, but you don’t have to.
 
 There are several options for customization, as you’ll see next.
 
-NOTE: All link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile] tasks are incremental and cacheable. 
+NOTE: All link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile] tasks are incremental and cacheable.
 
 [[sec:cpp_supported_tool_chain]]
 === Supported tool chain
@@ -245,7 +245,7 @@ Gradle comes with defaults, but custom packaging can be implemented without any 
 [[sec:cleaning_cpp_build]]
 == Cleaning the build
 
-The {cpp} Application and Library Plugins add a `clean` task to you project by using the <<base_plugin,base plugin>>.
+The {cpp} Application and Library Plugins add a `clean` task to you project by using the <<base_plugin.adoc#,base plugin>>.
 This task simply deletes everything in the `$buildDir` directory, hence why you should always put files generated by the build in there.
 The task is an instance of Delete and you can change what directory it deletes by setting its `dir` property.
 
@@ -253,7 +253,7 @@ The task is an instance of Delete and you can change what directory it deletes b
 == Building {cpp} libraries
 
 The unique aspect of library projects is that they are used (or "consumed") by other {cpp} projects.
-That means the dependency metadata published with the binaries and headers - in the form of a Gradle Metadata - is crucial.
+That means the dependency metadata published with the binaries and headers - in the form of Gradle Module Metadata - is crucial.
 In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
 
 Gradle manages this distinction via the <<cpp_library_plugin.adoc#,{cpp} Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ once covered in this chapter.

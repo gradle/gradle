@@ -16,12 +16,17 @@
 
 package org.gradle.api.publish.internal;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.gson.stream.JsonWriter;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Named;
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ExternalDependency;
@@ -29,7 +34,6 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.Capability;
@@ -37,6 +41,7 @@ import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyPublicationResolver;
@@ -47,10 +52,12 @@ import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -85,6 +92,7 @@ public class GradleModuleMetadataWriter {
     }
 
     public void generateTo(PublicationInternal publication, Collection<? extends PublicationInternal> publications, Writer writer) throws IOException {
+        InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
         Map<SoftwareComponent, ComponentData> coordinates = new HashMap<SoftwareComponent, ComponentData>();
         collectCoordinates(publications, coordinates);
@@ -97,9 +105,10 @@ public class GradleModuleMetadataWriter {
         JsonWriter jsonWriter = new JsonWriter(writer);
         jsonWriter.setHtmlSafe(false);
         jsonWriter.setIndent("  ");
-        writeComponentWithVariants(publication, publication.getComponent(), coordinates, owners, jsonWriter);
+        writeComponentWithVariants(publication, publication.getComponent(), coordinates, owners, jsonWriter, checker);
         jsonWriter.flush();
         writer.append('\n');
+        checker.validate();
     }
 
     private void collectOwners(Collection<? extends PublicationInternal> publications, Map<SoftwareComponent, SoftwareComponent> owners) {
@@ -123,45 +132,44 @@ public class GradleModuleMetadataWriter {
         }
     }
 
-    private void writeComponentWithVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter) throws IOException {
+    private void writeComponentWithVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         jsonWriter.beginObject();
         writeFormat(jsonWriter);
         writeIdentity(publication.getCoordinates(), publication.getAttributes(), component, componentCoordinates, owners, jsonWriter);
         writeCreator(jsonWriter);
-        writeVariants(publication, component, componentCoordinates, jsonWriter);
+        writeVariants(publication, component, componentCoordinates, jsonWriter, checker);
         jsonWriter.endObject();
     }
 
-    private void writeVersionConstraint(VersionConstraint versionConstraint, String resolvedVersion, JsonWriter jsonWriter) throws IOException {
-        if (DefaultImmutableVersionConstraint.of().equals(versionConstraint)) {
+    private void writeVersionConstraint(ImmutableVersionConstraint immutableVersionConstraint, String resolvedVersion, JsonWriter jsonWriter) throws IOException {
+        if (resolvedVersion == null && DefaultImmutableVersionConstraint.of().equals(immutableVersionConstraint)) {
             return;
         }
 
         jsonWriter.name("version");
         jsonWriter.beginObject();
 
-        String required = !versionConstraint.getRequiredVersion().isEmpty() ? versionConstraint.getRequiredVersion() : null;
-        String preferred = !versionConstraint.getPreferredVersion().isEmpty() ? versionConstraint.getPreferredVersion() : null;
+        boolean isStrict = !immutableVersionConstraint.getStrictVersion().isEmpty();
+        String version = isStrict ? immutableVersionConstraint.getStrictVersion() : !immutableVersionConstraint.getRequiredVersion().isEmpty() ? immutableVersionConstraint.getRequiredVersion() : null;
+        String preferred = !immutableVersionConstraint.getPreferredVersion().isEmpty() ? immutableVersionConstraint.getPreferredVersion() : null;
         if (resolvedVersion != null) {
-            required = resolvedVersion;
+            version = resolvedVersion;
             preferred = null;
         }
 
-        // For now, 'requires' implies 'prefers', and 'strictly' implies 'requires'
-        // Only publish the defining constraint.
-        if (!versionConstraint.getStrictVersion().isEmpty()) {
-            jsonWriter.name("strictly");
-            jsonWriter.value(versionConstraint.getStrictVersion());
-        }
-        if (required != null) {
+        if (version != null) {
+            if (isStrict) {
+                jsonWriter.name("strictly");
+                jsonWriter.value(version);
+            }
             jsonWriter.name("requires");
-            jsonWriter.value(required);
+            jsonWriter.value(version);
         }
         if (preferred != null) {
             jsonWriter.name("prefers");
             jsonWriter.value(preferred);
         }
-        List<String> rejectedVersions = versionConstraint.getRejectedVersions();
+        List<String> rejectedVersions = immutableVersionConstraint.getRejectedVersions();
         if (!rejectedVersions.isEmpty()) {
             jsonWriter.name("rejects");
             jsonWriter.beginArray();
@@ -204,9 +212,10 @@ public class GradleModuleMetadataWriter {
         }
     }
 
-    private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter) throws IOException {
+    private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         boolean started = false;
         for (UsageContext usageContext : ((SoftwareComponentInternal) component).getUsages()) {
+            checker.registerVariant(usageContext.getName(), usageContext.getAttributes(),  usageContext.getCapabilities());
             if (!started) {
                 jsonWriter.name("variants");
                 jsonWriter.beginArray();
@@ -227,6 +236,7 @@ public class GradleModuleMetadataWriter {
                 assert childCoordinates != null;
                 if (childComponent instanceof SoftwareComponentInternal) {
                     for (UsageContext usageContext : ((SoftwareComponentInternal) childComponent).getUsages()) {
+                        checker.registerVariant(usageContext.getName(), usageContext.getAttributes(),  usageContext.getCapabilities());
                         if (!started) {
                             jsonWriter.name("variants");
                             jsonWriter.beginArray();
@@ -387,13 +397,18 @@ public class GradleModuleMetadataWriter {
         Set<ExcludeRule> additionalExcludes = variant.getGlobalExcludes();
         VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
-            writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy);
+            if (moduleDependency.getArtifacts().isEmpty()) {
+                writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, null);
+            } else {
+                for (DependencyArtifact dependencyArtifact : moduleDependency.getArtifacts()) {
+                    writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, dependencyArtifact);
+                }
+            }
         }
         jsonWriter.endArray();
     }
 
     private VariantVersionMappingStrategyInternal findVariantVersionMappingStrategy(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy) {
-        String name = variant.getName();
         VariantVersionMappingStrategyInternal variantVersionMappingStrategy = null;
         if (versionMappingStrategy != null) {
             ImmutableAttributes attributes = ((AttributeContainerInternal) variant.getAttributes()).asImmutable();
@@ -402,47 +417,87 @@ public class GradleModuleMetadataWriter {
         return variantVersionMappingStrategy;
     }
 
-    private void writeDependency(Dependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter, VariantVersionMappingStrategyInternal variantVersionMappingStrategy) throws IOException {
+    private void writeDependency(ModuleDependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, DependencyArtifact dependencyArtifact) throws IOException {
         jsonWriter.beginObject();
         String resolvedVersion = null;
         if (dependency instanceof ProjectDependency) {
             ProjectDependency projectDependency = (ProjectDependency) dependency;
             ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
+            if (variantVersionMappingStrategy != null) {
+                ModuleVersionIdentifier resolved = variantVersionMappingStrategy.maybeResolveVersion(identifier.getGroup(), identifier.getName());
+                if (resolved != null) {
+                    identifier = resolved;
+                    resolvedVersion = identifier.getVersion();
+                }
+            }
             jsonWriter.name("group");
             jsonWriter.value(identifier.getGroup());
             jsonWriter.name("module");
             jsonWriter.value(identifier.getName());
-            if (variantVersionMappingStrategy != null) {
-                resolvedVersion = variantVersionMappingStrategy.maybeResolveVersion(identifier.getGroup(), identifier.getName());
-            }
             writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), resolvedVersion, jsonWriter);
         } else {
+            String group = dependency.getGroup();
+            String name = dependency.getName();
+            if (variantVersionMappingStrategy != null) {
+                ModuleVersionIdentifier resolvedVersionId = variantVersionMappingStrategy.maybeResolveVersion(group, name);
+                if (resolvedVersionId != null) {
+                    group = resolvedVersionId.getGroup();
+                    name = resolvedVersionId.getName();
+                    resolvedVersion = resolvedVersionId.getVersion();
+                }
+            }
             jsonWriter.name("group");
-            jsonWriter.value(dependency.getGroup());
+            jsonWriter.value(group);
             jsonWriter.name("module");
-            jsonWriter.value(dependency.getName());
-            VersionConstraint vc;
+            jsonWriter.value(name);
+            ImmutableVersionConstraint vc;
             if (dependency instanceof ExternalDependency) {
-                vc = ((ExternalDependency) dependency).getVersionConstraint();
+                vc = DefaultImmutableVersionConstraint.of(((ExternalDependency) dependency).getVersionConstraint());
             } else {
                 vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
             }
-            if (variantVersionMappingStrategy != null) {
-                resolvedVersion = variantVersionMappingStrategy.maybeResolveVersion(dependency.getGroup(), dependency.getName());
-            }
             writeVersionConstraint(vc, resolvedVersion, jsonWriter);
         }
-        if (dependency instanceof ModuleDependency) {
-            ModuleDependency moduleDependency = (ModuleDependency) dependency;
-            writeExcludes(moduleDependency, additionalExcludes, jsonWriter);
-            writeAttributes(moduleDependency.getAttributes(), jsonWriter);
-            writeCapabilities("requestedCapabilities", moduleDependency.getRequestedCapabilities(), jsonWriter);
+        writeExcludes(dependency, additionalExcludes, jsonWriter);
+        writeAttributes(dependency.getAttributes(), jsonWriter);
+        writeCapabilities("requestedCapabilities", dependency.getRequestedCapabilities(), jsonWriter);
+
+        boolean endorsing = dependency.isEndorsingStrictVersions();
+        if (endorsing) {
+            jsonWriter.name("endorseStrictVersions");
+            jsonWriter.value(true);
         }
         String reason = dependency.getReason();
         if (StringUtils.isNotEmpty(reason)) {
             jsonWriter.name("reason");
             jsonWriter.value(reason);
         }
+        if (dependencyArtifact != null) {
+            writeDependencyArtifact(dependencyArtifact, jsonWriter);
+        }
+        jsonWriter.endObject();
+    }
+
+    private void writeDependencyArtifact(DependencyArtifact dependencyArtifact, JsonWriter jsonWriter) throws IOException {
+        jsonWriter.name("thirdPartyCompatibility");
+        jsonWriter.beginObject();
+
+        jsonWriter.name("artifactSelector");
+        jsonWriter.beginObject();
+        jsonWriter.name("name");
+        jsonWriter.value(dependencyArtifact.getName());
+        jsonWriter.name("type");
+        jsonWriter.value(dependencyArtifact.getType());
+        if (!Strings.isNullOrEmpty(dependencyArtifact.getExtension())) {
+            jsonWriter.name("extension");
+            jsonWriter.value(dependencyArtifact.getExtension());
+        }
+        if (!Strings.isNullOrEmpty(dependencyArtifact.getClassifier())) {
+            jsonWriter.name("classifier");
+            jsonWriter.value(dependencyArtifact.getClassifier());
+        }
+        jsonWriter.endObject();
+
         jsonWriter.endObject();
     }
 
@@ -463,12 +518,12 @@ public class GradleModuleMetadataWriter {
         jsonWriter.beginObject();
         String group = dependencyConstraint.getGroup();
         String module = dependencyConstraint.getName();
+        ModuleVersionIdentifier resolvedVersion = variantVersionMappingStrategy != null ? variantVersionMappingStrategy.maybeResolveVersion(group, module) : null;
         jsonWriter.name("group");
-        jsonWriter.value(group);
+        jsonWriter.value(resolvedVersion != null ? resolvedVersion.getGroup() : group);
         jsonWriter.name("module");
-        jsonWriter.value(module);
-        String resolvedVersion = variantVersionMappingStrategy != null ? variantVersionMappingStrategy.maybeResolveVersion(group, module) : null;
-        writeVersionConstraint(dependencyConstraint.getVersionConstraint(), resolvedVersion, jsonWriter);
+        jsonWriter.value(resolvedVersion != null ? resolvedVersion.getName() : module);
+        writeVersionConstraint(DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()), resolvedVersion != null ? resolvedVersion.getVersion() : null, jsonWriter);
         writeAttributes(dependencyConstraint.getAttributes(), jsonWriter);
         String reason = dependencyConstraint.getReason();
         if (StringUtils.isNotEmpty(reason)) {
@@ -527,6 +582,85 @@ public class GradleModuleMetadataWriter {
         private ComponentData(ModuleVersionIdentifier coordinates, ImmutableAttributes attributes) {
             this.coordinates = coordinates;
             this.attributes = attributes;
+        }
+    }
+
+    @NotThreadSafe
+    public static class InvalidPublicationChecker {
+        private final String publicationName;
+        private final BiMap<String, VariantIdentity> variants = HashBiMap.create();
+        private List<String> errors;
+
+        public InvalidPublicationChecker(String publicationName) {
+            this.publicationName = publicationName;
+        }
+
+        public void registerVariant(String name, AttributeContainer attributes, Set<? extends Capability> capabilities) {
+            if (attributes.isEmpty()) {
+                failWith("Variant '" + name + "' must declare at least one attribute.");
+            }
+            if (variants.containsKey(name)) {
+                failWith("It is invalid to have multiple variants with the same name ('" + name + "')");
+            } else {
+                VariantIdentity identity = new VariantIdentity(attributes, capabilities);
+                if (variants.containsValue(identity)) {
+                    String found = variants.inverse().get(identity);
+                    failWith("Variants '" + found + "' and '" + name + "' have the same attributes and capabilities. Please make sure either attributes or capabilities are different.");
+                } else {
+                    variants.put(name, identity);
+                }
+            }
+        }
+
+        public void validate() {
+            if (variants.isEmpty()) {
+                failWith("This publication must publish at least one variant");
+            }
+            if (errors != null) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Invalid publication '" + publicationName + "'");
+                formatter.startChildren();
+                for (String error : errors) {
+                    formatter.node(error);
+                }
+                formatter.endChildren();
+                throw new InvalidUserCodeException(formatter.toString());
+            }
+        }
+
+        private void failWith(String message) {
+            if (errors == null) {
+                errors = Lists.newArrayList();
+            }
+            errors.add(message);
+        }
+
+        private static final class VariantIdentity {
+            private final AttributeContainer attributes;
+            private final Set<? extends Capability> capabilities;
+
+            private VariantIdentity(AttributeContainer attributes, Set<? extends Capability> capabilities) {
+                this.attributes = attributes;
+                this.capabilities = capabilities;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                if (this == o) {
+                    return true;
+                }
+                if (o == null || getClass() != o.getClass()) {
+                    return false;
+                }
+                VariantIdentity that = (VariantIdentity) o;
+                return Objects.equal(attributes, that.attributes) &&
+                    Objects.equal(capabilities, that.capabilities);
+            }
+
+            @Override
+            public int hashCode() {
+                return Objects.hashCode(attributes, capabilities);
+            }
         }
     }
 }

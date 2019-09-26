@@ -16,7 +16,6 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -33,7 +32,6 @@ public interface Usage extends Named {
      *
      * @since 4.0
      */
-    @Incubating
     String JAVA_API = "java-api";
 
     /**
@@ -57,7 +55,6 @@ public interface Usage extends Named {
      *
      * @since 4.0
      */
-    @Incubating
     String JAVA_RUNTIME = "java-runtime";
 
     /**
@@ -89,7 +86,6 @@ public interface Usage extends Named {
      *
      * @since 4.1
      */
-    @Incubating
     String C_PLUS_PLUS_API = "cplusplus-api";
 
     /**
@@ -97,7 +93,6 @@ public interface Usage extends Named {
      *
      * @since 4.1
      */
-    @Incubating
     String NATIVE_LINK = "native-link";
 
     /**
@@ -105,7 +100,6 @@ public interface Usage extends Named {
      *
      * @since 4.1
      */
-    @Incubating
     String NATIVE_RUNTIME = "native-runtime";
 
     /**
@@ -113,6 +107,5 @@ public interface Usage extends Named {
      *
      * @since 4.1
      */
-    @Incubating
     String SWIFT_API = "swift-api";
 }

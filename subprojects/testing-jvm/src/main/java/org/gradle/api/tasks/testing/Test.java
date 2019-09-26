@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
@@ -65,6 +64,7 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -151,7 +151,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     public Test() {
         patternSet = getFileResolver().getPatternSetFactory().create();
-        forkOptions = getForkOptionsFactory().newJavaForkOptions();
+        forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
     }
 
@@ -451,6 +451,23 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     @Option(option = "debug-jvm", description = "Enable debugging for the test process. The process is started suspended and listening on port 5005.")
     public void setDebug(boolean enabled) {
         forkOptions.setDebug(enabled);
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JavaDebugOptions getDebugOptions() {
+        return forkOptions.getDebugOptions();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        forkOptions.debugOptions(action);
     }
 
     /**
@@ -856,7 +873,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         this.testFramework = testFramework;
 
         if (testFrameworkConfigure != null) {
-            testFrameworkConfigure.execute(Cast.<T>uncheckedCast(this.testFramework.getOptions()));
+            testFrameworkConfigure.execute(Cast.<T>uncheckedNonnullCast(this.testFramework.getOptions()));
         }
 
         return this.testFramework;
@@ -895,7 +912,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 4.6
      */
-    @Incubating
     public void useJUnitPlatform() {
         useJUnitPlatform(Actions.<JUnitPlatformOptions>doNothing());
     }
@@ -907,7 +923,6 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      * @param testFrameworkConfigure An action used to configure the JUnit platform options.
      * @since 4.6
      */
-    @Incubating
     public void useJUnitPlatform(Action<? super JUnitPlatformOptions> testFrameworkConfigure) {
         useTestFramework(new JUnitPlatformTestFramework((DefaultTestFilter) getFilter()), testFrameworkConfigure);
     }
@@ -981,7 +996,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Internal
     public long getForkEvery() {
-        return forkEvery;
+        return getDebug() ? 0 : forkEvery;
     }
 
     /**

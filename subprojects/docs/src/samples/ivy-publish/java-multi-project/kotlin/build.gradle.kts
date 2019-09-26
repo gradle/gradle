@@ -9,12 +9,9 @@ subprojects {
     repositories {
         mavenCentral()
     }
-    // tag::publish-custom-artifact[]
-    task<Jar>("sourcesJar") {
-        from(project.the<SourceSetContainer>()["main"].java)
-        archiveClassifier.set("sources")
-    }
-    // end::publish-custom-artifact[]
+    val java = extensions.getByType<JavaPluginExtension>()
+    java.publishJavadoc()
+    java.publishSources()
 }
 
 project(":project1") {
@@ -35,31 +32,21 @@ project(":project2") {
 }
 
 subprojects {
-    // tag::publish-custom-artifact[]
     configure<PublishingExtension>() {
-        // end::publish-custom-artifact[]
         repositories {
             ivy {
                 // change to point to your repo, e.g. http://my.org/repo
                 url = uri("${rootProject.buildDir}/repo")
             }
         }
-// tag::publish-custom-artifact[]
         publications {
             create<IvyPublication>("ivy") {
                 from(components["java"])
-                artifact(tasks["sourcesJar"]) {
-                    type = "sources"
-                    conf = "compile"
-                }
-// end::publish-custom-artifact[]
                 descriptor.description {
                     text.set(description)
                 }
-// tag::publish-custom-artifact[]
             }
         }
     }
-// end::publish-custom-artifact[]
 }
 // end::all[]

@@ -16,26 +16,37 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.properties.DefaultParameterValidationContext;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
+import org.gradle.internal.reflect.TypeValidationContext;
 
+import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collection;
 
-public class DefaultTaskValidationContext extends DefaultParameterValidationContext implements TaskValidationContext {
-    private final FileResolver resolver;
+public class DefaultTaskValidationContext implements TaskValidationContext, TypeValidationContext {
+    private final FileOperations fileOperations;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
+    private final TypeValidationContext delegate;
 
-    public DefaultTaskValidationContext(FileResolver resolver, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, Collection<String> messages) {
-        super(messages);
-        this.resolver = resolver;
+    public DefaultTaskValidationContext(FileOperations fileOperations, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, TypeValidationContext delegate) {
+        this.fileOperations = fileOperations;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
+        this.delegate = delegate;
     }
 
     @Override
-    public FileResolver getResolver() {
-        return resolver;
+    public void visitTypeProblem(Severity severity, Class<?> type, String message) {
+        delegate.visitTypeProblem(severity, type, message);
+    }
+
+    @Override
+    public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
+        delegate.visitPropertyProblem(severity, parentProperty, property, message);
+    }
+
+    @Override
+    public FileOperations getFileOperations() {
+        return fileOperations;
     }
 
     @Override

@@ -79,7 +79,6 @@ public interface ResolvedComponentResult extends ComponentResult {
      *
      * @deprecated Use {@link #getVariants()} instead}
      */
-    @Incubating
     @Deprecated
     ResolvedVariantResult getVariant();
 
@@ -91,7 +90,6 @@ public interface ResolvedComponentResult extends ComponentResult {
      *
      * @since 5.2
      */
-    @Incubating
     List<ResolvedVariantResult> getVariants();
 
     /**

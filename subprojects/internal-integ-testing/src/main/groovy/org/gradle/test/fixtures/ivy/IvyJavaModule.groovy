@@ -65,10 +65,9 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
     void assertApiDependencies(String... expected) {
         if (expected.length == 0) {
             assert parsedModuleMetadata.variant('apiElements').dependencies.empty
-            assert parsedIvy.dependencies.findAll { it.value.conf == 'compile' }.isEmpty()
+            assert parsedIvy.dependencies.findAll { it.value.confs.contains('compile') }.isEmpty()
         } else {
             assert parsedModuleMetadata.variant('apiElements').dependencies*.coords as Set == expected as Set
-            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
             parsedIvy.assertConfigurationDependsOn('compile', expected)
         }
     }
@@ -79,7 +78,7 @@ class IvyJavaModule extends DelegatingIvyModule<IvyFileModule> implements Publis
             assert parsedModuleMetadata.variant('runtimeElements').dependencies.empty
             assert parsedIvy.dependencies.findAll { it.value.conf == 'runtime' }.isEmpty()
         } else {
-            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords.containsAll(expected)
+            assert parsedModuleMetadata.variant('runtimeElements').dependencies*.coords as Set == expected as Set
             parsedIvy.assertConfigurationDependsOn('runtime', expected)
         }
 

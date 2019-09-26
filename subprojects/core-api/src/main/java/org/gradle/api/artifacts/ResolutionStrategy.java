@@ -107,7 +107,6 @@ public interface ResolutionStrategy {
      * @return this resolution strategy instance
      * @since 4.8
      */
-    @Incubating
     ResolutionStrategy activateDependencyLocking();
 
     /**

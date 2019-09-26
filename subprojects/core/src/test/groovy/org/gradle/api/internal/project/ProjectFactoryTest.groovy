@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.TextResourceScriptSource
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.resource.EmptyFileTextResource
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -36,7 +37,7 @@ class ProjectFactoryTest extends Specification {
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
     def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
-    def factory = new ProjectFactory(instantiator, projectRegistry)
+    def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), projectRegistry)
     def rootProjectScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
 
@@ -54,7 +55,7 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope)
 
         then:
         result == project
@@ -72,7 +73,7 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope)
 
         then:
         result == project
@@ -91,7 +92,7 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.buildFile >> buildFile
 
         when:
-        def result = factory.createProject(projectDescriptor, parent, gradle, rootProjectScope, baseScope)
+        def result = factory.createProject(gradle, projectDescriptor, parent, rootProjectScope, baseScope)
 
         then:
         result == project

@@ -32,7 +32,6 @@ class ClasspathDependenciesAttributesIntegrationTest extends AbstractModuleDepen
 
     @RequiredFeatures([
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "false"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
     def 'module metadata fetched through a settings useModule properly derives variants and subsequent project use of the dependency has access to derived variants'() {
@@ -102,7 +101,6 @@ task printDeps {
 
     @RequiredFeatures([
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
     def 'module metadata fetched through a settings useModule properly uses Java ecosystem'() {
@@ -112,7 +110,6 @@ task printDeps {
         mavenRepo.module('test', 'dep', '1.0')
             .variant("runtime", ["org.gradle.usage" : "java-runtime", 'org.gradle.dependency.bundling' : 'embedded'])
             .variant("conflictingRuntime", ["org.gradle.usage" : "java-runtime", 'org.gradle.dependency.bundling' : 'shadowed'])
-            .withGradleMetadataRedirection()
             .withModuleMetadata()
             .publish()
 

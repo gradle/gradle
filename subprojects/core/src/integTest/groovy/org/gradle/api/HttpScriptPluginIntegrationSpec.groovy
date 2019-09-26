@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -35,15 +37,14 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @Unroll
-    def "can apply script via #scheme"() {
-        when:
-        if (useKeystore) {
-            def keyStore = TestKeyStore.init(resources.dir)
-            keyStore.enableSslWithServerCert(server)
-            keyStore.configureServerCert(executer)
-        }
+    private void applyTrustStore() {
+        def keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(executer)
+    }
 
+    def "can apply script via http"() {
+        when:
         def script = file('external.gradle')
         server.expectGet('/external.gradle', script)
 
@@ -60,12 +61,75 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds()
-
-        where:
-        scheme  | useKeystore
-        "http"  | false
-        "https" | true
     }
+
+    def "emits useful warning when applying script via http"() {
+        when:
+        server.useHostname()
+        def script = file('external.gradle')
+        server.expectGet('/external.gradle', script)
+
+        script << """
+            task doStuff
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle" == buildscript.sourceURI as String
+"""
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle'
+            defaultTasks 'doStuff'
+"""
+
+        then:
+        executer.expectDeprecationWarning()
+        succeeds()
+        outputContains("Applying script plugins from insecure URIs has been deprecated.")
+        outputContains("Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.")
+    }
+
+    def "does not complain when applying script plugin via http using text resource"() {
+        when:
+        server.useHostname()
+        def script = file('external.gradle')
+        server.expectGet('/external.gradle', script)
+
+        script << """
+            task doStuff
+        """
+
+        buildFile << """
+            apply from: resources.text.fromInsecureUri("$server.uri/external.gradle")
+            defaultTasks 'doStuff'
+        """
+
+        then:
+        succeeds()
+    }
+
+    // Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
+    @Requires(TestPrecondition.JDK11_OR_EARLIER)
+    def "can apply script via https"() {
+        applyTrustStore()
+
+        when:
+        def script = file('external.gradle')
+        server.expectGet('/external.gradle', script)
+
+        script << """
+            task doStuff
+            assert buildscript.sourceFile == null
+            assert "${server.uri}/external.gradle" == buildscript.sourceURI as String
+"""
+
+        buildFile << """
+            apply from: '$server.uri/external.gradle'
+            defaultTasks 'doStuff'
+"""
+
+        then:
+        succeeds()
+    }
+
 
     @Issue("https://github.com/gradle/gradle/issues/2891")
     def "can apply script with URI containing a query string"() {
@@ -184,6 +248,7 @@ task check {
 
     def "assumes utf-8 encoding when none specified by http server"() {
         given:
+        applyTrustStore()
         executer.withDefaultCharacterEncoding("ISO-8859-15")
 
         and:

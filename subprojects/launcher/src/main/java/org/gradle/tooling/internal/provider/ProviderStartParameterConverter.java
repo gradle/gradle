@@ -88,7 +88,7 @@ class ProviderStartParameterConverter {
         }
 
         if (parameters.isSearchUpwards() != null) {
-            startParameter.setSearchUpwards(parameters.isSearchUpwards());
+            startParameter.setSearchUpwardsWithoutDeprecationWarning(parameters.isSearchUpwards());
         }
 
         if (parameters.getBuildLogLevel() != null) {

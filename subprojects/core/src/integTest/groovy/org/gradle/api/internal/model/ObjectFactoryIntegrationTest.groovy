@@ -47,6 +47,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             }
             
             class CustomTask extends DefaultTask {
+                @Internal
                 Thing thing
                 
                 @javax.inject.Inject
@@ -93,9 +94,27 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             }
             
             def t = objects.newInstance(Thing)
+            assert t.files.toString() == "file collection"
             assert t.files.files.empty
             t.files.from('a.txt')
             assert t.files as List == [file('a.txt')]
+"""
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create instance of interface with read-only Property<T> property"() {
+        buildFile << """
+            interface Thing {
+                Property<String> getValue()
+            }
+            
+            def t = objects.newInstance(Thing)
+            assert t.value.toString() == "property 'value'"
+            assert !t.value.present
+            t.value = 'abc'
+            assert t.value.get() == 'abc'
 """
 
         expect:
@@ -500,11 +519,12 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    def "plugin can create NamedDomainObjectContainer instances"() {
+    def "plugin can create NamedDomainObjectContainer which can create decorated elements of type that has public constructor"() {
         given:
         buildFile << """
-            class NamedThing implements Named {
+            abstract class NamedThing implements Named {
                 final String name
+                abstract Property<String> getProp()
                 NamedThing(String name) {
                     this.name = name
                 }
@@ -512,9 +532,15 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
 
             def container = project.objects.domainObjectContainer(NamedThing)
             assert container != null
-            def element = container.create('foo')
-            assert element.name == 'foo'
+            container.configure {
+                foo {
+                    prop = 'abc'
+                }
+            }
             assert container.size() == 1
+            def element = container.getByName('foo')
+            assert element.name == 'foo'
+            assert element.prop.get() == 'abc'
         """
 
         expect:

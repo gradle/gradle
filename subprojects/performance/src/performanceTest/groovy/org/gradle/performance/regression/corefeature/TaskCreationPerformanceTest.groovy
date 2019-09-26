@@ -16,16 +16,16 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 
-class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class TaskCreationPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def "create many tasks"() {
         given:
         runner.testProject = "createLotsOfTasks"
         runner.tasksToRun = ['help']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
-        runner.targetVersions = ["5.5-20190515115345+0000"]
+        runner.targetVersions = ["6.0-20190823180744+0000"]
         runner.runs = 60
 
         when:

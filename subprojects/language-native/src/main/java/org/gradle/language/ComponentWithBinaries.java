@@ -16,7 +16,6 @@
 
 package org.gradle.language;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.component.SoftwareComponent;
  *
  * @since 4.5
  */
-@Incubating
 public interface ComponentWithBinaries extends SoftwareComponent {
     /**
      * Returns the binaries of this component.

@@ -22,10 +22,12 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.composite.internal.IncludedBuildControllers;
 import org.gradle.configuration.ProjectsPreparer;
 import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.MultipleBuildFailures;
+import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.initialization.exception.ExceptionAnalyser;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.service.scopes.BuildScopeServices;
@@ -58,18 +60,19 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final List<?> servicesToStop;
     private final IncludedBuildControllers includedBuildControllers;
     private final GradleInternal gradle;
-    private Stage stage;
-
     private final InstantExecution instantExecution;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
+    private final BuildSourceBuilder buildSourceBuilder;
+
+    private Stage stage;
 
     public DefaultGradleLauncher(GradleInternal gradle, ProjectsPreparer projectsPreparer, ExceptionAnalyser exceptionAnalyser,
                                  BuildListener buildListener, BuildCompletionListener buildCompletionListener,
                                  BuildWorkExecutor buildExecuter, BuildScopeServices buildServices,
                                  List<?> servicesToStop, IncludedBuildControllers includedBuildControllers,
                                  SettingsPreparer settingsPreparer, TaskExecutionPreparer taskExecutionPreparer,
-                                 InstantExecution instantExecution) {
+                                 InstantExecution instantExecution, BuildSourceBuilder buildSourceBuilder) {
         this.gradle = gradle;
         this.projectsPreparer = projectsPreparer;
         this.exceptionAnalyser = exceptionAnalyser;
@@ -82,6 +85,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.instantExecution = instantExecution;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
+        this.buildSourceBuilder = buildSourceBuilder;
     }
 
     @Override
@@ -143,13 +147,13 @@ public class DefaultGradleLauncher implements GradleLauncher {
         if (upTo == Stage.TaskGraph) {
             return;
         }
-        instantExecution.saveTaskGraph();
+        instantExecution.saveScheduledWork();
         runWork();
     }
 
     private void doInstantExecution() {
         buildListener.buildStarted(gradle);
-        instantExecution.loadTaskGraph();
+        instantExecution.loadScheduledWork();
         stage = Stage.TaskGraph;
         runWork();
     }
@@ -195,8 +199,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void prepareProjects() {
         if (stage == Stage.LoadSettings) {
+            ClassLoaderScope baseProjectClassLoaderScope = buildSourceBuilder.buildAndCreateClassLoader(gradle.getSettings().getRootDir(), gradle.getStartParameter());
+            gradle.setBaseProjectClassLoaderScope(baseProjectClassLoaderScope);
             projectsPreparer.prepareProjects(gradle);
-
             stage = Stage.Configure;
         }
     }

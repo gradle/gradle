@@ -59,7 +59,7 @@ public class DefaultSelectedByVariantMatchingConfigurationMetadata implements Se
     }
 
     @Override
-    public List<? extends ComponentArtifactMetadata> getArtifacts() {
+    public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
         return delegate.getArtifacts();
     }
 
@@ -89,6 +89,11 @@ public class DefaultSelectedByVariantMatchingConfigurationMetadata implements Se
     }
 
     @Override
+    public List<String> getConsumptionAlternatives() {
+        return delegate.getConsumptionAlternatives();
+    }
+
+    @Override
     public boolean isCanBeResolved() {
         return delegate.isCanBeResolved();
     }
@@ -101,6 +106,11 @@ public class DefaultSelectedByVariantMatchingConfigurationMetadata implements Se
     @Override
     public CapabilitiesMetadata getCapabilities() {
         return delegate.getCapabilities();
+    }
+
+    @Override
+    public boolean requiresMavenArtifactDiscovery() {
+        return delegate.requiresMavenArtifactDiscovery();
     }
 
     @Override

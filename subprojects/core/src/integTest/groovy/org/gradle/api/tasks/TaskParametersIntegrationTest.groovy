@@ -403,6 +403,10 @@ task someTask(type: SomeTask) {
     d = file("build/out")
 }
 """
+        if (expectDeprecation) {
+            executer.beforeExecute { executer.expectDeprecationWarning() }
+        }
+
         given:
         succeeds "someTask"
 
@@ -428,33 +432,33 @@ task someTask(type: SomeTask) {
         skipped(":someTask")
 
         where:
-        type                                  | initialValue                                          | newValue
-        "String"                              | "'value 1'"                                           | "'value 2'"
-        "java.io.File"                        | "file('file1')"                                       | "file('file2')"
-        "boolean"                             | "true"                                                | "false"
-        "Boolean"                             | "Boolean.TRUE"                                        | "Boolean.FALSE"
-        "int"                                 | "123"                                                 | "-45"
-        "Integer"                             | "123"                                                 | "-45"
-        "long"                                | "123"                                                 | "-45"
-        "Long"                                | "123"                                                 | "-45"
-        "short"                               | "123"                                                 | "-45"
-        "Short"                               | "123"                                                 | "-45"
-        "java.math.BigDecimal"                | "12.3"                                                | "-45.432"
-        "java.math.BigInteger"                | "12"                                                  | "-45"
-        "java.util.List<String>"              | "['value1', 'value2']"                                | "['value1']"
-        "java.util.List<String>"              | "[]"                                                  | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]"
-        "String[]"                            | "new String[0]"                                       | "['abc'] as String[]"
-        "Object[]"                            | "[123, 'abc'] as Object[]"                            | "['abc'] as String[]"
-        "java.util.Collection<String>"        | "['value1', 'value2']"                                | "['value1'] as SortedSet"
-        "java.util.Set<String>"               | "['value1', 'value2'] as Set"                         | "['value1'] as Set"
-        "Iterable<java.io.File>"              | "[file('1'), file('2')] as Set"                       | "files('1')"
-        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"
-        "java.util.Map<String, Boolean>"      | "[a: true, b: false]"                                 | "[a: true, b: true]"
-        "${Provider.name}<String>"            | "providers.provider { 'a' }"                          | "providers.provider { 'b' }"
-        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"
-        "${ListProperty.name}<String>"        | "objects.listProperty(String); v.set(['abc'])"        | "objects.listProperty(String); v.set(['123'])"
-        "${SetProperty.name}<String>"         | "objects.setProperty(String); v.set(['abc'])"         | "objects.setProperty(String); v.set(['123'])"
-        "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"
+        type                                  | initialValue                                          | newValue                                                     | expectDeprecation
+        "String"                              | "'value 1'"                                           | "'value 2'"                                                  | false
+        "java.io.File"                        | "file('file1')"                                       | "file('file2')"                                              | true
+        "boolean"                             | "true"                                                | "false"                                                      | false
+        "Boolean"                             | "Boolean.TRUE"                                        | "Boolean.FALSE"                                              | false
+        "int"                                 | "123"                                                 | "-45"                                                        | false
+        "Integer"                             | "123"                                                 | "-45"                                                        | false
+        "long"                                | "123"                                                 | "-45"                                                        | false
+        "Long"                                | "123"                                                 | "-45"                                                        | false
+        "short"                               | "123"                                                 | "-45"                                                        | false
+        "Short"                               | "123"                                                 | "-45"                                                        | false
+        "java.math.BigDecimal"                | "12.3"                                                | "-45.432"                                                    | false
+        "java.math.BigInteger"                | "12"                                                  | "-45"                                                        | false
+        "java.util.List<String>"              | "['value1', 'value2']"                                | "['value1']"                                                 | false
+        "java.util.List<String>"              | "[]"                                                  | "['value1', null, false, 123, 12.4, ['abc'], [true] as Set]" | false
+        "String[]"                            | "new String[0]"                                       | "['abc'] as String[]"                                        | false
+        "Object[]"                            | "[123, 'abc'] as Object[]"                            | "['abc'] as String[]"                                        | false
+        "java.util.Collection<String>"        | "['value1', 'value2']"                                | "['value1'] as SortedSet"                                    | false
+        "java.util.Set<String>"               | "['value1', 'value2'] as Set"                         | "['value1'] as Set"                                          | false
+        "Iterable<java.io.File>"              | "[file('1'), file('2')] as Set"                       | "files('1')"                                                 | false
+        FileCollection.name                   | "files('1', '2')"                                     | "configurations.create('empty')"                             | true
+        "java.util.Map<String, Boolean>"      | "[a: true, b: false]"                                 | "[a: true, b: true]"                                         | false
+        "${Provider.name}<String>"            | "providers.provider { 'a' }"                          | "providers.provider { 'b' }"                                 | false
+        "${Property.name}<String>"            | "objects.property(String); v.set('abc')"              | "objects.property(String); v.set('123')"                     | true
+        "${ListProperty.name}<String>"        | "objects.listProperty(String); v.set(['abc'])"        | "objects.listProperty(String); v.set(['123'])"               | false
+        "${SetProperty.name}<String>"         | "objects.setProperty(String); v.set(['abc'])"         | "objects.setProperty(String); v.set(['123'])"                | false
+        "${MapProperty.name}<String, Number>" | "objects.mapProperty(String, Number); v.set([a: 12])" | "objects.mapProperty(String, Number); v.set([a: 10])"        | false
     }
 
     def "null input properties registered via TaskInputs.property are not allowed"() {
@@ -466,7 +470,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("No value has been specified for property 'input'.")
     }
 
@@ -491,7 +495,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("No value has been specified for property 'input'.")
 
         where:
@@ -523,7 +527,7 @@ task someTask(type: SomeTask) {
         """
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("No value has been specified for property 'output'.")
 
         where:
@@ -556,7 +560,7 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("$type '${file("missing")}' specified for property 'input' does not exist.")
 
         where:
@@ -578,7 +582,7 @@ task someTask(type: SomeTask) {
 
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("${type.capitalize()} '${file(path)}' specified for property 'input' is not a $type.")
 
         where:
@@ -650,11 +654,17 @@ task someTask(type: SomeTask) {
         buildFile << """ 
             @CacheableTask    
             class CustomTask extends DefaultTask {
+                @Internal
                 int outputFileCount = 0
+                @Internal
                 int inputFileCount = 0
+                @Internal
                 int inputValueCount = 0
+                @Internal
                 int nestedInputCount = 0
+                @Internal
                 int nestedInputValueCount = 0
+
                 private NestedBean bean = new NestedBean()
                 
                 @OutputFile
@@ -664,6 +674,7 @@ task someTask(type: SomeTask) {
                 }        
                 
                 @InputFile
+                @PathSensitive(PathSensitivity.NONE)
                 File getInputFile() {
                     count("inputFile", ++inputFileCount)
                     return project.file('input.txt')

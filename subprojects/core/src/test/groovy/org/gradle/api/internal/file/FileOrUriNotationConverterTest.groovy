@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
+import org.gradle.api.resources.TextResource
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -66,6 +67,17 @@ class FileOrUriNotationConverterTest extends Specification {
         def testFile = folder.createFile("test1")
         def notation = Stub(Directory)
         notation.asFile >> testFile
+        when:
+        def object = parse(notation)
+        then:
+        object == testFile
+    }
+
+    def "with TextResource returns the underlying File"() {
+        setup:
+        def testFile = folder.createFile("test1")
+        def notation = Stub(TextResource)
+        notation.asFile() >> testFile
         when:
         def object = parse(notation)
         then:
@@ -163,7 +175,8 @@ The following types/formats are supported:
   - A Path instance.
   - A Directory instance.
   - A RegularFile instance.
-  - A URI or URL instance.""")
+  - A URI or URL instance.
+  - A TextResource instance.""")
     }
 
     def parse(def value) {

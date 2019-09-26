@@ -16,18 +16,23 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.initialization.AbstractClassLoaderScope;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.RootClassLoaderScope;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 
 public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry {
 
-    private final ClassLoaderScope coreAndPluginsScope;
-    private final ClassLoaderScope coreScope;
+    public static final String CORE_NAME = "core";
+    public static final String CORE_AND_PLUGINS_NAME = "coreAndPlugins";
 
-    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache) {
-        this.coreScope = new RootClassLoaderScope(loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache);
-        this.coreAndPluginsScope = new RootClassLoaderScope(loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache);
+    private final AbstractClassLoaderScope coreAndPluginsScope;
+    private final AbstractClassLoaderScope coreScope;
+
+    public DefaultClassLoaderScopeRegistry(ClassLoaderRegistry loaderRegistry, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
+        this.coreScope = new RootClassLoaderScope(CORE_NAME, loaderRegistry.getRuntimeClassLoader(), loaderRegistry.getGradleCoreApiClassLoader(), classLoaderCache, listener);
+        this.coreAndPluginsScope = new RootClassLoaderScope(CORE_AND_PLUGINS_NAME, loaderRegistry.getPluginsClassLoader(), loaderRegistry.getGradleApiClassLoader(), classLoaderCache, listener);
+        rootScopesCreated(listener);
     }
 
     @Override
@@ -38,5 +43,10 @@ public class DefaultClassLoaderScopeRegistry implements ClassLoaderScopeRegistry
     @Override
     public ClassLoaderScope getCoreScope() {
         return coreScope;
+    }
+
+    private void rootScopesCreated(ClassLoaderScopeRegistryListener listener) {
+        listener.rootScopeCreated(coreScope.getId());
+        listener.rootScopeCreated(coreAndPluginsScope.getId());
     }
 }

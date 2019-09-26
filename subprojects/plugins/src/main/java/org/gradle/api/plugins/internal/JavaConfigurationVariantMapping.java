@@ -28,7 +28,6 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
     private final boolean optional;
 
     public JavaConfigurationVariantMapping(String scope, boolean optional) {
-
         this.scope = scope;
         this.optional = optional;
     }
@@ -36,27 +35,27 @@ public class JavaConfigurationVariantMapping implements Action<ConfigurationVari
     @Override
     public void execute(ConfigurationVariantDetails details) {
         ConfigurationVariant variant = details.getConfigurationVariant();
-        if (ArtifactTypeSpec.INSTANCE.isSatisfiedBy(variant)) {
+        if (UnpublishableArtifactTypeSpec.INSTANCE.isSatisfiedBy(variant)) {
+            details.skip();
+        } else {
             details.mapToMavenScope(scope);
             if (optional) {
                 details.mapToOptional();
             }
-        } else {
-            details.skip();
         }
     }
 
-    private static class ArtifactTypeSpec implements Spec<ConfigurationVariant> {
-        private static final ArtifactTypeSpec INSTANCE = new ArtifactTypeSpec();
+    private static class UnpublishableArtifactTypeSpec implements Spec<ConfigurationVariant> {
+        private static final UnpublishableArtifactTypeSpec INSTANCE = new UnpublishableArtifactTypeSpec();
 
         @Override
         public boolean isSatisfiedBy(ConfigurationVariant element) {
             for (PublishArtifact artifact : element.getArtifacts()) {
                 if (UNPUBLISHABLE_VARIANT_ARTIFACTS.contains(artifact.getType())) {
-                    return false;
+                    return true;
                 }
             }
-            return true;
+            return false;
         }
     }
 }

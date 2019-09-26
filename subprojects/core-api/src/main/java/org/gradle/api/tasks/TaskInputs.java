@@ -28,7 +28,7 @@ import java.util.Map;
  * <p>You can obtain a {@code TaskInputs} instance using {@link org.gradle.api.Task#getInputs()}.</p>
  */
 @HasInternalProtocol
-public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
+public interface TaskInputs {
     /**
      * Returns true if this task has declared the inputs that it consumes.
      *
@@ -69,7 +69,10 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
     TaskInputFilePropertyBuilder dir(Object dirPath);
 
     /**
-     * Returns the set of input properties for this task.
+     * Returns a map of input properties for this task.
+     *
+     * The returned map is unmodifiable, and does not reflect further changes to the task's properties.
+     * Trying to modify the map will result in an {@link UnsupportedOperationException} being thrown.
      *
      * @return The properties.
      */
@@ -88,7 +91,6 @@ public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
      * @param name The name of the property. Must not be null.
      * @param value The value for the property. Can be null.
      */
-    @Override
     TaskInputPropertyBuilder property(String name, @Nullable Object value);
 
     /**

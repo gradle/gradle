@@ -24,9 +24,6 @@ import spock.lang.Unroll
 
 import static org.gradle.util.GUtil.toCamelCase
 
-@RequiredFeatures(
-    @RequiredFeature(feature = GradleMetadataResolveRunner.EXPERIMENTAL_RESOLVE_BEHAVIOR, value = "true")
-)
 class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest {
     @Override
     String getTestConfiguration() { variantToTest }
@@ -35,10 +32,10 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
      * Does the published metadata provide variants with attributes? Eventually all metadata should do that.
      * For Ivy and Maven POM metadata, the variants and attributes should be derived from configurations and scopes.
      */
-    boolean getPublishedModulesHaveAttributes() { gradleMetadataEnabled }
+    boolean getPublishedModulesHaveAttributes() { gradleMetadataPublished }
 
     String getVariantToTest() {
-        if (gradleMetadataEnabled || useIvy()) {
+        if (gradleMetadataPublished || useIvy()) {
             'customVariant'
         } else {
             'runtime'
@@ -116,6 +113,68 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         "dependency constraints" | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
         "dependencies"           | "string" | "'org.test:moduleB:1.0'"
         "dependencies"           | "map"    | "group: 'org.test', name: 'moduleB', version: '1.0'"
+    }
+
+    @Unroll
+    def "#thing can be added to a new variant"() {
+        when:
+        buildFile << """
+            class ModifyRule implements ComponentMetadataRule {
+                void execute(ComponentMetadataContext context) {
+                    context.details.addVariant("new") { 
+                        with${toCamelCase(thing)} {
+                            add 'org.test:moduleB:1.0'
+                        }
+                        withCapabilities {
+                            removeCapability("org.test", "moduleA")
+                            addCapability("all", "new", "1.0")
+                        }
+                    }
+                }
+            }
+
+            dependencies {
+                $variantToTest 'org.test:moduleB'
+                $variantToTest('org.test:moduleA:1.0') {
+                    capabilities { requireCapability("all:new") }
+                }
+                components {
+                    withModule('org.test:moduleA', ModifyRule)
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+            'org.test:moduleB:1.0'() {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def expectedVariant = variantToTest
+        resolve.expectGraph {
+            root(':', ':test:') {
+                edge('org.test:moduleB', 'org.test:moduleB:1.0')
+                module("org.test:moduleA:1.0:$expectedVariant")
+                module("org.test:moduleA:1.0:new") {
+                    if (thing == "dependencies") {
+                        edge('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                    } else {
+                        constraint('org.test:moduleB:1.0', 'org.test:moduleB:1.0')
+                    }
+                }
+            }
+        }
+
+        where:
+        thing                    | _
+        "dependency constraints" | _
+        "dependencies"           | _
     }
 
     @Unroll
@@ -546,10 +605,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
 
         when:
+        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy()? 'default' : variantToTest
         buildFile << """
             class ModifyDepRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext context) {
-                    context.details.withVariant('$variantToTest') {
+                    context.details.withVariant('$transitiveSelectedVariant') {
                         with${toCamelCase(thing)} { d ->
                             add('org.test:moduleC:1.0')
                         }
@@ -629,10 +689,11 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         mavenGradleRepo.module("org.test", "moduleC").withModuleMetadata().variant("anotherVariantWithFormatCustom", [format: "custom"]).publish()
 
         when:
+        def transitiveSelectedVariant = !gradleMetadataPublished && useIvy()? 'default' : variantToTest
         buildFile << """
             class AddModuleCRule implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext context) {
-                    context.details.withVariant('$variantToTest') {
+                    context.details.withVariant('$transitiveSelectedVariant') {
                         withDependencies {
                             add('org.test:moduleC:1.0')
                         }
@@ -778,7 +839,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         """
-        if (defineAsConstraint && !gradleMetadataEnabled) {
+        if (defineAsConstraint && !gradleMetadataPublished) {
             //in plain ivy, we do not have the constraint published. But we can add still add it.
             buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB:1.0')")
         }
@@ -844,7 +905,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         """
-        if (defineAsConstraint && !gradleMetadataEnabled) {
+        if (defineAsConstraint && !gradleMetadataPublished) {
             //in plain ivy, we do not have the constraint published. But we can add still add it.
             buildFile.text = buildFile.text.replace("d ->", "d -> d.add('org.test:moduleB') { version { require '1.+'; reject '1.1', '1.2' }}")
         }
@@ -969,7 +1030,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                 }
             }
         """
-        boolean constraintsUnsupported = !gradleMetadataEnabled
+        boolean constraintsUnsupported = !gradleMetadataPublished
 
         repositoryInteractions {
             'org.test:moduleA:1.0' {
@@ -1018,7 +1079,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
                             edge("org.test:moduleC:1.0", "org.test:moduleC:1.1")
                             byReason('can set a custom reason in a rule')
                         }
-                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1").byConflictResolution("between versions 1.1 and 1.0")
+                        constraint("org.test:moduleC:{strictly 1.1}", "org.test:moduleC:1.1").byAncestor()
                     }
                 }
             }

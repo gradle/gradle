@@ -487,7 +487,7 @@ The following types/formats are supported:
 
         then:
         failure.assertHasDescription("Could not determine the dependencies of task ':a'.")
-        failure.assertHasCause("No value has been specified for this provider.")
+        failure.assertHasCause("No value has been specified for this property.")
     }
 
     def "input file collection containing task provider implies dependency on all outputs of the task"() {
@@ -900,4 +900,57 @@ The following types/formats are supported:
         file("out.txt").text == "17"
     }
 
+    def "collection input property containing value of mapped task output implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputListProperty()
+        buildFile << """
+            def a = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+                content = "12"
+            }
+            def b = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+                content = "0"
+            }
+            tasks.register("c", InputTask) {
+                inValue = a.output.map { it.asFile.text as Integer }.map { [it, it+3] }
+                inValue.add(b.output.map { it.asFile.text as Integer })
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":a", ":b", ":c")
+        file("out.txt").text == "22,25,10"
+    }
+
+    def "map input property containing value of mapped task output implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputMapProperty()
+        buildFile << """
+            def a = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+                content = "12"
+            }
+            def b = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+                content = "0"
+            }
+            tasks.register("c", InputTask) {
+                inValue = a.output.map { it.asFile.text as Integer }.map { [a1: it, a2: it+3] }
+                inValue.put("b", b.output.map { it.asFile.text as Integer })
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksExecuted(":a", ":b", ":c")
+        file("out.txt").text == "a1=22,a2=25,b=10"
+    }
 }

@@ -110,8 +110,8 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public MavenModule withGradleMetadataRedirection() {
-        backingModule.withGradleMetadataRedirection();
+    public MavenModule withoutGradleMetadataRedirection() {
+        backingModule.withoutGradleMetadataRedirection();
         return t();
     }
 
@@ -283,12 +283,19 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public void withVariant(String name, Closure<?> action) {
+    public MavenModule withVariant(String name, Closure<?> action) {
         backingModule.withVariant(name, action);
+        return this;
     }
 
     @Override
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
+    }
+
+    @Override
+    public T withoutDefaultVariants() {
+        backingModule.withoutDefaultVariants();
+        return t();
     }
 }

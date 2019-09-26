@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
 
 /**
@@ -29,13 +28,12 @@ import org.gradle.api.file.CopySpec;
  * apply plugin: 'application'
  *
  * application {
- *   mainClassName 'com.foo.bar.FooBar'
+ *   mainClassName = "com.foo.bar.FooBar"
  * }
  * </pre>
  *
  * @since 4.10
  */
-@Incubating
 public interface JavaApplication {
     /**
      * The name of the application.

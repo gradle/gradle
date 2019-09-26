@@ -35,6 +35,16 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
     abstract String getChangedSourceContent()
     abstract String getApplyAndConfigure()
 
+    String getVerifyDaemonsTask() {
+        """
+            task verifyDaemons {
+                doLast {
+                    assert services.get(WorkerDaemonClientsManager).allClients.size() == 0
+                }
+            }
+"""
+    }
+
     def "reuses compiler daemons across continuous build instances" () {
         def inputFileName = sourceFileName
         def inputFile = file(inputFileName).createFile()
@@ -53,12 +63,8 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
                     compilerDaemonIdentityFile << services.get(WorkerDaemonClientsManager).allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }
             }
-            
-            task verifyNoDaemons {
-                doLast {
-                    assert services.get(WorkerDaemonClientsManager).allClients.size() == 0
-                }
-            }
+    
+            ${verifyDaemonsTask}        
         """
 
         when:
@@ -86,6 +92,6 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
         cancelsAndExits()
 
         and:
-        succeeds("verifyNoDaemons")
+        succeeds("verifyDaemons")
     }
 }

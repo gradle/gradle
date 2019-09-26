@@ -23,7 +23,6 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
-import org.gradle.api.Action;
 import org.gradle.initialization.SessionLifecycleListener;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathHasher;
@@ -39,7 +38,7 @@ import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppable, SessionLifecycleListener {
+public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, SessionLifecycleListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClassLoaderCache.class);
 
     private final Object lock = new Object();
@@ -61,13 +60,13 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
 
     @Override
     public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
-        usedInThisBuild.add(id);
         if (implementationHash == null) {
             implementationHash = classpathHasher.hash(classPath);
         }
         ManagedClassLoaderSpec spec = new ManagedClassLoaderSpec(id.toString(), parent, classPath, implementationHash, filterSpec);
 
         synchronized (lock) {
+            usedInThisBuild.add(id);
             CachedClassLoader cachedLoader = byId.get(id);
             if (cachedLoader == null || !cachedLoader.is(spec)) {
                 CachedClassLoader newLoader = getAndRetainLoader(classPath, spec, id);
@@ -162,15 +161,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCacheInternal, Stoppa
             usedInThisBuild.clear();
         }
         assertInternalIntegrity();
-    }
-
-    @Override
-    public void visitClassLoadersUsedInThisBuild(Action<ClassLoader> action) {
-        synchronized (lock) {
-            for (ClassLoaderId id : usedInThisBuild) {
-                action.execute(byId.get(id).classLoader);
-            }
-        }
     }
 
     private static abstract class ClassLoaderSpec {

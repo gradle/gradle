@@ -306,4 +306,39 @@ class MavenPublishBasicIntegTest extends AbstractMavenPublishIntegTest {
         module2.assertPublished()
     }
 
+    def "warns when trying to publish a transitive = false variant"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            configurations {
+                apiElements {
+                    transitive = false
+                }
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        succeeds 'publish'
+
+        then: "build warned about transitive = true variant"
+        outputContains("Publication ignores 'transitive = false' at configuration level.")
+    }
 }

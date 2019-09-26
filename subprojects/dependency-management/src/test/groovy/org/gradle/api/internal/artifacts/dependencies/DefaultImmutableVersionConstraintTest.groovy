@@ -42,6 +42,17 @@ class DefaultImmutableVersionConstraintTest extends Specification {
         v.rejectedVersions == ['1.2','2.0']
     }
 
+    def "can create an immutable version constraint that is strict"() {
+        given:
+        def v = new DefaultImmutableVersionConstraint('', '', '1.0', [])
+
+        expect:
+        v.requiredVersion == ''
+        v.preferredVersion == ''
+        v.strictVersion =='1.0'
+        v.rejectedVersions == []
+    }
+
     def "cannot mutate rejection list"() {
         given:
         def v = new DefaultImmutableVersionConstraint('1.1', '1.0', '1.1.1', ['1.2', '2.0'])

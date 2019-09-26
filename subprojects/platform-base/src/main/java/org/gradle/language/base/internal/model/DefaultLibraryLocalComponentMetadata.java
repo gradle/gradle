@@ -91,6 +91,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 true,
                 ImmutableAttributes.EMPTY,
                 true,
+                null,
                 false,
                 ImmutableCapabilities.EMPTY);
         }
@@ -165,13 +166,13 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
             selector, usageConfigurationName, null, ImmutableAttributes.EMPTY, mappedUsageConfiguration,
                 ImmutableList.<IvyArtifactName>of(),
             EXCLUDE_RULES,
-            false, false, true, false, null);
+            false, false, true, false, false, null);
     }
 
     @Override
-    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, boolean canBeResolved, ImmutableCapabilities capabilities) {
+    public BuildableLocalConfigurationMetadata addConfiguration(String name, String description, Set<String> extendsFrom, ImmutableSet<String> hierarchy, boolean visible, boolean transitive, ImmutableAttributes attributes, boolean canBeConsumed, List<String> consumptionAlternatives, boolean canBeResolved, ImmutableCapabilities capabilities) {
         assert hierarchy.contains(name);
-        DefaultLocalConfigurationMetadata conf = new LibraryLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+        DefaultLocalConfigurationMetadata conf = new LibraryLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionAlternatives, canBeResolved, capabilities);
         addToConfigurations(name, conf);
         return conf;
     }
@@ -186,9 +187,10 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                                           ImmutableSet<String> hierarchy,
                                           ImmutableAttributes attributes,
                                           boolean canBeConsumed,
+                                          List<String> consumptionAlternatives,
                                           boolean canBeResolved,
                                           ImmutableCapabilities capabilities) {
-            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, canBeResolved, capabilities);
+            super(name, description, visible, transitive, extendsFrom, hierarchy, attributes, canBeConsumed, consumptionAlternatives, canBeResolved, capabilities);
         }
 
 

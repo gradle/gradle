@@ -76,7 +76,7 @@ The following breaking changes are not from deprecations, but the result of chan
  * The evaluation of the `publishing {}` block is no longer deferred until needed but behaves like any other block.
    Please use `afterEvaluate {}` if you need to defer evaluation.
  * The link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[`Javadoc`] and link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Groovydoc.html[`Groovydoc`] tasks now delete the destination dir for the documentation before executing. This has been added to remove stale output files from the last task execution.
- * The <<#java_library_distribution_plugin, Java Library Distribution Plugin>> is now based on the <<#java_library_plugin, Java Library Plugin>> instead of the <<#java_plugin, Java Plugin>>.
+ * The <<java_library_distribution_plugin.adoc#, Java Library Distribution Plugin>> is now based on the <<java_library_plugin.adoc#, Java Library Plugin>> instead of the <<java_plugin.adoc#, Java Plugin>>.
 +
 While it applies the Java Plugin, it behaves slightly different (e.g. it adds the `api` configuration). Thus, make sure to check whether your build behaves as expected after upgrading.
  * The `html` property on `CheckstyleReport` and `FindBugsReport` now returns a https://docs.gradle.org/current/dsl/org.gradle.api.reporting.CustomizableHtmlReport.html[`CustomizableHtmlReport`] instance that is easier to configure from statically typed languages like Java and Kotlin.
@@ -124,7 +124,7 @@ Java builds::
  * You can no longer use `-processorpath` as a generic compiler argument — use link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorPath[CompileOptions.annotationProcessorPath] instead.
  * Gradle will no longer automatically apply annotation processors that are on the compile classpath — use link:{groovyDslPath}/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:annotationProcessorPath[CompileOptions.annotationProcessorPath] instead.
  * The `testClassesDir` property has been removed from the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task — use link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html#org.gradle.api.tasks.testing.Test:testClassesDirs[testClassesDirs] instead.
- * The `classesDir` property has been removed from both the link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html[JDepend] task and link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]. Use the link:{groovyDslPath}/org.gradle.api.plugins.quality.JDepend.html#org.gradle.api.plugins.quality.JDepend:classesDirs[JDepend.classesDirs] and link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs[SourceSetOutput.classesDirs] properties instead.
+ * The `classesDir` property has been removed from both the _JDepend_ task and link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html[SourceSetOutput]. Use the _JDepend.classesDirs_ and link:{groovyDslPath}/org.gradle.api.tasks.SourceSetOutput.html#org.gradle.api.tasks.SourceSetOutput:classesDirs[SourceSetOutput.classesDirs] properties instead.
  * The `JavaLibrary(PublishArtifact, DependencySet)` constructor has been removed — this was used by the https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow[Shadow Plugin], so make sure you upgrade to at least version 2.x of that plugin.
  * The `JavaBasePlugin.configureForSourceSet()` method has been removed.
  * You can no longer create your own instances of link:{javadocPath}/org/gradle/api/plugins/JavaPluginConvention.html[JavaPluginConvention], link:{javadocPath}/org/gradle/api/plugins/ApplicationPluginConvention.html[ApplicationPluginConvention], link:{javadocPath}/org/gradle/api/plugins/WarPluginConvention.html[WarPluginConvention], link:{javadocPath}/org/gradle/plugins/ear/EarPluginConvention.html[EarPluginConvention], link:{javadocPath}/org/gradle/api/plugins/BasePluginConvention.html[BasePluginConvention], and link:{javadocPath}/org/gradle/api/plugins/ProjectReportsPluginConvention.html[ProjectReportsPluginConvention].
@@ -228,7 +228,7 @@ Use https://docs.groovy-lang.org/latest/html/documentation/#_spread_operator[Gro
  * <<#rel4.8:switch_to_publishing_plugins,Switch to the Maven Publish and Ivy Publish plugins>>
  * <<#rel4.8:deferred_configuration,Use deferred configuration with the publishing plugins>>
  * <<#rel4.8:configure_internal_tasks,Configure existing `wrapper` and `init` tasks>> rather than defining your own
- * Consider migrating to the built-in <<dependency_locking#dependency_locking,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
+ * Consider migrating to the built-in <<dependency_locking#,dependency locking mechanism>> if you are currently using a plugin or custom solution for this
 
 
 === Potential breaking changes
@@ -288,7 +288,7 @@ They should be added to the `annotationProcessor` configuration instead. If you 
 == Upgrading from 4.4 and earlier
 
  * Make sure you have a _settings.gradle_ file: it avoids a performance penalty and allows you to set the root project's name.
- * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#composite_builds,composite builds>>) and instead uses the root build's configuration for all the builds.
+ * Gradle now ignores the build cache configuration of included builds (<<composite_builds.adoc#,composite builds>>) and instead uses the root build's configuration for all the builds.
 
 === Potential breaking changes
 
@@ -352,7 +352,7 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
 
  * The `withPathSensitivity()` methods on link:{javadocPath}/org/gradle/api/tasks/TaskFilePropertyBuilder.html[TaskFilePropertyBuilder] and link:{javadocPath}/org/gradle/api/tasks/TaskOutputFilePropertyBuilder.html[TaskOutputFilePropertyBuilder] have been removed.
  * The bundled `bndlib` has been upgraded from 3.2.0 to 3.4.0.
- * The FindBugs Plugin no longer renders progress information from its analysis. If you rely on that output in any way, you can enable it with link:{groovyDslPath}/org.gradle.api.plugins.quality.FindBugs.html#org.gradle.api.plugins.quality.FindBugs:showProgress[FindBugs.showProgress].
+ * The FindBugs Plugin no longer renders progress information from its analysis. If you rely on that output in any way, you can enable it with _FindBugs.showProgress_.
 
 [[changes_4.1]]
 == Upgrading from 4.0
@@ -367,7 +367,7 @@ Follow the API links to learn how to deal with these deprecations (if no extra i
 
 === Potential breaking changes
 
- * Non-Java projects that have a <<dependency_types.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
+ * Non-Java projects that have a <<declaring_dependencies.adoc#sub:project_dependencies,project dependency>> on a Java project now consume the `runtimeElements` configuration by default instead of the `default` configuration.
 +
 To override this behavior, you can explicitly declare the configuration to use in the project dependency. For example: `project(path: ':myJavaProject', configuration: 'default')`.
  * Default Zinc compiler upgraded from 0.3.13 to 0.3.15.
@@ -597,15 +597,15 @@ pluginManagement {
 [[rel5.0:java_library_distribution_plugin]]
 === Java Library Distribution Plugin utilizes Java Library Plugin
 
-The <<#java_library_distribution_plugin, Java Library Distribution Plugin>> is now based on the
-<<#java_library_plugin, Java Library Plugin>> instead of the <<#java_plugin, Java Plugin>>.
+The <<java_library_distribution_plugin.adoc#,Java Library Distribution Plugin>> is now based on the
+<<java_library_plugin.adoc#, Java Library Plugin>> instead of the <<java_plugin.adoc#, Java Plugin>>.
 
 Additionally, the default distribution created by the plugin will contain all artifacts of the `runtimeClasspath` configuration instead of the deprecated `runtime` configuration.
 
 [[rel5.0:configuration_avoidance]]
 === Configuration Avoidance API disallows common configuration errors
 
-The <<#task_configuration_avoidance, configuration avoidance API>> introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
+The <<task_configuration_avoidance.adoc#, configuration avoidance API>> introduced in Gradle 4.9 allows you to avoid creating and configuring tasks that are never used.
 
 With the existing API, this example adds two tasks (`foo` and `bar`):
 
@@ -693,7 +693,7 @@ The S3 repository transport protocol allows Gradle to publish artifacts to AWS S
 }
 ----
 
-See <<repository_types#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
+See <<declaring_repositories.adoc#sub:s3_cross_account,AWS S3 Cross Account Access>> for more information.
 
 [[rel4.9:lazy_task_creation]]
 === [4.9] Consider trying the lazy API for task creation and configuration
@@ -707,7 +707,7 @@ You can learn more about lazily creating tasks in the <<task_configuration_avoid
 
 Now that the publishing plugins are stable, we recommend that you migrate from the <<artifact_management.adoc#artifact_management,legacy publishing>> mechanism for standard Java projects, i.e. those based on the <<java_plugin#java_plugin,Java Plugin>>. That includes projects that use any one of: <<java_library_plugin#java_library_plugin,Java Library Plugin>>, <<application_plugin#application_plugin,Application Plugin>> or <<war_plugin#war_plugin,War Plugin>>.
 
-To use the new approach, simply replace any `upload<Conf>` configuration with a `publishing {}` block. See the <<publishing_overview.adoc#publishing_overview,publishing overview chapter>> for more information.
+To use the new approach, simply replace any `upload<Conf>` configuration with a `publishing {}` block. See the <<publishing.adoc#publishing_overview,publishing overview chapter>> for more information.
 
 [[rel4.8:deferred_configuration]]
 === [4.8] Use deferred configuration for publishing plugins

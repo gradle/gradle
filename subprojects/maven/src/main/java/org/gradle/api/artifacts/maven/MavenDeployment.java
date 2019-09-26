@@ -15,7 +15,6 @@
  */
 package org.gradle.api.artifacts.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.PublishArtifact;
 
 import java.util.Set;
@@ -32,7 +31,6 @@ public interface MavenDeployment {
      * @return The packaging. Never null.
      * @since 4.8
      */
-    @Incubating
     String getPackaging();
 
     /**
@@ -41,7 +39,6 @@ public interface MavenDeployment {
      * @return The group ID. Never null.
      * @since 4.8
      */
-    @Incubating
     String getGroupId();
 
     /**
@@ -50,7 +47,6 @@ public interface MavenDeployment {
      * @return The artifact ID. Never null.
      * @since 4.8
      */
-    @Incubating
     String getArtifactId();
 
     /**
@@ -59,7 +55,6 @@ public interface MavenDeployment {
      * @return The version. Never null.
      * @since 4.8
      */
-    @Incubating
     String getVersion();
 
     /**

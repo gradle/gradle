@@ -33,7 +33,7 @@ import org.gradle.groovy.scripts.TextResourceScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.internal.resource.BasicTextResourceLoader
+import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.time.Time.startTimer
 
 import org.gradle.kotlin.dsl.*
@@ -290,7 +290,7 @@ fun settingsScriptPluginModelBuilder(scriptFile: File, project: ProjectInternal)
     val (scriptHandler, scriptClassPath) = compilationClassPathForScriptPluginOf(
         target = settings,
         scriptFile = scriptFile,
-        baseScope = settings.rootClassLoaderScope,
+        baseScope = settings.baseClassLoaderScope,
         scriptHandlerFactory = scriptHandlerFactoryOf(gradle),
         project = project,
         resourceDescription = "settings file"
@@ -371,7 +371,7 @@ fun scriptHandlerFactoryOf(gradle: Gradle) =
 
 private
 fun textResourceScriptSource(description: String, scriptFile: File) =
-    TextResourceScriptSource(BasicTextResourceLoader().loadFile(description, scriptFile))
+    TextResourceScriptSource(DefaultTextFileResourceLoader().loadFile(description, scriptFile))
 
 
 private
@@ -452,8 +452,8 @@ val KotlinBuildScriptModelParameter.scriptFile
 
 private
 val Settings.scriptCompilationClassPath
-    get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope) {
-        this as SettingsInternal
+    get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, false) {
+        (this as SettingsInternal).gradle
     }
 
 
@@ -474,19 +474,22 @@ val Project.scriptCompilationClassPath
 
 private
 fun Project.compilationClassPathOf(classLoaderScope: ClassLoaderScope) =
-    serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope) { settings }
+    serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, true) {
+        (this as ProjectInternal).gradle
+    }
 
 
 private
 inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
     classLoaderScope: ClassLoaderScope,
-    getSettings: () -> SettingsInternal
+    projectScript: Boolean,
+    getGradle: () -> GradleInternal
 ): ClassPath = try {
     compilationClassPathOf(classLoaderScope)
 } catch (error: Exception) {
-    getSettings().run {
+    getGradle().run {
         serviceOf<ClassPathModeExceptionCollector>().collect(error)
-        compilationClassPathOf(rootClassLoaderScope)
+        compilationClassPathOf(if (projectScript) baseProjectClassLoaderScope() else this.classLoaderScope)
     }
 }
 

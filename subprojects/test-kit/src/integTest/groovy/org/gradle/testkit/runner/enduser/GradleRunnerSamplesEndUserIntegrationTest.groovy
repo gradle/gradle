@@ -67,7 +67,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     def "manualClasspathInjection with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))
-        succeeds "check"
+        succeeds "check", '--stacktrace', '--info'
 
         where:
         dsl << ['groovy', 'kotlin']

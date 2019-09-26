@@ -116,7 +116,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         docFilesSubDirs = addBooleanOption("docfilessubdirs");
         excludeDocFilesSubDir = addStringsOption("excludedocfilessubdir", ":");
         noQualifiers = addStringsOption("noqualifier", ":");
-        noTimestamp = addBooleanOption("notimestamp");
+        noTimestamp = addBooleanOption("notimestamp", true);
         noComment = addBooleanOption("nocomment");
     }
 

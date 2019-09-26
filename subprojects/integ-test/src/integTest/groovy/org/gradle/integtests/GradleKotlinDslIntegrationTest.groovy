@@ -72,7 +72,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             apply { 
-                from("http://localhost:${server.port}/script.gradle") 
+                from("${server.uri}/script.gradle") 
             }
         """
 
@@ -114,7 +114,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         """
         server.expectGet('/script.gradle.kts', scriptFile)
 
-        buildFile << """apply { from("http://localhost:${server.port}/script.gradle.kts") }"""
+        buildFile << """apply { from("${server.uri}/script.gradle.kts") }"""
 
         when:
         succeeds 'hello'

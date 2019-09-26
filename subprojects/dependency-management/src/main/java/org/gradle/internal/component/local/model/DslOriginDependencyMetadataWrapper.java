@@ -93,6 +93,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
+    public boolean isEndorsingStrictVersions() {
+        return delegate.isEndorsingStrictVersions();
+    }
+
+    @Override
     public boolean isFromLock() {
         return delegate.isFromLock();
     }

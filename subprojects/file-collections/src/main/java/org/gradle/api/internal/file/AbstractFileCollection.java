@@ -27,6 +27,7 @@ import org.gradle.api.internal.file.collections.FileBackedDirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.provider.AbstractProviderWithValue;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -55,6 +56,27 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     @Override
     public String toString() {
         return getDisplayName();
+    }
+
+    // This is final - use {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
+    @Override
+    public final TaskDependency getBuildDependencies() {
+        return new AbstractTaskDependency() {
+            @Override
+            public String toString() {
+                return "Dependencies of " + getDisplayName();
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(AbstractFileCollection.this);
+            }
+        };
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        // Assume no dependencies
     }
 
     @Override
@@ -129,8 +151,8 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public TaskDependency getBuildDependencies() {
-                return AbstractFileCollection.this.getBuildDependencies();
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                AbstractFileCollection.this.visitDependencies(context);
             }
 
             @Override
@@ -223,12 +245,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
-        final Predicate<File> predicate = new Predicate<File>() {
-            @Override
-            public boolean apply(@Nullable File input) {
-                return filterSpec.isSatisfiedBy(input);
-            }
-        };
+        final Predicate<File> predicate = filterSpec::isSatisfiedBy;
         return new AbstractFileCollection() {
             @Override
             public String getDisplayName() {
@@ -236,8 +253,8 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             }
 
             @Override
-            public TaskDependency getBuildDependencies() {
-                return AbstractFileCollection.this.getBuildDependencies();
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                AbstractFileCollection.this.visitDependencies(context);
             }
 
             @Override
@@ -258,14 +275,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     @Override
-    public void visitLeafCollections(FileCollectionLeafVisitor visitor) {
-        visitor.visitCollection(this);
-    }
-
-    @Override
-    public void registerWatchPoints(FileSystemSubset.Builder builder) {
-        for (File file : this) {
-            builder.add(file);
+    public void visitStructure(FileCollectionStructureVisitor visitor) {
+        if (visitor.prepareForVisit(OTHER) != FileCollectionStructureVisitor.VisitType.NoContents) {
+            visitor.visitCollection(OTHER, this);
         }
     }
 }

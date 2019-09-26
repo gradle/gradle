@@ -63,8 +63,8 @@ If the name is unqualified, then it may be one of the following:
  * A task instance with that name.
  * A property on link:{groovyDslPath}/org.gradle.api.Project.html[Project].
  * An <<writing_build_scripts#sec:extra_properties,extra property>> defined elsewhere in the project.
- * A property of an implicit object within a <<groovy:blocks,block>>.
- * A <<#groovy:local_variable,local variable>> defined earlier in the build script.
+ * A property of an implicit object within a <<#groovy:blocks,block>>.
+ * A <<#groovy:local_variables,local variable>> defined earlier in the build script.
 
 Note that plugins can add their own properties to the `Project` object. The link:{groovyDslPath}/[API documentation] lists all the properties added by core plugins. If you're struggling to find where a property comes from, check the documentation for the plugins that the build uses.
 

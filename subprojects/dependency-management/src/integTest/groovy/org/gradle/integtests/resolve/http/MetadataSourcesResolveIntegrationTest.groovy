@@ -48,7 +48,7 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         }
         // We are resolving with `gradleMetadata()` metadata: always use a directory listing (and not maven-metadata.xml)
         repository.directoryList('org.test', 'projectA').expectGet()
-        repositoryInteractions {
+        repositoryInteractions(HttpRepository.MetadataType.ONLY_GRADLE) {
             'org.test:projectA' {
 
                 '1.2' {
@@ -151,9 +151,9 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
     }
 
     def "will only search for defined metadata sources"() {
-        def metadataSource = isGradleMetadataEnabled() ? "gradleMetadata" : useIvy() ? "ivyDescriptor" : "mavenPom"
-        def metadataType = isGradleMetadataEnabled() ? HttpRepository.MetadataType.ONLY_GRADLE : HttpRepository.MetadataType.ONLY_ORIGINAL
-        def metadataUri = isGradleMetadataEnabled() ? metadataURI("org.test", "projectA", "1.1"): legacyMetadataURI("org.test", "projectA", "1.1")
+        def metadataSource = isGradleMetadataPublished() ? "gradleMetadata" : useIvy() ? "ivyDescriptor" : "mavenPom"
+        def metadataType = isGradleMetadataPublished() ? HttpRepository.MetadataType.ONLY_GRADLE : HttpRepository.MetadataType.ONLY_ORIGINAL
+        def metadataUri = isGradleMetadataPublished() ? gradleMetadataURI("org.test", "projectA", "1.1"): legacyMetadataURI("org.test", "projectA", "1.1")
         buildFile << """
             repositories.all {
                 metadataSources {
@@ -176,9 +176,12 @@ class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyReso
         fails ":checkDeps"
 
         and:
+        def format = metadataSource == 'ivyDescriptor' ? 'ivy.xml' :
+            (metadataSource == 'mavenPom' ? 'Maven POM' : 'Gradle module')
         failure.assertHasCause("""Could not find org.test:projectA:1.1.
 Searched in the following locations:
   - ${metadataUri}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in '$format' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:""")
     }
 }

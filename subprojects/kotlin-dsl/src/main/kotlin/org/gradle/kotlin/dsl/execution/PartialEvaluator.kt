@@ -105,7 +105,7 @@ class PartialEvaluator(
         val section = fragment.section
         return fragment.source.map { sourceText ->
             sourceText
-                .subText(0..section.block.endInclusive)
+                .subText(0..section.block.last)
                 .preserve(section.wholeRange)
         }
     }

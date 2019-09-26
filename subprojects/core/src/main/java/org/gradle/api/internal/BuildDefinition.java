@@ -89,7 +89,7 @@ public class BuildDefinition {
     private static StartParameter configure(StartParameter startParameter, File buildRootDir) {
         StartParameter includedBuildStartParam = startParameter.newBuild();
         includedBuildStartParam.setCurrentDir(buildRootDir);
-        includedBuildStartParam.setSearchUpwards(false);
+        ((StartParameterInternal)includedBuildStartParam).setSearchUpwardsWithoutDeprecationWarning(false);
         includedBuildStartParam.setConfigureOnDemand(false);
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
         return includedBuildStartParam;

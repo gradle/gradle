@@ -16,13 +16,10 @@
 
 package org.gradle.tooling.model.cpp;
 
-import org.gradle.api.Incubating;
-
 /**
  * A C++ application.
  *
  * @since 4.10
  */
-@Incubating
 public interface CppApplication extends CppComponent {
 }

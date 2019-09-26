@@ -15,7 +15,6 @@
  */
 package org.gradle.tooling.events.task;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.PluginIdentifier;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -41,7 +40,6 @@ public interface TaskOperationDescriptor extends OperationDescriptor {
      * @throws UnsupportedMethodException For Gradle versions older than 5.1, where this method is not supported.
      * @since 5.1
      */
-    @Incubating
     Set<? extends OperationDescriptor> getDependencies() throws UnsupportedMethodException;
 
     /**
@@ -52,7 +50,6 @@ public interface TaskOperationDescriptor extends OperationDescriptor {
      * @return the origin plugin; {@code null} if unknown
      */
     @Nullable
-    @Incubating
     PluginIdentifier getOriginPlugin();
 
 }

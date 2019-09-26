@@ -40,7 +40,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
         file("buildSrc/settings.gradle.kts") << """
             buildCache {
-                local(DirectoryBuildCache::class.java) {
+                local {
                     directory = "${cacheDir.absoluteFile.toURI()}"
                     isPush = true
                 }
@@ -116,7 +116,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
             @CacheableTask
             open class CustomTask() : DefaultTask() {
-                @get:InputFile var inputFile: File? = null
+                @get:InputFile @get:PathSensitive(PathSensitivity.NONE) var inputFile: File? = null
                 @get:OutputFile var outputFile: File? = null
                 @TaskAction fun doSomething() {
                     outputFile!!.apply {

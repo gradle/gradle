@@ -25,33 +25,39 @@ import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathEntr
 import org.gradle.api.internal.tasks.compile.incremental.classpath.ClasspathSnapshot;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.execution.history.changes.DefaultFileChange;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFingerprintingStrategy;
 import org.gradle.internal.util.Alignment;
-import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
+import org.gradle.language.base.internal.tasks.StaleOutputCleaner;
+import org.gradle.work.FileChange;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 abstract class AbstractRecompilationSpecProvider implements RecompilationSpecProvider {
+    private final Deleter deleter;
     protected final FileOperations fileOperations;
     protected final FileTree sourceTree;
 
-    public AbstractRecompilationSpecProvider(FileOperations fileOperations,
-                                             FileTree sourceTree) {
+    public AbstractRecompilationSpecProvider(
+        Deleter deleter,
+        FileOperations fileOperations,
+        FileTree sourceTree
+    ) {
+        this.deleter = deleter;
         this.fileOperations = fileOperations;
         this.sourceTree = sourceTree;
     }
 
-    protected void deleteStaleFilesIn(PatternSet filesToDelete, final File destinationDir) {
+    protected boolean deleteStaleFilesIn(PatternSet filesToDelete, final File destinationDir) {
         if (filesToDelete == null || filesToDelete.isEmpty() || destinationDir == null) {
-            return;
+            return false;
         }
         Set<File> toDelete = fileOperations.fileTree(destinationDir).matching(filesToDelete).getFiles();
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(toDelete);
-        cleaner.addDirToClean(destinationDir);
-        cleaner.execute();
+        return StaleOutputCleaner.cleanOutputs(deleter, toDelete, destinationDir);
     }
 
     protected void processClasspathChanges(CurrentCompilation current, PreviousCompilation previous, RecompilationSpec spec) {
@@ -100,5 +106,9 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
         File destinationDir = spec.getDestinationDir();
         classpath.add(destinationDir);
         spec.setCompileClasspath(classpath);
+    }
+
+    protected String rebuildClauseForChangedNonSourceFile(String description, FileChange fileChange) {
+        return String.format("%s '%s' has been %s", description, fileChange.getFile().getName(), fileChange.getChangeType().name().toLowerCase(Locale.US));
     }
 }

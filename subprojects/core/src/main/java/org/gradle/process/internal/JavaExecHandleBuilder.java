@@ -16,12 +16,16 @@
 package org.gradle.process.internal;
 
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.CollectionUtils;
@@ -29,16 +33,27 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executor;
+import java.util.jar.Attributes;
+import java.util.jar.JarOutputStream;
+import java.util.jar.Manifest;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+
+import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
 
 /**
  * Use {@link JavaExecHandleFactory} instead.
  */
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
+    private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
     private final FileCollectionFactory fileCollectionFactory;
     private String mainClass;
     private final List<Object> applicationArgs = new ArrayList<Object>();
@@ -46,27 +61,32 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final JavaForkOptions javaOptions;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
-    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken) {
+    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaForkOptions javaOptions) {
         super(fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
-        javaOptions = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory);
+        this.javaOptions = javaOptions;
         executable(javaOptions.getExecutable());
+
     }
 
     @Override
     public List<String> getAllJvmArgs() {
+        return getAllJvmArgs(this.classpath);
+    }
+
+    private List<String> getAllJvmArgs(FileCollection realClasspath) {
         List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
         if (mainClass == null) {
-            if (classpath != null && classpath.getFiles().size() == 1) {
+            if (realClasspath != null && realClasspath.getFiles().size() == 1) {
                 allArgs.add("-jar");
-                allArgs.add(classpath.getSingleFile().getAbsolutePath());
+                allArgs.add(realClasspath.getSingleFile().getAbsolutePath());
             } else {
                 throw new IllegalStateException("No main class specified and classpath is not an executable jar.");
             }
         } else {
-            if (classpath != null && !classpath.isEmpty()) {
+            if (realClasspath != null && !realClasspath.isEmpty()) {
                 allArgs.add("-cp");
-                allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
+                allArgs.add(CollectionUtils.join(File.pathSeparator, realClasspath));
             }
             allArgs.add(mainClass);
         }
@@ -199,6 +219,16 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
+    public JavaDebugOptions getDebugOptions() {
+        return javaOptions.getDebugOptions();
+    }
+
+    @Override
+    public void debugOptions(Action<JavaDebugOptions> action) {
+        javaOptions.debugOptions(action);
+    }
+
+    @Override
     public String getMain() {
         return mainClass;
     }
@@ -278,12 +308,54 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public List<String> getAllArguments() {
-        List<String> arguments = new ArrayList<String>(getAllJvmArgs());
+        return getAllArguments(this.classpath);
+    }
+
+    private List<String> getAllArguments(FileCollection realClasspath) {
+        List<String> arguments = new ArrayList<String>(getAllJvmArgs(realClasspath));
         arguments.addAll(getArgs());
         for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
             Iterables.addAll(arguments, argumentProvider.asArguments());
         }
         return arguments;
+    }
+
+    @Override
+    protected List<String> getEffectiveArguments() {
+        List<String> arguments = getAllArguments();
+
+        // Try to shorten command-line if necessary
+        if (hasCommandLineExceedMaxLength(getExecutable(), arguments)) {
+            try {
+                File pathingJarFile = writePathingJarFile(classpath);
+                ConfigurableFileCollection shortenedClasspath = fileCollectionFactory.configurableFiles();
+                shortenedClasspath.from(pathingJarFile);
+                List<String> shortenedArguments = getAllArguments(shortenedClasspath);
+                LOGGER.info("Shortening Java classpath {} with {}", this.classpath.getFiles(), pathingJarFile);
+                return shortenedArguments;
+            } catch (IOException e) {
+                LOGGER.info("Pathing JAR could not be created, Gradle cannot shorten the command line.", e);
+            }
+        }
+
+        return arguments;
+    }
+
+    private File writePathingJarFile(FileCollection classPath) throws IOException {
+        File pathingJarFile = File.createTempFile("gradle-javaexec-classpath", ".jar");
+        try (FileOutputStream fileOutputStream = new FileOutputStream(pathingJarFile);
+             JarOutputStream jarOutputStream = new JarOutputStream(fileOutputStream, toManifest(classPath))) {
+            jarOutputStream.putNextEntry(new ZipEntry("META-INF/"));
+        }
+        return pathingJarFile;
+    }
+
+    private static Manifest toManifest(FileCollection classPath) {
+        Manifest manifest = new Manifest();
+        Attributes attributes = manifest.getMainAttributes();
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        attributes.putValue("Class-Path", classPath.getFiles().stream().map(File::toURI).map(URI::toString).collect(Collectors.joining(" ")));
+        return manifest;
     }
 
     @Override

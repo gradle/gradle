@@ -16,14 +16,11 @@
 
 package org.gradle.work;
 
-import org.gradle.api.Incubating;
-
 /**
  * The type of change for e.g. an input file.
  *
  * @since 5.4
  */
-@Incubating
 public enum ChangeType {
     ADDED,
     MODIFIED,

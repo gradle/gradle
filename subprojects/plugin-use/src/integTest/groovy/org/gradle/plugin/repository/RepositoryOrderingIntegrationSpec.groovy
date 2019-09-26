@@ -55,7 +55,6 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
             Could not find my:plugin:1.0.
             Searched in the following locations:
               - $buildscriptRepoUri/my/plugin/1.0/plugin-1.0.pom
-              - $buildscriptRepoUri/my/plugin/1.0/plugin-1.0.jar
               - $pluginPortalUri/my/plugin/1.0/plugin-1.0.pom
         """.stripIndent().trim()
 
@@ -75,9 +74,7 @@ class RepositoryOrderingIntegrationSpec extends AbstractIntegrationSpec {
             Could not find my:plugin:1.0.
             Searched in the following locations:
               - $buildscriptRepoUri/my/plugin/1.0/plugin-1.0.pom
-              - $buildscriptRepoUri/my/plugin/1.0/plugin-1.0.jar
               - $pluginManagementRepoUri/my/plugin/1.0/plugin-1.0.pom
-              - $pluginManagementRepoUri/my/plugin/1.0/plugin-1.0.jar
         """.stripIndent().trim()
     }
 

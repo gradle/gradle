@@ -17,6 +17,9 @@
 package org.gradle
 
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
+
+import java.util.zip.ZipFile
 
 class DistributionIntegritySpec extends DistributionIntegrationSpec {
 
@@ -33,7 +36,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
     def "verify 3rd-party dependencies jar hashes"() {
         setup:
         // dependencies produced by Gradle and cannot be verified by this test
-        def excluded = ['gradle-', 'fastutil-8.2.1-min', 'kotlin-compiler-embeddable-1.3.41-patched']
+        def excluded = ['gradle-', 'fastutil-8.2.1-min', 'kotlin-compiler-embeddable-1.3.50-patched']
 
         def expectedHashes = [
             'annotations-13.0.jar' : 'ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478',
@@ -47,42 +50,48 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'commons-io-2.6.jar' : 'f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
             'commons-lang-2.6.jar' : '50f11b09f877c294d56f24463f47d28f929cf5044f648661c0f0cfbae9a2f49c',
             'failureaccess-1.0.1.jar' : 'a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26',
-            'groovy-all-1.0-2.5.4.jar' : '704d3307616c57234871c4db3a355c3e81ea975db8dac8ee6c9264b91c74d2b7',
+            'groovy-all-1.3-2.5.8.jar': '25394ae305024c27bca108eeb7e9895e97c6dc1e9701f341502bf10dd00bef33',
             'guava-27.1-android.jar' : '686404f2d1d4d221911f96bd627ff60dac2226a5dfa6fb8ba517073eb97ec0ef',
             'jansi-1.17.1.jar' : 'b2234bfb0d8f245562d64ed9325df6b907093f4daa702c9082d4796db2a2d894',
             'javax.inject-1.jar' : '91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff',
             'jcl-over-slf4j-1.7.25.jar' : '5e938457e79efcbfb3ab64bc29c43ec6c3b95fffcda3c155f4a86cc320c11e14',
             'jsr305-3.0.2.jar' : '766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7',
             'jul-to-slf4j-1.7.25.jar' : '416c5a0c145ad19526e108d44b6bf77b75412d47982cce6ce8d43abdbdbb0fac',
-            'kotlin-reflect-1.3.41.jar': '01d469878c6853a607baaadf869c7474b971abe6dd2cb74f244bea0ffb453c76',
-            'kotlin-sam-with-receiver-compiler-plugin-1.3.41.jar': 'e568796401d39904aca06ea23127dd13b44fa124831c33c8595f883b0ec83413',
-            'kotlin-script-runtime-1.3.41.jar': 'ac184612f258b460b5af4ca47f6bee0bab20a46fa818b86697ba41ef29626a31',
-            'kotlin-scripting-compiler-embeddable-1.3.41.jar': 'c2da2d19f569e8369c2f55affa0dee5f50771bc3685697ee948ee29a16d0c3c1',
-            'kotlin-scripting-compiler-impl-embeddable-1.3.41.jar': '854c39cdd705be01956439ae70f44a785cd0ba66388299f98bc0af75db328f29',
-            'kotlin-stdlib-1.3.41.jar': '6ea3d0921b26919b286f05cbdb906266666a36f9a7c096197114f7495708ffbc',
-            'kotlin-stdlib-common-1.3.41.jar': '6c91dea17d7dce5f0b550c3de3305767e5fb46247b6d1eb7eca0ca1fe18458de',
-            'kotlin-stdlib-jdk7-1.3.41.jar': '25e2409aba0ec37d2fd7c77727d7835b511879de8d9bf4862af0b493aabbe39e',
-            'kotlin-stdlib-jdk8-1.3.41.jar': 'f7dbbaee3e0841758187a213c052388a4e619e11c87ab16f4bc229cfe7ce5fed',
+            'kotlin-daemon-embeddable-1.3.50.jar': 'c7b1b872e04a6fdfcfb1d0451de8a49f9900608bae93f9120c35bbcde2d911fa',
+            'kotlin-reflect-1.3.50.jar': '64583199ea5a54aefd1bd1595288925f784226ee562d1dd279011c6075b3d7a4',
+            'kotlin-sam-with-receiver-compiler-plugin-1.3.50.jar': 'd8aa13e98a76adb326fff8c23a66a1fc3f8ab0a1b87c311598191b069f275590',
+            'kotlin-scripting-common-1.3.50.jar': 'dd16d71ee2f2f0f3e53cb7f32b30cc9fa1d457ad7d5f428d15a9638c1cc983fc',
+            'kotlin-scripting-jvm-1.3.50.jar': 'fa6fa1b78ae0d3e6f950143567cc207e03b64ce6cba842c5149a5226a784c0c2',
+            'kotlin-scripting-jvm-host-embeddable-1.3.50.jar': '5084f88eed6fb0850b6aa3148bfeb593744ae04bc26e8b82244a43cbb65ce16c',
+            'kotlin-script-runtime-1.3.50.jar': '7ff70c52bf062afbe0a0e78962a9b92b89b0cf4a47a481d24037257e56fb7e4c',
+            'kotlin-scripting-compiler-embeddable-1.3.50.jar': 'baa76bdc840a1b7ffc88c5d6e327b75a37118a44e60deae56d71d408fd1c8ac5',
+            'kotlin-scripting-compiler-impl-embeddable-1.3.50.jar': '4ab8accc2bff60ae6d767f7e96036f0f8807e21bf758362e023e3ea57c4e490f',
+            'kotlin-stdlib-1.3.50.jar': 'e6f05746ee0366d0b52825a090fac474dcf44082c9083bbb205bd16976488d6c',
+            'kotlin-stdlib-common-1.3.50.jar': '8ce678e88e4ba018b66dacecf952471e4d7dfee156a8a819760a5a5ff29d323c',
+            'kotlin-stdlib-jdk7-1.3.50.jar': '9a026639e76212f8d57b86d55b075394c2e009f1979110751d34c05c5f75d57b',
+            'kotlin-stdlib-jdk8-1.3.50.jar': '1b351fb6e09c14b55525c74c1f4cf48942eae43c348b7bc764a5e6e423d4da0c',
             'kotlinx-metadata-jvm-0.1.0.jar' : '9753bb39efef35957c5c15df9a3cb769aabf2cdfa74b47afcb7760e5146be3b5',
             'kryo-2.24.0.jar' : '7e56b32c635058f9aa2820f88919ab702d029cbcd15285da9992e36cc0ae52f2',
             'log4j-over-slf4j-1.7.25.jar' : 'c84c5ce4bbb661369ccd4c7b99682027598a0fb2e3d63a84259dbe5c0bf1f949',
             'minlog-1.2.jar' : 'a678cb1aa8f5d03d901c992c75741841d98a9bc3d55dad02e84d65315c4e60f2',
-            'native-platform-0.17.jar' : '38d67a2ef50dbd9c587c01a9cc63c00b1328290b2aadd9c49597f0757274a64a',
-            'native-platform-freebsd-amd64-libcpp-0.17.jar' : '9f1f89b5a61930f124d2753a0e9177b31a98ddd8aad85e28075b503eeafef50a',
-            'native-platform-freebsd-amd64-libstdcpp-0.17.jar' : 'f086f1512fd180a8d26918ae3489202b2f7b37b52722ce37ecc71ff2ccb42a8a',
-            'native-platform-freebsd-i386-libcpp-0.17.jar' : 'd0d321c55bc6087fa16d670967e9dd43c47941f96b19f2614efa564d3d7bce8d',
-            'native-platform-freebsd-i386-libstdcpp-0.17.jar' : 'd52319783a154156feff52f5ba7df2fdc6860b13af1e8c580bceec7053880808',
-            'native-platform-linux-amd64-0.17.jar' : 'da8eae2338e8dbc25bb88678d247f2ba948870b42e8ce63198b6f714eb3452b3',
-            'native-platform-linux-amd64-ncurses5-0.17.jar' : 'd85e190ac044d96ec10058e9546dcb17033ebd68d4db059ab78a538c4838c9e5',
-            'native-platform-linux-amd64-ncurses6-0.17.jar' : 'dbedcb909e3968e3e83cf219493fcdf7c0a40f944d9da6e852841303fbb98ce1',
-            'native-platform-linux-i386-0.17.jar' : '1eaa1b0bb02d2042b96a8dea941e8cd892766af571d1302b0d30328fccc9b2ed',
-            'native-platform-linux-i386-ncurses5-0.17.jar' : '01bf87847a6cae5356dc6d36af517f1bf63e380d960b31713f1629b8b77af4de',
-            'native-platform-linux-i386-ncurses6-0.17.jar' : 'bbb344ce1bf7f6ae4ff9acffc97865e45dfdf1980bb4c52a487b1368c3958d0e',
-            'native-platform-osx-amd64-0.17.jar' : 'c8be647bd5ae084f91dde3545dede65e5abdac966f219881b1b33def007cb3ab',
-            'native-platform-windows-amd64-0.17.jar' : '56573ba9a1f14293135aeb80b7bb891ce316eb1d2485766049dc75cf25c04373',
-            'native-platform-windows-amd64-min-0.17.jar' : '40351288397b7688f8472ee94d9588fd90ea545db88dcfd82c288663f486dae0',
-            'native-platform-windows-i386-0.17.jar' : 	'1af6bc3dabc85f27195a477ccb6ce05f631354c8ab2d3e213bce9996d3d97992',
-            'native-platform-windows-i386-min-0.17.jar' : '5ad72f4ea8990bcd9c0ca3503e0a70cc13ce9c7872556429d2372986ed2a1d69',
+            'native-platform-0.18.jar' : '8d0cfef773f129d8acb8571c499d5a2894b5fbf599c67e45ee8dd00564ac5699',
+            'native-platform-freebsd-amd64-libcpp-0.18.jar' : 'c0c3e6041bdcdca7b803a5999a65b20e4cac7cce2b75349f02e54304273bf25f',
+            'native-platform-freebsd-amd64-libstdcpp-0.18.jar' : 'a42bba79f49dbae2b2388b0d7a337dd812e3e4051f87737a2bfd28c5f4954a20',
+            'native-platform-freebsd-i386-libcpp-0.18.jar' : '2db5047e3d4bde06b527094e9aabf3220db4fb7b42373eed0b893c602f41faad',
+            'native-platform-freebsd-i386-libstdcpp-0.18.jar' : '39e11dfd90a3217cee66da9f2a7a7989b3ccab3dcb6177feca40c859e4c27d15',
+            'native-platform-linux-amd64-0.18.jar' : 'd00274173a22575093f57d83b4fdbebd14a2f50bd7739028cea835cb8a119418',
+            'native-platform-linux-amd64-ncurses5-0.18.jar' : '336aab51ac3918d52aa712841fcb4772f67f1026d296421b100c1e607e02ae31',
+            'native-platform-linux-amd64-ncurses6-0.18.jar' : 'fa8289d841ca9a133b556b5352436548332f73562cca3e6778245e39973aa1a1',
+            'native-platform-linux-i386-0.18.jar' : 'b0c81987c6ef3e685b65e6f2cd793ddfe6daea4caedd9d2018be52c8ae478013',
+            'native-platform-linux-i386-ncurses5-0.18.jar' : '8aaaae78899d0f705f636452ff1d1dca223557ea41eccf0a5b7e9d1867194361',
+            'native-platform-linux-i386-ncurses6-0.18.jar' : '46b29923ef81005d32e54ca91cb7e7623ffec2ed3f32b4762c2915ba34a6efbd',
+            'native-platform-linux-aarch64-0.18.jar' : '622d5c2702637e2e345b4bde6f672bb6a4f72b09f47e73e160d76f5d5c588b6a',
+            'native-platform-linux-aarch64-ncurses5-0.18.jar' : 'ed2894b11753b866546fe1557bf61dcbc005aac1868548409f115039b513455c',
+            'native-platform-osx-amd64-0.18.jar' : 'd9da281edb0ed3482c2cb38f6abe5b1a4e6f6a5c51676a3294b00de09c463d27',
+            'native-platform-windows-amd64-0.18.jar' : '4a754eac68b3a8c1f14f39c58ec328339b6400fce0f0ff063041974e3edbb9f4',
+            'native-platform-windows-amd64-min-0.18.jar' : '2cbbca810129dbb39af5919e908029fede4e2e691e890ef54e7af75cbfd4e25d',
+            'native-platform-windows-i386-0.18.jar' : 	'd06675a6a7f523c604001ba82073dc00201cc9263736f185b996fd833caf71f4',
+            'native-platform-windows-i386-min-0.18.jar' : '84487de35b3ca38f60ba689f87881d3ecde8790987fc6f9bb59664b422e82b4c',
             'objenesis-2.6.jar' : '5e168368fbc250af3c79aa5fef0c3467a2d64e5a7bd74005f25d8399aeb0708d',
             'plugins/aether-api-1.13.1.jar' : 'ae8dc80232771f8913febfa410c5719e9ba8ded81fb99788e214fd676dbbe13f',
             'plugins/aether-connector-wagon-1.13.1.jar' : 'df54e8505104228ee7e3fbdead7a7a9cb753b04ca6c9cf60a6b19aee0737f1ec',
@@ -91,12 +100,11 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'plugins/aether-util-1.13.1.jar' : '687799a0ce988bee9e8eb9ae0ba870300adc0114248ad4a4327bdb625d27e010',
             'plugins/apiguardian-api-1.0.0.jar' : '1f58b77470d8d147a0538d515347dd322f49a83b9e884b8970051160464b65b3',
             'plugins/asm-util-7.1.jar' : 'a24485517596ae1003dcf2329c044a2a861e5c25d4476a695ccaacf560c74d1a',
-            'plugins/aws-java-sdk-core-1.11.407.jar' : '91db6485e6b13fffbaafdf127c1dd89bbf127556d4f2ce3c958516c99356dca9',
-            'plugins/aws-java-sdk-kms-1.11.407.jar' : 'ffd62931c14e7c27180c93e26808f2dcb8e5aaf9647c16f33c01009028091ae3',
-            'plugins/aws-java-sdk-s3-1.11.407.jar' : '15255fde9a9acbe226109c6767bc37d7415beeae2cca959bccf12e939da53280',
+            'plugins/aws-java-sdk-core-1.11.633.jar' : 'aa4199cd1b52484f9535c36f6ef80f104369aa070912397eeb5c25a41dd1f83e',
+            'plugins/aws-java-sdk-kms-1.11.633.jar' : '6a71923945e91f554899481f46fbed66991de8bb9d4ad375c0b8ac802ef28b10',
+            'plugins/aws-java-sdk-s3-1.11.633.jar' : 'd4db7809743ee5155da1b9899919369824df6e8ee04db793bd0d73b40b81c2ec',
             'plugins/bcpg-jdk15on-1.61.jar' : 'd31561762756bdc8b70be5c1c72d9e972914e5549eaffe25e684b73aa15d1f63',
             'plugins/bcprov-jdk15on-1.61.jar' : 'dba6e408f205215ad1a89b70b37353d3cdae4ec61037e1feee885704e2413458',
-            'plugins/biz.aQute.bndlib-4.0.0.jar' : 'd1a328c8f63aea4f7ce6028a49255137664a7138fadc4af9d25461192b71e098',
             'plugins/bsh-2.0b6.jar' : 'a17955976070c0573235ee662f2794a78082758b61accffce8d3f8aedcd91047',
             'plugins/commons-codec-1.11.jar' : 'e599d5318e97aa48f42136a2927e6dfa4e8881dff0e6c8e3109ddbbff51d7b7d',
             'plugins/dd-plist-1.21.jar' : '019c61abd93ecf614e3d214e9fed942dcf47d9d2d9548fe59d70f0840ba32fb6',
@@ -107,8 +115,8 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'plugins/google-oauth-client-1.25.0.jar' : '7e2929133d4231e702b5956a7e5dc8347a352acc1e97082b40c3585b81cd3501',
             'plugins/gson-2.8.5.jar' : '233a0149fc365c9f6edbd683cfe266b19bdc773be98eabdaf6b3c924b48e7d81',
             'plugins/hamcrest-core-1.3.jar' : '66fdef91e9739348df7a096aa384a5685f4e875584cce89386a7a47251c4d8e9',
-            'plugins/httpclient-4.5.6.jar' : 'c03f813195e7a80e3608d0ddd8da80b21696a4c92a6a2298865bf149071551c7',
-            'plugins/httpcore-4.4.10.jar' : '78ba1096561957db1b55200a159b648876430342d15d461277e62360da19f6fd',
+            'plugins/httpclient-4.5.10.jar' : '38b9f16f504928e4db736a433b9cd10968d9ec8d6f5d0e61a64889a689172134',
+            'plugins/httpcore-4.4.12.jar' : 'ab765334beabf0ea024484a5e90a7c40e8160b145f22d199e11e27f68d57da08',
             'plugins/ion-java-1.0.2.jar' : '0d127b205a1fce0abc2a3757a041748651bc66c15cf4c059bac5833b27d471a5',
             'plugins/ivy-2.3.0.jar' : 'ff3543305c62f23d1a4cafc66fab9c9f55ea169ccf2b6c040d3fa23254b86b18',
             'plugins/jackson-annotations-2.9.8.jar' : 'fdca896161766ca4a2c3e06f02f6a5ede22a5b3a55606541cd2838eace08ca23',
@@ -118,7 +126,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'plugins/jaxb-impl-2.3.1.jar' : 'e6c9e0f1830fd5f7c30c25ecf5e2046c5668b06d304add89d2f027d5072297d0',
             'plugins/jcifs-1.3.17.jar' : '3b077938f676934bc20bde821d1bdea2cd6d55d96151218b40fd159532f45061',
             'plugins/jcommander-1.72.jar' : 'e0de160b129b2414087e01fe845609cd55caec6820cfd4d0c90fabcc7bdb8c1e',
-            'plugins/jmespath-java-1.11.407.jar' : '0048fd27f16c465011b76443c4daa636fa0fbccf1e48fae3f8d8e0dc7f2f7cf2',
+            'plugins/jmespath-java-1.11.633.jar' : '6ca34bef5587d6f3986199df310fd5b54f139c700f4bf14ed8c258ad3e1d0e77',
             'plugins/joda-time-2.10.jar' : 'c4d50dae4d58c3031475d64ae5eafade50f1861ca1553252aa7fd176d56e4eec',
             'plugins/jsch-0.1.54.jar' : '92eb273a3316762478fdd4fe03a0ce1842c56f496c9c12fe1235db80450e1fdb',
             'plugins/junit-4.12.jar' : '59721f0805e223d84b90677887d9ff567dc534d7c502ca903c0c2b17f05c116a',
@@ -171,12 +179,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         }
         Map<String, TestFile> depJars = filtered.collectEntries { [libDir.relativePath(it), it] }
 
-        def added = depJars.keySet() - expectedHashes.keySet()
-        def removed = expectedHashes.keySet() - depJars.keySet()
-
-        expect:
-        assert (added + removed).isEmpty()
-
+        when:
         def errors = []
         depJars.each { String jarPath, TestFile jar ->
             def expected = expectedHashes[jarPath]
@@ -185,8 +188,32 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
                 errors << "SHA-256 hash does not match for ${jarPath}: expected=${expected}, actual=${actual}"
             }
         }
+        then:
+        errors.empty
 
-        assert errors.empty
+        when:
+        def added = depJars.keySet() - expectedHashes.keySet()
+        def removed = expectedHashes.keySet() - depJars.keySet()
+        then:
+        (added + removed).isEmpty()
+    }
+
+    @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
+    def "validate dependency archives"() {
+        when:
+        def jars = collectJars(unpackDistribution())
+        then:
+        jars != []
+
+        when:
+        def invalidArchives = jars.findAll {
+            new ZipFile(it).withCloseable {
+                def names = it.entries()*.name
+                names.size() != names.toUnique().size()
+            }
+        }
+        then:
+        invalidArchives == []
     }
 
     private static def collectJars(TestFile file, Collection<File> acc = []) {

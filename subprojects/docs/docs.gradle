@@ -280,11 +280,50 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
+def userguideAddSourceLinks = tasks.register("userguideAddSourceLinks", Sync) {
+    def adocDir = file("${buildDir}/adocs")
+
+    into(adocDir)
+    from("src/docs/userguide") {
+        include("**/*.adoc")
+    }
+    doLast {
+        fileTree(adocDir).each {
+            if (it.name != 'userguide_single.adoc') {
+                it.text = ":description: ${it.path - adocDir.path}\n\n${it.text}"
+            }
+        }
+    }
+}
+
+def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
+    dependsOn css, samples, defaultImports, userguideAddSourceLinks
+    finalizedBy("checkDeadInternalLinks")
+
+    duplicatesStrategy = DuplicatesStrategy.FAIL
+    into("${buildDir}/userguide-resources")
+    from("src/docs/css") {
+        into("css")
+    }
+    from("src/samples") {
+        into("samples")
+    }
+    from("src/docs/userguide") {
+        include("img/**")
+    }
+    from(generatedResourcesDir) {
+        into(generatedResourcesDir.name)
+    }
+    from { fileTree(userguideAddSourceLinks.get().destinationDir).files }
+}
+
 def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciidoctorTask) {
-    sourceDir = userguideSrcDir
+    dependsOn(userguideFlattenSources)
+    sourceDir = userguideFlattenSources.get().destinationDir
     sources { include 'userguide_single.adoc' }
     outputDir = userguideSinglePageOutputDir
     backends = ['pdf', 'html5']
+    jvmArgs = ['-Xms3g', '-Xmx3g']
 
     attributes toc          : 'macro',
         toclevels           : 2,
@@ -362,8 +401,6 @@ asciidoctorj {
 }
 
 tasks.withType(CacheableAsciidoctorTask).configureEach {
-    dependsOn css, samples, defaultImports
-
     separateOutputDirs = false
     options doctype: 'book'
 
@@ -377,7 +414,7 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         .withPropertyName("samples")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
-    attributes stylesdir    : '../css/',
+    attributes stylesdir    : 'css/',
         stylesheet          : 'manual.css',
         imagesdir           : 'img',
         nofooter            : true,
@@ -397,12 +434,13 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         docsUrl             : 'https://docs.gradle.org',
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
-        samplesPath         : "../../samples",
+        samplesPath         : "samples",
         'samples-dir'       : 'src/samples'
 }
 
 def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
-    sourceDir = userguideSrcDir
+    dependsOn(userguideFlattenSources)
+    sourceDir = userguideFlattenSources.get().destinationDir
 
     sources {
         include '*.adoc'
@@ -523,4 +561,13 @@ tasks.register("docsZip", Zip) {
     // TODO: Reduce duplication
     from(docsDir)
     dependsOn 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+}
+
+def checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", org.gradle.gradlebuild.docs.FindBrokenInternalLinks) {
+    dependsOn(userguideFlattenSources)
+    inputDirectory.set(userguideFlattenSources.get().destinationDir)
+}
+
+tasks.named("check") {
+    dependsOn(checkDeadInternalLinks)
 }

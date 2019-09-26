@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.FileSystemSubset;
 
 /**
  * A minimal file tree implementation. An implementation can optionally also implement the following interfaces:
@@ -32,8 +31,4 @@ public interface MinimalFileTree extends MinimalFileCollection {
      * Visits the elements of this tree, in depth-first prefix order.
      */
     void visit(FileVisitor visitor);
-
-    void registerWatchPoints(FileSystemSubset.Builder builder);
-
-    void visitTreeOrBackingFile(FileVisitor visitor);
 }

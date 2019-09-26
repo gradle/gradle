@@ -27,8 +27,7 @@ abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractInteg
     abstract String getSampleName()
 
     List<String> getDsls() {
-        // one sample is prepared for its Kotlin version, but doesn't have it yet
-        ['groovy']
+        ['groovy', 'kotlin']
     }
 
     @Rule
@@ -64,6 +63,6 @@ abstract class AbstractWorkerExecutorSampleIntegrationTest extends AbstractInteg
     void assertReversedFileIsPresentAndCorrect(String dsl, String author) {
         def reversedFile = workerExecutorSample(dsl).file("build/reversed/${author}.txt")
         assert reversedFile.exists()
-        assert reversedFile.text == workerExecutorSample(dsl).file("sources/${author}.txt").text.reverse()
+        assert reversedFile.readLines() == workerExecutorSample(dsl).file("sources/${author}.txt").readLines().collect { it.reverse() }
     }
 }

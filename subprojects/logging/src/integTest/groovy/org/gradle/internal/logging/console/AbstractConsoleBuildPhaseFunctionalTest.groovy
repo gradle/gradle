@@ -240,17 +240,22 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
 
         given:
+        def settings = server.expectAndBlock('settings')
         def childBuildScript = server.expectAndBlock('buildsrc-build-script')
         def childTaskGraph = server.expectAndBlock('buildsrc-task-graph')
         def task1 = server.expectAndBlock('buildsrc-task')
         def childBuildFinished = server.expectAndBlock('buildsrc-build-finished')
-        def settings = server.expectAndBlock('settings')
         def rootBuildScript = server.expectAndBlock('root-build-script')
         def task2 = server.expectAndBlock('task2')
         def rootBuildFinished = server.expectAndBlock('root-build-finished')
         gradle = executer.withTasks("hello").start()
 
         expect:
+        settings.waitForAllPendingCalls()
+        assertHasBuildPhase("0% INITIALIZING")
+        settings.releaseAll()
+
+        and:
         childBuildScript.waitForAllPendingCalls()
         assertHasBuildPhase("0% INITIALIZING")
         childBuildScript.releaseAll()
@@ -269,11 +274,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         childBuildFinished.waitForAllPendingCalls()
         assertHasBuildPhase("0% INITIALIZING")
         childBuildFinished.releaseAll()
-
-        and:
-        settings.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
-        settings.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()
@@ -436,6 +436,6 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     String regexFor(String message) {
-        /<.*> $message \[\d+s]/
+        /<.*> $message \[[\dms ]+]/
     }
 }

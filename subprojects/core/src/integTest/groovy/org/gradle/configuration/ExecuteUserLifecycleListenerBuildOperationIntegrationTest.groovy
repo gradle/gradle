@@ -409,6 +409,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         applyScript(subBuildFile, scriptFile)
 
         when:
+        executer.expectDeprecationWarnings(2)
         run()
 
         then:
@@ -558,6 +559,9 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
                 void buildStarted(Gradle gradle) {
                     println 'gradle.addListener(ComboListener) from $source'
                 }
+                void beforeSettings(Settings settings) {
+                    println 'gradle.addListener(ComboListener) from $source'
+                }
                 void settingsEvaluated(Settings settings) {
                     println 'gradle.addListener(ComboListener) from $source'
                 }
@@ -590,6 +594,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         initFile << addGradleListeners('init')
 
         when:
+        executer.expectDeprecationWarning()
         run()
 
         then:

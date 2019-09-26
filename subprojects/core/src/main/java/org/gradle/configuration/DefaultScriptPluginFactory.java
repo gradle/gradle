@@ -30,6 +30,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScript;
+import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.groovy.scripts.BasicScript;
@@ -37,24 +38,25 @@ import org.gradle.groovy.scripts.ScriptCompiler;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
 import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
+import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextFileResourceLoader;
+import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.time.Clock;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
@@ -80,35 +82,40 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final ProviderFactory providerFactory;
-    private final TextResourceLoader textResourceLoader;
+    private final TextFileResourceLoader textFileResourceLoader;
+    private final TextUriResourceLoader.Factory textUriResourceLoaderFactory;
+    private final ApiTextResourceAdapter.Factory textResourceAdapterFactory;
     private final ExecFactory execFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final StreamHasher streamHasher;
     private final FileHasher fileHasher;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private final FileSystem fileSystem;
-    private final Clock clock;
+    private final Deleter deleter;
     private ScriptPluginFactory scriptPluginFactory;
 
-    public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
-                                      Factory<LoggingManagerInternal> loggingManagerFactory,
-                                      Instantiator instantiator,
-                                      ScriptHandlerFactory scriptHandlerFactory,
-                                      PluginRequestApplicator pluginRequestApplicator,
-                                      FileSystem fileSystem,
-                                      FileLookup fileLookup,
-                                      DirectoryFileTreeFactory directoryFileTreeFactory,
-                                      DocumentationRegistry documentationRegistry,
-                                      ModelRuleSourceDetector modelRuleSourceDetector,
-                                      ProviderFactory providerFactory,
-                                      TextResourceLoader textResourceLoader,
-                                      StreamHasher streamHasher,
-                                      FileHasher fileHasher,
-                                      ExecFactory execFactory,
-                                      FileCollectionFactory fileCollectionFactory,
-                                      AutoAppliedPluginHandler autoAppliedPluginHandler,
-                                      Clock clock) {
-
+    public DefaultScriptPluginFactory(
+        ScriptCompilerFactory scriptCompilerFactory,
+        Factory<LoggingManagerInternal> loggingManagerFactory,
+        Instantiator instantiator,
+        ScriptHandlerFactory scriptHandlerFactory,
+        PluginRequestApplicator pluginRequestApplicator,
+        FileSystem fileSystem,
+        FileLookup fileLookup,
+        DirectoryFileTreeFactory directoryFileTreeFactory,
+        DocumentationRegistry documentationRegistry,
+        ModelRuleSourceDetector modelRuleSourceDetector,
+        ProviderFactory providerFactory,
+        TextFileResourceLoader textFileResourceLoader,
+        TextUriResourceLoader.Factory textUriResourceLoaderFactory,
+        ApiTextResourceAdapter.Factory textResourceAdapterFactory,
+        StreamHasher streamHasher,
+        FileHasher fileHasher,
+        ExecFactory execFactory,
+        FileCollectionFactory fileCollectionFactory,
+        AutoAppliedPluginHandler autoAppliedPluginHandler,
+        Deleter deleter
+    ) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -120,13 +127,15 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
         this.providerFactory = providerFactory;
-        this.textResourceLoader = textResourceLoader;
+        this.textFileResourceLoader = textFileResourceLoader;
+        this.textUriResourceLoaderFactory = textUriResourceLoaderFactory;
+        this.textResourceAdapterFactory = textResourceAdapterFactory;
         this.execFactory = execFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.scriptPluginFactory = this;
         this.streamHasher = streamHasher;
         this.fileHasher = fileHasher;
-        this.clock = clock;
+        this.deleter = deleter;
         this.autoAppliedPluginHandler = autoAppliedPluginHandler;
     }
 
@@ -177,12 +186,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(ProviderFactory.class, providerFactory);
-            services.add(TextResourceLoader.class, textResourceLoader);
+            services.add(TextFileResourceLoader.class, textFileResourceLoader);
+            services.add(TextUriResourceLoader.Factory.class, textUriResourceLoaderFactory);
+            services.add(ApiTextResourceAdapter.Factory.class, textResourceAdapterFactory);
             services.add(StreamHasher.class, streamHasher);
             services.add(FileHasher.class, fileHasher);
             services.add(ExecFactory.class, execFactory);
             services.add(FileCollectionFactory.class, fileCollectionFactory);
-            services.add(Clock.class, clock);
+            services.add(Deleter.class, deleter);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 
@@ -196,7 +207,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
             CompileOperation<?> initialOperation = new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
 
-            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope.getExportClassLoader(), Actions.doNothing());
+            ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, Actions.doNothing());
             initialRunner.run(target, services);
 
             PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
@@ -213,7 +224,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             String operationId = scriptTarget.getId();
             CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
 
-            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope.getLocalClassLoader(), ClosureCreationInterceptingVerifier.INSTANCE);
+            final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 scriptTarget.attachScript(runner.getScript());
             }

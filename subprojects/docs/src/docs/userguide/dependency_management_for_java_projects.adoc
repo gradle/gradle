@@ -15,7 +15,8 @@
 [[dependency_management_for_java_projects]]
 = Dependency Management for Java Projects
 
-This chapter explains how to apply basic dependency management concepts to Java-based projects. For a detailed introduction to dependency management, see <<introduction_dependency_management.adoc#introduction_dependency_management,Introduction to Dependency Management>>.
+This chapter explains how to apply basic dependency management concepts to Java-based projects.
+For a detailed introduction to dependency management, see <<core_dependency_management.adoc#,Introduction to Dependency Management>>.
 
 [[sec:setting_up_a_standard_build_script_java_tutorial]]
 == Dissecting a typical build script
@@ -33,7 +34,10 @@ The link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:depe
 [[sec:module_dependencies_java_tutorial]]
 == Declaring module dependencies
 
-There are various <<dependency_types.adoc#dependency_types,types of dependencies>> that you can declare. One such type is a _module dependency_. A <<declaring_dependencies.adoc#sec:declaring_dependency_to_module,module dependency>> represents a dependency on a module with a specific version built outside the current build. Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
+There are various <<declaring_dependencies.adoc#sec:dependency-types,types of dependencies>> that you can declare.
+One such type is a _module dependency_.
+A <<declaring_dependencies.adoc#sub:module_dependencies,module dependency>> represents a dependency on a module with a specific version built outside the current build.
+Modules are usually stored in a repository, such as Maven Central, a corporate Maven or Ivy repository, or a directory in the local file system.
 
 To define an module dependency, you add it to a <<#sec:configurations_java_tutorial,dependency configuration>>:
 
@@ -43,7 +47,7 @@ include::sample[dir="userguide/artifacts/externalDependencies/groovy",files="bui
 include::sample[dir="userguide/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=define-dependency]"]
 ====
 
-To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>.
+To find out more about defining dependencies, have a look at <<declaring_dependencies.adoc#,Declaring Dependencies>>.
 
 [[sec:configurations_java_tutorial]]
 == Using dependency configurations
@@ -66,12 +70,16 @@ The dependencies required to compile the production source of the project which 
 testImplementation::
 The dependencies required to compile and run the test source of the project. For example the project decided to write test code with the test framework JUnit.
 
-Various plugins add further standard configurations. You can also define your own custom configurations in your build via link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[Project.configurations{}]. See <<managing_dependency_configurations.adoc#managing_dependency_configurations,Managing Dependency Configurations>> for the details of defining and customizing dependency configurations.
+Various plugins add further standard configurations.
+You can also define your own custom configurations in your build via link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[Project.configurations{}].
+See <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,What are dependency configurations>> for the details of defining and customizing dependency configurations.
 
 [[sec:repositories_java_tutorial]]
 == Declaring common Java repositories
 
-How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_. A repository is a collection of modules, organized by `group`, `name` and `version`. Gradle understands different <<repository_types.adoc#repository_types,repository types>>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
+How does Gradle know where to find the files for external dependencies? Gradle looks for them in a _repository_.
+A repository is a collection of modules, organized by `group`, `name` and `version`.
+Gradle understands different <<declaring_repositories.adoc#sec:repository-types,repository types>>, such as Maven and Ivy, and supports various ways of accessing the repository via HTTP or other protocols.
 
 By default, Gradle does not define any repositories. You need to define at least one with the help of link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[Project.repositories{}] before you can use module dependencies. One option is use the Maven Central repository:
 
@@ -91,19 +99,9 @@ include::sample[dir="userguide/artifacts/defineRepository/kotlin",files="build.g
 
 A project can have multiple repositories. Gradle will look for a dependency in each repository in the order they are specified, stopping at the first repository that contains the requested module.
 
-To find out more about defining repositories, have a look at <<declaring_repositories.adoc#declaring_repositories,Declaring Repositories>>.
+To find out more about defining repositories, have a look at <<declaring_repositories.adoc#,Declaring Repositories>>.
 
 [[sec:publishing_artifacts_java_tutorial]]
 == Publishing artifacts
 
-Dependency configurations are also used to publish files. Gradle calls these files _publication artifacts_, or usually just _artifacts_. As a user you will need to tell Gradle where to publish the artifacts. You do this by declaring repositories for the `uploadArchives` task. Here's an example of publishing to a Maven repository:
-
-.Publishing to a Maven repository
-====
-include::sample[dir="userguide/artifacts/maven/groovy",files="build.gradle[tags=upload-file]"]
-include::sample[dir="userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=upload-file]"]
-====
-
-Now, when you run `gradle uploadArchives`, Gradle will build the JAR file, generate a `.pom` file and upload the artifacts.
-
-To learn more about publishing artifacts, have a look at <<artifact_management.adoc#artifact_management,Legacy Publishing>>.
+To learn more about publishing artifacts, have a look at <<publishing.adoc#publishing-components,publishing plugins>>.

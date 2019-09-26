@@ -194,14 +194,14 @@ class DefaultManifestTest extends Specification {
             Some-Main-Attribute: someValue
             Name: someSection
             Some-Section-Attribute: some other value
-        '''.stripIndent().trim() + '\n'
+            '''.stripIndent().trim() + '\n'
         blankLinesManifestFile.text = '''
             Manifest-Version: 1.0
             Some-Main-Attribute: someValue
 
             Name: someSection
             Some-Section-Attribute: some other value
-        '''.stripIndent().trim() + '\n'
+            '''.stripIndent().trim() + '\n'
 
         when:
         def noBlankLinesJavaManifest = readJavaManifest(noBlankLinesManifestFile)

@@ -17,7 +17,6 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -33,7 +32,6 @@ import org.gradle.nativeplatform.Linkage;
  *
  * @since 4.2
  */
-@Incubating
 public interface CppLibrary extends ProductionCppComponent {
     /**
      * Defines the public header file directories of this library.

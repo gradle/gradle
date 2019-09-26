@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHa
 import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiationScheme
+import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import spock.lang.Specification
 
@@ -37,10 +38,11 @@ class InspectionSchemeFactoryTest extends Specification {
     def typeAnnotationMetadataStore = new DefaultTypeAnnotationMetadataStore(
         [],
         [(Thing1): TYPE, (Thing2): TYPE],
-        [Object, GroovyObject],
+        ["java", "groovy"],
+        [],
         [Object, GroovyObject],
         [ConfigurableFileCollection, Property],
-        IgnoredThing,
+        [IgnoredThing],
         { false },
         cacheFactory
     )
@@ -51,14 +53,23 @@ class InspectionSchemeFactoryTest extends Specification {
         instantiationScheme.injectionAnnotations >> [Inject]
         def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
 
-        expect:
+        when:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
-        def problems = []
-        metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
-        problems.empty
+
+        then:
         metadata.propertiesMetadata.size() == 2
 
+        when:
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        metadata.visitValidationFailures(null, validationContext)
+
+        then:
+        validationContext.problems.isEmpty()
+
+        when:
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
+
+        then:
         metadata.getAnnotationHandlerFor(properties.prop1) == handler1
         metadata.getAnnotationHandlerFor(properties.prop2) == handler2
     }
@@ -68,14 +79,23 @@ class InspectionSchemeFactoryTest extends Specification {
         instantiationScheme.injectionAnnotations >> [Thing2, Inject]
         def scheme = factory.inspectionScheme([Thing1, Thing2], [], instantiationScheme)
 
-        expect:
+        when:
         def metadata = scheme.metadataStore.getTypeMetadata(AnnotatedBean)
-        def problems = []
-        metadata.collectValidationFailures(null, new DefaultParameterValidationContext(problems))
-        problems.empty
+
+        then:
         metadata.propertiesMetadata.size() == 2
 
+        when:
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        metadata.visitValidationFailures(null, validationContext)
+
+        then:
+        validationContext.problems.isEmpty()
+
+        when:
         def properties = metadata.propertiesMetadata.groupBy { it.propertyName }
+
+        then:
         metadata.getAnnotationHandlerFor(properties.prop1) == handler1
         metadata.getAnnotationHandlerFor(properties.prop2) == handler2
     }

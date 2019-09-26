@@ -101,10 +101,11 @@ fun Project.insertBuildTypeTasksInto(
         findProject(subproject) != null ->
             forEachBuildTypeTask {
                 val taskPath = "$subproject:$it"
-                if (tasks.findByPath(taskPath) != null) {
-                    insert(taskPath)
-                } else {
-                    println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
+                val testSplit = stringPropertyOrEmpty("testSplit")
+                when {
+                    isUnitTestWithNonFirstSplit(it, testSplit) -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it is a unit test and we're on $testSplit.")
+                    tasks.findByPath(taskPath) == null -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
+                    else -> insert(taskPath)
                 }
             }
         else -> {
@@ -115,6 +116,12 @@ fun Project.insertBuildTypeTasksInto(
     if (taskList.isEmpty()) {
         taskList.add("help") // do not trigger the default tasks
     }
+}
+
+
+fun isUnitTestWithNonFirstSplit(task: String, testSplit: String): Boolean = when {
+    task != "test" || testSplit.isBlank() -> false
+    else -> testSplit.split("/")[0].toInt() != 1
 }
 
 

@@ -247,7 +247,6 @@ class ModuleResolveState implements CandidateModule {
                 dependency.restart();
             }
         }
-        unattachedDependencies.clear();
     }
 
     public void addUnattachedDependency(EdgeState edge) {

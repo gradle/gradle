@@ -16,15 +16,13 @@
 
 package org.gradle.internal.serialize;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 
 public abstract class Message {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(Message.class);
-
     /**
      * Serialize the <code>message</code> onto the provided <code>outputStream</code>, replacing all {@link Throwable}s in the object graph with a placeholder object that can be read back by {@link
      * #receive(java.io.InputStream, ClassLoader)}.

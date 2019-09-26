@@ -23,4 +23,6 @@ public interface ScriptHandlerInternal extends ScriptHandler {
     void addScriptClassPathDependency(Object notation);
 
     ClassPath getScriptClassPath();
+
+
 }

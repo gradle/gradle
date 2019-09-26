@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 import spock.lang.Unroll
 
@@ -132,7 +131,7 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
         then:
         file('generated-ivy.xml').assertIsFile()
         IvyDescriptor ivy = new IvyDescriptor(file('generated-ivy.xml'))
-        ivy.expectArtifact(moduleName).hasAttributes("jar", "jar", ["compile"])
+        ivy.expectArtifact(moduleName).hasAttributes("jar", "jar", ["compile", "runtime"])
         module.ivyFile.assertDoesNotExist()
     }
 
@@ -239,7 +238,6 @@ class IvyPublishDescriptorCustomizationIntegTest extends AbstractIvyPublishInteg
     }
 
     def "withXml should not loose Gradle metadata marker"() {
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
         buildFile << """
             publishing {
                 repositories {

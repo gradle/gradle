@@ -16,6 +16,7 @@
 
 package org.gradle.cache.internal
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.GradleUserHomeDirProvider
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.TestFile
@@ -43,7 +44,13 @@ class GradleUserHomeCleanupServiceTest extends Specification implements GradleUs
     }
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
 
-    @Subject def cleanupService = new GradleUserHomeCleanupService(userHomeDirProvider, cacheScopeMapping, usedGradleVersions, progressLoggerFactory)
+    @Subject def cleanupService = new GradleUserHomeCleanupService(
+        TestFiles.deleter(),
+        userHomeDirProvider,
+        cacheScopeMapping,
+        usedGradleVersions,
+        progressLoggerFactory
+    )
 
     def "cleans up unused version-specific cache directories and deletes distributions for unused versions"() {
         given:

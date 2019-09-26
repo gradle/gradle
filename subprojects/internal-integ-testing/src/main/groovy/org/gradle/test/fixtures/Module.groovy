@@ -35,7 +35,9 @@ interface Module {
     ModuleArtifact getModuleMetadata()
     GradleModuleMetadata getParsedModuleMetadata()
 
-    void withVariant(String name, @DelegatesTo(value=VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) groovy.lang.Closure<?> action)
+    Module withVariant(String name, @DelegatesTo(value=VariantMetadataSpec.class, strategy = Closure.DELEGATE_FIRST) groovy.lang.Closure<?> action)
 
     Map<String, String> getAttributes()
+
+    Module withoutDefaultVariants()
 }

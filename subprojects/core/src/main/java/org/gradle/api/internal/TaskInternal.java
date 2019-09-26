@@ -31,6 +31,7 @@ import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
@@ -96,4 +97,10 @@ public interface TaskInternal extends Task, Configurable<Task> {
      */
     @Deprecated
     void replaceLogger(Logger logger);
+
+    /**
+     * <p>Gets the shared resources required by this task.</p>
+     */
+    @Internal
+    Map<String, Integer> getSharedResources();
 }

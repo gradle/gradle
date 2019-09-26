@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Nested;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.tasks.Nested;
  *
  * @since 5.1
  */
-@Incubating
 public interface TargetMachine {
     /**
      * Returns the target operating system

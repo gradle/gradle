@@ -45,8 +45,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             }
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) { 
-                it.mapToMavenScope('compile')
-                it.mapToOptional()
+                mapToMavenScope('compile')
+                mapToOptional()
             }
         """
 
@@ -128,12 +128,12 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             }
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeature1RuntimeElements) {
-                it.mapToMavenScope('compile')
-                it.mapToOptional()
+                mapToMavenScope('compile')
+                mapToOptional()
             }
             components.java.addVariantsFromConfiguration(configurations.optionalFeature2RuntimeElements) {
-                it.mapToMavenScope('compile')
-                it.mapToOptional()
+                mapToMavenScope('compile')
+                mapToOptional()
             }
         """
 
@@ -195,8 +195,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             }
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                it.mapToMavenScope('compile')
-                it.mapToOptional()
+                mapToMavenScope('compile')
+                mapToOptional()
             }
             
             artifacts {     
@@ -298,8 +298,8 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             }
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
-                it.mapToMavenScope('compile')
-                it.mapToOptional()
+                mapToMavenScope('compile')
+                mapToOptional()
             }
             
             def alt = configurations.optionalFeatureRuntimeElements.outgoing.variants.create("alternate")
@@ -379,10 +379,10 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
             
             components.java.addVariantsFromConfiguration(configurations.optionalFeatureRuntimeElements) {
                 if (it.configurationVariant.name != 'alternate') {
-                    it.skip()
+                    skip()
                 } else {
-                    it.mapToMavenScope('compile')
-                    it.mapToOptional()
+                    mapToMavenScope('compile')
+                    mapToOptional()
                 } 
             }
             

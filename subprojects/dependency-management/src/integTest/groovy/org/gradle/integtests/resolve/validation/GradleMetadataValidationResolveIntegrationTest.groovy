@@ -21,20 +21,16 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
+import spock.lang.Issue
 
+@RequiredFeatures([
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+])
 class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    ])
     def "can resolve if component gav information is missing"() {
         GradleFileModuleAdapter.printComponentGAV = false
         buildFile << """
-            repositories.all {
-                metadataSources {
-                    gradleMetadata()
-                }
-            }
             dependencies {
                 conf 'org.test:projectA:1.1'
             }
@@ -62,16 +58,8 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
         GradleFileModuleAdapter.printComponentGAV = true
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    ])
     def "fails with proper error if a mandatory attribute is not defined"() {
         buildFile << """
-            repositories.all {
-                metadataSources {
-                    gradleMetadata()
-                }
-            }
             dependencies {
                 conf 'org.test:projectA:1.1'
             }
@@ -94,5 +82,32 @@ class GradleMetadataValidationResolveIntegrationTest extends AbstractModuleDepen
         then:
         fails ":checkDeps"
         failure.assertHasCause("missing 'url' at /variants[0]/files[0]")
+    }
+
+    @Issue("gradle/gradle#7888")
+    def "fails with reasonable error message if Gradle Module Metadata doesn't declare any variant"() {
+        buildFile << """
+            dependencies {
+                conf 'org.test:projectA:1.1'
+            }
+        """
+
+        when:
+        repository {
+            'org.test:projectA:1.1' {
+                withModule {
+                    withoutDefaultVariants()
+                }
+            }
+        }
+        repositoryInteractions {
+            'org.test:projectA:1.1' {
+                expectGetMetadata()
+            }
+        }
+
+        then:
+        fails ":checkDeps"
+        failure.assertHasCause("Gradle Module Metadata for module org.test:projectA:1.1 is invalid because it doesn't declare any variant")
     }
 }

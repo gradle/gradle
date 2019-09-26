@@ -20,19 +20,22 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.resources.TextResource;
 import org.gradle.api.resources.TextResourceFactory;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.verifier.HttpRedirectVerifier;
+import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
+import org.gradle.util.DeprecationLogger;
 
+import java.net.URI;
 import java.nio.charset.Charset;
 
 public class DefaultTextResourceFactory implements TextResourceFactory {
     private final FileOperations fileOperations;
     private final TemporaryFileProvider tempFileProvider;
-    private final TextResourceLoader textResourceLoader;
+    private ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory;
 
-    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, TextResourceLoader textResourceLoader) {
+    public DefaultTextResourceFactory(FileOperations fileOperations, TemporaryFileProvider tempFileProvider, ApiTextResourceAdapter.Factory apiTextResourcesAdapterFactory) {
         this.fileOperations = fileOperations;
         this.tempFileProvider = tempFileProvider;
-        this.textResourceLoader = textResourceLoader;
+        this.apiTextResourcesAdapterFactory = apiTextResourcesAdapterFactory;
     }
 
     @Override
@@ -62,6 +65,37 @@ public class DefaultTextResourceFactory implements TextResourceFactory {
 
     @Override
     public TextResource fromUri(Object uri) {
-        return new ApiTextResourceAdapter(textResourceLoader, tempFileProvider, fileOperations.uri(uri));
+        return fromUri(uri, false);
+    }
+
+    @Override
+    public TextResource fromInsecureUri(Object uri) {
+        return fromUri(uri, true);
+    }
+
+    private TextResource fromUri(Object uri, boolean allowInsecureProtocol) {
+        URI rootUri = fileOperations.uri(uri);
+
+        HttpRedirectVerifier redirectVerifier =
+            HttpRedirectVerifierFactory.create(
+                rootUri,
+                allowInsecureProtocol,
+                () -> DeprecationLogger
+                    .nagUserOfDeprecated(
+                        "Loading a TextResource from an insecure URI",
+                        "Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning."
+                    ),
+                redirect -> DeprecationLogger
+                    .nagUserOfDeprecated(
+                        "Loading a TextResource from an insecure redirect",
+                        "Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.",
+                        String.format(
+                            "'%s' redirects to '%s'.",
+                            uri,
+                            redirect
+                        )
+                    )
+            );
+        return apiTextResourcesAdapterFactory.create(rootUri, redirectVerifier);
     }
 }

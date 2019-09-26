@@ -19,8 +19,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
-import org.gradle.api.plugins.quality.FindBugs
-import org.gradle.api.plugins.quality.JDepend
 import org.gradle.api.plugins.quality.Pmd
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceTask
@@ -70,9 +68,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             CodeNarc,
             Checkstyle,
             Ear,
-            FindBugs,
             Pmd,
-            JDepend,
             Sign,
             org.gradle.api.tasks.application.CreateStartScripts,
             GenerateEclipseJdt,
@@ -179,7 +175,9 @@ apply plugin: SomePlugin
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.file("someFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.files("anotherFile", "yetAnotherFile");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.dir("someDir");
-                    ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.property("input", "value");
+                    ${previous.version >= GradleVersion.version("4.3")
+                        ? 'getInputs().property("input", "value");'
+                        : ""}
                     Map<String, Object> mapValues = new HashMap<String, Object>();
                     mapValues.put("mapInput", "mapValue");
                     ${previousVersionLeaksInternal ? "((TaskInputs)getInputs())" : "getInputs()"}.properties(mapValues);

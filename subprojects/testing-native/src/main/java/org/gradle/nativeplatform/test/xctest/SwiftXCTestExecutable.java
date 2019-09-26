@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest;
 
-import org.gradle.api.Incubating;
 import org.gradle.language.nativeplatform.ComponentWithExecutable;
 import org.gradle.language.nativeplatform.ComponentWithInstallation;
 
@@ -25,6 +24,5 @@ import org.gradle.language.nativeplatform.ComponentWithInstallation;
  *
  * @since 4.5
  */
-@Incubating
 public interface SwiftXCTestExecutable extends SwiftXCTestBinary, ComponentWithExecutable, ComponentWithInstallation {
 }

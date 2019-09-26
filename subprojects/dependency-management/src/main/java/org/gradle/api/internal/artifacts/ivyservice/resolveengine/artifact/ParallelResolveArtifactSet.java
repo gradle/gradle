@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationQueue;
 import org.gradle.internal.operations.RunnableBuildOperation;
-
-import java.io.File;
 
 /**
  * A wrapper that prepares artifacts in parallel when visiting the delegate.
@@ -78,18 +78,13 @@ public abstract class ParallelResolveArtifactSet {
             }
 
             @Override
+            public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+                return visitor.prepareForVisit(source);
+            }
+
+            @Override
             public boolean requireArtifactFiles() {
                 return visitor.requireArtifactFiles();
-            }
-
-            @Override
-            public boolean includeFileDependencies() {
-                return visitor.includeFiles();
-            }
-
-            @Override
-            public void fileAvailable(File file) {
-                // Don't care, collect the files later (in the correct order)
             }
         }
 

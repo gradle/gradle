@@ -24,6 +24,8 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import java.io.File;
 import java.util.Map;
 
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR;
+
 public enum ValidationActions implements ValidationAction {
     NO_OP("file collection") {
         @Override
@@ -35,9 +37,9 @@ public enum ValidationActions implements ValidationAction {
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File file = toFile(context, value);
             if (!file.exists()) {
-                context.visitError(String.format("File '%s' specified for property '%s' does not exist.", file, propertyName));
+                context.visitPropertyProblem(ERROR, String.format("File '%s' specified for property '%s' does not exist", file, propertyName));
             } else if (!file.isFile()) {
-                context.visitError(String.format("File '%s' specified for property '%s' is not a file.", file, propertyName));
+                context.visitPropertyProblem(ERROR, String.format("File '%s' specified for property '%s' is not a file", file, propertyName));
             }
         }
     },
@@ -46,9 +48,9 @@ public enum ValidationActions implements ValidationAction {
         public void doValidate(String propertyName, Object value, TaskValidationContext context) {
             File directory = toDirectory(context, value);
             if (!directory.exists()) {
-                context.visitError(String.format("Directory '%s' specified for property '%s' does not exist.", directory, propertyName));
+                context.visitPropertyProblem(ERROR, String.format("Directory '%s' specified for property '%s' does not exist", directory, propertyName));
             } else if (!directory.isDirectory()) {
-                context.visitError(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+                context.visitPropertyProblem(ERROR, String.format("Directory '%s' specified for property '%s' is not a directory", directory, propertyName));
             }
         }
     },
@@ -59,12 +61,12 @@ public enum ValidationActions implements ValidationAction {
             validateNotInReservedFileSystemLocation(context, directory);
             if (directory.exists()) {
                 if (!directory.isDirectory()) {
-                    context.visitError(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+                    context.visitPropertyProblem(ERROR, String.format("Directory '%s' specified for property '%s' is not a directory", directory, propertyName));
                 }
             } else {
                 for (File candidate = directory.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
                     if (candidate.exists() && !candidate.isDirectory()) {
-                        context.visitError(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", directory, propertyName, candidate));
+                        context.visitPropertyProblem(ERROR, String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory", directory, propertyName, candidate));
                         return;
                     }
                 }
@@ -86,13 +88,13 @@ public enum ValidationActions implements ValidationAction {
             validateNotInReservedFileSystemLocation(context, file);
             if (file.exists()) {
                 if (file.isDirectory()) {
-                    context.visitError(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
+                    context.visitPropertyProblem(ERROR, String.format("Cannot write to file '%s' specified for property '%s' as it is a directory", file, propertyName));
                 }
                 // else, assume we can write to anything that exists and is not a directory
             } else {
                 for (File candidate = file.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
                     if (candidate.exists() && !candidate.isDirectory()) {
-                        context.visitError(String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
+                        context.visitPropertyProblem(ERROR, String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory", file, propertyName, candidate));
                         break;
                     }
                 }
@@ -110,7 +112,7 @@ public enum ValidationActions implements ValidationAction {
 
     private static void validateNotInReservedFileSystemLocation(TaskValidationContext context, File location) {
         if (context.isInReservedFileSystemLocation(location)) {
-            context.visitError(String.format("The output %s must not be in a reserved location.", location));
+            context.visitPropertyProblem(ERROR, String.format("The output %s must not be in a reserved location", location));
         }
     }
 
@@ -127,7 +129,7 @@ public enum ValidationActions implements ValidationAction {
         try {
             doValidate(propertyName, value, context);
         } catch (UnsupportedNotationException ignored) {
-            context.visitError(String.format("Value '%s' specified for property '%s' cannot be converted to a %s.", value, propertyName, targetType));
+            context.visitPropertyProblem(ERROR, String.format("Value '%s' specified for property '%s' cannot be converted to a %s", value, propertyName, targetType));
         }
     }
 
@@ -139,7 +141,7 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static File toFile(TaskValidationContext context, Object value) {
-        return context.getResolver().resolve(value);
+        return context.getFileOperations().file(value);
     }
 
     private static Iterable<? extends File> toFiles(TaskValidationContext context, Object value) {
@@ -148,7 +150,7 @@ public enum ValidationActions implements ValidationAction {
         } else if (value instanceof FileCollection) {
             return (FileCollection) value;
         } else {
-            return context.getResolver().resolveFiles(value);
+            return context.getFileOperations().immutableFiles(value);
         }
     }
 }

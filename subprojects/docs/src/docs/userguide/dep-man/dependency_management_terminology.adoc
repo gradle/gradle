@@ -1,0 +1,120 @@
+// Copyright 2018 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[dependency_management_terminology]]
+= Dependency Management Terminology
+
+Dependency management comes with a wealth of terminology. Here you can find the most commonly-used terms including references to the user guide to learn about their practical application.
+
+[[sub:terminology_artifact]]
+== Artifact
+
+A file or directory produced by a build, such as a JAR, a ZIP distribution, or a native executable.
+
+Artifacts are typically designed to be used or consumed by users or other projects, or deployed to hosting systems. In such cases, the artifact is a single file. Directories are common in the case of inter-project dependencies to avoid the cost of producing the publishable artifact.
+
+[[sub:terminology_component]]
+== Component
+
+Any single version of a <<dependency_management_terminology.adoc#sub:terminology_module,module>>.
+
+Components are defined by plugins and provide a simple way to define a publication for publishing.
+They comprise one or more <<#sub:terminology_artifact,artifacts>> as well as the appropriate metadata.
+For example, the `java` component consists of the production JAR — produced by the `jar` task — and its dependency information.
+
+[[sub:terminology_configuration]]
+== Configuration
+
+A configuration is a named set of <<#sub:terminology_dependency,dependencies>> grouped together for a specific goal: For example the `implementation` configuration represents the set of dependencies required to compile a project.
+Configurations provide access to the underlying, resolved <<#sub:terminology_module,modules>> and their artifacts.
+For more information, see <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,What are dependency configurations>>.
+
+[NOTE]
+====
+The word "configuration" is an overloaded term and has a different meaning outside of the context of dependency management.
+====
+
+[[sub:terminology_dependency]]
+== Dependency
+
+A dependency is a pointer to another piece of software required to build, test or run a <<#sub:terminology_module,module>>.
+For more information, see <<declaring_dependencies.adoc#,Declaring Dependencies>>.
+
+[[sub:terminology_dependency_constraint]]
+== Dependency constraint
+
+A dependency constraint defines requirements that need to be met by a module to make it a valid resolution result for the dependency.
+For example, a dependency constraint can narrow down the set of supported module versions.
+Dependency constraints can be used to express such requirements for transitive dependencies.
+For more information, see <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,Adding constraints on transitive dependencies>>.
+
+[[sub:terminology_module]]
+== Module
+
+A piece of software that evolves over time e.g. link:https://github.com/google/guava[Google Guava]. Every module has a name. Each release of a module is optimally represented by a <<#sub:terminology_module_version,module version>>. For convenient consumption, modules can be hosted in a <<#sub:terminology_repository,repository>>.
+
+[[sub:terminology_module_metadata]]
+== Module metadata
+
+Releases of a <<#sub:terminology_module,module>> can provide metadata. Metadata is the data that describes the module in more detail e.g. the coordinates for locating it in a repository, information about the project or required <<#sub:terminology_transitive_dependency,transitive dependencies>>. In Maven the metadata file is called `.pom`, in Ivy it is called `ivy.xml`.
+
+[[sub:terminology_module_version]]
+== Module version
+
+A module version represents a distinct set of changes of a released <<#sub:terminology_module,module>>. For example `18.0` represents the version of the module with the coordinates `com.google:guava:18.0`. In practice there's no limitation to the scheme of the module version. Timestamps, numbers, special suffixes like `-GA` are all allowed identifiers. The most widely-used versioning strategy is link:https://semver.org/[semantic versioning].
+
+[[sub::terminology_platform]]
+== Platform
+
+A platform is a set of modules aimed to be used together. There are different categories of platforms, corresponding to different use cases:
+
+- module set: often a set of modules published together as a whole. Using one module of the set often means we want to use the same version for all modules of the set. For example, if using `groovy` 1.2, also use `groovy-json` 1.2.
+- runtime environment: a set of libraries known to work well together. e.g., the Spring Platform, recommending versions for both Spring and components that work well with Spring.
+- deployment environment: Java runtime, application server, ...
+
+In addition Gradle defines <<controlling_transitive_dependencies#sec:virtual_platform,virtual platforms>>.
+
+[NOTE]
+====
+Maven's BOM (bill-of-material) is a popular kind of platform that <<controlling_transitive_dependencies.adoc#sub:bom_import, Gradle supports>>.
+====
+
+[[sub:terminology_publication]]
+== Publication
+
+A description of the files and metadata that should be published to a repository as a single entity for use by consumers.
+
+A publication has a name and consists of one or more artifacts plus information about those artifacts. The nature of that information depends on what type of repository you publish the publication to. In the case of Maven, the information takes the form of a POM.
+
+One thing to bear in mind is that Maven repositories only allow a single _primary_ artifact, i.e. one with metadata, but they do allow _secondary_ artifacts such as packages of the associated source files and documentation ("-sources" and "-javadoc" JARs in the Java world).
+
+[[sub:terminology_repository]]
+== Repository
+
+A repository hosts a set of <<#sub:terminology_module,modules>>, each of which may provide one or many releases indicated by a <<#sub:terminology_module_version,module version>>.
+The repository can be based on a binary repository product (e.g. Artifactory or Nexus) or a directory structure in the filesystem.
+For more information, see <<declaring_repositories.adoc#,Declaring Repositories>>.
+
+[[sub:resolution_rule]]
+== Resolution rule
+
+A resolution rule influences the behavior of how a <<#sub:terminology_dependency,dependency>> is resolved. Resolution rules are defined as part of the build logic. For more information, see <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>>.
+
+[[sub:terminology_transitive_dependency]]
+== Transitive dependency
+
+A <<#sub:terminology_module,module>> can have dependencies on other modules to work properly, so-called transitive dependencies.
+Releases of a module hosted on a <<#sub:terminology_repository,repository>> can provide <<#sub:terminology_module_metadata,metadata>> to declare those transitive dependencies.
+By default, Gradle resolves transitive dependencies automatically. However, the behavior is highly customizable.
+For more information, see <<controlling_transitive_dependencies.adoc#,Controlling transitive dependencies>>.

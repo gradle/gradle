@@ -252,7 +252,7 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 
 link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
+link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradle.language.swift.tasks.SwiftCompile:toolChain[toolChain]:: <<building_swift_projects.adoc#sec:swift_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:swift_library_link_task]]
 === `link__Variant__` Task
@@ -274,7 +274,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.gradle.nativeplatform.tasks.LinkSharedLibrary:toolChain[toolChain]:: <<building_swift_projects.adoc#sec:swift_supported_tool_chain,automatically selected based on target machine>>
 
 [[sec:swift_library_create_task]]
 === `create__Variant__` Task
@@ -292,4 +292,4 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#or
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:targetPlatform[targetPlatform]:: derived from the `TargetMachine` of the binary
 
-link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:toolChain[toolChain]:: <<building_swift_projects.adoc#swift_supported_tool_chain,automatically selected based on target machine>>
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:toolChain[toolChain]:: <<building_swift_projects.adoc#sec:swift_supported_tool_chain,automatically selected based on target machine>>

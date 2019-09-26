@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
@@ -35,6 +34,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.BuildRequestMetaData;
@@ -51,6 +51,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -93,7 +94,11 @@ public class ProjectBuilderImpl {
         parentProject.getProjectRegistry().addProject(project);
 
         BuildState build = project.getServices().get(BuildStateRegistry.class).getBuild(DefaultBuildIdentifier.ROOT);
-        project.getServices().get(ProjectStateRegistry.class).register(build, project);
+        ProjectState projectState = project.getServices().get(ProjectStateRegistry.class).register(build, project);
+
+        // Lock the project, these won't ever be released as ProjectBuilder has no lifecycle
+        ResourceLockCoordinationService coordinationService = project.getServices().get(ResourceLockCoordinationService.class);
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(projectState.getAccessLock()));
 
         return project;
     }
@@ -125,18 +130,18 @@ public class ProjectBuilderImpl {
             buildServices.get(FileResolver.class));
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project");
-        ProjectInternal project = buildServices.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle, rootProjectScope, baseScope);
+        ProjectInternal project = buildServices.get(IProjectFactory.class).createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope);
 
         project.getServices().get(BuildStateRegistry.class).attachRootBuild(build);
-        project.getServices().get(ProjectStateRegistry.class).register(build, project);
+        ProjectState projectState = project.getServices().get(ProjectStateRegistry.class).register(build, project);
 
         gradle.setRootProject(project);
         gradle.setDefaultProject(project);
 
-        // Take a root worker lease, it won't ever be released as ProjectBuilder has no lifecycle
+        // Take a root worker lease and lock the project, these won't ever be released as ProjectBuilder has no lifecycle
         ResourceLockCoordinationService coordinationService = buildServices.get(ResourceLockCoordinationService.class);
         WorkerLeaseService workerLeaseService = buildServices.get(WorkerLeaseService.class);
-        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLeaseService.getWorkerLease()));
+        coordinationService.withStateLock(DefaultResourceLockCoordinationService.lock(workerLeaseService.getWorkerLease(), projectState.getAccessLock()));
 
         return project;
     }

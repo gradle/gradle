@@ -128,6 +128,7 @@ class DefaultVersionComparatorTest extends Specification {
 
         where:
         smaller        | larger
+        "1.1.a"        | "1.1"
         "1.0-dev"      | "1.0-a"
         "1.0-a"        | "1.0-rc"
         "1.0-a"        | "1.0-release"
@@ -176,11 +177,11 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller        | larger
-        "1.01"         | "1.2"
-        "1.1"          | "1.02"
-        "01.0"         | "2.0"
-        "1.0"          | "02.0"
+        smaller | larger
+        "1.01"  | "1.2"
+        "1.1"   | "1.02"
+        "01.0"  | "2.0"
+        "1.0"   | "02.0"
     }
 
     def "compares versions where earlier version parts differ only in leading zeros"() {
@@ -191,11 +192,11 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller        | larger
-        "01.1"         | "1.2"
-        "1.1"          | "01.2"
-        "1.01.1"       | "1.1.2"
-        "1.1.1"        | "1.01.2"
+        smaller  | larger
+        "01.1"   | "1.2"
+        "1.1"    | "01.2"
+        "1.01.1" | "1.1.2"
+        "1.1.1"  | "1.01.2"
     }
 
     def "compares unrelated versions unequal"() {

@@ -17,6 +17,7 @@
 package org.gradle.caching.http;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.caching.configuration.AbstractBuildCache;
 
 import javax.annotation.Nullable;
@@ -40,6 +41,7 @@ public class HttpBuildCache extends AbstractBuildCache {
     private final HttpBuildCacheCredentials credentials;
     private URI url;
     private boolean allowUntrustedServer;
+    private boolean allowInsecureProtocol;
 
     public HttpBuildCache() {
         this.credentials = new HttpBuildCacheCredentials();
@@ -124,5 +126,38 @@ public class HttpBuildCache extends AbstractBuildCache {
      */
     public void setAllowUntrustedServer(boolean allowUntrustedServer) {
         this.allowUntrustedServer = allowUntrustedServer;
+    }
+
+    /**
+     * Specifies whether it is acceptable to communicate with a build cache over an insecure HTTP connection.
+     * <p>
+     * For security purposes this intentionally requires a user to opt-in to using insecure protocols on case by case basis.
+     * <p>
+     * Gradle intentionally does not offer a global system/gradle property that allows a universal disable of this check.
+     * <p>
+     * <b>Allowing communication over insecure protocols allows for a man-in-the-middle to impersonate the intended server,
+     * and gives an attacker the ability to
+     * <a href="https://max.computer/blog/how-to-take-over-the-computer-of-any-java-or-clojure-or-scala-developer/">serve malicious executable code onto the system.</a>
+     * </b>
+     * <p>
+     * See also:
+     * <a href="https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb">Want to take over the Java ecosystem? All you need is a MITM!</a>
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public boolean isAllowInsecureProtocol() {
+        return allowInsecureProtocol;
+    }
+
+    /**
+     * Specifies whether it is acceptable to communicate with a build cache over an insecure HTTP connection.
+     *
+     * @see #isAllowInsecureProtocol()
+     * @since 6.0
+     */
+    @Incubating
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
+        this.allowInsecureProtocol = allowInsecureProtocol;
     }
 }

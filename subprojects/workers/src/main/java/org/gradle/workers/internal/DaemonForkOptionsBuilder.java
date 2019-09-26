@@ -28,7 +28,7 @@ public class DaemonForkOptionsBuilder {
 
     public DaemonForkOptionsBuilder(JavaForkOptionsFactory forkOptionsFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
-        javaForkOptions = forkOptionsFactory.newJavaForkOptions();
+        this.javaForkOptions = forkOptionsFactory.newJavaForkOptions();
     }
 
     public DaemonForkOptionsBuilder keepAliveMode(KeepAliveMode keepAliveMode) {

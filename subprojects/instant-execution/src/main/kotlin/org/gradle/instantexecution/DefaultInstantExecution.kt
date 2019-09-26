@@ -16,31 +16,20 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.Task
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCacheInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
+import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
-import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
-import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.PropertyTrace
-import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
+import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.BuildOperationListenersCodec
 import org.gradle.instantexecution.serialization.codecs.Codecs
-import org.gradle.instantexecution.serialization.codecs.TaskGraphCodec
-import org.gradle.instantexecution.serialization.readClassPath
+import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.withIsolate
-import org.gradle.instantexecution.serialization.withPropertyTrace
-import org.gradle.instantexecution.serialization.writeClassPath
 import org.gradle.instantexecution.serialization.writeCollection
-import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -50,21 +39,21 @@ import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
-
 import java.io.File
 import java.io.FileOutputStream
 import java.nio.file.Files
-
 import java.util.ArrayList
 import java.util.SortedSet
-
+import java.util.TreeSet
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.startCoroutine
 
 
-class DefaultInstantExecution(
-    private val host: Host
+class DefaultInstantExecution internal constructor(
+    private val host: Host,
+    private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
+    private val beanConstructors: BeanConstructors
 ) : InstantExecution {
 
     interface Host {
@@ -82,8 +71,6 @@ class DefaultInstantExecution(
         val rootDir: File
 
         val requestedTaskNames: List<String>
-
-        fun classLoaderFor(classPath: ClassPath): ClassLoader
     }
 
     override fun canExecuteInstantaneously(): Boolean = when {
@@ -104,9 +91,12 @@ class DefaultInstantExecution(
         }
     }
 
-    override fun saveTaskGraph() {
+    override fun saveScheduledWork() {
 
         if (!isInstantExecutionEnabled) {
+            // No need to hold onto the `ClassLoaderScope` tree
+            // if we are not writing it.
+            scopeRegistryListener.dispose()
             return
         }
 
@@ -117,7 +107,7 @@ class DefaultInstantExecution(
                 KryoBackedEncoder(stateFileOutputStream()).use { encoder ->
                     writeContextFor(encoder, report).run {
                         runToCompletion {
-                            encodeTaskGraph()
+                            encodeScheduledWork()
                         }
                     }
                 }
@@ -131,15 +121,19 @@ class DefaultInstantExecution(
         }
     }
 
-    override fun loadTaskGraph() {
+    override fun loadScheduledWork() {
 
         require(isInstantExecutionEnabled)
+
+        // No need to record the `ClassLoaderScope` tree
+        // when loading the task graph.
+        scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
                 readContextFor(decoder).run {
                     runToCompletion {
-                        decodeTaskGraph()
+                        decodeScheduledWork()
                     }
                 }
             }
@@ -147,30 +141,26 @@ class DefaultInstantExecution(
     }
 
     private
-    suspend fun DefaultWriteContext.encodeTaskGraph() {
+    suspend fun DefaultWriteContext.encodeScheduledWork() {
         val build = host.currentBuild
         writeString(build.rootProject.name)
 
-        writeClassPath(collectClassPath())
+        writeGradleState(build.gradle)
 
-        writeGradleState(build.rootProject.gradle)
+        val scheduledNodes = build.scheduledWork
+        writeRelevantProjectsFor(scheduledNodes)
 
-        val scheduledTasks = build.scheduledTasks
-        writeRelevantProjectsFor(scheduledTasks)
-
-        TaskGraphCodec(service()).run {
-            writeTaskGraphOf(build, scheduledTasks)
+        WorkNodeCodec(build.gradle, codecs.internalTypesCodec).run {
+            writeWork(scheduledNodes)
         }
     }
 
     private
-    suspend fun DefaultReadContext.decodeTaskGraph() {
+    suspend fun DefaultReadContext.decodeScheduledWork() {
         val rootProjectName = readString()
         val build = host.createBuild(rootProjectName)
 
-        val classPath = readClassPath()
-        val classLoader = classLoaderFor(classPath)
-        initClassLoader(classLoader)
+        this.classLoader = javaClass.classLoader
 
         readGradleState(build.gradle)
 
@@ -181,10 +171,10 @@ class DefaultInstantExecution(
 
         initProjectProvider(build::getProject)
 
-        val scheduledTasks = TaskGraphCodec(service()).run {
-            readTaskGraph()
+        val scheduledNodes = WorkNodeCodec(build.gradle, codecs.internalTypesCodec).run {
+            readWork()
         }
-        build.scheduleTasks(scheduledTasks)
+        build.scheduleNodes(scheduledNodes)
     }
 
     private
@@ -201,35 +191,54 @@ class DefaultInstantExecution(
 
     private
     fun writeContextFor(
-        encoder: KryoBackedEncoder,
+        encoder: Encoder,
         report: InstantExecutionReport
     ) = DefaultWriteContext(
-        codecs(),
+        codecs.userTypesCodec,
         encoder,
+        scopeRegistryListener,
         logger,
         report::add
     )
 
     private
     fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
-        codecs(),
+        codecs.userTypesCodec,
         decoder,
-        logger,
-        BeanPropertyReader.factoryFor(service())
+        beanConstructors,
+        logger
     )
 
     private
-    fun codecs() = Codecs(
-        directoryFileTreeFactory = service(),
-        fileCollectionFactory = service(),
-        fileResolver = service(),
-        instantiator = service(),
-        listenerManager = service()
-    )
+    val codecs: Codecs by lazy {
+        Codecs(
+            directoryFileTreeFactory = service(),
+            fileCollectionFactory = service(),
+            fileLookup = service(),
+            filePropertyFactory = service(),
+            fileResolver = service(),
+            instantiator = service(),
+            listenerManager = service(),
+            projectStateRegistry = service(),
+            taskNodeFactory = service(),
+            fingerprinterRegistry = service(),
+            projectFinder = service(),
+            buildOperationExecutor = service(),
+            isolatableFactory = service(),
+            valueSnapshotter = service(),
+            fileCollectionFingerprinterRegistry = service(),
+            isolatableSerializerRegistry = service(),
+            actionScheme = service(),
+            parameterScheme = service(),
+            classLoaderHierarchyHasher = service(),
+            attributesFactory = service(),
+            transformListener = service()
+        )
+    }
 
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
-        withGradle(gradle) {
+        withIsolate(IsolateOwner.OwnerGradle(gradle), codecs.userTypesCodec) {
             BuildOperationListenersCodec().run {
                 writeBuildOperationListeners(service())
             }
@@ -238,7 +247,7 @@ class DefaultInstantExecution(
 
     private
     suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
-        withGradle(gradle) {
+        withIsolate(IsolateOwner.OwnerGradle(gradle), codecs.userTypesCodec) {
             val listeners = BuildOperationListenersCodec().run {
                 readBuildOperationListeners()
             }
@@ -248,9 +257,10 @@ class DefaultInstantExecution(
         }
     }
 
+
     private
-    fun Encoder.writeRelevantProjectsFor(tasks: List<Task>) {
-        writeCollection(fillTheGapsOf(relevantProjectPathsFor(tasks))) { projectPath ->
+    fun Encoder.writeRelevantProjectsFor(nodes: List<Node>) {
+        writeCollection(fillTheGapsOf(relevantProjectPathsFor(nodes))) { projectPath ->
             writeString(projectPath.path)
         }
     }
@@ -264,10 +274,13 @@ class DefaultInstantExecution(
     }
 
     private
-    fun relevantProjectPathsFor(tasks: List<Task>) =
-        tasks.mapNotNull { task ->
-            task.project.takeIf { it.parent != null }?.path?.let(Path::path)
-        }.toSortedSet()
+    fun relevantProjectPathsFor(nodes: List<Node>): SortedSet<Path> =
+        nodes.mapNotNullTo(TreeSet()) { node ->
+            node.owningProject
+                ?.takeIf { it.parent != null }
+                ?.path
+                ?.let(Path::path)
+        }
 
     private
     val buildOperationExecutor: BuildOperationExecutor
@@ -276,22 +289,6 @@ class DefaultInstantExecution(
     private
     inline fun <reified T> service() =
         host.service<T>()
-
-    private
-    fun classLoaderFor(classPath: ClassPath) =
-        host.classLoaderFor(classPath)
-
-    private
-    fun collectClassPath() = DefaultClassPath.of(
-        linkedSetOf<File>().also { classPathFiles ->
-            (service<ClassLoaderCache>() as ClassLoaderCacheInternal).visitClassLoadersUsedInThisBuild { loader ->
-                ClasspathUtil.collectClasspathOf(
-                    loader,
-                    classPathFiles
-                )
-            }
-        }
-    )
 
     private
     fun stateFileOutputStream(): FileOutputStream = instantExecutionStateFile.run {
@@ -311,7 +308,7 @@ class DefaultInstantExecution(
     val instantExecutionStateFile by lazy {
         val currentGradleVersion = GradleVersion.current().version
         val cacheDir = File(host.rootDir, ".instant-execution-state/$currentGradleVersion").absoluteFile
-        val baseName = HashUtil.createCompactMD5(host.requestedTaskNames.joinToString("/"))
+        val baseName = compactMD5For(host.requestedTaskNames)
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
     }
@@ -337,6 +334,10 @@ class DefaultInstantExecution(
     private
     fun systemProperty(propertyName: String) =
         host.getSystemProperty(propertyName)
+
+    private
+    fun compactMD5For(taskNames: List<String>) =
+        HashUtil.createCompactMD5(taskNames.joinToString("/"))
 }
 
 
@@ -366,19 +367,6 @@ fun fillTheGapsOf(paths: SortedSet<Path>): List<Path> {
 
 private
 val logger = Logging.getLogger(DefaultInstantExecution::class.java)
-
-
-private
-inline fun <T> T.withGradle(
-    gradle: Gradle,
-    action: () -> Unit
-) where T : IsolateContext, T : MutableIsolateContext {
-    withIsolate(IsolateOwner.OwnerGradle(gradle)) {
-        withPropertyTrace(PropertyTrace.Gradle) {
-            action()
-        }
-    }
-}
 
 
 /**

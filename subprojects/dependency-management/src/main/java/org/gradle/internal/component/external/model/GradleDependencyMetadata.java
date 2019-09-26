@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import jdk.internal.jline.internal.Nullable;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -41,20 +42,33 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     private final ModuleComponentSelector selector;
     private final List<ExcludeMetadata> excludes;
     private final boolean constraint;
+    private final boolean endorsing;
     private final String reason;
     private final boolean force;
+    private final List<IvyArtifactName> artifacts;
 
-    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, String reason, boolean force) {
+    public GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, String reason, boolean force, @Nullable IvyArtifactName artifact) {
+        this(selector, excludes, constraint, endorsing, reason, force, artifact == null ? ImmutableList.of() : ImmutableList.of(artifact));
+    }
+
+    private GradleDependencyMetadata(ModuleComponentSelector selector, List<ExcludeMetadata> excludes, boolean constraint, boolean endorsing, String reason, boolean force, List<IvyArtifactName> artifacts) {
         this.selector = selector;
         this.excludes = excludes;
         this.reason = reason;
         this.constraint = constraint;
+        this.endorsing = endorsing;
         this.force = force;
+        this.artifacts = artifacts;
     }
 
     @Override
     public List<IvyArtifactName> getArtifacts() {
-        return ImmutableList.of();
+        return artifacts;
+    }
+
+    @Nullable
+    public IvyArtifactName getDependencyArtifact() {
+        return artifacts.isEmpty() ? null : artifacts.get(0);
     }
 
     @Override
@@ -62,7 +76,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (requestedVersion.equals(selector.getVersionConstraint())) {
             return this;
         }
-        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getRequestedCapabilities()), excludes, constraint, reason, force);
+        return new GradleDependencyMetadata(DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), requestedVersion, selector.getAttributes(), selector.getRequestedCapabilities()), excludes, constraint, endorsing, reason, force, artifacts);
     }
 
     @Override
@@ -70,13 +84,21 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
         if (Objects.equal(reason, this.reason)) {
             return this;
         }
-        return new GradleDependencyMetadata(selector, excludes, constraint, reason, force);
+        return new GradleDependencyMetadata(selector, excludes, constraint, endorsing, reason, force, artifacts);
+    }
+
+    @Override
+    public ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse) {
+        if (endorse == this.endorsing) {
+            return this;
+        }
+        return new GradleDependencyMetadata(selector, excludes, constraint, endorse, reason, force, artifacts);
     }
 
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
-            return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, reason, force);
+            return new GradleDependencyMetadata((ModuleComponentSelector) target, excludes, constraint, endorsing, reason, force, artifacts);
         }
         return new DefaultProjectDependencyMetadata((ProjectComponentSelector) target, this);
     }
@@ -115,6 +137,11 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
     }
 
     @Override
+    public boolean isEndorsingStrictVersions() {
+        return endorsing;
+    }
+
+    @Override
     public String getReason() {
         return reason;
     }
@@ -131,7 +158,7 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public ForcingDependencyMetadata forced() {
-        return new GradleDependencyMetadata(selector, excludes, constraint, reason, true);
+        return new GradleDependencyMetadata(selector, excludes, constraint, endorsing, reason, true, artifacts);
     }
 
     @Override

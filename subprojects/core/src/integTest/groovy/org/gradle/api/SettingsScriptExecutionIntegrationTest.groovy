@@ -109,13 +109,14 @@ buildscript {
     dependencies { classpath files('repo/test-1.3.jar') }
 }
 new org.gradle.test.BuildClass()
-new BuildSrcClass();
+
 println 'quiet message'
 logging.captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 assert settings != null
-assert buildscript.classLoader == getClass().classLoader.parent
-assert buildscript.classLoader == Thread.currentThread().contextClassLoader
+// TODO:instant-execution consider restoring assertion on the relationship
+//  between buildscript.classLoader and getClas().classLoader
+assert getClass().classLoader.parent == Thread.currentThread().contextClassLoader
 Gradle.class.classLoader.loadClass('${implClassName}')
 try {
     buildscript.classLoader.loadClass('${implClassName}')
@@ -126,6 +127,13 @@ try {
     if (buildscript.classLoader instanceof Closeable) {
         buildscript.classLoader.close()
     }
+}
+
+try {
+    buildscript.classLoader.loadClass('BuildSrcClass')
+    assert false: 'should fail'
+} catch (ClassNotFoundException e) {
+    // expected
 }
 """
         buildFile << 'task doStuff'

@@ -16,44 +16,33 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.workers.WorkerExecution;
-import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
 
-public class TransportableActionExecutionSpec<T extends WorkerParameters> implements ActionExecutionSpec<T> {
-    private final String displayName;
-    private final String implementationClassName;
+import java.io.File;
+
+public class TransportableActionExecutionSpec<T extends WorkParameters> extends AbstractActionExecutionSpec<T> {
+    protected final String implementationClassName;
     private final byte[] serializedParameters;
-    private final ClassLoaderStructure classLoaderStructure;
 
-    public TransportableActionExecutionSpec(String displayName, String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure) {
-        this.displayName = displayName;
+    public TransportableActionExecutionSpec(String displayName, String implementationClassName, byte[] serializedParameters, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+        super(displayName, baseDir, usesInternalServices, classLoaderStructure);
         this.implementationClassName = implementationClassName;
         this.serializedParameters = serializedParameters;
-        this.classLoaderStructure = classLoaderStructure;
+    }
+
+    public String getImplementationClassName() {
+        return implementationClassName;
     }
 
     @Override
-    public ClassLoaderStructure getClassLoaderStructure() {
-        return classLoaderStructure;
-    }
-
-    @Override
-    public Class<? extends WorkerExecution<T>> getImplementationClass() {
+    public Class<? extends WorkAction<T>> getImplementationClass() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
     }
 
     @Override
     public T getParameters() {
         throw new UnsupportedOperationException();
-    }
-
-    public String getImplementationClassName() {
-        return implementationClassName;
     }
 
     public byte[] getSerializedParameters() {

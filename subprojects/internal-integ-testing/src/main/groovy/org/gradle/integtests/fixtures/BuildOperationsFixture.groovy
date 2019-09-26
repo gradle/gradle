@@ -125,7 +125,7 @@ class BuildOperationsFixture {
 
     BuildOperationRecord only(Pattern displayName) {
         def records = all(displayName)
-        assert records.size() == 1
+        assert records.size() == 1 : "Error matching pattern: $displayName"
         records.first()
     }
 

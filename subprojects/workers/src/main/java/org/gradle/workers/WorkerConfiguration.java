@@ -17,6 +17,7 @@
 package org.gradle.workers;
 
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.Describable;
 
 import java.io.File;
 
@@ -42,7 +43,25 @@ import java.io.File;
  *
  * @since 3.5
  */
-public interface WorkerConfiguration extends ActionConfiguration, BaseWorkerSpec {
+public interface WorkerConfiguration extends ActionConfiguration, ForkingWorkerSpec, Describable {
+    /**
+     * Gets the isolation mode for this worker, see {@link IsolationMode}.
+     *
+     * @return the isolation mode for this worker, see {@link IsolationMode}, defaults to {@link IsolationMode#AUTO}
+     *
+     * @since 4.0
+     */
+    IsolationMode getIsolationMode();
+
+    /**
+     * Sets the isolation mode for this worker, see {@link IsolationMode}.
+     *
+     * @param isolationMode the forking mode for this worker, see {@link IsolationMode}
+     *
+     * @since 4.0
+     */
+    void setIsolationMode(IsolationMode isolationMode);
+
     /**
      * Adds a set of files to the classpath associated with the worker.
      *
@@ -80,4 +99,10 @@ public interface WorkerConfiguration extends ActionConfiguration, BaseWorkerSpec
     @Deprecated
     void setForkMode(ForkMode forkMode);
 
+    /**
+     * Sets the name to use when displaying this item of work.
+     *
+     * @param displayName the name of this item of work
+     */
+    void setDisplayName(String displayName);
 }

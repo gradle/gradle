@@ -21,11 +21,12 @@ import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.transform.ExtraExecutionGraphDependenciesResolverFactory;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.Path;
 
 import java.util.Set;
 
-public interface ConfigurationInternal extends ResolveContext, Configuration, DependencyMetaDataProvider {
+public interface ConfigurationInternal extends ResolveContext, Configuration, DeprecatableConfiguration, DependencyMetaDataProvider {
     enum InternalState {
         UNRESOLVED,
         BUILD_DEPENDENCIES_RESOLVED,

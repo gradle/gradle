@@ -92,16 +92,10 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         enableIncrementalCompilation()
 
         then:
-        executer.expectDeprecationWarning()
-        succeeds("compileGroovy")
-        groovyClassFile('Groovy.class').exists()
-        groovyGeneratedSourceFile('Groovy$$Generated.java').exists()
-        groovyClassFile('Groovy$$Generated.class').exists()
-        outputContains(
-            'Incremental Groovy compilation has been disabled since Java annotation processors are configured.' +
-                ' Enabling incremental compilation and configuring Java annotation processors for Groovy compilation has been deprecated.' +
-                ' This is scheduled to be removed in Gradle 6.0.' +
-                ' Disable incremental Groovy compilation or remove the Java annotation processor configuration.')
+        fails("compileGroovy")
+        failure.assertHasCause(
+            'Enabling incremental compilation and configuring Java annotation processors for Groovy compilation is not allowed. ' +
+                'Disable incremental Groovy compilation or remove the Java annotation processor configuration.')
     }
 
     def "compileBadCodeWithAnnotationProcessor"() {

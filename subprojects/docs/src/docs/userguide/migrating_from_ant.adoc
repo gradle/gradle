@@ -181,14 +181,14 @@ They each require a different technique for the migration to Gradle, but you wil
 
 When you are attempting to migrate a build that stores its dependencies on the filesystem, either locally or on the network, you should consider whether you want to eventually move to managed dependencies using remote repositories. That's because you can incorporate filesystem dependencies into a Gradle build in one of two ways:
 
- * Define a <<repository_types#sec:flat_dir_resolver,flat-directory repository>> and use standard dependency declarations
- * Attach the files directly to the appropriate dependency configurations (<<declaring_dependencies#sec:declaring_file_dependency,file dependencies>>)
+ * Define a <<declaring_repositories.adoc#sub:flat_dir_resolver,flat-directory repository>> and use standard dependency declarations
+ * Attach the files directly to the appropriate dependency configurations (<<declaring_dependencies#sub:file_dependencies,file dependencies>>)
 
 It's easier to migrate to managed dependencies served from Maven- or Ivy-compatible repositories if you take the first approach, but doing so requires all your files to conform to the naming convention "<moduleName>-<version>.<extension>".
 
 [NOTE]
 ====
-If you store your dependencies in the standard Maven repository layout — `<repoDir>/<group>/<module>/<version>` — then you can define a <<declaring_repositories#sec:declaring_custom_repository,custom Maven repository>> with a "file://" URL.
+If you store your dependencies in the standard Maven repository layout — `<repoDir>/<group>/<module>/<version>` — then you can define a <<declaring_repositories.adoc#sec:declaring_custom_repository,custom Maven repository>> with a "file://" URL.
 ====
 
 To demonstrate the two techniques, consider a project that has the following library JARs in its `libs` directory:
@@ -199,7 +199,8 @@ libs
 ├── log4j-1.2.8.jar
 └── commons-io-2.1.jar
 
-The file `our-custom.jar` lacks a version number, so it has to be added as a file dependency. But the other two JARs match the required naming convention and so can be declared as normal <<declaring_dependencies#sec:declaring_dependency_to_module,module dependencies>> that are retrieved from a flat-directory repository.
+The file `our-custom.jar` lacks a version number, so it has to be added as a file dependency.
+But the other two JARs match the required naming convention and so can be declared as normal <<declaring_dependencies#sub:module_dependencies,module dependencies>> that are retrieved from a flat-directory repository.
 
 The following sample build script demonstrates how you can incorporate all of these libraries into a build:
 
@@ -232,7 +233,9 @@ Apache Ivy is a standalone dependency management tool that is widely used with A
  * Resolve dependencies from Ivy-compatible repositories
  * Publish artifacts to Ivy-compatible repositories
 
-The most notable difference is that Gradle has standard configurations for specific types of projects. For example, the <<java_plugin#configurations,Java Plugin>> defines configurations like `implementation`, `testImplementation` and `runtimeOnly`. You can still <<managing_dependency_configurations#defining_custom_configurations,define your own dependency configurations>>, though.
+The most notable difference is that Gradle has standard configurations for specific types of projects.
+For example, the <<java_plugin#tab:configurations,Java Plugin>> defines configurations like `implementation`, `testImplementation` and `runtimeOnly`.
+You can still <<declaring_dependencies.adoc#sec:defining-custom-configurations,define your own dependency configurations>>, though.
 
 This similarity means that it's usually quite straightforward to migrate from Ivy to Gradle:
 
@@ -240,7 +243,7 @@ This similarity means that it's usually quite straightforward to migrate from Iv
  * Transcribe any configuration declarations from your module descriptors into the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:configurations(groovy.lang.Closure)[configurations {}] block of the build script for any custom configurations that can't be replaced by Gradle's standard ones.
  * Transcribe the resolvers from your Ivy settings file into the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:repositories(groovy.lang.Closure)[repositories {}] block of the build script.
 
-See the chapters on <<declaring_dependencies#declaring_dependencies,Declaring Dependencies>>, <<managing_dependency_configurations#managing_dependency_configurations,Managing Dependency Configurations>> and <<declaring_repositories#declaring_repositories,Declaring Repositories>> for more information.
+See the chapters on <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,Managing Dependency Configurations>>, <<declaring_dependencies.adoc#sec:dependency-types,Declaring Dependencies>> and <<declaring_repositories.adoc#declaring-repositories,Declaring Repositories>> for more information.
 
 Ivy provides several Ant tasks that handle Ivy's process for fetching dependencies. The basic steps of that process consist of:
 
@@ -257,14 +260,15 @@ Most of Gradle's dependency-related configuration is baked into the build script
 +
 Some Ivy configuration options have no equivalent in Gradle. For example, there are no lock strategies because Gradle ensures that its dependency cache is concurrency safe, period. Nor are there "latest strategies" because it's simpler to have a reliable, single strategy for conflict resolution. If the "wrong" version is picked, you can easily override it using forced versions or other resolution strategy options.
 +
-See the chapters on <<managing_transitive_dependencies#managing_transitive_dependencies,Managing Transitive Dependencies>> and <<customizing_dependency_resolution_behavior#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>> for more information on this aspect of Gradle.
+See the chapters on <<controlling_transitive_dependencies#,Controlling Transitive Dependencies>> and <<customizing_dependency_resolution_behavior#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>> for more information on this aspect of Gradle.
 
 Resolution::
-At the beginning of the build, Gradle will automatically resolve any dependencies that you have declared and download them to its cache. It searches the repositories for those dependencies, with the search order defined by <<declaring_repositories#sec:declaring_multiple_repositories,the order in which the repositories are declared>>.
+At the beginning of the build, Gradle will automatically resolve any dependencies that you have declared and download them to its cache.
+It searches the repositories for those dependencies, with the search order defined by <<declaring_repositories.adoc#sec:declaring_multiple_repositories,the order in which the repositories are declared>>.
 +
-It's worth noting that Gradle supports the same dynamic version syntax as Ivy, so you can still use versions like `1.0.+`. You can also use the special `latest.integration` and `latest.release` labels if you wish. If you decide to use such <<declaring_dependencies#sub:declaring_dependency_with_dynamic_version,dynamic>> and <<declaring_dependencies#sub:declaring_dependency_with_changing_version,changing>> dependencies, you can configure the caching behavior for them via link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[resolutionStrategy].
+It's worth noting that Gradle supports the same dynamic version syntax as Ivy, so you can still use versions like `1.0.+`. You can also use the special `latest.integration` and `latest.release` labels if you wish. If you decide to use such <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> and <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> dependencies, you can configure the caching behavior for them via link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[resolutionStrategy].
 +
-You might also want to consider <<dependency_locking#dependency_locking,dependency locking>> if you're using dynamic and/or changing dependencies. It's a way to make the build more reliable and allows for https://reproducible-builds.org/[reproducible builds].
+You might also want to consider <<dependency_locking#,dependency locking>> if you're using dynamic and/or changing dependencies. It's a way to make the build more reliable and allows for https://reproducible-builds.org/[reproducible builds].
 
 Retrieval::
 As mentioned, Gradle does not automatically copy files from the dependency cache. Its standard tasks typically use the files directly. If you want to copy the dependencies to a local directory, you can use a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task like this in your build script:
@@ -282,7 +286,8 @@ A configuration is also a file collection, hence why it can be used in the `from
 
 Projects that use Ivy to manage dependencies often also use it for publishing JARs and other artifacts to repositories. If you're migrating such a build, then you'll be glad to know that Gradle has built-in support for publishing artifacts to Ivy-compatible repositories.
 
-Before you attempt to migrate this particular aspect of your build, read the <<publishing_overview#publishing_overview,Publishing>> chapter to learn about Gradle's publishing model. That chapter's examples are based on Maven repositories, but the same model is used for Ivy repositories as well.
+Before you attempt to migrate this particular aspect of your build, read the <<publishing#publishing_overview,Publishing>> chapter to learn about Gradle's publishing model.
+That chapter's examples are based on Maven repositories, but the same model is used for Ivy repositories as well.
 
 The basic migration process looks like this:
 
@@ -297,7 +302,8 @@ Let's say you have defined a publication named "myLibrary" and a repository name
  * `<deliver>` -> `generateDescriptorFileForMyLibraryPublication`
  * `<publish>` -> `publishMyLibraryPublicationToMyRepoRepository`
 
-There is also a convenient `publish` task that publishes _all_ publications to _all_ repositories. If you'd prefer to limit which publications go to which repositories, check out the <<publishing_overview.html#publishing_maven:conditional_publishing,relevant section of the Publishing chapter>>.
+There is also a convenient `publish` task that publishes _all_ publications to _all_ repositories.
+If you'd prefer to limit which publications go to which repositories, check out the <<publishing.adoc#sec:publishing_maven:conditional_publishing,relevant section of the Publishing chapter>>.
 
 .On dependency versions
 [NOTE]

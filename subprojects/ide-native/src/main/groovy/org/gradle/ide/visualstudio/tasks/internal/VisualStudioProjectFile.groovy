@@ -18,6 +18,7 @@ package org.gradle.ide.visualstudio.tasks.internal
 
 import org.gradle.api.Transformer
 import org.gradle.ide.visualstudio.internal.VisualStudioProjectConfiguration
+import org.gradle.ide.visualstudio.internal.VisualStudioTargetBinary
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject
 import org.gradle.util.VersionNumber
@@ -107,6 +108,10 @@ class VisualStudioProjectFile extends XmlPersistableConfigurationObject {
                     NMakeReBuildCommandLine("echo '${configuration.project.name}' project is not buildable. && exit /b -42")
                 }
             }
+        }
+
+        if (configuration.targetBinary != null && configuration.targetBinary.languageStandard != VisualStudioTargetBinary.LanguageStandard.NONE) {
+            xml.appendNode("ItemDefinitionGroup", [Condition: configCondition]).appendNode("ClCompile").appendNode("LanguageStandard", configuration.targetBinary.languageStandard.value)
         }
     }
 

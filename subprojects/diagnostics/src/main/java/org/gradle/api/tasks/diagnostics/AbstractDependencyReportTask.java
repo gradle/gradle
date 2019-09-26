@@ -23,10 +23,12 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -69,7 +71,7 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
     }
 
     private Set<Configuration> getReportConfigurations() {
-        return configurations != null ? configurations : getTaskConfigurations();
+        return configurations != null ? configurations : getNonDeprecatedTaskConfigurations();
     }
 
     /**
@@ -100,6 +102,16 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
     @Option(option = "configuration", description = "The configuration to generate the report for.")
     public void setConfiguration(String configurationName) {
         this.configurations = Collections.singleton(getTaskConfigurations().getByName(configurationName));
+    }
+
+    private Set<Configuration> getNonDeprecatedTaskConfigurations() {
+        Set<Configuration> filteredConfigurations = new HashSet<Configuration>();
+        for (Configuration configuration : getTaskConfigurations()) {
+            if (!((DeprecatableConfiguration) configuration).isFullyDeprecated()) {
+                filteredConfigurations.add(configuration);
+            }
+        }
+        return filteredConfigurations;
     }
 
     @Internal

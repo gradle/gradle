@@ -34,7 +34,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
                 two
             }
             repositories {
-                ivy { url "${mavenRepo.uri}" }
+                maven { url "${mavenRepo.uri}" }
             }
             dependencies {
                 one 'org:lib:1.+'

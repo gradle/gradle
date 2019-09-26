@@ -18,28 +18,33 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
+import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
+import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
+import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
-import org.gradle.instantexecution.extensions.uncheckedCast
-import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.DecodingProvider
-import org.gradle.instantexecution.serialization.Encoding
-import org.gradle.instantexecution.serialization.EncodingProvider
-import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.SerializerCodec
-import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.reentrant
 import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
+import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
@@ -51,28 +56,46 @@ import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SetSerializer
+import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-import kotlin.reflect.KClass
+import org.gradle.workers.WorkerExecutor
+import org.gradle.workers.internal.IsolatableSerializerRegistry
 
 
 class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
+    fileLookup: FileLookup,
+    filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
-    listenerManager: ListenerManager
-) : EncodingProvider, DecodingProvider {
+    listenerManager: ListenerManager,
+    projectStateRegistry: ProjectStateRegistry,
+    taskNodeFactory: TaskNodeFactory,
+    fingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    projectFinder: ProjectFinder,
+    buildOperationExecutor: BuildOperationExecutor,
+    classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
+    isolatableFactory: IsolatableFactory,
+    valueSnapshotter: ValueSnapshotter,
+    fileCollectionFingerprinterRegistry: FileCollectionFingerprinterRegistry,
+    isolatableSerializerRegistry: IsolatableSerializerRegistry,
+    parameterScheme: ArtifactTransformParameterScheme,
+    actionScheme: ArtifactTransformActionScheme,
+    attributesFactory: ImmutableAttributesFactory,
+    transformListener: ArtifactTransformListener
+) {
 
     private
     val fileSetSerializer = SetSerializer(FILE_SERIALIZER)
 
-    private
-    val bindings = bindings {
+    val userTypesCodec = BindingsBackedCodec {
 
         bind(unsupported<Project>())
         bind(unsupported<Gradle>())
@@ -89,34 +112,56 @@ class Codecs(
         bind(BYTE_SERIALIZER)
         bind(FLOAT_SERIALIZER)
         bind(DOUBLE_SERIALIZER)
-        bind(FileTreeCodec(fileSetSerializer, directoryFileTreeFactory))
         bind(FILE_SERIALIZER)
+        bind(PATH_SERIALIZER)
         bind(ClassCodec)
         bind(MethodCodec)
 
-        bind(listCodec)
+        // Only serialize certain List implementations
+        bind(arrayListCodec)
+        bind(linkedListCodec)
+        bind(ImmutableListCodec)
 
         // Only serialize certain Set implementations for now, as some custom types extend Set (eg DomainObjectContainer)
         bind(linkedHashSetCodec)
         bind(hashSetCodec)
         bind(treeSetCodec)
+        bind(ImmutableSetCodec)
 
         // Only serialize certain Map implementations for now, as some custom types extend Map (eg DefaultManifest)
         bind(linkedHashMapCodec)
         bind(hashMapCodec)
         bind(treeMapCodec)
+        bind(concurrentHashMapCodec)
         bind(ImmutableMapCodec)
 
         bind(arrayCodec)
+        bind(BrokenValueCodec)
+
+        bind(ListPropertyCodec)
+        bind(SetPropertyCodec)
+        bind(MapPropertyCodec)
+        bind(DirectoryPropertyCodec(filePropertyFactory))
+        bind(RegularFilePropertyCodec(filePropertyFactory))
+        bind(PropertyCodec)
+        bind(ProviderCodec)
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        bind(ConfigurableFileCollectionCodec(fileSetSerializer, fileCollectionFactory))
-        bind(FileCollectionCodec(fileSetSerializer, fileCollectionFactory, directoryFileTreeFactory))
-        bind(ArtifactCollectionCodec)
+        bind(FileTreeCodec(fileSetSerializer, directoryFileTreeFactory))
+        bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
+        bind(FileCollectionCodec(fileCollectionFactory))
 
-        bind(DefaultCopySpecCodec(fileResolver, instantiator))
+        bind(ClosureCodec)
+        bind(GroovyMetaClassCodec)
+
+        // Dependency management types
+        bind(ArtifactCollectionCodec)
+        bind(AttributeContainerCodec(attributesFactory))
+        bind(TransformationNodeReferenceCodec)
+
+        bind(DefaultCopySpecCodec(fileResolver, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
 
         bind(TaskReferenceCodec)
@@ -126,12 +171,22 @@ class Codecs(
         bind(ownerService<FileResolver>())
         bind(ownerService<Instantiator>())
         bind(ownerService<FileCollectionFactory>())
+        bind(ownerService<FileSystemOperations>())
         bind(ownerService<FileOperations>())
         bind(ownerService<BuildOperationExecutor>())
         bind(ownerService<ToolingModelBuilderRegistry>())
+        bind(ownerService<ExecOperations>())
         bind(ownerService<ExecActionFactory>())
         bind(ownerService<BuildOperationListenerManager>())
         bind(ownerService<BuildRequestMetaData>())
+        bind(ownerService<WorkerExecutor>())
+        bind(ownerService<ListenerManager>())
+
+        bind(EnumCodec)
+        bind(ProxyCodec)
+
+        bind(SerializableWriteObjectCodec())
+        bind(SerializableWriteReplaceCodec())
 
         // This protects the BeanCodec against StackOverflowErrors but
         // we can still get them for the other codecs, for instance,
@@ -139,86 +194,17 @@ class Codecs(
         bind(reentrant(BeanCodec()))
     }
 
-    private
-    val nullEncoding = encoding {
-        writeByte(NULL_VALUE)
+    val internalTypesCodec = BindingsBackedCodec {
+
+        bind(INTEGER_SERIALIZER)
+
+        bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
+        bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
+        bind(ChainedTransformationNodeCodec(buildOperationExecutor, transformListener))
+        bind(ResolvableArtifactCodec)
+        bind(TransformationStepCodec(projectStateRegistry, fingerprinterRegistry, projectFinder))
+        bind(DefaultTransformerCodec(buildOperationExecutor, classLoaderHierarchyHasher, isolatableFactory, valueSnapshotter, fileCollectionFactory, fileLookup, fileCollectionFingerprinterRegistry, isolatableSerializerRegistry, parameterScheme, actionScheme))
+        bind(LegacyTransformerCodec(actionScheme))
+        bind(ExecutionGraphDependenciesResolverCodec)
     }
-
-    private
-    val encodings = HashMap<Class<*>, Encoding?>()
-
-    override fun WriteContext.encodingFor(candidate: Any?): Encoding? = when (candidate) {
-        null -> nullEncoding
-        else -> encodings.computeIfAbsent(candidate.javaClass, ::computeEncoding)
-    }
-
-    override suspend fun ReadContext.decode(): Any? = when (val tag = readByte()) {
-        NULL_VALUE -> null
-        else -> bindings[tag.toInt()].codec.run { decode() }
-    }
-
-    private
-    fun computeEncoding(type: Class<*>): Encoding? =
-        bindings.find { it.type.isAssignableFrom(type) }?.run {
-            encoding { value ->
-                require(value != null)
-                writeByte(tag)
-                codec.run { encode(value) }
-            }
-        }
-
-    private
-    fun encoding(e: Encoding) = e
-
-    internal
-    companion object {
-        const val NULL_VALUE: Byte = -1
-    }
-}
-
-
-private
-inline fun bindings(block: BindingsBuilder.() -> Unit): List<Binding> =
-    BindingsBuilder().apply(block).build()
-
-
-private
-data class Binding(
-    val tag: Byte,
-    val type: Class<*>,
-    val codec: Codec<Any>
-)
-
-
-private
-class BindingsBuilder {
-
-    private
-    val bindings = mutableListOf<Binding>()
-
-    fun build(): List<Binding> = bindings.toList()
-
-    fun bind(type: Class<*>, codec: Codec<*>) {
-        require(bindings.none { it.type === type })
-        val tag = bindings.size
-        require(tag < Byte.MAX_VALUE)
-        bindings.add(
-            Binding(tag.toByte(), type, codec.uncheckedCast())
-        )
-    }
-
-    inline fun <reified T> bind(codec: Codec<T>) =
-        bind(T::class.java, codec)
-
-    inline fun <reified T> bind(serializer: Serializer<T>) =
-        bind(T::class.java, serializer)
-
-    fun bind(type: KClass<*>, codec: Codec<*>) =
-        bind(type.java, codec)
-
-    fun bind(type: KClass<*>, serializer: Serializer<*>) =
-        bind(type.java, serializer)
-
-    fun bind(type: Class<*>, serializer: Serializer<*>) =
-        bind(type, SerializerCodec(serializer))
 }

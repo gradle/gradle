@@ -437,9 +437,6 @@
                 <td>org.gradle.api.plugins.quality.CodeNarc</td>
             </tr>
             <tr>
-                <td>org.gradle.api.plugins.buildcomparison.gradle.CompareGradleBuilds</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.Copy</td>
             </tr>
             <tr>
@@ -453,9 +450,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Exec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.quality.FindBugs</td>
             </tr>
             <tr>
                 <td>org.gradle.api.publish.ivy.tasks.GenerateIvyDescriptor</td>
@@ -498,9 +492,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.JavaExec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.quality.JDepend</td>
             </tr>
             <tr>
                 <td>org.gradle.api.plugins.quality.Pmd</td>
@@ -569,9 +560,6 @@
             </tr>
             <tr>
                 <td>org.gradle.api.reporting.DirectoryReport</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.quality.FindBugsXmlReport</td>
             </tr>
             <tr>
                 <td>org.gradle.api.reporting.Report</td>

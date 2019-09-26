@@ -16,13 +16,10 @@
 
 package org.gradle.language.cpp.plugins;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
@@ -44,14 +41,11 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.FeaturePreviews.Feature.GRADLE_METADATA;
-
 /**
  * A common base plugin for the C++ executable and library plugins
  *
  * @since 4.1
  */
-@Incubating
 @NonNullApi
 public class CppBasePlugin implements Plugin<Project> {
     private final ProjectPublicationRegistry publicationRegistry;
@@ -69,14 +63,11 @@ public class CppBasePlugin implements Plugin<Project> {
         final TaskContainer tasks = project.getTasks();
         final DirectoryProperty buildDirectory = project.getLayout().getBuildDirectory();
 
-        // Enable the use of Gradle metadata. This is a temporary opt-in switch until available by default
-        ((GradleInternal) project.getGradle()).getServices().get(FeaturePreviews.class).enableFeature(GRADLE_METADATA);
-
         // Create the tasks for each C++ binary that is registered
         project.getComponents().withType(DefaultCppBinary.class, binary -> {
             final Names names = binary.getNames();
             String language = "cpp";
-            
+
             TaskProvider<CppCompile> compile = tasks.register(names.getCompileTaskName(language), CppCompile.class, task -> {
                 final Callable<List<File>> systemIncludes = () -> binary.getPlatformToolProvider().getSystemLibraries(ToolType.CPP_COMPILER).getIncludeDirs();
 

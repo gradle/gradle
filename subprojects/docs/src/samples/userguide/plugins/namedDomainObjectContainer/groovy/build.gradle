@@ -1,7 +1,12 @@
-apply plugin: DownloadPlugin
+plugins {
+    id("org.gradle.sample.download")
+}
 
 download {
-    servers.create("gradle") {
-        uri = uri('https://gradle.org')
+    // Can use a block to configure the container contents
+    resources {
+        gradle {
+            uri = uri('https://gradle.org')
+        }
     }
 }

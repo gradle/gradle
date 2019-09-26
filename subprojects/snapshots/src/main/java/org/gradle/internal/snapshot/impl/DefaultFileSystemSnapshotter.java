@@ -37,6 +37,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -99,12 +100,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         final String absolutePath = file.getAbsolutePath();
         FileSystemLocationSnapshot result = fileSystemMirror.getSnapshot(absolutePath);
         if (result == null) {
-            result = producingSnapshots.guardByKey(absolutePath, new Supplier<FileSystemLocationSnapshot>() {
-                @Override
-                public FileSystemLocationSnapshot get() {
-                    return snapshotAndCache(file, null);
-                }
-            });
+            result = producingSnapshots.guardByKey(absolutePath, () -> snapshotAndCache(file, null));
         }
         return result;
     }
@@ -158,27 +154,28 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         // Could potentially coordinate with a thread that is snapshotting an overlapping directory tree
         String path = root.getAbsolutePath();
 
-        FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
-        if (snapshot != null) {
-            return filterSnapshot(snapshot, filter);
+        FileSystemLocationSnapshot cachedSnapshot = fileSystemMirror.getSnapshot(path);
+        if (cachedSnapshot != null) {
+            return filterSnapshot(cachedSnapshot, filter);
         }
-        return producingSnapshots.guardByKey(path, new Supplier<FileSystemSnapshot>() {
-            @Override
-            public FileSystemSnapshot get() {
-                FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
-                if (snapshot == null) {
-                    snapshot = snapshotAndCache(root, filter);
-                    return snapshot.getType() != FileType.Directory ? filterSnapshot(snapshot, filter) : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
-                } else {
-                    return filterSnapshot(snapshot, filter);
-                }
+        return producingSnapshots.guardByKey(path, () -> {
+            FileSystemLocationSnapshot snapshot = fileSystemMirror.getSnapshot(path);
+            if (snapshot == null) {
+                snapshot = snapshotAndCache(root, filter);
+                return snapshot.getType() != FileType.Directory
+                    ? filterSnapshot(snapshot, filter)
+                    : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
+            } else {
+                return filterSnapshot(snapshot, filter);
             }
         });
     }
 
     @Override
-    public FileSystemSnapshotBuilder newFileSystemSnapshotBuilder() {
-        return new FileSystemSnapshotBuilder(stringInterner, hasher);
+    public FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
+        FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner, hasher);
+        buildAction.accept(builder);
+        return builder.build();
     }
 
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter filter) {

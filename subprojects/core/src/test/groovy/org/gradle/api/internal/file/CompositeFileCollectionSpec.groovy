@@ -20,7 +20,6 @@ import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -290,9 +289,10 @@ class CompositeFileCollectionSpec extends Specification {
         collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
     }
 
-    public void "can visit root elements"() {
+    def "can visit root elements"() {
         def child1 = Stub(FileCollectionInternal)
         def child2 = Stub(FileTreeInternal)
+        def source = Stub(FileCollectionInternal.Source)
 
         def tree = new TestCollection() {
             @Override
@@ -301,22 +301,26 @@ class CompositeFileCollectionSpec extends Specification {
                 context.add(child2)
             }
         }
-        def visitor = Mock(FileCollectionLeafVisitor)
+        def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        tree.visitLeafCollections(visitor)
+        tree.visitStructure(visitor)
 
         then:
-        child1.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitCollection(child1) }
-        child2.visitLeafCollections(visitor) >> { FileCollectionLeafVisitor v -> v.visitGenericFileTree(child2) }
-        1 * visitor.visitCollection(child1)
+        child1.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitCollection(source, child1) }
+        child2.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitGenericFileTree(child2) }
+        1 * visitor.visitCollection(source, child1)
         1 * visitor.visitGenericFileTree(child2)
         0 * visitor._
     }
 
     def collectionDependsOn(Task... tasks) {
         def collection = Stub(FileCollectionInternal)
-        collection.buildDependencies >> Stub(TaskDependency) { getDependencies(_) >> tasks }
+        collection.visitDependencies(_) >> { TaskDependencyResolveContext context ->
+            for (t in tasks) {
+                context.add(t)
+            }
+        }
         return collection
     }
 

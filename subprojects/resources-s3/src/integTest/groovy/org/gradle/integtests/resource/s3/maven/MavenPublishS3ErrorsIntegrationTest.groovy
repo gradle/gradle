@@ -33,7 +33,6 @@ class MavenPublishS3ErrorsIntegrationTest extends AbstractMavenPublishIntegTest 
     public final S3Server server = new S3Server(temporaryFolder)
 
     def setup() {
-        disableModuleMetadataPublishing()
         executer.withArgument('-i')
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.uri}")
     }

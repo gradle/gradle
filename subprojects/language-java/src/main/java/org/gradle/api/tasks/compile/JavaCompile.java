@@ -17,10 +17,12 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -33,15 +35,18 @@ import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFact
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
+import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -49,11 +54,12 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.util.DeprecationLogger;
+import org.gradle.work.Incremental;
+import org.gradle.work.InputChanges;
 
-import javax.annotation.Nullable;
 import javax.inject.Inject;
-import java.io.File;
+import java.util.concurrent.Callable;
 
 /**
  * Compiles Java source files.
@@ -71,6 +77,12 @@ import java.io.File;
 public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
+    private final FileCollection stableSources = getProject().files(new Callable<Object[]>() {
+        @Override
+        public Object[] call() {
+            return new Object[] {getSource(), getSources()};
+        }
+    });
 
     public JavaCompile() {
         CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
@@ -82,9 +94,22 @@ public class JavaCompile extends AbstractCompile {
      * {@inheritDoc}
      */
     @Override
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @ReplacedBy("stableSources")
     public FileTree getSource() {
         return super.getSource();
+    }
+
+    /**
+     * This method is overwritten by the Android plugin &lt; 3.6.
+     * We add it here as hack so we can add the source from that method to stableSources.
+     * DO NOT USE!
+     *
+     * @since 6.0
+     */
+    @Deprecated
+    @Internal
+    protected FileCollection getSources() {
+        return ImmutableFileCollection.of();
     }
 
     /**
@@ -109,21 +134,49 @@ public class JavaCompile extends AbstractCompile {
         this.toolChain = toolChain;
     }
 
+    /**
+     * Compile the sources, taking into account the changes reported by inputs.
+     *
+     * @deprecated Left for backwards compatibility.
+     */
+    @Deprecated
     @TaskAction
-    protected void compile(IncrementalTaskInputs inputs) {
-        if (!compileOptions.isIncremental()) {
-            compile();
-            return;
-        }
+    protected void compile(@SuppressWarnings("deprecation") org.gradle.api.tasks.incremental.IncrementalTaskInputs inputs) {
+        DeprecationLogger.nagUserOfDeprecated("Extending the JavaCompile task", "Configure the task instead.");
+        compile((InputChanges) inputs);
+    }
 
-        DefaultJavaCompileSpec spec = createSpec();
-        Compiler<JavaCompileSpec> incrementalCompiler = getIncrementalCompilerFactory().makeIncremental(
-            createCompiler(spec),
-            getPath(),
-            getSource(),
-            new JavaRecompilationSpecProvider(((ProjectInternal) getProject()).getFileOperations(), (FileTreeInternal) getSource(), inputs, new CompilationSourceDirs(spec.getSourceRoots()))
-        );
-        performCompilation(spec, incrementalCompiler);
+    /**
+     * Compile the sources, taking into account the changes reported by inputs.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    @TaskAction
+    protected void compile(InputChanges inputs) {
+        DefaultJavaCompileSpec spec;
+        Compiler<JavaCompileSpec> compiler;
+        if (!compileOptions.isIncremental()) {
+            spec = createSpec();
+            spec.setSourceFiles(getSource());
+            compiler = createCompiler(spec);
+        } else {
+            spec = createSpec();
+            FileTree sources = getStableSources().getAsFileTree();
+            compiler = getIncrementalCompilerFactory().makeIncremental(
+                createCompiler(spec),
+                getPath(),
+                sources,
+                new JavaRecompilationSpecProvider(
+                    getDeleter(),
+                    ((ProjectInternal) getProject()).getFileOperations(),
+                    sources,
+                    inputs.isIncremental(),
+                    () -> inputs.getFileChanges(getStableSources()).iterator()
+                )
+            );
+        }
+        performCompilation(spec, compiler);
     }
 
     @Inject
@@ -136,17 +189,14 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException();
     }
 
-    @Override
-    protected void compile() {
-        DefaultJavaCompileSpec spec = createSpec();
-        spec.setSourceFiles(getSource());
-        performCompilation(spec, createCompiler(spec));
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 
-
-    private CleaningJavaCompiler createCompiler(JavaCompileSpec spec) {
+    private CleaningJavaCompiler<JavaCompileSpec> createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
-        return new CleaningJavaCompiler(javaCompiler, getOutputs());
+        return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
     }
 
     @Nested
@@ -165,11 +215,11 @@ public class JavaCompile extends AbstractCompile {
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
-        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.<File>of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
-        spec.setSourcesRoots(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource()));
+        spec.setSourcesRoots(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree()));
         return spec;
     }
 
@@ -185,25 +235,21 @@ public class JavaCompile extends AbstractCompile {
 
     @Override
     @CompileClasspath
+    @Incremental
     public FileCollection getClasspath() {
         return super.getClasspath();
     }
 
     /**
-     * Returns the path to use for annotation processor discovery. Returns an empty collection when no processing should be performed, for example when no annotation processors are present in the compile classpath or annotation processing has been disabled.
+     * The sources for incremental change detection.
      *
-     * <p>You can specify this path using {@link CompileOptions#setAnnotationProcessorPath(FileCollection)}.
-     *
-     * <p>This path is always empty when annotation processing is disabled.</p>
-     *
-     * @since 3.4
-     * @deprecated Use {@link CompileOptions#getAnnotationProcessorPath()} instead.
+     * @since 6.0
      */
-    @Deprecated
-    @Internal
-    @Nullable
-    public FileCollection getEffectiveAnnotationProcessorPath() {
-        SingleMessageLogger.nagUserOfReplacedProperty("JavaCompile.effectiveAnnotationProcessorPath", "JavaCompile.options.annotationProcessorPath");
-        return compileOptions.getAnnotationProcessorPath();
+    @Incubating
+    @SkipWhenEmpty
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    protected FileCollection getStableSources() {
+        return stableSources;
     }
 }

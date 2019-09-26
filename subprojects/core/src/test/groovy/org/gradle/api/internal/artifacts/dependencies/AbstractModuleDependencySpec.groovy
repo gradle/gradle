@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -151,6 +152,166 @@ abstract class AbstractModuleDependencySpec extends Specification {
 
         dep1 != dep2
 
+    }
+
+    void "refuses artifact when attributes present"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.attributes {
+            it.attribute(Attribute.of("attribute", String), 'foo')
+        }
+
+        when:
+        dep.artifact {
+            println("Not reached")
+        }
+
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses target configuration when attributes present"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.attributes {
+            it.attribute(Attribute.of("attribute", String), 'foo')
+        }
+
+        when:
+        dep.setTargetConfiguration('foo')
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses artifact when capability present"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.capabilities {
+            it.requireCapability((Object)'org:foo:1.0')
+        }
+
+        when:
+        dep.artifact {
+            println("Not reached")
+        }
+
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses target configuration when capability present"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.capabilities {
+            it.requireCapability((Object)'org:foo:1.0')
+        }
+
+        when:
+        dep.setTargetConfiguration('foo')
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses attribute when targetConfiguration specified"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.setTargetConfiguration('foo')
+
+        when:
+        dep.attributes {
+            it.attribute(Attribute.of("attribute", String), 'foo')
+        }
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses capability when targetConfiguration specified"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.setTargetConfiguration('foo')
+
+        when:
+        dep.capabilities {
+            it.requireCapability('org:foo:1.0')
+        }
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses attribute when artifact added"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        when:
+        dep.attributes {
+            it.attribute(Attribute.of("attribute", String), 'foo')
+        }
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses capability when artifact added"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        when:
+        dep.capabilities {
+            it.requireCapability('org:foo:1.0')
+        }
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses configuration when artifact added"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        when:
+        dep.setTargetConfiguration('foo')
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
+    void "refuses artifact when configuration specified"() {
+        given:
+        def dep = createDependency("group", "name", "1.0")
+        dep.setTargetConfiguration('foo')
+
+        when:
+        dep.addArtifact(Mock(DependencyArtifact))
+
+        then:
+        thrown(InvalidUserCodeException)
+
+        when:
+        dep.artifact {
+            throw new AssertionError()
+        }
+
+        then:
+        thrown(InvalidUserCodeException)
     }
 
     void "copy does not mutate original attributes"() {

@@ -41,10 +41,6 @@ class ScenarioBuildResultData {
     // For rerun scenarios
     List<ScenarioBuildResultData> rawData = []
 
-    String getFlakyIssueTestName() {
-        return "${scenarioClass}.${scenarioName}"
-    }
-
     boolean isCrossVersion() {
         return !crossBuild
     }
@@ -103,6 +99,10 @@ class ScenarioBuildResultData {
         } else {
             return executions
         }
+    }
+
+    boolean isFlaky() {
+        return rawData.size() > 1 && rawData.count { it.successful } == 1;
     }
 
     static class ExecutionData {

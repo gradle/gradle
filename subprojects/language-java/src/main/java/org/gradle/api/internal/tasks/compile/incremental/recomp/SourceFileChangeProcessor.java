@@ -38,7 +38,7 @@ class SourceFileChangeProcessor {
                 spec.setFullRebuildCause(actualDependents.getDescription(), inputFile);
                 return;
             }
-            spec.getClassesToCompile().addAll(actualDependents.getDependentClasses());
+            spec.getClassesToCompile().addAll(actualDependents.getAllDependentClasses());
             spec.getResourcesToGenerate().addAll(actualDependents.getDependentResources());
         }
     }

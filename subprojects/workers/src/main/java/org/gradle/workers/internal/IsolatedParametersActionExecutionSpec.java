@@ -17,40 +17,29 @@
 package org.gradle.workers.internal;
 
 import org.gradle.internal.isolation.Isolatable;
-import org.gradle.workers.WorkerExecution;
-import org.gradle.workers.WorkerParameters;
+import org.gradle.workers.WorkAction;
+import org.gradle.workers.WorkParameters;
 
-public class IsolatedParametersActionExecutionSpec<T extends WorkerParameters> implements ActionExecutionSpec<T> {
-    private final String displayName;
-    private final Class<? extends WorkerExecution<T>> implementationClass;
+import java.io.File;
+
+public class IsolatedParametersActionExecutionSpec<T extends WorkParameters> extends AbstractActionExecutionSpec<T> {
+    private final Class<? extends WorkAction<T>> implementationClass;
     private final Isolatable<T> isolatedParams;
-    private final ClassLoaderStructure classLoaderStructure;
 
-    public IsolatedParametersActionExecutionSpec(Class<? extends WorkerExecution<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure) {
+    public IsolatedParametersActionExecutionSpec(Class<? extends WorkAction<T>> implementationClass, String displayName, Isolatable<T> isolatedParams, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
+        super(displayName, baseDir, usesInternalServices, classLoaderStructure);
         this.implementationClass = implementationClass;
-        this.displayName = displayName;
         this.isolatedParams = isolatedParams;
-        this.classLoaderStructure = classLoaderStructure;
     }
 
     @Override
-    public Class<? extends WorkerExecution<T>> getImplementationClass() {
+    public Class<? extends WorkAction<T>> getImplementationClass() {
         return implementationClass;
-    }
-
-    @Override
-    public String getDisplayName() {
-        return displayName;
     }
 
     @Override
     public T getParameters() {
         return isolatedParams.isolate();
-    }
-
-    @Override
-    public ClassLoaderStructure getClassLoaderStructure() {
-        return classLoaderStructure;
     }
 
     public Isolatable<T> getIsolatedParams() {

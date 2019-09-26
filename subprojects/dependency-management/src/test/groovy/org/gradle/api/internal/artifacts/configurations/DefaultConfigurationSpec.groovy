@@ -43,20 +43,18 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.DefaultExcludeRule
 import org.gradle.api.internal.artifacts.DefaultResolverResults
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ResolverResults
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.RootComponentMetadataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedLocalComponentsResult
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.artifacts.transform.DomainObjectProjectStateHandler
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
@@ -66,6 +64,7 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.Factories
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
@@ -94,10 +93,8 @@ class DefaultConfigurationSpec extends Specification {
     def projectAccessListener = Mock(ProjectAccessListener)
     def projectFinder = Mock(ProjectFinder)
     def immutableAttributesFactory = AttributeTestUtil.attributesFactory()
-    def moduleIdentifierFactory = Mock(ImmutableModuleIdentifierFactory)
     def rootComponentMetadataBuilder = Mock(RootComponentMetadataBuilder)
     def projectStateRegistry = Mock(ProjectStateRegistry)
-    def projectState = Mock(ProjectState)
     def safeLock = Mock(ProjectStateRegistry.SafeExclusiveLock)
     def domainObjectCollectioncallbackActionDecorator = Mock(CollectionCallbackActionDecorator)
     def userCodeApplicationContext = Mock(UserCodeApplicationContext)
@@ -105,17 +102,15 @@ class DefaultConfigurationSpec extends Specification {
     def setup() {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener) }
         _ * resolver.getRepositories() >> []
-        _ * projectStateRegistry.stateFor(_) >> projectState
         _ * projectStateRegistry.newExclusiveOperationLock() >> safeLock
         _ * safeLock.withLock(_) >> { args -> args[0].run() }
-        _ * projectState.withMutableState(_) >> { args -> args[0].create() }
         _ * domainObjectCollectioncallbackActionDecorator.decorate(_) >> { args -> args[0] }
         _ * userCodeApplicationContext.decorateWithCurrent(_) >> { args -> args[0] }
     }
 
     void defaultValues() {
         when:
-        def configuration = conf("name", "project")
+        def configuration = conf("name", ":project")
 
         then:
         configuration.name == "name"
@@ -133,7 +128,7 @@ class DefaultConfigurationSpec extends Specification {
 
     def hasUsefulDisplayName() {
         when:
-        def configuration = conf("name", "project", "build")
+        def configuration = conf("name", ":project", ":build")
 
         then:
         configuration.displayName == "configuration ':build:project:name'"
@@ -476,7 +471,13 @@ class DefaultConfigurationSpec extends Specification {
         def visitedArtifactSet = Stub(VisitedArtifactSet)
 
         _ * visitedArtifactSet.select(_, _, _, _) >> Stub(SelectedArtifactSet) {
-            visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l -> files.each { visitor.visitFile(null, null, null, it) } }
+            visitArtifacts(_, _) >> { ArtifactVisitor visitor, boolean l ->
+                files.each {
+                    def artifact = Stub(ResolvableArtifact)
+                    _ * artifact.file >> it
+                    visitor.visitArtifact(null, null, artifact)
+                }
+            }
         }
 
         _ * localComponentsResult.resolvedProjectConfigurations >> Collections.emptySet()
@@ -538,7 +539,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         configuration.allArtifacts.files.files == [artifact1.file, artifact2.file] as Set
-        configuration.allArtifacts.files.buildDependencies == configuration.allArtifacts.buildDependencies
+        configuration.allArtifacts.files.buildDependencies.getDependencies(Mock(Task)) == [artifactTask1, artifactTask2] as Set
         configuration.allArtifacts.buildDependencies.getDependencies(Mock(Task)) == [artifactTask1, artifactTask2] as Set
     }
 
@@ -1098,24 +1099,20 @@ class DefaultConfigurationSpec extends Specification {
 
     def "resolving configuration puts it into the right state and broadcasts events"() {
         def listenerBroadcaster = Mock(AnonymousListenerBroadcast)
-
-        when:
-        def config = conf("conf")
-
-        then:
-        1 * listenerManager.createAnonymousBroadcaster(_) >> listenerBroadcaster
-
         def listener = Mock(DependencyResolutionListener)
+        def config
 
         when:
+        config = conf("conf")
         def result = Mock(ResolutionResult)
         resolves(config, result, Mock(ResolvedConfiguration))
         config.incoming.getResolutionResult().root
 
         then:
+        1 * listenerManager.createAnonymousBroadcaster(_) >> listenerBroadcaster
         _ * listenerBroadcaster.getSource() >> listener
-        1 * listener.beforeResolve(config.incoming)
-        1 * listener.afterResolve(config.incoming)
+        1 * listener.beforeResolve(_) >> { ResolvableDependencies dependencies -> assert dependencies == config.incoming }
+        1 * listener.afterResolve(_) >> { ResolvableDependencies dependencies -> assert dependencies == config.incoming }
         config.resolvedState == ConfigurationInternal.InternalState.ARTIFACTS_RESOLVED
         config.state == RESOLVED
     }
@@ -1746,37 +1743,21 @@ All Artifacts:
     }
 
     private DefaultConfiguration conf(String confName = "conf", String projectPath = ":", String buildPath = ":") {
-        def domainObjectContext = new DomainObjectContext() {
-            @Override
-            Path identityPath(String name) {
-                getBuildPath().append(getProjectPath()).child(name)
-            }
-
-            @Override
-            Path projectPath(String name) {
-                getProjectPath().child(name)
-            }
-
-            @Override
-            Path getProjectPath() {
-                Path.ROOT.append(Path.path(projectPath))
-            }
-
-            @Override
-            Path getBuildPath() {
-                Path.ROOT.append(Path.path(buildPath))
-            }
-
-            @Override
-            boolean isScript() {
-                return false
-            }
-        }
+        def domainObjectContext = Stub(DomainObjectContext)
+        def modelContainer = Stub(ModelContainer)
+        def build = Path.path(buildPath)
+        _ * domainObjectContext.identityPath(_) >> { String p -> build.append(Path.path(projectPath)).child(p) }
+        _ * domainObjectContext.projectPath(_) >> { String p -> Path.path(projectPath).child(p) }
+        _ * domainObjectContext.buildPath >> Path.path(buildPath)
+        _ * domainObjectContext.model >> modelContainer
+        _ * modelContainer.hasMutableState() >> true
+        _ * modelContainer.withMutableState(_) >> { throw new RuntimeException() }
+        _ * modelContainer.withLenientState(_) >> { throw new RuntimeException() }
 
         def publishArtifactNotationParser = NotationParserBuilder.toType(ConfigurablePublishArtifact).toComposite()
         new DefaultConfiguration(domainObjectContext, confName, configurationsProvider, resolver, listenerManager, metaDataProvider,
             Factories.constant(resolutionStrategy), projectAccessListener, projectFinder, TestFiles.fileCollectionFactory(),
-            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Stub(DocumentationRegistry), userCodeApplicationContext, new DomainObjectProjectStateHandler(projectStateRegistry, domainObjectContext, projectFinder), TestUtil.domainObjectCollectionFactory())
+            new TestBuildOperationExecutor(), instantiator, publishArtifactNotationParser, Stub(NotationParser), immutableAttributesFactory, rootComponentMetadataBuilder, Stub(DocumentationRegistry), userCodeApplicationContext, domainObjectContext, projectStateRegistry, TestUtil.domainObjectCollectionFactory())
     }
 
     private DefaultPublishArtifact artifact(String name) {

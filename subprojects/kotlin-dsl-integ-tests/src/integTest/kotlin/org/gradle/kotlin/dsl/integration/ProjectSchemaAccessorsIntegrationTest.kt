@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -29,7 +30,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Ignore
 import org.junit.Test
 
 import java.io.File
@@ -712,7 +712,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @Ignore("TODO: change this test not to be dependent on an old version of the build-scan plugin")
     fun `given extension with inaccessible type, its accessor is typed Any`() {
 
         withFile("init.gradle", """
@@ -721,7 +720,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     gradlePluginPortal()
                 }
                 dependencies {
-                    classpath "com.gradle:build-scan-plugin:1.16"
+                    classpath "com.gradle:build-scan-plugin:${AutoAppliedBuildScanPlugin.VERSION}"
                 }
             }
             rootProject {
@@ -840,43 +839,30 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             class MyPlugin : Plugin<Project> {
                 override fun apply(project: Project): Unit = project.run {
+                    val rootExtension = extensions.create("rootExtension", MyExtension::class.java, "root")
 
-                    val instantiator = serviceOf<Instantiator>()
-
-                    val rootExtension = MyExtension("root", instantiator)
-                    val rootExtensionNestedExtension = MyExtension("nested-in-extension", instantiator)
-                    val rootExtensionNestedConvention = MyConvention("nested-in-extension", instantiator)
-
-                    extensions.add("rootExtension", rootExtension)
-
-                    rootExtension.extensions.add("nestedExtension", rootExtensionNestedExtension)
+                    val rootExtensionNestedExtension = rootExtension.extensions.create("nestedExtension", MyExtension::class.java, "nested-in-extension")
                     rootExtensionNestedExtension.extensions.add("deepExtension", listOf("foo", "bar"))
 
+                    val rootExtensionNestedConvention = objects.newInstance(MyConvention::class.java, "nested-in-extension")
                     rootExtensionNestedConvention.extensions.add("deepExtension", mapOf("foo" to "bar"))
 
-                    val rootConvention = MyConvention("root", instantiator)
-                    val rootConventionNestedExtension = MyExtension("nested-in-convention", instantiator)
-                    val rootConventionNestedConvention = MyConvention("nested-in-convention", instantiator)
+                    val rootConvention = objects.newInstance(MyConvention::class.java, "root")
+                    val rootConventionNestedConvention = objects.newInstance(MyConvention::class.java, "nested-in-convention")
 
                     convention.plugins.put("rootConvention", rootConvention)
 
-                    rootConvention.extensions.add("nestedExtension", rootConventionNestedExtension)
+                    val rootConventionNestedExtension = rootConvention.extensions.create("nestedExtension", MyExtension::class.java, "nested-in-convention")
                     rootConventionNestedExtension.extensions.add("deepExtension", listOf("bazar", "cathedral"))
 
                     rootConventionNestedConvention.extensions.add("deepExtension", mapOf("bazar" to "cathedral"))
                 }
             }
 
-            class MyExtension(val value: String = "value", instantiator: Instantiator) : ExtensionAware, HasConvention {
-                private val convention: DefaultConvention = DefaultConvention(instantiator)
-                override fun getExtensions(): ExtensionContainer = convention
-                override fun getConvention(): Convention = convention
+            abstract class MyExtension(val value: String) : ExtensionAware {
             }
 
-            class MyConvention(val value: String = "value", instantiator: Instantiator) : ExtensionAware, HasConvention {
-                private val convention: DefaultConvention = DefaultConvention(instantiator)
-                override fun getExtensions(): ExtensionContainer = convention
-                override fun getConvention(): Convention = convention
+            abstract class MyConvention @javax.inject.Inject constructor(val value: String) : ExtensionAware {
             }
         """)
 

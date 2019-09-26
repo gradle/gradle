@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Unroll
 
@@ -38,7 +37,7 @@ class TestUsage implements org.gradle.api.internal.component.UsageContext {
     Set artifacts = []
     Set capabilities = []
     Set globalExcludes = []
-    AttributeContainer attributes
+    AttributeContainer attributes = org.gradle.api.internal.attributes.ImmutableAttributes.EMPTY
 }
 
 class TestVariant implements org.gradle.api.internal.component.SoftwareComponentInternal {
@@ -55,10 +54,14 @@ class TestCapability implements Capability {
     allprojects {
         configurations { implementation }
     }
+    
+    def testAttributes = project.services.get(org.gradle.api.internal.attributes.ImmutableAttributesFactory)
+         .mutable()
+         .attribute(Attribute.of('foo', String), 'value')
 """
     }
 
-    def "generates metadata for component with no variants"() {
+    def "fails to generate metadata for component with no variants"() {
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -82,25 +85,18 @@ class TestCapability implements Capability {
         """
 
         when:
-        succeeds 'publish'
+        fails 'publish'
 
         then:
-        def module = mavenRepo.module('group', 'root', '1.0')
-        module.assertPublished()
-        module.parsedModuleMetadata.variants.empty
+        failure.assertHasCause """Invalid publication 'maven':
+  - This publication must publish at least one variant"""
     }
 
-    @Unroll
-    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (preview=#enableFeaturePreview, enabled=#enabled)"() {
-        publishModuleMetadata = enableFeaturePreview
-
+    def "fails to generate Gradle metadata if 2 variants have the same attributes"() {
         given:
         settingsFile.text = """
             rootProject.name = 'root'
         """
-        if (enableFeaturePreview) {
-            FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-        }
         buildFile << """
             apply plugin: 'maven-publish'
 
@@ -108,6 +104,203 @@ class TestCapability implements Capability {
             version = '1.0'
 
             def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: testAttributes))
+
+            comp.usages.add(new TestUsage(
+                    name: 'impl',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: testAttributes))
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                    }
+                }
+            }
+            
+        """
+
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause """Invalid publication 'maven':
+  - Variants 'api' and 'impl' have the same attributes and capabilities. Please make sure either attributes or capabilities are different."""
+    }
+
+    def "generates Gradle metadata if 2 variants have the same attributes but different capabilities"() {
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+        """
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: testAttributes))
+
+            comp.usages.add(new TestUsage(
+                    name: 'impl',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: testAttributes,
+                    capabilities: [new TestCapability(group:'org.test', name: 'test', version: '1')]))
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                    }
+                }
+            }
+            
+        """
+
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        when:
+        succeeds 'publish'
+
+        then:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('group', 'publishTest', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variants.size() == 2
+    }
+
+    def "fails to generate Gradle metadata if 2 variants have the same name"() {
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+        """
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: testAttributes))
+
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'impl'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: testAttributes))
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                    }
+                }
+            }
+            
+        """
+
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause """Invalid publication 'maven':
+  - It is invalid to have multiple variants with the same name ('api')"""
+    }
+
+    def "fails to generate Gradle metadata if a variant doesn't have attributes"() {
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+        """
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    dependencies: configurations.implementation.allDependencies))
+
+            comp.usages.add(new TestUsage(
+                    name: 'impl',
+                    usage: objects.named(Usage, 'impl'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: testAttributes))
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                    }
+                }
+            }
+            
+        """
+
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause """Invalid publication 'maven':
+  - Variant 'api' must declare at least one attribute."""
+    }
+
+    @Unroll
+    def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+        """
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    attributes: testAttributes))
 
             publishing {
                 repositories {
@@ -133,11 +326,9 @@ class TestCapability implements Capability {
         module.hasGradleMetadataRedirectionMarker() == hasMarker
 
         where:
-        enableFeaturePreview | enabled | hasMarker
-        false                | false   | false
-        false                | true    | true       // component with variants is published independently of feature preview
-        true                 | false   | false
-        true                 | true    | true
+        enabled | hasMarker
+        false   | false
+        true    | true
     }
 
     def "maps project dependencies"() {
@@ -164,7 +355,7 @@ class TestCapability implements Capability {
                     name: 'api',
                     usage: objects.named(Usage, 'api'), 
                     dependencies: configurations.implementation.allDependencies, 
-                    attributes: configurations.implementation.attributes))
+                    attributes: testAttributes))
 
             dependencies {
                 implementation project(':a')
@@ -228,7 +419,7 @@ class TestCapability implements Capability {
                     name: 'api',
                     usage: objects.named(Usage, 'api'), 
                     dependencies: configurations.implementation.allDependencies, 
-                    attributes: configurations.implementation.attributes))
+                    attributes: testAttributes))
 
             dependencies {
                 implementation("org:foo") {
@@ -302,7 +493,7 @@ class TestCapability implements Capability {
                     usage: objects.named(Usage, 'api'), 
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
-                    attributes: configurations.implementation.attributes))
+                    attributes: testAttributes))
 
             dependencies {
                 constraints {
@@ -352,7 +543,7 @@ class TestCapability implements Capability {
                     name: 'api',
                     usage: objects.named(Usage, 'api'), 
                     dependencies: configurations.implementation.allDependencies, 
-                    attributes: configurations.implementation.attributes))
+                    attributes: testAttributes))
 
             dependencies {
                 implementation("org:foo") {
@@ -411,7 +602,7 @@ class TestCapability implements Capability {
                     usage: objects.named(Usage, 'api'), 
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
-                    attributes: configurations.implementation.attributes))
+                    attributes: testAttributes))
 
             dependencies {
                 implementation("org:foo:1.0") {
@@ -465,7 +656,7 @@ class TestCapability implements Capability {
             comp.usages.add(new TestUsage(
                     name: 'api',
                     usage: objects.named(Usage, 'api'), 
-                    attributes: configurations.implementation.attributes,
+                    attributes: testAttributes,
                     capabilities: [new TestCapability(group:'org.test', name: 'test', version: '1')]))
 
             publishing {
@@ -510,7 +701,7 @@ class TestCapability implements Capability {
                     usage: objects.named(Usage, 'api'), 
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
-                    attributes: configurations.implementation.attributes))
+                    attributes: testAttributes))
 
             dependencies {
                 implementation("org:foo:1.0") {
@@ -554,5 +745,86 @@ class TestCapability implements Capability {
             }
             noMoreDependencies()
         }
+    }
+
+    def "publishes component with strict version constraints"() {
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'api',
+                    usage: objects.named(Usage, 'api'), 
+                    dependencies: configurations.implementation.allDependencies, 
+                    dependencyConstraints: configurations.implementation.allDependencyConstraints,
+                    attributes: testAttributes))
+
+            dependencies {
+                implementation("org:platform:1.0") {
+                    endorseStrictVersions()
+                }
+                implementation("org:foo") {
+                    version {
+                        strictly '1.0'
+                    }
+                }
+                constraints {
+                    implementation("org:bar") {
+                        version {
+                            strictly '1.1'
+                        }
+                    }
+                }
+            }
+
+            publishing {
+                repositories {
+                    maven { url "${mavenRepo.uri}" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from comp
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds 'publish'
+
+        then:
+        def module = mavenRepo.module('group', 'root', '1.0')
+        module.assertPublished()
+        module.parsedModuleMetadata.variants.size() == 1
+        def variant = module.parsedModuleMetadata.variants[0]
+        variant.dependencies.size() == 2
+        variant.dependencyConstraints.size() == 1
+
+        variant.dependencies[0].endorseStrictVersions
+        variant.dependencies[0].group == 'org'
+        variant.dependencies[0].module == 'platform'
+        variant.dependencies[0].version == '1.0'
+        variant.dependencies[0].prefers == null
+        variant.dependencies[0].strictly == null
+        variant.dependencies[0].rejectsVersion == []
+
+        !variant.dependencies[1].endorseStrictVersions
+        variant.dependencies[1].group == 'org'
+        variant.dependencies[1].module == 'foo'
+        variant.dependencies[1].version == '1.0'
+        variant.dependencies[1].prefers == null
+        variant.dependencies[1].strictly == '1.0'
+        variant.dependencies[1].rejectsVersion == []
+
+        variant.dependencyConstraints[0].group == 'org'
+        variant.dependencyConstraints[0].module == 'bar'
+        variant.dependencyConstraints[0].version == '1.1'
+        variant.dependencyConstraints[0].prefers == null
+        variant.dependencyConstraints[0].strictly == '1.1'
+        variant.dependencyConstraints[0].rejectsVersion == []
     }
 }

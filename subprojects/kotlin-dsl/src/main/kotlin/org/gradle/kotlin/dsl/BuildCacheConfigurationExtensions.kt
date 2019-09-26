@@ -19,7 +19,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.caching.BuildCacheServiceFactory
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.BuildCacheConfiguration
-
+import org.gradle.caching.local.DirectoryBuildCache
 import kotlin.reflect.KClass
 
 
@@ -47,8 +47,10 @@ inline fun <reified T : BuildCache> BuildCacheConfiguration.registerBuildCacheSe
  *
  * @see BuildCacheConfiguration.local
  */
-inline fun <reified T : BuildCache> BuildCacheConfiguration.local(): T =
-    local(T::class.java)
+@Deprecated(message = "Scheduled to be removed in Gradle 6.0", replaceWith = ReplaceWith("local()"))
+inline fun <reified T : DirectoryBuildCache> BuildCacheConfiguration.local(): T {
+    return local(T::class.java)
+}
 
 
 /**
@@ -65,8 +67,10 @@ inline fun <reified T : BuildCache> BuildCacheConfiguration.local(): T =
  *
  * @see BuildCacheConfiguration.local
  */
-inline fun <reified T : BuildCache> BuildCacheConfiguration.local(noinline configuration: T.() -> Unit): T =
-    local(T::class.java, configuration)
+@Deprecated(message = "Scheduled to be removed in Gradle 6.0", replaceWith = ReplaceWith("local(Action)"))
+inline fun <reified T : DirectoryBuildCache> BuildCacheConfiguration.local(noinline configuration: T.() -> Unit): T {
+    return local(T::class.java, configuration)
+}
 
 
 /**

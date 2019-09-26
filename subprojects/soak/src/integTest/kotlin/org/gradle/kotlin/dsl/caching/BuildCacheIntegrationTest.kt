@@ -16,6 +16,10 @@
 
 package org.gradle.kotlin.dsl.caching
 
+import org.gradle.kotlin.dsl.caching.fixtures.CachedScript
+import org.gradle.kotlin.dsl.caching.fixtures.cachedBuildFile
+import org.gradle.kotlin.dsl.caching.fixtures.cachedSettingsFile
+import org.gradle.kotlin.dsl.caching.fixtures.compilationCache
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 
 import org.gradle.soak.categories.SoakTest
@@ -134,7 +138,7 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
     fun withLocalBuildCacheSettings(buildCacheDir: File): File =
         withSettings("""
             buildCache {
-                local(DirectoryBuildCache::class.java) {
+                local {
                     directory = file("${buildCacheDir.normalisedPath}")
                     isEnabled = true
                     isPush = true

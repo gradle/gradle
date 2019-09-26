@@ -18,6 +18,12 @@ package org.gradle.integtests.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IvyEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
+    }
+
     public void "publishes EAR only for mixed java and WAR and EAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

@@ -34,18 +34,20 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.internal.file.Deleter;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -104,7 +106,11 @@ public class Javadoc extends SourceTask {
     @TaskAction
     protected void generate() {
         File destinationDir = getDestinationDir();
-        GFileUtils.cleanDirectory(destinationDir);
+        try {
+            getDeleter().ensureEmptyDirectory(destinationDir);
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
 
         StandardJavadocDocletOptions options = new StandardJavadocDocletOptions((StandardJavadocDocletOptions) getOptions());
 
@@ -353,5 +359,10 @@ public class Javadoc extends SourceTask {
 
     public void setExecutable(@Nullable String executable) {
         this.executable = executable;
+    }
+
+    @Inject
+    protected Deleter getDeleter() {
+        throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 }

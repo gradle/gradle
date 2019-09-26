@@ -26,7 +26,7 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
 
 public class DefaultGradleDistribution implements GradleDistribution {
-
+    private static final String DISABLE_HIGHEST_JAVA_VERSION = "org.gradle.java.version.disableHighest";
     private final GradleVersion version;
     private final TestFile gradleHomeDir;
     private final TestFile binDistribution;
@@ -82,7 +82,7 @@ public class DefaultGradleDistribution implements GradleDistribution {
         if (isVersion("0.9-rc-1") && javaVersion == JavaVersion.VERSION_1_5) {
             return false;
         }
-        
+
         if (isSameOrOlder("1.0")) {
             return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_7) <= 0;
         }
@@ -106,7 +106,16 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
         }
 
-        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0;
+        // 5.4 officially added support for JDK 12, but it worked before then.
+        if (isSameOrOlder("5.7")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_12) <= 0;
+        }
+
+        if (isSameOrOlder("6.0")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_13) <= 0;
+        }
+
+        return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && maybeEnforceHighestVersion(javaVersion, JavaVersion.VERSION_13);
     }
 
     @Override
@@ -118,6 +127,15 @@ public class DefaultGradleDistribution implements GradleDistribution {
         } else {
             return true;
         }
+    }
+
+    /**
+     * Returns true if the given java version is less than the given highest version bound.  Always returns
+     * true if the highest version check is disabled via system property.
+     */
+    private boolean maybeEnforceHighestVersion(JavaVersion javaVersion, JavaVersion highestVersion) {
+        boolean disableHighest = System.getProperty(DISABLE_HIGHEST_JAVA_VERSION) != null;
+        return disableHighest || javaVersion.compareTo(highestVersion) <= 0;
     }
 
     @Override
@@ -143,6 +161,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
     @Override
     public boolean isToolingApiLoggingInEmbeddedModeSupported() {
         return isSameOrNewer("2.9-rc-1");
+    }
+
+    @Override
+    public boolean isToolingApiStdinInEmbeddedModeSupported() {
+        return isSameOrNewer("5.6-rc-1");
     }
 
     @Override

@@ -22,9 +22,9 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 
-class  ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
+class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
     boolean isWellBehaved(boolean mavenCompatible, boolean gradleCompatible = true) {
-        (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataEnabled || gradleCompatible)
+        (GradleMetadataResolveRunner.useIvy() || mavenCompatible) && (!GradleMetadataResolveRunner.gradleMetadataPublished || gradleCompatible)
     }
 
     @Unroll
@@ -220,9 +220,9 @@ Versions rejected by component selection rules:
   - 1.0
 Searched in the following locations:
   - ${versionListingURI('org.utils', 'api')}
-${triedMetadata('org.utils', 'api', "1.2", false, gradleMetadataEnabled || !experimentalEnabled)}
-${triedMetadata('org.utils', 'api', "1.1", false, gradleMetadataEnabled || !experimentalEnabled)}
-${triedMetadata('org.utils', 'api', "1.0", false, gradleMetadataEnabled || !experimentalEnabled)}
+${triedMetadata('org.utils', 'api', "1.2")}
+${triedMetadata('org.utils', 'api', "1.1")}
+${triedMetadata('org.utils', 'api', "1.0")}
 Required by:
 """)
 

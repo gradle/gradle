@@ -24,9 +24,9 @@
                 <td><literal>[:]</literal></td>
                 <td>
                     <itemizedlist>
-                        <listitem><literal>COMPILE</literal> -> <literal>project.configurations.compile</literal></listitem>
-                        <listitem><literal>RUNTIME</literal> -> <literal>project.configurations.runtime - project.configurations.compile</literal></listitem>
-                        <listitem><literal>TEST</literal> -> <literal>project.configurations.testRuntime - project.configurations.runtime</literal></listitem>
+                        <listitem><literal>COMPILE</literal> -> <literal>project.configurations.compileClasspath</literal></listitem>
+                        <listitem><literal>RUNTIME</literal> -> <literal>project.configurations.runtimeClasspath - project.configurations.compileClasspath</literal></listitem>
+                        <listitem><literal>TEST</literal> -> <literal>project.configurations.testRuntimeClasspath - project.configurations.runtimeClasspath</literal></listitem>
                         <listitem><literal>PROVIDED</literal></listitem>
                     </itemizedlist>
                 </td>

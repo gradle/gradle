@@ -34,27 +34,27 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     final BuildExperimentRunner experimentRunner
     final Clock clock = Time.clock()
 
+    String testClassName
     String testId
     String testGroup
     List<BuildExperimentSpec> specs = []
 
     final DataReporter<R> reporter
+    final ResultsStore resultsStore
 
-    BuildExperimentListener buildExperimentListener
-    InvocationCustomizer invocationCustomizer
-
-    public AbstractGradleBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
+    AbstractGradleBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<R> dataReporter, IntegrationTestBuildContext buildContext) {
         this.reporter = dataReporter
+        this.resultsStore = resultsStore
         this.experimentRunner = experimentRunner
         this.buildContext = buildContext
         this.gradleDistribution = new UnderDevelopmentGradleDistribution(buildContext)
     }
 
-    public void baseline(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
+    void baseline(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
         buildSpec(configureAction)
     }
 
-    public void buildSpec(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
+    void buildSpec(@DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure<?> configureAction) {
         def builder = GradleBuildExperimentSpec.builder()
         configureAndAddSpec(builder, configureAction)
     }
@@ -72,8 +72,6 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     }
 
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.setListener(buildExperimentListener)
-        builder.setInvocationCustomizer(invocationCustomizer)
     }
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
@@ -94,8 +92,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert !specs.empty
         assert testId
 
-        def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, specs.projectName.toSet(), (ResultsStore) reporter))
+        Assume.assumeTrue(TestScenarioSelector.shouldRun(testClassName, testId, specs.projectName.toSet(), resultsStore))
 
         def results = newResult()
 

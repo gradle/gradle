@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.component.SoftwareComponentFactory;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 
@@ -25,12 +26,12 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 public class PluginAuthorServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new GlobalcopeServices());
+        registration.addProvider(new GlobalScopeServices());
     }
 
-    private static class GlobalcopeServices {
-        SoftwareComponentFactory createSoftwareComponentFactory() {
-            return new DefaultSoftwareComponentFactory();
+    private static class GlobalScopeServices {
+        SoftwareComponentFactory createSoftwareComponentFactory(Instantiator instantiator) {
+            return new DefaultSoftwareComponentFactory(instantiator);
         }
     }
 }

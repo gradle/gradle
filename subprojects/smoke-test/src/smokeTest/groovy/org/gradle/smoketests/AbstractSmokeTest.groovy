@@ -19,15 +19,17 @@ package org.gradle.smoketests
 import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.createMirrorInitScript
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
 
 abstract class AbstractSmokeTest extends Specification {
 
@@ -38,49 +40,48 @@ abstract class AbstractSmokeTest extends Specification {
          */
 
         // https://plugins.gradle.org/plugin/nebula.dependency-recommender
-        static nebulaDependencyRecommender = "7.5.5"
+        static nebulaDependencyRecommender = "8.0.1"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "11.2.12"
+        static nebulaPluginPlugin = "12.4.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "11.5.0"
+        static nebulaLint = "14.2.0"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.0", "7.3.4")
+        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.4", "7.6.7", "8.0.0")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
-        static nebulaResolutionRules = "7.1.0"
+        static nebulaResolutionRules = "7.4.1"
 
         // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-        static shadow = Versions.of("4.0.4", "5.0.0")
+        static shadow = Versions.of("4.0.4", "5.1.0")
 
         // https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases
-        static asciidoctor = "2.2.0"
+        static asciidoctor = "2.3.0"
 
         // https://plugins.gradle.org/plugin/com.github.spotbugs
         static spotbugs = "2.0.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "4.8.1"
+        static docker = "5.0.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
 
         // https://plugins.gradle.org/plugin/io.spring.dependency-management
-        static springDependencyManagement = "1.0.7.RELEASE"
+        static springDependencyManagement = "1.0.8.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.1.5.RELEASE"
+        static springBoot = "2.1.8.RELEASE"
 
         // https://developer.android.com/studio/releases/build-tools
-        static androidTools = "28.0.3"
+        static androidTools = "29.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle3x = "3.3.2"
-        static androidGradle = Versions.of("3.2.1", androidGradle3x, "3.4.1")
+        static androidGradle = Versions.of("3.4.2", "3.5.0", "3.6.0-alpha12")
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of('1.2.31', '1.2.41', '1.2.51', '1.2.61', '1.2.71', '1.3.0', '1.3.11', '1.3.21', '1.3.31', '1.3.41')
+        static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50')
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = "2.3.1"
@@ -95,10 +96,10 @@ abstract class AbstractSmokeTest extends Specification {
         static grgit = "3.1.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.21.0"
+        static gradleVersions = "0.25.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
-        static playframework = "0.6"
+        static playframework = "0.9"
 
         // https://plugins.gradle.org/plugin/net.ltgt.errorprone
         static errorProne = "0.8.1"
@@ -127,7 +128,8 @@ abstract class AbstractSmokeTest extends Specification {
 
     private static final String INIT_SCRIPT_LOCATION = "org.gradle.smoketests.init.script"
 
-    @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
+    @Rule
+    final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
 
     File settingsFile
@@ -158,13 +160,26 @@ abstract class AbstractSmokeTest extends Specification {
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
-            .withArguments(tasks.toList() + ['-s'] + repoMirrorParameters()) as DefaultGradleRunner
-        gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=512m", "-XX:+HeapDumpOnOutOfMemoryError")
+            .forwardOutput()
+            .withArguments(tasks.toList() + outputParameters() + repoMirrorParameters()) as DefaultGradleRunner
+        gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError")
+    }
+
+    private static List<String> outputParameters() {
+        return [
+            '--stacktrace',
+            '--warning-mode=all',
+            "-D${LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME}=false" as String,
+        ]
     }
 
     private static List<String> repoMirrorParameters() {
         String mirrorInitScriptPath = createMirrorInitScript().absolutePath
-        return ['-I', mirrorInitScriptPath, "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}".toString(), "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}".toString()]
+        return [
+            '--init-script', mirrorInitScriptPath,
+            "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
+            "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
+        ]
     }
 
     protected void useSample(String sampleDirectory) {
@@ -190,5 +205,27 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected static String googleRepository() {
         RepoScriptBlockUtil.googleRepository()
+    }
+
+    protected static void expectNoDeprecationWarnings(BuildResult result) {
+        verifyDeprecationWarnings(result, [])
+    }
+
+    protected static void expectDeprecationWarnings(BuildResult result, String... warnings) {
+        if (warnings.length == 0) {
+            throw new IllegalArgumentException("Use expectNoDeprecationWarnings() when no deprecation warnings are to be expected")
+        }
+        verifyDeprecationWarnings(result, warnings as List)
+    }
+
+    private static void verifyDeprecationWarnings(BuildResult result, List<String> remainingWarnings) {
+        def lines = result.output.readLines()
+        lines.eachWithIndex { String line, int lineIndex ->
+            if (remainingWarnings.remove(line)) {
+                return
+            }
+            assert !line.contains("deprecated"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
+        }
+        assert remainingWarnings.empty, "Expected ${remainingWarnings.size()} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
     }
 }

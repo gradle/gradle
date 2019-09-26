@@ -142,19 +142,12 @@ class A2{}
         def textFile = file('text-file.txt')
         textFile.text = "text file as root"
 
-        executer.expectDeprecationWarning()
-        outputs.snapshot { run language.compileTaskName }
-
-        when:
-        file("extra/B.${language.name}").text = "class B { String change; }"
-        executer.withArgument "--info"
-        executer.expectDeprecationWarning()
-        run language.compileTaskName
-
-        then:
-        outputs.recompiledClasses("A", "B", "C")
-        output.contains('Unable to infer source roots. Incremental Groovy compilation requires the source roots and has been disabled. Change the configuration of your sources or disable incremental Groovy compilation.')
-        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
+        expect:
+        fails language.compileTaskName
+        failure.assertHasCause(
+            'Unable to infer source roots. ' +
+                'Incremental Groovy compilation requires the source roots. ' +
+                'Change the configuration of your sources or disable incremental Groovy compilation.')
     }
 
     def 'clear class source mapping file on full recompilation'() {
@@ -170,7 +163,7 @@ class A2{}
         run 'compileGroovy', '--info'
 
         then:
-        outputContains('changes to non-Groovy files are not supported by incremental compilation')
+        outputContains("Full recompilation is required because non-Groovy file 'B.java' has been added.")
         !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('MyClass')
     }
 
@@ -188,5 +181,30 @@ class A2{}
         skipped(':compileGroovy')
         !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('A.groovy')
         file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('B.groovy')
+    }
+
+    def "does recompile when a resource changes"() {
+        // TODO wolfs:
+        //  Currently, a change to any non-Groovy file causes a full recompile.
+        //  Later, changes to Java files should be handled incrementally.
+        //  Changes to the registration file for global transforms needs to cause a full recompile.
+        //  Other resources can probably be used by AST transformations, so they probably should cause a full recompile as well.
+        given:
+        buildFile << """
+            ${language.compileTaskName}.source 'src/main/resources'
+        """
+        source("class A {}")
+        source("class B {}")
+        def resource = file("src/main/resources/foo.txt")
+        resource.text = 'foo'
+
+        outputs.snapshot { succeeds language.compileTaskName }
+
+        when:
+        resource.text = 'bar'
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledClasses("A", "B")
     }
 }

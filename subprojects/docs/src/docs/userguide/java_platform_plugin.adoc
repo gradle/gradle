@@ -13,7 +13,7 @@
 // limitations under the License.
 :maven-bom: https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management
 :spring-boot-bom: https://docs.spring.io/spring-boot/docs/current/reference/html/using-boot-build-systems.html#using-boot-dependency-management
-:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-1.0-specification.md
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[java_platform_plugin]]
 = The Java Platform Plugin
@@ -28,7 +28,7 @@ A platform can be used for different purposes:
 A platform is a special kind of software component which doesn't contain any sources:
 it is only used to reference other libraries, so that they play well together during dependency resolution.
 
-Platforms can be published as {maven-bom}[Maven BOMs] or with the experimental {metadata-file-spec}[Gradle metadata file] format.
+Platforms can be published as {metadata-file-spec}[Gradle Module Metadata] and {maven-bom}[Maven BOMs].
 
 [NOTE]
 ====
@@ -54,7 +54,7 @@ include::sample[dir="java-platform/quickstart/kotlin",files="build.gradle.kts[ta
 A major difference between a Maven BOM and a Java platform is that in Gradle dependencies and <<dependency_management_terminology.adoc#sub:terminology_dependency_constraint,constraints>> are declared and scoped to a configuration and the ones extending it.
 While many users will only care about declaring constraints for _compile time_ dependencies, thus inherited by runtime and tests ones, it allows declaring dependencies or constraints that only apply to runtime or test.
 
-For this purpose, the plugin exposes two <<managing_dependency_configurations.adoc#managing_dependency_configurations,configurations>> that can be used to declare dependencies: `api` and `runtime`.
+For this purpose, the plugin exposes two <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,configurations>> that can be used to declare dependencies: `api` and `runtime`.
 The `api` configuration should be used to declare constraints and dependencies which should be used when compiling against the platform, whereas the `runtime` configuration should be used to declare constraints or dependencies which are visible at runtime.
 
 .Declaring API and runtime constraints
@@ -124,7 +124,7 @@ This will generate a BOM file for the platform, with a `<dependencyManagement>` 
 [[sec:java_platform_consumption]]
 == Consuming platforms
 
-Because a Java Platform is a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <<managing_dependency_configurations.adoc#sec:bom_import,managing transitive dependencies>> section.
+Because a Java Platform is a special kind of component, a dependency on a Java platform has to be declared using the `platform` or `enforcedPlatform` keyword, as explained in the <<controlling_transitive_dependencies.adoc#sub:bom_import,managing transitive dependencies>> section.
 For example, if you want to share dependency versions between subprojects, you can define a platform module which would declare all versions:
 
 .Recommend versions in a platform module

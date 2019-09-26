@@ -17,7 +17,6 @@
 package org.gradle.java.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.file.TestFile
@@ -236,8 +235,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
     }
 
     def "can publish test fixtures"() {
-        FeaturePreviewsFixture.enableGradleMetadata(settingsFile)
-
         buildFile << """
             apply plugin: 'maven-publish'
             apply plugin: 'java-test-fixtures'
@@ -276,7 +273,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         MavenPom pom = new MavenPom(file("build/repo/com/acme/root/1.3/root-1.3.pom"))
         pom.scope("compile") {
             assertOptionalDependencies(
-                "com.acme:root:1.3",
                 "org.apache.commons:commons-lang3:3.9"
             )
         }
@@ -294,6 +290,55 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         }
     }
 
+    def "can deactivate test fixture publishing"() {
+        buildFile << """
+            apply plugin: 'maven-publish'
+            apply plugin: 'java-test-fixtures'
+
+            dependencies {
+                testFixturesImplementation 'org.apache.commons:commons-lang3:3.9'
+            }
+
+            components.java.withVariantsFromConfiguration(configurations.testFixturesApiElements) { skip() }
+            components.java.withVariantsFromConfiguration(configurations.testFixturesRuntimeElements) { skip() }
+
+            publishing {
+                repositories {
+                    maven {
+                        url "\${buildDir}/repo"
+                    }
+                    publications {
+                        maven(MavenPublication) {
+                            from components.java
+                        }
+                    }
+                }
+            }
+
+            group = 'com.acme'
+            version = '1.3'
+        """
+        addPersonDomainClass()
+        addPersonTestFixtureUsingApacheCommons()
+        addPersonTestUsingTestFixtures()
+
+        when:
+        succeeds 'publish'
+
+        then: "a test fixtures jar is not published"
+        !file("build/repo/com/acme/root/1.3/root-1.3-test-fixtures.jar").exists()
+
+        and: "doe not appear as optional dependency in Maven POM"
+        MavenPom pom = new MavenPom(file("build/repo/com/acme/root/1.3/root-1.3.pom"))
+        pom.scopes.isEmpty()
+
+        and: "does not appear as a variant in Gradle Module metadata"
+        GradleModuleMetadata gmm = new GradleModuleMetadata(file("build/repo/com/acme/root/1.3/root-1.3.module"))
+        !gmm.variants.any { it.name == "testFixturesApiElements" }
+        !gmm.variants.any { it.name == "testFixturesRuntimeElements" }
+        gmm.variants.size() == 2
+    }
+
     def "can consume test fixtures of an external module"() {
         mavenRepo.module("com.acme", "external-module", "1.3")
             .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {
@@ -307,7 +352,6 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                 dependsOn("org.apache.commons:commons-lang3:3.9")
                 artifact("external-module-1.3-test-fixtures.jar")
             }
-            .withGradleMetadataRedirection()
             .withModuleMetadata()
             .publish()
         buildFile << """
@@ -338,7 +382,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                     ])
                     firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
-                        variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar'])
+                        variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                         artifact(name: 'external-module', version:'1.3')
                     }
                     artifact(name: 'external-module', version:'1.3', classifier:'test-fixtures')
@@ -364,7 +408,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                     ])
                     firstLevelConfigurations = ['testFixturesRuntimeElements']
                     module('com.acme:external-module:1.3') {
-                        variant("runtime", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar'])
+                        variant("runtime", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                         artifact(name: 'external-module', version:'1.3')
                     }
                     module("org.apache.commons:commons-lang3:3.9") {

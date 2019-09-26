@@ -27,6 +27,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectories;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.work.InputChanges;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -130,8 +132,16 @@ public class AnnotationProcessingTasks {
         public void doStuff(IncrementalTaskInputs changes) {
             action.execute(changes);
         }
+
+        @Optional
+        @OutputFile
+        @Nullable
+        public File getOutputFile() {
+            return null;
+        }
     }
 
+    @SuppressWarnings("GrDeprecatedAPIUsage")
     public static class TaskWithOverriddenIncrementalAction extends TaskWithIncrementalAction {
         private final Action<IncrementalTaskInputs> action;
 
@@ -165,6 +175,13 @@ public class AnnotationProcessingTasks {
         @TaskAction
         public void doStuff(InputChanges changes) {
             action.execute(changes);
+        }
+
+        @Optional
+        @OutputFile
+        @Nullable
+        public File getOutputFile() {
+            return null;
         }
     }
 
@@ -230,6 +247,55 @@ public class AnnotationProcessingTasks {
 
         @TaskAction
         public void doStuff(InputChanges changes) {}
+    }
+
+    public static class TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions extends DefaultTask {
+        private final Action<Object> changesAction;
+
+        public TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions(Action<Object> changesAction) {
+            this.changesAction = changesAction;
+        }
+
+        @TaskAction
+        @Deprecated
+        public void doStuff(IncrementalTaskInputs changes) {
+            changesAction.execute(changes);
+            doStuff((InputChanges) changes);
+        }
+
+        @TaskAction
+        public void doStuff(InputChanges changes) {
+            changesAction.execute(changes);
+        }
+
+        @Optional
+        @OutputDirectory
+        @Nullable
+        public File getOutputDirectory() {
+            return null;
+        }
+    }
+
+    public static class TaskOverridingDeprecatedIncrementalChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
+        public TaskOverridingDeprecatedIncrementalChangesActions(Action<Object> changesAction) {
+            super(changesAction);
+        }
+
+        @Override
+        public void doStuff(IncrementalTaskInputs changes) {
+            super.doStuff(changes);
+        }
+    }
+
+    public static class TaskOverridingInputChangesActions extends TaskWithOverloadedDeprecatedIncrementalAndInputChangesActions {
+        public TaskOverridingInputChangesActions(Action<Object> changesAction) {
+            super(changesAction);
+        }
+
+        @Override
+        public void doStuff(InputChanges changes) {
+            super.doStuff(changes);
+        }
     }
 
     public static class TaskWithSingleParamAction extends DefaultTask {

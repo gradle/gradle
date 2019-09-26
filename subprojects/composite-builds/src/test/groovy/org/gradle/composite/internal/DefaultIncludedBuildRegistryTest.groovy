@@ -16,9 +16,10 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.StartParameter
+
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.GradleLauncher
@@ -237,7 +238,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
 
     def build(File rootDir) {
-        return BuildDefinition.fromStartParameterForBuild(StartParameter.getConstructor().newInstance(), null, rootDir, DefaultPluginRequests.EMPTY, null)
+        return BuildDefinition.fromStartParameterForBuild(StartParameterInternal.getConstructor().newInstance(), null, rootDir, DefaultPluginRequests.EMPTY, null)
     }
 
     def rootBuild() {

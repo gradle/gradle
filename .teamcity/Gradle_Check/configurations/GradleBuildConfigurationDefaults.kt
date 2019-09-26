@@ -17,15 +17,14 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
 import model.CIBuildModel
-import model.GradleSubproject
-import model.TestCoverage
 
-fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
-    // TODO: Hacky. We should really be running all the subprojects on macOS
-    // But we're restricting this to just a subset of projects for now
-    // since we only have a small pool of macOS agents
-    return testConfig.os.ignoredSubprojects.contains(subProject.name)
-}
+val killAllGradleProcesses = """
+    free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)'
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}' | xargs kill -9
+    free -m
+    ps aux | egrep 'Gradle(Daemon|Worker)' | awk '{print ${'$'}2}'
+""".trimIndent()
 
 val m2CleanScriptUnixLike = """
     REPO=%teamcity.agent.jvm.user.home%/.m2/repository
@@ -46,6 +45,12 @@ val m2CleanScriptWindows = """
         EXIT 1
     )
 """.trimIndent()
+
+fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
+    if (model.publishStatusToGitHub) {
+        publishBuildStatusToGithub()
+    }
+}
 
 fun BuildFeatures.publishBuildStatusToGithub() {
     commitStatusPublisher {
@@ -93,13 +98,13 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
             name = "GRADLE_RUNNER"
             tasks = "clean $gradleTasks"
             gradleParams = (
-                buildToolGradleParameters(daemon) +
+                buildToolGradleParameters(daemon, os = os) +
                     this@gradleRunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
                     "-PteamCityUsername=%teamcity.username.restbot%" +
                     "-PteamCityPassword=%teamcity.password.restbot%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { configurations.buildScanTag(it) }
+                    buildScanTags.map { buildScanTag(it) }
                 ).joinToString(separator = " ")
         }
     }
@@ -115,13 +120,13 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
             tasks = "$gradleTasks tagBuild"
             executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
             gradleParams = (
-                buildToolGradleParameters(daemon) +
+                buildToolGradleParameters(daemon, os = os) +
                     this@gradleRerunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
                     "-PteamCityUsername=%teamcity.username.restbot%" +
                     "-PteamCityPassword=%teamcity.password.restbot%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { configurations.buildScanTag(it) } +
+                    buildScanTags.map { buildScanTag(it) } +
                     "-PonlyPreviousFailedTestClasses=true" +
                     "-Dscan.tag.RERUN_TESTS" +
                     "-PgithubToken=%github.ci.oauth.token%"
@@ -159,6 +164,10 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
 }
 
 fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+    if (os == Os.macos) {
+        buildType.params.param("env.REPO_MIRROR_URLS", "")
+    }
+
     buildType.applyDefaultSettings(os, timeout)
 
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)

@@ -1,0 +1,439 @@
+[[publishing-components]]
+= Publishing
+
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
+
+[[publishing_overview]]
+The vast majority of software projects build something that aims to be consumed in some way.
+It could be a library that other software projects use or it could be an application for end users.
+_Publishing_ is the process by which the thing being built is made available to consumers.
+
+In Gradle, that process looks like this:
+
+1. Define <<#publishing_overview:what,what>> to publish
+2. Define <<#publishing_overview:where,where>> to publish it to
+3. <<#publishing_overview:how,Do>> the publishing
+
+Each of the these steps is dependent on the type of repository to which you want to publish artifacts.
+The two most common types are Maven-compatible and Ivy-compatible repositories, or Maven and Ivy repositories for short.
+
+As of Gradle 6.0, the <<#sec:understanding-gradle-module-md,Gradle Module Metadata>> will always be published alongside the Ivy XML or Maven POM metadata file.
+
+[NOTE]
+====
+Looking for information on upload tasks and the `archives` configuration?
+See the <<artifact_management.adoc#artifact_management,Legacy Publishing>> chapter, a feature which is now deprecated and scheduled for removal.
+====
+
+Gradle makes it easy to publish to these types of repository by providing some prepackaged infrastructure in the form of the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>> and the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>.
+These plugins allow you to configure what to publish and perform the publishing with a minimum of effort.
+
+.The publishing process
+image::publishing-process.png[]
+
+Let's take a look at those steps in more detail:
+
+[[publishing_overview:what]]
+What to publish::
+Gradle needs to know what files and information to publish so that consumers can use your project.
+This is typically a combination of <<dependency_management_terminology.adoc#sub:terminology_artifact,artifacts>> and metadata that Gradle calls a <<dependency_management_terminology.adoc#sub:terminology_publication,publication>>.
+Exactly what a publication contains depends on the type of repository it's being published to.
++
+For example, a publication destined for a Maven repository includes:
++
+* One or more artifacts — typically built by the project,
+* The Gradle Module Metadata file which will describe the variants of the published component,
+* The Maven POM file will identify the primary artifact and its dependencies.
+The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
+
+[[publishing_overview:where]]
+Where to publish::
+Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>>, which store and make available all sorts of artifact. Gradle also needs to interact with the repository, which is why you must provide the type of the repository and its location.
+
+[[publishing_overview:how]]
+How to publish::
+Gradle automatically generates publishing tasks for all possible combinations of publication and repository, allowing you to publish any artifact to any repository. If you're publishing to a Maven repository, the tasks are of type link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository], while for Ivy repositories the tasks are of type link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository].
+
+What follows is a practical example that demonstrates the entire publishing process.
+
+[[sec:basic_publishing]]
+== Setting up basic publishing
+
+The first step in publishing, irrespective of your project type, is to apply the appropriate publishing plugin. As mentioned in the introduction, Gradle supports both Maven and Ivy repositories via the following plugins:
+
+* <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>>
+* <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>
+
+These provide the specific publication and repository classes needed to configure publishing for the corresponding repository type. Since Maven repositories are the most commonly used ones, they will be the basis for this example and for the other samples in the chapter. Don't worry, we will explain how to adjust individual samples for Ivy repositories.
+
+Let's assume we're working with a simple Java library project, so only the following plugins are applied:
+
+.Applying the necessary plugins
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=apply-plugins]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=apply-plugins]"]
+====
+
+Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project's production JAR file — the one produced by the `jar` task — to a custom, Maven repository. We do that with the following `publishing {}` block, which is backed by link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]:
+
+.Configuring a Java library for publishing
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-publishing]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-publishing]"]
+====
+
+This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication].
+This publication consists of just the production JAR artifact and its metadata, which combined are represented by the `java` <<dependency_management_terminology.adoc#sub:terminology_component,component>> of the project.
+
+NOTE: Components are the standard way of defining a publication. They are provided by plugins, usually of the language or platform variety. For example, the Java Plugin defines the `components.java` link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent], while the War Plugin defines `components.web`.
+
+The example also defines a file-based Maven repository with the name "myRepo". Such a file-based repository is convenient for a sample, but real-world builds typically work with HTTPS-based repository servers, such as Maven Central or an internal company server.
+
+NOTE: You may define one, and only one, repository without a name. This translates to an implicit name of "Maven" for Maven repositories and "Ivy" for Ivy repositories. All other repository definitions must be given an explicit name.
+
+In combination with the project's `group` and `version`, the publication and repository definitions provide everything that Gradle needs to publish the project's production JAR. Gradle will then create a dedicated `publishMyLibraryPublicationToMyRepoRepository` task that does just that. Its name is based on the template `publish__PubName__PublicationTo__RepoName__Repository`. See the appropriate publishing plugin's documentation for more details on the nature of this task and any other tasks that may be available to you.
+
+You can either execute the individual publishing tasks directly, or you can execute `publish`, which will run all the available publishing tasks. In this example, `publish` will just run `publishMyLibraryPublicationToMavenRepository`.
+
+[NOTE]
+====
+Basic publishing to an Ivy repository is very similar: you simply use the Ivy Publish Plugin, replace  `MavenPublication` with link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication], and use `ivy` instead of `maven` in the repository definition.
+
+There are differences between the two types of repository, particularly around the extra metadata that each support — for example, Maven repositories require a POM file while Ivy ones have their own metadata format — so see the plugin chapters for comprehensive information on how to configure both publications and repositories for whichever repository type you're working with.
+====
+
+That's everything for the basic use case. However, many projects need more control over what gets published, so we look at several common scenarios in the following sections.
+
+[[sec:understanding-gradle-module-md]]
+== Understanding Gradle Module Metadata
+
+Gradle Module Metadata is a format used to serialize the Gradle component model.
+It is similar to https://maven.apache.org/pom.html[Apache Maven™'s POM file] or http://ant.apache.org/ivy/[Apache Ivy™ ivy.xml] files.
+The goal of metadata files is to provide _to consumers_ a reasonable model of what is published on a repository.
+
+Gradle Module Metadata is a unique format aimed at improving dependency resolution by making it multi-platform and variant-aware.
+
+In particular, Gradle Module Metadata supports:
+
+- <<rich_versions.adoc#rich-version-constraints,rich version constraints>>
+- <<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
+- <<modeling_features.adoc#declaring-component-capabilities,component capabilities>>
+- <<variant_model.adoc#understanding-variant-selection,variant-aware resolution>>
+
+Publication of Gradle Module Metadata will enable better dependency management for your consumers:
+
+- early discovery of problems by detecting <<modeling_features.adoc#declaring-component-capabilities,incompatible modules>>
+- consistent selection of <<modeling_features.adoc#targeting-different-platforms,platform-specific dependencies>>
+- native <<controlling_transitive_dependencies#sec:version_alignment, dependency version alignement>>
+- automatically getting dependencies for specific <<feature_variants.adoc#,features of your library>>
+
+Gradle Module Metadata is automatically published when using the <<publishing_maven.adoc#,Maven Publish plugin>> or the <<publishing_ivy.adoc#,Ivy Publish plugin>>.
+It is _not_ supported on the legacy `maven` and `ivy` plugins.
+
+The specification for Gradle Module Metadata specification can be found {metadata-file-spec}[here].
+
+[[sub:mapping-with-other-formats]]
+=== Mapping with other formats
+
+Gradle Module Metadata is automatically published on Maven or Ivy repositories.
+However, it doesn't replace the _pom.xml_ or _ivy.xml_ files: it is published alongside those files.
+This is done to maximize compatibility with third-party build tools.
+
+Gradle does its best to map Gradle-specific concepts to Maven or Ivy.
+When a build file uses features that can only be represented in Gradle Module Metadata, Gradle will warn you at publication time.
+The table below summarizes how some Gradle specific features are mapped to Maven and Ivy:
+
+.Mapping of Gradle specific concepts to Maven and Ivy
+|===
+|Gradle|Maven|Ivy|Description
+
+|<<controlling_transitive_dependencies.adoc#sec:adding-constraints-transitive-deps,dependency constraints>>
+|`<dependencyManagement>` dependencies
+|Not published
+|Gradle dependency constraints are _transitive_, while Maven's dependency management block _isn't_
+
+|<<rich_versions.adoc#rich-version-constraints,rich version constraints>>
+|Publishes the _requires_ version
+|Published the _requires_ version
+|
+
+|<<modeling_features.adoc#declaring-component-capabilities,component capabilities>>
+|Not published
+|Not published
+|Component capabilities are unique to Gradle
+
+|<<feature_variants.adoc#,Feature variants>>
+|Variant artifacts are uploaded, dependencies are published as _optional dependencies
+|Variant artifacts are uploaded, dependencies are not published
+|Feature variants are a good replacement for optional dependencies
+
+|<<#sec:publishing-custom-components,Custom component types>>
+|Artifacts are uploaded, dependencies are those described by the mapping
+|Artifacts are uploaded, dependencies are ignored
+|Custom component types are probably not consumable from Maven or Ivy in any case. They usually exist in the context of a custom ecosystem.
+
+|===
+
+==== Disabling metadata compatibility publication warnings
+
+If you want to suppress warnings, you can use the following APIs to do so:
+
+* For Maven, see the `suppress*` methods in link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html#org.gradle.api.publish.maven.MavenPublication:suppressAllPomMetadataWarnings()[MavenPublication]
+* For Ivy, see the `suppress*` methods in link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:suppressAllIvyMetadataWarnings()[IvyPublication]
+
+
+.Disabling publication warnings
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/groovy",files="build.gradle[tags=ignore-pom-warnings]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/kotlin",files="build.gradle.kts[tags=ignore-pom-warnings]"]
+====
+
+[[sub:interactions-other-build-tools]]
+=== Interactions with other build tools
+
+Because Gradle Module Metadata is not widely spread and that it aims at <<#sub:mapping-with-other-formats,maximizing compatibility with other tools>>, Gradle does a couple of things:
+
+- Gradle Module Metadata is systematically published alongside the normal descriptor for a given repository (Maven or Ivy)
+- the `pom.xml` or `ivy.xml` file will contain a _marker comment_ which tells Gradle that Gradle Module Metadata exists for this module
+
+The goal of the marker is _not_ for other tools to parse module metadata: it's for Gradle users only.
+It explains to Gradle that a _better_ module metadata file exists and that it should use it instead.
+It doesn't mean that consumption from Maven or Ivy would be broken either, only that it works in <<#sub:mapping-with-other-formats,degraded mode>>.
+
+[NOTE]
+====
+This must be seen as a _performance optimization_: instead of having to do 2 network requests, one to get Gradle Module Metadata, then one to get the POM/Ivy file in case of a miss, Gradle will first look at the file which is most likely to be present, then only perform a 2nd request if the module was actually published with Gradle Module Metadata.
+====
+
+If you know that the modules you depend on are always published with Gradle Module Metadata, you can optimize the network calls configuring the metadata sources for a repository:
+
+.Resolving Gradle Module Metadata only
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/producer",files="build.gradle[tags=gradle_metadata_source]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/producer",files="build.gradle.kts[tags=gradle_metadata_source]"]
+====
+
+[[sub:disabling-gmm-publication]]
+=== Disabling Gradle Module Metadata publication
+
+There are situations where you might want to disable publication of Gradle Module Metadata:
+
+- the repository you are uploading to rejects the metadata file (unknown format)
+- you are using Maven or Ivy specific concepts which are not properly mapped to Gradle Module Metadata
+
+In this case, disabling the publication of Gradle Module Metadata is done simply by disabling the task which generates the metadata file:
+
+.Disabling publication of Gradle Module Metadata
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/producer",files="build.gradle[tags=disable_gradle_metadata_publication]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/producer",files="build.gradle.kts[tags=disable_gradle_metadata_publication]"]
+====
+
+[[sec:adding-variants-to-existing-components]]
+== Modifying and adding variants to existing components for publishing
+
+Gradle's publication model is based on the notion of _components_, which are defined by plugins.
+For example, the Java Library plugin defines a `java` component which corresponds to a library, but the Java Platform plugin defines another kind of component, named `javaPlatform`, which is effectively a different kind of software component (a _platform_).
+
+Sometimes we want to add _more variants_ to or modify _existing variants_ of an existing component.
+For example, if you <<modeling_features.adoc#targeting-different-platforms, added a variant of a Java library for a different platform>>, you may just want to declare this additional variant on the `java` component itself.
+In general, declaring additional variants is often the best solution to publish _additional artifacts_.
+
+To perform such additions or modifications, the `AdhocComponentWithVariants` interface declares two methods called `addVariantsFromConfiguration` and `withVariantsFromConfiguration` which accept two parameters:
+
+- the <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,outgoing configuration>> that is used as a variant source
+- a customization action which allows you to _filter_ which variants are going to be published
+
+To utilise these methods, you must make sure that the `SoftwareComponent` you work with is itself an `AdhocComponentWithVariants`, which is the case for the components created by the Java plugins (Java, Java Library, Java Platform).
+Adding a variant is then very simple:
+
+.Adding a variant to an existing software component
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]"]
+====
+
+In other cases, you might want to modify a variant that was added by the one of the Java plugin already.
+For example, if you activate publishing of Javadoc and sources, these become additional variants of the `java` component.
+If you only want to publish one of them, e.g. only Javadoc but no sources, you can modify the `sources` variant to not being published:
+
+.Publish a java library with Javadoc but without sources
+====
+include::sample[dir="maven-publish/javaProject/groovy",files="build.gradle[tags=publish-modify-component]"]
+include::sample[dir="maven-publish/javaProject/kotlin",files="build.gradle.kts[tags=publish-modify-component]"]
+====
+
+[[sec:publishing-custom-components]]
+== Creating and publishing custom components
+
+In the <<sec:adding-variants-to-existing-components, previous example>>, we have demonstrated how to extend or modify an existing component, like the components provided by a Java plugins.
+But Gradle also allows you to build a custom component (not a Java Library, not a Java Platform, not something supported natively by Gradle).
+
+To create a custom component, you first need to create an empty _adhoc_ component.
+At the moment, this is only possible via a plugin because you need to get a handle on the link:{javadocPath}org/gradle/api/component/SoftwareComponentFactory.html[SoftwareComponentFactory] :
+
+.Injecting the software component factory
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=inject_software_component_factory]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=inject_software_component_factory]"]
+====
+
+Declaring _what_ a custom component publishes is still done via the link:{javadocPath}org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
+For a custom component, the first step is to create custom outgoing variants, following the instructions in <<modeling_features.adoc#sec:variant-aware-sharing, this chapter>>.
+At this stage, what you should have is variants which can be used in cross-project dependencies, but that we are now going to publish to external repositories.
+
+.Creating a custom, adhoc component
+====
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=create_adhoc_component]"]
+include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=create_adhoc_component]"]
+====
+
+First we use the factory to create a new adhoc component.
+Then we add a variant through the `addVariantsFromConfiguration` method, which is described in more detail in the <<sec:adding-variants-to-existing-components,previous section>>.
+
+In simple cases, there's a one-to-one mapping between a `Configuration` and a variant, in which case you can publish all variants issued from a single `Configuration` because they are effectively the same thing.
+However, there are cases where a `Configuration` is associated with additional link:{javadocPath}org/gradle/api/artifacts/ConfigurationPublications.html[configuration publications] that we also call _secondary variants_.
+Such configurations make sense in the <<modeling_features.adoc#cross-project-publications,cross-project publications>> use case, but not when publishing externally.
+This is for example the case when between projects you share a _directory of files_, but there's no way you can publish a _directory_ directly on a Maven repository (only packaged things like jars or zips).
+Look at the link:{javadocPath}org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class for details about how to skip publication of a particular variant.
+If `addVariantsFromConfiguration` has already been called for a configuration, further modification of the resulting variants can be performed using `withVariantsFromConfiguration`.
+
+When publishing an adhoc component like this:
+
+- Gradle Module Metadata will _exactly_ represent the published variants. In particular, all outgoing variants will inherit dependencies, artifacts and attributes of the published configuration.
+- Maven and Ivy metadata files will be generated, but you need to declare how the dependencies are mapped to Maven scopes via the link:{javadocPath}org/gradle/api/component/ConfigurationVariantDetails.html[ConfigurationVariantDetails] class.
+
+In practice, it means that components created this way can be consumed by Gradle the same way as if they were "local components".
+
+[[sec:publishing_custom_artifacts_to_maven]]
+== Adding custom artifacts to a publication
+
+[WARNING]
+====
+Instead of thinking in terms of artifacts, you should embrace the variant aware model of Gradle.
+It is expected that a single module may need multiple artifacts.
+However this rarely stops there, if the additional artifacts represent an <<feature_variants.adoc#,optional feature>>, they might also have different dependencies and more.
+
+Gradle, via _Gradle Module Metadata_, supports the publication of _additional variants_ which make those artifacts known to the dependency resolution engine.
+Please refer to the <<modeling_features.adoc#sec:variant-aware-sharing, variant-aware sharing>> section of the documentation to see how to declare such variants and <<#sec:publishing-custom-components, check out how to publish custom components>>.
+
+If you attach extra artifacts to a publication directly, they are published "out of context".
+That means, they are not referenced in the metadata at all and can then only be addressed directly through a classifier on a dependency.
+In contrast to Gradle Module Metadata, Maven pom metadata will not contain information on additional artifacts regardless of whether they are added though a variant or directly, as variants can not be represented in the pom format.
+====
+
+The following section describes how you publish artifacts directly if you are sure that metadata, for example Gradle or POM metadata, is irrelevant for your use case.
+For example, if your project doesn't need to be consumed by other projects and the only thing required as result of the publishing are the artifacts themselves.
+
+In general, there are two options:
+
+- Create a publication only with artifacts
+- Add artifacts to a publication based on a component with metadata (not recommended, instead <<sec:adding-variants-to-existing-components,adjust a component>> or use a <<#sec:publishing-custom-components,adhoc component publication>> which will both also produce metadata fitting your artifacts)
+
+To create a publication based on artifacts, start by defining a custom artifact and attaching it to a Gradle <<dependency_management_terminology.adoc#sub:terminology_configuration,configuration>> of your choice.
+The following sample defines an RPM artifact that is produced by an `rpm` task (not shown) and attaches that artifact to the `archives` configuration:
+
+.Defining a custom artifact for a configuration
+====
+include::sample[dir="maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact]"]
+include::sample[dir="maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact]"]
+====
+
+The `artifacts.add()` method — from link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ArtifactHandler.html[ArtifactHandler] — returns an artifact object of type link:{javadocPath}/org/gradle/api/artifacts/PublishArtifact.html[PublishArtifact] that can then be used in defining a publication, as shown in the following sample:
+
+.Attaching a custom PublishArtifact to a publication
+====
+include::sample[dir="maven-publish/publish-artifact/groovy",files="build.gradle[tags=custom-artifact-publication]"]
+include::sample[dir="maven-publish/publish-artifact/kotlin",files="build.gradle.kts[tags=custom-artifact-publication]"]
+====
+
+* The `artifact()` method accepts _publish artifacts_ as argument — like `rpmArtifact` in the sample — as well as any type of argument accepted by link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)], such as a `File` instance, a string file path or a archive task.
+* Publishing plugins support different artifact configuration properties, so always check the plugin documentation for more details. The `classifier` and `extension` properties are supported by both the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>> and the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>.
+* Custom artifacts need to be distinct within a publication, typically via a unique combination of `classifier` and `extension`. See the documentation for the plugin you're using for the precise requirements.
+* If you use `artifact()` with an archive task, Gradle automatically populates the artifact's metadata with the `classifier` and `extension` properties from that task.
+
+Now you can publish the RPM.
+
+If you really want to add an artifact to a publication based on a component, instead of <<#sec:adding-variants-to-existing-components,adjusting the component>> itself, you can combine the `from components.someComponent` and `artifact someArtifact` notations.
+
+[[sec:publishing_maven:signing]]
+== Signing artifacts
+
+The <<signing_plugin.adoc#signing_plugin, Signing Plugin>> can be used to sign all artifacts and metadata files that make up a publication, including Maven POM files and Ivy module descriptors. In order to use it:
+
+1. Apply the Signing Plugin
+2. Configure the <<signing_plugin.adoc#sec:signatory_credentials,signatory credentials>> — follow the link to see how
+3. Specify the publications you want signed
+
+Here's an example that configures the plugin to sign the `mavenJava` publication:
+
+.Signing a publication
+====
+include::sample[dir="signing/maven-publish/groovy",files="build.gradle[tags=sign-publication]"]
+include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=sign-publication]"]
+====
+
+This will create a `Sign` task for each publication you specify and wire all `publish__PubName__PublicationTo__RepoName__Repository` tasks to depend on it. Thus, publishing any publication will automatically create and publish the signatures for its artifacts and metadata, as you can see from this output:
+
+=== Example: Sign and publish a project
+
+.Output of `gradle publish`
+----
+> gradle publish
+include::{samplesPath}/signing/maven-publish/publishingMavenSignAndPublish.out[]
+----
+
+
+[[sec:publishing_maven:conditional_publishing]]
+== Restricting publications to specific repositories
+
+When you have defined multiple publications or repositories, you often want to control which publications are published to which repositories. For instance, consider the following sample that defines two publications — one that consists of just a binary and another that contains the binary and associated sources — and two repositories — one for internal use and one for external consumers:
+
+.Adding multiple publications and repositories
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=publishing]"]
+====
+
+The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let's say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
+
+Gradle allows you to skip any task you want based on a condition via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(org.gradle.api.specs.Spec)[Task.onlyIf(org.gradle.api.specs.Spec)] method. The following sample demonstrates how to implement the constraints we just mentioned:
+
+.Configuring which artifacts should be published to which repositories
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=task-config]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=task-config]"]
+====
+
+.Output of `gradle publish`
+----
+> gradle publish
+include::{samplesPath}/maven-publish/conditional-publishing/publishingMavenConditionally.out[]
+----
+
+You may also want to define your own aggregate tasks to help with your workflow. For example, imagine that you have several publications that should be published to the external repository. It could be very useful to publish all of them in one go without publishing the internal ones.
+
+The following sample demonstrates how you can do this by defining an aggregate task — `publishToExternalRepository` — that depends on all the relevant publish tasks:
+
+.Defining your own shorthand tasks for publishing
+====
+include::sample[dir="maven-publish/conditional-publishing/groovy",files="build.gradle[tags=shorthand-tasks]"]
+include::sample[dir="maven-publish/conditional-publishing/kotlin",files="build.gradle.kts[tags=shorthand-tasks]"]
+====
+
+This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] with the link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository] task type. You can do the same with link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository] if you're publishing to Ivy-compatible repositories.
+
+[[sec:configuring_publishing_tasks]]
+== Configuring publishing tasks
+
+The publishing plugins create their non-aggregate tasks after the project has been evaluated, which means you cannot directly reference them from your build script. If you would like to configure any of these tasks, you should use deferred task configuration. This can be done in a number of ways via the project's `tasks` collection.
+
+For example, imagine you want to change where the `generatePomFileFor__PubName__Publication` tasks write their POM files. You can do this by using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] method, as demonstrated by this sample:
+
+.Configuring a dynamically named task created by the publishing plugins
+====
+include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-generate-task]"]
+include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-generate-task]"]
+====
+
+The above sample uses a regular expression to extract the name of the publication from the name of the task. This is so that there is no conflict between the file paths of all the POM files that might be generated. If you only have one publication, then you don't have to worry about such conflicts since there will only be one POM file.

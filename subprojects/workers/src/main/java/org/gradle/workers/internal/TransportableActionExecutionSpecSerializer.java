@@ -20,6 +20,8 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import java.io.File;
+
 public class TransportableActionExecutionSpecSerializer implements Serializer<TransportableActionExecutionSpec> {
     private static final byte FLAT = (byte) 0;
     private static final byte HIERARCHICAL = (byte) 1;
@@ -30,6 +32,8 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
     public void write(Encoder encoder, TransportableActionExecutionSpec spec) throws Exception {
         encoder.writeString(spec.getDisplayName());
         encoder.writeString(spec.getImplementationClassName());
+        encoder.writeBoolean(spec.isInternalServicesRequired());
+        encoder.writeString(spec.getBaseDir().getAbsolutePath());
         encoder.writeInt(spec.getSerializedParameters().length);
         encoder.writeBytes(spec.getSerializedParameters());
         if (spec.getClassLoaderStructure() instanceof HierarchicalClassLoaderStructure) {
@@ -47,6 +51,8 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
     public TransportableActionExecutionSpec read(Decoder decoder) throws Exception {
         String displayName = decoder.readString();
         String implementationClassName = decoder.readString();
+        boolean usesInternalServices = decoder.readBoolean();
+        String baseDirPath = decoder.readString();
         int parametersSize = decoder.readInt();
         byte[] serializedParameters = new byte[parametersSize];
         decoder.readBytes(serializedParameters);
@@ -62,6 +68,6 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
             default:
                 throw new IllegalArgumentException("Unexpected payload type.");
         }
-        return new TransportableActionExecutionSpec(displayName, implementationClassName, serializedParameters, classLoaderStructure);
+        return new TransportableActionExecutionSpec(displayName, implementationClassName, serializedParameters, classLoaderStructure, new File(baseDirPath), usesInternalServices);
     }
 }

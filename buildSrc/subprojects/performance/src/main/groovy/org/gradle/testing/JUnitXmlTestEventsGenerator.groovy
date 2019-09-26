@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import groovy.transform.CompileStatic
 import org.gradle.api.internal.tasks.testing.DecoratingTestDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
@@ -28,12 +29,11 @@ import org.gradle.api.tasks.testing.TestOutputEvent
 import org.gradle.api.tasks.testing.TestOutputListener
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.event.ListenerBroadcast
-import org.openmbee.junit.model.JUnitTestSuite
 import org.openmbee.junit.model.JUnitFailure
 import org.openmbee.junit.model.JUnitTestCase
+import org.openmbee.junit.model.JUnitTestSuite
 
 import javax.xml.datatype.DatatypeFactory
-import groovy.transform.CompileStatic
 
 /**
  * This class is responsible for publishing events to {@link TestListener} and {@link TestOutputListener}
@@ -56,8 +56,7 @@ class JUnitXmlTestEventsGenerator {
     @CompileStatic
     void processTestSuite(JUnitTestSuite testSuite, Map buildResult) {
         String suiteName = testSuite.name
-        DecoratingTestDescriptor testSuiteDescriptor = new DecoratingTestDescriptor(new DefaultTestClassDescriptor(0, suiteName), createWorkerSuite())
-        testListener.beforeSuite(testSuiteDescriptor.parent.parent)
+        DecoratingTestDescriptor testSuiteDescriptor = new DecoratingTestDescriptor(new DefaultTestClassDescriptor(0, suiteName), createRootSuite())
         testListener.beforeSuite(testSuiteDescriptor.parent)
         testListener.beforeSuite(testSuiteDescriptor)
         String timestamp = testSuite.timestamp
@@ -91,7 +90,6 @@ class JUnitXmlTestEventsGenerator {
         }
         testListener.afterSuite(testSuiteDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, []))
         testListener.afterSuite(testSuiteDescriptor.parent, new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, []))
-        testListener.afterSuite(testSuiteDescriptor.parent.parent, new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, []))
     }
 
     @CompileStatic

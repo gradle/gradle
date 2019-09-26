@@ -21,26 +21,26 @@ The Build Init plugin can be used to create a new Gradle build. It supports crea
 
 == Supported Gradle build types
 
-The Build Init plugin supports generating various build _types_. These are listed below and more detail is available about each type in the following <<sec:build_init_types,section>>.
+The Build Init plugin supports generating various build _types_. These are listed below and more detail is available about each type in the following <<#sec:build_init_types,section>>.
 
 .Build init types
 [options="header"]
 |=================
 |Type|Description
-|<<sec:pom_maven_conversion,pom>>|Converts an existing Apache Maven build to Gradle
-|<<sec:basic,basic>>|A basic, empty, Gradle build
-|<<sec:java_application,java-application>>|A command-line application implemented in Java
-|<<sec:java_gradle_plugin,java-gradle-plugin>>|A Gradle plugin implemented in Java
-|<<sec:java_library,java-library>>|A Java library
-|<<sec:kotlin_application,kotlin-application>>|A command-line application implemented in Kotlin/JVM
-|<<sec:kotlin_gradle_plugin,kotlin-gradle-plugin>>|A Gradle plugin implemented in Kotlin/JVM
-|<<sec:kotlin_library,kotlin-library>>|A Kotlin/JVM library
-|<<sec:groovy_application,groovy-application>>|A command-line application implemented in Groovy
-|<<sec:groovy_gradle_plugin,groovy-gradle-plugin>>|A Gradle plugin implemented in Groovy
-|<<sec:groovy_library,groovy-library>>|A Groovy library
-|<<sec:scala_library,scala-library>>|A Scala library
-|<<sec:cpp_application,cpp-application>>|A command-line application implemented in C++
-|<<sec:cpp_library,cpp-library>>|A C++ library
+|<<#sec:pom_maven_conversion,pom>>|Converts an existing Apache Maven build to Gradle
+|<<#sec:basic,basic>>|A basic, empty, Gradle build
+|<<#sec:java_application,java-application>>|A command-line application implemented in Java
+|<<#sec:java_gradle_plugin,java-gradle-plugin>>|A Gradle plugin implemented in Java
+|<<#sec:java_library,java-library>>|A Java library
+|<<#sec:kotlin_application,kotlin-application>>|A command-line application implemented in Kotlin/JVM
+|<<#sec:kotlin_gradle_plugin,kotlin-gradle-plugin>>|A Gradle plugin implemented in Kotlin/JVM
+|<<#sec:kotlin_library,kotlin-library>>|A Kotlin/JVM library
+|<<#sec:groovy_application,groovy-application>>|A command-line application implemented in Groovy
+|<<#sec:groovy_gradle_plugin,groovy-gradle-plugin>>|A Gradle plugin implemented in Groovy
+|<<#sec:groovy_library,groovy-library>>|A Groovy library
+|<<#sec:scala_library,scala-library>>|A Scala library
+|<<#sec:cpp_application,cpp-application>>|A command-line application implemented in C++
+|<<#sec:cpp_library,cpp-library>>|A C++ library
 |=================
 
 [[sec:build_init_tasks]]
@@ -98,7 +98,7 @@ The conversion process has the following features:
 * Supports both single module and multimodule projects
 * Supports custom module names (that differ from directory names)
 * Generates general metadata - id, description and version
-* Applies <<publishing_maven,Maven Publish>>, <<java_plugin,Java>> and <<war_plugin,War>> Plugins (as needed)
+* Applies <<publishing_maven.adoc#,Maven Publish>>, <<java_plugin.adoc#,Java>> and <<war_plugin.adoc#,War>> Plugins (as needed)
 * Supports packaging war projects as jars if needed
 * Generates dependencies (both external and inter-module)
 * Generates download repositories (inc. local Maven repository)

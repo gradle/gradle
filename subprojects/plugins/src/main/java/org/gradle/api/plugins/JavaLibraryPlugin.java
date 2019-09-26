@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureClassesDirectoryVariant;
@@ -42,6 +43,29 @@ public class JavaLibraryPlugin implements Plugin<Project> {
         SourceSet sourceSet = sourceSets.getByName("main");
         addApiToSourceSet(sourceSet, configurations);
         configureClassesDirectoryVariant(sourceSet, project, sourceSet.getApiElementsConfigurationName(), Usage.JAVA_API);
+        deprecateConfigurationsForDeclaration(sourceSets, configurations);
     }
 
+    private void deprecateConfigurationsForDeclaration(SourceSetContainer sourceSets, ConfigurationContainer configurations) {
+        SourceSet sourceSet = sourceSets.getByName("main");
+
+        DeprecatableConfiguration compileConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileConfigurationName());
+        DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getApiElementsConfigurationName());
+        DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeElementsConfigurationName());
+        DeprecatableConfiguration compileClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+        DeprecatableConfiguration runtimeClasspathConfiguration = (DeprecatableConfiguration) configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName());
+
+        String implementationConfigurationName = sourceSet.getImplementationConfigurationName();
+        String compileOnlyConfigurationName = sourceSet.getCompileOnlyConfigurationName();
+        String runtimeOnlyConfigurationName = sourceSet.getRuntimeOnlyConfigurationName();
+        String apiConfigurationName = sourceSet.getApiConfigurationName();
+
+        compileConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName);
+
+        apiElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
+        runtimeElementsConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
+
+        compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName);
+        runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, apiConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
+    }
 }

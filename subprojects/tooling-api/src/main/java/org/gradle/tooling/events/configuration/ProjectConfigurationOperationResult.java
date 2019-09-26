@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.configuration;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationResult;
 import org.gradle.tooling.events.PluginIdentifier;
 
@@ -28,7 +27,6 @@ import java.util.List;
  *
  * @since 5.1
  */
-@Incubating
 public interface ProjectConfigurationOperationResult extends OperationResult {
 
     /**
@@ -47,7 +45,6 @@ public interface ProjectConfigurationOperationResult extends OperationResult {
      *
      * @since 5.1
      */
-    @Incubating
     interface PluginApplicationResult {
 
         /**

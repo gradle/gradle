@@ -22,6 +22,11 @@ class KotlinDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
+    protected String generateEnableFeaturePreviewCode() {
+        return ""
+    }
+
+    @Override
     protected String missingJavaLibrarySupportFlag() {
         'val missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version("3.4")'
     }

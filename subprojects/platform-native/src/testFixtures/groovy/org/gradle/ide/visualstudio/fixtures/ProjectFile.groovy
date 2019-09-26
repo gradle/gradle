@@ -23,6 +23,8 @@ import org.gradle.plugins.ide.fixtures.IdeProjectFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
+import javax.annotation.Nullable
+
 class ProjectFile extends IdeProjectFixture {
     String name
     TestFile projectFile
@@ -114,6 +116,15 @@ class ProjectFile extends IdeProjectFixture {
 
         String getOutputFile() {
             TextUtil.normaliseFileSeparators(buildConfiguration.NMakeOutput[0].text())
+        }
+
+        @Nullable
+        String getLanguageStandard() {
+            def itemDefinitionGroupNode = projectXml.ItemDefinitionGroup.find({ it.'@Condition' == condition }) as Node
+            if (itemDefinitionGroupNode == null) {
+                return null
+            }
+            return itemDefinitionGroupNode.ClCompile[0].LanguageStandard[0].text()
         }
 
         String getPlatformToolset() {

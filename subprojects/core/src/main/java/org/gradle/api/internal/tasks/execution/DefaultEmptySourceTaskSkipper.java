@@ -25,6 +25,7 @@ import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.execution.ExecutionOutcome;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.impl.OutputsCleaner;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,18 +38,21 @@ import java.util.Optional;
 public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultEmptySourceTaskSkipper.class);
 
-    private final TaskInputsListener taskInputsListener;
-    private final OutputChangeListener outputChangeListener;
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
+    private final Deleter deleter;
+    private final OutputChangeListener outputChangeListener;
+    private final TaskInputsListener taskInputsListener;
 
     public DefaultEmptySourceTaskSkipper(
-        TaskInputsListener taskInputsListener,
+        BuildOutputCleanupRegistry buildOutputCleanupRegistry,
+        Deleter deleter,
         OutputChangeListener outputChangeListener,
-        BuildOutputCleanupRegistry buildOutputCleanupRegistry
+        TaskInputsListener taskInputsListener
     ) {
-        this.taskInputsListener = taskInputsListener;
-        this.outputChangeListener = outputChangeListener;
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
+        this.deleter = deleter;
+        this.outputChangeListener = outputChangeListener;
+        this.taskInputsListener = taskInputsListener;
     }
 
     @Override
@@ -61,6 +65,7 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
             } else {
                 outputChangeListener.beforeOutputChange();
                 OutputsCleaner outputsCleaner = new OutputsCleaner(
+                    deleter,
                     buildOutputCleanupRegistry::isOutputOwnedByBuild,
                     buildOutputCleanupRegistry::isOutputOwnedByBuild
                 );

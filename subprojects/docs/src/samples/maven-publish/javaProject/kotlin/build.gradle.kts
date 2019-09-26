@@ -14,28 +14,25 @@ repositories {
     mavenCentral()
 }
 
-// tag::publish-custom-artifact[]
-tasks.register<Jar>("sourcesJar") {
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allJava)
+// tag::publish-modify-component[]
+java {
+    publishJavadoc()
+    publishSources()
 }
 
-tasks.register<Jar>("javadocJar") {
-    archiveClassifier.set("javadoc")
-    from(tasks.javadoc.get().destinationDir)
+val javaComponent = components["java"] as AdhocComponentWithVariants
+javaComponent.withVariantsFromConfiguration(configurations["sourcesElements"]) {
+    skip()
 }
 
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-
-            artifact(tasks["sourcesJar"])
-            artifact(tasks["javadocJar"])
         }
     }
 }
-// end::publish-custom-artifact[]
+// end::publish-modify-component[]
 
 // tag::repo-url-from-variable[]
 // tag::repo-url-from-project-property[]

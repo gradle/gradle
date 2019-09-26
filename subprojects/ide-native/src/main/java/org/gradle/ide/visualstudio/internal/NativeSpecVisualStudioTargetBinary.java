@@ -223,6 +223,11 @@ public class NativeSpecVisualStudioTargetBinary implements VisualStudioTargetBin
         return defines;
     }
 
+    @Override
+    public LanguageStandard getLanguageStandard() {
+        return LanguageStandard.from(binary.getCppCompiler().getArgs());
+    }
+
     private List<String> getDefines(String tool) {
         PreprocessingTool rcCompiler = findCompiler(tool);
         return rcCompiler == null ? Lists.<String>newArrayList() : new MacroArgsConverter().transform(rcCompiler.getMacros());

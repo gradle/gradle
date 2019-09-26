@@ -72,9 +72,13 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         def createOutputsNonIncremental() {
         }
 
+        @Internal
         def addedFiles = []
+        @Internal
         def modifiedFiles = []
+        @Internal
         def removedFiles = []
+        @Internal
         def incrementalExecution
     }
         """

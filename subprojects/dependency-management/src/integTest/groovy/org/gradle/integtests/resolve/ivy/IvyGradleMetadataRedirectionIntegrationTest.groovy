@@ -86,7 +86,7 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:main:1.0') {
-                    variant('api', ['org.gradle.status': 'integration', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar'])
+                    variant('api', ['org.gradle.status': 'integration', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     edge('org:foo:{prefer 1.9}', 'org:foo:1.9')
                 }
             }
@@ -159,8 +159,8 @@ class IvyGradleMetadataRedirectionIntegrationTest extends AbstractHttpDependency
     }
 
     private void createIvyFile(boolean marker) {
-        if (marker) {
-            mainModule.withGradleMetadataRedirection()
+        if (!marker) {
+            mainModule.withoutGradleMetadataRedirection()
         }
         mainModule.publish()
         // and now we manually patch the Gradle metadata so that its dependencies

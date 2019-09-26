@@ -17,7 +17,9 @@
 package org.gradle.invocation;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
@@ -25,6 +27,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
+import org.gradle.api.execution.SharedResourceContainer;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
@@ -52,11 +55,12 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.internal.resource.TextResourceLoader;
+import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.scan.config.BuildScanConfigInit;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.Path;
 
@@ -81,6 +85,8 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private Path identityPath;
     private final ClassLoaderScope classLoaderScope;
     private BuildType buildType = BuildType.NONE;
+    private SharedResourceContainer sharedResourceContainer;
+    private ClassLoaderScope baseProjectClassLoaderScope;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -90,6 +96,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
+        sharedResourceContainer = services.get(SharedResourceContainer.class);
 
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
@@ -205,6 +212,26 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
+    public ClassLoaderScope baseProjectClassLoaderScope() {
+        if (baseProjectClassLoaderScope == null) {
+            throw new IllegalStateException("baseProjectClassLoaderScope not yet set");
+        }
+        return baseProjectClassLoaderScope;
+    }
+
+    @Override
+    public void setBaseProjectClassLoaderScope(ClassLoaderScope classLoaderScope) {
+        if (classLoaderScope == null) {
+            throw new IllegalArgumentException("classLoaderScope must not be null");
+        }
+        if (baseProjectClassLoaderScope != null) {
+            throw new IllegalStateException("baseProjectClassLoaderScope is already set");
+        }
+
+        this.baseProjectClassLoaderScope = classLoaderScope;
+    }
+
+    @Override
     public SettingsInternal getSettings() {
         if (settings == null) {
             throw new IllegalStateException("The settings are not yet available for " + this + ".");
@@ -312,12 +339,24 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void buildStarted(Closure closure) {
+        DeprecationLogger.nagUserOfDeprecated("Gradle#buildStarted(Closure)");
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
     }
 
     @Override
     public void buildStarted(Action<? super Gradle> action) {
+        DeprecationLogger.nagUserOfDeprecated("Gradle#buildStarted(Action)");
         buildListenerBroadcast.add("buildStarted", action);
+    }
+
+    @Override
+    public void beforeSettings(Closure<?> closure) {
+        buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("beforeSettings", closure));
+    }
+
+    @Override
+    public void beforeSettings(Action<? super Settings> action) {
+        buildListenerBroadcast.add("beforeSettings", action);
     }
 
     @Override
@@ -366,6 +405,9 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void addListener(Object listener) {
+        if (listener instanceof BuildListener) {
+            nagBuildStartedDeprecationIfOverriden(((BuildListener) listener).getClass());
+        }
         addListener("Gradle.addListener", listener);
     }
 
@@ -391,7 +433,18 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public void addBuildListener(BuildListener buildListener) {
+        nagBuildStartedDeprecationIfOverriden(buildListener.getClass());
         addListener("Gradle.addBuildListener", buildListener);
+    }
+
+    private void nagBuildStartedDeprecationIfOverriden(Class<? extends BuildListener> buildListenerClass) {
+        try {
+            if (!ImmutableSet.of(BuildAdapter.class, InternalBuildAdapter.class).contains(buildListenerClass.getMethod("buildStarted", Gradle.class).getDeclaringClass())) {
+                DeprecationLogger.nagUserOfDeprecated("BuildListener#buildStarted(Gradle)");
+            }
+        } catch (NoSuchMethodException e) {
+            assert false; // There's always a method named buildStarted
+        }
     }
 
     @Override
@@ -440,7 +493,14 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     protected DefaultObjectConfigurationAction createObjectConfigurationAction() {
-        return new DefaultObjectConfigurationAction(getFileResolver(), getScriptPluginFactory(), getScriptHandlerFactory(), getClassLoaderScope(), getResourceLoader(), this);
+        return new DefaultObjectConfigurationAction(
+            getFileResolver(),
+            getScriptPluginFactory(),
+            getScriptHandlerFactory(),
+            getClassLoaderScope(),
+            getResourceLoaderFactory(),
+            this
+        );
     }
 
     @Override
@@ -449,7 +509,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Inject
-    protected TextResourceLoader getResourceLoader() {
+    protected TextUriResourceLoader.Factory getResourceLoaderFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -503,5 +563,13 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public void setBuildType(BuildType buildType) {
         this.buildType = buildType;
+    }
+
+    public SharedResourceContainer getSharedResources() {
+        return sharedResourceContainer;
+    }
+
+    public void sharedResources(Action<? super SharedResourceContainer> action) {
+        action.execute(sharedResourceContainer);
     }
 }

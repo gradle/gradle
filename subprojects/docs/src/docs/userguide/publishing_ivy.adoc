@@ -17,7 +17,7 @@
 
 The Ivy Publish Plugin provides the ability to publish build artifacts in the http://ant.apache.org/ivy/[Apache Ivy] format, usually to a repository for consumption by other builds or projects. What is published is one or more artifacts created by the build, and an Ivy _module descriptor_ (normally `ivy.xml`) that describes the artifacts and the dependencies of the artifacts, if any.
 
-A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#declaring_dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing_overview.adoc#publishing_overview,Publishing Overview>>.
+A published Ivy module can be consumed by Gradle (see <<declaring_dependencies.adoc#declaring-dependencies,Declaring Dependencies>>) and other tools that understand the Ivy format. You can learn about the fundamentals of publishing in <<publishing.adoc#publishing_overview,Publishing Overview>>.
 
 [[publishing_ivy:usage]]
 == Usage
@@ -50,12 +50,12 @@ An aggregate task that publishes all defined publications to all defined reposit
 [[publishing_ivy:publications]]
 == Publications
 
-This plugin provides <<publishing_overview.adoc#glossary:publication,publications>> of type link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. To learn how to define and use publications, see the section on <<publishing_overview.adoc#sec:basic_publishing,basic publishing>>.
+This plugin provides <<dependency_management_terminology.adoc#sub:terminology_publication,publications>> of type link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html[IvyPublication]. To learn how to define and use publications, see the section on <<publishing.adoc#sec:basic_publishing,basic publishing>>.
 
 There are four main things you can configure in an Ivy publication:
 
- * A <<publishing_overview.adoc#glossary:component,component>> — via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:from(org.gradle.api.component.SoftwareComponent)[IvyPublication.from(org.gradle.api.component.SoftwareComponent)].
- * <<publishing_overview.adoc#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:artifact(java.lang.Object)[IvyPublication.artifact(java.lang.Object)] method. See link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyArtifact.html[IvyArtifact] for the available configuration options for custom Ivy artifacts.
+ * A <<dependency_management_terminology.adoc#sub:terminology_component,component>> — via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:from(org.gradle.api.component.SoftwareComponent)[IvyPublication.from(org.gradle.api.component.SoftwareComponent)].
+ * <<publishing.adoc#sec:publishing_custom_artifacts_to_maven,Custom artifacts>> — via the link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:artifact(java.lang.Object)[IvyPublication.artifact(java.lang.Object)] method. See link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyArtifact.html[IvyArtifact] for the available configuration options for custom Ivy artifacts.
  * Standard metadata like `module`, `organisation` and `revision`.
  * Other contents of the module descriptor — via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyPublication.html#org.gradle.api.publish.ivy.IvyPublication:descriptor(org.gradle.api.Action)[IvyPublication.descriptor(org.gradle.api.Action)].
 
@@ -143,7 +143,7 @@ Gradle will also use the versions resolved on the `runtimeClasspath` for depende
 [[publishing_ivy:repositories]]
 == Repositories
 
-This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing_overview.adoc#sec:basic_publishing,basic publishing>>.
+This plugin provides <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>> of type link:{groovyDslPath}/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html[IvyArtifactRepository]. To learn how to define and use repositories for publishing, see the section on <<publishing.adoc#sec:basic_publishing,basic publishing>>.
 
 Here's a simple example of defining a publishing repository:
 
@@ -166,7 +166,9 @@ You can also configure any authentication details that are required to connect t
 [[publishing_ivy:example]]
 == Complete example
 
-The following example demonstrates publishing with a multi-project build. Each project publishes a Java component and a configured additional source artifact. The descriptor file is customized to include the project description for each project.
+The following example demonstrates publishing with a multi-project build.
+Each project publishes a Java component configured to also build and publish Javadoc and source code artifacts.
+The descriptor file is customized to include the project description for each project.
 
 .Publishing a Java module
 ====
@@ -176,22 +178,26 @@ include::sample[dir="ivy-publish/java-multi-project/kotlin",files="build.gradle.
 
 The result is that the following artifacts will be published for each project:
 
-* The Ivy module descriptor file: `ivy-1.0.xml`.
+* The Gradle Module Metadata file: `project1-1.0.module`.
+* The Ivy module metadata file: `ivy-1.0.xml`.
 * The primary JAR artifact for the Java component: `project1-1.0.jar`.
-* The source JAR artifact that has been explicitly configured: `project1-1.0-source.jar`.
+* The Javadoc and sources JAR artifacts of the Java component (because we configured `publishJavadoc()` and `publishSources()`): `project1-1.0-javadoc.jar`, `project1-1.0-source.jar`.
 
-When `project1` is published, the module descriptor (i.e. the `ivy.xml` file) that is produced will look like:
+[[sec:pub_ivy:legacy_migration]]
+== Migrating from legacy Ivy publication
 
-=== Example: Generated ivy.xml
+If you are migrating a project that used to rely on the <<artifact_management.adoc#,legacy publishing>> support, you will find the differences between the two solutions below.
 
-[source,xml]
-.output-ivy.xml
-----
-include::{samplesPath}/ivy-publish/java-multi-project/output-ivy.xml[]
-----
+=== Configurations marked as non transitive
 
-[TIP]
-====
-Note that `«PUBLICATION-TIME-STAMP»` in this example Ivy module descriptor will be the timestamp of when the descriptor was generated.
-====
+When a configuration is marked as `transitive = false`, this is not mapped to Ivy.
 
+Gradle will emit a warning that such a configuration is published. The recommendation, if this really needs to be published, is to use dependency level `transitive = false`.
+
+=== Forced dependencies are not mapped
+
+While Ivy supports the concept of a https://ant.apache.org/ivy/history/latest-milestone/ivyfile/dependency.html#_forcing_revision[`force` on a dependency], Gradle will not map its own deprecated `force` declarations to it.
+
+Instead, it is recommended to replace the Gradle `force` with a <<rich_versions.adoc#sec:strict-version,`strictly` version>>, which provides <<controlling_transitive_dependencies.adoc#sec:enforcing_dependency_version,better semantics>> and is supported by the Gradle Module Metadata format.
+
+Note that if you absolutely need to publish a force, you can still <<#sec:modifying_the_generated_module_descriptor,modify the produced `ivy.xml`>>.

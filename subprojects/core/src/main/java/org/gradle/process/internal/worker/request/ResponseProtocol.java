@@ -16,7 +16,9 @@
 
 package org.gradle.process.internal.worker.request;
 
-public interface ResponseProtocol {
+import org.gradle.process.internal.worker.child.WorkerLoggingProtocol;
+
+public interface ResponseProtocol extends WorkerLoggingProtocol {
     void completed(Object result);
 
     // Called when the method throws an exception

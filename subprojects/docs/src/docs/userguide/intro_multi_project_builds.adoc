@@ -15,6 +15,8 @@
 [[intro_multi_project_builds]]
 = Executing Multi-Project Builds
 
+TIP: The Gradle Build Cache can help reduce build time of multi project builds by up to 90%. https://gradle.com/training/build-cache-deep-dive/?bid=docs-multi-project-builds[Register here] for our live Build Cache training session to learn how.
+
 Only the smallest of projects has a single build file and source tree, unless it happens to be a massive, monolithic application. It’s often much easier to digest and understand a project that has been split into smaller, inter-dependent modules. The word “inter-dependent” is important, though, and is why you typically want to link the modules together through a single build.
 
 Gradle supports this scenario through _multi-project_ builds.

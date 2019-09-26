@@ -15,7 +15,6 @@
  */
 package org.gradle.process;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -95,7 +94,6 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @since 4.6
      */
-    @Incubating
     @Nested
     List<CommandLineArgumentProvider> getArgumentProviders();
 

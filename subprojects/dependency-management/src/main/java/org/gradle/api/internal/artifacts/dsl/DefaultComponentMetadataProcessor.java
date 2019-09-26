@@ -215,7 +215,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         for (MetadataRuleWrapper wrapper : metadataRuleContainer) {
             if (wrapper.isClassBased()) {
                 Collection<SpecConfigurableRule> rules = wrapper.getClassRules();
-                Action<ComponentMetadataContext> action = collectRulesAndCreateAction(rules, id, instantiator);
+                Action<ComponentMetadataContext> action = collectRulesAndCreateAction(rules, id, metadataResolutionContext.getInjectingInstantiator());
                 processClassRule(action, metadata, details);
             } else {
                 processRule(wrapper.getRule(), metadata, details);
@@ -345,6 +345,16 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
         @Override
         public void allVariants(Action<? super VariantMetadata> action) {
+
+        }
+
+        @Override
+        public void addVariant(String name, Action<? super VariantMetadata> action) {
+
+        }
+
+        @Override
+        public void addVariant(String name, String base, Action<? super VariantMetadata> action) {
 
         }
 

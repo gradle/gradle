@@ -16,47 +16,24 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.api.Action;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.model.ObjectFactory;
-import org.gradle.process.internal.JavaForkOptionsFactory;
-import org.gradle.workers.WorkerParameters;
-import org.gradle.workers.WorkerSpec;
+import org.gradle.workers.IsolationMode;
 
 import javax.inject.Inject;
 
-public class DefaultWorkerSpec<T extends WorkerParameters> extends DefaultBaseWorkerSpec implements WorkerSpec<T> {
-    private final T parameters;
-    private final ConfigurableFileCollection classpath;
+public class DefaultWorkerSpec implements WorkerSpecInternal {
+    private final IsolationMode isolationMode;
 
     @Inject
-    public DefaultWorkerSpec(JavaForkOptionsFactory forkOptionsFactory, ObjectFactory objectFactory, T parameters) {
-        super(forkOptionsFactory);
+    public DefaultWorkerSpec() {
+        this(IsolationMode.NONE);
+    }
 
-        // We pass a value here so that the instantiator doesn't choke on a null value.  It's tricky to
-        // isolate/serialize a NONE parameter and there is no point to it since you can't do anything with
-        // it anyways, so we just set it to null here.
-        if (parameters == WorkerParameters.NONE) {
-            this.parameters = null;
-        } else {
-            this.parameters = parameters;
-        }
-
-        this.classpath = objectFactory.fileCollection();
+    protected DefaultWorkerSpec(IsolationMode isolationMode) {
+        this.isolationMode = isolationMode;
     }
 
     @Override
-    public T getParameters() {
-        return parameters;
-    }
-
-    @Override
-    public void parameters(Action<T> action) {
-        action.execute(parameters);
-    }
-
-    @Override
-    public ConfigurableFileCollection getClasspath() {
-        return classpath;
+    public IsolationMode getIsolationMode() {
+        return isolationMode;
     }
 }

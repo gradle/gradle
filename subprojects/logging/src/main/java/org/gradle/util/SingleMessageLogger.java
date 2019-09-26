@@ -17,7 +17,7 @@
 package org.gradle.util;
 
 import com.google.common.annotations.VisibleForTesting;
-import javax.annotation.concurrent.ThreadSafe;
+import com.google.common.base.Joiner;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.Factory;
 import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
@@ -30,6 +30,8 @@ import org.gradle.internal.featurelifecycle.LoggingIncubatingFeatureHandler;
 import org.gradle.internal.featurelifecycle.UsageLocationReporter;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 
 import static org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler.getRemovalDetails;
 
@@ -388,6 +390,38 @@ public class SingleMessageLogger {
         }
     }
 
+    public enum ConfigurationDeprecationType {
+        DEPENDENCY_DECLARATION("use", true),
+        CONSUMPTION("use attributes to consume", false),
+        RESOLUTION("resolve", true),
+        ARTIFACT_DECLARATION("use", true);
+
+        public final String usage;
+        public final boolean inUserCode;
+
+        ConfigurationDeprecationType(String usage, boolean inUserCode) {
+            this.usage = usage;
+            this.inUserCode = inUserCode;
+        }
+
+        public String displayName() {
+            return name().toLowerCase().replace('_', ' ');
+        }
+    }
+
+    public static void nagUserOfReplacedConfiguration(String configurationName, ConfigurationDeprecationType deprecationType, List<String> replacements) {
+        if (isEnabled()) {
+            String summary = String.format("The %s configuration has been deprecated for %s.", configurationName, deprecationType.displayName());
+            String suggestion = String.format("Please %s the %s configuration instead.", deprecationType.usage, Joiner.on(" or ").join(replacements));
+            nagUserWith(
+                summary,
+                thisWillBecomeAnError(),
+                suggestion,
+                null,
+                deprecationType.inUserCode ? DeprecatedFeatureUsage.Type.USER_CODE_DIRECT : DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+        }
+    }
+
     /**
      * Output format:
      * <p>
@@ -455,7 +489,13 @@ public class SingleMessageLogger {
 
     public static void nagUserOfDeprecated(String thing, String advice) {
         if (isEnabled()) {
-            nagUserWith(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage(), advice, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
+            nagUserOfDeprecated(thing, advice, null);
+        }
+    }
+
+    public static void nagUserOfDeprecated(String thing, String advice, @Nullable String contextualAdvice) {
+        if (isEnabled()) {
+            nagUserWith(String.format("%s has been deprecated.", thing), thisWillBeRemovedMessage(), advice, contextualAdvice, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT);
         }
     }
 

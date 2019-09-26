@@ -18,6 +18,12 @@ package org.gradle.integtests.publish.maven
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        // the OLD publish plugins work with the OLD deprecated Java plugin configuration (compile/runtime)
+        executer.noDeprecationChecks()
+    }
+
     public void "publishes EAR only for mixed java and WAR and EAR project"() {
         given:
         using m2 //uploadArchives leaks into local ~/.m2

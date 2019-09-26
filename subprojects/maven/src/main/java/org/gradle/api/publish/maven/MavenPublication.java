@@ -130,7 +130,7 @@ public interface MavenPublication extends Publication {
      *
      * Currently 3 types of component are supported: 'components.java' (added by the JavaPlugin), 'components.web' (added by the WarPlugin)
      * and `components.javaPlatform` (added by the JavaPlatformPlugin).
-     * 
+     *
      * For any individual MavenPublication, only a single component can be provided in this way.
      *
      * The following example demonstrates how to publish the 'java' component to a Maven repository.
@@ -312,6 +312,28 @@ public interface MavenPublication extends Publication {
      *
      * @since 5.2
      */
-    @Incubating
     void versionMapping(Action<? super VersionMappingStrategy> configureAction);
+
+    /**
+     * Silences the compatibility warnings for the Maven publication for the specified variant.
+     *
+     * Warnings are emitted when Gradle features are used that cannot be mapped completely to Maven POM.
+     *
+     * @param variantName the variant to silence warning for
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void suppressPomMetadataWarningsFor(String variantName);
+
+
+    /**
+     * Silences all the compatibility warnings for the Maven publication.
+     *
+     * Warnings are emitted when Gradle features are used that cannot be mapped completely to Maven POM.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void suppressAllPomMetadataWarnings();
 }

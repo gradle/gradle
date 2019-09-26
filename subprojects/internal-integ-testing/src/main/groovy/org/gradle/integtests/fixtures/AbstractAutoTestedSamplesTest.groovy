@@ -27,9 +27,15 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             def settingsFile = testFile('settings.gradle')
             def fileToTest = tagSuffix == 'Settings' ? settingsFile : buildFile
             fileToTest.text = sample
-            executer.withTasks('help').withArguments("-s").run()
+            executer.withTasks('help').withArguments("-s")
+            beforeSample()
+            executer.run()
             fileToTest.delete()
         }
+    }
+
+    void beforeSample() {
+
     }
 
     /**

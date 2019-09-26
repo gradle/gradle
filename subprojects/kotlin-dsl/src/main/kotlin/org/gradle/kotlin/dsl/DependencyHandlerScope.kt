@@ -37,12 +37,7 @@ private constructor(
 
     companion object {
         fun of(dependencies: DependencyHandler): DependencyHandlerScope =
-            ExtensionAwareDependencyHandlerScope(dependencies)
-
-        private
-        class ExtensionAwareDependencyHandlerScope(
-            dependencies: DependencyHandler
-        ) : DependencyHandlerScope(dependencies)
+            DependencyHandlerScope(dependencies)
     }
 
     override val delegate: DependencyHandler

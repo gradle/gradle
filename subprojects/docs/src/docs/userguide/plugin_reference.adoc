@@ -40,6 +40,7 @@ Provides support for building, testing and running https://www.playframework.com
 <<antlr_plugin.adoc#,ANTLR>>::
 Provides support for generating parsers using http://www.antlr.org/[ANTLR].
 
+[[native_languages]]
 == Native languages
 
 <<cpp_application_plugin.adoc#,C++ Application>>::
@@ -71,14 +72,11 @@ Provides support for building and packaging WAR-based Java web applications.
 <<ear_plugin.adoc#,EAR>>::
 Provides support for building and packaging Java EE applications.
 
-<<osgi_plugin.adoc#,OSGi>>::
-Provides support for creating https://www.osgi.org/[OSGi] packages.
-
 <<publishing_maven.adoc#,Maven Publish>>::
-Provides support for <<publishing_overview.adoc#,publishing artifacts>> to Maven-compatible repositories.
+Provides support for <<publishing.adoc#,publishing artifacts>> to Maven-compatible repositories.
 
 <<publishing_ivy.adoc#,Ivy Publish>>::
-Provides support for <<publishing_overview.adoc#,publishing artifacts>> to Ivy-compatible repositories.
+Provides support for <<publishing.adoc#,publishing artifacts>> to Ivy-compatible repositories.
 
 <<maven_plugin.adoc#,Legacy Maven Plugin>>::
 Provides support for publishing artifacts using the <<artifact_management.adoc#,legacy mechanism>> to Maven-compatible repositories.
@@ -94,14 +92,8 @@ Provides support for creating a ZIP distribution of a Java library project that 
 <<checkstyle_plugin.adoc#,Checkstyle>>::
 Performs quality checks on your project’s Java source files using http://checkstyle.sourceforge.net/index.html[Checkstyle] and generates associated reports.
 
-<<findbugs_plugin.adoc#,FindBugs>>::
-Performs quality checks on your project’s Java source files using http://findbugs.sourceforge.net/[FindBugs] and generates associated reports.
-
 <<pmd_plugin.adoc#,PMD>>::
 Performs quality checks on your project’s Java source files using http://pmd.github.io/[PMD] and generates associated reports.
-
-<<jdepend_plugin.adoc#,JDepend>>::
-Performs quality checks on your project’s Java source files using http://clarkware.com/software/JDepend.html[JDepend] and generates associated reports.
 
 <<jacoco_plugin.adoc#,JaCoCo>>::
 Provides code coverage metrics for your Java project using http://www.eclemma.org/jacoco/[JaCoCo].

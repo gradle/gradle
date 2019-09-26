@@ -53,6 +53,7 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
 
     private final List<T> selectors = Lists.newArrayList();
     private boolean deferSelection;
+    private boolean forced;
 
     public boolean checkDeferSelection() {
         if (deferSelection) {
@@ -70,11 +71,12 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
 
     public void add(T selector, boolean deferSelection) {
         this.deferSelection = deferSelection;
-        if (selectors.isEmpty()) {
+        if (selectors.isEmpty() || forced) {
             selectors.add(selector);
         } else {
             doAdd(selector);
         }
+        forced = forced || selector.isForce();
     }
 
     private void doAdd(T selector) {

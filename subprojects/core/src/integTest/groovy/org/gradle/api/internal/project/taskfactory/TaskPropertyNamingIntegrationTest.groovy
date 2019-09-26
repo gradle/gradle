@@ -272,7 +272,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             Output file property '\$2'
             Output file property '\$3'
             Output file property '\$4'
-        """.stripIndent()
+            """.stripIndent()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4085")
@@ -313,7 +313,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             Input file property '\$2'
             Output file property '\$1'
             Output file property '\$2'
-        """.stripIndent()
+            """.stripIndent()
     }
 
     def "input properties can be overridden"() {
@@ -388,6 +388,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.internal.tasks.properties.*
 
             class PrintInputsAndOutputs extends DefaultTask {
+                @Internal
                 Task task
                 @TaskAction
                 void printInputsAndOutputs() {

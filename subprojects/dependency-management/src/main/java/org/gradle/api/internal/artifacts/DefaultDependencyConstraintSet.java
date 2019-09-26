@@ -17,23 +17,42 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.DependencyConstraintSet;
 import org.gradle.api.internal.DelegatingDomainObjectSet;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
+import java.util.List;
 
 public class DefaultDependencyConstraintSet extends DelegatingDomainObjectSet<DependencyConstraint> implements DependencyConstraintSet {
     private final Describable displayName;
+    private final Configuration clientConfiguration;
 
-    public DefaultDependencyConstraintSet(Describable displayName, DomainObjectSet<DependencyConstraint> backingSet) {
+    public DefaultDependencyConstraintSet(Describable displayName, Configuration clientConfiguration, DomainObjectSet<DependencyConstraint> backingSet) {
         super(backingSet);
         this.displayName = displayName;
+        this.clientConfiguration = clientConfiguration;
     }
 
     @Override
     public String toString() {
         return displayName.getDisplayName();
+    }
+
+    @Override
+    public boolean add(final DependencyConstraint dependencyConstraints) {
+        warnIfConfigurationIsDeprecated();
+        return super.add(dependencyConstraints);
+    }
+
+    private void warnIfConfigurationIsDeprecated() {
+        List<String> alternatives = ((DeprecatableConfiguration) clientConfiguration).getDeclarationAlternatives();
+        if (alternatives != null) {
+            DeprecationLogger.nagUserOfReplacedConfiguration(clientConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.DEPENDENCY_DECLARATION, alternatives);
+        }
     }
 
     @Override

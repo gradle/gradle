@@ -17,7 +17,6 @@ package org.gradle.api.plugins;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -44,7 +43,6 @@ import java.util.Set;
  *
  * @since 5.2
  */
-@Incubating
 public class JavaPlatformPlugin implements Plugin<Project> {
     // Buckets of dependencies
     public static final String API_CONFIGURATION_NAME = "api";

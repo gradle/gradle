@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.task;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
 import javax.annotation.Nullable;
@@ -27,7 +26,6 @@ import java.util.List;
  *
  * @since 5.1
  */
-@Incubating
 public interface TaskExecutionResult extends TaskOperationResult {
 
     /**

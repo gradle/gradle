@@ -31,7 +31,7 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
     def configurationMetadataBuilder = Mock(LocalConfigurationMetadataBuilder)
     def converter = new DefaultLocalComponentMetadataBuilder(configurationMetadataBuilder)
 
-    def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "name"), "rev");
+    def componentId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org", "name"), "rev")
 
     def "adds artifacts from each configuration"() {
         def emptySet = new HashSet<String>()
@@ -59,9 +59,9 @@ class DefaultLocalComponentMetadataBuilderTest extends Specification {
         converter.addConfiguration(metaData, config2)
 
         then:
-        1 * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, false, ImmutableCapabilities.EMPTY)
+        1 * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY)
         1 * metaData.addDependenciesAndExcludesForConfiguration(config1, configurationMetadataBuilder)
-        1 * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, false, ImmutableCapabilities.EMPTY)
+        1 * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _, false, _, false, ImmutableCapabilities.EMPTY)
         1 * metaData.addDependenciesAndExcludesForConfiguration(config2, configurationMetadataBuilder)
         1 * metaData.addArtifacts("config1", artifacts1)
         1 * metaData.addVariant("config1", childVariant1)

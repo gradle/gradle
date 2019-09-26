@@ -23,6 +23,7 @@ import it.unimi.dsi.fastutil.ints.IntSet;
 import org.gradle.api.internal.tasks.compile.incremental.processing.AnnotationProcessingData;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -66,28 +67,26 @@ public class ClassSetAnalysis {
     }
 
     public DependentsSet getRelevantDependents(Iterable<String> classes, IntSet constants) {
-        Set<String> resultClasses = null;
-        Set<GeneratedResource> resultResources = null;
+        final Set<String> accessibleResultClasses = Sets.newLinkedHashSet();
+        final Set<String> privateResultClasses = Sets.newLinkedHashSet();
+        final Set<GeneratedResource> resultResources = Sets.newLinkedHashSet();
         for (String cls : classes) {
             DependentsSet d = getRelevantDependents(cls, constants);
             if (d.isDependencyToAll()) {
                 return d;
             }
-            Set<String> dependentClasses = d.getDependentClasses();
-            Set<GeneratedResource> dependentResources = d.getDependentResources();
-            if (dependentClasses.isEmpty() && dependentResources.isEmpty()) {
+            if (d.isEmpty()) {
                 continue;
             }
-            if (resultClasses == null) {
-                resultClasses = Sets.newLinkedHashSet();
-            }
-            resultClasses.addAll(dependentClasses);
-            if (resultResources == null) {
-                resultResources = Sets.newLinkedHashSet();
-            }
+            Set<String> accessibleDependentClasses = d.getAccessibleDependentClasses();
+            Set<String> privateDependentClasses = d.getPrivateDependentClasses();
+            Set<GeneratedResource> dependentResources = d.getDependentResources();
+
+            accessibleResultClasses.addAll(accessibleDependentClasses);
+            privateResultClasses.addAll(privateDependentClasses);
             resultResources.addAll(dependentResources);
         }
-        return resultClasses == null ? DependentsSet.empty() : DependentsSet.dependents(resultClasses, resultResources);
+        return DependentsSet.dependents(privateResultClasses, accessibleResultClasses, resultResources);
     }
 
     public DependentsSet getRelevantDependents(String className, IntSet constants) {
@@ -104,17 +103,19 @@ public class ClassSetAnalysis {
         }
         Set<String> classesDependingOnAllOthers = annotationProcessingData.getGeneratedTypesDependingOnAllOthers();
         Set<GeneratedResource> resourcesDependingOnAllOthers = annotationProcessingData.getGeneratedResourcesDependingOnAllOthers();
-        if (deps.getDependentClasses().isEmpty() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty()) {
+        if (!deps.hasDependentClasses() && classesDependingOnAllOthers.isEmpty() && resourcesDependingOnAllOthers.isEmpty()) {
             return deps;
         }
 
-        Set<String> resultClasses = new HashSet<String>();
+        Set<String> privateResultClasses = new HashSet<String>();
+        Set<String> accessibleResultClasses = new HashSet<String>();
         Set<GeneratedResource> resultResources = new HashSet<GeneratedResource>(resourcesDependingOnAllOthers);
-        recurseDependentClasses(new HashSet<String>(), resultClasses, resultResources, deps.getDependentClasses());
-        recurseDependentClasses(new HashSet<String>(), resultClasses, resultResources, classesDependingOnAllOthers);
-        resultClasses.remove(className);
+        processDependentClasses(new HashSet<String>(), privateResultClasses, accessibleResultClasses, resultResources, deps.getPrivateDependentClasses(), deps.getAccessibleDependentClasses());
+        processDependentClasses(new HashSet<String>(), privateResultClasses, accessibleResultClasses, resultResources, Collections.emptySet(), classesDependingOnAllOthers);
+        accessibleResultClasses.remove(className);
+        privateResultClasses.remove(className);
 
-        return DependentsSet.dependents(resultClasses, resultResources);
+        return DependentsSet.dependents(privateResultClasses, accessibleResultClasses, resultResources);
     }
 
     public Set<String> getTypesToReprocess() {
@@ -126,21 +127,31 @@ public class ClassSetAnalysis {
     }
 
     /**
-     * Recursively accumulate dependent classes and resources.  Dependent classes discovered can themselves be used to query
-     * further dependents, while resources are just data accumulated along the way.
+     * Accumulate dependent classes and resources. Dependent classes discovered can themselves be used to query
+     * further dependents, while resources are just data accumulated along the way. Recurses for classes that
+     * are "publicly accessbile", i.e. classes that are not just used privately in a class.
      */
-    private void recurseDependentClasses(Set<String> visitedClasses, Set<String> resultClasses, Set<GeneratedResource> resultResources, Iterable<String> dependentClasses) {
-        for (String d : dependentClasses) {
+    private void processDependentClasses(Set<String> visitedClasses, Set<String> privateResultClasses, Set<String> accessibleResultClasses, Set<GeneratedResource> resultResources, Iterable<String> privateDependentClasses, Iterable<String> accessibleDependentClasses) {
+        for (String d : privateDependentClasses) {
             if (!visitedClasses.add(d)) {
                 continue;
             }
-            if (!isNestedClass(d)) {
-                resultClasses.add(d);
-            }
+            privateResultClasses.add(d);
             DependentsSet currentDependents = getDependents(d);
             if (!currentDependents.isDependencyToAll()) {
                 resultResources.addAll(currentDependents.getDependentResources());
-                recurseDependentClasses(visitedClasses, resultClasses, resultResources, currentDependents.getDependentClasses());
+            }
+        }
+
+        for (String d : accessibleDependentClasses) {
+            if (!visitedClasses.add(d)) {
+                continue;
+            }
+            accessibleResultClasses.add(d);
+            DependentsSet currentDependents = getDependents(d);
+            if (!currentDependents.isDependencyToAll()) {
+                resultResources.addAll(currentDependents.getDependentResources());
+                processDependentClasses(visitedClasses, privateResultClasses, accessibleResultClasses, resultResources, Collections.emptySet(), currentDependents.getAccessibleDependentClasses());
             }
         }
     }
@@ -155,11 +166,7 @@ public class ClassSetAnalysis {
         if (additionalClassDeps.isEmpty() && additionalResourceDeps.isEmpty()) {
             return dependents;
         }
-        return DependentsSet.dependents(Sets.union(dependents.getDependentClasses(), additionalClassDeps), Sets.union(dependents.getDependentResources(), additionalResourceDeps));
-    }
-
-    private boolean isNestedClass(String d) {
-        return d.contains("$");
+        return DependentsSet.dependents(dependents.getPrivateDependentClasses(), Sets.union(dependents.getAccessibleDependentClasses(), additionalClassDeps), Sets.union(dependents.getDependentResources(), additionalResourceDeps));
     }
 
     public IntSet getConstants(String className) {

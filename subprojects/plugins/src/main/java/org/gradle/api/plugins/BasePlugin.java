@@ -42,10 +42,12 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Describables;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
+import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
@@ -141,7 +143,10 @@ public class BasePlugin implements Plugin<Project> {
                 if (uploadArchives == null) {
                     return;
                 }
-
+                AtomicBoolean usesMaven = new AtomicBoolean();
+                project.getPluginManager().withPlugin("maven", p -> usesMaven.set(true));
+                uploadArchives.doFirst(task -> DeprecationLogger.nagUserOfDeprecated("The " + UPLOAD_ARCHIVES_TASK_NAME + " task",
+                    "Use the " + (usesMaven.get() ? "'maven-publish'" : "'ivy-publish'") + " plugin instead"));
                 boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
                 if (!hasIvyRepo) {
                     return;
@@ -160,13 +165,13 @@ public class BasePlugin implements Plugin<Project> {
         project.setStatus("integration");
 
         final Configuration archivesConfiguration = configurations.maybeCreate(Dependency.ARCHIVES_CONFIGURATION).
-                setDescription("Configuration for archive artifacts.");
+            setDescription("Configuration for archive artifacts.");
 
         configurations.maybeCreate(Dependency.DEFAULT_CONFIGURATION).
-                setDescription("Configuration for default artifacts.");
+            setDescription("Configuration for default artifacts.");
 
         final DefaultArtifactPublicationSet defaultArtifacts = project.getExtensions().create(
-                "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
+            "defaultArtifacts", DefaultArtifactPublicationSet.class, archivesConfiguration.getArtifacts()
         );
 
         configurations.all(new Action<Configuration>() {

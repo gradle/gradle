@@ -19,6 +19,8 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.base.Objects;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
@@ -31,10 +33,12 @@ public class ManagedFactories {
         private static final Class<?> IMPL_TYPE = DefaultConfigurableFileCollection.class;
         public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
 
-        private final FileResolver resolver;
+        private final PathToFileResolver resolver;
+        private final TaskDependencyFactory taskDependencyFactory;
 
-        public ConfigurableFileCollectionManagedFactory(FileResolver resolver) {
+        public ConfigurableFileCollectionManagedFactory(FileResolver resolver, TaskDependencyFactory taskDependencyFactory) {
             this.resolver = resolver;
+            this.taskDependencyFactory = taskDependencyFactory;
         }
 
         @Nullable
@@ -43,7 +47,8 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultConfigurableFileCollection(resolver, null, (Set<File>) state));
+            // TODO - should retain display name
+            return type.cast(new DefaultConfigurableFileCollection(null, resolver, taskDependencyFactory, (Set<File>) state));
         }
 
         @Override

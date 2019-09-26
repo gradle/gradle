@@ -49,7 +49,7 @@ interface MavenModule extends Module {
      */
     MavenModule withModuleMetadata()
 
-    MavenModule withGradleMetadataRedirection();
+    MavenModule withoutGradleMetadataRedirection();
 
     MavenModule parent(String group, String artifactId, String version)
 

@@ -80,6 +80,8 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             }
             """
         then:
+        executer.expectDeprecationWarning("The maven plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the maven-publish plugin instead.")
+        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. Use the 'maven-publish' plugin instead")
         succeeds("uploadArchives")
         file("repo/org/acme/TestProject/1.0/TestProject-1.0.zip").assertIsFile()
 

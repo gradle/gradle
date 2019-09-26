@@ -74,7 +74,7 @@ project.afterEvaluate {
             task "${testTaskName}Coverage" (type:JacocoReport, dependsOn: "$testTaskName") {
                 group = "Reporting"
                 description = "Generate Jacoco coverage reports on the ${sourceName.capitalize()} build."
-                classDirectories = fileTree(
+                classDirectories.from(fileTree(
                     dir: "${project.buildDir}/intermediates/classes/${sourcePath}",
                     excludes: [
                         '**/R.class',
@@ -84,15 +84,15 @@ project.afterEvaluate {
                         '**/BuildConfig.*',
                         '**/Manifest*.*'
                     ]
-                )
+                ))
                 def coverageSourceDirs = [
                     "src/main/kotlin",
                     "src/$productFlavorName/kotlin",
                     "src/$buildTypeName/kotlin"
                 ]
-                additionalSourceDirs = files(coverageSourceDirs)
-                sourceDirectories = files(coverageSourceDirs)
-                executionData = files("${project.buildDir}/jacoco/${testTaskName}.exec")
+                additionalSourceDirs.from(files(coverageSourceDirs))
+                sourceDirectories.from(files(coverageSourceDirs))
+                executionData.from(files("${project.buildDir}/jacoco/${testTaskName}.exec"))
                 reports {
                     xml.enabled = true
                     html.enabled = true
@@ -103,7 +103,7 @@ project.afterEvaluate {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib:1.0.3'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation 'org.jetbrains.anko:anko-common:0.9'
 
     testImplementation 'junit:junit:4.12'

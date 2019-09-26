@@ -17,10 +17,12 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
@@ -43,12 +45,9 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.util.DeprecationLogger;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,14 +87,13 @@ public class DefaultObjectFactory implements ObjectFactory {
     }
 
     @Override
+    public ConfigurableFileTree fileTree() {
+        return fileCollectionFactory.fileTree();
+    }
+
+    @Override
     public SourceDirectorySet sourceDirectorySet(final String name, final String displayName) {
-        return DeprecationLogger.whileDisabled(new Factory<SourceDirectorySet>() {
-            @Nullable
-            @Override
-            public SourceDirectorySet create() {
-                return new DefaultSourceDirectorySet(name, displayName, fileResolver, directoryFileTreeFactory, DefaultObjectFactory.this);
-            }
-        });
+        return new DefaultSourceDirectorySet(name, displayName, fileResolver.getPatternSetFactory(), fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
     }
 
     @Override
@@ -131,51 +129,55 @@ public class DefaultObjectFactory implements ObjectFactory {
 
         if (valueType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedCast(property(JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
+            return Cast.uncheckedNonnullCast(property(JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
         if (List.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() to create a property of type List<T>", "ObjectFactory.listProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("listProperty()", "List<T>"));
         } else if (Set.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Set<T>", "ObjectFactory.setProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("setProperty()", "Set<T>"));
         } else if (Map.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Map<K, V>", "ObjectFactory.mapProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("mapProperty()", "Map<K, V>"));
         } else if (Directory.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type Directory", "ObjectFactory.directoryProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("directoryProperty()", "Directory"));
         } else if (RegularFile.class.isAssignableFrom(valueType)) {
-            DeprecationLogger.nagUserOfReplacedMethodInvocation("ObjectFactory.property() method to create a property of type RegularFile", "ObjectFactory.fileProperty()");
+            throw new InvalidUserCodeException(invalidPropertyCreationError("fileProperty()", "RegularFile"));
         }
 
-        return new DefaultProperty<T>(valueType);
+        return new DefaultProperty<>(valueType);
+    }
+
+    private String invalidPropertyCreationError(String correctMethodName, String propertyType) {
+        return "Please use the ObjectFactory." + correctMethodName + " method to create a property of type " + propertyType + ".";
     }
 
     @Override
     public <T> ListProperty<T> listProperty(Class<T> elementType) {
         if (elementType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedCast(listProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
+            return Cast.uncheckedNonnullCast(listProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
         }
-        return new DefaultListProperty<T>(elementType);
+        return new DefaultListProperty<>(elementType);
     }
 
     @Override
     public <T> SetProperty<T> setProperty(Class<T> elementType) {
         if (elementType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedCast(setProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
+            return Cast.uncheckedNonnullCast(setProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
         }
-        return new DefaultSetProperty<T>(elementType);
+        return new DefaultSetProperty<>(elementType);
     }
 
     @Override
     public <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType) {
         if (keyType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedCast(mapProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(keyType), valueType));
+            return Cast.uncheckedNonnullCast(mapProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(keyType), valueType));
         }
         if (valueType.isPrimitive()) {
             // Kotlin passes these types for its own basic types
-            return Cast.uncheckedCast(mapProperty(keyType, JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
+            return Cast.uncheckedNonnullCast(mapProperty(keyType, JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
-        return new DefaultMapProperty<K, V>(keyType, valueType);
+        return new DefaultMapProperty<>(keyType, valueType);
     }
 }

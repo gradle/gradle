@@ -19,6 +19,7 @@ import build.futureKotlin
 import build.kotlin
 import build.kotlinVersion
 import codegen.GenerateKotlinDependencyExtensions
+import org.gradle.build.ReproduciblePropertiesWriter
 
 plugins {
     `kotlin-dsl-module`
@@ -55,6 +56,15 @@ dependencies {
     implementation(library("guava"))
     implementation(library("inject"))
 
+    implementation(futureKotlin("scripting-common")) {
+        isTransitive = false
+    }
+    implementation(futureKotlin("scripting-jvm")) {
+        isTransitive = false
+    }
+    implementation(futureKotlin("scripting-jvm-host-embeddable")) {
+        isTransitive = false
+    }
     implementation(futureKotlin("scripting-compiler-embeddable")) {
         isTransitive = false
     }
@@ -80,7 +90,7 @@ dependencies {
     testImplementation(testLibrary("mockito_kotlin"))
     testImplementation(testLibrary("jackson_kotlin"))
 
-    testImplementation("com.tngtech.archunit:archunit:0.8.3")
+    testImplementation(testLibrary("archunit"))
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
     testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
 
@@ -101,7 +111,7 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.2.9" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.3.1" // TODO:kotlin-dsl
 
 tasks {
 
@@ -133,4 +143,40 @@ tasks {
     processResources {
         from(writeVersionsManifest)
     }
+}
+
+
+// -- Embedded Kotlin dependencies -------------------------------------
+
+val embeddedKotlinBaseDependencies by configurations.creating
+
+dependencies {
+    embeddedKotlinBaseDependencies(futureKotlin("stdlib-jdk8"))
+    embeddedKotlinBaseDependencies(futureKotlin("reflect"))
+}
+
+val writeEmbeddedKotlinDependencies by tasks.registering {
+    val outputFile = layout.buildDirectory.file("embeddedKotlinDependencies/gradle-kotlin-dsl-embedded-kotlin.properties")
+    inputs.files(embeddedKotlinBaseDependencies)
+    outputs.file(outputFile)
+    doLast {
+
+        val skippedModules = setOf(project.name, "distributionsDependencies", "kotlinCompilerEmbeddable")
+
+        val modules = embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
+            .asSequence()
+            .mapNotNull { it.moduleVersion }
+            .filter { it.name !in skippedModules }
+            .associate { "${it.group}:${it.name}" to it.version }
+
+        ReproduciblePropertiesWriter.store(
+            modules,
+            outputFile.get().asFile.apply { parentFile.mkdirs() },
+            null
+        )
+    }
+}
+
+tasks.processResources {
+    from(writeEmbeddedKotlinDependencies)
 }

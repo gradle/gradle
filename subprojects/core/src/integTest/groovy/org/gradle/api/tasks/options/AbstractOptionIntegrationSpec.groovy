@@ -18,7 +18,6 @@ package org.gradle.api.tasks.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-
 abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
     String taskWithSingleOption(String optionType) {
         """
@@ -75,6 +74,7 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
     String groovyTaskWithSingleOption(String optionType) {
         """
             public class SampleTask extends DefaultTask {
+                @Internal
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
                 $optionType myProp
 
@@ -93,6 +93,7 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
     String taskWithSinglePropertyOption(String optionType) {
         """
             import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.Internal;
             import org.gradle.api.tasks.TaskAction;
             import org.gradle.api.tasks.options.Option;
             import org.gradle.api.provider.Property;
@@ -102,6 +103,7 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
             public class SampleTask extends DefaultTask {
                 private final Property<$optionType> myProp = getProject().getObjects().property(${optionType}.class);
 
+                @Internal
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
                 public Property<$optionType> getMyProp() {
                     return myProp;
@@ -122,6 +124,7 @@ abstract class AbstractOptionIntegrationSpec extends AbstractIntegrationSpec {
     String groovyTaskWithSinglePropertyOption(String optionType) {
         """
             public class SampleTask extends DefaultTask {
+                @Internal
                 @Option(option = "myProp", description = "Configures command line option 'myProp'.")
                 final Property<$optionType> myProp = project.objects.property($optionType)
 

@@ -46,7 +46,7 @@ class JfrProfiler extends Profiler implements Stoppable {
         logDirectory = targetDir
         config = createConfig()
         jCmd = new JCmd()
-        flameGraphGenerator = new JfrFlameGraphGenerator()
+        flameGraphGenerator = new JfrFlameGraphGenerator(logDirectory)
         pid = new PidInstrumentation()
     }
 
@@ -60,7 +60,7 @@ class JfrProfiler extends Profiler implements Stoppable {
 
     @Override
     List<String> getAdditionalJvmOpts(BuildExperimentSpec spec) {
-        def jfrOutputDir = getJfrOutputDirectory(spec)
+        def jfrOutputDir = flameGraphGenerator.getJfrOutputDirectory(spec)
         getJvmOpts(!useDaemon(spec), jfrOutputDir)
     }
 
@@ -90,35 +90,27 @@ class JfrProfiler extends Profiler implements Stoppable {
         pid.gradleArgs
     }
 
-    private File getJfrOutputDirectory(BuildExperimentSpec spec) {
-        def fileSafeName = spec.displayName.replaceAll('[^a-zA-Z0-9.-]', '-').replaceAll('-+', '-')
-        def baseDir = new File(logDirectory, fileSafeName)
-        def outputDir = new File(baseDir, "jfr-recordings")
-        outputDir.mkdirs()
-        return outputDir
-    }
-
     void start(BuildExperimentSpec spec) {
         // Remove any profiles created during warmup
         // TODO Should not run warmup runs with the profiler enabled for no daemon cases – https://github.com/gradle/gradle/issues/9458
-        FileUtils.cleanDirectory(getJfrOutputDirectory(spec))
+        FileUtils.cleanDirectory(flameGraphGenerator.getJfrOutputDirectory(spec))
         if (useDaemon(spec)) {
             jCmd.execute(pid.pid, "JFR.start", "name=profile", "settings=$config")
         }
     }
 
     void stop(BuildExperimentSpec spec) {
-        def jfrOutputDir = getJfrOutputDirectory(spec)
+        def jfrOutputDir = flameGraphGenerator.getJfrOutputDirectory(spec)
         if (useDaemon(spec)) {
             def jfrFile = new File(jfrOutputDir, "profile.jfr")
             jCmd.execute(pid.pid, "JFR.stop", "name=profile", "filename=${jfrFile}")
         }
-        flameGraphGenerator.generateGraphs(jfrOutputDir)
+        flameGraphGenerator.generateGraphs(spec)
     }
 
     @Override
     void stop() {
-        flameGraphGenerator.generateDifferentialGraphs(logDirectory)
+        flameGraphGenerator.generateDifferentialGraphs()
     }
 
     private static boolean useDaemon(BuildExperimentSpec spec) {

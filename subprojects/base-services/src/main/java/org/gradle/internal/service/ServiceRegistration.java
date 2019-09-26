@@ -28,11 +28,9 @@ public interface ServiceRegistration {
     <T> void add(Class<T> serviceType, T serviceInstance);
 
     /**
-     * Adds a service to this registry.
+     * Adds a service to this registry. The implementation class should have a single public constructor, and this constructor can take services to be injected as parameters.
      *
-     * Note: currently no dependencies are injected into the implementation.
-     *
-     * @param serviceType The service implementation to make visible. This class should have a public no-args constructor.
+     * @param serviceType The service implementation to make visible.
      */
     void add(Class<?> serviceType);
 

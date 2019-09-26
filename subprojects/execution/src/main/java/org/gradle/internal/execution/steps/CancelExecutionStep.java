@@ -36,11 +36,18 @@ public class CancelExecutionStep<C extends Context> implements Step<C, Result> {
 
     @Override
     public Result execute(C context) {
-        Result result = delegate.execute(context);
-        if (cancellationToken.isCancellationRequested()) {
-            throw new BuildCancelledException("Build cancelled during executing " + context.getWork().getDisplayName());
+        Thread thread = Thread.currentThread();
+        Runnable interrupt = thread::interrupt;
+        try {
+            cancellationToken.addCallback(interrupt);
+            Result result = delegate.execute(context);
+            return result;
+        } finally {
+            cancellationToken.removeCallback(interrupt);
+            if (cancellationToken.isCancellationRequested()) {
+                Thread.interrupted();
+                throw new BuildCancelledException("Build cancelled during executing " + context.getWork().getDisplayName());
+            }
         }
-
-        return result;
     }
 }

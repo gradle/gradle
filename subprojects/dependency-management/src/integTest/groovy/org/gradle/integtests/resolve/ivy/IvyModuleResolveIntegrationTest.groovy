@@ -284,8 +284,20 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 repositories {
-    ivy { url "${repo1.uri}" }
-    ivy { url "${repo2.uri}" }
+    ivy { 
+        url "${repo1.uri}" 
+        metadataSources {
+            ivyDescriptor()
+            artifact()
+        }
+    }
+    ivy { 
+        url "${repo2.uri}" 
+        metadataSources {
+            ivyDescriptor()
+            artifact()
+        }
+    }
 }
 configurations { compile }
 dependencies {

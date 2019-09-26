@@ -18,6 +18,7 @@ package org.gradle.invocation
 
 import org.gradle.StartParameter
 import org.gradle.api.Action
+import org.gradle.api.execution.SharedResourceContainer
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.GradleInternal
@@ -83,6 +84,7 @@ class DefaultGradleSpec extends Specification {
         _ * serviceRegistry.get(CrossProjectConfigurator) >> crossProjectConfigurator
         _ * serviceRegistry.get(BuildScanConfigInit) >> Mock(BuildScanConfigInit)
         _ * serviceRegistry.get(MutablePublicBuildPath) >> Mock(MutablePublicBuildPath)
+        _ * serviceRegistry.get(SharedResourceContainer) >> Mock(SharedResourceContainer)
 
         gradle = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultGradle.class, null, parameter, serviceRegistryFactory)
     }
@@ -265,6 +267,20 @@ class DefaultGradleSpec extends Specification {
 
         and:
         gradle.buildListenerBroadcaster.settingsEvaluated(null)
+
+        then:
+        1 * action.execute(_)
+    }
+
+    def "broadcasts before settings events to actions"() {
+        given:
+        def action = Mock(Action)
+
+        when:
+        gradle.beforeSettings(action)
+
+        and:
+        gradle.buildListenerBroadcaster.beforeSettings(null)
 
         then:
         1 * action.execute(_)

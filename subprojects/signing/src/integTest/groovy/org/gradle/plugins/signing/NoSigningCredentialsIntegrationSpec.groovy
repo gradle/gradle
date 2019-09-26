@@ -35,6 +35,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         """ << uploadArchives()
 
         then:
+        executer.expectDeprecationWarning()
         fails ":uploadArchives"
 
         and:
@@ -51,6 +52,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         """ << uploadArchives() << signDeploymentPom()
 
         then:
+        executer.expectDeprecationWarnings(2)
         succeeds ":uploadArchives"
 
         and:
@@ -66,6 +68,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         buildFile << keyInfo.addAsPropertiesScript()
 
         then:
+        executer.expectDeprecationWarnings(2)
         succeeds ":uploadArchives"
 
         and:
@@ -94,6 +97,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         then:
+        executer.expectDeprecationWarnings(2)
         succeeds ":uploadArchives"
 
         and:

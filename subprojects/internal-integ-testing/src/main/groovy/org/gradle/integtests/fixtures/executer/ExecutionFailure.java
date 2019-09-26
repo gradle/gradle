@@ -45,7 +45,7 @@ public interface ExecutionFailure extends ExecutionResult {
      *
      * <p>Error messages are normalized to use new-line char as line separator.
      */
-    ExecutionFailure assertThatCause(Matcher<String> matcher);
+    ExecutionFailure assertThatCause(Matcher<? super String> matcher);
 
     /**
      * Asserts that the reported failure has the given description (ie the bit after '* What went wrong').
@@ -59,7 +59,7 @@ public interface ExecutionFailure extends ExecutionResult {
      *
      * <p>Error messages are normalized to use new-line char as line separator.
      */
-    ExecutionFailure assertThatDescription(Matcher<String> matcher);
+    ExecutionFailure assertThatDescription(Matcher<? super String> matcher);
 
     /**
      * Asserts that the reported failure has the given resolution (ie the bit after '* Try').

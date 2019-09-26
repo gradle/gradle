@@ -21,14 +21,14 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
@@ -42,15 +42,14 @@ import org.gradle.api.internal.tasks.TaskExecuterResult;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.TaskValidationContext;
 import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.api.tasks.TaskValidationException;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.event.ListenerManager;
@@ -63,6 +62,7 @@ import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -99,7 +99,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_AND_REACQUIRE_PROJECT_LOCKS;
 import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.RELEASE_PROJECT_LOCKS;
@@ -165,7 +164,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         TaskExecution work = new TaskExecution(task, context, executionHistoryStore, fingerprinterRegistry, classLoaderHierarchyHasher);
         try {
             return executeIfValid(task, state, context, work);
-        } catch (TaskValidationException ex) {
+        } catch (WorkValidationException ex) {
             state.setOutcome(ex);
             return TaskExecuterResult.WITHOUT_OUTPUTS;
         }
@@ -197,7 +196,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
             public boolean executedIncrementally() {
                 return result.getOutcome()
                     .map(executionOutcome -> executionOutcome == ExecutionOutcome.EXECUTED_INCREMENTALLY)
-                    .orElseMapFailure(throwable -> false);
+                    .getOrMapFailure(throwable -> false);
             }
 
             @Override
@@ -265,8 +264,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public ExecutionHistoryStore getExecutionHistoryStore() {
-            return executionHistoryStore;
+        public Optional<ExecutionHistoryStore> getExecutionHistoryStore() {
+            return context.getTaskExecutionMode().isTaskHistoryMaintained()
+                ? Optional.of(executionHistoryStore)
+                : Optional.empty();
         }
 
         @Override
@@ -368,11 +369,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public boolean isTaskHistoryMaintained() {
-            return context.getTaskExecutionMode().isTaskHistoryMaintained();
-        }
-
-        @Override
         public boolean isAllowedToLoadFromCache() {
             return context.getTaskExecutionMode().isAllowedToUseCachedResults();
         }
@@ -469,23 +465,16 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         }
 
         @Override
-        public void validate() {
-            List<String> messages = new ArrayList<>();
-            FileResolver resolver = ((ProjectInternal) task.getProject()).getFileResolver();
-            TaskValidationContext validationContext = new DefaultTaskValidationContext(resolver, reservedFileSystemLocationRegistry, messages);
-
-            context.getTaskProperties().validate(validationContext);
-            if (!messages.isEmpty()) {
-                String errorMessage = messages.size() == 1
-                    ? String.format("A problem was found with the configuration of %s.", task)
-                    : String.format("Some problems were found with the configuration of %s.", task);
-                List<InvalidUserDataException> causes = messages.stream()
-                    .limit(5)
-                    .sorted()
-                    .map(InvalidUserDataException::new)
-                    .collect(Collectors.toList());
-                throw new TaskValidationException(errorMessage, causes);
-            }
+        public void validate(WorkValidationContext validationContext) {
+            FileOperations fileOperations = ((ProjectInternal) task.getProject()).getFileOperations();
+            Class<?> taskType = GeneratedSubclasses.unpackType(task);
+            // TODO This should probably use the task class info store
+            boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
+            context.getTaskProperties().validate(new DefaultTaskValidationContext(
+                fileOperations,
+                reservedFileSystemLocationRegistry,
+                validationContext.createContextFor(taskType, cacheable)
+            ));
         }
 
         @Override

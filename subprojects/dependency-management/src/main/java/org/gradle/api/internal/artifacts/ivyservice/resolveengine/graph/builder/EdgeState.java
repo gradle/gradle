@@ -53,7 +53,6 @@ class EdgeState implements DependencyGraphEdge {
     private final DependencyState dependencyState;
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
-    private final SelectorState selector;
     private final ResolveState resolveState;
     private final ExcludeSpec transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
@@ -61,6 +60,7 @@ class EdgeState implements DependencyGraphEdge {
     private final boolean isConstraint;
     private final int hashCode;
 
+    private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
     private ExcludeSpec cachedEdgeExclusions;
@@ -75,7 +75,6 @@ class EdgeState implements DependencyGraphEdge {
         // The accumulated exclusions that apply to this edge based on the path from the root
         this.transitiveExclusions = transitiveExclusions;
         this.resolveState = resolveState;
-        this.selector = resolveState.getSelector(dependencyState);
         this.isTransitive = from.isTransitive() && dependencyMetadata.isTransitive();
         this.isConstraint = dependencyMetadata.isConstraint();
         this.hashCode = computeHashCode();
@@ -88,6 +87,10 @@ class EdgeState implements DependencyGraphEdge {
             hashCode = 31 * hashCode + transitiveExclusions.hashCode();
         }
         return hashCode;
+    }
+
+    void computeSelector() {
+        this.selector = resolveState.getSelector(dependencyState, from.versionProvidedByAncestors(dependencyState));
     }
 
     @Override
@@ -129,7 +132,7 @@ class EdgeState implements DependencyGraphEdge {
         return isTransitive;
     }
 
-    public void attachToTargetConfigurations() {
+    void attachToTargetConfigurations() {
         ComponentState targetComponent = getTargetComponent();
         if (targetComponent == null) {
             // The selector failed or the module has been deselected. Do not attach.
@@ -156,10 +159,15 @@ class EdgeState implements DependencyGraphEdge {
         }
     }
 
-    public void removeFromTargetConfigurations() {
-        if (targetNodes.isEmpty()) {
-            selector.getTargetModule().removeUnattachedDependency(this);
-        } else {
+    void cleanUpOnSourceChange(NodeState source) {
+        removeFromTargetConfigurations();
+        selector.getTargetModule().removeUnattachedDependency(this);
+        selector.release();
+        maybeDecreaseHardEdgeCount(source);
+    }
+
+    void removeFromTargetConfigurations() {
+        if (!targetNodes.isEmpty()) {
             for (NodeState targetConfiguration : targetNodes) {
                 targetConfiguration.removeIncomingEdge(this);
             }
@@ -174,7 +182,7 @@ class EdgeState implements DependencyGraphEdge {
      * perform as much resolution as possible, still have a valid graph, but in the
      * end fail resolution.
      */
-    public void failWith(Throwable err) {
+    void failWith(Throwable err) {
         targetNodeSelectionFailure = new ModuleVersionResolveException(dependencyState.getRequested(), err);
     }
 

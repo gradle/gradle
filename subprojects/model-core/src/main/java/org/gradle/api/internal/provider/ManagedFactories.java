@@ -21,6 +21,7 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.Cast;
 import org.gradle.internal.state.ManagedFactory;
 
 import javax.annotation.Nullable;
@@ -38,11 +39,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            if (state == null) {
-                return type.cast(Providers.notDefined());
-            } else {
-                return type.cast(Providers.of(state));
-            }
+            return type.cast(Providers.ofNullable(state));
         }
 
         @Override
@@ -62,7 +59,15 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultProperty<>(Object.class).value(state));
+            if (state == null) {
+                return type.cast(new DefaultProperty<>(Object.class));
+            } else {
+                return type.cast(propertyOf(state.getClass(), Cast.uncheckedCast(state)));
+            }
+        }
+
+        static <V> Property<V> propertyOf(Class<V> type, V value) {
+            return new DefaultProperty<V>(type).value(value);
         }
 
         @Override

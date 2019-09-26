@@ -17,55 +17,48 @@
 package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.internal.GeneratedSubclasses
+
 import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.IsolateContext
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.readClass
-import org.gradle.instantexecution.serialization.withPropertyTrace
-import org.gradle.instantexecution.serialization.writeClass
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.withBeanTrace
 
 
 internal
 class BeanCodec : Codec<Any> {
 
     override suspend fun WriteContext.encode(value: Any) {
-        val id = isolate.identities.getId(value)
-        if (id != null) {
-            writeSmallInt(id)
-        } else {
-            writeSmallInt(isolate.identities.putInstance(value))
+        encodePreservingIdentityOf(value) {
             val beanType = GeneratedSubclasses.unpackType(value)
-            writeClass(beanType)
             withBeanTrace(beanType) {
-                beanPropertyWriterFor(beanType).run {
-                    writeFieldsOf(value)
-                }
+                writeBeanOf(beanType, value)
             }
         }
     }
 
-    override suspend fun ReadContext.decode(): Any? {
-        val id = readSmallInt()
-        val previousValue = isolate.identities.getInstance(id)
-        if (previousValue != null) {
-            return previousValue
-        }
-        val beanType = readClass()
-        return withBeanTrace(beanType) {
-            beanPropertyReaderFor(beanType).run {
-                val bean = newBean()
-                isolate.identities.putInstance(id, bean)
-                readFieldsOf(bean)
-                bean
+    override suspend fun ReadContext.decode(): Any? =
+        decodePreservingIdentity { id ->
+            val beanType = readClass()
+            withBeanTrace(beanType) {
+                readBeanOf(beanType, id)
             }
+        }
+
+    private
+    suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
+        beanStateWriterFor(beanType).run {
+            writeClass(beanType)
+            writeStateOf(value)
         }
     }
 
     private
-    inline fun <T : IsolateContext, R> T.withBeanTrace(beanType: Class<*>, action: () -> R): R =
-        withPropertyTrace(PropertyTrace.Bean(beanType, trace)) {
-            action()
+    suspend fun ReadContext.readBeanOf(beanType: Class<*>, id: Int): Any =
+        beanStateReaderFor(beanType).run {
+            newBeanWithId(id).also {
+                readStateOf(it)
+            }
         }
 }

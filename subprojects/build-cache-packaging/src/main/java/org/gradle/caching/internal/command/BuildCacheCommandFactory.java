@@ -25,8 +25,8 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.internal.file.DefaultFileMetadata;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
@@ -118,7 +118,7 @@ public class BuildCacheCommandFactory {
             entity.visitOutputTrees((treeName, type, root) -> {
                 FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
                 String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
-                List<FileSystemSnapshot> roots = new ArrayList<FileSystemSnapshot>();
+                List<FileSystemSnapshot> roots = new ArrayList<>();
 
                 if (treeSnapshot == null) {
                     fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.missing());
@@ -171,12 +171,7 @@ public class BuildCacheCommandFactory {
         @Override
         public BuildCacheStoreCommand.Result store(OutputStream output) throws IOException {
             final BuildCacheEntryPacker.PackResult packResult = packer.pack(entity, fingerprints, output, originMetadataFactory.createWriter(entity, executionTime));
-            return new BuildCacheStoreCommand.Result() {
-                @Override
-                public long getArtifactEntryCount() {
-                    return packResult.getEntries();
-                }
-            };
+            return packResult::getEntries;
         }
     }
 }

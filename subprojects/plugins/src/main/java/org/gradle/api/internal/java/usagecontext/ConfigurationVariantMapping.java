@@ -26,21 +26,25 @@ import org.gradle.api.artifacts.ConfigurablePublishArtifact;
 import org.gradle.api.artifacts.ConfigurationVariant;
 import org.gradle.api.artifacts.PublishArtifactSet;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ConfigurationVariantDetails;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.component.UsageContext;
+import org.gradle.internal.Actions;
+import org.gradle.internal.featurelifecycle.DeprecatedFeatureUsage;
+import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.SingleMessageLogger;
 
-import java.util.Collection;
 import java.util.Set;
 
 public class ConfigurationVariantMapping {
     private final ConfigurationInternal outgoingConfiguration;
-    private final Action<? super ConfigurationVariantDetails> action;
+    private Action<? super ConfigurationVariantDetails> action;
+    private final Instantiator instantiator;
 
-    public ConfigurationVariantMapping(ConfigurationInternal outgoingConfiguration, Action<? super ConfigurationVariantDetails> action) {
+    public ConfigurationVariantMapping(ConfigurationInternal outgoingConfiguration, Action<? super ConfigurationVariantDetails> action, Instantiator instantiator) {
         this.outgoingConfiguration = outgoingConfiguration;
         this.action = action;
+        this.instantiator = instantiator;
     }
 
     private void assertNoDuplicateVariant(String name, Set<String> seen) {
@@ -49,10 +53,17 @@ public class ConfigurationVariantMapping {
         }
     }
 
+    public void addAction(Action<? super ConfigurationVariantDetails> action) {
+        this.action = Actions.composite(this.action, action);
+    }
+
     public void collectUsageContexts(final ImmutableCollection.Builder<UsageContext> outgoing) {
+        if (!outgoingConfiguration.isTransitive()) {
+            SingleMessageLogger.nagUserWith("Publication ignores 'transitive = false' at configuration level.", "", "Consider using 'transitive = false' at the dependency level if you need this to be published.", "", DeprecatedFeatureUsage.Type.USER_CODE_INDIRECT);
+        }
         Set<String> seen = Sets.newHashSet();
-        DefaultConfigurationVariant defaultConfigurationVariant = new DefaultConfigurationVariant();
-        ConfigurationVariantDetailsInternal details = new DefaultConfigurationVariantDetails(defaultConfigurationVariant);
+        ConfigurationVariant defaultConfigurationVariant = instantiator.newInstance(DefaultConfigurationVariant.class, outgoingConfiguration);
+        ConfigurationVariantDetailsInternal details = instantiator.newInstance(DefaultConfigurationVariantDetails.class, defaultConfigurationVariant);
         action.execute(details);
         String outgoingConfigurationName = outgoingConfiguration.getName();
         if (details.shouldPublish()) {
@@ -74,14 +85,13 @@ public class ConfigurationVariantMapping {
         outgoing.add(new FeatureConfigurationUsageContext(name, outgoingConfiguration, variant, scope, optional));
     }
 
-    public void validate() {
-        Collection<? extends Capability> capabilities = outgoingConfiguration.getOutgoing().getCapabilities();
-        if (capabilities.isEmpty()) {
-            throw new InvalidUserDataException("Cannot publish feature variant " + outgoingConfiguration.getName() + " because configuration " + outgoingConfiguration.getName() + " doesn't declare any capability");
-        }
-    }
+    static class DefaultConfigurationVariant implements ConfigurationVariant {
+        private final ConfigurationInternal outgoingConfiguration;
 
-    private class DefaultConfigurationVariant implements ConfigurationVariant {
+        public DefaultConfigurationVariant(ConfigurationInternal outgoingConfiguration) {
+            this.outgoingConfiguration = outgoingConfiguration;
+        }
+
         @Override
         public PublishArtifactSet getArtifacts() {
             return outgoingConfiguration.getArtifacts();
@@ -114,13 +124,13 @@ public class ConfigurationVariantMapping {
         }
     }
 
-    private static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetailsInternal {
+    static class DefaultConfigurationVariantDetails implements ConfigurationVariantDetailsInternal {
         private final ConfigurationVariant variant;
         private boolean skip = false;
         private String mavenScope = "compile";
         private boolean optional = false;
 
-        private DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
+        public DefaultConfigurationVariantDetails(ConfigurationVariant variant) {
             this.variant = variant;
         }
 

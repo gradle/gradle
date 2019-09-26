@@ -75,7 +75,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "test"
-        failure.assertHasDescription("A problem was found with the configuration of task ':test'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
         failure.assertHasCause("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
 
         where:
@@ -108,7 +108,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "customTask"
-        failure.assertHasDescription("A problem was found with the configuration of task ':customTask'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         failure.assertHasCause("Value 'task ':dependencyTask'' specified for property 'input' cannot be converted to a ${targetType}.")
 
         where:
@@ -173,7 +173,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "shows validation error when non-Optional @Input is null"() {
         buildFile << """
             class FooTask extends DefaultTask {
-               @Input
+               @InputFiles
                FileCollection bar
                
                @TaskAction

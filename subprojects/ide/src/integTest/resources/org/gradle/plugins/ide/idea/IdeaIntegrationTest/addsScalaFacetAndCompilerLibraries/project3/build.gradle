@@ -5,5 +5,5 @@ repositories {
 }
 
 dependencies {
-    implementation "org.scala-lang:scala-library:2.9.2"
+    implementation "org.scala-lang:scala-library:2.11.2"
 }

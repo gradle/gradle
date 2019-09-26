@@ -57,7 +57,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
                     public long v;
                 }
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -69,7 +69,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         sourceFile.text = """
             public class ToolImpl {
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -82,7 +82,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
             public class ToolImpl {
                 private Object r = new Runnable() { public void run() { } };
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -106,7 +106,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
                     }
                 }
             }
-"""
+        """
 
         then:
         succeeds ":b:${language.compileTaskName}"
@@ -157,7 +157,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
                     System.out.println(new TestAppHelper().getValue()); // generated class
                 }
             }
-'''
+        '''
 
         when:
         run(':c:run')
@@ -243,7 +243,7 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
                 public static void main(String[] args) {
                 }
             }
-'''
+        '''
 
         when:
         run(":c:${language.compileTaskName}")
@@ -284,5 +284,51 @@ abstract class AbstractJavaCompileAvoidanceIntegrationSpec extends AbstractJavaG
         skipped(":a:${language.compileTaskName}")
         executedAndNotSkipped(":b:${language.compileTaskName}")
         skipped(":c:${language.compileTaskName}")
+    }
+
+    // Note: In Groovy the generated constructor is not the same anymore as the empty one (it's annotated now)
+    def "doesn't recompile when empty initializer, static initializer or constructor is added"() {
+        given:
+        buildFile << """
+            project(':b') {
+                dependencies {
+                    implementation project(':a')
+                }
+            }
+        """
+        def sourceFile = file("a/src/main/${language.name}/ToolImpl.${language.name}")
+        sourceFile << """
+            public class ToolImpl {
+                public Object s = String.valueOf(12);
+                public void execute() { int i = 12; }
+            }
+        """
+        file("b/src/main/${language.name}/Main.${language.name}") << """
+            public class Main { ToolImpl t = new ToolImpl(); }
+        """
+
+        when:
+        succeeds ":b:${language.compileTaskName}"
+
+        then:
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        executedAndNotSkipped ":b:${language.compileTaskName}"
+
+        when:
+        // add empty initializer, static initializer and constructor
+        sourceFile.text = """
+            public class ToolImpl {
+                {}
+                static {}
+                public ToolImpl() {}
+                public Object s = "12";
+                public void execute() { String s = toString(); }
+            }
+        """
+
+        then:
+        succeeds ":b:${language.compileTaskName}"
+        executedAndNotSkipped ":a:${language.compileTaskName}"
+        skipped ":b:${language.compileTaskName}"
     }
 }

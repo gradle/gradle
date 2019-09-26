@@ -17,7 +17,6 @@
 package org.gradle.language.cpp;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -37,7 +36,6 @@ import org.gradle.language.ComponentWithTargetMachines;
  *
  * @since 4.2
  */
-@Incubating
 public interface CppComponent extends ComponentWithBinaries, ComponentWithDependencies, ComponentWithTargetMachines {
     /**
      * Specifies the base name for this component. This name is used to calculate various output file names. The default value is calculated from the project name.

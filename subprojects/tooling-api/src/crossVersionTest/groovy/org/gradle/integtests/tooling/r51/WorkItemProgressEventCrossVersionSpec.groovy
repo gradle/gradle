@@ -149,20 +149,32 @@ class WorkItemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         return """
             import javax.inject.Inject
             import org.gradle.other.Foo
+
             class WorkerTask extends DefaultTask {
+                @Internal
                 def list = [1, 2, 3]
+                @Internal
                 def outputFileDirPath = "${outputFileDirPath}/\${name}"
+                @Internal
                 def additionalForkOptions = {}
+                @Internal
                 def runnableClass = TestRunnable.class
+                @Internal
                 def additionalClasspath = project.layout.files()
+                @Internal
                 def foo = new Foo()
+                @Internal
                 def displayName = null
+                @Internal
                 def isolationMode = IsolationMode.AUTO
+                @Internal
                 def forkMode = null
+
                 @Inject
                 WorkerExecutor getWorkerExecutor() {
                     throw new UnsupportedOperationException()
                 }
+
                 @TaskAction
                 void executeTask() {
                     workerExecutor.submit(runnableClass) {

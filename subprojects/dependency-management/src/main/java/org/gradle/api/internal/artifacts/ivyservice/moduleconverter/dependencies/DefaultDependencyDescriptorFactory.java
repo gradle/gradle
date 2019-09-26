@@ -53,7 +53,7 @@ public class DefaultDependencyDescriptorFactory implements DependencyDescriptorF
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(
             DefaultModuleIdentifier.newId(nullToEmpty(dependencyConstraint.getGroup()), nullToEmpty(dependencyConstraint.getName())), dependencyConstraint.getVersionConstraint(), dependencyConstraint.getAttributes(), ImmutableList.of());
         return new LocalComponentDependencyMetadata(componentId, selector, clientConfiguration, attributes, dependencyConstraint.getAttributes(), null,
-                Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), ((DependencyConstraintInternal)dependencyConstraint).isForce(), false, false, true, dependencyConstraint.getReason());
+                Collections.<IvyArtifactName>emptyList(), Collections.<ExcludeMetadata>emptyList(), ((DependencyConstraintInternal)dependencyConstraint).isForce(), false, false, true, false, dependencyConstraint.getReason());
     }
 
     private IvyDependencyDescriptorFactory findFactoryForDependency(ModuleDependency dependency) {

@@ -279,8 +279,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities));
+        public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact) {
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, endorsing, artifact));
         }
 
         @Override
@@ -313,11 +313,11 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
     }
 
-    protected static class FileImpl implements ComponentVariant.File {
+    public static class FileImpl implements ComponentVariant.File {
         private final String name;
         private final String uri;
 
-        FileImpl(String name, String uri) {
+        public FileImpl(String name, String uri) {
             this.name = name;
             this.uri = uri;
         }
@@ -360,8 +360,10 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         private final String reason;
         private final ImmutableAttributes attributes;
         private final ImmutableList<Capability> requestedCapabilities;
+        private final boolean endorsing;
+        private final IvyArtifactName dependencyArtifact;
 
-        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities) {
+        DependencyImpl(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName dependencyArtifact) {
             this.group = group;
             this.module = module;
             this.versionConstraint = versionConstraint;
@@ -373,6 +375,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
                     .map(c -> new ImmutableCapability(c.getGroup(), c.getName(), c.getVersion()))
                     .collect(Collectors.toList())
             );
+            this.endorsing = endorsing;
+            this.dependencyArtifact = dependencyArtifact;
         }
 
         @Override
@@ -408,6 +412,17 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         @Override
         public List<Capability> getRequestedCapabilities() {
             return requestedCapabilities;
+        }
+
+        @Override
+        public boolean isEndorsingStrictVersions() {
+            return endorsing;
+        }
+
+        @Override
+        @Nullable
+        public IvyArtifactName getDependencyArtifact() {
+            return dependencyArtifact;
         }
 
         @Override
@@ -553,12 +568,12 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
-        public List<? extends ComponentArtifactMetadata> getArtifacts() {
-            List<ComponentArtifactMetadata> artifacts = new ArrayList<ComponentArtifactMetadata>(files.size());
+        public ImmutableList<? extends ComponentArtifactMetadata> getArtifacts() {
+            ImmutableList.Builder<ComponentArtifactMetadata> artifacts = new ImmutableList.Builder<>();
             for (ComponentVariant.File file : files) {
                 artifacts.add(new UrlBackedArtifactMetadata(componentId, file.getName(), file.getUri()));
             }
-            return artifacts;
+            return artifacts.build();
         }
 
         @Override

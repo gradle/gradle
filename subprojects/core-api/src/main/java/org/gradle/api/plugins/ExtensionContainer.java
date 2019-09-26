@@ -17,13 +17,11 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
-import java.util.Map;
 
 /**
  * Allows adding 'namespaced' DSL extensions to a target object.
@@ -141,20 +139,10 @@ public interface ExtensionContainer {
     <T> T create(String name, Class<T> type, Object... constructionArguments);
 
     /**
-     * Provides access to all known extensions types.
-     *
-     * @return A map of extensions public types, keyed by name
-     * @since 3.5
-     */
-    @Deprecated
-    Map<String, TypeOf<?>> getSchema();
-
-    /**
      * Provides access to the schema of all known extensions.
      *
      * @since 4.5
      */
-    @Incubating
     ExtensionsSchema getExtensionsSchema();
 
     /**
@@ -240,7 +228,6 @@ public interface ExtensionContainer {
      * @throws UnknownDomainObjectException if no extension is found.
      * @since 4.0
      */
-    @Incubating
     <T> void configure(String name, Action<? super T> action);
 
     /**

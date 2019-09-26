@@ -17,7 +17,9 @@
 package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Ignore
 
+@Ignore("Ignored until a new version of the plugins are released.  See https://github.com/eriwen/gradle-js-plugin/pull/174 and https://github.com/eriwen/gradle-css-plugin/pull/54.")
 class JavaScriptPluginsSmokeTest extends AbstractSmokeTest {
 
     def 'js plugin'() {

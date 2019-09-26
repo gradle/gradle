@@ -134,7 +134,7 @@ class ExtraComp implements org.gradle.api.internal.component.SoftwareComponentIn
 }
 
 project(":project3") {
-    def c1 = new ExtraComp()
+    def c1 = new ExtraComp(variants: [components.java])
     def c2 = new ExtraComp(variants: [c1, components.java])
     publishing {
         publications {
@@ -177,6 +177,8 @@ project(":project2") {
     }
 
     def "maven-publish plugin does not take mavenDeployer.pom.artifactId into account when publishing"() {
+        executer.expectDeprecationWarning()
+
         createBuildScripts("""
 project(":project2") {
     apply plugin: 'maven'
@@ -214,6 +216,8 @@ project(":project2") {
     }
 
     def "maven-publish plugin uses target project name for project dependency when target project does not have maven-publish plugin applied"() {
+        executer.expectDeprecationWarning()
+
         given:
         settingsFile << """
 include "project1", "project2"
@@ -265,6 +269,7 @@ project(":project2") {
     def "can resolve non-build dependencies while projects are configured in parallel"() {
         def parallelProjectCount = 20
         using m2
+        executer.expectDeprecationWarning()
 
         given:
         settingsFile << """

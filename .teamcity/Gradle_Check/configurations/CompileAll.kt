@@ -14,10 +14,8 @@ class CompileAll(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model,
         param("env.JAVA_HOME", buildJavaHome)
     }
 
-    if (model.publishStatusToGitHub) {
-        features {
-            publishBuildStatusToGithub()
-        }
+    features {
+        publishBuildStatusToGithub(model)
     }
 
     applyDefaults(

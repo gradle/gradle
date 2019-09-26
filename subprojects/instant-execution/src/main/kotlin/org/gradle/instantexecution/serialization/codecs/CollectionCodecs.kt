@@ -20,28 +20,30 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.codec
 import org.gradle.instantexecution.serialization.readArray
 import org.gradle.instantexecution.serialization.readCollectionInto
-import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.readMapInto
 import org.gradle.instantexecution.serialization.writeArray
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeMap
+import java.util.LinkedList
 import java.util.TreeMap
 import java.util.TreeSet
+import java.util.concurrent.ConcurrentHashMap
 
 
 internal
-val listCodec: Codec<List<*>> = codec(
-    { writeCollection(it) },
-    { readList() }
-)
+val arrayListCodec: Codec<ArrayList<Any?>> = collectionCodec { ArrayList<Any?>(it) }
 
 
 internal
-val hashSetCodec: Codec<HashSet<Any?>> = setCodec { HashSet<Any?>(it) }
+val linkedListCodec: Codec<LinkedList<Any?>> = collectionCodec { LinkedList<Any?>() }
 
 
 internal
-val linkedHashSetCodec: Codec<LinkedHashSet<Any?>> = setCodec { LinkedHashSet<Any?>(it) }
+val hashSetCodec: Codec<HashSet<Any?>> = collectionCodec { HashSet<Any?>(it) }
+
+
+internal
+val linkedHashSetCodec: Codec<LinkedHashSet<Any?>> = collectionCodec { LinkedHashSet<Any?>(it) }
 
 
 internal
@@ -58,7 +60,7 @@ val treeSetCodec: Codec<TreeSet<Any?>> = codec(
 
 
 internal
-fun <T : MutableSet<Any?>> setCodec(factory: (Int) -> T) = codec(
+fun <T : MutableCollection<Any?>> collectionCodec(factory: (Int) -> T) = codec(
     { writeCollection(it) },
     { readCollectionInto(factory) }
 )
@@ -70,6 +72,10 @@ val hashMapCodec: Codec<HashMap<Any?, Any?>> = mapCodec { HashMap<Any?, Any?>(it
 
 internal
 val linkedHashMapCodec: Codec<LinkedHashMap<Any?, Any?>> = mapCodec { LinkedHashMap<Any?, Any?>(it) }
+
+
+internal
+val concurrentHashMapCodec: Codec<ConcurrentHashMap<Any?, Any?>> = mapCodec { ConcurrentHashMap<Any?, Any?>(it) }
 
 
 internal

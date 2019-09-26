@@ -1,0 +1,59 @@
+[[variant-aware-plugins]]
+= Variant-aware plugins
+
+[[sec:abm_declaring_attributes]]
+== Declaring attributes
+
+Attributes are _typed_. An attribute can be created via the `Attribute<T>.of` method:
+
+.Define attributes
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=define_attribute]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=define_attribute]"]
+====
+
+Currently, only attribute types of `String`, or anything extending `Named` is supported.
+Attributes must be declared in the _attribute schema_ found on the `dependencies` handler:
+
+.Registering attributes on the attributes schema
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=register-attributes]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=register-attributes]"]
+====
+
+Then configurations can be configured to set values for attributes:
+
+.Setting attributes on configurations
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=attributes-on-configurations]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=attributes-on-configurations]"]
+====
+
+For attributes which type extends `Named`, the value of the attribute **must** be created via the _object factory_:
+
+.Named attributes
+====
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=named-attributes]"]
+include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=named-attributes]"]
+====
+
+[[sec:abm_compatibility_rules]]
+== Attribute compatibility rules
+
+Attributes let the engine select _compatible variants_.
+However, there are cases where a provider may not have _exactly_ what the consumer wants, but still something that it can use.
+For example, if the consumer is asking for the API of a library, there's a possibility that the producer doesn't have such a variant, but only a _runtime_ variant.
+This is typical of libraries published on external repositories.
+In this case, we know that even if we don't have an exact match (API), we can still compile against the runtime variant (it contains _more_ than what we need to compile but it's still ok to use).
+To deal with this, Gradle provides link:{javadocPath}/org/gradle/api/attributes/AttributeCompatibilityRule.html[attribute compatibility rules].
+The role of a compatibility rule is to explain what variants are _compatible_ with what the consumer asked for.
+
+Attribute compatibility rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].
+
+[[sec:abm_disambiguation_rules]]
+== Attribute disambiguation rules
+
+Because multiple values for an attribute can be _compatible_ with the requested attribute, Gradle needs to choose between the candidates.
+This is done by implementing an link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[attribute disambiguation rule].
+
+Attribute disambiguation rules have to be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy] that you can obtain from the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema].

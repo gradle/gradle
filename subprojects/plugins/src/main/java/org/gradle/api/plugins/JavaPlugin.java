@@ -42,7 +42,6 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
 import org.gradle.api.internal.component.ComponentRegistry;
-import org.gradle.api.internal.java.JavaLibraryPlatform;
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
@@ -52,9 +51,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.util.DeprecationLogger;
 
@@ -69,6 +68,7 @@ import static org.gradle.api.attributes.Bundling.EXTERNAL;
 import static org.gradle.api.attributes.Category.CATEGORY_ATTRIBUTE;
 import static org.gradle.api.attributes.LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE;
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
+import static org.gradle.api.plugins.internal.JvmPluginsHelper.configureJavaDocTask;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -149,6 +149,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @deprecated Users should prefer {@link #API_CONFIGURATION_NAME} or {@link #IMPLEMENTATION_CONFIGURATION_NAME}.
      */
+    @Deprecated
     public static final String COMPILE_CONFIGURATION_NAME = "compile";
 
     /**
@@ -163,6 +164,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @deprecated Consumers should use {@link #RUNTIME_ELEMENTS_CONFIGURATION_NAME} instead.
      */
+    @Deprecated
     public static final String RUNTIME_CONFIGURATION_NAME = "runtime";
 
     /**
@@ -189,6 +191,22 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
     public static final String RUNTIME_ELEMENTS_CONFIGURATION_NAME = "runtimeElements";
 
     /**
+     * The name of the javadoc elements configuration.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public static final String JAVADOC_ELEMENTS_CONFIGURATION_NAME = "javadocElements";
+
+    /**
+     * The name of the sources elements configuration.
+     *
+     * @since 6.0
+     */
+    @Incubating
+    public static final String SOURCES_ELEMENTS_CONFIGURATION_NAME = "sourcesElements";
+
+    /**
      * The name of the compile classpath configuration.
      *
      * @since 3.4
@@ -200,9 +218,14 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @since 4.6
      */
-    @Incubating
     public static final String ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "annotationProcessor";
 
+    /**
+     * The name of the test compile dependencies configuration.
+     *
+     * @deprecated Use {@link #TEST_IMPLEMENTATION_CONFIGURATION_NAME} instead.
+     */
+    @Deprecated
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
     /**
@@ -245,7 +268,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @since 4.6
      */
-    @Incubating
     public static final String TEST_ANNOTATION_PROCESSOR_CONFIGURATION_NAME = "testAnnotationProcessor";
 
     /**
@@ -275,8 +297,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
         configureConfigurations(project, javaConvention);
 
-        configureJavaDoc(javaConvention);
         configureTest(project, javaConvention);
+        configureJavadocTask(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
 
@@ -300,20 +322,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
             @Override
             public void execute(SourceSet sourceSet) {
                 buildOutputCleanupRegistry.registerOutputs(sourceSet.getOutput());
-            }
-        });
-    }
-
-    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
-        Project project = pluginConvention.getProject();
-        project.getTasks().register(JAVADOC_TASK_NAME, Javadoc.class, new Action<Javadoc>() {
-            @Override
-            public void execute(Javadoc javadoc) {
-                final SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                javadoc.setDescription("Generates Javadoc API documentation for the main source code.");
-                javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
-                javadoc.setClasspath(mainSourceSet.getOutput().plus(mainSourceSet.getCompileClasspath()));
-                javadoc.setSource(mainSourceSet.getAllJava());
             }
         });
     }
@@ -342,7 +350,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         addRuntimeVariants(project, runtimeElementsConfiguration, jarArtifact, pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME), processResources);
 
         registerSoftwareComponents(project);
-        project.getComponents().add(objectFactory.newInstance(JavaLibraryPlatform.class, project.getConfigurations()));
+    }
+
+    private void configureJavadocTask(ProjectInternal project, JavaPluginConvention pluginConvention) {
+        SourceSet main = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        configureJavaDocTask(null, main, project.getTasks());
     }
 
     private void registerSoftwareComponents(Project project) {
@@ -452,7 +464,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         testRuntimeConfiguration.extendsFrom(runtimeConfiguration);
         testRuntimeOnlyConfiguration.extendsFrom(runtimeOnlyConfiguration);
 
-        final Configuration apiElementsConfiguration = configurations.maybeCreate(API_ELEMENTS_CONFIGURATION_NAME);
+        final DeprecatableConfiguration apiElementsConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(API_ELEMENTS_CONFIGURATION_NAME);
         apiElementsConfiguration.setVisible(false);
         apiElementsConfiguration.setDescription("API elements for main.");
         apiElementsConfiguration.setCanBeResolved(false);
@@ -463,7 +475,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.getAttributes().attribute(CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
         apiElementsConfiguration.extendsFrom(runtimeConfiguration);
 
-        final Configuration runtimeElementsConfiguration = configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
+        final DeprecatableConfiguration runtimeElementsConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(RUNTIME_ELEMENTS_CONFIGURATION_NAME);
         runtimeElementsConfiguration.setVisible(false);
         runtimeElementsConfiguration.setCanBeConsumed(true);
         runtimeElementsConfiguration.setCanBeResolved(false);
@@ -476,6 +488,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         defaultConfiguration.extendsFrom(runtimeElementsConfiguration);
 
+        apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
+        runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
 
         configureTargetPlatform(apiElementsConfiguration, convention);
         configureTargetPlatform(runtimeElementsConfiguration, convention);

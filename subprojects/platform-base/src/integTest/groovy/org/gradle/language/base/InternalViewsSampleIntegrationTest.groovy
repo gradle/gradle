@@ -51,6 +51,6 @@ class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
                           | Type:   \tjava.lang.String
                           | Value:  \tSome PUBLIC data
                           | Creator: \tcomponents { ... } @ build.gradle line 53, column 5 > create(my)
-        """.stripIndent().trim()
+            """.stripIndent().trim()
     }
 }

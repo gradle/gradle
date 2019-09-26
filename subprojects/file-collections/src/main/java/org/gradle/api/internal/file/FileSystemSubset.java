@@ -21,13 +21,14 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import javax.annotation.concurrent.ThreadSafe;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryTrees;
+import org.gradle.api.internal.file.collections.GeneratedFiles;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -56,12 +57,7 @@ public class FileSystemSubset {
 
     public Iterable<? extends File> getRoots() {
         return FileUtils.calculateRoots(
-            Iterables.concat(files, Iterables.transform(trees, new Function<DirectoryTree, File>() {
-                @Override
-                public File apply(DirectoryTree input) {
-                    return input.getDir();
-                }
-            }))
+            Iterables.concat(files, Iterables.transform(trees, (Function<DirectoryTree, File>) input -> input.getDir()))
         );
     }
 
@@ -99,12 +95,63 @@ public class FileSystemSubset {
     }
 
     @ThreadSafe
-    public static class Builder {
+    public static class Builder implements FileCollectionStructureVisitor {
         private final ImmutableSet.Builder<File> files = ImmutableSet.builder();
         private final ImmutableSet.Builder<ImmutableDirectoryTree> trees = ImmutableSet.builder();
         private final Lock lock = new ReentrantLock();
 
         private Builder() {
+        }
+
+        @Override
+        public VisitType prepareForVisit(FileCollectionInternal.Source source) {
+            if (source instanceof GeneratedFiles) {
+                // Don't watch generated resources
+                return VisitType.NoContents;
+            }
+            // Only need the spec for other collections
+            return VisitType.Spec;
+        }
+
+        @Override
+        public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+            addFiles(contents);
+        }
+
+        @Override
+        public void visitGenericFileTree(FileTreeInternal fileTree) {
+            addFiles(fileTree);
+        }
+
+        @Override
+        public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
+            lock.lock();
+            try {
+                trees.add(ImmutableDirectoryTree.of(root, patterns));
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        @Override
+        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+            lock.lock();
+            try {
+                files.add(file.getAbsoluteFile());
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private void addFiles(Iterable<File> contents) {
+            lock.lock();
+            try {
+                for (File file : contents) {
+                    files.add(file.getAbsoluteFile());
+                }
+            } finally {
+                lock.unlock();
+            }
         }
 
         public Builder add(FileSystemSubset fileSystemSubset) {

@@ -28,13 +28,13 @@ ext {
     tmpDistDir = file("$buildDir/dist")
 }
 
-task javadocJar(type: Jar) {
+task javadocJarArchive(type: Jar) {
     from javadoc  // <1>
     archiveClassifier = 'javadoc'
 }
 
 task unpackJavadocs(type: Copy) {
-    from zipTree(javadocJar.archiveFile)  // <2>
+    from zipTree(javadocJarArchive.archiveFile)  // <2>
     into tmpDistDir  // <3>
 }
 // end::properties[]

@@ -26,6 +26,13 @@ import org.gradle.api.internal.CompositeDomainObjectSet;
 public interface DomainObjectCollectionFactory {
     /**
      * Creates a {@link NamedDomainObjectContainer} for managing named objects of the specified type.
+     *
+     * Note that this method is here becaue {@link org.gradle.api.Project#container(Class)} cannot decorate the elements because of backwards compatibility.
+     */
+    <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainerUndecorated(Class<T> elementType);
+
+    /**
+     * Creates a {@link NamedDomainObjectContainer} for managing named objects of the specified type.
      */
     <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> elementType);
 

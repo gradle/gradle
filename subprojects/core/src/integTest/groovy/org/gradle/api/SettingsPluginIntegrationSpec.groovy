@@ -42,32 +42,6 @@ class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds(':moduleA:dependencies')
     }
 
-    def "can apply plugin class from buildSrc"() {
-        setup:
-        file("settings/buildSrc/src/main/java/test/SimpleSettingsPlugin.java").createFile().text = """
-            package test;
-
-            import org.gradle.api.Plugin;
-            import org.gradle.api.initialization.Settings;
-
-            public class SimpleSettingsPlugin implements Plugin<Settings> {
-                public void apply(Settings settings) {
-                    settings.include(new String[]{"moduleA"});
-                }
-            }
-
-            """
-        file("settings/buildSrc/src/main/resources/META-INF/gradle-plugins/simple-plugin.properties").createFile().text = """
-        implementation-class=test.SimpleSettingsPlugin
-        """
-
-        when:
-        settingsFile << "apply plugin: 'simple-plugin'"
-
-        then:
-        succeeds(':moduleA:dependencies')
-    }
-
     def "can apply script with relative path"() {
         setup:
         testDirectory.createFile("settings/somePath/settingsPlugin.gradle") << "apply from: 'path2/settings.gradle'";

@@ -23,7 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionLeafVisitor;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
 import org.gradle.api.tasks.FileNormalizer;
@@ -134,10 +134,10 @@ public class FileParameterUtils {
             final List<File> roots = Lists.newArrayList();
             final MutableBoolean nonFileRoot = new MutableBoolean();
             FileCollectionInternal outputFileCollection = fileCollectionFactory.resolving(unpackedValue);
-            outputFileCollection.visitLeafCollections(new FileCollectionLeafVisitor() {
+            outputFileCollection.visitStructure(new FileCollectionStructureVisitor() {
                 @Override
-                public void visitCollection(FileCollectionInternal fileCollection) {
-                    Iterables.addAll(roots, fileCollection);
+                public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
+                    Iterables.addAll(roots, contents);
                 }
 
                 @Override
@@ -146,7 +146,12 @@ public class FileParameterUtils {
                 }
 
                 @Override
-                public void visitFileTree(File root, PatternSet patterns) {
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+                    nonFileRoot.set(true);
+                }
+
+                @Override
+                public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                     // We could support an unfiltered DirectoryFileTree here as a cacheable root,
                     // but because @OutputDirectory also doesn't support it we choose not to.
                     nonFileRoot.set(true);

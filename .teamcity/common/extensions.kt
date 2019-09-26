@@ -26,6 +26,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2018_2.Dependencies
 import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.Requirements
+import jetbrains.buildServer.configs.kotlin.v2018_2.VcsSettings
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
 
@@ -52,6 +53,13 @@ fun Requirements.requiresOs(os: Os) {
     contains("teamcity.agent.jvm.os.name", os.agentRequirement)
 }
 
+fun VcsSettings.filterDefaultBranch() {
+    branchFilter = """
+                +:*
+                -:<default>
+            """.trimIndent()
+}
+
 fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
     artifactRules = """
         build/report-* => .
@@ -64,7 +72,9 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
     vcs {
         root(AbsoluteId(vcsRoot))
         checkoutMode = CheckoutMode.ON_AGENT
-        buildDefaultBranch = !vcsRoot.contains("Branches")
+        if (vcsRoot.contains("Branches")) {
+            filterDefaultBranch()
+        }
     }
 
     requirements {
@@ -90,7 +100,7 @@ fun BuildSteps.checkCleanM2(os: Os = Os.linux) {
     }
 }
 
-fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true): List<String> =
+fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true, os: Os = Os.linux): List<String> =
     listOf(
         "-PmaxParallelForks=%maxParallelForks%",
         "-s",
@@ -98,7 +108,8 @@ fun buildToolGradleParameters(daemon: Boolean = true, isContinue: Boolean = true
         if (isContinue) "--continue" else "",
         """-I "%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts"""",
         "-Dorg.gradle.internal.tasks.createops",
-        "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
+        // // https://github.com/gradle/gradle-private/issues/2725
+        if (os == Os.macos) "" else "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
     )
 
 fun buildToolParametersString(daemon: Boolean = true) = buildToolGradleParameters(daemon).joinToString(separator = " ")

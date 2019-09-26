@@ -15,6 +15,8 @@
 [[build_environment]]
 = Build Environment
 
+TIP: Interested in configuring your Build Cache to speed up builds? https://gradle.com/training/build-cache-deep-dive/?bid=docs-build-environment[Register here] for our Build Cache training session to learn some of the tips and tricks top engineering teams are using to increase build speed.
+
 [.lead]
 Gradle provides multiple mechanisms for configuring behavior of Gradle itself and specific projects. The following is a reference for using these mechanisms.
 
@@ -32,12 +34,12 @@ Aside from configuring the build environment, you can configure a given project 
 
 Gradle provides several options that make it easy to configure the Java process that will be used to execute your build. While it's possible to configure these in your local environment via `GRADLE_OPTS` or `JAVA_OPTS`, it is useful to store certain settings like JVM memory configuration and Java home location in version control so that an entire team can work with a consistent environment.
 
-Setting up a consistent environment for your build is as simple as placing these settings into a `gradle.properties` file. The configuration is applied in following order (if an option is configured in multiple locations the _last one wins_):
+Setting up a consistent environment for your build is as simple as placing these settings into a `gradle.properties` file. The configuration is a combination of all your `gradle.properties` files, but if an option is configured in multiple locations, the _first one wins_:
 
-* `gradle.properties` in Gradle installation directory.
-* `gradle.properties` in project root directory.
-* `gradle.properties` in `GRADLE_USER_HOME` directory.
 * system properties, e.g. when `-Dgradle.user.home` is set on the command line.
+* `gradle.properties` in `GRADLE_USER_HOME` directory.
+* `gradle.properties` in project root directory.
+* `gradle.properties` in Gradle installation directory.
 
 The following properties can be used to configure the Gradle build environment:
 
@@ -63,7 +65,7 @@ Specifies the JVM arguments used for the Gradle Daemon. The setting is particula
 When set to quiet, warn, lifecycle, info, or debug, Gradle will use this log level. The values are not case sensitive. The `lifecycle` level is the default. See <<logging.adoc#sec:choosing_a_log_level,Choosing a log level>>.
 `org.gradle.parallel=(true,false)`::
 When configured, Gradle will fork up to `org.gradle.workers.max` JVMs to execute projects in parallel. To learn more about parallel task execution, see link:https://guides.gradle.org/performance/#parallel_execution[the Gradle performance guide].
-`org.gradle.warning.mode=(all,none,summary)`::
+`org.gradle.warning.mode=(all,fail,summary,none)`::
 When set to `all`, `summary` or `none`, Gradle will use different warning type display. See <<command_line_interface.adoc#sec:command_line_logging,Command-line logging options>> for details.
 `org.gradle.workers.max=(max # of worker processes)`::
 When configured, Gradle will use a maximum of the given number of workers. Default is number of CPU processors. See also <<command_line_interface.adoc#sec:command_line_performance, performance command-line options>>.

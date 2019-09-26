@@ -14,6 +14,10 @@ class DependenciesCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType
         param("env.JAVA_HOME", buildJavaHome)
     }
 
+    features {
+        publishBuildStatusToGithub(model)
+    }
+
     applyDefaults(
             model,
             this,

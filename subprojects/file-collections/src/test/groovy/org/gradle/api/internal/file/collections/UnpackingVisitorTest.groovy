@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Task
+import org.gradle.api.file.DirectoryTree
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.tasks.TaskOutputs
@@ -202,4 +203,14 @@ class UnpackingVisitorTest extends Specification {
         0 * context._
     }
 
+    def "forwards DirectoryTree"() {
+        def tree = Mock(DirectoryTree)
+
+        when:
+        visitor.add(tree)
+
+        then:
+        1 * context.add(tree)
+        0 * _
+    }
 }

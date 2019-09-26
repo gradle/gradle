@@ -65,20 +65,14 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractMo
         onSuccess()
     }
 
-    String triedMetadata(String group, String module, String version, boolean fallbackToArtifact = false, boolean stopFirst = false) {
+    String triedMetadata(String group, String module, String version, boolean expectGradleMetadataRequest = gradleMetadataPublished) {
         Set uris = []
         def repo = GradleMetadataResolveRunner.useIvy() ? ivyHttpRepo : mavenHttpRepo
         def desc = GradleMetadataResolveRunner.useIvy() ? 'ivy' : 'pom'
         def resolve = repo.module(group, module, version)
-        if (GradleMetadataResolveRunner.experimentalResolveBehaviorEnabled) {
-            uris << resolve.moduleMetadata.uri
-        }
         uris << resolve."$desc".uri
-        if (fallbackToArtifact) {
-            uris << resolve.artifact.uri
-        }
-        if (stopFirst) {
-            uris = [uris[0]]
+        if (expectGradleMetadataRequest) {
+            uris << resolve.moduleMetadata.uri
         }
         uris.collect { "  - $it" }.join('\n')
     }

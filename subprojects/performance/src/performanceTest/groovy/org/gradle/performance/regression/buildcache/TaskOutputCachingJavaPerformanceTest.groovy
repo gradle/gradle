@@ -42,7 +42,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         runner.warmUpRuns = 11
         runner.runs = 21
         runner.minimumVersion = "3.5"
-        runner.targetVersions = ["5.6-20190718183316+0000"]
+        runner.targetVersions = ["6.0-20190823180744+0000"]
     }
 
     def "clean #tasks on #testProject with remote http cache"() {

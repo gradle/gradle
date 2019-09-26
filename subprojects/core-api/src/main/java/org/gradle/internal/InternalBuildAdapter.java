@@ -17,6 +17,13 @@
 package org.gradle.internal;
 
 import org.gradle.BuildAdapter;
+import org.gradle.api.invocation.Gradle;
 
-public class InternalBuildAdapter extends BuildAdapter implements InternalListener {
+public class InternalBuildAdapter extends BuildAdapter implements InternalBuildListener {
+
+    // Internal usage of this callback is fine only the public API is being deprecated
+    @Override
+    @SuppressWarnings("deprecation")
+    public void buildStarted(Gradle gradle) {
+    }
 }

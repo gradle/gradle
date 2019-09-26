@@ -105,7 +105,7 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     }
 
     @Override
-    public void setSourcesRoots(List<File> sourcesRoots) {
+    public void setSourcesRoots(List<File> sourceRoots) {
         this.sourceRoots = sourceRoots;
     }
 }

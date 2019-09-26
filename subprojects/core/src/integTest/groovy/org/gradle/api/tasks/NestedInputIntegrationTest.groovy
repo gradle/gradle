@@ -36,12 +36,13 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class NestedBeanWithInput {
                 @Input${kind}
+                @PathSensitive(PathSensitivity.NONE)
                 ${type.name} input
             }
             
             class GeneratorTask extends DefaultTask {
                 @Output${kind}
-                ${type.name} output = project.objects.${factory}()
+                final ${type.name} output = project.objects.${factory}()
                 
                 @TaskAction
                 void doStuff() {
@@ -84,7 +85,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class GeneratorTask extends DefaultTask {
                 @OutputFile
-                RegularFileProperty outputFile = project.objects.fileProperty()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void doStuff() {
@@ -122,7 +123,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             
             class GeneratorTask extends DefaultTask {
                 @OutputFile
-                RegularFileProperty outputFile = project.objects.fileProperty()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
                 
                 @TaskAction
                 void doStuff() {
@@ -348,7 +349,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 Object bean
     
                 @OutputFile
-                RegularFileProperty outputFile = project.objects.fileProperty()
+                final RegularFileProperty outputFile = project.objects.fileProperty()
     
                 @TaskAction
                 void writeInputToFile() {
@@ -467,7 +468,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("A problem was found with the configuration of task ':myTask'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
         failure.assertHasCause("No value has been specified for property 'nested'.")
     }
 
@@ -795,7 +796,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
                 import org.gradle.api.tasks.*
 
                 class NestedBean {
-                    @InputFile File input
+                    @InputFile @PathSensitive(PathSensitivity.NONE) File input
                     @OutputFile File output
                 }
             '''
@@ -884,7 +885,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             import java.io.File;
             
             public class NestedBeanWithAction {
-                Action<File> action;
+                private Action<File> action;
                 
                 public void withAction(Action<File> action) {
                     this.action = action;

@@ -16,7 +16,6 @@
 
 package org.gradle.api.publish.maven;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 
@@ -27,7 +26,6 @@ import org.gradle.api.provider.SetProperty;
  * @see MavenPom
  * @see MavenPomMailingListSpec
  */
-@Incubating
 public interface MavenPomMailingList {
 
     /**

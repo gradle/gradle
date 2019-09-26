@@ -31,4 +31,5 @@ public interface ModuleDependencyMetadata extends DependencyMetadata {
     @Override
     ModuleDependencyMetadata withReason(String reason);
 
+    ModuleDependencyMetadata withEndorseStrictVersions(boolean endorse);
 }

@@ -16,10 +16,14 @@
 
 package org.gradle.instantexecution
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
+import com.google.common.collect.ImmutableSet
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.project.DefaultProject
@@ -30,10 +34,11 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.internal.event.ListenerManager
 import org.gradle.invocation.DefaultGradle
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
-import org.junit.Rule
+import org.gradle.workers.WorkerExecutor
 import org.slf4j.Logger
 import spock.lang.Unroll
 
@@ -141,53 +146,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         result.assertTasksExecuted(":a")
     }
 
-    @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
-
-    def "instant execution for task in multiple projects"() {
-        server.start()
-
-        given:
-        settingsFile << """
-            include 'a', 'b', 'c'
-        """
-        buildFile << """
-            class SlowTask extends DefaultTask {
-                @TaskAction
-                def go() {
-                    ${server.callFromBuildUsingExpression("project.name")}
-                }
-            }
-
-            subprojects {
-                tasks.create('slow', SlowTask)
-            }
-            project(':a') {
-                tasks.slow.dependsOn(project(':b').tasks.slow, project(':c').tasks.slow)
-            }
-        """
-
-        when:
-        server.expectConcurrent("b", "c")
-        server.expectConcurrent("a")
-        instantRun "slow", "--parallel"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        def pendingCalls = server.expectConcurrentAndBlock("b", "c")
-        server.expectConcurrent("a")
-
-        def buildHandle = executer.withTasks("slow", "--parallel", "--max-workers=3", INSTANT_EXECUTION_PROPERTY).start()
-        pendingCalls.waitForAllPendingCalls()
-        pendingCalls.releaseAll()
-        buildHandle.waitForFinish()
-
-        then:
-        noExceptionThrown()
-    }
-
     def "instant execution for multi-level projects"() {
         given:
         settingsFile << """
@@ -218,6 +176,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeTask extends DefaultTask {
+                @Internal
                 final SomeBean bean
                 
                 SomeTask() {
@@ -259,6 +218,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     @Unroll
     def "restores task fields whose value is instance of #type"() {
         buildFile << """
+            import java.util.concurrent.*
+
             class SomeBean {
                 ${type} value 
             }
@@ -295,39 +256,142 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = ${output}")
 
         where:
-        type                             | reference                                                     | output
-        String.name                      | "'value'"                                                     | "value"
-        String.name                      | "null"                                                        | "null"
-        Boolean.name                     | "true"                                                        | "true"
-        boolean.name                     | "true"                                                        | "true"
-        Character.name                   | "'a'"                                                         | "a"
-        char.name                        | "'a'"                                                         | "a"
-        Byte.name                        | "12"                                                          | "12"
-        byte.name                        | "12"                                                          | "12"
-        Short.name                       | "12"                                                          | "12"
-        short.name                       | "12"                                                          | "12"
-        Integer.name                     | "12"                                                          | "12"
-        int.name                         | "12"                                                          | "12"
-        Long.name                        | "12"                                                          | "12"
-        long.name                        | "12"                                                          | "12"
-        Float.name                       | "12.1"                                                        | "12.1"
-        float.name                       | "12.1"                                                        | "12.1"
-        Double.name                      | "12.1"                                                        | "12.1"
-        double.name                      | "12.1"                                                        | "12.1"
-        Class.name                       | "SomeBean"                                                    | "class SomeBean"
-        "SomeEnum"                       | "SomeEnum.Two"                                                | "Two"
-        "SomeEnum[]"                     | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
-        "List<String>"                   | "['a', 'b', 'c']"                                             | "[a, b, c]"
-        "Set<String>"                    | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
-        "HashSet<String>"                | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
-        "LinkedHashSet<String>"          | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
-        "TreeSet<String>"                | "['a', 'b', 'c'] as TreeSet"                                  | "[a, b, c]"
-        "EnumSet<SomeEnum>"              | "EnumSet.of(SomeEnum.Two)"                                    | "[Two]"
-        "Map<String, Integer>"           | "[a: 1, b: 2]"                                                | "[a:1, b:2]"
-        "HashMap<String, Integer>"       | "new HashMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
-        "LinkedHashMap<String, Integer>" | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
-        "TreeMap<String, Integer>"       | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
-        "EnumMap<SomeEnum, String>"      | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
+        type                                 | reference                                                     | output
+        String.name                          | "'value'"                                                     | "value"
+        String.name                          | "null"                                                        | "null"
+        Boolean.name                         | "true"                                                        | "true"
+        boolean.name                         | "true"                                                        | "true"
+        Character.name                       | "'a'"                                                         | "a"
+        char.name                            | "'a'"                                                         | "a"
+        Byte.name                            | "12"                                                          | "12"
+        byte.name                            | "12"                                                          | "12"
+        Short.name                           | "12"                                                          | "12"
+        short.name                           | "12"                                                          | "12"
+        Integer.name                         | "12"                                                          | "12"
+        int.name                             | "12"                                                          | "12"
+        Long.name                            | "12"                                                          | "12"
+        long.name                            | "12"                                                          | "12"
+        Float.name                           | "12.1"                                                        | "12.1"
+        float.name                           | "12.1"                                                        | "12.1"
+        Double.name                          | "12.1"                                                        | "12.1"
+        double.name                          | "12.1"                                                        | "12.1"
+        Class.name                           | "SomeBean"                                                    | "class SomeBean"
+        "SomeEnum"                           | "SomeEnum.Two"                                                | "Two"
+        "SomeEnum[]"                         | "[SomeEnum.Two] as SomeEnum[]"                                | "[Two]"
+        "List<String>"                       | "['a', 'b', 'c']"                                             | "[a, b, c]"
+        "ArrayList<String>"                  | "['a', 'b', 'c'] as ArrayList"                                | "[a, b, c]"
+        "LinkedList<String>"                 | "['a', 'b', 'c'] as LinkedList"                               | "[a, b, c]"
+        "Set<String>"                        | "['a', 'b', 'c'] as Set"                                      | "[a, b, c]"
+        "HashSet<String>"                    | "['a', 'b', 'c'] as HashSet"                                  | "[a, b, c]"
+        "LinkedHashSet<String>"              | "['a', 'b', 'c'] as LinkedHashSet"                            | "[a, b, c]"
+        "TreeSet<String>"                    | "['a', 'b', 'c'] as TreeSet"                                  | "[a, b, c]"
+        "EnumSet<SomeEnum>"                  | "EnumSet.of(SomeEnum.Two)"                                    | "[Two]"
+        "Map<String, Integer>"               | "[a: 1, b: 2]"                                                | "[a:1, b:2]"
+        "HashMap<String, Integer>"           | "new HashMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
+        "LinkedHashMap<String, Integer>"     | "new LinkedHashMap([a: 1, b: 2])"                             | "[a:1, b:2]"
+        "TreeMap<String, Integer>"           | "new TreeMap([a: 1, b: 2])"                                   | "[a:1, b:2]"
+        "ConcurrentHashMap<String, Integer>" | "new ConcurrentHashMap([a: 1, b: 2])"                         | "[a:1, b:2]"
+        "EnumMap<SomeEnum, String>"          | "new EnumMap([(SomeEnum.One): 'one', (SomeEnum.Two): 'two'])" | "[One:one, Two:two]"
+    }
+
+    @Unroll
+    def "restores task fields whose value is instance of plugin specific version of Guava #type"() {
+        buildFile << """
+            import ${type.name}
+
+            buildscript {
+                ${jcenterRepository()}
+                dependencies {
+                    classpath 'com.google.guava:guava:28.0-jre' 
+                }
+            }
+
+            class SomeBean {
+                ${type.simpleName} value 
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final ${type.simpleName} value
+                
+                SomeTask() {
+                    value = ${reference}
+                    bean.value = ${reference}
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value
+                    println "bean.value = " + bean.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.value = ${output}")
+        outputContains("bean.value = ${output}")
+
+        where:
+        type          | reference                         | output
+        ImmutableList | "ImmutableList.of('a', 'b', 'c')" | "[a, b, c]"
+        ImmutableSet  | "ImmutableSet.of('a', 'b', 'c')"  | "[a, b, c]"
+        ImmutableMap  | "ImmutableMap.of(1, 'a', 2, 'b')" | "[1:a, 2:b]"
+    }
+
+    def "restores task fields whose value is Serializable and has writeReplace method"() {
+        buildFile << """
+            class Placeholder implements Serializable {
+                String value
+                
+                private Object readResolve() {
+                    return new OtherBean(prop: "[\$value]")
+                }
+            }
+
+            class OtherBean implements Serializable {
+                String prop
+
+                private Object writeReplace() {
+                    return new Placeholder(value: prop)
+                }
+            }
+
+            class SomeBean {
+                OtherBean value 
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+                private final OtherBean value
+                
+                SomeTask() {
+                    value = new OtherBean(prop: 'a')
+                    bean.value = new OtherBean(prop: 'b')
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.prop
+                    println "bean.value = " + bean.value.prop
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.value = [a]")
+        outputContains("bean.value = [b]")
     }
 
     @Unroll
@@ -338,7 +402,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeTask extends DefaultTask {
+                @Internal
                 final SomeBean bean = new SomeBean()
+                @Internal
                 ${type} value
 
                 @TaskAction
@@ -366,6 +432,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         Logger.name                      | "logger"                                                    | "info('hi')"
         ObjectFactory.name               | "objects"                                                   | "newInstance(SomeBean)"
         ToolingModelBuilderRegistry.name | "project.services.get(${ToolingModelBuilderRegistry.name})" | "toString()"
+        WorkerExecutor.name              | "project.services.get(${WorkerExecutor.name})"              | "noIsolation()"
+        FileSystemOperations.name        | "project.services.get(${FileSystemOperations.name})"        | "toString()"
+        ExecOperations.name              | "project.services.get(${ExecOperations.name})"              | "toString()"
+        ListenerManager.name             | "project.services.get(${ListenerManager.name})"             | "toString()"
     }
 
     @Unroll
@@ -378,7 +448,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeTask extends DefaultTask {
+                @Internal
                 final SomeBean bean = project.objects.newInstance(SomeBean)
+                @Internal
                 ${type} value
 
                 @TaskAction
@@ -411,11 +483,49 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
+    def "restores task fields whose value is broken #type"() {
+        def instantExecution = newInstantExecutionFixture()
+
+        buildFile << """
+            import ${Inject.name}
+
+            class SomeTask extends DefaultTask {
+                @Internal
+                ${type} value = ${reference} { throw new RuntimeException("broken!") }
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.${query}
+                }
+            }
+
+            task broken(type: SomeTask) {
+            }
+        """
+
+        when:
+        instantFails "broken"
+        instantFails "broken"
+
+        then:
+        instantExecution.assertStateLoaded()
+        failure.assertTasksExecuted(":broken")
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasCause("broken!")
+
+        where:
+        type               | reference                    | query
+        "Provider<String>" | "project.providers.provider" | "get()"
+        "FileCollection"   | "project.files"              | "files"
+    }
+
+    @Unroll
     def "restores task fields whose value is property of type #type"() {
         buildFile << """
             import ${Inject.name}
 
             class SomeBean {
+                @Internal
                 final ${type} value
 
                 @Inject
@@ -425,7 +535,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
             }
 
             class SomeTask extends DefaultTask {
+                @Internal
                 final SomeBean bean = project.objects.newInstance(SomeBean)
+                @Internal
                 final ${type} value
 
                 @Inject
@@ -465,8 +577,69 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
+    }
+
+    @Unroll
+    def "restores task fields whose value is a serializable #kind Java lambda"() {
+        given:
+        file("buildSrc/src/main/java/my/LambdaTask.java").tap {
+            parentFile.mkdirs()
+            text = """
+                package my;
+
+                import org.gradle.api.*;
+                import org.gradle.api.tasks.*;
+
+                public class LambdaTask extends DefaultTask {
+
+                    public interface SerializableSupplier<T> extends java.io.Serializable {
+                        T get();
+                    }
+
+                    private SerializableSupplier<Integer> supplier;
+
+                    public void setSupplier(SerializableSupplier<Integer> supplier) {
+                        this.supplier = supplier;
+                    }
+
+                    public void setNonInstanceCapturingLambda() {
+                        final int i = getName().length();
+                        setSupplier(() -> i);
+                    }
+
+                    public void setInstanceCapturingLambda() {
+                        setSupplier(() -> getName().length());
+                    }
+
+                    @TaskAction
+                    void printValue() {
+                        System.out.println("this.supplier.get() -> " + this.supplier.get());
+                    }
+                }
+            """
+        }
+
+        buildFile << """
+            task ok(type: my.LambdaTask) {
+                $expression
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.supplier.get() -> 2")
+
+        where:
+        kind                     | expression
+        "instance capturing"     | "setInstanceCapturingLambda()"
+        "non-instance capturing" | "setNonInstanceCapturingLambda()"
     }
 
     @Unroll
@@ -517,6 +690,33 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         DefaultTask.name                   | Task.name                   | "project.tasks.other"
         DefaultTaskContainer.name          | TaskContainer.name          | "project.tasks"
         DefaultConfigurationContainer.name | ConfigurationContainer.name | "project.configurations"
+    }
+
+    def "restores task abstract properties"() {
+        buildFile << """
+
+            abstract class SomeTask extends DefaultTask {
+
+                @Internal
+                abstract Property<String> getValue()
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.getOrNull()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = "42"
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("this.value = 42")
     }
 
     def "task can reference itself"() {

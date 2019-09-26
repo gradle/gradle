@@ -16,41 +16,97 @@
 
 package org.gradle.instantexecution.serialization
 
+import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
+import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.instantexecution.ClassLoaderScopeSpec
+import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
+import org.gradle.instantexecution.serialization.beans.BeanStateReader
+import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
 
 internal
 class DefaultWriteContext(
-
-    private
-    val encodings: EncodingProvider,
+    codec: Codec<Any?>,
 
     private
     val encoder: Encoder,
+
+    private
+    val scopeLookup: ScopeLookup,
 
     override val logger: Logger,
 
     private
     val problemHandler: (PropertyProblem) -> Unit
 
-) : AbstractIsolateContext<WriteIsolate>(), MutableWriteContext, Encoder by encoder {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder {
+    override val sharedIdentities = WriteIdentities()
 
     private
-    val beanPropertyWriters = hashMapOf<Class<*>, BeanPropertyWriter>()
+    val beanPropertyWriters = hashMapOf<Class<*>, BeanStateWriter>()
 
-    override fun beanPropertyWriterFor(beanType: Class<*>): BeanPropertyWriter =
+    private
+    val classes = WriteIdentities()
+
+    private
+    val scopes = WriteIdentities()
+
+    override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
         beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
+
 
     override val isolate: WriteIsolate
         get() = getIsolate()
 
-    override fun writeActionFor(value: Any?): Encoding? = encodings.run {
-        encodingFor(value)
+    override suspend fun write(value: Any?) {
+        getCodec().run {
+            encode(value)
+        }
+    }
+
+    override fun writeClass(type: Class<*>) {
+        val id = classes.getId(type)
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            val scope = scopeLookup.scopeFor(type.classLoader)
+            val newId = classes.putInstance(type)
+            writeSmallInt(newId)
+            writeString(type.name)
+            if (scope == null) {
+                writeBoolean(false)
+            } else {
+                writeBoolean(true)
+                writeScope(scope.first)
+                writeBoolean(scope.second.local)
+            }
+        }
+    }
+
+    private
+    fun writeScope(scope: ClassLoaderScopeSpec) {
+        val id = scopes.getId(scope)
+        if (id != null) {
+            writeSmallInt(id)
+        } else {
+            val newId = scopes.putInstance(scope)
+            writeSmallInt(newId)
+            if (scope.parent != null) {
+                writeBoolean(true)
+                writeScope(scope.parent)
+                writeString(scope.name)
+                writeClassPath(scope.localClassPath)
+                writeClassPath(scope.exportClassPath)
+            } else {
+                writeBoolean(false)
+            }
+        }
     }
 
     // TODO: consider interning strings
@@ -66,30 +122,44 @@ class DefaultWriteContext(
 }
 
 
+interface EncodingProvider<T> {
+    suspend fun WriteContext.encode(value: T)
+}
+
+
+@Suppress("experimental_feature_warning")
+inline class ClassLoaderRole(val local: Boolean)
+
+
 internal
-interface EncodingProvider {
-    fun WriteContext.encodingFor(candidate: Any?): Encoding?
+interface ScopeLookup {
+    fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
 }
 
 
 internal
 class DefaultReadContext(
-
-    private
-    val decoding: DecodingProvider,
+    codec: Codec<Any?>,
 
     private
     val decoder: Decoder,
 
-    override val logger: Logger,
+    private
+    val constructors: BeanConstructors,
+
+    override val logger: Logger
+) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
+
+    override val sharedIdentities = ReadIdentities()
 
     private
-    val beanPropertyReaderFactory: (Class<*>) -> BeanPropertyReader
-
-) : AbstractIsolateContext<ReadIsolate>(), MutableReadContext, Decoder by decoder {
+    val beanStateReaders = hashMapOf<Class<*>, BeanStateReader>()
 
     private
-    val beanPropertyReaders = hashMapOf<Class<*>, BeanPropertyReader>()
+    val classes = ReadIdentities()
+
+    private
+    val scopes = ReadIdentities()
 
     private
     lateinit var projectProvider: ProjectProvider
@@ -106,15 +176,64 @@ class DefaultReadContext(
         this.projectProvider = projectProvider
     }
 
-    override suspend fun read(): Any? = decoding.run {
+    override var immediateMode: Boolean = false
+
+    override suspend fun read(): Any? = getCodec().run {
         decode()
     }
 
     override val isolate: ReadIsolate
         get() = getIsolate()
 
-    override fun beanPropertyReaderFor(beanType: Class<*>): BeanPropertyReader =
-        beanPropertyReaders.computeIfAbsent(beanType, beanPropertyReaderFactory)
+    override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
+        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors) }
+
+    override fun readClass(): Class<*> {
+        val id = readSmallInt()
+        val type = classes.getInstance(id)
+        if (type != null) {
+            return type as Class<*>
+        }
+        val name = readString()
+        val classLoader = if (readBoolean()) {
+            val scope = readScope()
+            if (readBoolean()) {
+                scope.localClassLoader
+            } else {
+                scope.exportClassLoader
+            }
+        } else {
+            this.classLoader
+        }
+        val newType = Class.forName(name, false, classLoader)
+        classes.putInstance(id, newType)
+        return newType
+    }
+
+    private
+    fun readScope(): ClassLoaderScope {
+        val id = readSmallInt()
+        val scope = scopes.getInstance(id)
+        if (scope != null) {
+            return scope as ClassLoaderScope
+        }
+        val newScope = if (readBoolean()) {
+            val parent = readScope()
+            val name = readString()
+            val localClassPath = readClassPath()
+            val exportClassPath = readClassPath()
+            parent
+                .createChild(name)
+                .local(localClassPath)
+                .export(exportClassPath)
+                .lock()
+        } else {
+            isolate.owner.service(ClassLoaderScopeRegistry::class.java).coreAndPluginsScope
+        }
+        Workarounds.maybeSetDefaultStaticStateIn(newScope)
+        scopes.putInstance(id, newScope)
+        return newScope
+    }
 
     override fun getProject(path: String): ProjectInternal =
         projectProvider(path)
@@ -128,9 +247,8 @@ class DefaultReadContext(
 }
 
 
-internal
-interface DecodingProvider {
-    suspend fun ReadContext.decode(): Any?
+interface DecodingProvider<T> {
+    suspend fun ReadContext.decode(): T?
 }
 
 
@@ -139,10 +257,13 @@ typealias ProjectProvider = (String) -> ProjectInternal
 
 
 internal
-abstract class AbstractIsolateContext<T> : MutableIsolateContext {
+abstract class AbstractIsolateContext<T>(codec: Codec<Any?>) : MutableIsolateContext {
 
     private
     var currentIsolate: T? = null
+
+    private
+    var currentCodec = codec
 
     var trace: PropertyTrace = PropertyTrace.Unknown
 
@@ -157,14 +278,22 @@ abstract class AbstractIsolateContext<T> : MutableIsolateContext {
         isolate
     }
 
-    override fun enterIsolate(owner: IsolateOwner) {
-        require(currentIsolate === null)
+    protected
+    fun getCodec() = currentCodec
+
+    private
+    val contexts = ArrayList<Pair<T?, Codec<Any?>>>()
+
+    override fun push(owner: IsolateOwner, codec: Codec<Any?>) {
+        contexts.add(0, Pair(currentIsolate, currentCodec))
         currentIsolate = newIsolate(owner)
+        currentCodec = codec
     }
 
-    override fun leaveIsolate() {
-        require(currentIsolate !== null)
-        currentIsolate = null
+    override fun pop() {
+        val previousValues = contexts.removeAt(0)
+        currentIsolate = previousValues.first
+        currentCodec = previousValues.second
     }
 }
 

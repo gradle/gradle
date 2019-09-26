@@ -22,6 +22,7 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
@@ -38,11 +39,11 @@ import java.util.Set;
 /**
  * A factory for creating various kinds of model objects.
  * <p>
- * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}. It is also available via {@link org.gradle.api.Project#getObjects()}.
+ * An instance of the factory can be injected into a task, plugin or other object by annotating a public constructor or property getter method with {@code javax.inject.Inject}.
+ * It is also available via {@link org.gradle.api.Project#getObjects()}.
  *
  * @since 4.0
  */
-@Incubating
 public interface ObjectFactory {
     /**
      * Creates a simple immutable {@link Named} object of the given type and name.
@@ -67,7 +68,7 @@ public interface ObjectFactory {
     /**
      * Create a new instance of T, using {@code parameters} as the construction parameters.
      *
-     * <p>The type must be a non-abstract class.</p>
+     * <p>The type must be non-final, and can be a class, abstract class or interface.</p>
      *
      * <p>Objects created using this method are decorated and extensible, meaning that they have DSL support mixed in and can be extended using the `extensions` property, similar to the {@link org.gradle.api.Project} object.</p>
      *
@@ -77,6 +78,8 @@ public interface ObjectFactory {
      *     <li>{@link ObjectFactory}.</li>
      *     <li>{@link org.gradle.api.file.ProjectLayout}.</li>
      *     <li>{@link org.gradle.api.provider.ProviderFactory}.</li>
+     *     <li>{@link org.gradle.process.ExecOperations}</li>
+     *     <li>{@link org.gradle.api.file.FileSystemOperations}</li>
      * </ul>
      *
      * @throws ObjectInstantiationException On failure to create the new instance.
@@ -91,6 +94,7 @@ public interface ObjectFactory {
      * @param displayName A human consumable display name for the set.
      * @since 5.0
      */
+    @Incubating
     SourceDirectorySet sourceDirectorySet(String name, String displayName);
 
     /**
@@ -98,18 +102,32 @@ public interface ObjectFactory {
      *
      * @since 5.3
      */
+    @Incubating
     ConfigurableFileCollection fileCollection();
 
     /**
-     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.</p>
+     * Creates a new {@link ConfigurableFileTree}. The tree has no base dir specified.
      *
-     * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
+     * @since 6.0
+     */
+    @Incubating
+    ConfigurableFileTree fileTree();
+
+    /**
+     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type.</p>
+     *
+     * <p>The specified type must have a public constructor which takes the name as a String parameter. The type must be non-final and a class or abstract class. Interfaces are currently not supported.</p>
+     *
+     * <p>All objects <b>MUST</b> expose their name as a bean property called "name". The name must be constant for the life of the object.</p>
+     *
+     * <p>The objects created by the container are decorated and extensible, and have services available for injection. See {@link #newInstance(Class, Object...)} for more details.</p>
      *
      * @param elementType The type of objects for the container to contain.
      * @param <T> The type of objects for the container to contain.
      * @return The container. Never returns null.
      * @since 5.5
      */
+    @Incubating
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType);
 
     /**
@@ -117,13 +135,13 @@ public interface ObjectFactory {
      *
      * <p>All objects <b>MUST</b> expose their name as a bean property named "name". The name must be constant for the life of the object.</p>
      *
-     *
      * @param elementType The type of objects for the container to contain.
      * @param factory The factory to use to create object instances.
      * @param <T> The type of objects for the container to contain.
      * @return The container. Never returns null.
      * @since 5.5
      */
+    @Incubating
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory);
 
     /**
@@ -134,6 +152,7 @@ public interface ObjectFactory {
      * @return The domain object set. Never returns null.
      * @since 5.5
      */
+    @Incubating
     <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType);
 
     /**
@@ -182,6 +201,7 @@ public interface ObjectFactory {
      * Creates a {@link MapProperty} implementation to hold a {@link Map} of the given key type {@code K} and value type {@code V}. The property has an empty map as its initial value.
      *
      * <p>The implementation will return immutable {@link Map} values from its query methods.</p>
+     *
      * @param keyType the type of key.
      * @param valueType the type of value.
      * @param <K> the type of key.
@@ -189,6 +209,7 @@ public interface ObjectFactory {
      * @return the property. Never returns null.
      * @since 5.1
      */
+    @Incubating
     <K, V> MapProperty<K, V> mapProperty(Class<K> keyType, Class<V> valueType);
 
     /**
@@ -196,6 +217,7 @@ public interface ObjectFactory {
      *
      * @since 5.0
      */
+    @Incubating
     DirectoryProperty directoryProperty();
 
     /**
@@ -203,5 +225,6 @@ public interface ObjectFactory {
      *
      * @since 5.0
      */
+    @Incubating
     RegularFileProperty fileProperty();
 }

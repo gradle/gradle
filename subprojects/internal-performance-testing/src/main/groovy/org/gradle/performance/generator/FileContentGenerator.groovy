@@ -65,7 +65,7 @@ abstract class FileContentGenerator {
         allprojects {
             dependencies{
         ${
-            language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.7') : ""
+            language == Language.GROOVY ? directDependencyDeclaration('implementation', 'org.codehaus.groovy:groovy:2.5.8') : ""
         }
             }
         }
@@ -100,16 +100,19 @@ abstract class FileContentGenerator {
             if (!isRoot) {
                 return null
             }
-            if (config.subProjects == 0) {
-                return ""
-            }
-            """ 
-            ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
 
-            ${config.featurePreviews.collect { "enableFeaturePreview(\"$it\")" }.join("\n")}
-            """
+            String includedProjects = ""
+            if (config.subProjects != 0) {
+                includedProjects = """ 
+                    ${(0..config.subProjects - 1).collect { "include(\"project$it\")" }.join("\n")}
+                """
+            }
+
+            return includedProjects + generateEnableFeaturePreviewCode()
         }
     }
+
+    abstract protected String generateEnableFeaturePreviewCode()
 
     def generateGradleProperties(boolean isRoot) {
         if (!isRoot && !config.compositeBuild) {

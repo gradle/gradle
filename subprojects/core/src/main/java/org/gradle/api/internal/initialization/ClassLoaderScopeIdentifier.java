@@ -17,17 +17,21 @@
 package org.gradle.api.internal.initialization;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
+import org.gradle.initialization.ClassLoaderScopeId;
 
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Objects;
 
-class ClassLoaderScopeIdentifier {
+public class ClassLoaderScopeIdentifier implements ClassLoaderScopeId {
 
+    @Nullable
     private final ClassLoaderScopeIdentifier parent;
     private final String name;
 
-    public ClassLoaderScopeIdentifier(ClassLoaderScopeIdentifier parent, String name) {
+    public ClassLoaderScopeIdentifier(@Nullable ClassLoaderScopeIdentifier parent, String name) {
         this.parent = parent;
         this.name = name;
     }
@@ -36,7 +40,12 @@ class ClassLoaderScopeIdentifier {
         return new ClassLoaderScopeIdentifier(this, name);
     }
 
-    ClassLoaderId localId() {
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    public ClassLoaderId localId() {
         return new Id(this, false);
     }
 
@@ -55,22 +64,22 @@ class ClassLoaderScopeIdentifier {
 
         ClassLoaderScopeIdentifier that = (ClassLoaderScopeIdentifier) o;
 
-        return name.equals(that.name) && !(parent != null ? !parent.equals(that.parent) : that.parent != null);
+        return name.equals(that.name) && Objects.equals(parent, that.parent);
     }
 
     @Override
     public int hashCode() {
-        int result = parent != null ? parent.hashCode() : 0;
+        int result = Objects.hashCode(parent);
         result = 31 * result + name.hashCode();
         return result;
     }
 
     String getPath() {
-        List<String> names = Lists.newLinkedList();
+        Deque<String> names = new ArrayDeque<>();
         names.add(name);
         ClassLoaderScopeIdentifier nextParent = parent;
         while (nextParent != null) {
-            names.add(0, nextParent.name);
+            names.addFirst(nextParent.name);
             nextParent = nextParent.parent;
         }
         return Joiner.on(":").join(names);
@@ -106,7 +115,7 @@ class ClassLoaderScopeIdentifier {
         @Override
         public int hashCode() {
             int result = identifier.hashCode();
-            result = 31 * result + (export ? 1 : 0);
+            result = 31 * result + Boolean.hashCode(export);
             return result;
         }
 

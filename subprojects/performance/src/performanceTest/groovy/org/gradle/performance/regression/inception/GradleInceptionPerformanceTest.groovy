@@ -15,8 +15,8 @@
  */
 package org.gradle.performance.regression.inception
 
-import org.gradle.performance.AbstractCrossVersionPerformanceTest
-import org.gradle.performance.categories.PerformanceExperiment
+import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
+import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.junit.experimental.categories.Category
@@ -42,7 +42,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
  *   - e.g. change in Gradle that breaks the Gradle build
  */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
-class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest {
+class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     static List<String> extraGradleBuildArguments() {
         ["-Djava9Home=${System.getProperty('java9Home')}",
@@ -53,7 +53,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
     }
 
     def setup() {
-        def targetVersion = "5.6-20190717134831+0000"
+        def targetVersion = "6.0-20190918220850+0000"
         runner.targetVersions = [targetVersion]
         runner.minimumVersion = targetVersion
     }
@@ -76,7 +76,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionPerformanceTest
         'help' | _
     }
 
-    @Category(PerformanceExperiment)
+    @Category(SlowPerformanceRegressionTest)
     @Unroll
     def "buildSrc api change in #testProject comparing gradle"() {
         given:

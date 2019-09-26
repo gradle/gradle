@@ -47,12 +47,28 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
 
     def testCreateFromProjectDependency() {
         when:
-        ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF)
-        setUpDependency(projectDependency)
+        boolean withArtifacts = true
+        ProjectDependency projectDependency = createProjectDependency(null)
+        setUpDependency(projectDependency, withArtifacts)
         LocalOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, projectDependency)
 
         then:
-        assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData)
+        assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
+        !dependencyMetaData.changing
+        !dependencyMetaData.force
+        dependencyMetaData.selector == new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY, [])
+        projectDependency == dependencyMetaData.source
+    }
+
+    def testCreateFromProjectDependencyWithoutArtifacts() {
+        when:
+        boolean withArtifacts = false
+        ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF)
+        setUpDependency(projectDependency, withArtifacts)
+        LocalOriginDependencyMetadata dependencyMetaData = projectDependencyDescriptorFactory.createDependencyDescriptor(componentId, TEST_CONF, null, projectDependency)
+
+        then:
+        assertDependencyDescriptorHasCommonFixtureValues(dependencyMetaData, withArtifacts)
         !dependencyMetaData.changing
         !dependencyMetaData.force
         dependencyMetaData.selector == new DefaultProjectComponentSelector(DefaultBuildIdentifier.ROOT, Path.ROOT, Path.ROOT, "root", ImmutableAttributes.EMPTY, [])
@@ -63,7 +79,9 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
         Project dependencyProject = TestUtil.create(temporaryFolder).rootProject()
         dependencyProject.setGroup("someGroup")
         dependencyProject.setVersion("someVersion")
-        dependencyProject.configurations.create(dependencyConfiguration)
+        if (dependencyConfiguration != null) {
+            dependencyProject.configurations.create(dependencyConfiguration)
+        }
         return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, {} as ProjectAccessListener, true)
     }
 }

@@ -96,7 +96,9 @@ You'll learn more about source sets and the features they provide in:
 [[sec:java_dependency_management_overview]]
 == Managing your dependencies
 
-The vast majority of Java projects rely on libraries, so managing a project's dependencies is an important part of building a Java project. Dependency management is a big topic, so we will focus on the basics for Java projects here. If you'd like to dive into the detail, check out the <<introduction_dependency_management.adoc#introduction_dependency_management,introduction to dependency management>>.
+The vast majority of Java projects rely on libraries, so managing a project's dependencies is an important part of building a Java project.
+Dependency management is a big topic, so we will focus on the basics for Java projects here.
+If you'd like to dive into the detail, check out the <<core_dependency_management.adoc#sec:what-is-dependency-management,introduction to dependency management>>.
 
 Specifying the dependencies for your Java project requires just three pieces of information:
 
@@ -141,12 +143,12 @@ The Java Plugin has historically used the `compile` configuration for dependenci
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you're comfortable with the basics of building Java projects with Gradle. Some common scenarios that require further reading include:
 
- * Defining a custom <<repository_types.adoc#sub:maven_repo,Maven\->> or <<repository_types.adoc#sec:ivy_repositories,Ivy-compatible>> repository
- * Using dependencies from a <<repository_types.adoc#sec:flat_dir_resolver,local filesystem directory>>
- * Declaring dependencies with <<declaring_dependencies.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependencies.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
- * Declaring a sibling <<declaring_dependencies.adoc#sec:declaring_project_dependency,project as a dependency>>
- * <<managing_transitive_dependencies.adoc#managing_transitive_dependencies,Controlling transitive dependencies and their versions>>
- * Testing your fixes to a 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<repository_types.adoc#sub:maven_local,Maven Local>>)
+ * Defining a custom <<declaring_repositories.adoc#sec:maven_repo,Maven\->> or <<declaring_repositories.adoc#sec:ivy_repositories,Ivy-compatible>> repository
+ * Using dependencies from a <<declaring_repositories.adoc#sub:flat_dir_resolver,local filesystem directory>>
+ * Declaring dependencies with <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
+ * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
+ * <<controlling_transitive_dependencies.adoc#controlling-transitive-dependencies,Controlling transitive dependencies and their versions>>
+ * Testing your fixes to a 3rd-party dependency via <<composite_builds.adoc#composite-builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
 
 You'll discover that Gradle has a rich API for working with dependencies — one that takes time to master, but is straightforward to use for common scenarios.
 
@@ -313,13 +315,16 @@ You can also learn more about configuring tests in the DSL reference for link:{g
 [[sec:java_packaging]]
 == Packaging and publishing
 
-How you package and potentially publish your Java project depends on what type of project it is. Libraries, applications, web applications and enterprise applications all have differing requirements. In this section, we will focus on the bare bones provided by the Java Plugin.
+How you package and potentially publish your Java project depends on what type of project it is.
+Libraries, applications, web applications and enterprise applications all have differing requirements.
+In this section, we will focus on the bare bones provided by the Java Plugin.
 
-The one and only packaging feature provided by the Java Plugin directly is a `jar` task that packages all the compiled production classes and resources into a single JAR. This JAR is then added as an artifact — as opposed to a dependency — in the `archives` configuration, hence why it is automatically built by the `assemble` task.
+By default, the Java Plugin provides the `jar` task that packages all the compiled production classes and resources into a single JAR.
+This JAR is also automatically built by the `assemble` task.
+Furthermore, the plugin can be configured to provide the `javadocJar` and `sourcesJar` tasks to package Javadoc and source code if so desired.
+If a publishing plugin is used, these tasks will automatically run during publishing or can be called directly.
 
-If you want any other JAR or alternative archive built, you either have to apply an appropriate plugin or create the task manually. For example, if you want a task that generates a 'sources' JAR, define your own `Jar` task like so:
-
-.Defining a custom task to create a 'sources' JAR
+.Configure a project to publish Javadoc and sources
 ====
 include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
 include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
@@ -337,13 +342,10 @@ include::sample[dir="userguide/files/archivesWithJavaPlugin/groovy",files="build
 include::sample[dir="userguide/files/archivesWithJavaPlugin/kotlin",files="build.gradle.kts[tags=create-uber-jar-example]"]
 ====
 
-There are several options for publishing a JAR once it has been created:
+You can use one of the publishing plugins to publish the JARs created by a Java project:
 
- * the <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>>
- * the <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>
- * the `uploadArchives` task — the <<artifact_management.adoc#artifact_management,original publishing mechanism>> — which works with both Ivy and (if you apply the <<maven_plugin.adoc#maven_plugin,Maven Plugin>>) Maven
-
-The former two "Publish" plugins are the preferred options.
+ * <<publishing_maven.adoc#publishing_maven,Maven Publish Plugin>>
+ * <<publishing_ivy.adoc#publishing_ivy,Ivy Publish Plugin>>
 
 [[sec:jar_manifest]]
 === Modifying the JAR manifest
@@ -469,3 +471,12 @@ The platform has no source and no artifact of its own.
 It maps in the Maven world to a https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management[BOM].
 
 The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, which sets up the different configurations and publication components.
+
+[[sec:building_jvm_lang]]
+== Building other JVM language projects
+
+If you want to leverage the multi language aspect of the JVM, most of what was described here will still apply.
+
+Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins. Note that these can be further enhanced by combining them with the `java-library` plugin.
+
+And beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!

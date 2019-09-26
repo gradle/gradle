@@ -16,13 +16,14 @@
 package org.gradle.internal.typeconversion;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.tasks.Optional;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.reflect.CachedInvokable;
 import org.gradle.internal.reflect.ReflectionCache;
 import org.gradle.util.ConfigureUtil;
 
+import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -34,7 +35,7 @@ import java.util.TreeSet;
 /**
  * Converts a {@code Map<String, Object>} to the target type. Subclasses should define a {@code T parseMap()} method which takes a parameter
  * for each key value required from the source map. Each parameter should be annotated with a {@code @MapKey} annotation, and can also
- * be annotated with a {@code @optional} annotation.
+ * be annotated with a {@code @Nullable} annotation.
  */
 public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map, T> {
     public MapNotationConverter() {
@@ -48,7 +49,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
     @Override
     public T parseType(Map values) throws UnsupportedNotationException {
-        Map<String, Object> mutableValues = new HashMap<String, Object>(values);
+        Map<String, Object> mutableValues = new HashMap<>(Cast.uncheckedNonnullCast(values));
         Set<String> missing = null;
         ConvertMethod convertMethod = null;
         Method method = null;
@@ -61,7 +62,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         Class<?>[] parameterTypes = method.getParameterTypes();
         Object[] params = new Object[parameterTypes.length];
         String[] keyNames = convertMethod.keyNames;
-        boolean[] optionals = convertMethod.optional;
+        boolean[] optionals = convertMethod.nullables;
         for (int i = 0; i < params.length; i++) {
             String keyName = keyNames[i];
             boolean optional = optionals[i];
@@ -74,7 +75,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             }
             if (!optional && value == null) {
                 if (missing == null) {
-                    missing = new TreeSet<String>();
+                    missing = new TreeSet<>();
                 }
                 missing.add(keyName);
             }
@@ -89,7 +90,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
 
         T result;
         try {
-            result = (T) method.invoke(this, params);
+            result = Cast.uncheckedNonnullCast(method.invoke(this, params));
         } catch (IllegalAccessException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         } catch (InvocationTargetException e) {
@@ -100,6 +101,7 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         return result;
     }
 
+    @Nullable
     protected String get(Map<String, Object> args, String key) {
         Object value = args.get(key);
         String str = value != null ? value.toString() : null;
@@ -116,13 +118,13 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             Method convertMethod = findConvertMethod(key);
             Annotation[][] parameterAnnotations = convertMethod.getParameterAnnotations();
             String[] keyNames = new String[parameterAnnotations.length];
-            boolean[] optional = new boolean[parameterAnnotations.length];
+            boolean[] nullables = new boolean[parameterAnnotations.length];
             for (int i = 0; i < parameterAnnotations.length; i++) {
                 Annotation[] annotations = parameterAnnotations[i];
                 keyNames[i] = keyName(annotations);
-                optional[i] = optional(annotations);
+                nullables[i] = nullable(annotations);
             }
-            return new ConvertMethod(convertMethod, keyNames, optional);
+            return new ConvertMethod(convertMethod, keyNames, nullables);
         }
 
         private static Method findConvertMethod(Class clazz) {
@@ -135,9 +137,9 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
             throw new UnsupportedOperationException(String.format("No parseMap() method found on class %s.", clazz.getSimpleName()));
         }
 
-        private static boolean optional(Annotation[] annotations) {
+        private static boolean nullable(Annotation[] annotations) {
             for (Annotation annotation : annotations) {
-                if (annotation instanceof Optional) {
+                if (annotation instanceof Nullable) {
                     return true;
                 }
             }
@@ -160,12 +162,12 @@ public abstract class MapNotationConverter<T> extends TypedNotationConverter<Map
         public static final Class[] EMPTY = new Class[0];
 
         private final String[] keyNames;
-        private final boolean[] optional;
+        private final boolean[] nullables;
 
-        private ConvertMethod(Method method, String[] keyNames, boolean[] optional) {
+        private ConvertMethod(Method method, String[] keyNames, boolean[] nullables) {
             super(method);
             this.keyNames = keyNames;
-            this.optional = optional;
+            this.nullables = nullables;
         }
 
         public static synchronized ConvertMethod of(Class clazz) {

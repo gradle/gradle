@@ -27,13 +27,15 @@ import java.util.Set;
  */
 public class ClassAnalysis {
     private final String className;
-    private final Set<String> classDependencies;
+    private final Set<String> privateClassDependencies;
+    private final Set<String> accessibleClassDependencies;
     private final boolean dependencyToAll;
     private final IntSet constants;
 
-    public ClassAnalysis(String className, Set<String> classDependencies, boolean dependencyToAll, IntSet constants) {
+    public ClassAnalysis(String className, Set<String> privateClassDependencies, Set<String> accessibleClassDependencies, boolean dependencyToAll, IntSet constants) {
         this.className = className;
-        this.classDependencies = ImmutableSet.copyOf(classDependencies);
+        this.privateClassDependencies = ImmutableSet.copyOf(privateClassDependencies);
+        this.accessibleClassDependencies = ImmutableSet.copyOf(accessibleClassDependencies);
         this.dependencyToAll = dependencyToAll;
         this.constants = constants.isEmpty() ? IntSets.EMPTY_SET : constants;
     }
@@ -42,8 +44,12 @@ public class ClassAnalysis {
         return className;
     }
 
-    public Set<String> getClassDependencies() {
-        return classDependencies;
+    public Set<String> getPrivateClassDependencies() {
+        return privateClassDependencies;
+    }
+
+    public Set<String> getAccessibleClassDependencies() {
+        return accessibleClassDependencies;
     }
 
     public IntSet getConstants() {

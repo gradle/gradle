@@ -15,4 +15,3 @@
  */
 
 rootProject.name = 'producer'
-enableFeaturePreview('GRADLE_METADATA')

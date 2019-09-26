@@ -92,15 +92,23 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
-    def "request an Maven POM for a Maven module with no metadata"() {
+    def "request an Maven POM for a Maven module with no metadata when artifact metadata source are configured"() {
         given:
         MavenHttpModule module = publishModuleWithoutMetadata()
+        buildFile << """
+            repositories.all {
+                metadataSources {
+                    mavenPom()
+                    artifact()
+                }
+            }
+        """
 
         when:
         fixture.requestComponent('MavenModule').requestArtifact('MavenPomArtifact')
             .expectResolvedComponentResult()
             .expectNoMetadataFiles()
-            .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find some-artifact.pom (some.group:some-artifact:1.0).")
+            .expectUnresolvedArtifactResult(ArtifactResolveException, "Could not find some-artifact-1.0.pom (some.group:some-artifact:1.0).")
             .createVerifyTaskModuleComponentIdentifier()
 
         // TODO - should make a single request

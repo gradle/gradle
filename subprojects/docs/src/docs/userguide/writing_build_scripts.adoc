@@ -282,5 +282,5 @@ Listed below are the imports added to each script:
 .Gradle default imports
 [source,groovy]
 ----
-include::../../../build/generated-resources/main/default-imports.txt[]
+include::main/default-imports.txt[]
 ----

@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.server.exec;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.Factory;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.launcher.daemon.protocol.ForwardInput;
@@ -28,7 +29,6 @@ import org.gradle.util.StdinSwapper;
 import java.io.IOException;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.concurrent.Callable;
 
 /**
  * Listens for ForwardInput commands during the execution and sends that to a piped input stream that we install.
@@ -72,9 +72,9 @@ public class ForwardClientInput implements DaemonCommandAction {
 
         try {
             try {
-                new StdinSwapper().swap(replacementStdin, new Callable<Void>() {
+                new StdinSwapper().swap(replacementStdin, new Factory<Object>() {
                     @Override
-                    public Void call() {
+                    public Void create() {
                         execution.proceed();
                         return null;
                     }

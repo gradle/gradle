@@ -52,8 +52,6 @@
               files=".*[/\\]subprojects[/\\]testing-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]jvm[/\\]plugins[/\\][^/\\]+"/>
     <suppress checks="JavadocPackage"
               files=".*[/\\]subprojects[/\\]testing-jvm[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]api[/\\]tasks[/\\]testing[/\\][^/\\]+"/>
-    <suppress checks="JavadocPackage"
-              files=".*[/\\]subprojects[/\\]build-comparison[/\\]src[/\\]main[/\\]groovy[/\\]org[/\\]gradle[/\\]api[/\\]plugins[/\\]buildcomparison[/\\]gradle[/\\][^/\\]+"/>
 
     <!-- These packages are duplicated in ide-native from ide, don't require a package-info.java in each place -->
     <suppress checks="JavadocPackage"
@@ -86,7 +84,7 @@
               files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]apache[/\\].+"/>
     <suppress checks="RegexpHeader"
               files=".*[/\\]subprojects[/\\]maven[/\\]src[/\\]main[/\\]java[/\\]org[/\\]apache[/\\].+"/>
-    
+
     <!-- Ignore constant name for architecture tests since we want to use snake case there -->
     <suppress checks="ConstantName"
               files=".*[/\\]subprojects[/\\]architecture-test[/\\]src[/\\]test[/\\]java[/\\]org[/\\]gradle[/\\].+" />

@@ -52,10 +52,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         }
                     }
                     dependencies {
-                        registerTransform {
+                        registerTransform(SynchronizedTransform) {
                             from.attribute(artifactType, "jar")
                             to.attribute(artifactType, "size")
-                            artifactTransform(SynchronizedTransform)
                         }
                     }
                     configurations {
@@ -63,8 +62,14 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                     }            
                 }
     
-                class SynchronizedTransform extends ArtifactTransform {
-                    List<File> transform(File input) {
+                import org.gradle.api.artifacts.transform.TransformParameters
+
+                abstract class SynchronizedTransform implements TransformAction<TransformParameters.None> {
+                    @InputArtifact
+                    abstract Provider<FileSystemLocation> getInputArtifact()
+    
+                    void transform(TransformOutputs outputs) {
+                        def input = inputArtifact.get().asFile
                         ${server.callFromBuildUsingExpression("input.name")}
                         if (input.name.startsWith("bad")) {
                             throw new RuntimeException("Transform Failure: " + input.name)
@@ -72,10 +77,9 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                         if (!input.exists()) {
                             throw new IllegalStateException("Input file \${input} does not exist")
                         }
-                        def output = new File(outputDirectory, input.name + ".txt")
+                        def output = outputs.file(input.name + ".txt")
                         println "Transforming \${input.name} to \${output.name}"
                         output.text = String.valueOf(input.length())
-                        return [output]
                     }
                 }
             """
@@ -359,8 +363,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         fails ":resolve"
 
         then:
-        failure.assertHasCause("Failed to transform file 'bad-b.jar' to match attributes {artifactType=size}")
-        failure.assertHasCause("Failed to transform file 'bad-c.jar' to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform bad-b.jar to match attributes {artifactType=size}")
+        failure.assertHasCause("Failed to transform bad-c.jar to match attributes {artifactType=size}")
     }
 
     def "only one transformer execution per workspace"() {

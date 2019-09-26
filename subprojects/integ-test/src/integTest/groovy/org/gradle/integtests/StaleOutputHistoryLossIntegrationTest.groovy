@@ -23,13 +23,15 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.internal.jvm.Jvm
+import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.StaleOutputJavaProject.JAR_TASK_NAME
 import static org.gradle.util.GFileUtils.forceDelete
 
-@IntegrationTestTimeout(120)
+@IntegrationTestTimeout(240)
 class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     private final ReleasedVersionDistributions releasedVersionDistributions = new ReleasedVersionDistributions()
@@ -41,6 +43,8 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         buildFile << "apply plugin: 'base'\n"
+        // When adding support for a new JDK version, the previous release might not work with it yet.
+        Assume.assumeTrue(releasedVersionDistributions.mostRecentRelease.worksWith(Jvm.current()))
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")
@@ -579,7 +583,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertDoesNotExist()
     }
 
-    def "task is renamed"() {
+    def "task is replaced"() {
         given:
         def sourceFile1 = file('source/source1.txt')
         sourceFile1 << 'a'
@@ -590,7 +594,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         def taskPath = ':copy'
 
         buildFile << """                     
-            task copy(type: Copy) {
+            tasks.register("copy", Copy) {
                 from file('source')
                 into 'build/target'
             }
@@ -605,22 +609,17 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         targetFile2.assertIsFile()
 
         when:
-        def newTaskPath = ':newCopy'
-
         buildFile << """
-            tasks.remove(copy)
-
-            task newCopy(type: Copy) {
+            tasks.replace("copy", Copy).configure {
                 from file('source')
                 into 'build/target'
             }
         """
         forceDelete(sourceFile2)
-        executer.expectDeprecationWarning()
-        succeeds newTaskPath
+        succeeds taskPath
 
         then:
-        executedAndNotSkipped(newTaskPath)
+        executedAndNotSkipped(taskPath)
         targetFile1.assertIsFile()
         targetFile2.assertDoesNotExist()
     }

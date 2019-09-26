@@ -46,6 +46,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Describables;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 
@@ -91,6 +92,7 @@ public class MavenPlugin implements Plugin<ProjectInternal> {
     @Override
     public void apply(final ProjectInternal project) {
         this.project = project;
+        DeprecationLogger.nagUserOfReplacedPlugin("maven", "maven-publish");
         project.getPluginManager().apply(BasePlugin.class);
 
         MavenFactory mavenFactory = project.getServices().get(MavenFactory.class);

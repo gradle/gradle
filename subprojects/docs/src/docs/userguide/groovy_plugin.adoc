@@ -15,7 +15,13 @@
 [[groovy_plugin]]
 = The Groovy Plugin
 
-The Groovy plugin extends the Java plugin to add support for Groovy projects. It can deal with Groovy code, mixed Groovy and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter). The plugin supports _joint compilation_, which allows you to freely mix and match Groovy and Java code, with dependencies in both directions. For example, a Groovy class can extend a Java class that in turn extends a Groovy class. This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
+The Groovy plugin extends the <<java_plugin.adoc#,Java plugin>> to add support for https://groovy-lang.org/[Groovy] projects.
+It can deal with Groovy code, mixed Groovy and Java code, and even pure Java code (although we don't necessarily recommend to use it for the latter).
+The plugin supports _joint compilation_, which allows you to freely mix and match Groovy and Java code, with dependencies in both directions.
+For example, a Groovy class can extend a Java class that in turn extends a Groovy class.
+This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
+
+Note that if you want to benefit from the <<java_library_plugin.adoc#sec:java_library_separation,API / implementation separation>>, you can also apply the `java-library` plugin to your Groovy project.
 
 
 [[sec:groovy_usage]]

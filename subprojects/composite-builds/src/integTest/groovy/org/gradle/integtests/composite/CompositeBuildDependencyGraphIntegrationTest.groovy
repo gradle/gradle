@@ -385,6 +385,7 @@ include ':b1:b11'
 """
 
         when:
+        executer.expectDeprecationWarning()
         checkDependencies()
 
         then:
@@ -756,7 +757,7 @@ afterEvaluate {
         failure.assertHasCause("""Could not find org.test:test:1.2.
 Searched in the following locations:
   - ${m.pom.file.toURL()}
-  - ${m.artifact.file.toURL()}
+If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
 Required by:
     project :buildC""")
 
@@ -769,7 +770,7 @@ Required by:
         then:
         failure.assertHasDescription("Execution failed for task ':buildC:buildOutputs'.")
         failure.assertHasCause("Could not resolve all files for configuration ':buildC:buildInputs'.")
-        failure.assertHasCause("Could not find test.jar (org.test:test:1.2).")
+        failure.assertHasCause("Could not find test-1.2.jar (org.test:test:1.2).")
     }
 
     private void withArgs(List<String> args) {

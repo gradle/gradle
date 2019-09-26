@@ -76,6 +76,11 @@ public interface DependencyMetadata {
     boolean isConstraint();
 
     /**
+     * Is this a dependency that "pulls up" strict version constraints from the target node?
+     */
+    boolean isEndorsingStrictVersions();
+
+    /**
      * An optional human readable reason why this dependency is used.
      * @return if not null, a description why this dependency is used.
      */

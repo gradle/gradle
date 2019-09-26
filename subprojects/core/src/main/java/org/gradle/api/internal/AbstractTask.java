@@ -19,6 +19,7 @@ package org.gradle.api.internal;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -62,10 +63,10 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -83,6 +84,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -137,6 +139,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String toStringValue;
 
+    private Map<String, Integer> sharedResources = Maps.newHashMap();
+
     protected AbstractTask() {
         this(taskInfo());
     }
@@ -176,7 +180,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void assertDynamicObject() {
         if (extensibleDynamicObject == null) {
-            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(Instantiator.class));
+            extensibleDynamicObject = new ExtensibleDynamicObject(this, identity.type, services.get(InstanceGenerator.class));
         }
     }
 
@@ -885,6 +889,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         }
 
         @Override
+        public Object set(int index, Object action) {
+            if (action == null) {
+                throw new InvalidUserDataException("Action must not be null!");
+            }
+            return super.set(index, wrap((Action<? super Task>) action));
+        }
+
+        @Override
         public boolean removeAll(Collection actions) {
             return super.removeAll(transformToContextAwareTaskActions(actions));
         }
@@ -928,5 +940,32 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Property<Duration> getTimeout() {
         return timeout;
+    }
+
+    public void requiresResource(String name) {
+        taskMutator.mutate("Task.requiresResource(String)", new Runnable() {
+            @Override
+            public void run() {
+                sharedResources.putIfAbsent(name, 1);
+            }
+        });
+    }
+
+    public void requiresResource(String name, int leases) {
+        taskMutator.mutate("Task.requiresResource(String, int)", new Runnable() {
+            @Override
+            public void run() {
+                if (leases <= 0) {
+                    throw new InvalidUserDataException("Required number of leases must be greater than zero.");
+                }
+
+                sharedResources.put(name, leases);
+            }
+        });
+    }
+
+    @Override
+    public Map<String, Integer> getSharedResources() {
+        return sharedResources;
     }
 }

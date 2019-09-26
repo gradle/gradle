@@ -29,7 +29,6 @@ import java.io.File;
  *
  * @since 4.1
  */
-@Incubating
 public interface Directory extends FileSystemLocation {
     /**
      * Returns the location of this directory, as an absolute {@link File}.
@@ -79,4 +78,18 @@ public interface Directory extends FileSystemLocation {
      * @return The file.
      */
     Provider<RegularFile> file(Provider<? extends CharSequence> path);
+
+    /**
+     * Returns a {@link FileCollection} containing the given files,
+     * whose locations are the given paths resolved relative to this directory,
+     * as defined by {@link org.gradle.api.Project#files(Object...)}.
+     *
+     * This method can also be used to create an empty collection, but the collection may not be mutated later.
+     *
+     * @param paths The paths to the files. May be empty.
+     * @return The file collection.
+     * @since 6.0
+     */
+    @Incubating
+    FileCollection files(Object... paths);
 }

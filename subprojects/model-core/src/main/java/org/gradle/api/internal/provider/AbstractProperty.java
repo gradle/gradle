@@ -18,24 +18,75 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.Describables;
+import org.gradle.internal.DisplayName;
 
 public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
         ImplicitValue, ExplicitValue, Final
     }
 
+    private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
+    private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
+
     private State state = State.ImplicitValue;
     private boolean finalizeOnNextGet;
     private boolean disallowChanges;
     private Task producer;
+    private DisplayName displayName;
+
+    @Override
+    public void attachDisplayName(DisplayName displayName) {
+        this.displayName = displayName;
+    }
+
+    protected DisplayName getDisplayName() {
+        if (displayName == null) {
+            return DEFAULT_DISPLAY_NAME;
+        }
+        return displayName;
+    }
+
+    protected DisplayName getValidationDisplayName() {
+        if (displayName == null) {
+            return DEFAULT_VALIDATION_DISPLAY_NAME;
+        }
+        return displayName;
+    }
 
     @Override
     public void attachProducer(Task task) {
         if (this.producer != null && this.producer != task) {
-            throw new IllegalStateException("This property already has a producer task associated with it.");
+            throw new IllegalStateException(String.format("%s already has a producer task associated with it.", getDisplayName().getCapitalizedDisplayName()));
         }
         this.producer = task;
+    }
+
+    protected abstract ValueSupplier getSupplier();
+
+    /**
+     * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
+     */
+    protected abstract String describeContents();
+
+    // Final - implement describeContents() instead
+    @Override
+    public final String toString() {
+        if (displayName != null) {
+            return displayName.toString();
+        } else {
+            return describeContents();
+        }
+    }
+
+    @Override
+    public boolean isContentProducedByTask() {
+        return producer != null || getSupplier().isContentProducedByTask();
+    }
+
+    @Override
+    public boolean isValueProducedByTask() {
+        return getSupplier().isValueProducedByTask();
     }
 
     @Override
@@ -44,7 +95,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
             context.add(producer);
             return true;
         }
-        return false;
+        return getSupplier().maybeVisitBuildDependencies(context);
     }
 
     @Override
@@ -63,6 +114,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     @Override
     public void implicitFinalizeValue() {
+        disallowChanges = true;
         finalizeOnNextGet = true;
     }
 
@@ -120,12 +172,9 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
 
     private boolean canMutate() {
         if (state == State.Final && disallowChanges) {
-            throw new IllegalStateException("The value for this property is final and cannot be changed any further.");
+            throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", getDisplayName().getDisplayName()));
         } else if (disallowChanges) {
-            throw new IllegalStateException("The value for this property cannot be changed any further.");
-        } else if (state == State.Final) {
-            DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a property with a final value");
-            return false;
+            throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", getDisplayName().getDisplayName()));
         }
         return true;
     }

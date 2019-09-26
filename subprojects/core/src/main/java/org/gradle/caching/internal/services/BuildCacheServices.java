@@ -30,11 +30,11 @@ import org.gradle.caching.internal.packaging.impl.GZipBuildCacheEntryPacker;
 import org.gradle.caching.internal.packaging.impl.TarBuildCacheEntryPacker;
 import org.gradle.caching.internal.services.BuildCacheControllerFactory.BuildCacheMode;
 import org.gradle.caching.internal.services.BuildCacheControllerFactory.RemoteAccessMode;
-import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
@@ -52,11 +52,16 @@ import static org.gradle.caching.internal.services.BuildCacheControllerFactory.R
 
 public class BuildCacheServices {
 
-    private static final Path ROOT_BUILD_SRC_PATH = Path.path(":" + BuildSourceBuilder.BUILD_SRC);
     private static final String GRADLE_VERSION_KEY = "gradleVersion";
 
-    BuildCacheEntryPacker createResultPacker(FileSystem fileSystem, StreamHasher fileHasher, StringInterner stringInterner) {
-        return new GZipBuildCacheEntryPacker(new TarBuildCacheEntryPacker(fileSystem, fileHasher, stringInterner));
+    BuildCacheEntryPacker createResultPacker(
+        Deleter deleter,
+        FileSystem fileSystem,
+        StreamHasher fileHasher,
+        StringInterner stringInterner
+    ) {
+        return new GZipBuildCacheEntryPacker(
+            new TarBuildCacheEntryPacker(deleter, fileSystem, fileHasher, stringInterner));
     }
 
     OriginMetadataFactory createOriginMetadataFactory(
@@ -92,10 +97,10 @@ public class BuildCacheServices {
         GradleInternal gradle,
         RootBuildCacheControllerRef rootControllerRef
     ) {
-        if (isRoot(gradle) || isRootBuildSrc(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
+        if (isRoot(gradle) || isGradleBuildTaskRoot(rootControllerRef)) {
             return doCreateBuildCacheController(serviceRegistry, buildCacheConfiguration, buildOperationExecutor, instantiatorFactory, gradle);
         } else {
-            // must be an included build
+            // must be an included build or buildSrc
             return rootControllerRef.getForNonRootBuild();
         }
     }
@@ -107,10 +112,6 @@ public class BuildCacheServices {
         // There is no way to detect that a Gradle instance represents a GradleBuild invocation.
         // If there were, that would be a better heuristic than this.
         return !rootControllerRef.isSet();
-    }
-
-    private boolean isRootBuildSrc(GradleInternal gradle) {
-        return gradle.getIdentityPath().equals(ROOT_BUILD_SRC_PATH);
     }
 
     private boolean isRoot(GradleInternal gradle) {

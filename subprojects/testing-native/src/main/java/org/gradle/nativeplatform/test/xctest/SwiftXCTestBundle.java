@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.test.xctest;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.nativeplatform.tasks.LinkMachOBundle;
 
@@ -25,7 +24,6 @@ import org.gradle.nativeplatform.tasks.LinkMachOBundle;
  *
  * @since 4.5
  */
-@Incubating
 public interface SwiftXCTestBundle extends SwiftXCTestBinary {
     /**
      * Returns the link task for this bundle.

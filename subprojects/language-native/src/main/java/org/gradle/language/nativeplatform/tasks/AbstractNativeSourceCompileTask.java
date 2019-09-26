@@ -38,7 +38,6 @@ import java.io.File;
 /**
  * Compiles native source files into object files.
  */
-@Incubating
 public abstract class AbstractNativeSourceCompileTask extends AbstractNativeCompileTask {
     private PreCompiledHeader preCompiledHeader;
 
@@ -75,10 +74,12 @@ public abstract class AbstractNativeSourceCompileTask extends AbstractNativeComp
      * Returns the pre-compiled header to be used during compilation
      */
     @Nullable @Optional @Nested
+    @Incubating
     public PreCompiledHeader getPreCompiledHeader() {
         return preCompiledHeader;
     }
 
+    @Incubating
     public void setPreCompiledHeader(@Nullable PreCompiledHeader preCompiledHeader) {
         this.preCompiledHeader = preCompiledHeader;
     }

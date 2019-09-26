@@ -83,7 +83,7 @@ public class PgpSignatory extends SignatorySupport {
     @Override
     public String getKeyId() {
         PgpKeyId id = new PgpKeyId(secretKey.getKeyID());
-        return id == null ? null : id.getAsHex();
+        return id.getAsHex();
     }
 
     private void feedGeneratorWith(InputStream toSign, PGPSignatureGenerator generator) throws IOException {
@@ -104,7 +104,7 @@ public class PgpSignatory extends SignatorySupport {
 
     public PGPSignatureGenerator createSignatureGenerator() {
         try {
-            PGPSignatureGenerator generator = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA1));
+            PGPSignatureGenerator generator = new PGPSignatureGenerator(new BcPGPContentSignerBuilder(secretKey.getPublicKey().getAlgorithm(), PGPUtil.SHA512));
             generator.init(PGPSignature.BINARY_DOCUMENT, privateKey);
             return generator;
         } catch (PGPException e) {

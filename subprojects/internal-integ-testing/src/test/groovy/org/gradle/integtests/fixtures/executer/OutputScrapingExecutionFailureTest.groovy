@@ -290,7 +290,7 @@ Some error
             Some message
              
             Output:
-        '''))
+            '''))
 
         when:
         failure.assertHasErrorOutput("broken")
@@ -307,7 +307,7 @@ Some error
             Some error
              
             Output:
-        '''))
+            '''))
     }
 
     def "log output missing assertions do not ignore content after failure section"() {
@@ -337,7 +337,7 @@ Some.Failure
             Expected not present: broken
              
             Output:
-        '''))
+            '''))
     }
 
     def "ignores ansi chars, debug prefix, build status bar and work in progress"() {

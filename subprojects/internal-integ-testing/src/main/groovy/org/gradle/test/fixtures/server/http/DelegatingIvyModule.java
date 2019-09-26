@@ -129,8 +129,8 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     }
 
     @Override
-    public IvyModule withGradleMetadataRedirection() {
-        backingModule.withGradleMetadataRedirection();
+    public IvyModule withoutGradleMetadataRedirection() {
+        backingModule.withoutGradleMetadataRedirection();
         return t();
     }
 
@@ -258,12 +258,19 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     }
 
     @Override
-    public void withVariant(String name, Closure<?> action) {
+    public IvyModule withVariant(String name, Closure<?> action) {
         backingModule.withVariant(name, action);
+        return this;
     }
 
     @Override
     public Map<String, String> getAttributes() {
         return backingModule.getAttributes();
+    }
+
+    @Override
+    public T withoutDefaultVariants() {
+        backingModule.withoutDefaultVariants();
+        return t();
     }
 }

@@ -22,7 +22,7 @@ import java.util.Properties
 plugins {
     `java`
     `kotlin-dsl` apply false
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.3.0" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.4.1" apply false
 }
 
 subprojects {
@@ -48,8 +48,8 @@ subprojects {
         }
 
         afterEvaluate {
-            if (tasks.withType<ValidateTaskProperties>().isEmpty()) {
-                val validateTaskProperties by tasks.registering(ValidateTaskProperties::class) {
+            if (tasks.withType<ValidatePlugins>().isEmpty()) {
+                val validatePlugins by tasks.registering(ValidatePlugins::class) {
                     outputFile.set(project.reporting.baseDirectory.file("task-properties/report.txt"))
 
                     val mainSourceSet = project.sourceSets.main.get()
@@ -57,13 +57,13 @@ subprojects {
                     dependsOn(mainSourceSet.output)
                     classpath.setFrom(mainSourceSet.runtimeClasspath)
                 }
-                tasks.check { dependsOn(validateTaskProperties) }
+                tasks.check { dependsOn(validatePlugins) }
             }
         }
 
-        tasks.withType<ValidateTaskProperties> {
-            failOnWarning = true
-            enableStricterValidation = true
+        tasks.withType<ValidatePlugins> {
+            failOnWarning.set(true)
+            enableStricterValidation.set(true)
         }
 
         apply(from = "../../../gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")

@@ -194,8 +194,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
         buildFile.text = publicationBuild(version, group, new URI("${redirectServer.uri}/repo"), credentials)
 
-        redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}")
-        module.rootMetaData.expectGetMissing(credentials)
+        redirectServer.expectGetRedirected(module.rootMetaData.path, "${server.uri}${module.rootMetaData.path}", credentials)
+        module.rootMetaData.expectGetMissing()
 
         expectModulePublishViaRedirect(module, server.getUri(), redirectServer, credentials)
 
@@ -321,8 +321,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         String redirectUri = targetServerUri.toString()
         [module.artifact, module.pom, module.rootMetaData, module.moduleMetadata].each { artifact ->
             [artifact, artifact.sha1, artifact.md5].each { innerArtifact ->
-                httpServer.expectPutRedirected(innerArtifact.path, "${redirectUri}${innerArtifact.path}")
-                innerArtifact.expectPut(credentials)
+                httpServer.expectPutRedirected(innerArtifact.path, "${redirectUri}${innerArtifact.path}", credentials)
+                innerArtifact.expectPut()
             }
         }
     }

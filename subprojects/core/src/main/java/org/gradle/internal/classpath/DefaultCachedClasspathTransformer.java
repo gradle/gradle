@@ -88,9 +88,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 if (url.getProtocol().equals("file")) {
                     try {
                         return jarFileTransformer.transform(new File(url.toURI())).toURI().toURL();
-                    } catch (URISyntaxException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    } catch (MalformedURLException e) {
+                    } catch (URISyntaxException | MalformedURLException e) {
                         throw UncheckedException.throwAsUncheckedException(e);
                     }
                 } else {

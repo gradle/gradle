@@ -40,7 +40,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
     final taskInputsListener = Mock(TaskInputsListener)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     final outputChangeListener = Mock(OutputChangeListener)
-    final skipper = new DefaultEmptySourceTaskSkipper(taskInputsListener, outputChangeListener, cleanupRegistry)
+    final skipper = new DefaultEmptySourceTaskSkipper(cleanupRegistry, TestFiles.deleter(), outputChangeListener, taskInputsListener)
     final fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
     final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
 
@@ -181,7 +181,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
 
         then:
         def ex = thrown Exception
-        ex.message.contains("java.nio.file.DirectoryNotEmptyException")
+        ex.message.contains("Couldn't delete ${previousFile.absolutePath}")
 
         and:
         1 * sourceFiles.empty >> true

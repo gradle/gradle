@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
@@ -24,57 +25,91 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
+
     @Unroll
-    def 'kotlin #version plugin'() {
+    def 'kotlin #version plugin, workers=#workers'() {
         given:
         useSample("kotlin-example")
         replaceVariablesInBuildFile(kotlinVersion: version)
 
         when:
-        def result = runner('run').forwardOutput().build()
+        def result = build(workers, 'run')
 
         then:
         result.task(':compileKotlin').outcome == SUCCESS
 
+        if (version == TestedVersions.kotlin.latest()) {
+            expectNoDeprecationWarnings(result)
+        }
+
         where:
-        version << TestedVersions.kotlin
+        [version, workers] << [
+            TestedVersions.kotlin.versions,
+            [true, false]
+        ].combinations()
     }
 
     @Unroll
-    def 'kotlin android #androidPluginVersion plugin'() {
+    def 'kotlin #kotlinPluginVersion android #androidPluginVersion plugins, workers=#workers'() {
         given:
         AndroidHome.assertIsSet()
         useSample("android-kotlin-example")
         replaceVariablesInBuildFile(
-            kotlinVersion: TestedVersions.kotlin.latest(),
+            kotlinVersion: kotlinPluginVersion,
             androidPluginVersion: androidPluginVersion,
             androidBuildToolsVersion: TestedVersions.androidTools)
 
         when:
-        def build = runner('clean', 'testDebugUnitTestCoverage').forwardOutput().build()
+        def result = build(workers, 'clean', 'testDebugUnitTestCoverage')
 
         then:
-        build.task(':testDebugUnitTestCoverage').outcome == SUCCESS
+        result.task(':testDebugUnitTestCoverage').outcome == SUCCESS
+
+        if (kotlinPluginVersion == TestedVersions.kotlin.latest()
+            && androidPluginVersion == TestedVersions.androidGradle.latest()) {
+            expectDeprecationWarnings(result,
+                "BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.",
+            )
+        }
 
         where:
-        androidPluginVersion << TestedVersions.androidGradle
+        [kotlinPluginVersion, androidPluginVersion, workers] << [
+            TestedVersions.kotlin.versions,
+            TestedVersions.androidGradle.versions,
+            [true, false]
+        ].combinations()
     }
 
     @Unroll
     @Requires(KOTLIN_SCRIPT)
-    def 'kotlin js #version plugin'() {
+    def 'kotlin js #version plugin, workers=#workers'() {
         given:
         useSample("kotlin-js-sample")
         withKotlinBuildFile()
         replaceVariablesInBuildFile(kotlinVersion: version)
 
         when:
-        def result = runner('compileKotlin2Js').forwardOutput().build()
+        def result = build(workers, 'compileKotlin2Js')
 
         then:
         result.task(':compileKotlin2Js').outcome == SUCCESS
 
+        if (version == TestedVersions.kotlin.latest()) {
+            expectDeprecationWarnings(result,
+                "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
+            )
+        }
+
         where:
-        version << TestedVersions.kotlin
+        [version, workers] << [
+            TestedVersions.kotlin.versions,
+            [true, false]
+        ].combinations()
+    }
+
+    private BuildResult build(boolean workers, String... tasks) {
+        return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
+            .forwardOutput()
+            .build()
     }
 }

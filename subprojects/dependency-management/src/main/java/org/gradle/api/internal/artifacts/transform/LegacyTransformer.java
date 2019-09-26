@@ -54,6 +54,13 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
         this.secondaryInputsHash = hashSecondaryInputs(isolatableParameters, implementationClass, classLoaderHierarchyHasher);
     }
 
+    public LegacyTransformer(Class<? extends ArtifactTransform> implementationClass, Isolatable<Object[]> isolatableParameters, HashCode secondaryInputsHash, InstantiationScheme actionInstantiationScheme, ImmutableAttributes fromAttributes) {
+        super(implementationClass, fromAttributes);
+        this.instantiator = actionInstantiationScheme.instantiator();
+        this.secondaryInputsHash = secondaryInputsHash;
+        this.isolatableParameters = isolatableParameters;
+    }
+
     @Override
     public boolean requiresDependencies() {
         return false;
@@ -67,6 +74,14 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
     @Override
     public boolean isCacheable() {
         return false;
+    }
+
+    public HashCode getSecondaryInputsHash() {
+        return secondaryInputsHash;
+    }
+
+    public Isolatable<Object[]> getIsolatableParameters() {
+        return isolatableParameters;
     }
 
     @Override
@@ -86,7 +101,7 @@ public class LegacyTransformer extends AbstractTransformer<ArtifactTransform> {
         String inputFilePrefix = inputArtifact.getPath() + File.separator;
         String outputDirPrefix = outputDir.getPath() + File.separator;
         for (File output : outputs) {
-            TransformOutputsInternal.validateOutputExists(output);
+            TransformOutputsInternal.validateOutputExists(outputDirPrefix, output);
             TransformOutputsInternal.determineOutputLocationType(output, inputArtifact, inputFilePrefix, outputDir, outputDirPrefix);
         }
     }

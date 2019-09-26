@@ -16,6 +16,10 @@ dependencies {
     implementation(project(":modelCore"))
     implementation(project(":core"))
     implementation(project(":snapshots"))
+    implementation(project(":fileCollections"))
+    implementation(project(":files"))
+    implementation(project(":native"))
+    implementation(project(":resources"))
 
     implementation(library("slf4j_api"))
     implementation(library("guava"))
@@ -30,6 +34,11 @@ dependencies {
 
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":dependencyManagement"))
+
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":testKit"))
 
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":internalIntegTesting"))

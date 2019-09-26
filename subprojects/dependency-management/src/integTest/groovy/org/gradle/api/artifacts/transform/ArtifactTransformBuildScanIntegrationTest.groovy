@@ -18,7 +18,9 @@ package org.gradle.api.artifacts.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
+import spock.lang.Ignore
 
+@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec {
     def fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
 
@@ -49,20 +51,24 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
                     }
                 }
                 dependencies {
-                    registerTransform {
+                    registerTransform(FileSizer) {
                         from.attribute(artifactType, "jar")
                         to.attribute(artifactType, "size")
-                        artifactTransform(FileSizer)
                     }
                 }
             }
 
-            class FileSizer extends ArtifactTransform {
-                List<File> transform(File input) {
-                    File output = new File(outputDirectory, input.name + ".txt")
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            abstract class FileSizer implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    File output = outputs.file(input.name + ".txt")
                     output.text = String.valueOf(input.length())
-                    println "Transformed \$input.name to \$output.name into \$outputDirectory"
-                    return [output]
+                    println "Transformed \$input.name to \$output.name into \${output.parentFile}"
                 }
             }
             

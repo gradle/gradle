@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
+import org.gradle.tooling.events.StatusEvent
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener
 import org.gradle.util.DistributionLocator
 import org.gradle.util.GradleVersion
@@ -185,18 +186,16 @@ class DistributionFactoryTest extends Specification {
         1 * cancellationToken.addCallback(_)
 
         then:
-        1 * buildProgressListener.onEvent({it instanceof StartEvent})
-
-        then:
         1 * progressLoggerFactory.newOperation(DistributionInstaller.class) >>> loggerOne
-
+        1 * buildProgressListener.onEvent({it instanceof StartEvent})
         1 * loggerOne.setDescription("Download ${zipFile.toURI()}")
         1 * loggerOne.started()
 
         then:
-        1 * loggerOne.completed()
+        1 * buildProgressListener.onEvent({ it instanceof StatusEvent})
 
         then:
+        1 * loggerOne.completed()
         1 * buildProgressListener.onEvent({it instanceof FinishEvent})
         0 * _._
     }

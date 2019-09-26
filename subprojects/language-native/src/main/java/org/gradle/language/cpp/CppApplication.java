@@ -16,7 +16,6 @@
 
 package org.gradle.language.cpp;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 /**
@@ -26,7 +25,6 @@ import org.gradle.api.provider.Provider;
  *
  * @since 4.2
  */
-@Incubating
 public interface CppApplication extends ProductionCppComponent {
     /**
      * {@inheritDoc}

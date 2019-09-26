@@ -14,45 +14,53 @@
  * limitations under the License.
  */
 
-import org.gradle.workers.WorkerExecutor
-
 import javax.inject.Inject
 
-// The implementation of a single unit of work
-open class ReverseFile @Inject constructor(val fileToReverse: File, val destinationFile: File) : Runnable {
+// The parameters for a single unit of work
+interface ReverseParameters : WorkParameters {
+    val fileToReverse : RegularFileProperty
+    val destinationDir : DirectoryProperty
+}
 
-    override fun run() {
-        destinationFile.writeText(fileToReverse.readText().reversed())
+// The implementation of a single unit of work
+abstract class ReverseFile @Inject constructor(val fileSystemOperations: FileSystemOperations) : WorkAction<ReverseParameters> {
+    override fun execute() {
+        val fileToReverse = parameters.fileToReverse.asFile.get()
+        fileSystemOperations.copy {
+            from(fileToReverse)
+            into(parameters.destinationDir)
+            filter { line: String -> line.reversed() }
+        }
         if (java.lang.Boolean.getBoolean("org.gradle.sample.showFileSize")) {
             println("Reversed ${fileToReverse.length()} bytes from ${fileToReverse.name}")
         }
     }
 }
 
-open class ReverseFiles @Inject constructor(val workerExecutor: WorkerExecutor) : SourceTask() {
+open class ReverseFiles @Inject constructor(private val workerExecutor: WorkerExecutor) : SourceTask() {
     @OutputDirectory
     lateinit var outputDir: File
 
     @TaskAction
     fun reverseFiles() {
+        // tag::worker-daemon[]
+        // Create a WorkQueue with process isolation
+        val workQueue = workerExecutor.processIsolation() {
+            // Configure the options for the forked process
+            forkOptions {
+                maxHeapSize = "512m"
+                systemProperty("org.gradle.sample.showFileSize", "true")
+            }
+        }
+
         // Create and submit a unit of work for each file
         source.forEach { file ->
-            // tag::worker-daemon[]
-            workerExecutor.submit(ReverseFile::class) {
-                // Run this work in an isolated process
-                isolationMode = IsolationMode.PROCESS
-
-                // Configure the options for the forked process
-                forkOptions {
-                    maxHeapSize = "512m"
-                    systemProperty("org.gradle.sample.showFileSize", "true")
-                }
-
-                // Constructor parameters for the unit of work implementation
-                params(file, project.file("$outputDir/${file.name}"))
+            workQueue.submit(ReverseFile::class) {
+                fileToReverse.set(file)
+                destinationDir.set(outputDir)
             }
-            // end::worker-daemon[]
         }
+        // end::worker-daemon[]
     }
 }
 

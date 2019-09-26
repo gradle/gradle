@@ -21,7 +21,7 @@ import org.gradle.api.plugins.quality.CodeNarcPlugin
 import org.gradle.util.VersionNumber
 
 class CodeNarcCoverage {
-    private final static List<String> ALL = ["0.17", "0.21", "0.23", "0.24.1", "0.25.2", "1.0", CodeNarcPlugin.DEFAULT_CODENARC_VERSION].asImmutable()
+    private final static List<String> ALL = ["0.17", "0.21", "0.23", "0.24.1", "0.25.2", "1.0", "1.2.1", CodeNarcPlugin.DEFAULT_CODENARC_VERSION].asImmutable()
 
     private final static List<String> JDK11_SUPPORTED = ALL.findAll { VersionNumber.parse(it) > VersionNumber.parse("0.21") }.asImmutable()
 

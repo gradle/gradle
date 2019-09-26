@@ -75,18 +75,18 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         def outputDir = file("unpack")
         def sourceFile = file(source)
 
+        def permissions = readonly
+            ? """
+                fileMode 0644
+                dirMode 0755
+              """
+            : ""
+
         buildFile << """
             task unpack(type: Sync) {
                 from($type("${sourceFile.toURI()}"))
                 into("unpack")
-"""
-        if (readonly) {
-            buildFile << """
-                fileMode 0644
-                dirMode 0755
-            """
-        }
-        buildFile << """
+                ${permissions}
             }
         """
 

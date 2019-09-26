@@ -108,22 +108,17 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     String getJavadocAndSourceJarsScript(String configurationName = null) {
-        def tasks = """
-            task("sourcesJar", type: Jar, dependsOn: classes) { 
-                classifier = 'sources' 
-                from sourceSets.main.allSource
-            } 
-
-            task("javadocJar", type: Jar, dependsOn: javadoc) { 
-                classifier = 'javadoc' 
-                from javadoc.destinationDir 
-            } 
+        def javaPluginConfig = """
+            java {
+                publishJavadoc()
+                publishSources()
+            }
         """
 
         if (configurationName == null) {
-            tasks
+            javaPluginConfig
         } else {
-            tasks + """
+            javaPluginConfig + """
                 configurations {
                     $configurationName
                 }
@@ -149,9 +144,10 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
                     }
                     ivy {
                         url "file://\$buildDir/ivyRepo/"
-                        layout "pattern"
-                        artifactPattern "\$buildDir/ivyRepo/[artifact]-[revision](.[ext])"
-                        ivyPattern "\$buildDir/ivyRepo/[artifact]-[revision](.[ext])"
+                        patternLayout {
+                            artifact "[artifact]-[revision](.[ext])"
+                            ivy "[artifact]-[revision](.[ext])"
+                        }
                     }
                 }
             }

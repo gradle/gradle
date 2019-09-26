@@ -44,11 +44,11 @@ public abstract class AbstractDependencyMetadataAdapter<T extends DependencyMeta
         this.originalIndex = originalIndex;
     }
 
-    private ModuleDependencyMetadata getOriginalMetadata() {
+    protected ModuleDependencyMetadata getOriginalMetadata() {
         return container.get(originalIndex);
     }
 
-    private void updateMetadata(ModuleDependencyMetadata modifiedMetadata) {
+    protected void updateMetadata(ModuleDependencyMetadata modifiedMetadata) {
         container.set(originalIndex, modifiedMetadata);
     }
 

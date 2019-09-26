@@ -20,6 +20,7 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
@@ -187,6 +188,24 @@ public interface Gradle extends PluginAware {
      * @since 3.4
      */
     void buildStarted(Action<? super Gradle> action);
+
+    /**
+     * Adds an action to be called before the build settings have been loaded and evaluated.
+     *
+     * @param closure The action to execute.
+     * @since 6.0
+     */
+    @Incubating
+    void beforeSettings(Closure<?> closure);
+
+    /**
+     * Adds an action to be called before the build settings have been loaded and evaluated.
+     *
+     * @param action The action to execute.
+     * @since 6.0
+     */
+    @Incubating
+    void beforeSettings(Action<? super Settings> action);
 
     /**
      * Adds a closure to be called when the build settings have been loaded and evaluated.

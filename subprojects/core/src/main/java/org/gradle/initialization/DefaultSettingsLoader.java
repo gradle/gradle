@@ -20,8 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.initialization.buildsrc.BuildSourceBuilder;
+import org.gradle.api.internal.StartParameterInternal;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that modules is
@@ -30,13 +29,10 @@ import org.gradle.initialization.buildsrc.BuildSourceBuilder;
 public class DefaultSettingsLoader implements SettingsLoader {
     private ISettingsFinder settingsFinder;
     private SettingsProcessor settingsProcessor;
-    private BuildSourceBuilder buildSourceBuilder;
 
-    public DefaultSettingsLoader(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor,
-                                 BuildSourceBuilder buildSourceBuilder) {
+    public DefaultSettingsLoader(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
-        this.buildSourceBuilder = buildSourceBuilder;
     }
 
     @Override
@@ -73,7 +69,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
     private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter) {
         StartParameter noSearchParameter = startParameter.newInstance();
-        noSearchParameter.useEmptySettings();
+        ((StartParameterInternal)noSearchParameter).useEmptySettingsWithoutDeprecationWarning();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
 
         // Set explicit build file, if required
@@ -96,12 +92,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private SettingsInternal findSettingsAndLoadIfAppropriate(GradleInternal gradle,
                                                               StartParameter startParameter) {
         SettingsLocation settingsLocation = findSettings(startParameter);
-
-        // We found the desired settings file, now build the associated buildSrc before loading settings.  This allows
-        // the settings script to reference classes in the buildSrc.
-        ClassLoaderScope buildSourceClassLoaderScope = buildSourceBuilder.buildAndCreateClassLoader(settingsLocation.getSettingsDir(), startParameter);
-
-        return settingsProcessor.process(gradle, settingsLocation, buildSourceClassLoaderScope, startParameter);
+        return settingsProcessor.process(gradle, settingsLocation, gradle.getClassLoaderScope(), startParameter);
     }
 
     private SettingsLocation findSettings(StartParameter startParameter) {

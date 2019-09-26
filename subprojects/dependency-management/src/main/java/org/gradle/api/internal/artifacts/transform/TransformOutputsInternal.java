@@ -40,9 +40,13 @@ public interface TransformOutputsInternal extends TransformOutputs {
         throw new InvalidUserDataException("Transform output " + output.getPath() + " must be a part of the input artifact or refer to a relative path.");
     }
 
-    static void validateOutputExists(File output) {
+    static void validateOutputExists(String outputDirPrefix, File output) {
         if (!output.exists()) {
-            throw new InvalidUserDataException("Transform output " + output.getPath() + " must exist.");
+            String outputAbsolutePath = output.getAbsolutePath();
+            String reportedPath = outputAbsolutePath.startsWith(outputDirPrefix)
+                ? outputAbsolutePath.substring(outputDirPrefix.length())
+                : outputAbsolutePath;
+            throw new InvalidUserDataException("Transform output " + reportedPath + " must exist.");
         }
     }
 

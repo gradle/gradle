@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    compile gradleApi()
-    compile localGroovy()
-    compile "org.pegdown:pegdown:1.1.0"
+    api gradleApi()
+    api localGroovy()
+    implementation "org.pegdown:pegdown:1.1.0"
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties.annotations;
 
-import org.gradle.internal.reflect.ParameterValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 
 import java.lang.annotation.Annotation;
 
@@ -31,5 +31,5 @@ public interface TypeAnnotationHandler {
     /**
      * Visits problems associated with the given property, if any.
      */
-    void validateTypeMetadata(Class<?> classWithAnnotationAttached, ParameterValidationContext visitor);
+    void validateTypeMetadata(Class<?> classWithAnnotationAttached, TypeValidationContext visitor);
 }

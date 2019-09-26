@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.impl;
 
 import com.google.common.collect.Ordering;
+import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -34,13 +35,15 @@ import java.util.function.Predicate;
 public class OutputsCleaner {
     private static final Logger LOGGER = LoggerFactory.getLogger(OutputsCleaner.class);
 
+    private final Deleter deleter;
     private final PriorityQueue<File> directoriesToDelete;
     private final Predicate<File> fileSafeToDelete;
     private final Predicate<File> dirSafeToDelete;
 
     private boolean didWork;
 
-    public OutputsCleaner(Predicate<File> fileSafeToDelete, Predicate<File> dirSafeToDelete) {
+    public OutputsCleaner(Deleter deleter, Predicate<File> fileSafeToDelete, Predicate<File> dirSafeToDelete) {
+        this.deleter = deleter;
         this.fileSafeToDelete = fileSafeToDelete;
         this.dirSafeToDelete = dirSafeToDelete;
         this.directoriesToDelete = new PriorityQueue<>(10, Ordering.natural().reverse());
@@ -62,7 +65,7 @@ public class OutputsCleaner {
                 if (fileSafeToDelete.test(file)) {
                     if (file.exists()) {
                         LOGGER.debug("Deleting stale output file '{}'.", file);
-                        Files.delete(file.toPath());
+                        deleter.delete(file);
                         didWork = true;
                     }
                     markParentDirForDeletion(file);
@@ -91,7 +94,11 @@ public class OutputsCleaner {
     }
 
     public void cleanupDirectories() throws IOException {
-        for (File directory = directoriesToDelete.poll(); directory != null; directory = directoriesToDelete.poll()) {
+        while (true) {
+            File directory = directoriesToDelete.poll();
+            if (directory == null) {
+                break;
+            }
             if (isEmpty(directory)) {
                 LOGGER.debug("Deleting stale empty output directory '{}'.", directory);
                 Files.delete(directory.toPath());

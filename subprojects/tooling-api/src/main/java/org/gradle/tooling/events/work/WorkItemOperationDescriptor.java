@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.events.work;
 
-import org.gradle.api.Incubating;
 import org.gradle.tooling.events.OperationDescriptor;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.tooling.events.OperationDescriptor;
  *
  * @since 5.1
  */
-@Incubating
 public interface WorkItemOperationDescriptor extends OperationDescriptor {
     /**
      * Returns the fully-qualified class name of work item's action.

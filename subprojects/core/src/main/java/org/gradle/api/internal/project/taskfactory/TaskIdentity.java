@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.Path;
@@ -38,7 +39,8 @@ public final class TaskIdentity<T extends Task> {
      */
     public final long uniqueId;
 
-    private TaskIdentity(Class<T> type, String name, Path projectPath, Path identityPath, Path buildPath, long uniqueId) {
+    @VisibleForTesting
+    TaskIdentity(Class<T> type, String name, Path projectPath, Path identityPath, Path buildPath, long uniqueId) {
         this.name = name;
         this.projectPath = projectPath;
         this.identityPath = identityPath;

@@ -19,6 +19,7 @@ package org.gradle.initialization.buildsrc;
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
@@ -85,7 +86,7 @@ public class BuildSourceBuilder {
         final StartParameter buildSrcStartParameter = containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
-        buildSrcStartParameter.setSearchUpwards(false);
+        ((StartParameterInternal)buildSrcStartParameter).setSearchUpwardsWithoutDeprecationWarning(false);
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
         final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(buildSrcStartParameter, "buildSrc", buildSrcDir, publicBuildPath);
         assert buildSrcStartParameter.getBuildFile() == null;

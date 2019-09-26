@@ -27,7 +27,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         import javax.inject.Inject
 
         class CustomTask extends DefaultTask {
+            @Internal
             final String message
+            @Internal
             final int number
 
             @Inject
@@ -48,6 +50,11 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             class SomeTask extends DefaultTask {
                 SomeTask() {
                     println("Create ${path}")
+                }
+            }
+            class SomeSubTask extends SomeTask {
+                SomeSubTask() {
+                    println("Create subtask ${path}")
                 }
             }
             class SomeOtherTask extends DefaultTask {
@@ -264,7 +271,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             
             gradle.buildFinished {
                 assert configureCount == 1
-                assert tasksAllCount == 14 // built in tasks + task1
+                assert tasksAllCount == 15 // built in tasks + task1
             }
         """
 
@@ -546,106 +553,91 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'assertActionExecutionOrder'
     }
 
-    def "can overwrite a lazy task creation with a eager task creation without executing any lazy rules"() {
+    def "can overwrite a lazy task creation with a eager task of the same type executing all lazy rules"() {
         buildFile << '''
             class MyTask extends DefaultTask {}
             def myTask = tasks.register("myTask", SomeTask) {
-                assert false, "This task is overwritten before been realized"
+                println "Lazy 1 ${path}"
             }
             myTask.configure {
-                assert false, "This task is overwritten before been realized"
+                println "Lazy 2 ${path}"
             }
-
-            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
-               println "Configure ${path}"
-            }
-        '''
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds "help"
-
-        result.output.count("Create :myTask") == 1
-        result.output.count("Configure :myTask") == 1
-    }
-
-    def "can overwrite a lazy task creation with a eager task and configure lazy task again"() {
-        buildFile << '''
-            class MyTask extends DefaultTask {}
-            def myTask = tasks.register("myTask", SomeTask) {
-                assert false, "This task is overwritten before been realized"
-            }
-            myTask.configure {
-                assert false, "This task is overwritten before been realized"
-            }
-
-            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
-               println "Configure ${path}"
-            }
-
-            myTask.configure {
-                assert false, "This task was overwritten with an eager task of another type"
-            }
-        '''
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds "help"
-
-        result.output.count("Create :myTask") == 1
-        result.output.count("Configure :myTask") == 1
-    }
-
-    def "executes configuration rules for a lazy task only once when explicitly realized before been replaced"() {
-        buildFile << '''
-            class MyTask extends DefaultTask {}
-            def creationRuleExecutionCount = 0
-            def myTask = tasks.register("myTask", SomeTask) {
-               assert creationRuleExecutionCount++ == 0, "This task creation rule should only execute once."
-            }
-            def configurationRuleExecutionCount = 0
-            myTask.configure {
-                assert configurationRuleExecutionCount++ == 0, "This configuration rule should only execute once."
-            }
-            myTask.get()
-
-            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
-               println "Configure ${path}"
-            }
-        '''
-
-        expect:
-        executer.expectDeprecationWarning()
-        succeeds "help"
-
-        result.output.count("Create :myTask") == 2
-        result.output.count("Configure :myTask") == 1
-    }
-
-    def "executes configureEach rule for explicitly realized task and eager overwritten task"() {
-        buildFile << '''
-            class MyTask extends DefaultTask {}
-            def configureEachRuleExecutionCount = 0
-            tasks.withType(SomeTask).configureEach {
-                configureEachRuleExecutionCount++
-            }
-
-            def myTask = tasks.register("myTask", SomeTask)
-            myTask.get()
 
             tasks.create(name: "myTask", type: SomeTask, overwrite: true) {
                println "Configure ${path}"
             }
-
-            assert configureEachRuleExecutionCount == 2, "The configureEach rule should execute for the manually realized lazy task as well as the overwritten eager task"
         '''
 
         expect:
-        executer.expectDeprecationWarning()
         succeeds "help"
 
-        result.output.count("Create :myTask") == 2
+        result.output.count("Create :myTask") == 1
+        result.output.count("Lazy 1 :myTask") == 1
+        result.output.count("Lazy 2 :myTask") == 1
         result.output.count("Configure :myTask") == 1
+    }
+
+    def "can overwrite a lazy task creation with a eager task with subtype executing all lazy rules"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def myTask = tasks.register("myTask", SomeTask) {
+                println "Lazy 1 ${path}"
+            }
+            myTask.configure {
+                println "Lazy 2 ${path}"
+            }
+
+            tasks.create(name: "myTask", type: SomeSubTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+        '''
+
+        expect:
+        succeeds "help"
+
+        result.output.count("Create subtask :myTask") == 1
+        result.output.count("Lazy 1 :myTask") == 1
+        result.output.count("Lazy 2 :myTask") == 1
+        result.output.count("Configure :myTask") == 1
+    }
+
+    def "cannot overwrite a lazy task creation with a eager task creation with a different type"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def myTask = tasks.register("myTask", SomeTask) {
+                assert false, "This task is overwritten before been realized"
+            }
+            myTask.configure {
+                assert false, "This task is overwritten before been realized"
+            }
+
+            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+        '''
+
+        expect:
+        fails "help"
+
+        and:
+        failure.assertHasCause("Replacing an existing task with an incompatible type is not supported.  Use a different name for this task ('myTask') or use a compatible type (SomeOtherTask)")
+    }
+
+    def "cannot overwrite a lazy task creation with a eager task creation after the lazy task has been realized"() {
+        buildFile << '''
+            class MyTask extends DefaultTask {}
+            def myTask = tasks.register("myTask", SomeTask).get()
+
+            tasks.create(name: "myTask", type: SomeOtherTask, overwrite: true) {
+               println "Configure ${path}"
+            }
+        '''
+
+        expect:
+        fails "help"
+
+        and:
+        failure.assertHasCause("Replacing an existing task that may have already been used by other plugins is not supported.  Use a different name for this task ('myTask').")
     }
 
     def "executes configureEach rule only for eager overwritten task"() {
@@ -809,23 +801,6 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("got it 15")
-    }
-
-    def "lazy tasks that are removed cannot be recreated"() {
-        buildFile << '''
-            def fooTask = tasks.register('foo', SomeTask).get()
-            
-            tasks.remove(fooTask)
-            
-            tasks.all { }
-        '''
-
-        expect:
-        executer.expectDeprecationWarning()
-        fails "foo"
-
-        and:
-        failure.assertHasDescription("Task 'foo' not found in root project")
     }
 
     def "realizes only the task of the given type when depending on a filtered task collection"() {
@@ -1181,7 +1156,9 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     def "can locate task by name and type with named"() {
         buildFile << """
             class CustomTask extends DefaultTask {
+                @Internal
                 String message
+                @Internal
                 int number
                 
                 @TaskAction

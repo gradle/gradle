@@ -19,6 +19,7 @@ package org.gradle.vcs.internal
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 
@@ -28,7 +29,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
     def commit
     BuildTestFile depProject
 
-    void mappingFor(GitFileRepository gitRepo , String coords, String repoDef = "") {
+    void mappingFor(GitFileRepository gitRepo, String coords, String repoDef = "") {
         mappingFor(gitRepo.url.toString(), coords, repoDef)
     }
 
@@ -138,25 +139,26 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
     }
 
     def 'main build can request plugins to be applied to source dependency build'() {
-        singleProjectBuild("buildSrc") {
-            file("src/main/groovy/MyPlugin.groovy") << """
-                import org.gradle.api.*
-                import org.gradle.api.initialization.*
-                
-                class MyPlugin implements Plugin<Settings> {
-                    void apply(Settings settings) {
-                        settings.gradle.allprojects {
-                            apply plugin: 'java'
-                            group = 'org.test'
-                            version = '1.0'
-                        }
-                    }
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        pluginBuilder.addSettingsPlugin """
+            settings.gradle.allprojects {
+                apply plugin: 'java'
+                group = 'org.test'
+                version = '1.0'
+            }
+        """, "com.example.MyPlugin", "MyPlugin"
+
+
+        def pluginJar = file("plugin.jar")
+        pluginBuilder.publishTo(executer, pluginJar)
+
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath files("$pluginJar.name")
                 }
-            """
-            file("src/main/resources/META-INF/gradle-plugins/com.example.MyPlugin.properties") << """
-                implementation-class=MyPlugin
-            """
-        }
+            }
+        """
 
         mappingFor(repo, "org.test:dep", 'plugins { id("com.example.MyPlugin") }')
 
@@ -166,36 +168,32 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
     }
 
     def 'injected plugin can apply other plugins to source dependency build'() {
-        singleProjectBuild("buildSrc") {
-            file("src/main/groovy/MyProjectPlugin.groovy") << """
-                import org.gradle.api.*
-                
-                class MyProjectPlugin implements Plugin<Project> {
-                    void apply(Project project) {
-                        project.apply plugin: 'java'
-                        project.group = 'org.test'
-                        project.version = '1.0'
-                    }
-                }
-            """
-            file("src/main/groovy/MyPlugin.groovy") << """
-                import org.gradle.api.*
-                import org.gradle.api.initialization.*
-                
-                class MyPlugin implements Plugin<Settings> {
-                    void apply(Settings settings) {
-                        settings.gradle.allprojects {
-                            apply plugin: MyProjectPlugin
-                        }
-                    }
-                }
-            """
-            file("src/main/resources/META-INF/gradle-plugins/com.example.MyPlugin.properties") << """
-                implementation-class=MyPlugin
-            """
-        }
+        def pluginBuilder = new PluginBuilder(file("plugin"))
+        pluginBuilder.addPlugin """
+            project.apply plugin: 'java'
+            project.group = 'org.test'
+            project.version = '1.0'
+        """, "com.example.MyProjectPlugin", "MyProjectPlugin"
 
-        mappingFor(repo, "org.test:dep", 'plugins { id("com.example.MyPlugin") }')
+        pluginBuilder.addSettingsPlugin """
+            settings.gradle.allprojects {
+                apply plugin: MyProjectPlugin
+            }
+        """, "com.example.MySettingsPlugin", "MySettingsPlugin"
+
+
+        def pluginJar = file("plugin.jar")
+        pluginBuilder.publishTo(executer, pluginJar)
+
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath files("$pluginJar.name")
+                }
+            }
+        """
+
+        mappingFor(repo, "org.test:dep", 'plugins { id("com.example.MySettingsPlugin") }')
 
         expect:
         succeeds('assemble')
