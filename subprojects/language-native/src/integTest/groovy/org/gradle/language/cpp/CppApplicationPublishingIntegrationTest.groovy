@@ -60,7 +60,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 targetPlatform.set(binary.map { it.compileTask.get().targetPlatform.get() })
                 toolChain.set(binary.map { it.toolChain }) 
                 installDirectory = layout.projectDirectory.dir("install")
-                lib(configurations.install)
+                lib(configurations.install.filter { it != configurations.install.files[0] })
                 executableFile = layout.file(provider {
                     def appFile = configurations.install.files[0]
                     appFile.executable = true
@@ -68,10 +68,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 })
             }
         """
-    }
-
-    private void expectDuplicatesStrategyWarning(String name = 'app') {
-        executer.expectDeprecationWarning("Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: \"${name}\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths.")
     }
 
     def "can publish the binaries of an application to a Maven repository"() {
@@ -157,7 +153,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:test:1.2'
             }
         """
-        expectDuplicatesStrategyWarning('test')
         executer.inDirectory(consumer)
         run("install")
 
@@ -238,7 +233,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:app:1.2'
             }
         """
-        expectDuplicatesStrategyWarning()
         executer.inDirectory(consumer)
         run("install")
 
@@ -332,7 +326,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:app:1.2'
             }
         """
-        expectDuplicatesStrategyWarning()
         executer.inDirectory(consumer)
         run("install")
 
@@ -411,7 +404,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:testApp:1.2'
             }
         """
-        expectDuplicatesStrategyWarning("testApp")
         executer.inDirectory(consumer)
         run("install")
 
@@ -459,7 +451,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:test:1.2'
             }
         """
-        expectDuplicatesStrategyWarning("test")
         executer.inDirectory(consumer)
         run("install")
 
@@ -511,7 +502,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 install 'some.group:test:1.2'
             }
         """
-        expectDuplicatesStrategyWarning("test")
         executer.inDirectory(consumer)
         run("install")
 
