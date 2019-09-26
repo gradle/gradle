@@ -77,6 +77,12 @@ abstract class GradleDelegate : Gradle {
     override fun removeProjectEvaluationListener(listener: ProjectEvaluationListener) =
         delegate.removeProjectEvaluationListener(listener)
 
+    override fun beforeSettings(closure: Closure<*>) =
+        delegate.beforeSettings(closure)
+
+    override fun beforeSettings(action: Action<in Settings>) =
+        delegate.beforeSettings(action)
+
     override fun beforeProject(closure: Closure<Any>) =
         delegate.beforeProject(closure)
 
