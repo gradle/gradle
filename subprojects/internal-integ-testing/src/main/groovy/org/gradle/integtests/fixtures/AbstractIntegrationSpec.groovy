@@ -114,15 +114,23 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     protected TestFile getSettingsFile() {
-        testDirectory.file('settings.gradle')
+        testDirectory.file(settingsFileName)
     }
 
     protected TestFile getSettingsKotlinFile() {
-        testDirectory.file('settings.gradle.kts')
+        testDirectory.file(settingsKotlinFileName)
     }
 
     protected TestFile getPropertiesFile() {
         testDirectory.file('gradle.properties')
+    }
+
+    protected static String getSettingsFileName() {
+        return 'settings.gradle'
+    }
+
+    protected static String getSettingsKotlinFileName() {
+        return 'settings.gradle.kts'
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {

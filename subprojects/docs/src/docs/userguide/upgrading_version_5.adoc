@@ -271,6 +271,13 @@ However, selecting the `default` configuration yields the same result as before.
 Only the `runtime` configuration now contains more information which corresponds to the _runtimeElements_ variant of a Java library.
 In general, users are advised to migrate from `ivy.xml` to the new Gradle Module Metadata format.
 
+==== Executing Gradle without a settings file has been deprecated
+
+A Gradle build is defined by a `settings.gradle[.kts]` file in the current or parent directory.
+Without a settings file, a Gradle build is undefined and will emit a deprecation warning.
+
+In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnostic command line flags, such as `--version`, with undefined builds.
+
 ==== Calling afterEvaluate on an evaluated project has been deprecated
 
 Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
