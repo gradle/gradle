@@ -56,9 +56,7 @@ public interface CopySpecResolver {
 
     DuplicatesStrategy getDuplicatesStrategy();
 
-    default boolean isDefaultDuplicateStrategy() {
-        return getDuplicatesStrategy() == DuplicatesStrategy.INHERIT;
-    }
+    boolean isDefaultDuplicateStrategy();
 
     void walk(Action<? super CopySpecResolver> action);
 
