@@ -32,6 +32,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
@@ -106,6 +107,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveFileName")
     public String getArchiveName() {
+        DeprecationLogger.nagUserOfReplacedProperty("archiveName", "archiveFileName");
         return archiveName.get();
     }
 
@@ -117,6 +119,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setArchiveName(String name) {
+        DeprecationLogger.nagUserOfReplacedProperty("archiveName", "archiveFileName");
         archiveName.convention(name);
         archiveName.set(name);
     }
@@ -142,6 +145,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveFile")
     public File getArchivePath() {
+        DeprecationLogger.nagUserOfReplacedProperty("archivePath", "archiveFile");
         return getArchiveFile().get().getAsFile();
     }
 
@@ -176,6 +180,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("destinationDirectory")
     public File getDestinationDir() {
+        DeprecationLogger.nagUserOfReplacedProperty("destinationDir", "destinationDirectory");
         return archiveDestinationDirectory.getAsFile().get();
     }
 
@@ -186,6 +191,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setDestinationDir(File destinationDir) {
+        DeprecationLogger.nagUserOfReplacedProperty("destinationDir", "destinationDirectory");
         archiveDestinationDirectory.set(getProject().file(destinationDir));
     }
 
@@ -209,6 +215,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveBaseName")
     public String getBaseName() {
+        DeprecationLogger.nagUserOfReplacedProperty("baseName", "archiveBaseName");
         return archiveBaseName.getOrNull();
     }
 
@@ -219,6 +226,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setBaseName(@Nullable String baseName) {
+        DeprecationLogger.nagUserOfReplacedProperty("baseName", "archiveBaseName");
         archiveBaseName.convention(baseName);
         archiveBaseName.set(baseName);
     }
@@ -244,6 +252,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveAppendix")
     public String getAppendix() {
+        DeprecationLogger.nagUserOfReplacedProperty("appendix", "archiveAppendix");
         return archiveAppendix.getOrNull();
     }
 
@@ -254,6 +263,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setAppendix(@Nullable String appendix) {
+        DeprecationLogger.nagUserOfReplacedProperty("appendix", "archiveAppendix");
         archiveAppendix.convention(appendix);
         archiveAppendix.set(appendix);
     }
@@ -279,6 +289,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveVersion")
     public String getVersion() {
+        DeprecationLogger.nagUserOfReplacedProperty("version", "archiveVersion");
         return archiveVersion.getOrNull();
     }
 
@@ -289,6 +300,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setVersion(@Nullable String version) {
+        DeprecationLogger.nagUserOfReplacedProperty("version", "archiveVersion");
         archiveVersion.convention(version);
         archiveVersion.set(version);
     }
@@ -312,6 +324,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveExtension")
     public String getExtension() {
+        DeprecationLogger.nagUserOfReplacedProperty("extension", "archiveExtension");
         return archiveExtension.getOrNull();
     }
 
@@ -322,6 +335,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setExtension(@Nullable String extension) {
+        DeprecationLogger.nagUserOfReplacedProperty("extension", "archiveExtension");
         archiveExtension.convention(extension);
         archiveExtension.set(extension);
     }
@@ -345,6 +359,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveClassifier")
     public String getClassifier() {
+        DeprecationLogger.nagUserOfReplacedProperty("classifier", "archiveClassifier");
         return archiveClassifier.getOrNull();
     }
 
@@ -355,6 +370,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setClassifier(@Nullable String classifier) {
+        DeprecationLogger.nagUserOfReplacedProperty("classifier", "archiveClassifier");
         archiveClassifier.convention(classifier);
         archiveClassifier.set(classifier);
     }
