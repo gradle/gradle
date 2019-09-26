@@ -515,7 +515,7 @@ hamcrest-core-1.3.jar
                 if (it.absolutePath.contains('intTestHomeDir')) {
                     println it.name
                 } else {
-                    println it.absolutePath.substring(it.absolutePath.lastIndexOf('build') + 6)
+                    println it.absolutePath.substring(it.absolutePath.lastIndexOf('build') + 6).replace(File.separatorChar, (char) '/')
                 }
             }
 
