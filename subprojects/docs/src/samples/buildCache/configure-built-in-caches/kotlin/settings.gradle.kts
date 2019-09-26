@@ -1,6 +1,6 @@
 // tag::configure-directory-build-cache[]
 buildCache {
-    local<DirectoryBuildCache> {
+    local {
         directory = File(rootDir, "build-cache")
         removeUnusedEntriesAfterDays = 30
     }
