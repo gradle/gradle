@@ -90,24 +90,11 @@ public class BasePlugin implements Plugin<Project> {
         project.getTasks().withType(AbstractArchiveTask.class).configureEach(new Action<AbstractArchiveTask>() {
             @Override
             public void execute(AbstractArchiveTask task) {
-
-                Callable<String> destinationDir;
                 if (task instanceof Jar) {
-                    destinationDir = new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return pluginConvention.getLibsDirName();
-                        }
-                    };
+                    task.getDestinationDirectory().convention(pluginConvention.getLibsDirectory());
                 } else {
-                    destinationDir = new Callable<String>() {
-                        @Override
-                        public String call() {
-                            return pluginConvention.getDistsDirName();
-                        }
-                    };
+                    task.getDestinationDirectory().convention(pluginConvention.getDistsDirectory());
                 }
-                task.getDestinationDirectory().convention(project.getLayout().getBuildDirectory().dir(project.provider(destinationDir)));
 
                 task.getArchiveVersion().convention(project.provider(new Callable<String>() {
                     @Override
