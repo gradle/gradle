@@ -63,7 +63,6 @@ class ScriptApiTest {
     fun `precompiled project script template implements script api`() =
         assertScriptApiOf<PrecompiledProjectScript>()
 
-    @Ignore("wip")
     @Test
     fun `precompiled settings script template implements script api`() =
         assertScriptApiOf<PrecompiledSettingsScript>()

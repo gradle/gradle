@@ -18,9 +18,16 @@ package org.gradle.kotlin.dsl.precompile.v1
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.ProcessOperations
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.gradle.api.logging.LoggingManager
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.KotlinScriptAdapter
+import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 import org.jetbrains.kotlin.scripting.definitions.getEnvironment
@@ -67,7 +74,18 @@ open class PrecompiledInitScript(@Suppress("unused_parameter") target: Gradle)
 )
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
-open class PrecompiledSettingsScript(@Suppress("unused_parameter") target: Settings)
+open class PrecompiledSettingsScript(
+    target: Settings
+) : KotlinScriptAdapter(KotlinScriptAdapterHost(target)) {
+
+    private
+    class KotlinScriptAdapterHost(val settings: Settings) : Host {
+        override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
+        override fun getLogging(): LoggingManager = settings.serviceOf()
+        override fun getFileOperations(): FileOperations = fileOperationsFor(settings)
+        override fun getProcessOperations(): ProcessOperations = settings.serviceOf()
+    }
+}
 
 
 /**

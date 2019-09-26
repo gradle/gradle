@@ -105,9 +105,9 @@ open class CompiledKotlinSettingsBuildscriptBlock(
     /**
      * Configures the build script classpath for settings.
      *
-     * @see [Settings.buildscript]
+     * @see [Settings.getBuildscript]
      */
-    override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+    fun buildscript(block: ScriptHandlerScope.() -> Unit) {
         buildscript.configureWith(block)
     }
 }
@@ -124,15 +124,11 @@ open class CompiledKotlinInitScript(
     open val initscript: ScriptHandler
         get() = host.scriptHandler
 
-    internal
+    private
     class KotlinScriptAdapterHost(val host: KotlinScriptHost<Gradle>) : Host {
-
         override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
-
         override fun getLogging(): LoggingManager = host.target.serviceOf()
-
         override fun getFileOperations(): FileOperations = host.fileOperations
-
         override fun getProcessOperations(): ProcessOperations = host.processOperations
     }
 }
