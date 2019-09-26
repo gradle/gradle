@@ -1027,7 +1027,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.expectDeprecationWarning("Encountered duplicate path during copy operation configured with default duplicates strategy. Allowing duplicates with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: \"b.txt\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths.")
+        executer.expectDeprecationWarning("Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: \"b.txt\". Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths.")
         succeeds "copyTask"
 
         then:

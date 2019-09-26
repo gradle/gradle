@@ -47,7 +47,7 @@ public class DuplicateHandlingCopyActionDecorator implements CopyAction {
                 if (!visitedFiles.add(details.getRelativePath())) {
                     if (details.isDefaultDuplicatesStrategy()) {
                         DeprecationLogger.nagUserWithDeprecatedIndirectUserCodeCause(
-                            "Encountered duplicate path during copy operation configured with default duplicates strategy. Allowing duplicates with the default duplicates strategy",
+                            "Copying or archiving duplicate paths with the default duplicates strategy",
                             "Explicitly set the duplicates strategy to 'DuplicatesStrategy.INCLUDE' if you want to allow duplicate paths.",
                             "Duplicate path: \"" + details.getRelativePath() + "\".");
                     }
