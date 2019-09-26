@@ -197,7 +197,7 @@ public interface IvyPublication extends Publication {
      * apply plugin: "ivy-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   archiveClassifier = "source"
      * }
      *
      * task genDocs {
@@ -232,7 +232,7 @@ public interface IvyPublication extends Publication {
      * apply plugin: "ivy-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   archiveClassifier = "source"
      * }
 
      * task genDocs {
@@ -278,7 +278,7 @@ public interface IvyPublication extends Publication {
      * apply plugin: "ivy-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   archiveClassifier = "source"
      * }
      *
      * publishing {

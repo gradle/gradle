@@ -156,7 +156,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         buildFile << """
 
             task sourceJar(type: Jar) {
-                classifier "sources"
+                archiveClassifier = "sources"
                 from sourceSets.main.allSource
             }
             

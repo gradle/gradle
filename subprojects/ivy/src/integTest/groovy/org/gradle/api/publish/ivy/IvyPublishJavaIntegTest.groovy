@@ -145,7 +145,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         createBuildScripts("""
             task extraJar(type: Jar) {
                 from sourceSets.main.allJava
-                baseName "publishTest-extra"
+                archiveBaseName = "publishTest-extra"
             }
 
             artifacts {
@@ -178,7 +178,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
             task sourceJar(type: Jar) {
                 from sourceSets.main.allJava
-                baseName "publishTest-source"
+                archiveBaseName = "publishTest-source"
             }
 
             publishing {

@@ -34,8 +34,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
             task zip(type: Zip) {
                 from 'dir1'
                 from 'dir2'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 zip64 = true
             }
             '''
@@ -56,8 +56,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 from 'dir2'
                 from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 metadataCharset = '$metadataCharset'
             }
             """
@@ -85,8 +85,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 from 'dir2'
                 from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 metadataCharset = 'US-ASCII'
             }
             """
@@ -108,8 +108,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task zip(type: Zip) {
                 from 'dir1'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 metadataCharset = $metadataCharset
             }
             """

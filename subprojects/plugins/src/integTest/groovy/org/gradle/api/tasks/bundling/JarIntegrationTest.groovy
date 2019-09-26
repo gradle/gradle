@@ -35,8 +35,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
         task jar(type: Jar) {
             from 'test'
-            destinationDir = buildDir
-            archiveName = 'test.jar'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.jar'
         }
         """
 
@@ -68,8 +68,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 metaInf {
                     from 'meta-inf'
                 }
-                destinationDir = buildDir
-                archiveName = 'test.jar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
             }
         """
 
@@ -93,8 +93,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                 metaInf {
                     from 'meta-inf'
                 }
-                destinationDir = buildDir
-                archiveName = 'test.jar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
             }
         """
 
@@ -137,8 +137,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
                     from 'meta-inf2'
                     into 'dir3'
                 }
-                destinationDir = buildDir
-                archiveName = 'test.jar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
             }
         """
 
@@ -165,22 +165,22 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             task jar1(type: Jar) {
                 from 'src1'
-                destinationDir = buildDir
-                archiveName = 'test1.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test1.zip'
                 manifest { attributes(attr: 'jar1') }
             }
             task jar2(type: Jar) {
                 from 'src2'
-                destinationDir = buildDir
-                archiveName = 'test2.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test2.zip'
                 manifest { attributes(attr: 'jar2') }
             }
             task jar(type: Jar) {
                 dependsOn jar1, jar2
                 from zipTree(jar1.archivePath), zipTree(jar2.archivePath)
                 manifest { attributes(attr: 'value') }
-                destinationDir = buildDir
-                archiveName = 'test.jar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
             }
             '''
 
@@ -211,8 +211,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
             manifest {
                 attributes(attr: 'from manifest')
             }
-            destinationDir = buildDir
-            archiveName = 'test.jar'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.jar'
         }
 
         '''
@@ -249,8 +249,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
             metaInf {
                 from 'meta-inf1'
             }
-            destinationDir = buildDir
-            archiveName = 'test.jar'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.jar'
         }
 
         '''
@@ -269,8 +269,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
         task jar(type: Jar) {
-            archiveName = 'test.jar'
-            destinationDir = projectDir
+            archiveFileName = 'test.jar'
+            destinationDirectory = projectDir
             from 'dir1'
             from 'dir2'
             eachFile {
@@ -292,8 +292,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
         task jar(type: Jar) {
-            archiveName = 'test.jar'
-            destinationDir = projectDir
+            archiveFileName = 'test.jar'
+            destinationDirectory = projectDir
             from 'dir1'
             from 'dir2'
             duplicatesStrategy = 'exclude'
@@ -316,8 +316,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
             """
             task jar(type: Jar) {
                 from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.jar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
                 manifest { $manifest }
             }"""
         }
@@ -408,8 +408,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             task jar(type: Jar) {
                 from file('test')
-                destinationDir = file('dest')
-                archiveName = 'test.jar'
+                destinationDirectory = file('dest')
+                archiveFileName = 'test.jar'
             }
         """.stripIndent()
 
@@ -435,8 +435,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
             task jar(type: Jar) {
                 metadataCharset = 'ISO-8859-15'
                 from file('test')
-                destinationDir = file('dest')
-                archiveName = 'test.jar'
+                destinationDirectory = file('dest')
+                archiveFileName = 'test.jar'
             }
         """.stripIndent()
 
@@ -459,8 +459,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             task jar(type: Jar) {
                 from file('test')
-                destinationDir = file('dest')
-                archiveName = 'test.jar'
+                destinationDirectory = file('dest')
+                archiveFileName = 'test.jar'
                 manifest {
                     // Use an UTF-8 caution symbol in manifest entry
                     // that will create a mojibake if encoded using another charset
@@ -484,8 +484,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             task jar(type: Jar) {
                 from file('test')
-                destinationDir = file('dest')
-                archiveName = 'test.jar'
+                destinationDirectory = file('dest')
+                archiveFileName = 'test.jar'
                 manifest {
                     from('manifest-UTF-8.txt')
                 }
@@ -509,8 +509,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             task jar(type: Jar) {
                 from file('test')
-                destinationDir = file('dest')
-                archiveName = 'test.jar'
+                destinationDirectory = file('dest')
+                archiveFileName = 'test.jar'
                 manifestContentCharset = 'ISO-8859-15'
                 manifest {
                     attributes 'moji': 'bak€'
@@ -534,8 +534,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             task jar(type: Jar) {
                 from file('test')
-                destinationDir = file('dest')
-                archiveName = 'test.jar'
+                destinationDirectory = file('dest')
+                archiveFileName = 'test.jar'
                 manifest {
                     attributes 'moji': 'bak€'
                     from('manifest-ISO-8859-15.txt') {
@@ -580,8 +580,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
             $taskTypeDeclaration
             task jar(type: $taskType) {
                 from file('test')
-                destinationDir = file('dest')
-                archiveName = 'test.jar'
+                destinationDirectory = file('dest')
+                archiveFileName = 'test.jar'
                 manifest {
                     attributes '$attributeNameWritten': '$attributeValue'
                     from file('$mergedManifestFilename')
@@ -617,8 +617,8 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         buildScript """
             task jar(type: Jar) {
                 from file('test')
-                destinationDir = file('dest')
-                archiveName = 'test.jar'
+                destinationDirectory = file('dest')
+                archiveFileName = 'test.jar'
                 manifestContentCharset = $writeCharset
                 manifest {
                     from('manifest-to-merge.txt') {
@@ -665,7 +665,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             task jar(type: Jar) {
-                archiveName = 'some.jar'
+                archiveFileName = 'some.jar'
             }
         """
 

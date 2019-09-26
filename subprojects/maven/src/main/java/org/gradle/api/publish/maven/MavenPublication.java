@@ -62,7 +62,7 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * task sourceJar(type: Jar) {
  *   from sourceSets.main.allJava
- *   classifier "sources"
+ *   archiveClassifier = "sources"
  * }
  *
  * publishing {
@@ -168,7 +168,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "sources"
+     *   archiveClassifier = "sources"
      * }
      *
      * publishing {
@@ -197,7 +197,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "sources"
+     *   archiveClassifier = "sources"
      * }
      *
      * publishing {
@@ -232,7 +232,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "sources"
+     *   archiveClassifier = "sources"
      * }
 
      * publishing {

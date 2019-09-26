@@ -229,7 +229,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         then: 'testsJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             task testsJar(type: Jar) {
-                classifier = 'tests'
+                archiveClassifier = 'tests'
                 from(sourceSets.test.output)
             }
             '''.stripIndent().trim()))

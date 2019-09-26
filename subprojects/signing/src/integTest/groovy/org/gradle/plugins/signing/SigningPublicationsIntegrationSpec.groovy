@@ -128,7 +128,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
             task customJar(type:Jar) {
                 with jar
-                classifier = 'custom'
+                archiveClassifier = 'custom'
             }
 
             publishing {
@@ -144,7 +144,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 sign publishing.publications.custom
             }
 
-            customJar.classifier = 'custom2'
+            customJar.archiveClassifier = 'custom2'
 
         """
 
@@ -242,7 +242,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                         from components.java
                         artifactId '$artifactId'
                         artifact sourceJar {
-                            classifier "sources"
+                            archiveClassifier = "sources"
                         }
                     }
                 }
@@ -285,7 +285,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
             task sourceJar(type: Jar) {
                 from sourceSets.main.allJava
-                classifier "source"
+                archiveClassifier = "source"
             }
 
             publishing {
@@ -341,7 +341,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
             task sourceJar(type: Jar) {
                 from sourceSets.main.allJava
-                classifier "source"
+                archiveClassifier = "source"
             }
 
             publishing {

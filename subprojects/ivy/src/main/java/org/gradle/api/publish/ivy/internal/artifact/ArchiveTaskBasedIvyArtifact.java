@@ -42,17 +42,17 @@ public class ArchiveTaskBasedIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     protected String getDefaultType() {
-        return archiveTask.getExtension();
+        return archiveTask.getArchiveExtension().getOrNull();
     }
 
     @Override
     protected String getDefaultExtension() {
-        return archiveTask.getExtension();
+        return archiveTask.getArchiveExtension().getOrNull();
     }
 
     @Override
     protected String getDefaultClassifier() {
-        return archiveTask.getClassifier();
+        return archiveTask.getArchiveClassifier().getOrNull();
     }
 
     @Override
@@ -67,6 +67,6 @@ public class ArchiveTaskBasedIvyArtifact extends AbstractIvyArtifact {
 
     @Override
     public File getFile() {
-        return archiveTask.getArchivePath();
+        return archiveTask.getArchiveFile().get().getAsFile();
     }
 }

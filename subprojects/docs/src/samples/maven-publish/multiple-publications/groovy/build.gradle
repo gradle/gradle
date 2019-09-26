@@ -46,7 +46,7 @@ project(':project2') {
     version = "2.3"
 
     task apiJar(type: Jar) {
-        baseName = 'project2-api'
+        archiveBaseName = 'project2-api'
         from sourceSets.main.output
         exclude '**/impl/**'
     }

@@ -222,12 +222,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             project(':lib') {
                 task jar1(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib2.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib2.jar'
                 }
 
                 artifacts {
@@ -294,8 +294,8 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
             project(':common') {
                 task jar(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'common.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'common.jar'
                 }
                 artifacts {
                     compile jar
@@ -305,12 +305,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
             project(':lib') {
                 task jar1(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib2.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib2.jar'
                 }
 
                 dependencies {
@@ -359,12 +359,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             project(':lib') {
                 task jar1(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib1.jar'
                 }
                 task zip1(type: Zip) {
-                    destinationDir = buildDir
-                    archiveName = 'lib2.zip'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib2.zip'
                 }
 
                 configurations {
@@ -465,12 +465,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             project(':lib') {
                 task jar1(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib2.zip'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib2.zip'
                 }
 
                 configurations {
@@ -524,12 +524,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
             project(':lib') {
                 task jar1(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Zip) {
-                    destinationDir = buildDir
-                    archiveName = 'lib2.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib2.jar'
                 }
 
                 configurations {
@@ -628,12 +628,12 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
 
             project(':lib') {
                 task jar1(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Zip) {
-                    destinationDir = buildDir
-                    archiveName = 'lib2.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib2.jar'
                 }
 
                 configurations {
@@ -947,9 +947,9 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         buildFile << """
             project(':lib') {
                 task jar1(type: Jar) {
-                    destinationDir = buildDir
-                    baseName = 'a'
-                    extension = 'custom'
+                    destinationDirectory = buildDir
+                    archiveBaseName = 'a'
+                    archiveExtension = 'custom'
                 }
 
                 artifacts {
@@ -1028,8 +1028,8 @@ Found the following transforms:
  
             project(':lib') {
                 task jar1(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib1.jar'
                 }
 
                 configurations {
@@ -1288,9 +1288,9 @@ Found the following transforms:
                 compile project(':lib')
             }
             project(':lib') {
-                task jar1(type: Jar) { archiveName = 'jar1.jar' }
-                task jar2(type: Jar) { archiveName = 'jar2.jar' }
-                tasks.withType(Jar) { destinationDir = buildDir }
+                task jar1(type: Jar) { archiveFileName = 'jar1.jar' }
+                task jar2(type: Jar) { archiveFileName = 'jar2.jar' }
+                tasks.withType(Jar) { destinationDirectory = buildDir }
                 artifacts { compile jar1, jar2 }
             }
 
@@ -1959,8 +1959,8 @@ Found the following transforms:
         buildFile << """
             project(':lib') {
                 task jar(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib.jar'
                 }
                 artifacts {
                     compile jar
@@ -2084,7 +2084,7 @@ Found the following transforms:
                 file1.text = 'some text'
 
                 task lib1(type: Jar) {
-                    destinationDir = buildDir
+                    destinationDirectory = buildDir
                 }
     
                 dependencies {
@@ -2187,8 +2187,8 @@ Found the following transforms:
 
             project(":lib") {
                 task jar(type: Jar) {
-                    archiveName = 'lib.jar'
-                    destinationDir = buildDir                    
+                    archiveFileName = 'lib.jar'
+                    destinationDirectory = buildDir                    
                 }
                 artifacts {
                     compile jar
@@ -2241,8 +2241,8 @@ Found the following transforms:
 
             project(":lib") {
                 task jar(type: Jar) {
-                    archiveName = 'lib.jar'
-                    destinationDir = buildDir                    
+                    archiveFileName = 'lib.jar'
+                    destinationDirectory = buildDir                    
                 }
                 artifacts {
                     compile jar
@@ -2284,8 +2284,8 @@ Found the following transforms:
         buildFile << """
             project(':lib') {
                 task jar(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib1.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib1.jar'
                 }
 
                 artifacts {

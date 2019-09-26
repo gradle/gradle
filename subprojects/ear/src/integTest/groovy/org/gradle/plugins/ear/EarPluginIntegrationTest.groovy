@@ -427,8 +427,8 @@ ear {
                 lib {
                     from("rootLib.jar")
                 }
-                archiveName = "test.ear"
-                destinationDir = temporaryDir
+                archiveFileName = "test.ear"
+                destinationDirectory = temporaryDir
             }
         """
         when:

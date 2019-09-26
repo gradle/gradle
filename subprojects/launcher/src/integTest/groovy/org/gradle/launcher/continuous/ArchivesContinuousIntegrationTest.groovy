@@ -37,7 +37,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         buildFile << """
             apply plugin: 'base'
             task zip(type: Zip) {
-                archiveName = "zip.zip"
+                archiveFileName = "zip.zip"
                 from("src")
             }
         """

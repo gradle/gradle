@@ -138,8 +138,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
             configure([project(":lib1"), project(":lib2"), project(":lib3")]) {
 
                 task jar(type: Jar) {
-                    archiveName = "\${project.name}.jar"
-                    destinationDir = buildDir
+                    archiveFileName = "\${project.name}.jar"
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar
@@ -380,8 +380,8 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
                 }
 
                 task jar2(type: Jar) {
-                    archiveName = 'lib2.jar'
-                    destinationDir = buildDir
+                    archiveFileName = 'lib2.jar'
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar2

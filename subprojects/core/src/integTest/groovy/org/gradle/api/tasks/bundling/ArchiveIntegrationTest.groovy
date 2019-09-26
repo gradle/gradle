@@ -63,8 +63,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task tar(type: Tar) {
                 from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.tar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tar'
             }
             """
         when:
@@ -230,7 +230,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << '''
             task myTar(type: Tar) {
-                destinationDir = buildDir
+                destinationDirectory = buildDir
 
                 assert compression == Compression.NONE
 
@@ -296,8 +296,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             task zip(type: Zip) {
                 from 'test'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
             }
         '''
         when:
@@ -337,8 +337,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     include '**/*.properties'
                     rename { null }
                 }
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
             }
         '''
         when:
@@ -380,8 +380,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     from 'test'
                     include '**/*.sh'
                 }
-                destinationDir = buildDir
-                archiveName = 'uncompressedTest.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'uncompressedTest.zip'
                 entryCompression = ZipEntryCompression.STORED
             }
 
@@ -394,8 +394,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     from 'test'
                     include '**/*.sh'
                 }
-                destinationDir = buildDir
-                archiveName = 'compressedTest.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'compressedTest.zip'
             }
         '''
         when:
@@ -452,8 +452,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                     include '**/*.sh'
                     into 'scripts'
                 }
-                destinationDir = buildDir
-                archiveName = 'test.tar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tar'
             }
 '''
         when:
@@ -484,8 +484,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 compression = Compression.GZIP
                 from 'test'
                 include '**/*.txt'
-                destinationDir = buildDir
-                archiveName = 'test.tgz'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tgz'
             }
 '''
         when:
@@ -514,8 +514,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 compression = Compression.BZIP2
                 from 'test'
                 include '**/*.txt'
-                destinationDir = buildDir
-                archiveName = 'test.tbz2'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tbz2'
             }
 '''
         when:
@@ -554,8 +554,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 with distImage
             }
             task zip(type: Zip) {
-                destinationDir = file('build')
-                archiveName = 'test.zip'
+                destinationDirectory = file('build')
+                archiveFileName = 'test.zip'
                 into 'prefix'
                 with distImage
             }
@@ -586,8 +586,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << '''
             task zip(type: Zip) {
-                destinationDir = file('build')
-                archiveName = 'test.zip'
+                destinationDirectory = file('build')
+                archiveFileName = 'test.zip'
                 into 'prefix'
                 from 'test'
                 include '**/*.txt'
@@ -644,8 +644,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             from zipTree('test.zip')
             from tarTree('test.tar')
             from fileTree('test')
-            destinationDir = buildDir
-            archiveName = 'test.zip'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.zip'
         }
         '''
         when:
@@ -750,9 +750,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 task archive(type: ${archiveType.capitalize()}) {
                     from 'dir1'
                     from 'dir2'
-                    destinationDir = buildDir
+                    destinationDirectory = buildDir
                     rename 'file2.txt', 'file1.txt'
-                    archiveName = 'test.${archiveType}'
+                    archiveFileName = 'test.${archiveType}'
                     eachFile { it.duplicatesStrategy = 'exclude' }
                 }
                 """
@@ -786,7 +786,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         
         task tar(type: Tar) {
             from 'dir1'
-            baseName = "test"
+            archiveBaseName = "test"
             destinationDirectory.set(layout.buildDirectory)
         }
         task shouldRun(type: TaskWithAutomaticDependency) {
@@ -857,6 +857,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         """
         file("src/input").touch()
         when:
+        // This is explicitly checking that the old API works
+        executer.noDeprecationChecks()
         succeeds "archive"
         then:
         file(archiveFile).assertExists()
@@ -905,8 +907,8 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 from 'dir2'
                 from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.${archiveType}'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${archiveType}'
             }
         """
     }

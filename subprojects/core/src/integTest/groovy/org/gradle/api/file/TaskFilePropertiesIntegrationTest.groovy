@@ -171,7 +171,7 @@ task jar {
 }
 
 task otherJar(type: Jar) {
-    destinationDir = buildDir
+    destinationDirectory = buildDir
 }
 
 configurations { archives }

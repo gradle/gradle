@@ -192,7 +192,7 @@ public class EclipseWtpPlugin extends IdePlugin {
                 convention.map("contextPath", new Callable<String>() {
                     @Override
                     public String call() throws Exception {
-                        return ((War) project.getTasks().getByName("war")).getBaseName();
+                        return ((War) project.getTasks().getByName("war")).getArchiveBaseName().getOrNull();
                     }
                 });
                 convention.map("resources", new Callable<List<WbResource>>() {
