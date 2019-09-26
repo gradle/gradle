@@ -79,12 +79,14 @@ They are being deprecated to avoid confusion.
 
 ==== Copy or archive duplicate paths without explicitly specifying a duplicates strategy has been deprecated
 
-Copy and archive tasks default to the `INCLUDE` duplicates strategy, allowing the same path to be copied multiple times to the destination or to exist multiple times in an archive.
+Archive tasks `Tar` and `Zip` by default allow multiple entries for the same path to exist in the created archive.
+These https://github.com/gradle/gradle/issues/9990["grossly invalid zip files" can trigger zip bomb detection].
+To prevent this from happening accidentally, encountering duplicates while creating an archive now produces a deprecation message, and will fail the build starting with Gradle 7.0.
 
-Trying to copy or archive duplicate paths without explicitly specifying a duplicates strategy is now deprecated.
-This is to prevent user from accidentally creating https://github.com/gradle/gradle/issues/9990["grossly invalid zip files" that trigger zip bomb detection].
+Note that copy tasks also happily copy multiple sources with the same relative path to the destination directory.
+That behavior has also been deprecated.
 
-If you still want to allow them, you can specify that explicitly:
+If you want to allow duplicates, you can specify that explicitly:
 
 ```
 task archive(type: Zip) {
