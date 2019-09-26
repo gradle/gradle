@@ -228,7 +228,6 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
         return this.duplicatesStrategy;
     }
 
-    @Override
     public boolean isDefaultDuplicatesStrategy() {
         return defaultDuplicatesStrategy;
     }

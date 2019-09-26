@@ -198,6 +198,11 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         @Override
+        public boolean isDefaultDuplicatesStrategy() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public String getSourceName() {
             throw new UnsupportedOperationException();
         }
