@@ -53,31 +53,26 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
     @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
-        final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
+        final Set<RelativePath> visitedDirs = new HashSet<>();
         final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
 
-        WorkResult result = delegate.execute(new CopyActionProcessingStream() {
+        return delegate.execute(new CopyActionProcessingStream() {
             @Override
             public void process(final CopyActionProcessingStreamAction action) {
-
-
-                stream.process(new CopyActionProcessingStreamAction() {
-                    @Override
-                    public void processFile(FileCopyDetailsInternal details) {
-                        if (details.isDirectory()) {
-                            RelativePath path = details.getRelativePath();
-                            if (!visitedDirs.contains(path)) {
-                                pendingDirs.put(path, details);
-                            }
-                        } else {
-                            maybeVisit(details.getRelativePath().getParent(), details.isIncludeEmptyDirs(), action);
-                            action.processFile(details);
+                stream.process(details -> {
+                    if (details.isDirectory()) {
+                        RelativePath path = details.getRelativePath();
+                        if (!visitedDirs.contains(path)) {
+                            pendingDirs.put(path, details);
                         }
+                    } else {
+                        maybeVisit(details.getRelativePath().getParent(), details.isIncludeEmptyDirs(), action);
+                        action.processFile(details);
                     }
                 });
 
-                for (RelativePath path : new LinkedHashSet<RelativePath>(pendingDirs.keySet())) {
-                    List<FileCopyDetailsInternal> detailsList = new ArrayList<FileCopyDetailsInternal>(pendingDirs.get(path));
+                for (RelativePath path : new LinkedHashSet<>(pendingDirs.keySet())) {
+                    List<FileCopyDetailsInternal> detailsList = new ArrayList<>(pendingDirs.get(path));
                     for (FileCopyDetailsInternal details : detailsList) {
                         if (details.isIncludeEmptyDirs()) {
                             maybeVisit(path, details.isIncludeEmptyDirs(), action);
@@ -106,8 +101,6 @@ public class NormalizingCopyActionDecorator implements CopyAction {
                 delegateAction.processFile(dir);
             }
         });
-
-        return result;
     }
 
 
