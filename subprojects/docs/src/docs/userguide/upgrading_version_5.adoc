@@ -278,6 +278,10 @@ Without a settings file, a Gradle build is undefined and will emit a deprecation
 
 In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnostic command line flags, such as `--version`, with undefined builds.
 
+==== Calling afterEvaluate on an evaluated project has been deprecated
+
+Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
+
 ==== Miscellaneous
 
 The following breaking changes will appear as deprecation warnings with Gradle 5.6:
