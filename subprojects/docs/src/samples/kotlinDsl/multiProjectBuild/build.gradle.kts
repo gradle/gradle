@@ -47,7 +47,7 @@ project(":http") {
         "implementation"(project(":domain"))
         "implementation"(project(":infra"))
         "implementation"(ratpack.dependency("dropwizard-metrics"))
-        "runtime"("org.slf4j:slf4j-simple:1.7.25")
+        "runtimeOnly"("org.slf4j:slf4j-simple:1.7.25")
     }
     configure<ApplicationPluginConvention> {
         mainClassName = "example.App"
