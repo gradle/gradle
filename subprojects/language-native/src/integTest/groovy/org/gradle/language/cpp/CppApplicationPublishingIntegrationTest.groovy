@@ -38,7 +38,6 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
     def consumer = file("consumer").createDir()
 
     def setup() {
-        when:
         consumer.file("settings.gradle").createFile()
         consumer.file("build.gradle") << """
             apply plugin: 'cpp-application'
@@ -61,7 +60,7 @@ class CppApplicationPublishingIntegrationTest extends AbstractCppPublishingInteg
                 targetPlatform.set(binary.map { it.compileTask.get().targetPlatform.get() })
                 toolChain.set(binary.map { it.toolChain }) 
                 installDirectory = layout.projectDirectory.dir("install")
-                lib(configurations.install)
+                lib(configurations.install.filter { it != configurations.install.files[0] })
                 executableFile = layout.file(provider {
                     def appFile = configurations.install.files[0]
                     appFile.executable = true
