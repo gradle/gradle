@@ -76,9 +76,7 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
 
     private void markBuildAsSuccessfulIfFlaky(PerformanceExecutionDataProvider executionDataProvider) {
         long flakyCount = executionDataProvider.getScenarioExecutionData().stream().filter(ScenarioBuildResultData::isFlaky).count();
-        if (flakyCount > 0) {
-            System.out.println("##teamcity[buildStatus status='SUCCESS' text='" + flakyCount + " scenarios are flaky.']");
-        }
+        System.out.println("##teamcity[buildStatus status='SUCCESS' text='" + flakyCount + " scenarios are flaky.']");
     }
 
     private String formatResultString(int buildFailure, int stableScenarioRegression, int flakyScenarioBigRegression, int flakyScenarioSmallRegression) {
