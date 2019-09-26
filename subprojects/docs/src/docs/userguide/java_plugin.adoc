@@ -475,7 +475,7 @@ See the <<java_testing.adoc#java_testing,Testing in Java & JVM projects>> chapte
 == Publishing
 
 `components.java`::
-A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
+A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_setup.adoc#publishing_overview,publishing>> the production JAR created by the `jar` task. This component includes the runtime dependency information for the JAR.
 
 [[sec:incremental_compile]]
 == Incremental Java compilation

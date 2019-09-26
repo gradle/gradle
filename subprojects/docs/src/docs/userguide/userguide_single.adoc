@@ -84,6 +84,8 @@ include::multi_project_builds.adoc[leveloffset=+2]
 
 include::organizing_gradle_projects.adoc[leveloffset=+2]
 
+include::composite_builds.adoc[leveloffset=+2]
+
 include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]
 
 include::lazy_configuration.adoc[leveloffset=+2]
@@ -96,13 +98,6 @@ include::ant.adoc[leveloffset=+2]
 == Dependency Management
 
 include::dependency_management.adoc[leveloffset=+2]
-
-[[part:publishing]]
-== Publishing Artifacts
-
-include::publishing.adoc[leveloffset=+2]
-
-include::artifact_management.adoc[leveloffset=+2]
 
 [[part:jvm_projects]]
 == Java & Other JVM Projects

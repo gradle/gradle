@@ -345,7 +345,7 @@ include::sample[dir="buildCache/configure-by-init-script/kotlin",files="init.gra
 [[sec:build_cache_composite]]
 === Build cache and composite builds
 
-Gradle's <<composite_builds.adoc#composite-builds,composite build feature>> allows including other complete Gradle builds into another.
+Gradle's <<composite_builds.adoc#composite_builds,composite build feature>> allows including other complete Gradle builds into another.
 Such included builds will inherit the build cache configuration from the top level build,
 regardless of whether the included builds define build cache configuration themselves or not.
 
