@@ -43,7 +43,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         }
 
         where:
-        [version, workers] << [TestedVersions.kotlin.versions, [true, false]].combinations()
+        [version, workers] << [
+            TestedVersions.kotlin.versions,
+            [true, false]
+        ].combinations()
     }
 
     @Unroll
@@ -98,7 +101,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         }
 
         where:
-        [version, workers] << [TestedVersions.kotlin.versions, [true, false]].combinations()
+        [version, workers] << [
+            TestedVersions.kotlin.versions,
+            [true, false]
+        ].combinations()
     }
 
     private BuildResult build(boolean workers, String... tasks) {

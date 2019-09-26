@@ -468,7 +468,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("A problem was found with the configuration of task ':myTask'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
         failure.assertHasCause("No value has been specified for property 'nested'.")
     }
 
