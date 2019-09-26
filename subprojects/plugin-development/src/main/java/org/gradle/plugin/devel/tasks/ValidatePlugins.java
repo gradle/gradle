@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -55,20 +54,11 @@ import java.util.stream.Collectors;
 @CacheableTask
 @Incubating
 public abstract class ValidatePlugins extends DefaultTask {
-    private final ConfigurableFileCollection classes;
-    private final ConfigurableFileCollection classpath;
-    private final RegularFileProperty outputFile;
-    private final Property<Boolean> enableStricterValidation;
-    private final Property<Boolean> ignoreFailures;
-    private final Property<Boolean> failOnWarning;
 
     public ValidatePlugins() {
-        this.classes = getObjects().fileCollection();
-        this.classpath = getObjects().fileCollection();
-        this.outputFile = getObjects().fileProperty();
-        this.enableStricterValidation = getObjects().property(Boolean.class).convention(false);
-        this.ignoreFailures = getObjects().property(Boolean.class).convention(false);
-        this.failOnWarning = getObjects().property(Boolean.class).convention(true);
+        getEnableStricterValidation().convention(false);
+        getIgnoreFailures().convention(false);
+        getFailOnWarning().convention(true);
     }
 
     @TaskAction
@@ -77,8 +67,8 @@ public abstract class ValidatePlugins extends DefaultTask {
             .classLoaderIsolation(spec -> spec.getClasspath().setFrom(getClasses(), getClasspath()))
             .submit(ValidateAction.class, params -> {
                 params.getClasses().setFrom(getClasses());
-                params.getOutputFile().value(getOutputFile());
-                params.getEnableStricterValidation().value(getEnableStricterValidation());
+                params.getOutputFile().set(getOutputFile());
+                params.getEnableStricterValidation().set(getEnableStricterValidation());
             });
         getWorkerExecutor().await();
 
@@ -87,8 +77,8 @@ public abstract class ValidatePlugins extends DefaultTask {
         if (problemMessages.isEmpty()) {
             getLogger().info("Plugin validation finished without warnings.");
         } else {
-            if (failOnWarning.get() || problemMessages.stream().anyMatch(line -> line.startsWith("Error:"))) {
-                if (ignoreFailures.get()) {
+            if (getFailOnWarning().get() || problemMessages.stream().anyMatch(line -> line.startsWith("Error:"))) {
+                if (getIgnoreFailures().get()) {
                     getLogger().warn("Plugin validation finished with errors. See {} for more information on how to annotate task properties.{}",
                         getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"),
                         toMessageList(problemMessages));
@@ -124,52 +114,37 @@ public abstract class ValidatePlugins extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     @SkipWhenEmpty
-    public ConfigurableFileCollection getClasses() {
-        return classes;
-    }
+    public abstract ConfigurableFileCollection getClasses();
 
     /**
      * The classpath used to load the classes under validation.
      */
     @Classpath
-    public ConfigurableFileCollection getClasspath() {
-        return classpath;
-    }
+    public abstract ConfigurableFileCollection getClasspath();
 
     /**
      * Specifies whether the build should break when plugin verifications fails.
      */
     @Input
-    public Property<Boolean> getIgnoreFailures() {
-        return ignoreFailures;
-    }
+    public abstract Property<Boolean> getIgnoreFailures();
 
     /**
      * Returns whether the build should break when the verifications performed by this task detects a warning.
      */
     @Input
-    public Property<Boolean> getFailOnWarning() {
-        return failOnWarning;
-    }
+    public abstract Property<Boolean> getFailOnWarning();
 
     /**
      * Enable the stricter validation for cacheable tasks for all tasks.
      */
     @Input
-    public Property<Boolean> getEnableStricterValidation() {
-        return enableStricterValidation;
-    }
+    public abstract Property<Boolean> getEnableStricterValidation();
 
     /**
      * Returns the output file to store the report in.
      */
     @OutputFile
-    public RegularFileProperty getOutputFile() {
-        return outputFile;
-    }
-
-    @Inject
-    abstract protected ObjectFactory getObjects();
+    public abstract RegularFileProperty getOutputFile();
 
     @Inject
     abstract protected DocumentationRegistry getDocumentationRegistry();
