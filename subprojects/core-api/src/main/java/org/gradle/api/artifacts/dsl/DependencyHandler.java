@@ -86,7 +86,7 @@ import java.util.Map;
  * <li>Avoiding transitive dependencies for certain dependency.</li>
  * </ul>
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * apply plugin: 'java' //so that I can declare 'implementation' dependencies
  *
  * dependencies {
