@@ -210,9 +210,22 @@ data class CIBuildModel(
             "bucket1" to listOf("kotlinDslProviderPlugins", "buildCachePackaging", "native", "snapshots", "internalPerformanceTesting", "internalIntegTesting", "execution", "publish", "ear", "languageJvm"),
             "bucket2" to listOf("baseServices", "processServices", "messaging", "buildProfile", "modelGroovy"),
             "bucket3" to listOf("javascript", "fileCollections", "buildCache", "toolingNative", "buildCacheHttp"),
-            "bucket4" to listOf("antlr", "languageGroovy", "reporting", "diagnostics", "versionControl")
+            "bucket4" to listOf("antlr", "languageGroovy", "reporting", "diagnostics", "versionControl"),
+            "bucket5" to listOf("testingBase", "testingNative", "wrapper", "ideNative"),
+            "bucket7" to listOf("jacoco", "idePlay"),
+            "bucket8" to listOf("signing", "ivy"),
+            "bucket9" to listOf("kotlinDsl", "kotlinDslToolingBuilders"),
+            "bucket10" to listOf("modelCore", "ide"),
+            "bucket11" to listOf("codeQuality", "persistentCache")
         )
-        val largeSubprojects = mapOf("integTest" to 3, "core" to 4, "dependencyManagement" to 3, "toolingApi" to 2)
+        val largeSubprojects = mapOf(
+            "integTest" to 3,
+            "core" to 4,
+            "dependencyManagement" to 3,
+            "toolingApi" to 2,
+            "samples" to 2,
+            "launcher" to 2,
+            "languageJava" to 2)
 
         val nonTrivialBuckets = listOf<BuildTypeBucket>(
             SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
