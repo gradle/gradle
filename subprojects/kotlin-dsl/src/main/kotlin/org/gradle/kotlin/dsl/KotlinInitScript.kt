@@ -32,8 +32,8 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
-import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.delegates.GradleDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
@@ -51,7 +51,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Base class for Kotlin init scripts.
+ * Script template for Kotlin init scripts.
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
@@ -65,25 +65,30 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 abstract class KotlinInitScript(
     host: KotlinScriptHost<Gradle>
-) : CompiledKotlinInitScript(host), Gradle /* TODO:kotlin-dsl configure as implicit receiver */
+) : InitScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
+
+    /**
+     * The [ScriptHandler] for this script.
+     */
+    open val initscript: ScriptHandler
+        get() = internalError()
+}
 
 
 /**
  * Standard implementation of the API exposed to all types of [Gradle] scripts,
  * precompiled and otherwise.
  */
+@Deprecated("Kept for backward compatibility")
 abstract class InitScriptApi(
-    internal val delegate: Gradle
-) {
+    override val delegate: Gradle
+) : GradleDelegate() {
 
-    internal
+    protected
     abstract val fileOperations: FileOperations
 
-    internal
+    protected
     abstract val processOperations: ProcessOperations
-
-    open val initscript: ScriptHandler
-        get() = internalError()
 
     /**
      * Configures the classpath of the init script.
@@ -104,7 +109,7 @@ abstract class InitScriptApi(
      * and `System.err` is redirected at the `ERROR` log level.
      */
     @Suppress("unused")
-    val logging by unsafeLazy { delegate.serviceOf<LoggingManager>() }
+    val logging by unsafeLazy { gradle.serviceOf<LoggingManager>() }
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.

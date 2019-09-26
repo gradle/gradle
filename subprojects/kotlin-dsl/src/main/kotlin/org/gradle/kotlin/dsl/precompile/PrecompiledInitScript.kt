@@ -30,7 +30,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
  * @see PrecompiledProjectScript
  */
 @Deprecated("Kept for backward compatibility")
-open class PrecompiledInitScript(target: Gradle) : InitScriptApi(target), Gradle by target {
+open class PrecompiledInitScript(target: Gradle) : InitScriptApi(target) {
 
     override val fileOperations by lazy { fileOperationsFor(delegate, null) }
 

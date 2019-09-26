@@ -179,28 +179,6 @@
             "changes": []
         },
         {
-            "type": "org.gradle.kotlin.dsl.InitScriptApi",
-            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getFileOperations()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.InitScriptApi",
-            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getInitscript()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.kotlin.dsl.InitScriptApi",
-            "member": "Method org.gradle.kotlin.dsl.InitScriptApi.getProcessOperations()",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
             "type": "org.gradle.kotlin.dsl.KotlinScriptTemplate",
             "member": "Class org.gradle.kotlin.dsl.KotlinScriptTemplate",
             "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
