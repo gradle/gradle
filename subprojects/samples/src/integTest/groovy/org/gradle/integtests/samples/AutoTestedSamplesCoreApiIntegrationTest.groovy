@@ -20,10 +20,6 @@ import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
 import org.junit.Test
 
 class AutoTestedSamplesCoreApiIntegrationTest extends AbstractAutoTestedSamplesTest {
-    @Override
-    void beforeSample() {
-        executer.noDeprecationChecks()
-    }
 
     @Test
     void runSamples() {
