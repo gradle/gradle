@@ -16,6 +16,7 @@
 
 package org.gradle.java.fixtures
 
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
@@ -25,6 +26,7 @@ import spock.lang.Unroll
 
 abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrationSpec {
     abstract String getPluginName()
+
     abstract List getSkippedJars(boolean compileClasspathPackaging)
 
     def setup() {
@@ -56,7 +58,10 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         toggleCompileClasspathPackaging(compileClasspathPackaging)
         buildFile << """
             apply plugin: 'java-test-fixtures'
+
+            version = '1.0'
         """
+        dumpCompileAndRuntimeTestClasspath()
         addPersonDomainClass()
         addPersonTestFixture()
         addPersonTestUsingTestFixtures()
@@ -74,6 +79,14 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
             *producedJars
         )
         notExecuted(*skippedJars)
+        outputContains """Test compile classpath
+---
+${compileClasspathPackaging ? 'libs/root-1.0-test-fixtures.jar' : 'classes/java/testFixtures'}
+${pluginName == 'java' || compileClasspathPackaging ? 'libs/root-1.0.jar' : 'classes/java/main'}
+junit-4.12.jar
+hamcrest-core-1.3.jar
+---
+"""
 
         when:
         succeeds "test"
@@ -81,7 +94,16 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         then:
         def expectedJars = [':jar', ':testFixturesJar'] - producedJars
         executedAndNotSkipped(*expectedJars)
-
+        outputContains """Test runtime classpath
+---
+classes/java/test
+resources/test
+libs/root-1.0-test-fixtures.jar
+libs/root-1.0.jar
+junit-4.12.jar
+hamcrest-core-1.3.jar
+---
+"""
         where:
         compileClasspathPackaging | _
         false                     | _
@@ -383,9 +405,9 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                     firstLevelConfigurations = ['testFixturesApiElements']
                     module('com.acme:external-module:1.3') {
                         variant("api", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                        artifact(name: 'external-module', version:'1.3')
+                        artifact(name: 'external-module', version: '1.3')
                     }
-                    artifact(name: 'external-module', version:'1.3', classifier:'test-fixtures')
+                    artifact(name: 'external-module', version: '1.3', classifier: 'test-fixtures')
                 }
             }
         }
@@ -409,12 +431,12 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
                     firstLevelConfigurations = ['testFixturesRuntimeElements']
                     module('com.acme:external-module:1.3') {
                         variant("runtime", ['org.gradle.status': 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
-                        artifact(name: 'external-module', version:'1.3')
+                        artifact(name: 'external-module', version: '1.3')
                     }
                     module("org.apache.commons:commons-lang3:3.9") {
                         configuration = 'runtime' // external POM
                     }
-                    artifact(name: 'external-module', version:'1.3', classifier:'test-fixtures')
+                    artifact(name: 'external-module', version: '1.3', classifier: 'test-fixtures')
                 }
             }
         }
@@ -462,7 +484,7 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         """
     }
 
-    protected TestFile addPersonTestFixture(String subproject = "", String lang="java") {
+    protected TestFile addPersonTestFixture(String subproject = "", String lang = "java") {
         file("${subproject ? "${subproject}/" : ""}src/testFixtures/$lang/org/PersonFixture.$lang") << """
             package org;
             
@@ -487,4 +509,33 @@ abstract class AbstractJavaTestFixturesIntegrationTest extends AbstractIntegrati
         """
     }
 
+    protected void dumpCompileAndRuntimeTestClasspath() {
+        buildFile << """
+            void printClasspathFile(File it) {
+                if (it.absolutePath.contains('intTestHomeDir')) {
+                    println it.name
+                } else {
+                    println it.absolutePath.substring(it.absolutePath.lastIndexOf('build') + 6)
+                }
+            }
+
+            compileTestJava {
+               doFirst {
+                   println "Test compile classpath"
+                   println "---"
+                   classpath.each { printClasspathFile(it) }
+                   println "---"
+               }
+            }
+            
+            test {
+               doFirst {
+                  println "Test runtime classpath"
+                  println "---"
+                  classpath.each { printClasspathFile(it) }
+                  println "---"
+               }
+            }
+"""
+    }
 }
