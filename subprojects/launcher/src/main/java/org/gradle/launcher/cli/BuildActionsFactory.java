@@ -92,7 +92,13 @@ class BuildActionsFactory implements CommandLineAction {
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
-                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory);
+                UUID.randomUUID().toString(),
+                daemonParameters.getBaseDir(),
+                daemonParameters.getIdleTimeout(),
+                daemonParameters.getPeriodicCheckInterval(),
+                daemonParameters.getMaxDuplicatedIdleCount(),
+                fileCollectionFactory
+            );
             return new ForegroundDaemonAction(loggingServices, conf);
         }
         if (parameters.getDaemonParameters().isEnabled()) {
@@ -135,11 +141,11 @@ class BuildActionsFactory implements CommandLineAction {
 
     private Runnable runBuildInProcess(StartParameterInternal startParameter, DaemonParameters daemonParameters) {
         ServiceRegistry globalServices = ServiceRegistryBuilder.builder()
-                .displayName("Global services")
-                .parent(loggingServices)
-                .parent(NativeServices.getInstance())
-                .provider(new GlobalScopeServices(startParameter.isContinuous()))
-                .build();
+            .displayName("Global services")
+            .parent(loggingServices)
+            .parent(NativeServices.getInstance())
+            .provider(new GlobalScopeServices(startParameter.isContinuous()))
+            .build();
 
         // Force the user home services to be stopped first, the dependencies between the user home services and the global services are not preserved currently
         return runBuildAndCloseServices(startParameter, daemonParameters, globalServices.get(BuildExecuter.class), globalServices, globalServices.get(GradleUserHomeScopeServiceRegistry.class));
@@ -182,13 +188,13 @@ class BuildActionsFactory implements CommandLineAction {
 
     private BuildActionParameters createBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
         return new DefaultBuildActionParameters(
-                daemonParameters.getEffectiveSystemProperties(),
-                daemonParameters.getEnvironmentVariables(),
-                SystemProperties.getInstance().getCurrentDir(),
-                startParameter.getLogLevel(),
-                daemonParameters.isEnabled(),
-                startParameter.isContinuous(),
-                ClassPath.EMPTY);
+            daemonParameters.getEffectiveSystemProperties(),
+            daemonParameters.getEnvironmentVariables(),
+            SystemProperties.getInstance().getCurrentDir(),
+            startParameter.getLogLevel(),
+            daemonParameters.isEnabled(),
+            startParameter.isContinuous(),
+            ClassPath.EMPTY);
     }
 
     private long getBuildStartTime() {

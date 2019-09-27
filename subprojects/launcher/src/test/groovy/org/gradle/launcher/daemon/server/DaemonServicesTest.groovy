@@ -35,10 +35,10 @@ class DaemonServicesTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
 
-    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, false, DaemonParameters.Priority.NORMAL, asList()),
+    final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, 1, false, DaemonParameters.Priority.NORMAL, asList()),
         LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
-    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, true, DaemonParameters.Priority.NORMAL, asList()),
+    final DaemonServices singleRunServices = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 200, 50, 1, true, DaemonParameters.Priority.NORMAL, asList()),
         LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))
 
 

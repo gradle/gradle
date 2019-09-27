@@ -23,34 +23,52 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import java.util.Collection;
-import java.util.Date;
 
-public class NotMostRecentlyUsedDaemonExpirationStrategy implements DaemonExpirationStrategy {
+public class NotRecentlyUsedDaemonsExpirationStrategy implements DaemonExpirationStrategy {
     private final Daemon daemon;
+    private final int maxDaemonsCount;
+
     public static final String EXPIRATION_REASON = "not recently used";
 
-    NotMostRecentlyUsedDaemonExpirationStrategy(Daemon daemon) {
+    NotRecentlyUsedDaemonsExpirationStrategy(Daemon daemon, int daemonsCount) {
         this.daemon = daemon;
+        this.maxDaemonsCount = daemonsCount;
     }
 
     @Override
     public DaemonExpirationResult checkExpiration() {
-        if (!isMostRecentlyUsed(daemon.getDaemonRegistry().getIdle(), daemon.getDaemonContext())) {
+        if (!isRecentlyUsed(daemon.getDaemonRegistry().getIdle(), daemon.getDaemonContext())) {
             return new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON);
         }
         return DaemonExpirationResult.NOT_TRIGGERED;
     }
 
-    private boolean isMostRecentlyUsed(Collection<DaemonInfo> daemonInfos, DaemonContext thisDaemonContext) {
-        String mruUid = null;
-        Date mruTimestamp = new Date(Long.MIN_VALUE);
+    private boolean isRecentlyUsed(Collection<DaemonInfo> daemonInfos, DaemonContext thisDaemonContext) {
+        DaemonInfo thisDaemonInfo = null;
         for (DaemonInfo daemonInfo : daemonInfos) {
-            Date daemonAccessTime = daemonInfo.getLastBusy();
-            if (daemonAccessTime.after(mruTimestamp)) {
-                mruUid = daemonInfo.getUid();
-                mruTimestamp = daemonAccessTime;
+            if (thisDaemonContext.getUid().equals(daemonInfo.getUid())) {
+                thisDaemonInfo = daemonInfo;
+                break;
             }
         }
-        return thisDaemonContext.getUid().equals(mruUid);
+
+        if (thisDaemonInfo == null) {
+            return true;
+        }
+
+        int recentlyUsedDaemonsCount = 0;
+
+        for (DaemonInfo daemonInfo : daemonInfos) {
+            if (daemonInfo.getLastBusy().after(thisDaemonInfo.getLastBusy())
+                || daemonInfo.getLastBusy().equals(thisDaemonInfo.getLastBusy())) {
+                recentlyUsedDaemonsCount++;
+
+                if (recentlyUsedDaemonsCount > maxDaemonsCount) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 }

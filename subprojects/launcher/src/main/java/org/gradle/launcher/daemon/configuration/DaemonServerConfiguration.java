@@ -27,6 +27,8 @@ public interface DaemonServerConfiguration {
 
     int getPeriodicCheckIntervalMs();
 
+    int getMaxDuplicateIdleCount();
+
     String getUid();
 
     List<String> getJvmOptions();

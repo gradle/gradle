@@ -34,6 +34,7 @@ import java.util.Map;
 public class DaemonParameters {
     static final int DEFAULT_IDLE_TIMEOUT = 3 * 60 * 60 * 1000;
     public static final int DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS = 10 * 1000;
+    public static final int DEFAULT_MAX_DUPLICATED_IDLE_COUNT = 1;
 
     public static final List<String> DEFAULT_JVM_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxPermSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
     public static final List<String> DEFAULT_JVM_8_ARGS = ImmutableList.of("-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=256m", "-XX:+HeapDumpOnOutOfMemoryError");
@@ -45,6 +46,7 @@ public class DaemonParameters {
     private int idleTimeout = DEFAULT_IDLE_TIMEOUT;
 
     private int periodicCheckInterval = DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS;
+    private int maxDuplicatedIdleCount = DEFAULT_MAX_DUPLICATED_IDLE_COUNT;
     private final DaemonJvmOptions jvmOptions;
     private Map<String, String> envVariables;
     private boolean enabled = true;
@@ -103,6 +105,14 @@ public class DaemonParameters {
 
     public void setPeriodicCheckInterval(int periodicCheckInterval) {
         this.periodicCheckInterval = periodicCheckInterval;
+    }
+
+    public void setMaxDuplicatedIdleCount(int maxDuplicatedIdleCount) {
+        this.maxDuplicatedIdleCount = maxDuplicatedIdleCount;
+    }
+
+    public int getMaxDuplicatedIdleCount() {
+        return maxDuplicatedIdleCount;
     }
 
     public List<String> getEffectiveJvmArgs() {

@@ -25,15 +25,17 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
     private final File daemonBaseDir;
     private final int idleTimeoutMs;
     private final int periodicCheckIntervalMs;
+    private final int maxDuplicateIdleCount;
     private final boolean singleUse;
     private final DaemonParameters.Priority priority;
     private final List<String> jvmOptions;
 
-    public DefaultDaemonServerConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, boolean singleUse, DaemonParameters.Priority priority, List<String> jvmOptions) {
+    public DefaultDaemonServerConfiguration(String daemonUid, File daemonBaseDir, int idleTimeoutMs, int periodicCheckIntervalMs, int maxDuplicateIdleCount, boolean singleUse, DaemonParameters.Priority priority, List<String> jvmOptions) {
         this.daemonUid = daemonUid;
         this.daemonBaseDir = daemonBaseDir;
         this.idleTimeoutMs = idleTimeoutMs;
         this.periodicCheckIntervalMs = periodicCheckIntervalMs;
+        this.maxDuplicateIdleCount = maxDuplicateIdleCount;
         this.singleUse = singleUse;
         this.priority = priority;
         this.jvmOptions = jvmOptions;
@@ -52,6 +54,11 @@ public class DefaultDaemonServerConfiguration implements DaemonServerConfigurati
     @Override
     public int getPeriodicCheckIntervalMs() {
         return periodicCheckIntervalMs;
+    }
+
+    @Override
+    public int getMaxDuplicateIdleCount() {
+        return maxDuplicateIdleCount;
     }
 
     @Override

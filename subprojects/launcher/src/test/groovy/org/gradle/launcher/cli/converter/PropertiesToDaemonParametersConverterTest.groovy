@@ -64,13 +64,14 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
     def "configures from gradle properties"() {
         when:
         converter.convert([
-            (DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY)     : '-Xmx256m',
-            (DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY)    : Jvm.current().javaHome.absolutePath,
-            (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY)      : "false",
-            (DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY)     : new File("baseDir").absolutePath,
-            (DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY) : "115",
-            (DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY) : "42",
-            (DaemonBuildOptions.DebugOption.GRADLE_PROPERTY)       : "true",
+            (DaemonBuildOptions.JvmArgsOption.GRADLE_PROPERTY)                : '-Xmx256m',
+            (DaemonBuildOptions.JavaHomeOption.GRADLE_PROPERTY)               : Jvm.current().javaHome.absolutePath,
+            (DaemonBuildOptions.DaemonOption.GRADLE_PROPERTY)                 : "false",
+            (DaemonBuildOptions.BaseDirOption.GRADLE_PROPERTY)                : new File("baseDir").absolutePath,
+            (DaemonBuildOptions.IdleTimeoutOption.GRADLE_PROPERTY)            : "115",
+            (DaemonBuildOptions.MaxDuplicatedIdleCountOption.GRADLE_PROPERTY) : "7",
+            (DaemonBuildOptions.HealthCheckOption.GRADLE_PROPERTY)            : "42",
+            (DaemonBuildOptions.DebugOption.GRADLE_PROPERTY)                  : "true",
         ], params)
 
         then:
@@ -81,6 +82,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115
         params.periodicCheckInterval == 42
+        params.maxDuplicatedIdleCount == 7
     }
 
     def "shows nice message for dummy java home"() {
@@ -111,6 +113,16 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         then:
         def ex = thrown(IllegalArgumentException)
         ex.message.contains 'org.gradle.daemon.idletimeout'
+        ex.message.contains 'asdf'
+    }
+
+    def "shows nice message for invalid max duplicated idle daemons count"() {
+        when:
+        converter.convert((DaemonBuildOptions.MaxDuplicatedIdleCountOption.GRADLE_PROPERTY): 'asdf', params)
+
+        then:
+        def ex = thrown(IllegalArgumentException)
+        ex.message.contains 'org.gradle.daemon.maxduplicatedidlecount'
         ex.message.contains 'asdf'
     }
 

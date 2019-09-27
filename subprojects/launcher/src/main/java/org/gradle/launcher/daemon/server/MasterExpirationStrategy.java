@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MasterExpirationStrategy implements DaemonExpirationStrategy {
     private static final int DUPLICATE_DAEMON_GRACE_PERIOD_MS = 10000;
+    private static final int LOW_MEMORY_EXPIRATION_MOST_RECENT_DAEMONS_COUNT = 1;
 
     private final DaemonExpirationStrategy strategy;
 
@@ -43,7 +44,7 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
         strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
             new CompatibleDaemonExpirationStrategy(daemon),
             new DaemonIdleTimeoutExpirationStrategy(daemon, DUPLICATE_DAEMON_GRACE_PERIOD_MS, TimeUnit.MILLISECONDS),
-            new NotMostRecentlyUsedDaemonExpirationStrategy(daemon)
+            new NotRecentlyUsedDaemonsExpirationStrategy(daemon, params.getMaxDuplicateIdleCount())
         )));
 
         // Expire after normal idle timeout
@@ -63,7 +64,7 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
         listenerManager.addListener(lowMemoryDaemonExpirationStrategy);
         strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
             new DaemonIdleTimeoutExpirationStrategy(daemon, DUPLICATE_DAEMON_GRACE_PERIOD_MS, TimeUnit.MILLISECONDS),
-            new NotMostRecentlyUsedDaemonExpirationStrategy(daemon),
+            new NotRecentlyUsedDaemonsExpirationStrategy(daemon, LOW_MEMORY_EXPIRATION_MOST_RECENT_DAEMONS_COUNT),
             lowMemoryDaemonExpirationStrategy
         )));
     }

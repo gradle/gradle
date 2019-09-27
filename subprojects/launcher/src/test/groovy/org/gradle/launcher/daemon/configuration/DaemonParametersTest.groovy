@@ -38,6 +38,7 @@ class DaemonParametersTest extends Specification {
         parameters.enabled
         parameters.idleTimeout == DaemonParameters.DEFAULT_IDLE_TIMEOUT
         parameters.periodicCheckInterval == DaemonParameters.DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS
+        parameters.maxDuplicatedIdleCount == DaemonParameters.DEFAULT_MAX_DUPLICATED_IDLE_COUNT
         parameters.baseDir == new File(new BuildLayoutParameters().getGradleUserHomeDir(), "daemon")
         parameters.systemProperties.isEmpty()
         parameters.effectiveJvmArgs.size() == 1  + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props

@@ -41,6 +41,7 @@ public class DaemonBuildOptions {
     static {
         List<BuildOption<DaemonParameters>> options = new ArrayList<BuildOption<DaemonParameters>>();
         options.add(new IdleTimeoutOption());
+        options.add(new MaxDuplicatedIdleCountOption());
         options.add(new HealthCheckOption());
         options.add(new BaseDirOption());
         options.add(new JvmArgsOption());
@@ -73,6 +74,23 @@ public class DaemonBuildOptions {
         public void applyTo(String value, DaemonParameters settings, Origin origin) {
             try {
                 settings.setIdleTimeout(Integer.valueOf(value));
+            } catch (NumberFormatException e) {
+                origin.handleInvalidValue(value, "the value should be an int");
+            }
+        }
+    }
+
+    public static class MaxDuplicatedIdleCountOption extends StringBuildOption<DaemonParameters> {
+        public static final String GRADLE_PROPERTY = "org.gradle.daemon.maxduplicatedidlecount";
+
+        public MaxDuplicatedIdleCountOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
+            try {
+                settings.setMaxDuplicatedIdleCount(Integer.valueOf(value));
             } catch (NumberFormatException e) {
                 origin.handleInvalidValue(value, "the value should be an int");
             }

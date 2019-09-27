@@ -78,6 +78,7 @@ public class DaemonMain extends EntryPoint {
         File daemonBaseDir;
         int idleTimeoutMs;
         int periodicCheckIntervalMs;
+        int maxDuplicatedIdleCount;
         boolean singleUse;
         String daemonUid;
         DaemonParameters.Priority priority;
@@ -89,6 +90,7 @@ public class DaemonMain extends EntryPoint {
             daemonBaseDir = new File(decoder.readString());
             idleTimeoutMs = decoder.readSmallInt();
             periodicCheckIntervalMs = decoder.readSmallInt();
+            maxDuplicatedIdleCount = decoder.readSmallInt();
             singleUse = decoder.readBoolean();
             daemonUid = decoder.readString();
             priority = DaemonParameters.Priority.values()[decoder.readSmallInt()];
@@ -107,7 +109,7 @@ public class DaemonMain extends EntryPoint {
         }
 
         NativeServices.initialize(gradleHomeDir);
-        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupOpts);
+        DaemonServerConfiguration parameters = new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, maxDuplicatedIdleCount, singleUse, priority, startupOpts);
         LoggingServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
 
