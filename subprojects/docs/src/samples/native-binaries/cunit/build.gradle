@@ -10,7 +10,11 @@ model {
     }
     platforms {
         x86 {
-            architecture "x86"
+            if (operatingSystem.macOsX) {
+                architecture "x64"
+            } else {
+                architecture "x86"
+            }
         }
     }
 // end::terse-example[]
