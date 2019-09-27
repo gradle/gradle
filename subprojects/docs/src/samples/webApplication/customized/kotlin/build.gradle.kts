@@ -1,9 +1,6 @@
 // tag::use-plugin[]
 plugins {
     war
-    // end::use-plugin[]
-    id("org.gretty") version "2.1.0"
-    // tag::use-plugin[]
 }
 // end::use-plugin[]
 
@@ -41,6 +38,3 @@ tasks.war {
     webXml = file("src/someWeb.xml") // copies a file to WEB-INF/web.xml
 }
 // end::customization[]
-gretty {
-    httpPort = 8080
-}
