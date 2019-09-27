@@ -37,7 +37,7 @@ public class StaticLoggerBinder implements LoggerFactoryBinder {
      * Declare the version of the SLF4J API this implementation is compiled against.
      * The value of this field is usually modified with each release.
      */
-    public static final String REQUESTED_API_VERSION = "1.7.7";
+    public static final String REQUESTED_API_VERSION = "1.7.28";
 
     @Override
     public ILoggerFactory getLoggerFactory() {
