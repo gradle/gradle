@@ -169,6 +169,7 @@ open class PrecompiledProjectScript(
 }
 
 
+internal
 object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfiguration({
     baseClass(PrecompiledInitScript::class)
     implicitReceivers(Gradle::class)
@@ -176,6 +177,7 @@ object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfigur
 })
 
 
+internal
 object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
     baseClass(PrecompiledSettingsScript::class)
     implicitReceivers(Settings::class)
@@ -183,6 +185,7 @@ object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConf
 })
 
 
+internal
 object PrecompiledProjectScriptCompilationConfiguration : ScriptCompilationConfiguration({
     baseClass(PrecompiledProjectScript::class)
     implicitReceivers(Project::class)
