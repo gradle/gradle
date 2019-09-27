@@ -1,6 +1,6 @@
 // tag::apply-java-plugin[]
 plugins {
-    java
+    `java-library`
 }
 
 // tag::java-extension[]
