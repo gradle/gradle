@@ -98,3 +98,26 @@ If the selected version does not match your expectation, Gradle offers a series 
 
 Sometimes a selection error will happen at the <<variant_model.adoc#,variant selection level>>.
 Have a look at the <<variant_model.adoc#sec:variant-select-errors,dedicated section>> to understand these errors and how to resolve them.
+
+[[sub:configuration_resolution_constraints]]
+== Constraints on configuration resolution
+
+Configurations need to be resolved safely when crossing project boundaries because resolving configurations can have side effects on Gradle's project model.
+Gradle can usually manage this safe access, but the configuration needs to be accessed in a way that enables Gradle to do so.
+There are a number of ways a configuration might be resolved unsafely and Gradle will produce a deprecation warning for each unsafe access.
+
+For example:
+
+* A task from one project directly resolves a configuration in another project.
+* A task specifies a configuration from another project as an input file collection.
+* A build script for a project resolves a configuration in another project during evaluation.
+* A configuration is resolved in a user-managed thread (i.e., a thread not managed by Gradle).
+
+If your build has an unsafe access deprecation warning, it needs to be fixed.
+It's a symptom of these bad practices and cause strange and indeterminate errors.
+
+More importantly, resolving a configuration from a user-managed thread is not supported.
+To ensure that the configuration is resolved safely, it must be resolved in a Gradle-managed thread.
+Afterwards, the resolution result can be used in user-managed threads.
+
+If you're looking at a way to depend on the output of a task of another project, please refer to <<cross_project_publications.adoc#cross_project_publications, cross-project boundaries docs>>.
