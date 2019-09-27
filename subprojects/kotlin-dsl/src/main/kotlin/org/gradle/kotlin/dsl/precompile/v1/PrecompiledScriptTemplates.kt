@@ -128,7 +128,15 @@ open class PrecompiledSettingsScript(
 @GradleDsl
 open class PrecompiledProjectScript(
     private val target: Project
-) {
+)  : KotlinScriptAdapter(KotlinScriptAdapterHost(target)) {
+
+    private
+    class KotlinScriptAdapterHost(val project: Project) : Host {
+        override fun getLogger(): Logger = project.logger
+        override fun getLogging(): LoggingManager = project.logging
+        override fun getFileOperations(): FileOperations = project.serviceOf()
+        override fun getProcessOperations(): ProcessOperations = project.serviceOf()
+    }
 
     /**
      * Configures the build script classpath for this project.
