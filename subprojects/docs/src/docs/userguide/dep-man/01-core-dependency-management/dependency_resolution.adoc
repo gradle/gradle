@@ -230,10 +230,10 @@ Obsolete artifacts are then deleted to ensure the cache does not grow indefinite
 [[sec:programmatic_api]]
 == Accessing the resolution result programmatically
 
-While most users only need access to a "flat list" of files, there are cases where this can be interesting to reason on a _graph_ and get more information about the resolution result:
+While most users only need access to a "flat list" of files, there are cases where it can be interesting to reason on a _graph_ and get more information about the resolution result:
 
 - for tooling integration, where a model of the dependency graph is required
-- for tasks generating a graph (image, `.dot` file, ...) from a dependency tree
+- for tasks generating a visual representation (image, `.dot` file, ...) of a dependency graph
 - for tasks providing diagnostics (similar to the `dependencyInsight` task)
 - for tasks which need to perform dependency resolution at execution time (e.g, download files on demand)
 
