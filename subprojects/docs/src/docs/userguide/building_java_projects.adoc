@@ -98,7 +98,7 @@ You'll learn more about source sets and the features they provide in:
 
 The vast majority of Java projects rely on libraries, so managing a project's dependencies is an important part of building a Java project.
 Dependency management is a big topic, so we will focus on the basics for Java projects here.
-If you'd like to dive into the detail, check out the <<core_dependency_management.adoc#sec:what-is-dependency-management,introduction to dependency management>>.
+If you'd like to dive into the detail, check out the <<core_dependency_management.adoc#,introduction to dependency management>>.
 
 Specifying the dependencies for your Java project requires just three pieces of information:
 
