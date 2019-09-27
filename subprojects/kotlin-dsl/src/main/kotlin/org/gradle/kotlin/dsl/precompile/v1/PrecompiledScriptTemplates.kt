@@ -128,7 +128,7 @@ open class PrecompiledSettingsScript(
 @GradleDsl
 open class PrecompiledProjectScript(
     private val target: Project
-)  : KotlinScriptAdapter(KotlinScriptAdapterHost(target)) {
+) : KotlinScriptAdapter(KotlinScriptAdapterHost(target)) {
 
     private
     class KotlinScriptAdapterHost(val project: Project) : Host {
