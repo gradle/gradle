@@ -26,7 +26,7 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
-import org.gradle.kotlin.dsl.support.KotlinScriptAdapter
+import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -61,11 +61,11 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @GradleDsl
 open class PrecompiledInitScript(
     target: Gradle
-) : KotlinScriptAdapter(KotlinScriptAdapterHost(target)) {
+) : DefaultKotlinScript(InitScriptHost(target)) {
 
     private
-    class KotlinScriptAdapterHost(val gradle: Gradle) : Host {
-        override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
+    class InitScriptHost(val gradle: Gradle) : Host {
+        override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
         override fun getLogging(): LoggingManager = gradle.serviceOf()
         override fun getFileOperations(): FileOperations = fileOperationsFor(gradle, null)
         override fun getProcessOperations(): ProcessOperations = gradle.serviceOf()
@@ -87,10 +87,10 @@ open class PrecompiledInitScript(
 @GradleDsl
 open class PrecompiledSettingsScript(
     target: Settings
-) : KotlinScriptAdapter(KotlinScriptAdapterHost(target)) {
+) : DefaultKotlinScript(SettingsScriptHost(target)) {
 
     private
-    class KotlinScriptAdapterHost(val settings: Settings) : Host {
+    class SettingsScriptHost(val settings: Settings) : Host {
         override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
         override fun getLogging(): LoggingManager = settings.serviceOf()
         override fun getFileOperations(): FileOperations = fileOperationsFor(settings)
@@ -128,10 +128,10 @@ open class PrecompiledSettingsScript(
 @GradleDsl
 open class PrecompiledProjectScript(
     private val target: Project
-) : KotlinScriptAdapter(KotlinScriptAdapterHost(target)) {
+) : DefaultKotlinScript(ProjectScriptHost(target)) {
 
     private
-    class KotlinScriptAdapterHost(val project: Project) : Host {
+    class ProjectScriptHost(val project: Project) : Host {
         override fun getLogger(): Logger = project.logger
         override fun getLogging(): LoggingManager = project.logging
         override fun getFileOperations(): FileOperations = project.serviceOf()
@@ -159,7 +159,8 @@ open class PrecompiledProjectScript(
             PluginDependenciesSpec { pluginId ->
                 target.pluginManager.apply(pluginId)
                 NullPluginDependencySpec
-            })
+            }
+        )
     }
 
     object NullPluginDependencySpec : PluginDependencySpec {
@@ -173,7 +174,7 @@ internal
 object PrecompiledInitScriptCompilationConfiguration : ScriptCompilationConfiguration({
     baseClass(PrecompiledInitScript::class)
     implicitReceivers(Gradle::class)
-    setUpDefaultImports()
+    defaultImportsForPrecompiledScript()
 })
 
 
@@ -181,7 +182,7 @@ internal
 object PrecompiledSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
     baseClass(PrecompiledSettingsScript::class)
     implicitReceivers(Settings::class)
-    setUpDefaultImports()
+    defaultImportsForPrecompiledScript()
 })
 
 
@@ -189,12 +190,12 @@ internal
 object PrecompiledProjectScriptCompilationConfiguration : ScriptCompilationConfiguration({
     baseClass(PrecompiledProjectScript::class)
     implicitReceivers(Project::class)
-    setUpDefaultImports()
+    defaultImportsForPrecompiledScript()
 })
 
 
 private
-fun ScriptCompilationConfiguration.Builder.setUpDefaultImports() {
+fun ScriptCompilationConfiguration.Builder.defaultImportsForPrecompiledScript() {
     refineConfiguration {
         beforeCompiling { context ->
             val environment = scriptResolverEnvironmentOf(context)

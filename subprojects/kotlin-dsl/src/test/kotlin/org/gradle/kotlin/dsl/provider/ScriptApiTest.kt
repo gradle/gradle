@@ -39,19 +39,19 @@ import org.junit.Test
 class ScriptApiTest {
 
     @Test
-    fun `build script template implements script api`() =
+    fun `IDE build script template implements script api`() =
         assertScriptApiOf<KotlinBuildScript>()
 
     @Test
-    fun `settings script template implements script api`() =
+    fun `IDE settings script template implements script api`() =
         assertScriptApiOf<KotlinSettingsScript>()
 
     @Test
-    fun `settings script template implements Settings#enableFeaturePreview`() =
+    fun `IDE settings script template implements Settings#enableFeaturePreview`() =
         assert(KotlinSettingsScript::class.implements(Settings::enableFeaturePreview))
 
     @Test
-    fun `init script template implements script api`() =
+    fun `IDE init script template implements script api`() =
         assertScriptApiOf<KotlinInitScript>()
 
     @Test

@@ -116,7 +116,7 @@ open class CompiledKotlinSettingsBuildscriptBlock(
 @ImplicitReceiver(Gradle::class)
 open class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
-) : KotlinScriptAdapter(KotlinScriptAdapterHost(host)), PluginAware by PluginAwareDelegate(host) {
+) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareDelegate(host) {
 
     /**
      * The [ScriptHandler] for this script.
@@ -125,7 +125,7 @@ open class CompiledKotlinInitScript(
         get() = host.scriptHandler
 
     private
-    class KotlinScriptAdapterHost(val host: KotlinScriptHost<Gradle>) : Host {
+    class InitScriptHost(val host: KotlinScriptHost<Gradle>) : Host {
         override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
         override fun getLogging(): LoggingManager = host.target.serviceOf()
         override fun getFileOperations(): FileOperations = host.fileOperations

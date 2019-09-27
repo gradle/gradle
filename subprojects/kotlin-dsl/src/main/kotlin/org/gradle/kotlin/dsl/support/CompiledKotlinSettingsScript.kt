@@ -30,7 +30,7 @@ import org.gradle.kotlin.dsl.support.delegates.PluginAwareDelegate
 @ImplicitReceiver(Settings::class)
 open class CompiledKotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
-) : KotlinScriptAdapter(KotlinScriptAdapterHost(host)), PluginAware by PluginAwareDelegate(host) {
+) : DefaultKotlinScript(SettingsScriptHost(host)), PluginAware by PluginAwareDelegate(host) {
 
     /**
      * The [ScriptHandler] for this script.
@@ -39,7 +39,7 @@ open class CompiledKotlinSettingsScript(
         get() = host.scriptHandler
 
     private
-    class KotlinScriptAdapterHost(val host: KotlinScriptHost<Settings>) : Host {
+    class SettingsScriptHost(val host: KotlinScriptHost<Settings>) : Host {
         override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
         override fun getLogging(): LoggingManager = host.target.serviceOf()
         override fun getFileOperations(): FileOperations = host.fileOperations
