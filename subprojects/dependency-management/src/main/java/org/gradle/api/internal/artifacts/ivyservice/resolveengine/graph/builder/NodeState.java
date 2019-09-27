@@ -171,7 +171,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public List<EdgeState> getIncomingEdges() {
-        return ImmutableList.copyOf(incomingEdges);
+        return incomingEdges;
     }
 
     @Override
