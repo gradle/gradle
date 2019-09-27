@@ -20,9 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ForcingDependencyMetadata;
@@ -74,7 +72,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                                          ImmutableAttributes attributes,
                                          Factory<List<ModuleDependencyMetadata>> configDependenciesFactory,
                                          DependencyFilter dependencyFilter,
-                                         List<Capability> capabilities,
+                                         CapabilitiesMetadata capabilities,
                                          boolean mavenArtifactDiscovery) {
         super(componentId, name, transitive, visible, artifacts, hierarchy, excludes, attributes, configDependenciesFactory, ImmutableCapabilities.of(capabilities), mavenArtifactDiscovery);
         this.componentMetadataRules = componentMetadataRules;
@@ -246,7 +244,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
     public class Builder {
         private String name = DefaultConfigurationMetadata.this.getName();
         private DependencyFilter dependencyFilter = DefaultConfigurationMetadata.this.dependencyFilter;
-        private List<Capability> capabilities;
+        private CapabilitiesMetadata capabilities;
         private ImmutableAttributes attributes;
         private ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
 
@@ -281,7 +279,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
             return this;
         }
 
-        Builder withCapabilities(List<Capability> capabilities) {
+        Builder withCapabilities(CapabilitiesMetadata capabilities) {
             this.capabilities = capabilities;
             return this;
         }
@@ -299,7 +297,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
                     attributes == null ? DefaultConfigurationMetadata.super.getAttributes() : attributes,
                     lazyConfigDependencies(),
                     dependencyFilter,
-                    capabilities == null ? Cast.uncheckedCast(DefaultConfigurationMetadata.this.getCapabilities().getCapabilities()) : capabilities,
+                    capabilities == null ? DefaultConfigurationMetadata.this.getCapabilities() : capabilities,
                     DefaultConfigurationMetadata.super.requiresMavenArtifactDiscovery()
             );
         }

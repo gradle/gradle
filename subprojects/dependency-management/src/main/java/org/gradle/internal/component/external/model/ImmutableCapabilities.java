@@ -26,6 +26,13 @@ public class ImmutableCapabilities implements CapabilitiesMetadata {
 
     private final ImmutableList<? extends Capability> capabilities;
 
+    public static ImmutableCapabilities of(CapabilitiesMetadata capabilities) {
+        if (capabilities instanceof ImmutableCapabilities) {
+            return (ImmutableCapabilities) capabilities;
+        }
+        return of(capabilities.getCapabilities());
+    }
+
     public static ImmutableCapabilities of(List<? extends Capability> capabilities) {
         if (capabilities.isEmpty()) {
             return EMPTY;
