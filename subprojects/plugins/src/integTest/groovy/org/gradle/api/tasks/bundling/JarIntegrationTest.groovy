@@ -676,6 +676,29 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains('No value has been specified for property \'archiveFile\'.')
     }
 
+    def "can use Provider values in manifest attribute"() {
+        given:
+        buildFile << """
+            task jar(type: Jar) {
+                manifest { 
+                    attributes(attr: provider { "value" })
+                    attributes(version: archiveVersion) 
+                }
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
+                archiveVersion = "1.0"
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.manifest.mainAttributes.getValue('attr') == 'value'
+        jar.manifest.mainAttributes.getValue('version') == '1.0'
+    }
+
     private static String customJarManifestTask() {
         return '''
             class CustomJarManifest extends org.gradle.jvm.tasks.Jar {
