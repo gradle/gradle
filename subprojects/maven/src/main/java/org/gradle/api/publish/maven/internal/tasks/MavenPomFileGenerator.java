@@ -349,7 +349,10 @@ public class MavenPomFileGenerator {
         if (type != null) {
             mavenDependency.setType(type);
         }
-        mavenDependency.setScope(scope);
+        // Only publish the import scope, others have too different meanings than what Gradle expresses
+        if ("import".equals(scope)) {
+            mavenDependency.setScope(scope);
+        }
 
         DependencyManagement dependencyManagement = model.getDependencyManagement();
         if (dependencyManagement == null) {
