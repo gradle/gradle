@@ -581,7 +581,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             } else {
                 // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
                 // lenient locking.
-                DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See " + documentationRegistry.getDocumentationFor("troubleshooting_dependency_resolution", "sub:configuration_resolution_constraints") + " for more details.");
+                DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies", "sub:configuration_resolution_constraints") + " for more details.");
                 owner.getModel().withLenientState(() -> resolveExclusively(requestedState));
             }
         } else {
