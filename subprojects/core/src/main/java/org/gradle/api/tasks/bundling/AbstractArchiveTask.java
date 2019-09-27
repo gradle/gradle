@@ -107,7 +107,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveFileName")
     public String getArchiveName() {
-        DeprecationLogger.nagUserOfReplacedProperty("archiveName", "archiveFileName");
+        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
+        // DeprecationLogger.nagUserOfReplacedProperty("archiveName", "archiveFileName");
         return archiveName.get();
     }
 
@@ -145,7 +146,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     @Deprecated
     @ReplacedBy("archiveFile")
     public File getArchivePath() {
-        DeprecationLogger.nagUserOfReplacedProperty("archivePath", "archiveFile");
+        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
+        // DeprecationLogger.nagUserOfReplacedProperty("archivePath", "archiveFile");
         return getArchiveFile().get().getAsFile();
     }
 
@@ -263,7 +265,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setAppendix(@Nullable String appendix) {
-        DeprecationLogger.nagUserOfReplacedProperty("appendix", "archiveAppendix");
+        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
+        // DeprecationLogger.nagUserOfReplacedProperty("appendix", "archiveAppendix");
         archiveAppendix.convention(appendix);
         archiveAppendix.set(appendix);
     }
@@ -370,7 +373,8 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      */
     @Deprecated
     public void setClassifier(@Nullable String classifier) {
-        DeprecationLogger.nagUserOfReplacedProperty("classifier", "archiveClassifier");
+        // This is used by the Kotlin plugin, we should upstream a fix to avoid this API first.
+        // DeprecationLogger.nagUserOfReplacedProperty("classifier", "archiveClassifier");
         archiveClassifier.convention(classifier);
         archiveClassifier.set(classifier);
     }
