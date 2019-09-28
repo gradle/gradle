@@ -250,11 +250,7 @@ data class SubprojectSplit(val subproject: GradleSubproject, val total: Int) : B
     private fun getName(number: Int) = if (number == 1) subproject.name else "${subproject.name}_$number"
 
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) =
-        if (testCoverage.testType.supportTestSplit) {
-            (1..total).map { createFunctionalTestsFor(model, stage, testCoverage, getName(it), "-PtestSplit=$it/$total") }
-        } else {
-            listOf(createFunctionalTestsFor(model, stage, testCoverage, getName(1), ""))
-        }
+        (1..total).map { createFunctionalTestsFor(model, stage, testCoverage, getName(it), "-PtestSplit=$it/$total") }
 
     private fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, name: String, parameter: String): FunctionalTest = FunctionalTest(model,
         testCoverage.asConfigurationId(model, name),
@@ -384,7 +380,7 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     }
 }
 
-enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180, val supportTestSplit: Boolean = true) {
+enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     quick(true, true, true, 60),
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
@@ -392,7 +388,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     // Cross version tests select a small set of versions to cover when run as part of this stage
     quickFeedbackCrossVersion(false, false, true),
     // Cross version tests select all versions to cover when run as part of this stage
-    allVersionsCrossVersion(false, true, true, 240, false),
+    allVersionsCrossVersion(false, true, true, 240),
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
     soak(false, false, false),

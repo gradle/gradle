@@ -154,12 +154,6 @@ class CIConfigIntegrationTests {
                 // e.g. core
                 val projectName = projectNameWithSplit.substringBefore('_')
 
-                if (it.name.contains("AllVersionsCrossVersion")) {
-                    // No split for AllVersionsCrossVersion
-                    assertTrue(projectName == projectNameWithSplit)
-                    return@forEach
-                }
-
                 val numberOfSplits = largeSubprojects.find { it.subproject.name == projectName }!!.total
                 val runnerStep = it.steps.items.find { it.name == "GRADLE_RUNNER" } as GradleBuildStep
                 if (projectNameWithSplit.contains("_")) {

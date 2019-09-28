@@ -83,7 +83,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register(name, IntegrationTest::class) {
-        configureTestSplitIfNecessary(sourceSet)
+        configureTestSplitIfNecessary(sourceSet, testType)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -95,9 +95,10 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
 
 
 private
-fun DistributionTest.configureTestSplitIfNecessary(sourceSet: SourceSet) {
+fun DistributionTest.configureTestSplitIfNecessary(sourceSet: SourceSet, testType: TestType) {
     val testSplit = project.stringPropertyOrEmpty("testSplit")
-    if (testSplit.isBlank()) {
+    if (testSplit.isBlank() || testType == TestType.CROSSVERSION) {
+        // Cross version tests are splitted by tasks
         return
     }
 
