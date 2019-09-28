@@ -17,7 +17,6 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -34,7 +33,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 public class WorkerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);

@@ -27,7 +27,6 @@ import org.gradle.workers.WorkParameters;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 
 public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFactory {
     private final IsolatableFactory isolatableFactory;
@@ -51,8 +50,9 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     }
 
     @Override
-    public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices) {
-        return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, isolatableFactory.isolate(params), classLoaderStructure, baseDir, usesInternalServices);
+    public <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, WorkerRequirement workerRequirement, boolean usesInternalServices) {
+        ClassLoaderStructure classLoaderStructure = workerRequirement instanceof IsolatedClassLoaderWorkerRequirement ? ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure() : null;
+        return new IsolatedParametersActionExecutionSpec<T>(implementationClass, displayName, isolatableFactory.isolate(params), classLoaderStructure, workerRequirement.getWorkerDirectory(), usesInternalServices);
     }
 
     @Override

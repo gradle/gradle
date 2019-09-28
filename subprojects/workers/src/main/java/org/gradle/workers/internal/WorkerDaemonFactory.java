@@ -35,7 +35,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
     }
 
     @Override
-    public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
+    public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         return new AbstractWorker(buildOperationExecutor) {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
@@ -48,6 +48,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
             }
 
             private WorkerDaemonClient reserveClient() {
+                DaemonForkOptions forkOptions = ((ForkedWorkerRequirement)workerRequirement).getForkOptions();
                 WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
                     client = clientsManager.reserveNewClient(WorkerDaemonServer.class, forkOptions);

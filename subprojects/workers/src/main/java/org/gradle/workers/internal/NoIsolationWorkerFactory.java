@@ -44,9 +44,9 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
+    public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         final WorkerExecutor workerExecutor = this.workerExecutor;
-        final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        final ClassLoader contextClassLoader = ((FixedClassLoaderWorkerRequirement)workerRequirement).getContextClassLoader();
         return new AbstractWorker(buildOperationExecutor) {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {

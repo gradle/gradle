@@ -75,7 +75,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * instantiator.newInstance(DefaultProcessWorkerSpec, _) >> { args -> new DefaultProcessWorkerSpec(args[1][0], objectFactory) }
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1]) }
         workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, buildOperationWorkerRegistry, buildOperationExecutor, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, temporaryFolder.testDirectory)
-        _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
+        _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
     def "worker configuration fork property defaults to AUTO"() {
@@ -124,7 +124,7 @@ class DefaultWorkerExecutorTest extends Specification {
         }
 
         when:
-        def daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration, null)
+        def daemonForkOptions = workerExecutor.getWorkerRequirement(runnable.class, configuration, null).forkOptions
 
         then:
         daemonForkOptions.javaForkOptions.minHeapSize == "128m"
@@ -142,13 +142,13 @@ class DefaultWorkerExecutorTest extends Specification {
         configuration.classpath.from([foo])
 
         when:
-        DaemonForkOptions daemonForkOptions = workerExecutor.getDaemonForkOptions(runnable.class, configuration, null)
+        IsolatedClassLoaderWorkerRequirement requirement = workerExecutor.getWorkerRequirement(runnable.class, configuration, null)
 
         then:
         1 * classLoaderStructureProvider.getInProcessClassLoaderStructure(_, _) >> { args -> new HierarchicalClassLoaderStructure(new VisitableURLClassLoader.Spec("test", args[0].collect { it.toURI().toURL() }))}
 
         and:
-        daemonForkOptions.classLoaderStructure.spec.classpath.contains(foo.toURI().toURL())
+        requirement.classLoaderStructure.spec.classpath.contains(foo.toURI().toURL())
     }
 
     def "executor executes a given work action in a daemon"() {
