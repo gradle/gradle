@@ -15,6 +15,7 @@
  */
 package org.gradle.gradlebuild.test.integrationtests
 
+import com.google.common.collect.MultimapBuilder
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -87,9 +88,12 @@ class CrossVersionTestsPlugin : Plugin<Project> {
         }
         val currentSplit = testSplit.split("/")[0].toInt()
         val numberOfSplits = testSplit.split("/")[1].toInt()
-        val buckets = Array(numberOfSplits) { mutableListOf<String>() }
+        val buckets = MultimapBuilder.SetMultimapBuilder
+            .hashKeys()
+            .arrayListValues()
+            .build<Int, String>()
         for ((index, version) in allTestVersions.withIndex()) {
-            buckets[index % numberOfSplits].add(version)
+            buckets.put(index % numberOfSplits, version)
         }
         return buckets[currentSplit - 1]
     }
