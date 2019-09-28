@@ -145,13 +145,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory.newDecoratedJavaForkOptions());
         configAction.execute(configuration);
 
-        Action<AdapterWorkParameters> parametersAction = new Action<AdapterWorkParameters>() {
-            @Override
-            public void execute(AdapterWorkParameters parameters) {
-                parameters.setImplementationClassName(actionClass.getName());
-                parameters.setParams(configuration.getParams());
-                parameters.setDisplayName(configuration.getDisplayName());
-            }
+        Action<AdapterWorkParameters> parametersAction = parameters -> {
+            parameters.setImplementationClassName(actionClass.getName());
+            parameters.setParams(configuration.getParams());
+            parameters.setDisplayName(configuration.getDisplayName());
         };
 
         WorkQueue workQueue;
@@ -173,12 +170,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {
-        return new Action<T>() {
-            @Override
-            public void execute(T spec) {
-                configuration.adaptTo(spec);
-            }
-        };
+        return spec -> configuration.adaptTo(spec);
     }
 
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, WorkerSpecInternal workerSpec, Action<T> parameterAction) {
@@ -209,15 +201,12 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
         final BuildOperationRef currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         WorkerFactory workerFactory = getWorkerFactory(isolationMode);
-        WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), currentWorkerWorkerLease, new Callable<DefaultWorkResult>() {
-            @Override
-            public DefaultWorkResult call() throws Exception {
-                try {
-                    BuildOperationAwareWorker worker = workerFactory.getWorker(daemonForkOptions);
-                    return worker.execute(spec, currentBuildOperation);
-                } catch (Throwable t) {
-                    throw new WorkExecutionException(spec.getDisplayName(), t);
-                }
+        WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), currentWorkerWorkerLease, () -> {
+            try {
+                BuildOperationAwareWorker worker = workerFactory.getWorker(daemonForkOptions);
+                return worker.execute(spec, currentBuildOperation);
+            } catch (Throwable t) {
+                throw new WorkExecutionException(spec.getDisplayName(), t);
             }
         });
         executionQueue.submit(execution);
@@ -282,12 +271,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private void await(List<AsyncWorkCompletion> workItems) throws WorkExecutionException {
         BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
-            if (CollectionUtils.any(workItems, new Spec<AsyncWorkCompletion>() {
-                @Override
-                public boolean isSatisfiedBy(AsyncWorkCompletion workItem) {
-                    return !workItem.isComplete();
-                }
-            })) {
+            if (CollectionUtils.any(workItems, workItem -> !workItem.isComplete())) {
                 executionQueue.expand();
             }
             asyncWorkTracker.waitForCompletion(currentOperation, workItems, RETAIN_PROJECT_LOCKS);

@@ -42,6 +42,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import static java.util.Comparator.*;
+
 public class WorkerDaemonClientsManager implements Stoppable {
 
     private static final Logger LOGGER = Logging.getLogger(WorkerDaemonClientsManager.class);
@@ -146,13 +148,8 @@ public class WorkerDaemonClientsManager implements Stoppable {
      */
     public void selectIdleClientsToStop(Transformer<List<WorkerDaemonClient>, List<WorkerDaemonClient>> selectionFunction) {
         synchronized (lock) {
-            List<WorkerDaemonClient> sortedClients = CollectionUtils.sort(idleClients, new Comparator<WorkerDaemonClient>() {
-                @Override
-                public int compare(WorkerDaemonClient o1, WorkerDaemonClient o2) {
-                    return Integer.compare(o1.getUses(), o2.getUses());
-                }
-            });
-            List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<WorkerDaemonClient>(sortedClients));
+            List<WorkerDaemonClient> sortedClients = CollectionUtils.sort(idleClients, comparingInt(WorkerDaemonClient::getUses));
+            List<WorkerDaemonClient> clientsToStop = selectionFunction.transform(new ArrayList<>(sortedClients));
             if (!clientsToStop.isEmpty()) {
                 stopWorkers(clientsToStop);
             }
@@ -192,12 +189,7 @@ public class WorkerDaemonClientsManager implements Stoppable {
         @Override
         public void beforeComplete() {
             synchronized (lock) {
-                List<WorkerDaemonClient> sessionScopedClients = CollectionUtils.filter(allClients, new Spec<WorkerDaemonClient>() {
-                    @Override
-                    public boolean isSatisfiedBy(WorkerDaemonClient client) {
-                        return client.getKeepAliveMode() == KeepAliveMode.SESSION;
-                    }
-                });
+                List<WorkerDaemonClient> sessionScopedClients = CollectionUtils.filter(allClients, client -> client.getKeepAliveMode() == KeepAliveMode.SESSION);
                 stopWorkers(sessionScopedClients);
             }
         }

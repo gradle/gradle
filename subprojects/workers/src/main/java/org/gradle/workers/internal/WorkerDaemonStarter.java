@@ -80,14 +80,11 @@ public class WorkerDaemonStarter {
     }
 
     private static Iterable<File> toFiles(VisitableURLClassLoader.Spec spec) {
-        return CollectionUtils.collect(spec.getClasspath(), new Transformer<File, URL>() {
-            @Override
-            public File transform(URL url) {
-                try {
-                    return new File(url.toURI());
-                } catch (URISyntaxException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+        return CollectionUtils.collect(spec.getClasspath(), url -> {
+            try {
+                return new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         });
     }

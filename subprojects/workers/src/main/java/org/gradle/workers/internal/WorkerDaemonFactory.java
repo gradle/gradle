@@ -41,12 +41,7 @@ public class WorkerDaemonFactory implements WorkerFactory {
             public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
                 final WorkerDaemonClient client = reserveClient();
                 try {
-                    return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
-                        @Override
-                        public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                            return client.execute(spec);
-                        }
-                    });
+                    return executeWrappedInBuildOperation(spec, parentBuildOperation, client::execute);
                 } finally {
                     clientsManager.release(client);
                 }
