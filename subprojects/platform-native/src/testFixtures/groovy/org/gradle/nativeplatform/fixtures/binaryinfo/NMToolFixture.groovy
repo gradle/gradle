@@ -32,15 +32,15 @@ class NMToolFixture {
     private findExe(String exe) {
         // *nix OS correctly handle search inside the process's PATH environment variable
         if (!OperatingSystem.current().windows) {
-            return exe
+            return [exe]
         }
 
         // Windows need to use cmd /c to correctly search inside the process's PATH environment variable
-        return "cmd /c ${exe}"
+        return ["cmd", "/c", exe]
     }
 
     List<BinaryInfo.Symbol> listSymbols(File binaryFile) {
-        def process = "${findExe('nm')} -a -f posix ${binaryFile.absolutePath}".execute(environments, null)
+        def process = (findExe('nm') + ['-a', '-f', 'posix', binaryFile.absolutePath]).execute(environments, null)
         def lines = process.inputStream.readLines()
         return lines.collect { line ->
             // Looks like on Linux:
