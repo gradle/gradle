@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.PathValidation
+import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
@@ -24,6 +25,7 @@ import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.resources.ResourceHandler
@@ -118,4 +120,19 @@ open class DefaultKotlinScript internal constructor(
 
     private
     val processOperations by unsafeLazy(host::getProcessOperations)
+}
+
+
+internal
+fun defaultKotlinScriptHostForProject(project: Project): DefaultKotlinScript.Host =
+    ProjectScriptHost(project)
+
+
+private
+class ProjectScriptHost(val project: Project) : DefaultKotlinScript.Host {
+    override fun getLogger(): Logger = project.logger
+    override fun getLogging(): LoggingManager = project.logging
+    override fun getFileOperations(): FileOperations = projectInternal().fileOperations
+    override fun getProcessOperations(): ProcessOperations = projectInternal().processOperations
+    fun projectInternal() = (project as ProjectInternal)
 }

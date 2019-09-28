@@ -38,7 +38,8 @@ import org.gradle.kotlin.dsl.support.delegates.PluginAwareDelegate
 @ImplicitReceiver(Project::class)
 open class CompiledKotlinBuildScript(
     private val host: KotlinScriptHost<Project>
-) {
+) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)) {
+
     /**
      * The [ScriptHandler] for this script.
      */
@@ -81,7 +82,9 @@ open class CompiledKotlinBuildScript(
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
 @ImplicitReceiver(Project::class)
-open class CompiledKotlinBuildscriptBlock(host: KotlinScriptHost<Project>) : CompiledKotlinBuildScript(host) {
+open class CompiledKotlinBuildscriptBlock(
+    host: KotlinScriptHost<Project>
+) : CompiledKotlinBuildScript(host) {
 
     /**
      * Configures the build script classpath for this project.

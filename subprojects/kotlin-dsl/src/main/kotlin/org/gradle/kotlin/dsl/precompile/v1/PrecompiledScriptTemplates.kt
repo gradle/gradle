@@ -27,6 +27,7 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
+import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -128,15 +129,7 @@ open class PrecompiledSettingsScript(
 @GradleDsl
 open class PrecompiledProjectScript(
     private val target: Project
-) : DefaultKotlinScript(ProjectScriptHost(target)) {
-
-    private
-    class ProjectScriptHost(val project: Project) : Host {
-        override fun getLogger(): Logger = project.logger
-        override fun getLogging(): LoggingManager = project.logging
-        override fun getFileOperations(): FileOperations = project.serviceOf()
-        override fun getProcessOperations(): ProcessOperations = project.serviceOf()
-    }
+) : DefaultKotlinScript(defaultKotlinScriptHostForProject(target)) {
 
     /**
      * Configures the build script classpath for this project.

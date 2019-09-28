@@ -10,6 +10,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
+import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 
@@ -61,6 +62,10 @@ class ScriptApiTest {
     @Test
     fun `compiled settings script template implements script api`() =
         assertScriptApiOf<CompiledKotlinSettingsScript>()
+
+    @Test
+    fun `compiled project script template implements script api`() =
+        assertScriptApiOf<CompiledKotlinBuildScript>()
 
     @Test
     fun `precompiled project script template implements script api`() =
