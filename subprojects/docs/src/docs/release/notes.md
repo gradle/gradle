@@ -21,6 +21,7 @@ We would like to thank the following community contributors to this release of G
 [jutoft](https://github.com/jutoft),
 [Robin Verduijn](https://github.com/robinverduijn),
 [Pedro Tôrres](https://github.com/t0rr3sp3dr0),
+[Michael Berry](https://github.com/MikeBerryFR),
 and [Robert Stupp](https://github.com/snazy).
 
 <!-- 
