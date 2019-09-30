@@ -75,13 +75,13 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
             
             project(':lib') {
                 task jar1(type: Jar) {
-                    archiveName = 'lib1.jar'
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Jar) {
-                    archiveName = 'lib2.jar'
+                    archiveFileName = 'lib2.jar'
                 }
                 tasks.withType(Jar) {
-                    destinationDir = buildDir
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar1

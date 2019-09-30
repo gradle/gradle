@@ -347,8 +347,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
             project(':lib') {
                 apply plugin: 'base'
                 task jar(type: Jar) {
-                    destinationDir = buildDir
-                    archiveName = 'lib.jar'
+                    destinationDirectory = buildDir
+                    archiveFileName = 'lib.jar'
                     doLast {
                         ${server.callFromBuild('jar')}
                     }

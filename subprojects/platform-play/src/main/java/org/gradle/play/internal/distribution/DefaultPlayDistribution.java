@@ -21,9 +21,12 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.play.PlayApplicationBinarySpec;
 import org.gradle.play.distribution.PlayDistribution;
 
-public class DefaultPlayDistribution extends DefaultDistribution implements PlayDistribution {
+import javax.inject.Inject;
+
+public abstract class DefaultPlayDistribution extends DefaultDistribution implements PlayDistribution {
     final private PlayApplicationBinarySpec binary;
 
+    @Inject
     public DefaultPlayDistribution(String name, CopySpec contents, PlayApplicationBinarySpec binary) {
         super(name, contents);
         this.binary = binary;

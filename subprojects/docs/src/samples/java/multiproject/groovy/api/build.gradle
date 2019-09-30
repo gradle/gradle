@@ -31,7 +31,7 @@ dependencies {
 compileJava.options.compilerArgs = ['-Xlint:unchecked']
 
 task spiJar(type: Jar) {
-    appendix = 'spi'
+    archiveAppendix = 'spi'
     from sourceSets.main.output
     include 'org/gradle/api/'
 }
@@ -45,7 +45,7 @@ task dist(type: Zip) {
     dependsOn spiJar
     from 'src/dist'
     into('libs') {
-        from spiJar.archivePath
+        from spiJar.archiveFile
         from configurations.runtimeClasspath
     }
 }
@@ -63,10 +63,10 @@ task checkProjectDependency(dependsOn: project(':shared').jar) {
     doLast {
         File cachedSharedJarDir = new File(gradle.gradleUserHomeDir, "cache/multiproject/shared/jars")
         copy {
-            from project(':shared').jar.archivePath
+            from project(':shared').jar.archiveFile
             into cachedSharedJarDir
         }
         File sharedJar = configurations.compileClasspath.find { File file -> file.name.startsWith('shared') }
-        assert sharedJar.absolutePath == project(':shared').jar.archivePath.absolutePath
+        assert sharedJar.absolutePath == project(':shared').jar.archiveFile.get().getAsFile().absolutePath
     }
 }

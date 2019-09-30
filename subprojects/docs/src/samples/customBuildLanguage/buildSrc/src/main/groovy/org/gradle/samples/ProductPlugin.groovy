@@ -54,7 +54,7 @@ class ProductPlugin implements Plugin<Project> {
                     from(product.distSrcDirs) {
                         filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [
                                 productName: product.displayName,
-                                version: version
+                                version: archiveVersion.get()
                         ])
                     }
                 }

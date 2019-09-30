@@ -36,6 +36,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -108,9 +109,9 @@ public class PlayDistributionPlugin extends RuleSource {
     @Defaults
     void createDistributions(@Path("distributions") PlayDistributionContainer distributions, @Path("binaries") ModelMap<PlayApplicationBinarySpecInternal> playBinaries, PlayPluginConfigurations configurations, ServiceRegistry serviceRegistry) {
         FileOperations fileOperations = serviceRegistry.get(FileOperations.class);
-        Instantiator instantiator = serviceRegistry.get(Instantiator.class);
+        ObjectFactory objectFactory = serviceRegistry.get(ObjectFactory.class);
         for (PlayApplicationBinarySpecInternal binary : playBinaries) {
-            PlayDistribution distribution = instantiator.newInstance(DefaultPlayDistribution.class, binary.getProjectScopedName(), fileOperations.copySpec(), binary);
+            PlayDistribution distribution = objectFactory.newInstance(DefaultPlayDistribution.class, binary.getProjectScopedName(), fileOperations.copySpec(), binary);
             distribution.setBaseName(binary.getProjectScopedName());
             distributions.add(distribution);
         }

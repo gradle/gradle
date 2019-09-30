@@ -25,9 +25,7 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.PomHttpArtifact
-import org.gradle.util.Requires
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Issue
@@ -229,7 +227,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         then: 'testsJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             task testsJar(type: Jar) {
-                classifier = 'tests'
+                archiveClassifier = 'tests'
                 from(sourceSets.test.output)
             }
             '''.stripIndent().trim()))
@@ -348,7 +346,6 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         file("build/libs/util-2.5.jar").exists()
     }
 
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     @Issue("GRADLE-2872")
     def "expandProperties"() {
         setup:

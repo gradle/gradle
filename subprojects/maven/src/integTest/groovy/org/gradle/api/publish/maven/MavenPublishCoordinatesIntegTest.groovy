@@ -89,7 +89,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
 
             task apiJar(type: Jar) {
                 from sourceSets.main.output
-                baseName "root-api"
+                archiveBaseName = "root-api"
                 exclude "**/impl/**"
             }
 
@@ -154,7 +154,7 @@ class MavenPublishCoordinatesIntegTest extends AbstractMavenPublishIntegTest {
             version = '1.0'
 
             task otherJar(type: Jar) {
-                classifier "other"
+                archiveClassifier = "other"
             }
 
             publishing {

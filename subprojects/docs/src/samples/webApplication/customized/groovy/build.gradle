@@ -1,9 +1,6 @@
 // tag::use-plugin[]
 plugins {
     id 'war'
-// end::use-plugin[]
-    id 'org.gretty' version '2.2.0'
-// tag::use-plugin[]
 }
 // end::use-plugin[]
 group = 'gradle'
@@ -42,6 +39,3 @@ war {
     webXml = file('src/someWeb.xml') // copies a file to WEB-INF/web.xml
 }
 // end::customization[]
-gretty {
-    httpPort = 8080
-}

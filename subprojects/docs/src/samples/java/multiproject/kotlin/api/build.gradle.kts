@@ -29,7 +29,7 @@ dependencies {
 tasks.compileJava { options.compilerArgs = listOf("-Xlint:unchecked") }
 
 task<Jar>("spiJar") {
-    appendix = "spi"
+    archiveAppendix.set("spi")
     from(sourceSets.main.get().output)
     include("org/gradle/api/")
 }
@@ -44,7 +44,7 @@ val dist = task<Zip>("dist") {
     dependsOn(spiJar)
     from("src/dist")
     into("libs") {
-        from(spiJar.archivePath)
+        from(spiJar.archiveFile)
         from(configurations.runtimeClasspath)
     }
 }
@@ -64,10 +64,10 @@ task("checkProjectDependency") {
     doLast {
         val cachedSharedJarDir = File(gradle.gradleUserHomeDir, "cache/multiproject/shared/jars")
         copy {
-            from(sharedJarTask.archivePath)
+            from(sharedJarTask.archiveFile)
             into(cachedSharedJarDir)
         }
         val sharedJar = configurations.compileClasspath.get().first { file: File -> file.name.startsWith("shared") }
-        require(sharedJar.absolutePath == sharedJarTask.archivePath.absolutePath)
+        require(sharedJar.absolutePath == sharedJarTask.archiveFile.get().getAsFile().absolutePath)
     }
 }

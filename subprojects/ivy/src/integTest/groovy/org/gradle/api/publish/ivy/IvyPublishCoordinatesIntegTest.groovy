@@ -77,7 +77,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
             task apiJar(type: Jar) {
                 from sourceSets.main.output
-                baseName "root-api"
+                archiveBaseName = "root-api"
                 exclude "**/impl/**"
             }
 
@@ -156,7 +156,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
             version = '1.0'
 
             task otherJar(type: Jar) {
-                classifier "other"
+                archiveClassifier = "other"
             }
 
             publishing {

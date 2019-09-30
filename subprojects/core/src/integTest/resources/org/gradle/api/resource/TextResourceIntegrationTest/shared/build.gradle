@@ -19,8 +19,8 @@ def generateConfigFile = tasks.register("generateConfigFile") {
 }
 
 task generateConfigZip(type: Zip) {
-    destinationDir = projectDir
-    archiveName = "config.zip"
+    destinationDirectory = projectDir
+    archiveFileName = "config.zip"
     from generateConfigFile.get()
 }
 

@@ -51,8 +51,8 @@ project(":a") {
         'default' "org.other:externalB:2.1"
     }
     task jar(type: Jar) {
-        baseName = 'a'
-        destinationDir = buildDir
+        archiveBaseName = 'a'
+        destinationDirectory = buildDir
     }
     artifacts { api jar }
 }
@@ -146,7 +146,7 @@ project(":a") {
             because 'also check dependency reasons'
         }
     }
-    task jar(type: Jar) { baseName = 'a' }
+    task jar(type: Jar) { archiveBaseName = 'a' }
     artifacts { api jar }
 }
 project(":b") {
@@ -206,10 +206,10 @@ project(':a') {
         configA2
     }
     task A1jar(type: Jar) {
-        archiveName = 'A1.jar'
+        archiveFileName = 'A1.jar'
     }
     task A2jar(type: Jar) {
-        archiveName = 'A2.jar'
+        archiveFileName = 'A2.jar'
     }
     artifacts {
         configA1 A1jar
@@ -290,8 +290,8 @@ project(':b') {
             configurations { compile }
             task configureJar {
                 doLast {
-                    tasks.aJar.extension = "txt"
-                    tasks.aJar.classifier = "modified"
+                    tasks.aJar.archiveExtension = "txt"
+                    tasks.aJar.archiveClassifier = "modified"
                 }
             }
             task aJar(type: Jar) {
@@ -335,8 +335,8 @@ allprojects {
 project(":a") {
     configurations { 'default' {} }
     dependencies { 'default' 'group:externalA:1.5' }
-    task xJar(type: Jar) { baseName='x' }
-    task yJar(type: Jar) { baseName='y' }
+    task xJar(type: Jar) { archiveBaseName='x' }
+    task yJar(type: Jar) { archiveBaseName='y' }
     artifacts { 'default' xJar, yJar }
 }
 
@@ -620,7 +620,7 @@ project('c') {
     }
 
     @Issue(["GRADLE-3330", "GRADLE-3362"])
-    def "project dependency can resolve multiple artifacts from target project that are differentiated by archiveName only"() {
+    def "project dependency can resolve multiple artifacts from target project that are differentiated by archiveFileName only"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
 
@@ -633,13 +633,13 @@ project(':a') {
         configTwo
     }
     task A1jar(type: Jar) {
-        archiveName = 'A1.jar'
+        archiveFileName = 'A1.jar'
     }
     task A2jar(type: Jar) {
-        archiveName = 'A2.jar'
+        archiveFileName = 'A2.jar'
     }
     task A3jar(type: Jar) {
-        archiveName = 'A3.jar'
+        archiveFileName = 'A3.jar'
     }
     artifacts {
         configOne A1jar

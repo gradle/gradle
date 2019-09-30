@@ -75,10 +75,10 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
             project(':lib') {
                 apply plugin: 'base'
                 task jar1(type: Jar) {
-                    archiveName = 'lib1.jar'
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Jar) {
-                    archiveName = 'lib2.jar'
+                    archiveFileName = 'lib2.jar'
                 }
                 artifacts {
                     compile jar1

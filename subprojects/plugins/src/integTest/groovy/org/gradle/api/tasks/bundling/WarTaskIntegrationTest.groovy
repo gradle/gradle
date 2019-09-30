@@ -64,8 +64,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 }
                 classpath 'classes'
                 classpath 'lib.jar'
-                destinationDir = buildDir
-                archiveName = 'test.war'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
             }
         """
 
@@ -102,8 +102,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                     exclude '**/*.xml'
                 }
                 webXml = file('some.xml')
-                destinationDir = buildDir
-                archiveName = 'test.war'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
             }
         """
 
@@ -142,8 +142,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                     into 'dir2'
                     include '**/file2*'
                 }
-                destinationDir = buildDir
-                archiveName = 'test.war'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
             }
         """
 
@@ -173,8 +173,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 from 'bad'
             }
             webXml = file('good.xml')
-            destinationDir = buildDir
-            archiveName = 'test.war'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.war'
             duplicatesStrategy = 'exclude'
         }
         '''
@@ -207,8 +207,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                 from 'bad'
             }
             classpath 'good/file.txt'
-            destinationDir = buildDir
-            archiveName = 'test.war'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.war'
             duplicatesStrategy = 'exclude'
         }
         '''
@@ -241,8 +241,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
             webInf {
                 from 'good'
             }
-            destinationDir = buildDir
-            archiveName = 'test.war'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.war'
             duplicatesStrategy = 'exclude'
         }
         '''
@@ -268,8 +268,8 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
                     into 'WEB-INF'
                 }
                 webXml = file('originalWebXml.xml')
-                destinationDir = buildDir
-                archiveName = 'test.war'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
             }
         """
 
@@ -299,7 +299,7 @@ task assertUnresolved {
 task war(type: War) {
     dependsOn assertUnresolved
     classpath = configurations.conf
-    destinationDir = buildDir
+    destinationDirectory = buildDir
 }
 """
 

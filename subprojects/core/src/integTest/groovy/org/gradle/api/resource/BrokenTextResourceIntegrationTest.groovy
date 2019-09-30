@@ -70,7 +70,7 @@ task text(type: TextTask)
         given:
         buildFile << """
             task jar(type: Jar) {
-                destinationDir = buildDir
+                destinationDirectory = buildDir
             }
             text.text = resources.text.fromArchiveEntry(jar, 'config.txt')
         """

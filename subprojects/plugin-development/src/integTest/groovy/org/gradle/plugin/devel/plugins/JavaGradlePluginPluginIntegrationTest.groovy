@@ -304,7 +304,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
 apply plugin: 'java-gradle-plugin'
 
 jar {
-    archiveName 'test.jar'
+    archiveFileName = 'test.jar'
 }
 """
     }

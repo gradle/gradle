@@ -33,12 +33,12 @@ import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec
 import org.gradle.api.java.archives.Manifest
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.jvm.tasks.Jar
 import org.gradle.model.ModelMap
@@ -71,7 +71,7 @@ class PlayDistributionPluginTest extends Specification {
             }
         }
         ServiceRegistry serviceRegistry = Mock(ServiceRegistry) {
-            get(Instantiator.class) >> Mock(Instantiator) {
+            get(ObjectFactory.class) >> Mock(ObjectFactory) {
                 newInstance(DefaultPlayDistribution.class, _, _, _) >> { Class c, otherArgs ->
                     return distributions[otherArgs[0]]
                 }
