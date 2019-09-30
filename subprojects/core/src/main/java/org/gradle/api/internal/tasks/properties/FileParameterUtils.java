@@ -154,18 +154,17 @@ public class FileParameterUtils {
                 public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
                     // We could support an unfiltered DirectoryFileTree here as a cacheable root,
                     // but because @OutputDirectory also doesn't support it we choose not to.
-                    consumer.accept(new CompositeOutputFilePropertySpec(
+                    consumer.accept(new DirectoryTreeOutputFilePropertySpec(
                         propertyName + "$" + index.incrementAndGet(),
                         new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileTree),
-                        root,
-                        TreeType.DIRECTORY
+                        root
                     ));
                 }
             });
         }
     }
 
-    protected static void failOnInvalidOutputType(FileTreeInternal fileTree) {
+    private static void failOnInvalidOutputType(FileTreeInternal fileTree) {
         throw new InvalidUserDataException(String.format(
             "Only files and directories can be registered as outputs (was: %s)",
             fileTree
