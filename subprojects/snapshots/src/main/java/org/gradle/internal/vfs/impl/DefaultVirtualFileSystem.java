@@ -20,6 +20,7 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
@@ -37,6 +38,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
@@ -59,6 +61,28 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     public void read(String location, FileSystemSnapshotVisitor visitor) {
         readLocation(location)
             .accept(visitor);
+    }
+
+    @Override
+    public void readRegularFileContentHash(String location, Consumer<HashCode> visitor) {
+        readLocation(location)
+            .accept(new FileSystemSnapshotVisitor() {
+                @Override
+                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                    return false;
+                }
+
+                @Override
+                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+                    if (fileSnapshot.getType() == FileType.RegularFile) {
+                        visitor.accept(fileSnapshot.getHash());
+                    }
+                }
+
+                @Override
+                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                }
+            });
     }
 
     @Override

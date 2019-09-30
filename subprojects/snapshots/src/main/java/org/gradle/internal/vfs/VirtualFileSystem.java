@@ -16,13 +16,21 @@
 
 package org.gradle.internal.vfs;
 
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
+import java.util.function.Consumer;
+
 public interface VirtualFileSystem {
 
     void read(String location, FileSystemSnapshotVisitor visitor);
+
+    /**
+     * Visits the hash of the content of the file only if the file is a regular file.
+     */
+    void readRegularFileContentHash(String location, Consumer<HashCode> visitor);
 
     void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor);
 
