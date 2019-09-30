@@ -311,7 +311,7 @@ On a per-project basis, you can use:
  * <<migmvn:using_boms,Bills of materials>> (Maven BOMs)
  * <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,Overriding transitive versions>>
 
-There are even more, specialized options listed in the <<customizing_dependency_resolution_behavior#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>> chapter.
+There are even more, specialized options listed in the <<dependency_constraints.adoc#,controlling transitive dependencies>> chapter.
 
 If you want to ensure consistency of versions across all projects in a multi-project build, similar to how the `<dependencyManagement>` block in Maven works, you can use the <<java_platform_plugin#java_platform_plugin,Java Platform Plugin>>.
 This allows you declare a set of dependency constraints that can be applied to multiple projects.
