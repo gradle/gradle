@@ -77,7 +77,6 @@ task checkDeps {
 }
 """
         then:
-        executer.expectDeprecationWarning()
         succeeds 'checkDeps'
     }
 

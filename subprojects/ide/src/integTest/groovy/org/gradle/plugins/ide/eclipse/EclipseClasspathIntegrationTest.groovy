@@ -359,7 +359,6 @@ configure(project(":b")){
         assert libs.size() == 1
         libs[0].assertHasJar(someLib2Jar)
 
-        executer.expectDeprecationWarning()
         executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withArgument("-PforceDeps=true").withTasks("eclipse").run()
 
         libs = classpath("a").libs
