@@ -181,7 +181,7 @@
         {
             "type": "org.gradle.kotlin.dsl.KotlinScriptTemplate",
             "member": "Class org.gradle.kotlin.dsl.KotlinScriptTemplate",
-            "acceptation": "[ADD YOUR CUSTOM REASON HERE]",
+            "acceptation": "Annotation is no longer required",
             "changes": [
                 "Class has been removed"
             ]
