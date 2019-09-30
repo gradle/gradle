@@ -60,7 +60,7 @@ class NotRecentlyUsedDaemonsExpirationStrategyTest extends DaemonExpirationStrat
         !wouldExpire(d5, maxDuplicatedIdleCount)
     }
 
-    def "expires no daemons given four daemons max duplicated idle count is four"() {
+    def "doesn't expire daemons given four daemons and max duplicated idle count is four"() {
         given:
         int maxDuplicatedIdleCount = 4
         DaemonInfo d1 = registerDaemon(Idle)
