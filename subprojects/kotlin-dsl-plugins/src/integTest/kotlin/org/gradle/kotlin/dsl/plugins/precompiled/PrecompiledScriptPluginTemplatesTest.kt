@@ -2,8 +2,10 @@ package org.gradle.kotlin.dsl.plugins.precompiled
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.same
 import com.nhaarman.mockito_kotlin.verify
 
 import org.gradle.api.Action
@@ -11,7 +13,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.HasConvention
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.Convention
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
 
@@ -394,6 +398,48 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     fun `precompiled init script template honors HasImplicitReceiver`() {
 
         assertHasImplicitReceiverIsHonoredByScriptOf<Gradle>("my-init-plugin.init.gradle.kts")
+    }
+
+    @Test
+    fun `precompiled project script receiver is undecorated`() {
+
+        assertUndecoratedImplicitReceiverOf<Project>("my-project-plugin.gradle.kts")
+    }
+
+    @Test
+    fun `precompiled settings script receiver is undecorated`() {
+
+        assertUndecoratedImplicitReceiverOf<Settings>("my-settings-plugin.settings.gradle.kts")
+    }
+
+    @Test
+    fun `precompiled init script receiver is undecorated`() {
+
+        assertUndecoratedImplicitReceiverOf<Gradle>("my-init-plugin.init.gradle.kts")
+    }
+
+    private
+    inline fun <reified T : Any> assertUndecoratedImplicitReceiverOf(fileName: String) {
+
+        givenPrecompiledKotlinScript(fileName, """
+            val ${T::class.simpleName}.receiver get() = this
+            (receiver as ${HasConvention::class.qualifiedName}).convention.add("receiver", receiver)
+        """)
+
+        val convention = mock<Convention>()
+        val receiver = mock<HasConvention>(extraInterfaces = arrayOf(T::class)) {
+            on { getConvention() } doReturn convention
+        }
+
+        instantiatePrecompiledScriptOf(
+            receiver as T,
+            scriptClassNameForFile(fileName)
+        )
+
+        verify(convention).add(
+            eq("receiver"),
+            same(receiver)
+        )
     }
 
     private
