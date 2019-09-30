@@ -140,7 +140,6 @@ Searched in the following locations:
         executer.inDirectory(dslDir)
 
         when:
-        executer.expectDeprecationWarning()
         succeeds(COPY_LIBS_TASK_NAME)
 
         then:
