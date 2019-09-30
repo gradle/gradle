@@ -1,5 +1,5 @@
 [[abm_declaring_attributes]]
-= Declaring attributes
+= Declaring variant attributes
 
 Attributes are _typed_. An attribute can be created via the `Attribute<T>.of` method:
 

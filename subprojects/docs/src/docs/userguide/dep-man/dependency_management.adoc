@@ -25,6 +25,7 @@ include::resolution_rules.adoc[leveloffset=+1]
 include::component_capabilities.adoc[leveloffset=+1]
 include::feature_variants.adoc[leveloffset=+1]
 include::variant_model.adoc[leveloffset=+1]
+include::variant_attributes.adoc[leveloffset=+1]
 include::cross_project_publications.adoc[leveloffset=+1]
 include::artifact_transforms.adoc[leveloffset=+1]
 
@@ -36,9 +37,6 @@ include::publishing_setup.adoc[leveloffset=+1]
 include::publishing_gradle_module_metadata.adoc[leveloffset=+1]
 include::publishing_signing.adoc[leveloffset=+1]
 include::publishing_customization.adoc[leveloffset=+1]
-
-= Writing Variant-aware Plugins
-include::variant_attributes.adoc[leveloffset=+1]
 
 = Dependency Management Terminology
 include::dependency_management_terminology.adoc[leveloffset=+1]
