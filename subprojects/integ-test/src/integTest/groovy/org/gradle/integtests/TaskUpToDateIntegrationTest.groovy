@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@Unroll
 class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
@@ -126,7 +127,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":customTask"
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/3073")
     def "output files changed from #before to #after marks task #upToDateString"() {
         buildFile << """
@@ -305,7 +305,6 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skipped(':myTask')
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4204")
     def "changing path of empty root directory makes task out of date for #inputAnnotation"() {
         buildFile << """
@@ -383,5 +382,55 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         run(*tasks)
         then:
         skipped(*tasks)
+    }
+
+    def "cannot register #invalidOutput as an output"() {
+        buildFile << """
+            abstract class TaskWithInvalidOutput extends DefaultTask {
+                @TaskAction
+                void doStuff() {}
+
+                @OutputFiles
+                abstract ConfigurableFileCollection getInvalidOutput()
+            }
+
+            tasks.register("taskWithInvalidOutput", TaskWithInvalidOutput) {
+                invalidOutput.from(${invalidOutput}(file('${fileName}')))
+            }
+        """
+
+        expect:
+        fails("taskWithInvalidOutput")
+        failure.assertHasCause("Only files and directories can be registered as outputs (was: ${String.format(message, file(fileName).getAbsolutePath())})")
+
+        where:
+        invalidOutput | fileName   | message
+        'zipTree'     | 'some.jar' | "ZIP '%s'"
+        'tarTree'     | 'some.tar' | "TAR '%s'"
+    }
+
+    def "cannot register tar tree of custom resource as an output"() {
+        buildFile << """
+            abstract class TaskWithInvalidOutput extends DefaultTask {
+                @TaskAction
+                void doStuff() {}
+
+                @OutputFiles
+                abstract ConfigurableFileCollection getInvalidOutput()
+            }
+
+            tasks.register("taskWithInvalidOutput", TaskWithInvalidOutput) {
+                invalidOutput.from(tarTree(new ReadableResource() {
+                    InputStream read() { new ByteArrayInputStream("Hello".bytes) }
+                    String displayName = "readable resource"
+                    URI URI = uri("https://test.com")
+                    String baseName = "base name"
+                }))
+            }
+        """
+
+        expect:
+        fails("taskWithInvalidOutput")
+        failure.assertHasCause("Only files and directories can be registered as outputs (was: TAR 'readable resource')")
     }
 }

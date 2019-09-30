@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -33,7 +34,6 @@ import org.gradle.internal.fingerprint.IgnoredPathInputNormalizer;
 import org.gradle.internal.fingerprint.NameOnlyInputNormalizer;
 import org.gradle.internal.fingerprint.RelativePathInputNormalizer;
 import org.gradle.util.DeferredUtil;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -142,12 +142,12 @@ public class FileParameterUtils {
 
                 @Override
                 public void visitGenericFileTree(FileTreeInternal fileTree) {
-                    DeprecationLogger.nagUserOfDeprecatedThing("What the hell is this, don't use it as on output. It is currently ignored");
+                    failOnInvalidOutputType(fileTree);
                 }
 
                 @Override
                 public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
-                    DeprecationLogger.nagUserOfDeprecatedThing("What the hell is this, don't use it as on output. It is currently ignored");
+                    failOnInvalidOutputType(fileTree);
                 }
 
                 @Override
@@ -163,5 +163,12 @@ public class FileParameterUtils {
                 }
             });
         }
+    }
+
+    protected static void failOnInvalidOutputType(FileTreeInternal fileTree) {
+        throw new InvalidUserDataException(String.format(
+            "Only files and directories can be registered as outputs (was: %s)",
+            fileTree
+        ));
     }
 }
