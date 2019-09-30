@@ -25,8 +25,10 @@ import java.util.regex.Pattern
 class ReadelfBinaryInfo implements BinaryInfo {
 
     private final File binaryFile
+    private final List<String> environments
 
-    ReadelfBinaryInfo(File binaryFile) {
+    ReadelfBinaryInfo(File binaryFile, List<String> environments) {
+        this.environments = environments
         this.binaryFile = binaryFile
     }
 
@@ -52,21 +54,12 @@ class ReadelfBinaryInfo implements BinaryInfo {
         return lines
     }
 
-    List<BinaryInfo.Symbol> listSymbols() {
-        def process = ['nm', '-a', '-f', 'posix', binaryFile.absolutePath].execute()
-        def lines = process.inputStream.readLines()
-        return lines.collect { line ->
-            // Looks like:
-            // _main t 0 0
-            def splits = line.split(' ')
-            String name = splits[0]
-            char type = splits[1].getChars()[0]
-            new BinaryInfo.Symbol(name, type, Character.isUpperCase(type))
-        }
+    List<Symbol> listSymbols() {
+        return NMToolFixture.of(environments).listSymbols(binaryFile);
     }
 
     @Override
-    List<BinaryInfo.Symbol> listDebugSymbols() {
+    List<Symbol> listDebugSymbols() {
         def process = ['readelf', '--debug-dump=info', binaryFile.absolutePath].execute()
         def lines = process.inputStream.readLines()
         def symbols = []
@@ -75,7 +68,7 @@ class ReadelfBinaryInfo implements BinaryInfo {
             def findSymbol = (line =~ /.*DW_AT_name\s+:\s+(\(.*\):)?\s+(.*)/)
             if (findSymbol.matches()) {
                 def name = new File(findSymbol[0][2] as String).name.trim()
-                symbols << new BinaryInfo.Symbol(name, 'D' as char, true)
+                symbols << new Symbol(name, 'D' as char, true)
             }
         }
         return symbols

@@ -260,10 +260,16 @@ Gradle now reports the progress of the distribution downloaded.
 
 Initially contributed by [Artur Dryomov](https://github.com/ming13).
 
+## Features for native developers
+
 ### IntelliSense support for C++17 and latest C++ standard within Visual Studio
 
 Gradle will now generate IDE solution honoring the C++17 `/std:cpp17` and latest C++ standard `/std:cpplatest` compiler flag.
 The Visual Studio IntelliSense will help you write great code with those new standard.
+
+### Support for Visual Studio 2019
+
+Gradle now officially supports building application and libraries with Visual Studio 2019.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
