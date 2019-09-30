@@ -20,6 +20,7 @@ Each component defines an implicit capability corresponding to its GAV coordinat
 For example, the `org.apache.commons:commons-lang3:3.8` module has an implicit capability with group `org.apache.commons`, name `commons-lang3` and version `3.8`.
 It is important to realize that capabilities are _versioned_.
 
+[[sub:declaring-component-candidates]]
 == Declaring component capabilities
 
 By default, Gradle will fail if two components in the dependency graph provide the same capability.

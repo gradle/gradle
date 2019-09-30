@@ -236,6 +236,17 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/defaul
 include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
 ====
 
+== Excluding a dependency from a configuration completely
+
+Similar to <<dependency_downgrade_and_exclude.adoc#sec:excluding-transitive-deps,excluding a dependency in a dependency declaration>>, you can exclude a transitive dependency for a particular configuration completely by using link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:exclude(java.util.Map)[Configuration.exclude(java.util.Map)].
+This will automatically exclude the transitive dependency for all dependencies declared on the configuration.
+
+.Excluding transitive dependency for a particular configuration
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
+====
+
 == Matching dependencies to repositories
 
 Gradle exposes an API to declare what a repository may or may not contain.

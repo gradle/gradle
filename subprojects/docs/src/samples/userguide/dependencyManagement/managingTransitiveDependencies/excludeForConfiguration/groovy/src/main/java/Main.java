@@ -1,9 +1,9 @@
-import org.apache.log4j.Logger;
+import org.apache.commons.beanutils.PropertyUtils;
 
 public class Main {
-    private static final Logger LOGGER = Logger.getLogger(Main.class);
-
-    public static void main(String args[]) {
-        LOGGER.info("Hello World!");
+    public static void main(String[] args) throws Exception {
+        Object person = new Person();
+        PropertyUtils.setSimpleProperty(person, "name", "Bart Simpson");
+        PropertyUtils.setSimpleProperty(person, "age", 38);
     }
 }

@@ -92,61 +92,80 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 [[sec:excluding-transitive-deps]]
 == Excluding transitive dependencies
 
-Declared dependencies in a build script can pull in a lot of transitive dependencies. You might decide that you do not want a particular transitive dependency as part of the dependency graph for a good reason.
+While the previous section showed how you can enforce a certain version of a transitive dependency, this section covers _excludes_ as a way to remove a transitive dependency completely.
 
-- The dependency is undesired due to licensing constraints.
-- The dependency is not available in any of the declared repositories.
-- The metadata for the dependency exists but the artifact does not.
-- The metadata provides incorrect coordinates for a transitive dependency.
-
-Transitive dependencies can be excluded on the level of a declared dependency or a configuration. Let's demonstrate both use cases. In the following two examples the build script declares a dependency on Log4J, a popular logging framework in the Java world. The metadata of the particular version of Log4J also defines transitive dependencies.
-
-.Unresolved artifacts for transitive dependencies
+[WARNING]
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/unresolved/groovy",files="build.gradle[tags=unresolved-transitive-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/unresolved/kotlin",files="build.gradle.kts[tags=unresolved-transitive-dependencies]"]
+Similar as forcing a version of a dependency, excluding a dependency completely requires a conscious decision.
+Excluding a transitive dependency might lead to runtime errors if external libraries do not properly function without them.
+If you use excludes, make sure that you do not utilise any code path requiring the excluded dependency by sufficient test coverage.
 ====
 
-If resolved from Maven Central some of the transitive dependencies provide metadata but not the corresponding binary artifact. As a result any task requiring the binary files will fail e.g. a compilation task.
+Transitive dependencies can be excluded on the level of a declared dependency.
+Exclusions are spelled out as a key/value pair via the attributes `group` and/or `module` as shown in the example below.
+For more information, refer to link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#exclude-java.util.Map-[ModuleDependency.exclude(java.util.Map)].
 
-[listing]
-----
-> gradle -q compileJava
-
-* What went wrong:
-Could not resolve all files for configuration ':compileClasspath'.
-> Could not find jms.jar (javax.jms:jms:1.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/javax/jms/jms/1.1/jms-1.1.jar
-> Could not find jmxtools.jar (com.sun.jdmk:jmxtools:1.2.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar
-> Could not find jmxri.jar (com.sun.jmx:jmxri:1.2.1).
-  Searched in the following locations:
-      https://repo.maven.apache.org/maven2/com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar
-----
-
-The situation can be fixed by adding a repository containing those dependencies. In the given example project, the source code does not actually use any of Log4J's functionality that require the JMS (e.g. `link:https://logging.apache.org/log4j/1.2/apidocs/org/apache/log4j/net/JMSAppender.html[JMSAppender]`) or JMX libraries. It's safe to exclude them from the dependency declaration.
-
-Exclusions need to spelled out as a key/value pair via the attributes `group` and/or `module`. For more information, refer to link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#exclude-java.util.Map-[ModuleDependency.exclude(java.util.Map)].
-
-.Excluding transitive dependency for a particular dependency declaration
+.Excluding a transitive dependency for a particular dependency declaration
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-1]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-1]"]
 ====
 
-You may find that other dependencies will want to pull in the same transitive dependency that misses the artifacts. Alternatively, you can exclude the transitive dependencies for a particular configuration by calling the method link:{groovyDslPath}/org.gradle.api.artifacts.Configuration.html#org.gradle.api.artifacts.Configuration:exclude(java.util.Map)[Configuration.exclude(java.util.Map)].
+In this example, we add a dependency to `commons-beanutils` but exclude the transitive dependency `commons-collections`.
+In our code, shown below, we only use one method from the beanutils library, `PropertyUtils.setSimpleProperty()`.
+Using this method for existing setters does not require any functionality from `commons-collections` as we verified through test coverage.
 
-.Excluding transitive dependency for a particular configuration
+.Using a utility from the beanutils library
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
-====
-
-[NOTE]
-====
-As a build script author you often times know that you want to exclude a dependency for all configurations available in the project. You can use the method link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all-org.gradle.api.Action-[DomainObjectCollection.all(org.gradle.api.Action)] to define a global rule.
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/groovy",files="src/main/java/Main.java"]
 ====
 
-You might encounter other use cases that don't quite fit the bill of an exclude rule. For example you want to automatically select a version for a dependency with a specific requested version or you want to select a different group for a requested dependency to react to a relocation. Those use cases are better solved by the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] API. Some of these use cases are covered in <<customizing_dependency_resolution_behavior.adoc#customizing_dependency_resolution_behavior,Customizing Dependency Resolution Behavior>>.
+Effectively, we are expressing that we only use a _subset_ of the library, which does not require the `commons-collection` library.
+This can be seen as implicitly defining a <<feature_variants.adoc#,feature variant>> that has not been explicitly declared by `commons-beanutils` itself.
+However, the risk of breaking an untested code path increased by doing this.
+
+For example, here we use the `setSimpleProperty()` method to modify properties defined by setters in the `Person` class, which works fine.
+If we would attempt to set a property not existing on the class, we _should_ get an error like `Unknown property on class Person`.
+However, because the error handling path uses a class from `commons-collections`, the error we now get is `NoClassDefFoundError: org/apache/commons/collections/FastHashMap`.
+So if our code would be more dynamic, and we would forget to cover the error case sufficiently, consumers of our library might be confronted with unexpected errors.
+
+This is only an example to illustrate potential pitfalls.
+In practice, larger libraries or frameworks can bring in a huge set of dependencies.
+If those libraries fail to declare features sepratly and can only be consumed in a "all or nothing" fashion, excludes can be a valid method to reduce the library to the feature set actually required.
+
+On the upside, Gradle's exclude handling is, in contrast to Maven, taking the whole dependency graph into account.
+So if there are multiple dependencies on a library, excludes are only exercised if all dependencies agree on them.
+For example, if we add `opencsv` as another dependency to our project above, which also depends on `commons-beanutils`, `commons-collection` is no longer excluded as `opencsv` itself does *not* exclude it.
+
+
+.Excludes only apply if all dependency declarations agree on an exclude
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-2]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-2]"]
+====
+
+If we still want to have `commons-collections` excluded, because our combined usage of `commons-beanutils` and `opencsv` does not need it, we need to exclude it from the transitive dependencies of `opencsv` as well.
+
+.Excluding a transitive dependency for multiple dependency declaration
+====
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/groovy",files="build.gradle[tags=exclude-transitive-dependencies-3]"]
+include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-3]"]
+====
+
+Historically, excludes are also used as a band aid to fix other issues not supported by some dependency management systems.
+Grade however, offers a variaty of features that might be better suited to solve a certain use case.
+You may consider to look into the following features:
+
+- <<#sec:enforcing_dependency_version,Update>> or <<#sec:enforcing_dependency_version,downgrade>> dependency versions:
+  If versions of dependencies clash, it is usually better to adjust the version through a dependency constraint, instead of attempting to exclude the dependency with the undesired version.
+- <<component_metadata_rules.adoc#,Component Metadata Rules>>:
+  If a library's metadata is clearly wrong, for example if it includes a compile time dependency which is never needed at compile time, a possible solution is to remove the dependency in a component metadata rule.
+  By this, you tell Gradle that a dependency between two modules is never needed - i.e. the metadata was wrong - and therefore should *never* be considered.
+  If you are developing a library, you have to be aware that this information is not published, and so sometimes an _exclude_ can be the better alternative.
+- <<dependency_capability_conflict.adoc#,Resolving mutually exclusive dependency conflicts>>:
+  Another situation that you often see solved by excludes is that two dependencies can not be used together because they represent two implementations of the same thing (the same <<dependency_capability_conflict.adoc#sub:capabilities,capability>>).
+  A popular example are clashing logging API implementations (like `log4j` and `log4j-over-slf4j`) or modules that have different coordinates in different versions (like `com.google.collections` and `guava`).
+  In this case, if this information is not known to Gradle, it is recommended to add the missing capability information via component metadata rules as described in the <<dependency_capability_conflict.adoc#sub:declaring-component-candidates,declaring component capabilities>> section.
+  Even if you are developing a library, and your consumers will have to deal with resolving the conflict again, it is often the right solution to leave the decssion to the final consumers of libraries.
+  I.e. you as a library author should not have to decide which logging implementation your consumers use in the end.
+
