@@ -83,6 +83,9 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     @Override
     public ExternalModuleDependency setForce(boolean force) {
         validateMutation(this.force, force);
+        if (force) {
+            DeprecationLogger.nagUserOfDeprecatedThing("Using force on a dependency is not recommended.", "Consider using strict version constraints instead (version { strictly ... } })");
+        }
         this.force = force;
         return this;
     }
