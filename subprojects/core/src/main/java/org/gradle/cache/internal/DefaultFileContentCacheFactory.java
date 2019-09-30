@@ -26,7 +26,7 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -40,15 +40,15 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultFileContentCacheFactory implements FileContentCacheFactory, Closeable {
     private final ListenerManager listenerManager;
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final VirtualFileSystem virtualFileSystem;
     private final InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory;
     private final PersistentCache cache;
     private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
-    private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<String, DefaultFileContentCache<?>>();
+    private final ConcurrentMap<String, DefaultFileContentCache<?>> caches = new ConcurrentHashMap<>();
 
-    public DefaultFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, @Nullable Object scope) {
+    public DefaultFileContentCacheFactory(ListenerManager listenerManager, VirtualFileSystem virtualFileSystem, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, @Nullable Object scope) {
         this.listenerManager = listenerManager;
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.virtualFileSystem = virtualFileSystem;
         this.inMemoryCacheDecoratorFactory = inMemoryCacheDecoratorFactory;
         cache = cacheRepository
             .cache(scope, "fileContent")
@@ -70,7 +70,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
 
         DefaultFileContentCache<V> cache = (DefaultFileContentCache<V>) caches.get(name);
         if (cache == null) {
-            cache = new DefaultFileContentCache<V>(name, fileSystemSnapshotter, store, calculator);
+            cache = new DefaultFileContentCache<>(name, virtualFileSystem, store, calculator);
             DefaultFileContentCache<V> existing = (DefaultFileContentCache<V>) caches.putIfAbsent(name, cache);
             if (existing == null) {
                 listenerManager.addListener(cache);
@@ -89,15 +89,15 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
      * The second level indexes on the hash of file content and contains the value that was calculated from a file with the given hash.
      */
     private static class DefaultFileContentCache<V> implements FileContentCache<V>, OutputChangeListener {
-        private final Map<File, V> cache = new ConcurrentHashMap<File, V>();
+        private final Map<File, V> locationCache = new ConcurrentHashMap<>();
         private final String name;
-        private final FileSystemSnapshotter fileSystemSnapshotter;
+        private final VirtualFileSystem virtualFileSystem;
         private final PersistentIndexedCache<HashCode, V> contentCache;
         private final Calculator<? extends V> calculator;
 
-        DefaultFileContentCache(String name, FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
+        DefaultFileContentCache(String name, VirtualFileSystem virtualFileSystem, PersistentIndexedCache<HashCode, V> contentCache, Calculator<? extends V> calculator) {
             this.name = name;
-            this.fileSystemSnapshotter = fileSystemSnapshotter;
+            this.virtualFileSystem = virtualFileSystem;
             this.contentCache = contentCache;
             this.calculator = calculator;
         }
@@ -105,7 +105,7 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
         @Override
         public void beforeOutputChange() {
             // A very dumb strategy for invalidating cache
-            cache.clear();
+            locationCache.clear();
         }
 
         @Override
@@ -115,22 +115,13 @@ public class DefaultFileContentCacheFactory implements FileContentCacheFactory, 
 
         @Override
         public V get(File file) {
-            // TODO - don't calculate the same value concurrently
-            V value = cache.get(file);
-            if (value == null) {
-                HashCode contentHash = fileSystemSnapshotter.getRegularFileContentHash(file);
-                if (contentHash != null) {
-                    value = contentCache.get(contentHash);
-                    if (value == null) {
-                        value = calculator.calculate(file, true);
-                        contentCache.put(contentHash, value);
-                    }
-                } else {
-                    value = calculator.calculate(file, false);
-                }
-                cache.put(file, value);
-            }
-            return value;
+            return locationCache.computeIfAbsent(file,
+                location -> virtualFileSystem.readRegularFileContentHash(
+                    location.getAbsolutePath(),
+                    contentHash -> contentCache.get(contentHash, key -> calculator.calculate(location, true))
+                ).orElseGet(
+                    () -> calculator.calculate(location, false)
+                ));
         }
 
         private void assertStoredIn(PersistentIndexedCache<HashCode, V> store) {

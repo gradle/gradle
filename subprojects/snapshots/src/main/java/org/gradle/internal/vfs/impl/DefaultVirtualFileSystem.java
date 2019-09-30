@@ -37,8 +37,9 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
@@ -64,7 +65,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void readRegularFileContentHash(String location, Consumer<HashCode> visitor) {
+    public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
+        AtomicReference<T> result = new AtomicReference<>();
         readLocation(location)
             .accept(new FileSystemSnapshotVisitor() {
                 @Override
@@ -75,7 +77,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 @Override
                 public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
                     if (fileSnapshot.getType() == FileType.RegularFile) {
-                        visitor.accept(fileSnapshot.getHash());
+                        result.set(visitor.apply(fileSnapshot.getHash()));
                     }
                 }
 
@@ -83,6 +85,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
                 }
             });
+        return Optional.ofNullable(result.get());
     }
 
     @Override

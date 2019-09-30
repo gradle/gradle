@@ -18,7 +18,7 @@ package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
@@ -45,14 +45,14 @@ public class IncrementalCompileFilesFactory {
     private final IncludeDirectives initialIncludeDirectives;
     private final SourceIncludesParser sourceIncludesParser;
     private final SourceIncludesResolver sourceIncludesResolver;
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final VirtualFileSystem virtualFileSystem;
     private final boolean ignoreUnresolvedHeadersInDependencies;
 
-    public IncrementalCompileFilesFactory(IncludeDirectives initialIncludeDirectives, SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, FileSystemSnapshotter fileSystemSnapshotter) {
+    public IncrementalCompileFilesFactory(IncludeDirectives initialIncludeDirectives, SourceIncludesParser sourceIncludesParser, SourceIncludesResolver sourceIncludesResolver, VirtualFileSystem virtualFileSystem) {
         this.initialIncludeDirectives = initialIncludeDirectives;
         this.sourceIncludesParser = sourceIncludesParser;
         this.sourceIncludesResolver = sourceIncludesResolver;
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.virtualFileSystem = virtualFileSystem;
         this.ignoreUnresolvedHeadersInDependencies = Boolean.getBoolean(IGNORE_UNRESOLVED_HEADERS_IN_DEPENDENCIES_PROPERTY_NAME);
     }
 
@@ -88,41 +88,40 @@ public class IncrementalCompileFilesFactory {
          * @return true if this source file requires recompilation, false otherwise.
          */
         private boolean visitSourceFile(File sourceFile) {
-            HashCode fileContent = fileSystemSnapshotter.getRegularFileContentHash(sourceFile);
-            if (fileContent == null) {
-                // Skip things that aren't files
-                return false;
-            }
+            return virtualFileSystem.readRegularFileContentHash(sourceFile.getAbsolutePath(),
+                fileContent -> {
+                    SourceFileState previousState = previous.getState(sourceFile);
 
-            SourceFileState previousState = previous.getState(sourceFile);
-
-            if (previousState != null) {
-                // Already seen this source file before. See if we can reuse the analysis from last time
-                if (graphHasNotChanged(sourceFile, fileContent, previousState, existingHeaders)) {
-                    // Include file graph for this source file has not changed, skip this file
-                    current.setState(sourceFile, previousState);
-                    if (previousState.isHasUnresolved() && !ignoreUnresolvedHeadersInDependencies) {
-                        hasUnresolvedHeaders = true;
-                        return true;
+                    if (previousState != null) {
+                        // Already seen this source file before. See if we can reuse the analysis from last time
+                        if (graphHasNotChanged(sourceFile, fileContent, previousState, existingHeaders)) {
+                            // Include file graph for this source file has not changed, skip this file
+                            current.setState(sourceFile, previousState);
+                            if (previousState.isHasUnresolved() && !ignoreUnresolvedHeadersInDependencies) {
+                                hasUnresolvedHeaders = true;
+                                return true;
+                            }
+                            return false;
+                        }
+                        // Else, something has changed in the include file graph for this source file, so analyse again
                     }
-                    return false;
-                }
-                // Else, something has changed in the include file graph for this source file, so analyse again
-            }
 
-            // Source file has not been compiled before, or its include file graph has changed in some way
-            // Calculate the include file graph for the source file and mark for recompilation
+                    // Source file has not been compiled before, or its include file graph has changed in some way
+                    // Calculate the include file graph for the source file and mark for recompilation
 
-            CollectingMacroLookup visibleMacros = new CollectingMacroLookup(initialIncludeDirectives);
-            FileVisitResult result = visitFile(sourceFile, fileContent, visibleMacros, new HashSet<HashCode>(), existingHeaders);
-            Set<IncludeFileEdge> includedFiles = new LinkedHashSet<IncludeFileEdge>();
-            result.collectFilesInto(includedFiles, new HashSet<File>());
-            SourceFileState newState = new SourceFileState(fileContent, result.result == IncludeFileResolutionResult.UnresolvedMacroIncludes, ImmutableSet.copyOf(includedFiles));
-            current.setState(sourceFile, newState);
-            if (newState.isHasUnresolved()) {
-                hasUnresolvedHeaders = true;
-            }
-            return true;
+                    CollectingMacroLookup visibleMacros = new CollectingMacroLookup(initialIncludeDirectives);
+                    FileVisitResult result = visitFile(sourceFile, fileContent, visibleMacros, new HashSet<HashCode>(), existingHeaders);
+                    Set<IncludeFileEdge> includedFiles = new LinkedHashSet<IncludeFileEdge>();
+                    result.collectFilesInto(includedFiles, new HashSet<File>());
+                    SourceFileState newState = new SourceFileState(fileContent, result.result == IncludeFileResolutionResult.UnresolvedMacroIncludes, ImmutableSet.copyOf(includedFiles));
+                    current.setState(sourceFile, newState);
+                    if (newState.isHasUnresolved()) {
+                        hasUnresolvedHeaders = true;
+                    }
+                    return true;
+                })
+            // Skip things that aren't files
+            .orElse(false);
         }
 
         private boolean graphHasNotChanged(File sourceFile, HashCode fileHash, SourceFileState previousState, Set<File> existingHeaders) {
