@@ -54,25 +54,16 @@ class OtoolBinaryInfo implements BinaryInfo {
         return lines
     }
 
-    List<BinaryInfo.Symbol> listSymbols() {
-        def process = ['nm', '-a', '-f', 'posix', binaryFile.absolutePath].execute(environments, null)
-        def lines = process.inputStream.readLines()
-        return lines.collect { line ->
-            // Looks like:
-            // _main t 0 0
-            def splits = line.split(' ')
-            String name = splits[0]
-            char type = splits[1].getChars()[0]
-            new BinaryInfo.Symbol(name, type, Character.isUpperCase(type))
-        }
+    List<Symbol> listSymbols() {
+        return NMToolFixture.of(environments).listSymbols(binaryFile)
     }
 
     @Override
-    List<BinaryInfo.Symbol> listDebugSymbols() {
+    List<Symbol> listDebugSymbols() {
         return listSymbols() + listDwarfSymbols()
     }
 
-    List<BinaryInfo.Symbol> listDwarfSymbols() {
+    List<Symbol> listDwarfSymbols() {
         def process = ['dwarfdump', '--diff', binaryFile.absolutePath].execute(environments, null)
         def lines = process.inputStream.readLines()
         def symbols = []
@@ -84,7 +75,7 @@ class OtoolBinaryInfo implements BinaryInfo {
             def findSymbol = (line =~ /.*(DW_)?AT_name\s*\(\s*"(.*)"\s*\)/)
             if (findSymbol.matches()) {
                 def name = new File(findSymbol[0][2] as String).name.trim()
-                symbols << new BinaryInfo.Symbol(name, 'D' as char, true)
+                symbols << new Symbol(name, 'D' as char, true)
             }
         }
         return symbols
