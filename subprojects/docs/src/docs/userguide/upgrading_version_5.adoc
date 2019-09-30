@@ -243,7 +243,7 @@ Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kot
 
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
-- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.6.html[Ant 1.10.6].
+- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.7.html[Ant 1.10.7].
 
 ==== Updates to default integration versions
 
