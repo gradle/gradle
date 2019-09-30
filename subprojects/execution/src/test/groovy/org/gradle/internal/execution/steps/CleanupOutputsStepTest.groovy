@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps
 
-
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
