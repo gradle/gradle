@@ -53,7 +53,7 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
             }
         }
         String conf = executer.getDistribution().getVersion().compareTo(GradleVersion.version("3.4")) < 0 ? "compile" : "implementation";
-        String destinationDir = executer.getDistribution().getVersion().compareTo(GradleVersion.version("5.0")) < 0 ? "destinationDir" : "destinationDirectory";
+        String destinationDir = executer.getDistribution().getVersion().compareTo(GradleVersion.version("5.1")) < 0 ? "destinationDir" : "destinationDirectory";
         String archiveName = executer.getDistribution().getVersion().compareTo(GradleVersion.version("5.0")) < 0 ? "archiveName" : "archiveFileName";
         rootDir.file("settings.gradle").touch();
         rootDir.file("build.gradle").writelns(
