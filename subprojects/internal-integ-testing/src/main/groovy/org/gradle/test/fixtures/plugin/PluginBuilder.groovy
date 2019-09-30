@@ -178,19 +178,6 @@ class PluginBuilder {
         this
     }
 
-    PluginBuilder addSettingPlugin(String impl, String id = "test-plugin", String className = "TestPlugin") {
-        addPluginSource(id, className, """
-            package $packageName
-
-            class $className implements $Plugin.name<$Settings.name> {
-                void apply($Settings.name settings) {
-                    $impl
-                }
-            }
-        """)
-        this
-    }
-
     PluginBuilder addSettingsPlugin(String impl, String id = "test-settings-plugin", String className = "TestSettingsPlugin") {
         addPluginSource(id, className, """
             ${packageName ? "package $packageName" : ""}
@@ -203,6 +190,7 @@ class PluginBuilder {
         """)
         this
     }
+
     PluginBuilder addUnloadablePlugin(String id = "test-plugin", String className = "TestPlugin") {
         addPluginSource(id, className, """
             ${packageName ? "package $packageName" : ""}

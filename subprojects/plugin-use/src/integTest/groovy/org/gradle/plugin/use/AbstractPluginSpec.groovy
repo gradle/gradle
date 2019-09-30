@@ -54,7 +54,7 @@ abstract class AbstractPluginSpec extends AbstractIntegrationSpec {
         @Language(value = "groovy", prefix = "void apply(org.gradle.api.initialization.Settings settings) {\n", suffix = "\n}") String impl
     ) {
         pluginBuilder.with {
-            addSettingPlugin(impl, PLUGIN_ID)
+            addSettingsPlugin(impl, PLUGIN_ID)
             publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll().pluginModule as MavenHttpModule
         }
     }

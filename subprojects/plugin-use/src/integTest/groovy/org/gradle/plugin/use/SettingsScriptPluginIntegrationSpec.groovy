@@ -114,7 +114,7 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         file("settings$settingScriptExtension") << use
         def initScript = file("init.gradle") << """
             settingsEvaluated {
-                println it.buildscript.classLoader.loadClass("${pluginBuilder.packageName}.TestPlugin").name
+                println it.buildscript.classLoader.loadClass("${pluginBuilder.packageName}.TestSettingsPlugin").name
             }
         """
 
@@ -123,7 +123,7 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
         succeeds 'help'
 
         then:
-        outputContains("${pluginBuilder.packageName}.TestPlugin")
+        outputContains("${pluginBuilder.packageName}.TestSettingsPlugin")
 
         where:
         settingScriptExtension | use
