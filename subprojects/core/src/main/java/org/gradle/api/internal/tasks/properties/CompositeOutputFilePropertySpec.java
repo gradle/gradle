@@ -38,7 +38,7 @@ public class CompositeOutputFilePropertySpec extends AbstractFilePropertySpec im
     }
 
     @Override
-    public File getRoot() {
+    public File getOutputFile() {
         return root;
     }
 }

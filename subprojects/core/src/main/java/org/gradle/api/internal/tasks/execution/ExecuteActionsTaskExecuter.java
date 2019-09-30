@@ -311,7 +311,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
             for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), property.getRoot());
+                File outputFile = property.getOutputFile();
+                if (outputFile != null) {
+                    visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile);
+                }
             }
         }
 
