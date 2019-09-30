@@ -57,7 +57,7 @@ In the end, what we want to make a difference is between a _consumer_ and a _pro
 1. to declare dependencies
 2. as a _consumer_, to resolve a set of dependencies to files
 3. as a _producer_, to expose artifacts and their dependencies for consumption by other projects
-   (such _consumable_ configurations usually represent the <<variant_model.adoc#,variants>> the produces offers to its consumers)
+   (such _consumable_ configurations usually represent the <<variant_model.adoc#,variants>> the producer offers to its consumers)
 
 For example, if I want to express that my application `app` _depends on_ library `lib`, we need _at least_ one configuration:
 

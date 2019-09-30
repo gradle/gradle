@@ -152,8 +152,8 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies-3]"]
 ====
 
-Historically, excludes are also used as a band aid to fix other issues not supported by some dependency management systems.
-Grade however, offers a variaty of features that might be better suited to solve a certain use case.
+Historically, excludes were also used as a band aid to fix other issues not supported by some dependency management systems.
+Gradle however, offers a variety of features that might be better suited to solve a certain use case.
 You may consider to look into the following features:
 
 - <<#sec:enforcing_dependency_version,Update>> or <<#sec:enforcing_dependency_version,downgrade>> dependency versions:
@@ -165,7 +165,7 @@ You may consider to look into the following features:
 - <<dependency_capability_conflict.adoc#,Resolving mutually exclusive dependency conflicts>>:
   Another situation that you often see solved by excludes is that two dependencies can not be used together because they represent two implementations of the same thing (the same <<dependency_capability_conflict.adoc#sub:capabilities,capability>>).
   A popular example are clashing logging API implementations (like `log4j` and `log4j-over-slf4j`) or modules that have different coordinates in different versions (like `com.google.collections` and `guava`).
-  In this case, if this information is not known to Gradle, it is recommended to add the missing capability information via component metadata rules as described in the <<dependency_capability_conflict.adoc#sub:declaring-component-candidates,declaring component capabilities>> section.
+  In this case, if this information is not known to Gradle, it is recommended to add the missing capability information via component metadata rules as described in the <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,declaring component capabilities>> section.
   Even if you are developing a library, and your consumers will have to deal with resolving the conflict again, it is often the right solution to leave the decssion to the final consumers of libraries.
   I.e. you as a library author should not have to decide which logging implementation your consumers use in the end.
 

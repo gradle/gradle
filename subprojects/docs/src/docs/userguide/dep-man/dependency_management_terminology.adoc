@@ -32,7 +32,7 @@ Directories are common in the case of inter-project dependencies to avoid the co
 A capability identifies a feature offered by one or multiple components.
 A capability is identified by coordinates similar to the coordinates used for a <<sub:terminology_module_version,module versions>>.
 By default, each module version offers a capability that matches it's coordinates, for example `com.google:guava:18.0`.
-Capabilities can be used to express that a component provides multiple <<sub:terminology_feature_variant,feature variants>> or that two different components implement the same feature (and can thus not be used together).
+Capabilities can be used to express that a component provides multiple <<sub:terminology_feature_variant,feature variants>> or that two different components implement the same feature (and thus cannot be used together).
 For more details, see the section on <<component_capabilities.adoc#,capabilities>>.
 
 [[sub:terminology_component]]
@@ -78,7 +78,7 @@ For more information, see the sections on <<dependency_constraints.adoc#,upgradi
 
 A feature variant is a <<#sub:terminology_variant,variant>> representing a feature of a component that can be individually selected or not.
 A feature variant is identified by one or more <<#sub:terminology_capability,capabilities>>.
-A For more information, see the sections on <<feature_variants.adoc#,modeling feature variants and optional dependencies>>.
+For more information, see the sections on <<feature_variants.adoc#,modeling feature variants and optional dependencies>>.
 
 [[sub:terminology_module]]
 == Module
@@ -92,13 +92,12 @@ For convenient consumption, modules can be hosted in a <<#sub:terminology_reposi
 
 Releases of a <<#sub:terminology_module,module>> provide metadata.
 Metadata is the data that describes the module in more detail e.g. information about the location of artifacts or required <<#sub:terminology_transitive_dependency,transitive dependencies>>.
-Gradle offers it's own metadata format called link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[Gradle Module Metadata] (`.module` file) but also supports Maven (`.pom`) and Ivy (`ivy.xml`) metadata.
+Gradle offers its own metadata format called link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[Gradle Module Metadata] (`.module` file) but also supports Maven (`.pom`) and Ivy (`ivy.xml`) metadata.
 See the section on <<publishing_gradle_module_metadata.adoc#,understanding Gradle Module Metadata>> for more information on the supported metadata formats.
 
 == Component metadata rule
 
-A component metadata rule is a rule that modifies a component's metad
-ata after it was fetched from a repository, e.g. to add missing information or to correct wrong information.
+A component metadata rule is a rule that modifies a component's metadata after it was fetched from a repository, e.g. to add missing information or to correct wrong information.
 In contrast to <<#sub:terminology_resolution_rule,resolution rules>>, component metadata rules are applied *before* resolution starts.
 Component metadata rules are defined as part of the build logic and can be shared through plugins.
 For more information, see the section on <<component_metadata_rules.adoc#,fixing metadata with component metadata rules>>.
