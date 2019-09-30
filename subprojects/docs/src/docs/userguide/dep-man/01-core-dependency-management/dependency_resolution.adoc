@@ -237,8 +237,8 @@ While most users only need access to a "flat list" of files, there are cases whe
 - for tasks providing diagnostics (similar to the `dependencyInsight` task)
 - for tasks which need to perform dependency resolution at execution time (e.g, download files on demand)
 
-For those use cases, Gradle provides lazy, thread-safe APIs, accessible by calling the {javadocPath}org/gradle/api/artifacts/Configuration.html#getIncoming--[Configuration#getIncoming] method:
+For those use cases, Gradle provides lazy, thread-safe APIs, accessible by calling the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getIncoming--[Configuration.getIncoming()] method:
 
-- the {javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getResolutionResult--[ResolutionResult API] gives access to a resolved dependency graph, whether the resolution was successful or not.
-- the {javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getArtifacts--[artifacts API] provides a simple access to the resolved artifacts, untransformed, but with lazy download of artifacts (they would only be downloaded on demand).
-- the {javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html##artifactView-org.gradle.api.Action-[artifact view API] provides an advanced, filtered view of artifacts, possibly <<artifact_transforms.adoc#sec:abm_artifact_transforms, transformed>>.
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getResolutionResult--[ResolutionResult API] gives access to a resolved dependency graph, whether the resolution was successful or not.
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getArtifacts--[artifacts API] provides a simple access to the resolved artifacts, untransformed, but with lazy download of artifacts (they would only be downloaded on demand).
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#artifactView-org.gradle.api.Action-[artifact view API] provides an advanced, filtered view of artifacts, possibly <<artifact_transforms.adoc#sec:abm_artifact_transforms,transformed>>.
