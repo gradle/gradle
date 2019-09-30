@@ -136,7 +136,7 @@ public class FileParameterUtils {
                 public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
                     for (File content : contents) {
                         FileCollectionInternal outputFiles = fileCollectionFactory.fixed(content);
-                        consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + (index.incrementAndGet()), outputFiles, outputType));
+                        consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "$" + index.incrementAndGet(), outputFiles, outputType));
                     }
                 }
 
