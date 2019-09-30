@@ -305,6 +305,38 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skipped(':myTask')
     }
 
+    def "can register multiple file trees within a single output property"() {
+        buildFile << """import org.gradle.api.tasks.OutputFiles
+import org.gradle.api.tasks.TaskAction
+            abstract class MyTask extends DefaultTask {
+                @OutputFiles
+                abstract ConfigurableFileCollection getOutputFiles()
+                
+                @TaskAction
+                void doStuff() {
+                    project.file('build/dir1/output1.txt').text = "first"
+                    project.file('build/dir2/output2.txt').text = "second"
+                }
+            }
+            
+            tasks.register("myTask", MyTask) {
+                outputFiles.from(fileTree('build/dir1'))
+                outputFiles.from(fileTree('build/dir2'))
+            }
+        """
+
+        when:
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        file("build/dir1").deleteDir()
+        run("myTask")
+        then:
+        executedAndNotSkipped(":myTask")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/4204")
     def "changing path of empty root directory makes task out of date for #inputAnnotation"() {
         buildFile << """

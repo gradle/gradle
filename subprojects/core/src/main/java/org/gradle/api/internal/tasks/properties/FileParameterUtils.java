@@ -155,7 +155,7 @@ public class FileParameterUtils {
                     // We could support an unfiltered DirectoryFileTree here as a cacheable root,
                     // but because @OutputDirectory also doesn't support it we choose not to.
                     consumer.accept(new CompositeOutputFilePropertySpec(
-                        propertyName,
+                        propertyName + "$" + index.incrementAndGet(),
                         new PropertyFileCollection(ownerDisplayName, propertyName, "output", fileTree),
                         root,
                         TreeType.DIRECTORY
