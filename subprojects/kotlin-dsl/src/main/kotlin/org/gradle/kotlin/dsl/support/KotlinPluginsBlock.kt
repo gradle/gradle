@@ -20,9 +20,10 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 
+import org.gradle.kotlin.dsl.KotlinSettingsScript
+import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.ScriptHandlerScope
 import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
-import org.gradle.kotlin.dsl.support.delegates.SettingsDelegate
 import org.gradle.plugin.management.PluginManagementSpec
 
 import org.gradle.plugin.use.PluginDependenciesSpec
@@ -46,20 +47,11 @@ abstract class KotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec
  * @constructor Must match the constructor of the [KotlinBuildscriptAndPluginsBlock] the object!
  */
 abstract class KotlinPluginManagementBuildscriptAndPluginsBlock(
-    private val host: KotlinScriptHost<Settings>,
-    val pluginDependencies: PluginDependenciesSpec
-) : SettingsDelegate() {
+    host: KotlinScriptHost<Settings>,
+    private val pluginDependencies: PluginDependenciesSpec
+) : KotlinSettingsScript(host) {
 
-    override val delegate: Settings
-        get() = host.target
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
-
-    fun pluginManagement(configuration: PluginManagementSpec.() -> Unit) {
+    override fun pluginManagement(configuration: PluginManagementSpec.() -> Unit) {
         delegate.pluginManagement.configuration()
     }
 
@@ -68,12 +60,12 @@ abstract class KotlinPluginManagementBuildscriptAndPluginsBlock(
      *
      * @see [Project.buildscript]
      */
-    fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+    override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
         buildscript.configureWith(block)
     }
 
-    inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
-        pluginDependencies.configuration()
+    override fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
+        PluginDependenciesSpecScope(pluginDependencies).configuration()
     }
 }
 
