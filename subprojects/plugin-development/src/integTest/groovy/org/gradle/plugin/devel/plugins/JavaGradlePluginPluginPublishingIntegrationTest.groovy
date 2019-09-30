@@ -115,7 +115,7 @@ class JavaGradlePluginPluginPublishingIntegrationTest extends AbstractIntegratio
         def barMarker = mavenRepo.module('com.example.bar', 'com.example.bar' + PLUGIN_MARKER_SUFFIX, '1.0')
         [fooMarker, barMarker].each { marker ->
             marker.assertPublished()
-            assert marker.parsedPom.scopes['runtime'].expectDependency('com.example:plugins:1.0')
+            assert marker.parsedPom.scopes['compile'].expectDependency('com.example:plugins:1.0')
         }
         with(fooMarker.parsedPom) {
             it.name == 'The Foo Plugin'

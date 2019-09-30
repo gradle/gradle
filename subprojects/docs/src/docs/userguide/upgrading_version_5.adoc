@@ -77,18 +77,16 @@ The related APIs in `StartParameter` are now deprecated.
 These methods currently do not work as expected.
 They are being deprecated to avoid confusion.
 
-=== Potential breaking changes
+==== Copy or archive duplicate paths without explicitly specifying a duplicates strategy has been deprecated
 
-==== Android Gradle Plugin 3.3 and earlier is not supported anymore
+Archive tasks `Tar` and `Zip` by default allow multiple entries for the same path to exist in the created archive.
+These https://github.com/gradle/gradle/issues/9990["grossly invalid zip files" can trigger zip bomb detection].
+To prevent this from happening accidentally, encountering duplicates while creating an archive now produces a deprecation message, and will fail the build starting with Gradle 7.0.
 
-Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
+Note that copy tasks also happily copy multiple sources with the same relative path to the destination directory.
+That behavior has also been deprecated.
 
-==== Archive tasks fail on duplicate files
-
-Until now archive tasks defaulted to the `INCLUDE` duplicates strategy, allowing the same path to exist multiple times in an archive.
-
-In Gradle 6.0 we are switching to `FAIL`, prohibiting duplicate files in archives.
-If you still want to allow them, you can be specify that explicitly:
+If you want to allow duplicates, you can specify that explicitly:
 
 ```
 task archive(type: Zip) {
@@ -98,7 +96,11 @@ task archive(type: Zip) {
 }
 ```
 
-*Note* that `Copy` and `Sync` tasks are unaffected: they still use the `INCLUDE` duplicates strategy as default.
+=== Potential breaking changes
+
+==== Android Gradle Plugin 3.3 and earlier is not supported anymore
+
+Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
 ==== Local build cache is always a directory cache
 
@@ -310,7 +312,7 @@ The following breaking changes will appear as deprecation warnings with Gradle 5
 * When <<groovy_plugin.adoc#sec:incremental_groovy_compilation,incremental Groovy compilation>> is enabled, a wrong configuration of the source roots or enabling Java annotation for Groovy now fails the build.
   Disable incremental Groovy compilation when you want to compile in those cases.
 * `ComponentSelectionRule` no longer can inject the metadata or ivy descriptor.
-  Use the methods on the <<declaring_dependency_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
+  Use the methods on the <<dynamic_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
   Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
@@ -417,7 +419,7 @@ configurations.all {
 }
 ```
 
-See <<controlling_transitive_dependencies.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
+See <<dependency_capability_conflict.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
 
 ==== File removal operations don't follow symlinked directories
 

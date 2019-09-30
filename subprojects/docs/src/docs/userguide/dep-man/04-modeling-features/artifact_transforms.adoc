@@ -248,3 +248,7 @@ include::sample[dir="userguide/dependencyManagement/artifactTransforms/increment
 ====
 <1> Inject `InputChanges`
 <2> Query for changes in the input artifact
+
+// TODO: https://github.com/gradle/gradle/issues/10867
+// [[artifact-resolution-queries]]
+// == Artifact resolution queries

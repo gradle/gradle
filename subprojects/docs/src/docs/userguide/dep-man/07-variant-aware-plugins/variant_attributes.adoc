@@ -1,8 +1,5 @@
-[[variant-aware-plugins]]
-= Variant-aware plugins
-
-[[sec:abm_declaring_attributes]]
-== Declaring attributes
+[[abm_declaring_attributes]]
+= Declaring attributes
 
 Attributes are _typed_. An attribute can be created via the `Attribute<T>.of` method:
 

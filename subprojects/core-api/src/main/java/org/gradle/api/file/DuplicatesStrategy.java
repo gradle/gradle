@@ -48,7 +48,6 @@ public enum DuplicatesStrategy {
     WARN,
 
     /**
-     * The default strategy for archives since 6.0.
      * Throw a {@link DuplicateFileCopyingException} when subsequent items are to be created at the same path.
      * <p>
      * Use this strategy when duplicates are an error condition that should cause the build to fail.

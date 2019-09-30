@@ -1,5 +1,6 @@
 // tag::add-property[]
 open class GreetingTask : DefaultTask() {
+    @get:Input
     var greeting = "hello from GreetingTask"
 
     @TaskAction

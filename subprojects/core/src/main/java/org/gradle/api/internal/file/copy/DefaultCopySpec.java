@@ -603,6 +603,17 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
 
         @Override
+        public boolean isDefaultDuplicateStrategy() {
+            if (duplicatesStrategy != DuplicatesStrategy.INHERIT) {
+                return false;
+            }
+            if (parentResolver != null) {
+                return parentResolver.isDefaultDuplicateStrategy();
+            }
+            return true;
+        }
+
+        @Override
         public boolean isCaseSensitive() {
             if (caseSensitive != null) {
                 return caseSensitive;

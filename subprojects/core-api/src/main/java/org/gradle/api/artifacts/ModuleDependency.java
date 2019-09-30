@@ -218,7 +218,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
     void doNotEndorseStrictVersions();
 
     /**
-     * Are the {@link VersionConstraint#getStrictVersion()} strict version} dependency constraints of the target module inherited?
+     * Are the {@link VersionConstraint#getStrictVersion()} strict version} dependency constraints of the target module endorsed?
      *
      * @since 6.0
      */

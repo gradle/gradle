@@ -42,6 +42,8 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":pluginUse"))
     implementation(project(":publish"))
+    implementation(project(":messaging"))
+    implementation(project(":workers"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))

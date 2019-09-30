@@ -277,12 +277,11 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         javaLibrary.assertPublished()
 
         javaLibrary.parsedPom.packaging == null // 'jar' packaging
-        javaLibrary.parsedPom.scopes.keySet() == ["compile", "runtime"] as Set
+        javaLibrary.parsedPom.scopes.keySet() == ["compile", "no_scope", "runtime"] as Set
         javaLibrary.parsedPom.scopes.compile.assertDependsOn("org.springframework:spring-core:1.2.9")
-        javaLibrary.parsedPom.scopes.compile.assertDependencyManagement("commons-logging:commons-logging:1.1")
 
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("org.apache.commons:commons-compress:1.5")
-        javaLibrary.parsedPom.scopes.runtime.assertDependencyManagement("commons-logging:commons-logging:1.2", "org.tukaani:xz:1.6")
+        javaLibrary.parsedPom.scopes.no_scope.assertDependencyManagement("commons-logging:commons-logging:1.1", "commons-logging:commons-logging:1.2", "org.tukaani:xz:1.6")
 
         and:
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
@@ -433,9 +432,9 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         then:
         javaLibrary.assertPublished()
 
-        javaLibrary.parsedPom.scopes.keySet() == ["runtime"] as Set
+        javaLibrary.parsedPom.scopes.keySet() == ["no_scope", "runtime"] as Set
         javaLibrary.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:")
-        javaLibrary.parsedPom.scopes.runtime.assertDependencyManagement("commons-collections:commons-collections:3.2.2")
+        javaLibrary.parsedPom.scopes.no_scope.assertDependencyManagement("commons-collections:commons-collections:3.2.2")
 
         and:
         javaLibrary.parsedModuleMetadata.variant("apiElements") {
