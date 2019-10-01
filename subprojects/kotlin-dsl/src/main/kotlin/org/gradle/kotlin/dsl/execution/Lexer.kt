@@ -228,7 +228,8 @@ enum class TopLevelBlockId {
     @Suppress("SpellCheckingInspection")
     initscript;
 
-    val tokenText by lazy { name }
+    val tokenText: String
+        get() = name
 
     companion object {
         fun topLevelBlockIdFor(target: ProgramTarget) = when (target) {
