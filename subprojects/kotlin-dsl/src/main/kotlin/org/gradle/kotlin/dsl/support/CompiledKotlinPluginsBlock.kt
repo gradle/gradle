@@ -39,27 +39,24 @@ abstract class CompiledKotlinPluginsBlock(val pluginDependencies: PluginDependen
  * Base class for the evaluation of a `pluginManagement` block followed by a
  * `buildscript` block followed by a `plugins` block.
  *
- * @constructor Must match the constructor of the [KotlinBuildscriptAndPluginsBlock] the object!
+ * @constructor Must match the constructor of the [CompiledKotlinBuildscriptAndPluginsBlock] the object!
  */
-abstract class KotlinPluginManagementBuildscriptAndPluginsBlock(
+@ImplicitReceiver(Settings::class)
+open class CompiledKotlinSettingsPluginManagementBlock(
     host: KotlinScriptHost<Settings>,
     private val pluginDependencies: PluginDependenciesSpec
-) : KotlinSettingsScript(host) {
-
-    override fun pluginManagement(configuration: PluginManagementSpec.() -> Unit) {
-        delegate.pluginManagement.configuration()
-    }
+) : CompiledKotlinSettingsScript(host) {
 
     /**
      * Configures the build script classpath for this project.
      *
      * @see [Project.buildscript]
      */
-    override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+    open fun buildscript(block: ScriptHandlerScope.() -> Unit) {
         buildscript.configureWith(block)
     }
 
-    override fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
+    open fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
         PluginDependenciesSpecScope(pluginDependencies).configuration()
     }
 }
@@ -68,7 +65,7 @@ abstract class KotlinPluginManagementBuildscriptAndPluginsBlock(
 /**
  * Base class for the evaluation of a `buildscript` block followed by a `plugins` block.
  *
- * @constructor Must match the constructor of the [KotlinPluginManagementBuildscriptAndPluginsBlock] object!
+ * @constructor Must match the constructor of the [CompiledKotlinSettingsPluginManagementBlock] object!
  */
 @ImplicitReceiver(Project::class)
 abstract class CompiledKotlinBuildscriptAndPluginsBlock(

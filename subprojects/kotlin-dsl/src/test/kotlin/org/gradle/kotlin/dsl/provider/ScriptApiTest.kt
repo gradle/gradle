@@ -7,9 +7,10 @@ import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
+import org.gradle.kotlin.dsl.support.CompiledKotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
-import org.gradle.kotlin.dsl.support.KotlinPluginManagementBuildscriptAndPluginsBlock
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -46,10 +47,6 @@ class ScriptApiTest {
         assert(KotlinSettingsScript::class.implements(Settings::enableFeaturePreview))
 
     @Test
-    fun `settings pluginManagement block template implements script api`() =
-        assertScriptApiOf<KotlinPluginManagementBuildscriptAndPluginsBlock>()
-
-    @Test
     fun `IDE init script template implements script api`() =
         assertScriptApiOf<KotlinInitScript>()
 
@@ -62,8 +59,16 @@ class ScriptApiTest {
         assertScriptApiOf<CompiledKotlinSettingsScript>()
 
     @Test
+    fun `compiled settings pluginManagement block template implements script api`() =
+        assertScriptApiOf<CompiledKotlinSettingsPluginManagementBlock>()
+
+    @Test
     fun `compiled project script template implements script api`() =
         assertScriptApiOf<CompiledKotlinBuildScript>()
+
+    @Test
+    fun `compiled project buildscript and plugins block template implements script api`() =
+        assertScriptApiOf<CompiledKotlinBuildscriptAndPluginsBlock>()
 
     @Test
     fun `precompiled project script template implements script api`() =

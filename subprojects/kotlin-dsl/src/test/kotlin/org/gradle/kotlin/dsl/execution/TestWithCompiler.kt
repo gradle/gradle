@@ -21,6 +21,7 @@ import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import org.gradle.api.Action
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.groovy.scripts.ScriptSource
@@ -84,12 +85,18 @@ abstract class TestWithCompiler : TestWithTempFiles() {
 
 
 internal
-inline fun mockSettings(stubbing: KStubbing<Settings>.(Settings) -> Unit = {}) =
-    mock<Settings> {
-        on { pluginManagement } doReturn mock<PluginManagementSpec>()
-
-        stubbing(it)
+inline fun mockSettings(
+    pluginManagementSpec: PluginManagementSpec = mock(),
+    stubbing: KStubbing<Settings>.(Settings) -> Unit = {}
+): Settings = mock {
+    on { pluginManagement } doReturn mock<PluginManagementSpec>()
+    on { pluginManagement(any<Action<PluginManagementSpec>>()) } doAnswer { invocation ->
+        invocation
+            .getArgument<Action<PluginManagementSpec>>(0)
+            .execute(pluginManagementSpec)
     }
+    stubbing(it)
+}
 
 
 /**

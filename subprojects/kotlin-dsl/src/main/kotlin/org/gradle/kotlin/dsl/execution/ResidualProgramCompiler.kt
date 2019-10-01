@@ -38,7 +38,7 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
-import org.gradle.kotlin.dsl.support.KotlinPluginManagementBuildscriptAndPluginsBlock
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 
 import org.gradle.kotlin.dsl.support.bytecode.ACONST_NULL
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
@@ -715,7 +715,7 @@ class ResidualProgramCompiler(
         get() = scriptDefinitionFromTemplate(
             when (programTarget) {
                 ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
-                ProgramTarget.Settings -> KotlinPluginManagementBuildscriptAndPluginsBlock::class
+                ProgramTarget.Settings -> CompiledKotlinSettingsPluginManagementBlock::class
                 else -> TODO("Unsupported program target: `$programTarget`")
             }
         )
