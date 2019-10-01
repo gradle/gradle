@@ -333,9 +333,7 @@ class ResidualProgramCompiler(
         precompiledScriptClassInstantiation(precompiledPluginsBlock) {
 
             /*
-             * val collector = PluginRequestCollector(scriptSource, PluginRequestCollector.AllowApplyFalse.ALLOWED)
-             * OR
-             * val collector = PluginRequestCollector(scriptSource, PluginRequestCollector.AllowApplyFalse.FORBIDDEN)
+             * val collector = PluginRequestCollector(kotlinScriptHost.scriptSource)
              */
             emitPluginRequestCollectorInstantiation()
 
@@ -352,9 +350,7 @@ class ResidualProgramCompiler(
     }
 
     /**
-     * val collector = PluginRequestCollector(scriptSource, PluginRequestCollector.AllowApplyFalse.ALLOWED)
-     * OR
-     * val collector = PluginRequestCollector(scriptSource, PluginRequestCollector.AllowApplyFalse.FORBIDDEN)
+     * val collector = PluginRequestCollector(kotlinScriptHost.scriptSource)
      */
     private
     fun MethodVisitor.emitPluginRequestCollectorInstantiation() {
