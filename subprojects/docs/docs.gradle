@@ -28,12 +28,14 @@ import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.RenderMarkdownTask
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.asciidoctor.gradle.AsciidoctorTask
 
 plugins {
     id 'java-library'
     id 'gradlebuild.jsoup'
     id 'javascript-base'
     id 'org.asciidoctor.convert'
+    id 'org.gradle.samples' version "0.15.14"
 }
 
 repositories {
@@ -138,7 +140,7 @@ configurations {
     }
     gradleFullDocsElements {
         outgoing.artifact(docsDir) {
-            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes', 'publishSamplesToDocsZip'
         }
     }
     gradleGettingStartedElements {
@@ -192,6 +194,8 @@ def imageFiles = fileTree(userguideSrcDir) {
     include 'img/*.jpg'
 }
 def resourceFiles = imageFiles + cssFiles
+
+
 
 def samples = tasks.register("samples", Sync) {
     from samplesSrcDir
@@ -435,6 +439,24 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         'samples-dir'       : 'src/samples'
 }
 
+tasks.withType(AsciidoctorTask).matching { it.name.contains("Sample") }.configureEach {
+    options doctype: 'book'
+
+    inputs.file("$srcDocsDir/css/manual.css")
+            .withPropertyName("manual")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.dir(file("src/main/resources"))
+            .withPropertyName("resources")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    attributes stylesdir    : file('src/docs/css/').absolutePath,
+            stylesheet          : 'manual.css',
+            nofooter            : true,
+            sectanchors         : true,
+            sectlinks           : true,
+            linkattrs           : true
+}
+
 def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
     dependsOn(userguideFlattenSources)
     sourceDir = userguideFlattenSources.get().destinationDir
@@ -557,7 +579,7 @@ tasks.register("docs") {
 tasks.register("docsZip", Zip) {
     // TODO: Reduce duplication
     from(docsDir)
-    dependsOn 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+    dependsOn 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes', 'publishSamplesToDocsZip'
 }
 
 def checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", org.gradle.gradlebuild.docs.FindBrokenInternalLinks) {
@@ -567,4 +589,15 @@ def checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", org.gradle
 
 tasks.named("check") {
     dependsOn(checkDeadInternalLinks)
+}
+
+extensions.getByName('samples').create('javaGradlePlugin') {
+    sampleDir = file("src/samples/javaGradlePlugin")
+    gradleVersion = project.provider { project.version.toString() }
+}
+
+tasks.register("publishSamplesToDocsZip", Copy) {
+    dependsOn("asciidocSampleIndex", "assembleJavaGradlePluginSample")
+    from(layout.buildDirectory.dir("gradle-samples"))
+    into(new File(docsDir, "samples"))
 }
