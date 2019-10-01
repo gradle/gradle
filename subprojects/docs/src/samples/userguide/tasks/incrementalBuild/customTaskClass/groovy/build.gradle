@@ -36,50 +36,56 @@ task processTemplatesAdHoc {
 }
 // end::ad-hoc-task[]
 
+// tag::ad-hoc-task-skip-when-empty[]
+task processTemplatesAdHocSkipWhenEmpty {
+    // ...
+
+    inputs.files(fileTree("src/templates"))
+        .skipWhenEmpty()
+        .withPropertyName("sourceFiles")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    // ...
+// end::ad-hoc-task-skip-when-empty[]
+    inputs.property("engine", TemplateEngineType.FREEMARKER)
+    inputs.property("templateData.name", "docs")
+    inputs.property("templateData.variables", [year: 2013])
+    outputs.dir("$buildDir/genOutput2")
+        .withPropertyName("outputDir")
+
+    doLast {
+        copy {
+            into "$buildDir/genOutput2"
+            from fileTree("src/templates")
+            expand([year: 2013])
+        }
+    }
+// tag::ad-hoc-task-skip-when-empty[]
+}
+// end::ad-hoc-task-skip-when-empty[]
+
 // tag::custom-class-runtime-api[]
-task processTemplatesRuntime(type: ProcessTemplatesNoAnnotations) {
+task processTemplatesWithExtraInputs(type: ProcessTemplates) {
+    // ...
+// end::custom-class-runtime-api[]
+    templateEngine = TemplateEngineType.FREEMARKER
+    sourceFiles = fileTree("src/templates")
+    templateData = new TemplateData("test", [year: 2014])
+    outputDir = file("$buildDir/genOutput")
+// tag::custom-class-runtime-api[]
+
+    inputs.file("src/headers/headers.txt")
+        .withPropertyName("headers")
+        .withPathSensitivity(PathSensitivity.NONE)
+}
+// end::custom-class-runtime-api[]
+
+task processTemplatesWithoutAnnotations(type: ProcessTemplatesNoAnnotations) {
     templateEngine = TemplateEngineType.FREEMARKER
     sourceFiles = fileTree("src/templates")
     templateData = new TemplateData("test", [year: 2014])
     outputDir = file("$buildDir/genOutput3")
-
-    inputs.property("engine", templateEngine)
-    inputs.files(sourceFiles)
-        .withPropertyName("sourceFiles")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.property("templateData.name", templateData.name)
-    inputs.property("templateData.variables", templateData.variables)
-    outputs.dir(outputDir)
-        .withPropertyName("outputDir")
 }
-// end::custom-class-runtime-api[]
-
-// tag::runtime-api-conf[]
-task processTemplatesRuntimeConf(type: ProcessTemplatesNoAnnotations) {
-    // ...
-// end::runtime-api-conf[]
-    templateEngine = TemplateEngineType.FREEMARKER
-    templateData = new TemplateData("test", [year: 2014])
-    outputDir = file("$buildDir/genOutput3")
-// tag::runtime-api-conf[]
-    sourceFiles = fileTree("src/templates") {
-        include "**/*.fm"
-    }
-
-    inputs.files(sourceFiles)
-        .skipWhenEmpty()
-        .withPropertyName("sourceFiles")
-        .withPathSensitivity(PathSensitivity.RELATIVE)
-    // ...
-// end::runtime-api-conf[]
-    inputs.property("engine",templateEngine)
-    inputs.property("templateData.name", templateData.name)
-    inputs.property("templateData.variables", templateData.variables)
-    outputs.dir(outputDir)
-        .withPropertyName("outputDir")
-// tag::runtime-api-conf[]
-}
-// end::runtime-api-conf[]
 
 // tag::inferred-task-dep-via-outputs[]
 task packageFiles(type: Zip) {
