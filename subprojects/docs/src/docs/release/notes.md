@@ -113,9 +113,9 @@ Property 'inputDirectory' is declared without normalization specified. Propertie
 Property 'outputFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
 ```
 
-Note that you need to run the build with `--warning-mode=all` to see the individual problems.
+Deprecation warnings always show up in [build scans](https://scans.gradle.com/s/txrptciitl2ha/deprecations) regardless of the command-line arguments used.
 
-The warnings also show up in build scans.
+See the user manual for [how to address these deprecation warnings](userguide/more_about_tasks.html#sec:task_input_validation). 
 
 ## More robust file deletion on Windows
 
