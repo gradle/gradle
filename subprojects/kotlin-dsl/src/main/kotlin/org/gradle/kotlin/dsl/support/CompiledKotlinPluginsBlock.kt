@@ -18,16 +18,14 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
 /**
  * Base class for `plugins` block evaluation.
  */
-abstract class CompiledKotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec) {
+open class CompiledKotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec) {
 
     inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
         pluginDependencies.configuration()
@@ -68,27 +66,21 @@ open class CompiledKotlinSettingsPluginManagementBlock(
  * @constructor Must match the constructor of the [CompiledKotlinSettingsPluginManagementBlock] object!
  */
 @ImplicitReceiver(Project::class)
-abstract class CompiledKotlinBuildscriptAndPluginsBlock(
-    private val host: KotlinScriptHost<Project>,
-    val pluginDependencies: PluginDependenciesSpec
-) {
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    val buildscript: ScriptHandler
-        get() = host.scriptHandler
+open class CompiledKotlinBuildscriptAndPluginsBlock(
+    host: KotlinScriptHost<Project>,
+    private val pluginDependencies: PluginDependenciesSpec
+) : CompiledKotlinBuildScript(host) {
 
     /**
      * Configures the build script classpath for this project.
      *
      * @see [Project.buildscript]
      */
-    fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+    override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
         buildscript.configureWith(block)
     }
 
-    inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
-        pluginDependencies.configuration()
+    override fun plugins(block: PluginDependenciesSpec.() -> Unit) {
+        pluginDependencies.block()
     }
 }

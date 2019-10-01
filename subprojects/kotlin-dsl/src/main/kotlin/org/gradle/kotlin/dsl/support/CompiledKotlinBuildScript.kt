@@ -30,9 +30,9 @@ import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginAware
 
-import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
 import org.gradle.kotlin.dsl.ScriptHandlerScope
 import org.gradle.kotlin.dsl.support.delegates.PluginAwareDelegate
+import org.gradle.plugin.use.PluginDependenciesSpec
 
 
 @ImplicitReceiver(Project::class)
@@ -61,7 +61,7 @@ open class CompiledKotlinBuildScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
+    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit): Unit =
         invalidPluginsCall()
 
     /**
