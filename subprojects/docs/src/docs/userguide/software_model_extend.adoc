@@ -24,7 +24,7 @@ Instead, use the standard approach described in the <<custom_plugins.adoc#custom
 
 == Introduction
 
-One of the strengths of Gradle has always been its extensibility, and its adaptability to new domains. The software model takes this extensibility to a new level, enabling the deep modeling of specific domains via richly typed DSLs. The following chapter describes how the model and the corresponding DSLs can be extended to support domains like the <<play_plugin.adoc#play_plugin,Play Framework>> or <<native_software.adoc#native_software,native software development>>. Before reading this you should be familiar with the Gradle software model <<software_model.adoc#software_model,rule based configuration>> and <<software_model_concepts.adoc#software_model_concepts,concepts>>.
+One of the strengths of Gradle has always been its extensibility, and its adaptability to new domains. The software model takes this extensibility to a new level, enabling the deep modeling of specific domains via richly typed DSLs. The following chapter describes how the model and the corresponding DSLs can be extended to support different domains. Before reading this you should be familiar with the Gradle software model <<software_model.adoc#software_model,rule based configuration>> and <<software_model_concepts.adoc#software_model_concepts,concepts>>.
 
 The following build script is an example of using a custom software model for building Markdown based documentation:
 

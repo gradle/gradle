@@ -1,2 +1,0 @@
-# date routes
-GET     /                           controllers.date.DateController.index

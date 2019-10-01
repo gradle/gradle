@@ -203,8 +203,6 @@ include::publishing_maven.adoc[leveloffset=+2]
 
 include::maven_plugin.adoc[leveloffset=+2]
 
-include::play_plugin.adoc[leveloffset=+2]
-
 include::pmd_plugin.adoc[leveloffset=+2]
 
 include::scala_plugin.adoc[leveloffset=+2]

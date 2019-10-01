@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.util.GUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -123,23 +124,21 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
             }
 """
         when:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning("Loading a TextResource from an insecure URI has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+                "The provided URI '${server.uri("/myConfig-" + uuid + ".txt")}' uses an insecure protocol (HTTP). " +
+                "Switch the URI to '${GUtil.toSecureUrl(server.uri("/myConfig-" + uuid + ".txt"))}' or try 'resources.text.fromInsecureUri(\"${server.uri("/myConfig-" + uuid + ".txt")}\")' to silence the warning.")
         run("uriText")
 
         then:
         result.assertTasksExecuted(":uriText")
         file("output.txt").text == "my config\n"
-        outputContains("Loading a TextResource from an insecure URI has been deprecated.")
-        outputContains("Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.")
 
         when:
-        executer.expectDeprecationWarning()
+        executer.noDeprecationChecks()
         run("uriText")
 
         then:
         result.assertTasksSkipped(":uriText")
-        outputContains("Loading a TextResource from an insecure URI has been deprecated.")
-        outputContains("Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.")
     }
 
     // Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
