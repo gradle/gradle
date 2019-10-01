@@ -365,6 +365,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
             }
         }
         executionQueue.clear();
+        dependencyResolver.clear();
         Iterables.addAll(executionQueue, nodeMapping);
         for (Node node : executionQueue) {
             maybeNodesReady |= node.updateAllDependenciesComplete() && node.isReady();
