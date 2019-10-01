@@ -140,8 +140,6 @@ include::custom_gradle_types.adoc[leveloffset=+2]
 
 include::java_gradle_plugin.adoc[leveloffset=+2]
 
-include::embedding.adoc[leveloffset=+2]
-
 [[part:reference]]
 == Reference
 
