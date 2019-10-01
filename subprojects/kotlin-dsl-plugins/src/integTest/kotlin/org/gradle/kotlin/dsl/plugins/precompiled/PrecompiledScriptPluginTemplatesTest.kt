@@ -439,7 +439,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             }
         }
         val project = mock<Project> {
-            on { project(eq(":p"), any<Action<Project>>()) } doAnswer {
+            on { project(eq(":nested"), any<Action<Project>>()) } doAnswer {
                 it.getArgument<Action<Project>>(1).execute(nestedReceiver)
                 nestedReceiver
             }
