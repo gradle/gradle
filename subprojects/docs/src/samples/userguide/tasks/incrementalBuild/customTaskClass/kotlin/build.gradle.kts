@@ -40,7 +40,9 @@ tasks.register("processTemplatesAdHoc") {
 tasks.register("processTemplatesAdHocSkipWhenEmpty") {
     // ...
 
-    inputs.files(fileTree("src/templates"))
+    inputs.files(fileTree("src/templates") {
+            include("**/*.fm")
+        })
         .skipWhenEmpty()
         .withPropertyName("sourceFiles")
         .withPathSensitivity(PathSensitivity.RELATIVE)
