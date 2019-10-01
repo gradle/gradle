@@ -58,7 +58,6 @@ sealed class Program {
      */
     data class Plugins(override val fragment: ProgramSourceFragment) : Stage1(), FragmentHolder
 
-
     interface FragmentHolder {
         val fragment: ProgramSourceFragment
     }
