@@ -230,23 +230,17 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
             settings.gradle.allprojects {
                 println "Hello from root build's plugin"
             }
-        """, "com.example.MyPlugin", "MyPlugin"
+        """, "org.gradle.test.MyPlugin", "MyPlugin"
 
-
-        def pluginJar = file("plugin.jar")
-        pluginBuilder.publishTo(executer, pluginJar)
+        pluginBuilder.prepareToExecute()
 
         settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath files("$pluginJar.name")
-                }
-            }
+            includeBuild("plugin")
         """
 
         vcsMapping('org.test:first', first)
         // root build applies a plugin to second
-        vcsMapping('org.test:second', second, ['com.example.MyPlugin'])
+        vcsMapping('org.test:second', second, ['org.gradle.test.MyPlugin'])
         // first build does not inject a plugin in second
         nestedVcsMapping(first, 'org.test:second', second)
 

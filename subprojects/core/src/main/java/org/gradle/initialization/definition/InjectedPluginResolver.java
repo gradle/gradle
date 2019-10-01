@@ -18,6 +18,7 @@ package org.gradle.initialization.definition;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
@@ -44,7 +45,7 @@ public class InjectedPluginResolver {
         return collect(requests, new Transformer<PluginRequestInternal, DefaultInjectedPluginDependency>() {
             @Override
             public PluginRequestInternal transform(DefaultInjectedPluginDependency original) {
-                return new SelfResolvingPluginRequest(original.getId(), classLoaderScope);
+                return new DefaultPluginRequest(original.getId(), null, true, null, "injected plugin by outer build");
             }
         });
     }
