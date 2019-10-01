@@ -64,7 +64,7 @@ sealed class Program {
     }
 
     /**
-     * A `buildscript` block followed by an optional `pluginManagement` block then followed by a `plugins` block.
+     * An optional `pluginManagement` block followed by a `buildscript` block then followed by a `plugins` block.
      */
     data class Stage1Sequence(val pluginManagement: PluginManagement?, val buildscript: Buildscript?, val plugins: Plugins?) : Stage1()
 
