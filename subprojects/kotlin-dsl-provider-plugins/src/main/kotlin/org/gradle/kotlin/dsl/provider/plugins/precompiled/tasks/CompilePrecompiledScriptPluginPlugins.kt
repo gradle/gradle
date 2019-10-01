@@ -23,7 +23,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.CompileClasspath
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
@@ -46,7 +46,7 @@ abstract class CompilePrecompiledScriptPluginPlugins : DefaultTask(), SharedAcce
     internal
     lateinit var hashedClassPath: HashedClassPath
 
-    @get:CompileClasspath
+    @get:Classpath
     val classPathFiles: FileCollection
         get() = hashedClassPath.classPathFiles
 
