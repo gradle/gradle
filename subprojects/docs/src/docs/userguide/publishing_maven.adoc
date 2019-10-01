@@ -115,7 +115,7 @@ Two strategies are supported for publishing dependencies:
 
 Declared versions (default)::
 This strategy publishes the versions that are defined by the build script author with the dependency declarations in the `dependencies` block.
-Any other kind of processing, for example through <<customizing_dependency_resolution_behavior.adoc#,a rule changing the resolved version>>, will not be taken into account for the publication.
+Any other kind of processing, for example through <<resolution_rules.adoc#,a rule changing the resolved version>>, will not be taken into account for the publication.
 
 Resolved versions::
 This strategy publishes the versions that were resolved during the build, possibly by applying resolution rules and automatic conflict resolution.

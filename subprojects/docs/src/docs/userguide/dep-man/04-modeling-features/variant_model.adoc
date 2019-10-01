@@ -1,5 +1,5 @@
 [[understanding-variant-selection]]
-= Debugging variant selection
+= Understanding variant selection
 
 Gradle's dependency management engine is known as _variant aware_.
 In a traditional dependency management engine like Apache Maven™, dependencies are bound to components published at GAV coordinates.
