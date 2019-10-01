@@ -109,4 +109,4 @@ task removeTempDir {
 }
 // end::adhoc-destroyable-task[]
 
-build.dependsOn processTemplates, processTemplatesAdHoc, processTemplatesRuntime, processTemplatesRuntimeConf
+build.dependsOn processTemplates, processTemplatesAdHoc, processTemplatesAdHocSkipWhenEmpty, processTemplatesWithExtraInputs, processTemplatesWithoutAnnotations
