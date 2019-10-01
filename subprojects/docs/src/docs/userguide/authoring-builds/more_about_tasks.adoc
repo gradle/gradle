@@ -743,6 +743,20 @@ There are other task types where this kind of nested inputs are available:
 
 In the same way, this kind of modelling is available to custom tasks.
 
+[[sec:task_input_validation]]
+===== Runtime validation
+
+When executing the build Gradle checks if task types are declared with the proper annotations.
+It tries to identify problems where e.g. annotations are used on incompatible types, or on setters etc.
+Any getter not annotated with an input/output annotation is also flagged.
+These problems are then turned into deprecation warnings when the task is executed.
+
+.Example output with a task having undeclared inputs and outputs
+----
+> gradle processTemplatesRuntime
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/customTaskClassWithoutInputOutputAnnotations.out[]
+----
+
 [[sec:task_input_output_runtime_api]]
 ==== Runtime API
 
@@ -794,31 +808,6 @@ include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",fi
 
 One notable difference between the runtime API and the annotations is the lack of a method that corresponds directly to `@Nested`. That’s why the example uses two `property()` declarations for the template data, one for each `TemplateData` property. You should utilize the same technique when using the runtime API with nested values.  Any given task can either declare destroyables or inputs/outputs, but cannot declare both.
 
-[[sec:runtime_api_for_custom_tasks]]
-===== Using it for custom task types
-
-Another type of example involves adding input and output definitions to instances of a custom task class that lacks the requisite annotations. For example, imagine that the `ProcessTemplates` task is provided by a plugin and that it’s missing the incremental build annotations. In order to make up for that deficiency, you can use the runtime API:
-
-.Using runtime API with custom task type
-====
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=custom-class-runtime-api]"]
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=custom-class-runtime-api]"]
-
-.Output of `gradle processTemplatesRuntime`
-----
-> gradle processTemplatesRuntime
-include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApi.out[]
-----
-
-.Output of `gradle processTemplatesRuntime` (run again)
-----
-> gradle processTemplatesRuntime
-include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiUpToDate.out[]
-----
-====
-
-As you can see, we can both configure the tasks properties and use those properties as arguments to the incremental build runtime API. Using the runtime API like this is a little like using `doLast()` and `doFirst()` to attach extra actions to a task, except in this case we’re attaching information about inputs and outputs. Note that if the task type is already using the incremental build annotations, the runtime API will add inputs and outputs rather than replace them.
-
 [[sec:runtime_api_configuration]]
 ===== Fine-grained configuration
 
@@ -830,19 +819,40 @@ Let’s say we don’t want to run the `processTemplates` task if there are no s
 
 .Using skipWhenEmpty() via the runtime API
 ====
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=runtime-api-conf]"]
-include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=runtime-api-conf]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=ad-hoc-task-skip-when-empty]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=ad-hoc-task-skip-when-empty]"]
 
-.Output of **`gradle clean processTemplatesRuntimeConf`**
+.Output of **`gradle clean processTemplatesAdHocSkipWhenEmpty`**
 ----
-> gradle clean processTemplatesRuntimeConf
-include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/runtimeIncrementalApiConfiguration.out[]
+> gradle clean processTemplatesAdHocSkipWhenEmpty
+include::{samplesPath}/userguide/tasks/incrementalBuild/customTaskClass/incrementalAdHocTaskNoSource.out[]
 ----
 ====
 
 The `TaskInputs.files()` method returns a builder that has a `skipWhenEmpty()` method. Invoking this method is equivalent to annotating to the property with <<#skip-when-empty,`@SkipWhenEmpty`>>.
 
 Now that you have seen both the annotations and the runtime API, you may be wondering which API you should be using. Our recommendation is to use the annotations wherever possible, and it’s sometimes worth creating a custom task class just so that you can make use of them. The runtime API is more for situations in which you can’t use the annotations.
+
+[[sec:runtime_api_for_custom_tasks]]
+===== Using it for custom task types
+
+Another type of example involves registering additional inputs and outputs for instances of a custom task class.
+For example, imagine that the `ProcessTemplates` task also needs to read `src/headers/headers.txt` (e.g. because it is included from one of the sources).
+You'd want Gradle to know about this input file, so that it can re-execute the task whenever the contents of this file change.
+With the runtime API you can do just that:
+
+.Using runtime API with custom task type
+====
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/groovy",files="build.gradle[tags=custom-class-runtime-api]"]
+include::sample[dir="userguide/tasks/incrementalBuild/customTaskClass/kotlin",files="build.gradle.kts[tags=custom-class-runtime-api]"]
+====
+
+Using the runtime API like this is a little like using `doLast()` and `doFirst()` to attach extra actions to a task, except in this case we’re attaching information about inputs and outputs.
+
+[WARNING]
+====
+If the task type is already using the incremental build annotations, registering inputs or outputs with the same property names will result in an error.
+====
 
 [[sec:task_input_output_side_effects]]
 ==== Important beneficial side effects

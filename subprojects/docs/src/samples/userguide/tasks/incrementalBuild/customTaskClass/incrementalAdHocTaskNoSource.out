@@ -1,4 +1,4 @@
-> Task :processTemplatesRuntimeConf NO-SOURCE
+> Task :processTemplatesAdHocSkipWhenEmpty NO-SOURCE
 
 
 BUILD SUCCESSFUL in 0s
