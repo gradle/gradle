@@ -13,17 +13,18 @@
 // limitations under the License.
 
 [[dependency_management_for_java_projects]]
-= Dependency Management for Java Projects
+= Managing Dependencies of JVM Projects
 
-This chapter explains how to apply basic dependency management concepts to Java-based projects.
-For a detailed introduction to dependency management, see <<core_dependency_management.adoc#,Introduction to Dependency Management>>.
+This chapter explains how to apply basic dependency management concepts to JVM-based projects.
+For a detailed introduction to dependency management, see <<core_dependency_management.adoc#,dependency management in Gradle>>.
 
 [[sec:setting_up_a_standard_build_script_java_tutorial]]
 == Dissecting a typical build script
 
-Let's have a look at a very simple build script for a Java-based project. It applies the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
+Let's have a look at a very simple build script for a JVM-based project.
+It applies the <<java_library_plugin.adoc#java_library_plugin,Java Library plugin>> which automatically introduces a standard project layout, provides tasks for performing typical work and adequate support for dependency management.
 
-.Dependency declarations for a Java-based project
+.Dependency declarations for a JVM-based project
 ====
 include::sample[dir="userguide/artifacts/dependencyBasics/groovy",files="build.gradle[]"]
 include::sample[dir="userguide/artifacts/dependencyBasics/kotlin",files="build.gradle.kts[]"]
