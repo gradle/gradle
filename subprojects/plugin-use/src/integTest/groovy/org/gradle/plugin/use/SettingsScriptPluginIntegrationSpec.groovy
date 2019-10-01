@@ -172,6 +172,35 @@ pluginManagement {
         '.gradle'              | false
     }
 
+    def "settings plugin can contribute to plugin management"() {
+        when:
+        pluginBuilder.addSettingsPlugin("settings.pluginManagement.plugins.id('com.test').version('1.0')", "com.test-settings")
+        pluginBuilder.publishAs("g", "settings-plugin", "1.0", pluginRepo, executer).allowAll()
+        pluginBuilder.addPlugin("project.tasks.create('pluginTask')", "com.test")
+        pluginBuilder.publishAs("g", "project-plugin", "1.0", pluginRepo, executer).allowAll()
+
+        file("settings.gradle") << """
+pluginManagement {
+    repositories {
+        maven { url = "$pluginRepo.uri" }
+    }
+    plugins {
+        id("com.test-settings") version "1.0"
+    }
+ }
+ plugins { id("com.test-settings") }
+ """
+
+        buildFile << """
+            plugins {
+                id "com.test"
+            }
+        """
+
+        then:
+        succeeds("pluginTask")
+    }
+
     String createPrintln(String location) {
         return "System.out.println(\"In `$location`\")"
     }
