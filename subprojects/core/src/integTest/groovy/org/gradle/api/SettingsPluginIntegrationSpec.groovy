@@ -20,13 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.junit.Rule
 
 class SettingsPluginIntegrationSpec extends AbstractIntegrationSpec {
 
-    @org.junit.Rule
+    @Rule
     MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    @org.junit.Rule
+    @Rule
     MavenHttpPluginRepository mavenHttpRepo = new MavenHttpPluginRepository(mavenRepo)
 
     def setup(){
