@@ -47,6 +47,9 @@ data class ProgramText private constructor(val text: String) {
     fun preserve(vararg ranges: IntRange): ProgramText =
         erase(complementOf(ranges))
 
+    fun preserve(ranges: List<IntRange>): ProgramText =
+        preserve(*ranges.toTypedArray())
+
     fun subText(range: IntRange): ProgramText =
         ProgramText(text.substring(range))
 

@@ -25,8 +25,6 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
-import static org.gradle.test.fixtures.plugin.PluginBuilder.packageName
-
 @SuppressWarnings("GrMethodMayBeStatic")
 class BuildScanPluginFixture {
 
@@ -36,8 +34,7 @@ For more information on how to apply the build scan plugin, please visit https:/
     public static final String BUILD_SCAN_PLUGIN_ID = AutoAppliedBuildScanPlugin.ID.id
     public static final String PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX = 'PUBLISHING BUILD SCAN v'
     public static final String DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS = 'DummyBuildScanPlugin'
-    public static final String PACKAGE_NAME = "test"
-    public static final String FULLY_QUALIFIED_DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS = "${PACKAGE_NAME}.${DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS}"
+    public static final String FULLY_QUALIFIED_DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS = "test.${DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS}"
 
     private final TestFile projectDir
     private final MavenFileRepository mavenRepo
@@ -104,7 +101,6 @@ For more information on how to apply the build scan plugin, please visit https:/
         }
 
         def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedBuildScanPlugin.ID.id))
-        builder.packageName = PACKAGE_NAME
         builder.addPlugin("""
             project.gradle.buildFinished {
                 println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${runtimeVersion}'

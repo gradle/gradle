@@ -16,6 +16,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
+import org.gradle.api.Incubating
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -45,6 +46,9 @@ import org.gradle.kotlin.dsl.support.get
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
+import org.gradle.plugin.management.PluginManagementSpec
+import org.gradle.plugin.use.PluginDependenciesSpec
+
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
@@ -68,6 +72,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
     "-XXLanguage:+SamConversionForKotlinFunctions"
 ])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
+@GradleDsl
 abstract class KotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
 ) : SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
@@ -86,6 +91,18 @@ abstract class KotlinSettingsScript(
 
     override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)
+
+    /**
+     * Configures the plugin dependencies for the project's settings.
+     *
+     * @see [PluginDependenciesSpec]
+     * @since 6.0
+     */
+    @Incubating
+    @Suppress("unused")
+    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
+        throw Exception("The plugins {} block must not be used here. "
+            + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.")
 }
 
 
@@ -403,6 +420,17 @@ abstract class SettingsScriptApi(
     @Suppress("unused")
     fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
         processOperations.javaexec(configuration)
+
+    /**
+     * Configures the plugin management for the entire build.
+     *
+     * @see [Settings.getPluginManagement]
+     * @since 6.0
+     */
+    @Incubating
+    @Suppress("unused")
+    open fun pluginManagement(@Suppress("unused_parameter") block: PluginManagementSpec.() -> Unit): Unit =
+        internalError()
 
     /**
      * Configures the build script classpath for settings.

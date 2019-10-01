@@ -44,6 +44,39 @@ The usage of the `compile` and `runtime` configurations in the Java ecosystem pl
 These configurations, and their counterparts in other sources sets (e.g. `testCompile` and `testRuntime`), should not be utilised anymore.
 Instead, use the `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.
 
+==== Problems with task definitions called out during build
+
+When Gradle detects problems with task definitions (such as incorrectly defined inputs or outputs) it will show the following message on the console:
+
+```
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 7.0.
+Use '--warning-mode all' to show the individual deprecation warnings.
+See https://docs.gradle.org/6.0/userguide/command_line_interface.html#sec:command_line_warnings
+```
+
+When executed with `--warning-mode all` the individual warnings will be shown like this:
+
+```
+> Task :myTask
+Property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+Property 'outputFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+```
+
+[NOTE]
+====
+You can also use `--stacktrace` to see where in the code each warning originates from.
+====
+
+If you own the code of the tasks in question, you can fix them by following the instructions.
+Otherwise you'll need to report the problems to the maintainer of the relevant task or plugin.
+
+[NOTE]
+====
+The deprecation warnings show up in https://scans.gradle.com/s/txrptciitl2ha/deprecations[build scans] for every build, regardless of the command-line switches used.
+====
+
+See <<more_about_tasks.adoc#sec:task_input_validation, the userguide>> for more information on addressing these warnings.
+
 ==== Local build cache type shouldn't be specified
 
 When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.
@@ -87,7 +120,7 @@ The following bundled plugins are no longer maintained and will be removed in th
 - `org.gradle.jshint`
 - `org.gradle.rhino`
 
-Some of these plugins may have replacements on the https://plugins.gradle.org/[Plugin Portal]. 
+Some of these plugins may have replacements on the https://plugins.gradle.org/[Plugin Portal].
 
 ==== Copy or archive duplicate paths without explicitly specifying a duplicates strategy has been deprecated
 
@@ -155,6 +188,14 @@ Now, buildSrc is built after the settings script and its classes are not visible
 The buildSrc classes remain visible to project build scripts and script plugins.
 
 Custom logic can be used from a settings script by <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declaring external dependencies>>.
+
+==== pluginManagement {} in settings scripts is now isolated
+
+Previously, any `pluginManagement {}` blocks inside a settings script were executed during the normal execution of the script.
+Now, they are executed earlier in a similar manner to `buildscript {}` or `plugins {}`.
+This also means that code inside such a block cannot reference anything declared elsewhere in the script.
+
+This change has been made so that the `pluginManagement {}` configuration can also be applied when resolving plugins for the settings script itself.
 
 ==== `@Nullable` annotation is gone
 

@@ -17,10 +17,10 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-
-import org.gradle.kotlin.dsl.ScriptHandlerScope
-
+import org.gradle.kotlin.dsl.*
+import org.gradle.plugin.management.PluginManagementSpec
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
@@ -36,7 +36,39 @@ abstract class CompiledKotlinPluginsBlock(val pluginDependencies: PluginDependen
 
 
 /**
+ * Base class for the evaluation of a `pluginManagement` block followed by a
+ * `buildscript` block followed by a `plugins` block.
+ *
+ * @constructor Must match the constructor of the [KotlinBuildscriptAndPluginsBlock] the object!
+ */
+abstract class KotlinPluginManagementBuildscriptAndPluginsBlock(
+    host: KotlinScriptHost<Settings>,
+    private val pluginDependencies: PluginDependenciesSpec
+) : KotlinSettingsScript(host) {
+
+    override fun pluginManagement(configuration: PluginManagementSpec.() -> Unit) {
+        delegate.pluginManagement.configuration()
+    }
+
+    /**
+     * Configures the build script classpath for this project.
+     *
+     * @see [Project.buildscript]
+     */
+    override fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+        buildscript.configureWith(block)
+    }
+
+    override fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
+        PluginDependenciesSpecScope(pluginDependencies).configuration()
+    }
+}
+
+
+/**
  * Base class for the evaluation of a `buildscript` block followed by a `plugins` block.
+ *
+ * @constructor Must match the constructor of the [KotlinPluginManagementBuildscriptAndPluginsBlock] object!
  */
 @ImplicitReceiver(Project::class)
 abstract class CompiledKotlinBuildscriptAndPluginsBlock(

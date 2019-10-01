@@ -16,6 +16,10 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.buildscript
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.pluginManagement
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.plugins
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -24,7 +28,7 @@ import org.junit.Assert.fail
 import org.junit.Test
 
 
-class BuildscriptBlockExtractionTest {
+class TopLevelBlockExtractionTest {
 
     @Test
     fun `given top-level buildscript it returns exact range`() {
@@ -94,14 +98,27 @@ class BuildscriptBlockExtractionTest {
     }
 
     @Test
-    fun `given more than one top level buildscript block it throws IllegalStateException`() {
+    fun `given more than one top level buildscript block it throws UnexpectedDuplicateBlock`() {
         try {
             extractBuildscriptBlockFrom("buildscript {} buildscript {}")
-            fail("Expecting ${UnexpectedBlock::class.simpleName}!")
-        } catch (unexpectedBlock: UnexpectedBlock) {
-            assertThat(unexpectedBlock.identifier, equalTo("buildscript"))
+            fail("Expecting ${UnexpectedDuplicateBlock::class.simpleName}!")
+        } catch (unexpectedBlock: UnexpectedDuplicateBlock) {
+            assertThat(unexpectedBlock.identifier, equalTo(buildscript))
             assertThat(unexpectedBlock.location, equalTo(15..28))
-            assertThat(unexpectedBlock.message, equalTo("Unexpected block found."))
+            assertThat(unexpectedBlock.message, equalTo("Unexpected `buildscript` block found. Only one `buildscript` block is allowed per script."))
+        }
+    }
+
+    @Test
+    fun `given a plugins block before a pluginManagement block it throws UnexpectedBlockOrder`() {
+        val topLevelBlocks = extractPluginAndPluginManagementBlockFrom("plugins {} pluginManagement {}")
+        try {
+            checkForTopLevelBlockOrder(topLevelBlocks)
+            fail("Expecting ${UnexpectedBlockOrder::class.simpleName}!")
+        } catch (unexpectedBlock: UnexpectedBlockOrder) {
+            assertThat(unexpectedBlock.identifier, equalTo(plugins))
+            assertThat(unexpectedBlock.location, equalTo(0..9))
+            assertThat(unexpectedBlock.message, equalTo("Unexpected `plugins` block found. `plugins` can not appear before `pluginManagement`."))
         }
     }
 
@@ -112,5 +129,9 @@ class BuildscriptBlockExtractionTest {
 
     private
     fun extractBuildscriptBlockFrom(script: String) =
-        lex(script, "buildscript").document.topLevelBlocks.singleBlockSectionOrNull()?.wholeRange
+        lex(script, buildscript).document.topLevelBlocks.singleBlockSectionOrNull()?.wholeRange
+
+    private
+    fun extractPluginAndPluginManagementBlockFrom(script: String) =
+        lex(script, pluginManagement, plugins).document.topLevelBlocks
 }

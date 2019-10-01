@@ -33,45 +33,60 @@ object ProgramParser {
     private
     fun programFor(source: ProgramSource, kind: ProgramKind, target: ProgramTarget): Packaged<Program> {
 
-        val topLevelBlockIds = topLevelBlockIdsFor(target)
+        val topLevelBlockIds = TopLevelBlockId.topLevelBlockIdFor(target)
 
         return lex(source.text, *topLevelBlockIds).map { (comments, topLevelBlocks) ->
 
             checkForSingleBlocksOf(topLevelBlockIds, topLevelBlocks)
+
+            checkForTopLevelBlockOrder(topLevelBlocks)
 
             val sourceWithoutComments =
                 source.map { it.erase(comments) }
 
             val buildscriptFragment =
                 topLevelBlocks
-                    .singleSectionOf(topLevelBlockIds[0])
+                    .singleSectionOf(TopLevelBlockId.buildscriptIdFor(target))
+                    ?.let { sourceWithoutComments.fragment(it) }
+
+            val pluginManagementFragment =
+                topLevelBlocks
+                    .singleSectionOf(TopLevelBlockId.pluginManagement)
                     ?.let { sourceWithoutComments.fragment(it) }
 
             val pluginsFragment =
                 topLevelBlocks
-                    .takeIf { target == ProgramTarget.Project && kind == ProgramKind.TopLevel }
-                    ?.singleSectionOf("plugins")
+                    .takeIf { topLevelBlockIds.contains(TopLevelBlockId.plugins) && kind == ProgramKind.TopLevel }
+                    ?.singleSectionOf(TopLevelBlockId.plugins)
                     ?.let { sourceWithoutComments.fragment(it) }
 
             val buildscript =
                 buildscriptFragment?.takeIf { it.isNotBlank() }?.let(Program::Buildscript)
 
+            val pluginManagement =
+                pluginManagementFragment?.takeIf { it.isNotBlank() }?.let(Program::PluginManagement)
+
             val plugins =
                 pluginsFragment?.takeIf { it.isNotBlank() }?.let(Program::Plugins)
 
-            val stage1 =
-                buildscript?.let { bs ->
-                    plugins?.let { ps ->
-                        Program.Stage1Sequence(bs, ps)
-                    } ?: bs
-                } ?: plugins
+            val stage1Components =
+                listOfNotNull<Program.Stage1>(pluginManagement, buildscript, plugins)
+
+            val stage1 = when {
+                stage1Components.isEmpty() -> null
+                stage1Components.size == 1 -> stage1Components.first()
+                else -> Program.Stage1Sequence(pluginManagement, buildscript, plugins)
+            }
 
             val remainingSource =
                 sourceWithoutComments.map {
                     it.erase(
                         listOfNotNull(
                             buildscriptFragment?.range,
-                            pluginsFragment?.range))
+                            pluginManagementFragment?.range,
+                            pluginsFragment?.range
+                        )
+                    )
                 }
 
             val stage2 = remainingSource
@@ -82,21 +97,15 @@ object ProgramParser {
                 stage2?.let { s2 ->
                     Program.Staged(s1, s2)
                 } ?: s1
-            } ?: stage2
-            ?: Program.Empty
+            }
+                ?: stage2
+                ?: Program.Empty
         }
     }
 
     private
-    fun topLevelBlockIdsFor(target: ProgramTarget): Array<String> = when (target) {
-        ProgramTarget.Project -> arrayOf("buildscript", "plugins")
-        ProgramTarget.Settings -> arrayOf("buildscript", "pluginManagement")
-        ProgramTarget.Gradle -> arrayOf("initscript")
-    }
-
-    private
     fun checkForSingleBlocksOf(
-        topLevelBlockIds: Array<String>,
+        topLevelBlockIds: Array<TopLevelBlockId>,
         topLevelBlocks: List<TopLevelBlock>
     ) {
         topLevelBlockIds.forEach { id ->
@@ -112,19 +121,26 @@ object ProgramParser {
 }
 
 
+internal
+fun checkForTopLevelBlockOrder(
+    topLevelBlocks: List<TopLevelBlock>
+) {
+    val pluginManagementBlock = topLevelBlocks.find { it.identifier == TopLevelBlockId.pluginManagement } ?: return
+    val firstTopLevelBlock = topLevelBlocks.first()
+    if (firstTopLevelBlock.identifier != TopLevelBlockId.pluginManagement) {
+        throw UnexpectedBlockOrder(firstTopLevelBlock.identifier, firstTopLevelBlock.range, pluginManagementBlock.identifier)
+    }
+}
+
+
 private
-fun List<TopLevelBlock>.singleSectionOf(topLevelBlockId: String) =
+fun List<TopLevelBlock>.singleSectionOf(topLevelBlockId: TopLevelBlockId) =
     singleOrNull { it.identifier == topLevelBlockId }?.section
 
 
 private
 fun handleUnexpectedBlock(unexpectedBlock: UnexpectedBlock, script: String, scriptPath: String): Nothing {
     val (line, column) = script.lineAndColumnFromRange(unexpectedBlock.location)
-    val message = compilerMessageFor(scriptPath, line, column, unexpectedBlockMessage(unexpectedBlock))
+    val message = compilerMessageFor(scriptPath, line, column, unexpectedBlock.message!!)
     throw IllegalStateException(message, unexpectedBlock)
 }
-
-
-private
-fun unexpectedBlockMessage(block: UnexpectedBlock) =
-    "Unexpected `${block.identifier}` block found. Only one `${block.identifier}` block is allowed per script."

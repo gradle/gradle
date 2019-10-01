@@ -16,6 +16,9 @@
 
 package org.gradle.kotlin.dsl.execution
 
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.buildscript
+import org.gradle.kotlin.dsl.execution.TopLevelBlockId.plugins
+
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -38,7 +41,7 @@ class LexerTest {
                     "\n ... */" +
                     "\n}" +
                     "\n// ...",
-                "buildscript", "plugins"),
+                buildscript, plugins),
             equalTo(
                 Packaged(
                     null,
@@ -50,19 +53,19 @@ class LexerTest {
                             54..63,
                             67..72),
                         listOf(
-                            topLevelBlock("buildscript", 17..27, 29..42),
-                            topLevelBlock("plugins", 44..50, 52..65))))))
+                            topLevelBlock(buildscript, 17..27, 29..42),
+                            topLevelBlock(plugins, 44..50, 52..65))))))
     }
 
     @Test
     fun `extracts package name`() {
         assertThat(
-            lex("\n/* ... */\npackage com.example\nplugins { }", "plugins"),
+            lex("\n/* ... */\npackage com.example\nplugins { }", plugins),
             equalTo(
                 Packaged(
                     "com.example",
                     LexedScript(
                         listOf(1..9),
-                        listOf(topLevelBlock("plugins", 31..37, 39..41))))))
+                        listOf(topLevelBlock(plugins, 31..37, 39..41))))))
     }
 }

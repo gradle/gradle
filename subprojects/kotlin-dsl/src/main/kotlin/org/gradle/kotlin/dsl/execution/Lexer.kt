@@ -27,7 +27,19 @@ import org.jetbrains.kotlin.lexer.KtTokens.WHITE_SPACE
 
 
 internal
-class UnexpectedBlock(val identifier: String, val location: IntRange) : RuntimeException("Unexpected block found.")
+abstract class UnexpectedBlock(message: String) : RuntimeException(message) {
+    abstract val location: IntRange
+}
+
+
+internal
+class UnexpectedDuplicateBlock(val identifier: TopLevelBlockId, override val location: IntRange) :
+    UnexpectedBlock("Unexpected `$identifier` block found. Only one `$identifier` block is allowed per script.")
+
+
+internal
+class UnexpectedBlockOrder(val identifier: TopLevelBlockId, override val location: IntRange, expectedFirstIdentifier: TopLevelBlockId) :
+    UnexpectedBlock("Unexpected `$identifier` block found. `$identifier` can not appear before `$expectedFirstIdentifier`.")
 
 
 private
@@ -60,14 +72,14 @@ data class LexedScript(
  * Returns the comments and [top-level blocks][topLevelBlockIds] found in the given [script].
  */
 internal
-fun lex(script: String, vararg topLevelBlockIds: String): Packaged<LexedScript> {
+fun lex(script: String, vararg topLevelBlockIds: TopLevelBlockId): Packaged<LexedScript> {
 
     var packageName: String? = null
     val comments = mutableListOf<IntRange>()
     val topLevelBlocks = mutableListOf<TopLevelBlock>()
 
     var state = State.SearchingTopLevelBlock
-    var inTopLevelBlock: String? = null
+    var inTopLevelBlock: TopLevelBlockId? = null
     var blockIdentifier: IntRange? = null
     var blockStart: Int? = null
 
@@ -84,7 +96,7 @@ fun lex(script: String, vararg topLevelBlockIds: String): Packaged<LexedScript> 
         if (depth == 0) {
             val identifier = tokenText
             for (topLevelBlock in topLevelBlockIds) {
-                if (topLevelBlock == identifier) {
+                if (topLevelBlock.tokenText == identifier) {
                     state = State.SearchingBlockStart
                     inTopLevelBlock = topLevelBlock
                     blockIdentifier = tokenStart..(tokenEnd - 1)
@@ -195,14 +207,42 @@ fun KotlinLexer.skipWhiteSpaceAndComments() {
 
 
 internal
-fun topLevelBlock(identifier: String, identifierRange: IntRange, blockRange: IntRange) =
+fun topLevelBlock(identifier: TopLevelBlockId, identifierRange: IntRange, blockRange: IntRange) =
     TopLevelBlock(identifier, ScriptSection(identifierRange, blockRange))
 
 
 internal
-data class TopLevelBlock(val identifier: String, val section: ScriptSection) {
+data class TopLevelBlock(val identifier: TopLevelBlockId, val section: ScriptSection) {
     val range: IntRange
         get() = section.wholeRange
+}
+
+
+@Suppress("EnumEntryName")
+internal
+enum class TopLevelBlockId {
+    buildscript,
+    plugins,
+    pluginManagement,
+    initscript;
+
+    val tokenText: String
+        get() = name
+
+    companion object {
+
+        fun topLevelBlockIdFor(target: ProgramTarget) = when (target) {
+            ProgramTarget.Project -> arrayOf(buildscript, plugins)
+            ProgramTarget.Settings -> arrayOf(buildscript, pluginManagement, plugins)
+            ProgramTarget.Gradle -> arrayOf(initscript)
+        }
+
+        fun buildscriptIdFor(target: ProgramTarget) = when (target) {
+            ProgramTarget.Gradle -> initscript
+            ProgramTarget.Settings -> buildscript
+            ProgramTarget.Project -> buildscript
+        }
+    }
 }
 
 
@@ -213,6 +253,6 @@ fun List<TopLevelBlock>.singleBlockSectionOrNull(): ScriptSection? =
         1 -> get(0).section
         else -> {
             val unexpectedBlock = get(1)
-            throw UnexpectedBlock(unexpectedBlock.identifier, unexpectedBlock.range)
+            throw UnexpectedDuplicateBlock(unexpectedBlock.identifier, unexpectedBlock.range)
         }
     }

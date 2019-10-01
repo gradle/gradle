@@ -190,6 +190,7 @@ class PluginBuilder {
         """)
         this
     }
+
     PluginBuilder addUnloadablePlugin(String id = "test-plugin", String className = "TestPlugin") {
         addPluginSource(id, className, """
             ${packageName ? "package $packageName" : ""}

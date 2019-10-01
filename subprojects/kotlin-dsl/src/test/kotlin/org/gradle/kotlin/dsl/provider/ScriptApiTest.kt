@@ -1,19 +1,18 @@
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.kotlin.dsl.KotlinBuildScript
-import org.gradle.kotlin.dsl.KotlinInitScript
-import org.gradle.kotlin.dsl.KotlinSettingsScript
-
 import org.gradle.api.Action
 import org.gradle.api.initialization.Settings
-
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
-
+import org.gradle.kotlin.dsl.support.KotlinPluginManagementBuildscriptAndPluginsBlock
+import org.hamcrest.CoreMatchers.equalTo
+import org.junit.Assert.assertThat
+import org.junit.Test
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -31,11 +30,6 @@ import kotlin.reflect.full.withNullability
 import kotlin.reflect.jvm.javaGetter
 import kotlin.reflect.jvm.jvmErasure
 
-import org.hamcrest.CoreMatchers.equalTo
-
-import org.junit.Assert.assertThat
-import org.junit.Test
-
 
 class ScriptApiTest {
 
@@ -50,6 +44,10 @@ class ScriptApiTest {
     @Test
     fun `IDE settings script template implements Settings#enableFeaturePreview`() =
         assert(KotlinSettingsScript::class.implements(Settings::enableFeaturePreview))
+
+    @Test
+    fun `settings pluginManagement block template implements script api`() =
+        assertScriptApiOf<KotlinPluginManagementBuildscriptAndPluginsBlock>()
 
     @Test
     fun `IDE init script template implements script api`() =

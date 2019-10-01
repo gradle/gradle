@@ -35,8 +35,10 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
+
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
+import org.gradle.kotlin.dsl.support.KotlinPluginManagementBuildscriptAndPluginsBlock
 
 import org.gradle.kotlin.dsl.support.bytecode.ACONST_NULL
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
@@ -201,7 +203,8 @@ class ResidualProgramCompiler(
             val program = instruction.program
             when (program) {
                 is Program.Plugins -> emitPrecompiledPluginsBlock(program)
-                is Program.Stage1Sequence -> emitStage1Sequence(program.buildscript, program.plugins)
+                is Program.PluginManagement -> emitStage1Sequence(program)
+                is Program.Stage1Sequence -> emitStage1Sequence(program.pluginManagement, program.buildscript, program.plugins)
                 else -> throw IllegalStateException("Expecting a residual program with plugins, got `$program'")
             }
         }
@@ -223,15 +226,27 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitStage1Sequence(buildscript: Program.Buildscript, plugins: Program.Plugins) {
+    val Program.Stage1.fragment: ProgramSourceFragment
+        get() = when (this) {
+            is Program.Buildscript -> fragment
+            is Program.Plugins -> fragment
+            is Program.PluginManagement -> fragment
+            else -> TODO()
+        }
 
+    fun MethodVisitor.emitStage1Sequence(vararg stage1Seq: Program.Stage1?) {
+        emitStage1Sequence(listOfNotNull(*stage1Seq))
+    }
+
+    private
+    fun MethodVisitor.emitStage1Sequence(stage1Seq: List<Program.Stage1>) {
         val scriptDefinition = buildscriptWithPluginsScriptDefinition
+        val plugins = stage1Seq.filterIsInstance<Program.Plugins>().singleOrNull()
+        val firstElement = stage1Seq.first()
         val precompiledBuildscriptWithPluginsBlock =
             compileStage1(
-                plugins.fragment.source.map {
-                    it.preserve(
-                        buildscript.fragment.range,
-                        plugins.fragment.range)
+                firstElement.fragment.source.map {
+                    it.preserve(stage1Seq.map { stage1 -> stage1.fragment.range })
                 },
                 scriptDefinition,
                 pluginsBlockClassPath
@@ -329,7 +344,9 @@ class ResidualProgramCompiler(
 
         precompiledScriptClassInstantiation(precompiledPluginsBlock) {
 
-            // val collector = PluginRequestCollector(scriptSource)
+            /*
+             * val collector = PluginRequestCollector(kotlinScriptHost.scriptSource)
+             */
             emitPluginRequestCollectorInstantiation()
 
             // ${precompiledPluginsBlock}(collector.createSpec(lineNumber))
@@ -345,7 +362,7 @@ class ResidualProgramCompiler(
     }
 
     /**
-     * val collector = PluginRequestCollector(scriptSource)
+     * val collector = PluginRequestCollector(kotlinScriptHost.scriptSource)
      */
     private
     fun MethodVisitor.emitPluginRequestCollectorInstantiation() {
@@ -373,9 +390,9 @@ class ResidualProgramCompiler(
     }
 
     private
-    fun MethodVisitor.emitPluginRequestCollectorCreateSpecFor(plugins: Program.Plugins) {
+    fun MethodVisitor.emitPluginRequestCollectorCreateSpecFor(plugins: Program.Plugins?) {
         ALOAD(Vars.PluginRequestCollector)
-        LDC(plugins.fragment.lineNumber)
+        LDC(plugins?.fragment?.lineNumber ?: 0)
         INVOKEVIRTUAL(
             pluginRequestCollectorType,
             "createSpec",
@@ -690,12 +707,18 @@ class ResidualProgramCompiler(
         get() = scriptDefinitionFromTemplate(CompiledKotlinPluginsBlock::class)
 
     private
-    val buildscriptWithPluginsScriptDefinition
-        get() = scriptDefinitionFromTemplate(CompiledKotlinBuildscriptAndPluginsBlock::class)
-
-    private
     fun implicitReceiverOf(scriptDefinition: ScriptDefinition): KClass<*>? =
         implicitReceiverOf(scriptDefinition.baseClassType.fromClass!!)
+
+    private
+    val buildscriptWithPluginsScriptDefinition
+        get() = scriptDefinitionFromTemplate(
+            when (programTarget) {
+                ProgramTarget.Project -> CompiledKotlinBuildscriptAndPluginsBlock::class
+                ProgramTarget.Settings -> KotlinPluginManagementBuildscriptAndPluginsBlock::class
+                else -> TODO("Unsupported program target: `$programTarget`")
+            }
+        )
 
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
