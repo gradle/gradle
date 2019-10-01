@@ -89,7 +89,7 @@ inline fun mockSettings(
     pluginManagementSpec: PluginManagementSpec = mock(),
     stubbing: KStubbing<Settings>.(Settings) -> Unit = {}
 ): Settings = mock {
-    on { pluginManagement } doReturn mock<PluginManagementSpec>()
+    on { pluginManagement } doReturn pluginManagementSpec
     on { pluginManagement(any<Action<PluginManagementSpec>>()) } doAnswer { invocation ->
         invocation
             .getArgument<Action<PluginManagementSpec>>(0)
