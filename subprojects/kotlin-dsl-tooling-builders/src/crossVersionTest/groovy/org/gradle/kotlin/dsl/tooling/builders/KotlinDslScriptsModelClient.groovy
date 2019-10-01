@@ -44,21 +44,19 @@ class KotlinDslScriptsModelClient {
                 setJavaHome(request.javaHome)
             }
 
-            addJvmArguments(request.jvmOptions)
             if (request.lenient) {
-                addJvmArguments(KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                setJvmArguments(request.jvmOptions + KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
             } else {
-                addJvmArguments(KotlinDslModelsParameters.STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+                setJvmArguments(request.jvmOptions + KotlinDslModelsParameters.STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
             }
 
             forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
 
-
-            addArguments(request.options)
-            addArguments("-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${request.correlationId}")
+            def arguments = request.options + "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${request.correlationId}".toString()
             if (!request.scripts.isEmpty()) {
-                addArguments("-P${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME}=${request.scripts.collect { it.canonicalPath }.join("|")}")
+                arguments += "-P${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME}=${request.scripts.collect { it.canonicalPath }.join("|")}".toString()
             }
+            withArguments(arguments)
 
         }.get()
     }
