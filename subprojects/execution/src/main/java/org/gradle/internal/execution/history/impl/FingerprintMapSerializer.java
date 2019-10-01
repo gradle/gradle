@@ -17,6 +17,7 @@
 package org.gradle.internal.execution.history.impl;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
@@ -29,7 +30,6 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.io.IOException;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class FingerprintMapSerializer extends AbstractSerializer<Map<String, FileSystemLocationFingerprint>> {
@@ -50,13 +50,13 @@ public class FingerprintMapSerializer extends AbstractSerializer<Map<String, Fil
     @Override
     public Map<String, FileSystemLocationFingerprint> read(Decoder decoder) throws IOException {
         int fingerprintCount = decoder.readSmallInt();
-        Map<String, FileSystemLocationFingerprint> fingerprints = new LinkedHashMap<String, FileSystemLocationFingerprint>(fingerprintCount);
+        ImmutableMap.Builder<String, FileSystemLocationFingerprint> fingerprints = ImmutableMap.builderWithExpectedSize(fingerprintCount);
         for (int i = 0; i < fingerprintCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
             FileSystemLocationFingerprint fingerprint = readFingerprint(decoder);
             fingerprints.put(absolutePath, fingerprint);
         }
-        return fingerprints;
+        return fingerprints.build();
     }
 
     private FileSystemLocationFingerprint readFingerprint(Decoder decoder) throws IOException {
