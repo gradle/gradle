@@ -99,7 +99,7 @@ class ProgramParserTest {
             print("stage 2")
         """.replaceIndent())
 
-        val expectedScript =
+        val expectedScript = "" +
             "                                              \n" +
             "                                      \n" +
             "print(\"stage 2\")"
@@ -155,7 +155,7 @@ class ProgramParserTest {
             print("stage 2")
         """.replaceIndent())
 
-        val expectedScript =
+        val expectedScript = "" +
             "                                                        \n" +
             "                                              \n" +
             "                                      \n" +

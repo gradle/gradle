@@ -47,36 +47,36 @@ object ProgramParser {
             val buildscriptFragment =
                 topLevelBlocks
                     .singleSectionOf(TopLevelBlockId.buildscriptIdFor(target))
-                ?.let { sourceWithoutComments.fragment(it) }
-
-        val pluginManagementFragment =
-            topLevelBlocks
-                .singleSectionOf(TopLevelBlockId.pluginManagement)
                     ?.let { sourceWithoutComments.fragment(it) }
 
-        val pluginsFragment =
-            topLevelBlocks
-                .takeIf { topLevelBlockIds.contains(TopLevelBlockId.plugins) && kind == ProgramKind.TopLevel }
-                ?.singleSectionOf(TopLevelBlockId.plugins)
-                ?.let { sourceWithoutComments.fragment(it) }
+            val pluginManagementFragment =
+                topLevelBlocks
+                    .singleSectionOf(TopLevelBlockId.pluginManagement)
+                    ?.let { sourceWithoutComments.fragment(it) }
+
+            val pluginsFragment =
+                topLevelBlocks
+                    .takeIf { topLevelBlockIds.contains(TopLevelBlockId.plugins) && kind == ProgramKind.TopLevel }
+                    ?.singleSectionOf(TopLevelBlockId.plugins)
+                    ?.let { sourceWithoutComments.fragment(it) }
 
             val buildscript =
                 buildscriptFragment?.takeIf { it.isNotBlank() }?.let(Program::Buildscript)
 
             val pluginManagement =
-            pluginManagementFragment?.takeIf { it.isNotBlank() }?.let(Program::PluginManagement)
+                pluginManagementFragment?.takeIf { it.isNotBlank() }?.let(Program::PluginManagement)
 
             val plugins =
                 pluginsFragment?.takeIf { it.isNotBlank() }?.let(Program::Plugins)
 
             val stage1Components =
-                listOfNotNull<Program.Stage1>(pluginManagement, buildscript,
-                    plugins)
-                        val stage1 = when {
-                    stage1Components.isEmpty() -> null
+                listOfNotNull<Program.Stage1>(pluginManagement, buildscript, plugins)
+
+            val stage1 = when {
+                stage1Components.isEmpty() -> null
                 stage1Components.size == 1 -> stage1Components.first()
-            else -> Program.Stage1Sequence(pluginManagement, buildscript, plugins)
-        }
+                else -> Program.Stage1Sequence(pluginManagement, buildscript, plugins)
+            }
 
             val remainingSource =
                 sourceWithoutComments.map {
@@ -84,10 +84,10 @@ object ProgramParser {
                         listOfNotNull(
                             buildscriptFragment?.range,
                             pluginManagementFragment?.range,
-                        pluginsFragment?.range
-                )
-                )
-            }
+                            pluginsFragment?.range
+                        )
+                    )
+                }
 
             val stage2 = remainingSource
                 .takeIf { it.text.isNotBlank() }
@@ -97,8 +97,9 @@ object ProgramParser {
                 stage2?.let { s2 ->
                     Program.Staged(s1, s2)
                 } ?: s1
-            } ?: stage2
-            ?: Program.Empty
+            }
+                ?: stage2
+                ?: Program.Empty
         }
     }
 

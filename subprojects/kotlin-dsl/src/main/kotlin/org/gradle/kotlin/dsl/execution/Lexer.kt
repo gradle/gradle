@@ -221,23 +221,21 @@ data class TopLevelBlock(val identifier: TopLevelBlockId, val section: ScriptSec
 @Suppress("EnumEntryName")
 internal
 enum class TopLevelBlockId {
-    @Suppress("SpellCheckingInspection")
     buildscript,
     plugins,
     pluginManagement,
-    @Suppress("SpellCheckingInspection")
     initscript;
 
     val tokenText: String
         get() = name
 
     companion object {
+
         fun topLevelBlockIdFor(target: ProgramTarget) = when (target) {
             ProgramTarget.Project -> arrayOf(buildscript, plugins)
             ProgramTarget.Settings -> arrayOf(buildscript, pluginManagement, plugins)
             ProgramTarget.Gradle -> arrayOf(initscript)
         }
-
 
         fun buildscriptIdFor(target: ProgramTarget) = when (target) {
             ProgramTarget.Gradle -> initscript

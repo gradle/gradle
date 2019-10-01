@@ -261,7 +261,6 @@ class ResidualProgramCompiler(
             NEW(precompiledBuildscriptWithPluginsBlock)
             ALOAD(Vars.ScriptHost)
             // ${plugins}(temp.createSpec(lineNumber))
-            // TODO: JLL: Passing null here feels like a hack.
             emitPluginRequestCollectorCreateSpecFor(plugins)
             INVOKESPECIAL(
                 precompiledBuildscriptWithPluginsBlock,
@@ -695,6 +694,7 @@ class ResidualProgramCompiler(
                 else -> TODO("Unsupported program target: `$programTarget`")
             }
         )
+
     private
     fun scriptDefinitionFromTemplate(template: KClass<out Any>) =
         scriptDefinitionFromTemplate(template, implicitImports)
