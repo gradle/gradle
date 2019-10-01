@@ -70,17 +70,15 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VcsResolver vcsResolver;
     private final VersionControlRepositoryConnectionFactory versionControlSystemFactory;
     private final VcsVersionWorkingDirResolver workingDirResolver;
-    private final BuildState containingBuild;
     private final PublicBuildPath publicBuildPath;
     private final BuildStateRegistry buildRegistry;
 
-    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver, BuildState containingBuild, PublicBuildPath publicBuildPath) {
+    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver, PublicBuildPath publicBuildPath) {
         this.localComponentRegistry = localComponentRegistry;
         this.vcsResolver = vcsResolver;
         this.versionControlSystemFactory = versionControlSystemFactory;
         this.buildRegistry = buildRegistry;
         this.workingDirResolver = workingDirResolver;
-        this.containingBuild = containingBuild;
         this.publicBuildPath = publicBuildPath;
     }
 
@@ -129,7 +127,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     private BuildDefinition toBuildDefinition(AbstractVersionControlSpec spec, File buildDirectory) {
-        InjectedPluginResolver resolver = new InjectedPluginResolver(containingBuild.getLoadedSettings().getClassLoaderScope());
+        InjectedPluginResolver resolver = new InjectedPluginResolver();
         return BuildDefinition.fromStartParameterForBuild(buildRegistry.getRootBuild().getStartParameter(), null, buildDirectory, resolver.resolveAll(spec.getInjectedPlugins()), publicBuildPath);
     }
 

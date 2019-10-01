@@ -87,13 +87,13 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return new DefaultAutoAppliedPluginHandler(registry);
         }
 
-        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry, PluginInspector pluginInspector,
+        PluginResolverFactory createPluginResolverFactory(PluginRegistry pluginRegistry,
                                                           DocumentationRegistry documentationRegistry,
                                                           InjectedClasspathPluginResolver injectedClasspathPluginResolver,
                                                           PluginDependencyResolutionServices dependencyResolutionServices,
                                                           List<PluginResolverContributor> pluginResolverContributors,
                                                           VersionSelectorScheme versionSelectorScheme) {
-            return new PluginResolverFactory(pluginRegistry, pluginInspector, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, pluginResolverContributors, versionSelectorScheme);
+            return new PluginResolverFactory(pluginRegistry, documentationRegistry, injectedClasspathPluginResolver, dependencyResolutionServices, pluginResolverContributors, versionSelectorScheme);
         }
 
         PluginRequestApplicator createPluginRequestApplicator(PluginRegistry pluginRegistry, PluginDependencyResolutionServices dependencyResolutionServices,
