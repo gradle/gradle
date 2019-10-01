@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.kotlin.dsl.tooling.models
 
-import java.io.File
+package org.gradle.kotlin.dsl.tooling.models;
+
+import java.io.File;
+import java.util.List;
 
 
 /**
  * Kotlin build script template model.
  */
-interface KotlinBuildScriptTemplateModel {
+public interface KotlinBuildScriptTemplateModel {
 
     /**
      * Classpath required to load Kotlin build script template class.
      */
-    val classPath: List<File>
+    List<File> getClassPath();
 }
