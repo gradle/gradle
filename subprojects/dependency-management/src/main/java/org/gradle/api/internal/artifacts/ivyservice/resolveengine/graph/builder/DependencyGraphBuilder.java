@@ -31,10 +31,13 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ResolveContext;
-import org.gradle.api.internal.artifacts.dsl.ModuleReplacementsData;
+import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
@@ -86,7 +89,6 @@ public class DependencyGraphBuilder {
     private final AttributesSchemaInternal attributesSchema;
     private final ModuleExclusions moduleExclusions;
     private final BuildOperationExecutor buildOperationExecutor;
-    private final ModuleReplacementsData moduleReplacementsData;
     private final ComponentSelectorConverter componentSelectorConverter;
     private final DependencySubstitutionApplicator dependencySubstitutionApplicator;
     private final ImmutableAttributesFactory attributesFactory;
@@ -107,7 +109,6 @@ public class DependencyGraphBuilder {
                                   AttributesSchemaInternal attributesSchema,
                                   ModuleExclusions moduleExclusions,
                                   BuildOperationExecutor buildOperationExecutor,
-                                  ModuleReplacementsData moduleReplacementsData,
                                   DependencySubstitutionApplicator dependencySubstitutionApplicator,
                                   ComponentSelectorConverter componentSelectorConverter,
                                   ImmutableAttributesFactory attributesFactory,
@@ -122,7 +123,6 @@ public class DependencyGraphBuilder {
         this.attributesSchema = attributesSchema;
         this.moduleExclusions = moduleExclusions;
         this.buildOperationExecutor = buildOperationExecutor;
-        this.moduleReplacementsData = moduleReplacementsData;
         this.dependencySubstitutionApplicator = dependencySubstitutionApplicator;
         this.componentSelectorConverter = componentSelectorConverter;
         this.attributesFactory = attributesFactory;
@@ -139,12 +139,12 @@ public class DependencyGraphBuilder {
         moduleResolver.resolve(resolveContext, rootModule);
 
         int graphSize = estimateSize(resolveContext);
-        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), graphSize);
+        final ResolveState resolveState = new ResolveState(idGenerator, rootModule, resolveContext.getName(), idResolver, metaDataResolver, edgeFilter, attributesSchema, moduleExclusions, componentSelectorConverter, attributesFactory, dependencySubstitutionApplicator, versionSelectorScheme, versionComparator, versionParser, moduleConflictHandler.getResolver(), resolveContext.getResolutionStrategy().isFailingOnDynamicVersions(), graphSize);
 
         Map<ModuleVersionIdentifier, ComponentIdentifier> componentIdentifierCache = Maps.newHashMapWithExpectedSize(graphSize/2);
         traverseGraph(resolveState, componentIdentifierCache);
 
-        validateGraph(resolveState);
+        validateGraph(resolveState, resolveContext.getResolutionStrategy().isFailingOnDynamicVersions());
 
         assembleResult(resolveState, modelVisitor);
 
@@ -369,7 +369,7 @@ public class DependencyGraphBuilder {
         }
     }
 
-    private void validateGraph(ResolveState resolveState) {
+    private void validateGraph(ResolveState resolveState, boolean denyDynamicSelectors) {
         for (ModuleResolveState module : resolveState.getModules()) {
             ComponentState selected = module.getSelected();
             if (selected != null) {
@@ -385,9 +385,81 @@ public class DependencyGraphBuilder {
                     } else if (selected.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
                         validateMultipleNodeSelection(module, selected);
                     }
+                    if (denyDynamicSelectors) {
+                        validateDynamicSelectors(selected);
+                    }
+
                 }
             } else if (module.isVirtualPlatform()) {
                 attachMultipleForceOnPlatformFailureToEdges(module);
+            }
+        }
+    }
+
+    private static boolean isDynamic(SelectorState selector) {
+        return selector.getVersionConstraint().isDynamic();
+    }
+
+    private static boolean isSimpleRangeSelector(ResolvedVersionConstraint rvc) {
+        return isSimpleSelector(rvc, VersionRangeSelector.class);
+    }
+
+    private static boolean isSimpleExactSelector(ResolvedVersionConstraint rvc) {
+        return isSimpleSelector(rvc, ExactVersionSelector.class);
+    }
+
+    private static boolean isSimpleSelector(ResolvedVersionConstraint rvc, Class<? extends VersionSelector> selectorClass) {
+        VersionSelector preferredSelector = rvc.getPreferredSelector();
+        if (preferredSelector != null && !(selectorClass.isAssignableFrom(preferredSelector.getClass()))) {
+            return false;
+        }
+        VersionSelector requireSelector = rvc.getRequiredSelector();
+        if (requireSelector != null && !(selectorClass.isAssignableFrom(requireSelector.getClass()))) {
+            return false;
+        }
+        if (rvc.getRejectedSelector() != null) {
+            return false;
+        }
+        return true;
+    }
+
+    private void validateDynamicSelectors(ComponentState selected) {
+        List<SelectorState> selectors = ImmutableList.copyOf(selected.getModule().getSelectors());
+        if (!selectors.isEmpty()) {
+            if (selectors.stream().allMatch(DependencyGraphBuilder::isDynamic)) {
+                // when all selectors are dynamic, result is undoubtedly unstable
+                markDeniedDynamicVersions(selected);
+            } else if (selectors.stream().anyMatch(DependencyGraphBuilder::isDynamic)) {
+                checkIfDynamicVersionAllowed(selected, selectors);
+            }
+        }
+    }
+
+    private void checkIfDynamicVersionAllowed(ComponentState selected, List<SelectorState> selectors) {
+        // if there's at least one dynamic selector, it's more complicated
+        // as the only stable combination is range + exact
+        int rangeCount = 0;
+        int exactCount = 0;
+        for (SelectorState selector : selectors) {
+            if (isSimpleRangeSelector(selector.getVersionConstraint())) {
+                rangeCount++;
+            } else if (isSimpleExactSelector(selector.getVersionConstraint())) {
+                exactCount++;
+            }
+        }
+        if (selectors.size() != rangeCount + exactCount) {
+            // invalid combination
+            markDeniedDynamicVersions(selected);
+        }
+    }
+
+    private void markDeniedDynamicVersions(ComponentState cs) {
+        for (NodeState node : cs.getNodes()) {
+            List<EdgeState> incomingEdges = node.getIncomingEdges();
+            for (EdgeState incomingEdge : incomingEdges) {
+                ComponentSelector selector = incomingEdge.getSelector().getSelector();
+                incomingEdge.failWith(new ModuleVersionResolveException(selector, () ->
+                    String.format("Could not resolve %s: Resolution strategy disallows usage of dynamic versions", selector)));
             }
         }
     }

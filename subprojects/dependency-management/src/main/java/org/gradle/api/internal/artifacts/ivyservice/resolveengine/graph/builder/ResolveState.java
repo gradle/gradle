@@ -83,13 +83,24 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ResolveOptimizations resolveOptimizations;
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
     private final AttributeDesugaring attributeDesugaring;
+    private final boolean denyDynamicSelector;
 
-    public ResolveState(IdGenerator<Long> idGenerator, ComponentResolveResult rootResult, String rootConfigurationName, DependencyToComponentIdResolver idResolver,
-                        ComponentMetaDataResolver metaDataResolver, Spec<? super DependencyMetadata> edgeFilter, AttributesSchemaInternal attributesSchema,
+    public ResolveState(IdGenerator<Long> idGenerator,
+                        ComponentResolveResult rootResult,
+                        String rootConfigurationName,
+                        DependencyToComponentIdResolver idResolver,
+                        ComponentMetaDataResolver metaDataResolver,
+                        Spec<? super DependencyMetadata> edgeFilter,
+                        AttributesSchemaInternal attributesSchema,
                         ModuleExclusions moduleExclusions,
-                        ComponentSelectorConverter componentSelectorConverter, ImmutableAttributesFactory attributesFactory,
-                        DependencySubstitutionApplicator dependencySubstitutionApplicator, VersionSelectorScheme versionSelectorScheme,
-                        Comparator<Version> versionComparator, VersionParser versionParser, ModuleConflictResolver conflictResolver,
+                        ComponentSelectorConverter componentSelectorConverter,
+                        ImmutableAttributesFactory attributesFactory,
+                        DependencySubstitutionApplicator dependencySubstitutionApplicator,
+                        VersionSelectorScheme versionSelectorScheme,
+                        Comparator<Version> versionComparator,
+                        VersionParser versionParser,
+                        ModuleConflictResolver conflictResolver,
+                        boolean denyDynamicSelectorm,
                         int graphSize) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
@@ -117,6 +128,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         root.getComponent().getModule().select(root.getComponent());
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
         selectorStateResolver = new SelectorStateResolver<ComponentState>(conflictResolver, this, rootVersion, resolveOptimizations);
+        this.denyDynamicSelector = denyDynamicSelectorm;
         getModule(rootResult.getModuleVersionId().getModule()).setSelectorStateResolver(selectorStateResolver);
     }
 
@@ -262,5 +274,9 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
 
     ResolveOptimizations getResolveOptimizations() {
         return resolveOptimizations;
+    }
+
+    public boolean isDenyDynamicSelector() {
+        return denyDynamicSelector;
     }
 }
