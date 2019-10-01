@@ -23,6 +23,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.file.PathToFileResolver;
@@ -141,7 +142,7 @@ public class DefaultManifest implements ManifestInternal {
     private static void addMainAttributesToJavaManifest(org.gradle.api.java.archives.Manifest gradleManifest, Manifest javaManifest) {
         for (Map.Entry<String, Object> entry : gradleManifest.getAttributes().entrySet()) {
             String mainAttributeName = entry.getKey();
-            String mainAttributeValue = entry.getValue().toString();
+            String mainAttributeValue = resolveValueToString(entry.getValue());
             javaManifest.getMainAttributes().putValue(mainAttributeName, mainAttributeValue);
         }
     }
@@ -152,11 +153,19 @@ public class DefaultManifest implements ManifestInternal {
             java.util.jar.Attributes sectionAttributes = new java.util.jar.Attributes();
             for (Map.Entry<String, Object> attribute : entry.getValue().entrySet()) {
                 String attributeName = attribute.getKey();
-                String attributeValue = attribute.getValue().toString();
+                String attributeValue = resolveValueToString(attribute.getValue());
                 sectionAttributes.putValue(attributeName, attributeValue);
             }
             javaManifest.getEntries().put(sectionName, sectionAttributes);
         }
+    }
+
+    private static String resolveValueToString(Object value) {
+        Object underlyingValue = value;
+        if (value instanceof Provider) {
+            underlyingValue = ((Provider) value).get();
+        }
+        return underlyingValue.toString();
     }
 
     @Override

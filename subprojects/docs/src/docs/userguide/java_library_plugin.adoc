@@ -15,7 +15,9 @@
 [[java_library_plugin]]
 = The Java Library Plugin
 
-The Java Library plugin expands the capabilities of the Java plugin by providing specific knowledge about Java libraries. In particular, a Java library exposes an API to consumers (i.e., other projects using the Java or the Java Library plugin). All the source sets, tasks and configurations exposed by the Java plugin are implicitly available when using this plugin.
+The Java Library plugin expands the capabilities of the <<java_plugin.adoc#,Java plugin>> by providing specific knowledge about Java libraries.
+In particular, a Java library exposes an API to consumers (i.e., other projects using the Java or the Java Library plugin).
+All the source sets, tasks and configurations exposed by the Java plugin are implicitly available when using this plugin.
 
 
 [[sec:java_library_usage]]
@@ -237,7 +239,7 @@ The role of each configuration is described in the following tables:
 |===
 
 [[sec:java_library_classes_usage]]
-=== Using classes instead of jar for compilation
+== Using classes instead of jar for compilation
 
 A feature of the `java-library` plugin is that projects which consume the library only require the classes folder for compilation, instead of the full JAR.
 This enables lighter inter-project dependencies as resources processing (`processResources` task) and archive construction (`jar` task) are no longer executed when only Java code compilation is performed during development.
@@ -248,16 +250,22 @@ The usage or not of the classes output instead of the JAR is a _consumer_ decisi
 For example, Groovy consumers will request classes _and_ processed resources as these may be needed for executing AST transformation as part of the compilation process.
 ====
 
-[[sec:java_library_known_issues_memory]]
+[[sub:java_library_known_issues_memory]]
 === Increased memory usage for consumers
 
 An indirect consequence is that up-to-date checking will require more memory, because Gradle will snapshot individual class files instead of a single jar.
 This may lead to increased memory consumption for large projects, with the benefit of having the `compileJava` task up-to-date in more cases (e.g. changing resources no longer changes the input for `compileJava` tasks of upstream projects)
 
-[[sec:java_library_known_issues_windows_performance]]
+[[sub:java_library_known_issues_windows_performance]]
 === Significant build performance drop on Windows for huge multi-projects
 
 Another side effect of the snapshotting of individual class files, only affecting Windows systems, is that the performance can significantly drop when processing a very large amount of class files on the compile classpath.
 This only concerns very large multi-projects where a lot of classes are present on the classpath by using many `api` or (deprecated) `compile` dependencies.
 To mitigate this, you can set the `org.gradle.java.compile-classpath-packaging` system property to `true` to change the behavior of the Java Library plugin to use jars instead of class folders for everything on the compile classpath.
 Note, since this has other performance impacts and potentially side effects, by triggering all jar tasks at compile time, it is only recommended to activate this if you suffer from the described performance issue on Windows.
+
+[[sec:library_distribution]]
+== Distributing a library
+
+Aside from <<publishing_setup.adoc#,publishing>> a library to a component repository, you may sometimes need to package a library and its dependencies in a distribution deliverable.
+The <<java_library_distribution_plugin.adoc#,Java Library Distribution Plugin>> is there to help you do just that.

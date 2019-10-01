@@ -29,7 +29,7 @@ class MavenPom {
             def scopesByDependency = ArrayListMultimap.create()
 
             pom.dependencies.dependency.each { dep ->
-                def scope = createScope(dep.scope)
+                def scope = createScope(dep.scope, 'compile')
                 MavenDependency mavenDependency = createDependency(dep)
                 if (mavenDependency.optional) {
                     scope.optionalDependencies[mavenDependency.getKey()] = mavenDependency
@@ -40,7 +40,7 @@ class MavenPom {
             }
 
             pom.dependencyManagement.dependencies.dependency.each { dep ->
-                def scope = createScope(dep.scope)
+                def scope = createScope(dep.scope, 'no_scope')
                 MavenDependency mavenDependency = createDependency(dep)
                 scope.dependencyManagement[mavenDependency.getKey()] = mavenDependency
             }
@@ -154,8 +154,8 @@ class MavenPom {
         )
     }
 
-    private MavenScope createScope(def scopeElement) {
-        def scopeName = scopeElement ? scopeElement.text() : 'runtime'
+    private MavenScope createScope(def scopeElement, String defaultScope) {
+        def scopeName = scopeElement ? scopeElement.text() : defaultScope
         def scope = scopes[scopeName]
         if (!scope) {
             scope = new MavenScope(name: scopeName)

@@ -46,7 +46,7 @@ The {cpp} plugins also integrates the above tasks into the standard <<base_plugi
 
 The rest of the chapter explains the different ways to customize the build to your requirements when building libraries and applications.
 
-[[sec:introducing_build_variants]]
+[[sec:introducing_build_variants-cpp]]
 == Introducing build variants
 
 Native projects can typically produce several different binaries, such as debug or release ones, or ones that target particular platforms and processor architectures.
@@ -106,7 +106,7 @@ The Gradle terminology for the three elements is as follows:
  * _Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or linking a module
  * _Project reference_ (ex: `project(':common')`) - the project referenced by the specified path
 
-You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#dependency_management_terminology,here>>.
+You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#,here>>.
 
 As far as configurations go, the main ones of interest are:
 
@@ -124,10 +124,10 @@ We have only scratched the surface here, so we recommend that you read the <<cor
 Some common scenarios that require further reading include:
 
  * Defining a custom <<declaring_repositories.adoc#sec:maven_repo,Maven-compatible>> repository
- * Declaring dependencies with <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
+ * Declaring dependencies with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
  * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
- * <<controlling_transitive_dependencies.adoc#,Controlling transitive dependencies and their versions>>
- * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite-builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
+ * <<dependency_constraints.adoc#,Controlling transitive dependencies and their versions>>
+ * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#composite_builds,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
 
 You’ll discover that Gradle has a rich API for working with dependencies - one that takes time to master, but is straightforward to use for common scenarios.
 
@@ -153,12 +153,12 @@ When you build a native binary, Gradle will attempt to locate a tool chain insta
 Gradle select the first tool chain that can build for the target operating system and architecture.
 In the future, Gradle will consider source and ABI compatibility when selecting a tool chain.
 
-Gradle has general support for the three major tool chains on major operating system: Clang footnote:[Installed with Xcode on macOS], GCC footnote:[Installed through Cygwin and MinGW for 32- and 64-bits architecture on Windows] and Visual {cpp} footnote:[Installed with Visual Studio 2010 to 2017] (Windows-only).
+Gradle has general support for the three major tool chains on major operating system: Clang footnote:[Installed with Xcode on macOS], GCC footnote:[Installed through Cygwin and MinGW for 32- and 64-bits architecture on Windows] and Visual {cpp} footnote:[Installed with Visual Studio 2010 to 2019] (Windows-only).
 GCC and Clang installed using Macports and Homebrew have been reported to work fine, but this isn’t tested continuously.
 
 ==== Windows
 
-To build on Windows, install a compatible version of Visual Studio[4].
+To build on Windows, install a compatible version of Visual Studio.
 The {cpp} plugins will discover the Visual Studio installations and select the latest version.
 There is no need to mess around with environment variables or batch scripts.
 This works fine from a Cygwin shell or the Windows command-line.

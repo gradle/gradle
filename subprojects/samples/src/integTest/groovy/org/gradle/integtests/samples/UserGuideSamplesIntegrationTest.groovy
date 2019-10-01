@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.integtests.samples
 
 import org.gradle.cache.internal.DefaultGeneratedGradleJarCache
@@ -48,7 +47,11 @@ import org.junit.runner.RunWith
         PlayComponentReportOutputNormalizer,
         DependencyInsightOutputNormalizer
 ])
-@SampleModifiers([SetMirrorsSampleModifier, MoreMemorySampleModifier])
+@SampleModifiers([
+    SetMirrorsSampleModifier,
+    MoreMemorySampleModifier,
+    FailOnDeprecationSampleModifier,
+])
 class UserGuideSamplesIntegrationTest {
 
     /*
@@ -72,7 +75,7 @@ class UserGuideSamplesIntegrationTest {
     // Our sample executor needs to be isolated from other TestKit-based tests that may run in the Gradle CI pipeline with a "partial" distribution
     // Partial distributions have the same version number as a full distribution, but when we generate a Kotlin extensions jar, we'll only include
     // extensions that are defined in the distribution. If we first run with a partial distribution, our samples will fail when trying to use plugins
-    // from the full distribution. 
+    // from the full distribution.
 
     // Previous value of BASE_DIR_OVERRIDE_PROPERTY
     static String previous

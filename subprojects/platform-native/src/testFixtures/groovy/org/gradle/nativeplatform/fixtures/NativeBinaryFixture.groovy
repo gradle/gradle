@@ -158,10 +158,10 @@ class NativeBinaryFixture {
         }
         if (OperatingSystem.current().isWindows()) {
             if (toolChain.meets(ToolChainRequirement.GCC)) {
-                return new DumpbinGccProducedBinaryInfo(file)
+                return new DumpbinGccProducedBinaryInfo(file, toolChain.runtimeEnv)
             }
             return new DumpbinBinaryInfo(file)
         }
-        return new ReadelfBinaryInfo(file)
+        return new ReadelfBinaryInfo(file, toolChain.runtimeEnv)
     }
 }

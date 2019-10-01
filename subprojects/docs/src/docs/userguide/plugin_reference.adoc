@@ -34,9 +34,6 @@ Provides support for building any type of https://groovy-lang.org/[Groovy] proje
 <<scala_plugin.adoc#,Scala>>::
 Provides support for building any type of https://www.scala-lang.org/[Scala] project.
 
-<<play_plugin.adoc#,Play>>::
-Provides support for building, testing and running https://www.playframework.com/[Play] applications.
-
 <<antlr_plugin.adoc#,ANTLR>>::
 Provides support for generating parsers using http://www.antlr.org/[ANTLR].
 
@@ -73,10 +70,10 @@ Provides support for building and packaging WAR-based Java web applications.
 Provides support for building and packaging Java EE applications.
 
 <<publishing_maven.adoc#,Maven Publish>>::
-Provides support for <<publishing.adoc#,publishing artifacts>> to Maven-compatible repositories.
+Provides support for <<publishing_setup.adoc#,publishing artifacts>> to Maven-compatible repositories.
 
 <<publishing_ivy.adoc#,Ivy Publish>>::
-Provides support for <<publishing.adoc#,publishing artifacts>> to Ivy-compatible repositories.
+Provides support for <<publishing_setup.adoc#,publishing artifacts>> to Ivy-compatible repositories.
 
 <<maven_plugin.adoc#,Legacy Maven Plugin>>::
 Provides support for publishing artifacts using the <<artifact_management.adoc#,legacy mechanism>> to Maven-compatible repositories.

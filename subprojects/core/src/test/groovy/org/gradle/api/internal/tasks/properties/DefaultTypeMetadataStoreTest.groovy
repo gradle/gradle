@@ -46,8 +46,9 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.reflect.DefaultTypeValidationContext
 import org.gradle.internal.reflect.PropertyMetadata
-import org.gradle.internal.reflect.WorkValidationContext
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.scripts.ScriptOrigin
 import org.gradle.internal.service.ServiceRegistryBuilder
@@ -61,6 +62,7 @@ import javax.inject.Inject
 import java.lang.annotation.Annotation
 
 import static ModifierAnnotationCategory.NORMALIZATION
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 class DefaultTypeMetadataStoreTest extends Specification {
 
@@ -124,8 +126,8 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def annotationHandler = Stub(PropertyAnnotationHandler)
         _ * annotationHandler.propertyRelevant >> true
         _ * annotationHandler.annotationType >> SearchPath
-        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, WorkValidationContext context ->
-            context.visitWarning(null, metadata.propertyName, "is broken")
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
+            context.visitPropertyProblem(WARNING, metadata.propertyName, "is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
@@ -145,8 +147,8 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def annotationHandler = Stub(PropertyAnnotationHandler)
         _ * annotationHandler.propertyRelevant >> false
         _ * annotationHandler.annotationType >> SearchPath
-        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, WorkValidationContext context ->
-            context.visitWarning(null, metadata.propertyName, "is broken")
+        _ * annotationHandler.validatePropertyMetadata(_, _) >> { PropertyMetadata metadata, TypeValidationContext context ->
+            context.visitPropertyProblem(WARNING, metadata.propertyName, "is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([], [annotationHandler], [], typeAnnotationMetadataStore, cacheFactory)
@@ -163,8 +165,8 @@ class DefaultTypeMetadataStoreTest extends Specification {
     def "custom type annotation handler can inspect for static type problems"() {
         def typeAnnotationHandler = Stub(TypeAnnotationHandler)
         _ * typeAnnotationHandler.annotationType >> CustomCacheable
-        _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, WorkValidationContext context ->
-            context.visitWarning("type is broken")
+        _ * typeAnnotationHandler.validateTypeMetadata(_, _) >> { Class type, TypeValidationContext context ->
+            context.visitTypeProblem(WARNING, type, "type is broken")
         }
 
         def metadataStore = new DefaultTypeMetadataStore([typeAnnotationHandler], [], [], typeAnnotationMetadataStore, cacheFactory)
@@ -179,7 +181,7 @@ class DefaultTypeMetadataStoreTest extends Specification {
         def typeMetadata = metadataStore.getTypeMetadata(TypeWithCustomAnnotation)
 
         then:
-        collectProblems(typeMetadata) == ["type is broken"]
+        collectProblems(typeMetadata) == ["Type 'DefaultTypeMetadataStoreTest.TypeWithCustomAnnotation': type is broken." as String]
     }
 
     @Unroll
@@ -394,9 +396,9 @@ class DefaultTypeMetadataStoreTest extends Specification {
     }
 
     private static List<String> collectProblems(TypeMetadata metadata) {
-        def result = []
-        metadata.collectValidationFailures(null, new DefaultWorkValidationContext(result))
-        return result
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false)
+        metadata.visitValidationFailures(null, validationContext)
+        return validationContext.problems.keySet().toList()
     }
 
     private static boolean isOfType(PropertyMetadata metadata, Class<? extends Annotation> type) {

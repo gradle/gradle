@@ -53,63 +53,52 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
     @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
-        final Set<RelativePath> visitedDirs = new HashSet<RelativePath>();
+        final Set<RelativePath> visitedDirs = new HashSet<>();
         final ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs = ArrayListMultimap.create();
 
-        WorkResult result = delegate.execute(new CopyActionProcessingStream() {
-            @Override
-            public void process(final CopyActionProcessingStreamAction action) {
-
-
-                stream.process(new CopyActionProcessingStreamAction() {
-                    @Override
-                    public void processFile(FileCopyDetailsInternal details) {
-                        if (details.isDirectory()) {
-                            RelativePath path = details.getRelativePath();
-                            if (!visitedDirs.contains(path)) {
-                                pendingDirs.put(path, details);
-                            }
-                        } else {
-                            maybeVisit(details.getRelativePath().getParent(), details.isIncludeEmptyDirs(), action);
-                            action.processFile(details);
-                        }
+        return delegate.execute(action -> {
+            stream.process(details -> {
+                if (details.isDirectory()) {
+                    RelativePath path = details.getRelativePath();
+                    if (!visitedDirs.contains(path)) {
+                        pendingDirs.put(path, details);
                     }
-                });
-
-                for (RelativePath path : new LinkedHashSet<RelativePath>(pendingDirs.keySet())) {
-                    List<FileCopyDetailsInternal> detailsList = new ArrayList<FileCopyDetailsInternal>(pendingDirs.get(path));
-                    for (FileCopyDetailsInternal details : detailsList) {
-                        if (details.isIncludeEmptyDirs()) {
-                            maybeVisit(path, details.isIncludeEmptyDirs(), action);
-                        }
-                    }
-                }
-
-                visitedDirs.clear();
-                pendingDirs.clear();
-            }
-
-            private void maybeVisit(RelativePath path, boolean includeEmptyDirs, CopyActionProcessingStreamAction delegateAction) {
-                if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
-                    return;
-                }
-                maybeVisit(path.getParent(), includeEmptyDirs, delegateAction);
-                List<FileCopyDetailsInternal> detailsForPath = pendingDirs.removeAll(path);
-
-                FileCopyDetailsInternal dir;
-                if (detailsForPath.isEmpty()) {
-                    // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
-                    dir = new StubbedFileCopyDetails(path, includeEmptyDirs, chmod);
                 } else {
-                    dir = detailsForPath.get(0);
+                    maybeVisit(details.getRelativePath().getParent(), details.isIncludeEmptyDirs(), action, visitedDirs, pendingDirs);
+                    action.processFile(details);
                 }
-                delegateAction.processFile(dir);
-            }
-        });
+            });
 
-        return result;
+            for (RelativePath path : new LinkedHashSet<>(pendingDirs.keySet())) {
+                List<FileCopyDetailsInternal> detailsList = new ArrayList<>(pendingDirs.get(path));
+                for (FileCopyDetailsInternal details : detailsList) {
+                    if (details.isIncludeEmptyDirs()) {
+                        maybeVisit(path, details.isIncludeEmptyDirs(), action, visitedDirs, pendingDirs);
+                    }
+                }
+            }
+
+            visitedDirs.clear();
+            pendingDirs.clear();
+        });
     }
 
+    private void maybeVisit(RelativePath path, boolean includeEmptyDirs, CopyActionProcessingStreamAction delegateAction, Set<RelativePath> visitedDirs, ListMultimap<RelativePath, FileCopyDetailsInternal> pendingDirs) {
+        if (path == null || path.getParent() == null || !visitedDirs.add(path)) {
+            return;
+        }
+        maybeVisit(path.getParent(), includeEmptyDirs, delegateAction, visitedDirs, pendingDirs);
+        List<FileCopyDetailsInternal> detailsForPath = pendingDirs.removeAll(path);
+
+        FileCopyDetailsInternal dir;
+        if (detailsForPath.isEmpty()) {
+            // TODO - this is pretty nasty, look at avoiding using a time bomb stub here
+            dir = new StubbedFileCopyDetails(path, includeEmptyDirs, chmod);
+        } else {
+            dir = detailsForPath.get(0);
+        }
+        delegateAction.processFile(dir);
+    }
 
     private static class StubbedFileCopyDetails extends AbstractFileTreeElement implements FileCopyDetailsInternal {
         private final RelativePath path;
@@ -194,6 +183,11 @@ public class NormalizingCopyActionDecorator implements CopyAction {
 
         @Override
         public DuplicatesStrategy getDuplicatesStrategy() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean isDefaultDuplicatesStrategy() {
             throw new UnsupportedOperationException();
         }
 

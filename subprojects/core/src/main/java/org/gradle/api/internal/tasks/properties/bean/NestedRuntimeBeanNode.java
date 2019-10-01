@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
 
@@ -37,7 +37,7 @@ class NestedRuntimeBeanNode extends AbstractNestedRuntimeBeanNode {
     }
 
     @Override
-    public void visitNode(PropertyVisitor visitor, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory, WorkValidationContext validationContext) {
+    public void visitNode(PropertyVisitor visitor, Queue<RuntimeBeanNode<?>> queue, RuntimeBeanNodeFactory nodeFactory, TypeValidationContext validationContext) {
         visitImplementation(visitor);
         visitProperties(visitor, queue, nodeFactory, validationContext);
     }

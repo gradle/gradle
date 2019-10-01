@@ -13,10 +13,6 @@
                 <td/>
             </tr>
             <tr>
-                <td>toolChain</td>
-                <td/>
-            </tr>
-            <tr>
                 <td>source</td>
                 <td><literal><replaceable>sourceSet</replaceable>.java</literal></td>
             </tr>

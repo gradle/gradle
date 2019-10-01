@@ -30,6 +30,7 @@ class JavaScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
 
     def setup() {
         applyPlugin()
+        executer.expectDeprecationWarning("The org.gradle.${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
     }
 
     def "can download from googles repo"() {

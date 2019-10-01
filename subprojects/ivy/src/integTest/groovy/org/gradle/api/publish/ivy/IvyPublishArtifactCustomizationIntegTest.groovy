@@ -420,7 +420,7 @@ The following types/formats are supported:
 
             task customJar(type: Jar) {
                 from file("customFile.txt")
-                baseName "customJar"
+                archiveBaseName = "customJar"
             }
 
             publishing {

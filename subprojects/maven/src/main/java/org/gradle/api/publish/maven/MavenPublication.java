@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
@@ -63,7 +62,7 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * task sourceJar(type: Jar) {
  *   from sourceSets.main.allJava
- *   classifier "sources"
+ *   archiveClassifier = "sources"
  * }
  *
  * publishing {
@@ -169,7 +168,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "sources"
+     *   archiveClassifier = "sources"
      * }
      *
      * publishing {
@@ -198,7 +197,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "sources"
+     *   archiveClassifier = "sources"
      * }
      *
      * publishing {
@@ -233,7 +232,7 @@ public interface MavenPublication extends Publication {
      * apply plugin: "maven-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "sources"
+     *   archiveClassifier = "sources"
      * }
 
      * publishing {
@@ -323,7 +322,6 @@ public interface MavenPublication extends Publication {
      *
      * @since 6.0
      */
-    @Incubating
     void suppressPomMetadataWarningsFor(String variantName);
 
 
@@ -334,6 +332,5 @@ public interface MavenPublication extends Publication {
      *
      * @since 6.0
      */
-    @Incubating
     void suppressAllPomMetadataWarnings();
 }

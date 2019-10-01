@@ -15,7 +15,9 @@
 [[ear_plugin]]
 = The Ear Plugin
 
-The Ear plugin adds support for assembling web application EAR files. It adds a default EAR archive task. It doesn't require the Java plugin, but for projects that also use the Java plugin it disables the default JAR archive generation.
+The Ear plugin adds support for assembling web application EAR files.
+It adds a default EAR archive task.
+It doesn't require the <<java_plugin.adoc#,Java plugin>>, but for projects that also use the Java plugin it disables the default JAR archive generation.
 
 
 [[sec:ear_usage]]

@@ -506,6 +506,58 @@ task check {
         succeeds 'check'
     }
 
+    def "does not lock a configuration that is marked with deactivateDependencyLocking"() {
+        ['foo', 'foz', 'bar', 'baz'].each { artifact ->
+            mavenRepo.module('org', artifact, '1.0').publish()
+            mavenRepo.module('org', artifact, '1.1').publish()
+            mavenRepo.module('org', artifact, '1.2').publish()
+            mavenRepo.module('org', artifact, '2.0').publish()
+        }
+
+        buildFile << """
+repositories {
+    maven {
+        url '${mavenRepo.uri}'
+    }
+}
+
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+configurations {
+    conf
+    lockEnabledConf {
+        extendsFrom conf
+    }
+     secondLockEnabledConf {
+        extendsFrom lockEnabledConf
+        resolutionStrategy.deactivateDependencyLocking()
+    }
+}
+dependencies {
+    conf 'org:foo:[1.0,)'
+    conf 'org:foo:1.1'
+    
+    conf 'org:foz:latest.integration'
+    conf 'org:foz:1.1'
+    
+    conf 'org:bar:1.+'
+    conf 'org:bar:1.1'
+    
+    conf 'org:baz:+'
+    conf 'org:baz:1.1'
+}
+"""
+
+        when:
+        succeeds 'dependencies', '--write-locks'
+
+        then:
+        lockfileFixture.verifyLockfile('lockEnabledConf', ['org:bar:1.2', 'org:baz:2.0', 'org:foo:1.1', 'org:foz:2.0'])
+        lockfileFixture.expectMissing('secondLockEnabledConf')
+    }
+
     def 'upgrades lock file'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()

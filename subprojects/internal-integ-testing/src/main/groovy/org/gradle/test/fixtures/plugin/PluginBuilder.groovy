@@ -80,8 +80,8 @@ class PluginBuilder {
     void publishTo(GradleExecuter executer, TestFile testFile, String buildScript = "") {
         generateBuildScript buildScript + """
             jar {
-                archiveName = "$testFile.name"
-                destinationDir = file("${TextUtil.escapeString(testFile.parentFile.absolutePath)}")
+                archiveFileName = "$testFile.name"
+                destinationDirectory = file("${TextUtil.escapeString(testFile.parentFile.absolutePath)}")
             }
         """
 

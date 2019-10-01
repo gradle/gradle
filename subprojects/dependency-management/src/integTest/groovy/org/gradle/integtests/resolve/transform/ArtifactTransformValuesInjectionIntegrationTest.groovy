@@ -244,20 +244,20 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             extension: 'is not annotated with an input annotation',
             fileInput: [
                 'does not have a value specified',
-                'has @Input annotation used on property of type java.io.File',
+                'has @Input annotation used on property of type \'File\'',
             ],
             incrementalNonFileInput: [
                 'does not have a value specified',
                 'is annotated with @Incremental that is not allowed for @Input properties',
             ],
             missingInput: 'does not have a value specified',
-            noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
-            noPathSensitivityDir: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
-            noPathSensitivityFile: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
-            outputDir: 'is annotated with invalid property type @OutputDirectory',
             'nested.outputDirectory': 'is annotated with invalid property type @OutputDirectory',
-            'nested.inputFile': 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
+            'nested.inputFile': 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
             'nested.stringProperty': 'is not annotated with an input annotation',
+            noPathSensitivity: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            noPathSensitivityDir: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            noPathSensitivityFile: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
+            outputDir: 'is annotated with invalid property type @OutputDirectory',
         )
     }
 
@@ -326,8 +326,8 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertThatDescription(matchesRegexp('Cannot isolate parameters MakeGreen\\$Parameters_Decorated@.* of artifact transform MakeGreen'))
         failure.assertHasCause('Some problems were found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
-        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen.Parameters. This annotation can only be used with Task types.")
-        failure.assertHasCause("Cannot use @CacheableTransform with type MakeGreen.Parameters. This annotation can only be used with TransformAction types.")
+        failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
+        failure.assertHasCause("Type 'MakeGreen.Parameters': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
     }
 
     @Unroll
@@ -475,14 +475,14 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Some problems were found with the configuration of MakeGreen.')
         assertPropertyValidationErrors(
+            absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms',
             'conflictingAnnotations': [
                 'has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies; assuming @InputFile',
                 'is annotated with invalid property type @InputFile'
             ],
             inputFile: 'is annotated with invalid property type @InputFile',
+            noPathSensitivity: 'is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE',
             notAnnotated: 'is not annotated with an input annotation',
-            noPathSensitivity: 'has no normalization specified. Properties of cacheable transforms must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath',
-            absolutePathSensitivityDependencies: 'is declared to be sensitive to absolute paths. This is not allowed for cacheable transforms'
         )
     }
 
@@ -513,7 +513,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
-        failure.assertHasCause("Cannot use @CacheableTask with type MakeGreen. This annotation can only be used with Task types.")
+        failure.assertHasCause("Type 'MakeGreen': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
     }
 
     @Unroll
@@ -820,8 +820,8 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         expect:
         fails('broken')
-        failure.assertHasDescription("A problem was found with the configuration of task ':broken'.")
-        failure.assertHasCause("Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
+        failure.assertHasCause("Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
     }
 
     def "task @Nested bean cannot use cacheable annotations"() {
@@ -844,9 +844,9 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         expect:
         // Probably should be eager
         fails('broken')
-        failure.assertHasDescription("Some problems were found with the configuration of task ':broken'.")
-        failure.assertHasCause("Cannot use @CacheableTask with type Options. This annotation can only be used with Task types.")
-        failure.assertHasCause("Cannot use @CacheableTransform with type Options. This annotation can only be used with TransformAction types.")
+        failure.assertHasDescription("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
+        failure.assertHasCause("Type 'Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.")
+        failure.assertHasCause("Type 'Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.")
     }
 
     @Unroll

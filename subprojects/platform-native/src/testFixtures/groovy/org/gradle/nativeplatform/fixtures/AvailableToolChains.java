@@ -68,6 +68,7 @@ import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISU
 import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2013;
 import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2015;
 import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2017;
+import static org.gradle.nativeplatform.fixtures.msvcpp.VisualStudioVersion.VISUALSTUDIO_2019;
 
 public class AvailableToolChains {
     private static final Comparator<ToolChainCandidate> LATEST_RELEASED_FIRST = Collections.reverseOrder(new Comparator<ToolChainCandidate>() {
@@ -926,6 +927,10 @@ public class AvailableToolChains {
                     return version.equals(VISUALSTUDIO_2017.getVersion());
                 case VISUALCPP_2017_OR_NEWER:
                     return version.compareTo(VISUALSTUDIO_2017.getVersion()) >= 0;
+                case VISUALCPP_2019:
+                    return version.equals(VISUALSTUDIO_2019.getVersion());
+                case VISUALCPP_2019_OR_NEWER:
+                    return version.compareTo(VISUALSTUDIO_2019.getVersion()) >= 0;
                 default:
                     return false;
             }

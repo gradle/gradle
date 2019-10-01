@@ -18,40 +18,30 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultTaskValidationContext implements TaskValidationContext, WorkValidationContext {
+public class DefaultTaskValidationContext implements TaskValidationContext, TypeValidationContext {
     private final FileOperations fileOperations;
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
-    private final WorkValidationContext delegate;
+    private final TypeValidationContext delegate;
 
-    public DefaultTaskValidationContext(FileOperations fileOperations, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, WorkValidationContext delegate) {
+    public DefaultTaskValidationContext(FileOperations fileOperations, ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry, TypeValidationContext delegate) {
         this.fileOperations = fileOperations;
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.delegate = delegate;
     }
 
     @Override
-    public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
-        delegate.visitWarning(ownerPath, propertyName, message);
+    public void visitTypeProblem(Severity severity, Class<?> type, String message) {
+        delegate.visitTypeProblem(severity, type, message);
     }
 
     @Override
-    public void visitWarning(String message) {
-        delegate.visitWarning(message);
-    }
-
-    @Override
-    public void visitError(@Nullable String ownerPath, String propertyName, String message) {
-        delegate.visitError(ownerPath, propertyName, message);
-    }
-
-    @Override
-    public void visitError(String message) {
-        delegate.visitError(message);
+    public void visitPropertyProblem(Severity severity, @Nullable String parentProperty, @Nullable String property, String message) {
+        delegate.visitPropertyProblem(severity, parentProperty, property, message);
     }
 
     @Override

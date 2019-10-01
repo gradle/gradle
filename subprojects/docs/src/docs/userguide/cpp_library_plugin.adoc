@@ -31,7 +31,7 @@ include::sample[dir="userguide/cpp/cppLibrary/kotlin",files="build.gradle.kts[ta
 == Build variants
 
 The {cpp} Library Plugin understands the following dimensions.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 
 Build types - always set to _debug_ and _release_::
 The build type controls the debuggability as well as the optimization of the generated binaries.
@@ -81,7 +81,7 @@ image::cpp-static-library-task-graph.png[]
 === Variant-dependent Tasks
 
 The {cpp} Library Plugin creates tasks based on variants of the library component.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 The following diagrams show the relationship between variant-dependent tasks.
 
 .{cpp} Library Plugin variant-dependent task graph
@@ -137,7 +137,7 @@ This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 == Dependency management
 
 Just like the tasks created by the {cpp} Library Plugin, multiple configurations are created based on the variants of the library component.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 The following graph describes the configurations added by the {cpp} Library Plugin:
 
 .{cpp} Library Plugin configurations
@@ -237,7 +237,7 @@ You <<building_cpp_projects.adoc#sec:custom_cpp_source_set_paths,configure the p
 === `compile__Variant__Cpp` Task
 
 The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile] instance for each variant of the library component to build (e.g. `compileDebugCpp` and `compileReleaseCpp`).
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -267,7 +267,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 === `link__Variant__` Task
 
 The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkSharedLibrary.html[LinkSharedLibrary] instance for each variant of the library containing shared linkage as a dimension - e.g. `linkDebug` and `linkRelease`.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -289,7 +289,7 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkSharedLibrary.html#org.
 === `create__Variant__` Task
 
 The {cpp} Library Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.CreateStaticLibrary.html[CreateStaticLibrary] instance for each variant of the library containing static linkage as a dimension - e.g. `createDebug` and `createRelease`.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]

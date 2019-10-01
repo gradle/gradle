@@ -77,18 +77,28 @@ The related APIs in `StartParameter` are now deprecated.
 These methods currently do not work as expected.
 They are being deprecated to avoid confusion.
 
-=== Potential breaking changes
+==== Deprecated plugins
 
-==== Android Gradle Plugin 3.3 and earlier is not supported anymore
+The following bundled plugins are no longer maintained and will be removed in the next major release of Gradle:
 
-Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
+- `org.gradle.coffeescript-base`
+- `org.gradle.envjs`
+- `org.gradle.javascript-base`
+- `org.gradle.jshint`
+- `org.gradle.rhino`
 
-==== Archive tasks fail on duplicate files
+Some of these plugins may have replacements on the https://plugins.gradle.org/[Plugin Portal]. 
 
-Until now archive tasks defaulted to the `INCLUDE` duplicates strategy, allowing the same path to exist multiple times in an archive.
+==== Copy or archive duplicate paths without explicitly specifying a duplicates strategy has been deprecated
 
-In Gradle 6.0 we are switching to `FAIL`, prohibiting duplicate files in archives.
-If you still want to allow them, you can be specify that explicitly:
+Archive tasks `Tar` and `Zip` by default allow multiple entries for the same path to exist in the created archive.
+These https://github.com/gradle/gradle/issues/9990["grossly invalid zip files" can trigger zip bomb detection].
+To prevent this from happening accidentally, encountering duplicates while creating an archive now produces a deprecation message, and will fail the build starting with Gradle 7.0.
+
+Note that copy tasks also happily copy multiple sources with the same relative path to the destination directory.
+That behavior has also been deprecated.
+
+If you want to allow duplicates, you can specify that explicitly:
 
 ```
 task archive(type: Zip) {
@@ -98,7 +108,11 @@ task archive(type: Zip) {
 }
 ```
 
-*Note* that `Copy` and `Sync` tasks are unaffected: they still use the `INCLUDE` duplicates strategy as default.
+=== Potential breaking changes
+
+==== Android Gradle Plugin 3.3 and earlier is not supported anymore
+
+Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
 ==== Local build cache is always a directory cache
 
@@ -202,6 +216,11 @@ The deprecated announce and build-announcements plugins have been removed.  Ther
 The deprecated Compare Gradle Builds plugin has been removed.
 Please use https://scans.gradle.com/[build scans] for build analysis and comparison.
 
+==== The Play plugins have been removed
+
+The deprecated Play plugins has been removed.
+An external replacement link:https://gradle.github.io/playframework[Play Framework plugin] available from the plugin portal.
+
 ==== Changes to the task container
 
 The following deprecated methods on the task container now result in errors:
@@ -249,6 +268,7 @@ Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kot
 
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
+- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.7.html[Ant 1.10.7].
 
 ==== Updates to default integration versions
 
@@ -279,6 +299,17 @@ However, selecting the `default` configuration yields the same result as before.
 Only the `runtime` configuration now contains more information which corresponds to the _runtimeElements_ variant of a Java library.
 In general, users are advised to migrate from `ivy.xml` to the new Gradle Module Metadata format.
 
+==== Executing Gradle without a settings file has been deprecated
+
+A Gradle build is defined by a `settings.gradle[.kts]` file in the current or parent directory.
+Without a settings file, a Gradle build is undefined and will emit a deprecation warning.
+
+In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnostic command line flags, such as `--version`, with undefined builds.
+
+==== Calling afterEvaluate on an evaluated project has been deprecated
+
+Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
+
 ==== Miscellaneous
 
 The following breaking changes will appear as deprecation warnings with Gradle 5.6:
@@ -307,7 +338,7 @@ The following breaking changes will appear as deprecation warnings with Gradle 5
 * When <<groovy_plugin.adoc#sec:incremental_groovy_compilation,incremental Groovy compilation>> is enabled, a wrong configuration of the source roots or enabling Java annotation for Groovy now fails the build.
   Disable incremental Groovy compilation when you want to compile in those cases.
 * `ComponentSelectionRule` no longer can inject the metadata or ivy descriptor.
-  Use the methods on the <<declaring_dependency_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
+  Use the methods on the <<dynamic_versions.adoc#sec:component_selection_rules,`ComponentSelection` parameter>> instead.
 * Declaring an <<custom_tasks.adoc#incremental_tasks,incremental task>> without declaring outputs is now an error.
   Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.html#upToDateWhen-groovy.lang.Closure-[TaskOutputs.upToDateWhen()] instead.
 * The `getEffectiveAnnotationProcessorPath()` method is removed from the `JavaCompile` and `ScalaCompile` tasks.
@@ -414,7 +445,7 @@ configurations.all {
 }
 ```
 
-See <<controlling_transitive_dependencies.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
+See <<dependency_capability_conflict.adoc#sub:capabilities, the capabilities section of the documentation>> for more options.
 
 ==== File removal operations don't follow symlinked directories
 

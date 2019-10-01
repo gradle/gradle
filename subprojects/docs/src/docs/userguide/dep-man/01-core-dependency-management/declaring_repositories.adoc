@@ -246,7 +246,7 @@ There are a few cases where you might have to use `mavenLocal()`:
 ** In case this is not possible, you should limit this to _local builds only_
 * For interoperability with Gradle itself
 ** In a multi-repository world, you want to check that changes to project A work with project B
-** It is preferable to use <<composite_builds.adoc#composite-builds, composite builds>> for this use case
+** It is preferable to use <<composite_builds.adoc#composite_builds, composite builds>> for this use case
 ** If for some reason neither composite builds nor full featured repository are possible, then `mavenLocal()` is a last resort option
 
 After all these warnings, if you end up using `mavenLocal()`, consider combining it with <<#sec:repository-content-filtering,a repository filter>>.

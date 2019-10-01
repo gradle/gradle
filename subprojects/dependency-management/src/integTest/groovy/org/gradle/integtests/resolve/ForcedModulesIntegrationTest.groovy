@@ -279,9 +279,7 @@ project(':tool') {
 """
 
         expect:
-        executer.expectDeprecationWarning()
         run("tool:dependencies")
-        outputContains("Using force on a dependency is not recommended. This has been deprecated and is scheduled to be removed in Gradle 7.0. Consider using strict version constraints instead (version { strictly ... } })")
     }
 
     void "can force the version of a direct dependency"() {
@@ -305,7 +303,6 @@ task checkDeps {
 """
 
         expect:
-        executer.expectDeprecationWarning()
         executer.withTasks("checkDeps").run()
     }
 
@@ -397,7 +394,6 @@ task checkDeps {
 
 
         when:
-        executer.expectDeprecationWarning()
         run 'checkDeps'
 
         then:
@@ -448,7 +444,6 @@ task checkDeps {
 """
 
         expect:
-        executer.expectDeprecationWarning()
         run 'checkDeps'
     }
 

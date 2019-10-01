@@ -97,13 +97,6 @@ include::ant.adoc[leveloffset=+2]
 
 include::dependency_management.adoc[leveloffset=+2]
 
-[[part:publishing]]
-== Publishing Artifacts
-
-include::publishing.adoc[leveloffset=+2]
-
-include::artifact_management.adoc[leveloffset=+2]
-
 [[part:jvm_projects]]
 == Java & Other JVM Projects
 
@@ -124,7 +117,6 @@ include::building_swift_projects.adoc[leveloffset=+2]
 
 include::swift_testing.adoc[leveloffset=+2]
 
-[[part:native_projects]]
 == Native Projects using the Software Model
 
 include::native_software.adoc[leveloffset=+2]
@@ -207,8 +199,6 @@ include::java_platform_plugin.adoc[leveloffset=+2]
 include::publishing_maven.adoc[leveloffset=+2]
 
 include::maven_plugin.adoc[leveloffset=+2]
-
-include::play_plugin.adoc[leveloffset=+2]
 
 include::pmd_plugin.adoc[leveloffset=+2]
 

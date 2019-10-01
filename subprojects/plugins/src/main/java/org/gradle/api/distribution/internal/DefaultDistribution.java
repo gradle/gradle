@@ -18,15 +18,18 @@ package org.gradle.api.distribution.internal;
 import org.gradle.api.Action;
 import org.gradle.api.distribution.Distribution;
 import org.gradle.api.file.CopySpec;
+import org.gradle.util.DeprecationLogger;
+
+import javax.inject.Inject;
 
 /**
  * Allow user to declare a distribution.
  */
-public class DefaultDistribution implements Distribution {
+public abstract class DefaultDistribution implements Distribution {
     private final String name;
-    private String baseName;
     private final CopySpec contents;
 
+    @Inject
     public DefaultDistribution(String name, CopySpec contents) {
         this.name = name;
         this.contents = contents;
@@ -39,12 +42,15 @@ public class DefaultDistribution implements Distribution {
 
     @Override
     public String getBaseName() {
-        return baseName;
+        DeprecationLogger.nagUserOfReplacedProperty("baseName", "distributionBaseName");
+        return getDistributionBaseName().getOrNull();
     }
 
     @Override
     public void setBaseName(String baseName) {
-        this.baseName = baseName;
+        DeprecationLogger.nagUserOfReplacedProperty("baseName", "distributionBaseName");
+        getDistributionBaseName().set(baseName);
+        getDistributionBaseName().convention(baseName);
     }
 
     @Override

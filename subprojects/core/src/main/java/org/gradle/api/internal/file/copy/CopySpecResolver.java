@@ -46,15 +46,17 @@ public interface CopySpecResolver {
 
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();
 
-    public List<String> getAllIncludes();
+    List<String> getAllIncludes();
 
-    public List<String> getAllExcludes();
+    List<String> getAllExcludes();
 
-    public List<Spec<FileTreeElement>> getAllIncludeSpecs();
+    List<Spec<FileTreeElement>> getAllIncludeSpecs();
 
-    public List<Spec<FileTreeElement>> getAllExcludeSpecs();
+    List<Spec<FileTreeElement>> getAllExcludeSpecs();
 
     DuplicatesStrategy getDuplicatesStrategy();
+
+    boolean isDefaultDuplicateStrategy();
 
     void walk(Action<? super CopySpecResolver> action);
 

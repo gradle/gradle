@@ -492,8 +492,10 @@ tasks.withType(JvmProjectGeneratorTask).configureEach {
 // a dedicated project in order for the classpath to be setup properly
 def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
 androidRemoteProjects.configureEach {
-    dependsOn tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
+    // TODO: This should use a proper dependency
+    def buildClassPath = tasks.findByPath(':internalAndroidPerformanceTesting:buildClassPath')
+    dependsOn buildClassPath
     doLast {
-        file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text
+        file("$outputDirectory/tapi-classpath.txt") << buildClassPath.outputFile.get().getAsFile().text
     }
 }

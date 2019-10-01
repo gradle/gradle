@@ -30,7 +30,7 @@ include::sample[dir="userguide/swift/swiftXCTest/kotlin",files="build.gradle.kts
 == Build variants
 
 The XCTest Plugin understands the following dimensions.
-Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 
 Target machines - defaults to the tested component (if present) or build host (otherwise)::
 The target machine expresses which machines the application expects to run.
@@ -57,7 +57,7 @@ image::xctest-task-graph.png[]
 === Variant-dependent Tasks
 
 The XCTest Plugin creates tasks based on the variants of the test component.
-Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 The following diagrams show the relationship between variant-dependent tasks.
 
 .XCTest Plugin variant-dependent task graph
@@ -119,7 +119,7 @@ This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 == Dependency management
 
 Just like the tasks created by the XCTest Plugin, the configurations are created based on the variant of the application component.
-Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 The following graph describes the configurations added by the XCTest Plugin:
 
 .XCTest Plugin configurations
@@ -177,7 +177,7 @@ You <<building_swift_projects.adoc#sec:custom_swift_source_set_paths,configure t
 === `compileTest__Variant__Swift` Task
 
 The XCTest Plugin adds a link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html[SwiftCompile] instance for each variant of the test component to build (e.g. `compileTestSwift`).
-Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -203,7 +203,7 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 === `linkTest__Variant__` Task
 
 The XCTest Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkMachOBundle.html[LinkMachOBundle] instance on macOS or link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html[LinkExecutable] instance on Linux for each variant of the test component - e.g. `linkTest`.
-Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 ==== macOS
@@ -244,14 +244,14 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 === `installTest__Variant__` Task
 
 The XCTest Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.InstallXCTestBundle.html[InstallXCTestBundle] instance on macOS or link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable] instance on Linux for each variant of the test component - e.g. `installTest`.
-Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 There is no need to configure any properties on the task.
 
 [[sec:xctest_run_task]]
 === `xcTest__Variant__` Task
 
 The XCTest Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] instance for each variant of the test component - e.g. `xcTest`.
-Read the <<building_swift_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]

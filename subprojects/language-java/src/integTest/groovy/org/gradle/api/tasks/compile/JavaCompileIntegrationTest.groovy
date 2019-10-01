@@ -564,12 +564,12 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
             
             task fooJar(type:Jar) {
-                archiveName = 'foo.jar'
+                archiveFileName = 'foo.jar'
                 from file('foo.class')
             }
             
             dependencies {
-               implementation files(fooJar.archivePath)
+               implementation files(fooJar.archiveFile)
             }
             
             compileJava.dependsOn(fooJar)

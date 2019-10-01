@@ -30,7 +30,7 @@ include::sample[dir="userguide/cpp/cppApplication/kotlin",files="build.gradle.kt
 == Build variants
 
 The {cpp} Application Plugin understands the following dimensions.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 
 Build types - always either _debug_ or _release_::
 The build type controls the debuggability as well as the optimization of the generated binaries.
@@ -62,7 +62,7 @@ image::cpp-application-task-graph.png[]
 === Variant-dependent Tasks
 
 The {cpp} Application Plugin creates tasks based on the variants of the application component.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 The following diagram shows the relationship between variant-dependent tasks.
 
 .{cpp} Application Plugin variant-dependent task graph
@@ -119,7 +119,7 @@ This task is added by the <<base_plugin.adoc#,Base Plugin>>.
 == Dependency management
 
 Just like the tasks created by the {cpp} Application Plugin, multiple configurations are created based on the variants of the application component.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 The following graph describes the configurations added by the {cpp} Application Plugin:
 
 .{cpp} Application Plugin configurations
@@ -184,7 +184,7 @@ You <<building_cpp_projects.adoc#sec:custom_cpp_source_set_paths,configure the p
 === `compile__Variant__Cpp` Task
 
 The {cpp} Application Plugin adds a link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html[CppCompile] instance for each variant of the application component to build (e.g. `compileDebugCpp` and `compileReleaseCpp`).
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -214,7 +214,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 === `link__Variant__` Task
 
 The {cpp} Application Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the application - e.g. `linkDebug` and `linkRelease`.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
 [horizontal]
@@ -236,5 +236,5 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 === `install__Variant__` Task
 
 The {cpp} Application Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable] instance for each variant of the test component - e.g. `installDebug` and `installRelease`.
-Read the <<building_cpp_projects.adoc#sec:introducing_build_variants,introduction to build variants>> for more information.
+Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 There is no need to configure any properties on the task.

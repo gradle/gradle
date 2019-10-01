@@ -237,7 +237,7 @@ project(':projectB') {
                     doLast {
                         assert configurations.compileClasspath.files == [project(':projectA').compileJava.destinationDir] as Set
                         assert configurations.runtimeClasspath.files == [] as Set
-                        assert configurations.compileOnlyClasspath.files == [project(':projectA').jar.archivePath] as Set
+                        assert configurations.compileOnlyClasspath.files == [project(':projectA').jar.archiveFile.get().asFile] as Set
                         assert configurations.implementationClasspath.files == [] as Set
                     }
                 }

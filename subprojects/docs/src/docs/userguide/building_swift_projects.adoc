@@ -48,7 +48,7 @@ By default, the development binary is the debug variant.
 The rest of the chapter explains the different ways to customize the build to your requirements when building libraries and applications.
 
 // TODO Split this to put in common with the C++
-[[sec:introducing_build_variants]]
+[[sec:introducing_build_variants-swift]]
 == Introducing build variants
 
 Native projects can typically produce several different binaries, such as debug or release ones, or ones that target particular platforms and processor architectures.
@@ -110,7 +110,7 @@ The Gradle terminology for the three elements is as follows:
  * _Configuration_ (ex: `implementation`) - a named collection of dependencies, grouped together for a specific goal such as compiling or linking a module
  * _Project reference_ (ex: `project(':common')`) - the project referenced by the specified path
 
-You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#dependency_management_terminology,here>>.
+You can find a more comprehensive glossary of dependency management terms <<dependency_management_terminology.adoc#,here>>.
 
 As far as configurations go, the main ones of interest are:
 
@@ -128,9 +128,9 @@ We have only scratched the surface here, so we recommend that you read the <<cor
 Some common scenarios that require further reading include:
 
  * Defining a custom <<declaring_repositories.adoc#sec:repository-types,Maven-compatible>> repository
- * Declaring dependencies with <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<declaring_dependency_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
+ * Declaring dependencies with <<dynamic_versions.adoc#sub:declaring_dependency_with_changing_version,changing>> (e.g. SNAPSHOT) and <<dynamic_versions.adoc#sub:declaring_dependency_with_dynamic_version,dynamic>> (range) versions
  * Declaring a sibling <<declaring_dependencies.adoc#sub:project_dependencies,project as a dependency>>
- * <<controlling_transitive_dependencies.adoc#,Controlling transitive dependencies and their versions>>
+ * <<dependency_constraints.adoc#,Controlling transitive dependencies and their versions>>
  * Testing your fixes to 3rd-party dependency via <<composite_builds.adoc#,composite builds>> (a better alternative to publishing to and consuming from <<declaring_repositories.adoc#sub:maven_local,Maven Local>>)
 
 You’ll discover that Gradle has a rich API for working with dependencies - one that takes time to master, but is straightforward to use for common scenarios.

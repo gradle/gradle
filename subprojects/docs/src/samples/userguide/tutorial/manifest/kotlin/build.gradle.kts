@@ -8,7 +8,7 @@ tasks.jar {
     manifest {
         attributes(
             "Implementation-Title" to "Gradle",
-            "Implementation-Version" to version
+            "Implementation-Version" to archiveVersion
         )
     }
 }

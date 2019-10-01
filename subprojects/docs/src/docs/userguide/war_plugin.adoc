@@ -15,7 +15,8 @@
 [[war_plugin]]
 = The War Plugin
 
-The War plugin extends the Java plugin to add support for assembling web application WAR files. It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
+The War plugin extends the <<java_plugin.adoc#,Java plugin>> to add support for assembling web application WAR files.
+It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
 
 [[sec:war_usage]]
 == Usage
@@ -70,7 +71,7 @@ It is important to note that these `provided` configurations work transitively. 
 == Publishing
 
 `components.web`::
-A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing.adoc#publishing_overview,publishing>> the production WAR created by the `war` task.
+A link:{javadocPath}/org/gradle/api/component/SoftwareComponent.html[SoftwareComponent] for <<publishing_setup.adoc#publishing_overview,publishing>> the production WAR created by the `war` task.
 
 [[sec:war_convention_properties]]
 == Convention properties

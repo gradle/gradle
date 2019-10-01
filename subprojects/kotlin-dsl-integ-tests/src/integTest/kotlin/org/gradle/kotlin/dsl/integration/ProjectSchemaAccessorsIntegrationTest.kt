@@ -1071,7 +1071,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
             distributions {
                 main {
-                    baseName = "the-distro"
+                    distributionBaseName.set("the-distro")
                 }
             }
         """)

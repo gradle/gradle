@@ -30,6 +30,7 @@ class LifecycleProjectEvaluatorIntegrationTest extends AbstractIntegrationSpec {
 
     def "nested afterEvaluate is honored asynchronously"() {
         given:
+
         buildFile << """
             afterEvaluate {
                 println "> Outer"

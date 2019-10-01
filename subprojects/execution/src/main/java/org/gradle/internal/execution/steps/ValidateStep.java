@@ -16,16 +16,20 @@
 
 package org.gradle.internal.execution.steps;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultimap;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.internal.execution.Context;
 import org.gradle.internal.execution.Result;
 import org.gradle.internal.execution.Step;
-import org.gradle.internal.reflect.WorkValidationContext;
-import org.gradle.internal.reflect.WorkValidationException;
+import org.gradle.internal.execution.UnitOfWork;
+import org.gradle.internal.execution.WorkValidationException;
+import org.gradle.internal.reflect.MessageFormattingTypeValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext.Severity;
+import org.gradle.model.internal.type.ModelType;
 
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class ValidateStep<C extends Context, R extends Result> implements Step<C, R> {
@@ -42,59 +46,72 @@ public class ValidateStep<C extends Context, R extends Result> implements Step<C
 
     @Override
     public R execute(C context) {
-        ValidationContext validationContext = new ValidationContext();
+        DefaultWorkValidationContext validationContext = new DefaultWorkValidationContext();
         context.getWork().validate(validationContext);
-        List<String> errors = validationContext.getErrors();
-        validationContext.warnings.forEach(warningReporter::reportValidationWarning);
+
+        ImmutableMultimap<Severity, String> problems = validationContext.getProblems();
+        ImmutableCollection<String> warnings = problems.get(Severity.WARNING);
+        ImmutableCollection<String> errors = problems.get(Severity.ERROR);
+
+        warnings.forEach(warningReporter::reportValidationWarning);
+
         if (!errors.isEmpty()) {
-            String displayName = context.getWork().getDisplayName();
-            String errorMessage = errors.size() == 1
-                ? String.format("A problem was found with the configuration of %s.", displayName)
-                : String.format("Some problems were found with the configuration of %s.", displayName);
-            List<InvalidUserDataException> causes = errors.stream()
-                .limit(5)
-                .sorted()
-                .map(InvalidUserDataException::new)
-                .collect(Collectors.toList());
-            throw new WorkValidationException(errorMessage, causes);
+            throw new WorkValidationException(
+                String.format("%s found with the configuration of %s (%s).",
+                    errors.size() == 1
+                        ? "A problem was"
+                        : "Some problems were",
+                    context.getWork().getDisplayName(),
+                    describeTypesChecked(validationContext.getTypes())
+                ),
+                errors.stream()
+                    .limit(5)
+                    .sorted()
+                    .map(InvalidUserDataException::new)
+                    .collect(Collectors.toList())
+            );
         }
         return delegate.execute(context);
+    }
+
+    private static String describeTypesChecked(ImmutableList<Class<?>> types) {
+        return types.size() == 1
+            ? "type '" + getTypeDisplayName(types.get(0)) + "'"
+            : "types '" + types.stream().map(ValidateStep::getTypeDisplayName).collect(Collectors.joining("', '")) + "'";
+    }
+
+    private static String getTypeDisplayName(Class<?> type) {
+        return ModelType.of(type).getDisplayName();
     }
 
     public interface ValidationWarningReporter {
         void reportValidationWarning(String warning);
     }
 
-    private static class ValidationContext implements WorkValidationContext {
-        private final List<String> warnings = new ArrayList<>();
-        private final List<String> errors = new ArrayList<>();
+    private static class DefaultWorkValidationContext implements UnitOfWork.WorkValidationContext {
+        private final ImmutableMultimap.Builder<Severity, String> problems = ImmutableMultimap.builder();
+        private final ImmutableList.Builder<Class<?>> types = ImmutableList.builder();
 
         @Override
-        public void visitWarning(@Nullable String ownerPath, String propertyName, String message) {
-            visitWarning(WorkValidationContext.decorateMessage(ownerPath, propertyName, message));
+        public TypeValidationContext createContextFor(Class<?> type, boolean cacheable) {
+            types.add(type);
+            return new MessageFormattingTypeValidationContext(null) {
+                @Override
+                protected void recordProblem(Severity severity, String message) {
+                    if (severity == Severity.CACHEABILITY_WARNING && !cacheable) {
+                        return;
+                    }
+                    problems.put(severity.toReportableSeverity(), message);
+                }
+            };
         }
 
-        @Override
-        public void visitWarning(String message) {
-            warnings.add(message);
+        public ImmutableMultimap<Severity, String> getProblems() {
+            return problems.build();
         }
 
-        @Override
-        public void visitError(@Nullable String ownerPath, String propertyName, String message) {
-            visitError(WorkValidationContext.decorateMessage(ownerPath, propertyName, message));
-        }
-
-        @Override
-        public void visitError(String message) {
-            errors.add(message);
-        }
-
-        public List<String> getWarnings() {
-            return warnings;
-        }
-
-        public List<String> getErrors() {
-            return errors;
+        public ImmutableList<Class<?>> getTypes() {
+            return types.build();
         }
     }
 }

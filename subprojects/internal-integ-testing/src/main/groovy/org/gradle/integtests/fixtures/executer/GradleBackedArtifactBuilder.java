@@ -53,12 +53,14 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
             }
         }
         String conf = executer.getDistribution().getVersion().compareTo(GradleVersion.version("3.4")) < 0 ? "compile" : "implementation";
+        String destinationDir = executer.getDistribution().getVersion().compareTo(GradleVersion.version("5.1")) < 0 ? "destinationDir" : "destinationDirectory";
+        String archiveName = executer.getDistribution().getVersion().compareTo(GradleVersion.version("5.0")) < 0 ? "archiveName" : "archiveFileName";
         rootDir.file("settings.gradle").touch();
         rootDir.file("build.gradle").writelns(
                 "apply plugin: 'java'",
                 String.format("dependencies { %s gradleApi() }", conf),
-                String.format("jar.destinationDir = file('%s')", FilenameUtils.separatorsToUnix(jarFile.getParent())),
-                String.format("jar.archiveName = '%s'", jarFile.getName()),
+                String.format("jar.%s = file('%s')", destinationDir, FilenameUtils.separatorsToUnix(jarFile.getParent())),
+                String.format("jar.%s = '%s'", archiveName, jarFile.getName()),
                 // disable jar file caching to prevent file locking
                 "new URL(\"jar:file://valid_jar_url_syntax.jar!/\").openConnection().setDefaultUseCaches(false)"
         );

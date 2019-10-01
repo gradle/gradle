@@ -9,7 +9,7 @@ version = "1.0.0"
 // tag::name-conf[]
 distributions {
     main {
-        baseName = "my-name"
+        distributionBaseName.set("my-name")
     }
 }
 // end::name-conf[]
@@ -17,7 +17,7 @@ distributions {
 // tag::custom-distribution[]
 distributions {
     main {
-        baseName = "my-name"
+        distributionBaseName.set("my-name")
         contents {
             from("src/dist")
         }

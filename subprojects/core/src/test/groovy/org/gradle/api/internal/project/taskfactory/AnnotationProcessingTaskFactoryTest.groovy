@@ -35,9 +35,9 @@ import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskPropertyTestUtils
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.execution.WorkValidationException
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.JavaReflectionUtil
-import org.gradle.internal.reflect.WorkValidationException
 import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStore
 import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.ExecutionGlobalServices

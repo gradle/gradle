@@ -82,13 +82,10 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
             constraint("org.test:bar:1.0")
             noMoreDependencies()
         }
-        javaPlatform.parsedPom.scope('compile') {
+        javaPlatform.parsedPom.scopes.keySet() == ['no_scope'] as Set
+        javaPlatform.parsedPom.scope('no_scope') {
             assertNoDependencies()
-            assertDependencyManagement("org.test:foo:1.0")
-        }
-        javaPlatform.parsedPom.scope('runtime') {
-            assertNoDependencies()
-            assertDependencyManagement("org.test:bar:1.0")
+            assertDependencyManagement("org.test:bar:1.0", "org.test:foo:1.0")
         }
     }
 
@@ -130,13 +127,10 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
             constraint("org.gradle.test:utils:1.9")
             noMoreDependencies()
         }
-        javaPlatform.parsedPom.scope('compile') {
+        javaPlatform.parsedPom.scopes.keySet() == ['no_scope'] as Set
+        javaPlatform.parsedPom.scope('no_scope') {
             assertNoDependencies()
-            assertDependencyManagement("org.gradle.test:core:1.9")
-        }
-        javaPlatform.parsedPom.scope('runtime') {
-            assertNoDependencies()
-            assertDependencyManagement("org.gradle.test:utils:1.9")
+            assertDependencyManagement("org.gradle.test:core:1.9", "org.gradle.test:utils:1.9")
         }
     }
 
@@ -185,8 +179,13 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
             dependency("org.test:foo:1.1")
             noMoreDependencies()
         }
+        javaPlatform.parsedPom.scopes.keySet() == ['compile', 'no_scope'] as Set
         javaPlatform.parsedPom.scope('compile') {
             assertDependsOn("org.test:foo:1.1")
+            assertNoDependencyManagement()
+        }
+        javaPlatform.parsedPom.scope('no_scope') {
+            assertNoDependencies()
             assertDependencyManagement("org.test:foo:1.1")
         }
         javaPlatform.parsedPom.hasNoScope('runtime')

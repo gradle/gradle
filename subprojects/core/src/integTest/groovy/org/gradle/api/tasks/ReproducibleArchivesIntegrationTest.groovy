@@ -39,8 +39,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 reproducibleFileOrder = true
                 preserveFileTimestamps = false
                 from 'src'
-                destinationDir = buildDir
-                archiveName = 'test.${fileExtension}'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${fileExtension}'
                 fileMode = 0644
                 dirMode = 0755
             }
@@ -72,8 +72,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 reproducibleFileOrder = true
                 preserveFileTimestamps = false
                 from 'dir1'
-                destinationDir = buildDir
-                archiveName = 'test.${fileExtension}'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${fileExtension}'
                 fileMode = 0644
                 dirMode = 0755
             }
@@ -109,8 +109,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 preserveFileTimestamps = false  
                 compression = '${compression}'
                 from 'dir1', 'dir2', 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.tar.${compression}'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tar.${compression}'
                 fileMode = 0644
                 dirMode = 0755
             }
@@ -143,8 +143,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 }     
                 from 'dir1/file13.txt'
                 from 'dir1/file11.txt'
-                destinationDir = buildDir
-                archiveName = 'test.${fileExtension}'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${fileExtension}'
                 fileMode = 0644
                 dirMode = 0755
             }
@@ -179,16 +179,16 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
             task aTar(type: Tar) {
                 reproducibleFileOrder = true
                 from('dir1')
-                destinationDir = buildDir
-                archiveName = 'test.tar'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.tar'
                 fileMode = 0644
                 dirMode = 0755
             }
             task aZip(type: Zip) {
                 reproducibleFileOrder = true
                 from('dir2')
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 fileMode = 0644
                 dirMode = 0755
             }
@@ -196,12 +196,14 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
             task ${taskName}(type: ${taskType}) {
                 reproducibleFileOrder = true
                 preserveFileTimestamps = false
-                destinationDir = buildDir
-                archiveName = 'combined.${fileExtension}'
+                destinationDirectory = buildDir
+                archiveFileName = 'combined.${fileExtension}'
 
-                from zipTree(aZip.archivePath)
-                from tarTree(aTar.archivePath)
+                from zipTree(aZip.archiveFile)
+                from tarTree(aTar.archiveFile)
+                
                 dependsOn aZip, aTar
+
                 fileMode = 0644
                 dirMode = 0755
             }
@@ -279,8 +281,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         task ${taskName}(type: ${taskType}) {
             reproducibleFileOrder = true
             preserveFileTimestamps = false
-            destinationDir = buildDir
-            archiveName = 'test.${fileExtension}'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.${fileExtension}'
 
             from('dir1') {
                 filter { 'Goodbye' }
@@ -311,8 +313,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         task ${taskName}(type: ${taskType}) {
             reproducibleFileOrder = true
             preserveFileTimestamps = false
-            destinationDir = buildDir
-            archiveName = 'test.${fileExtension}'
+            destinationDirectory = buildDir
+            archiveFileName = 'test.${fileExtension}'
 
             from('dir1') {
                 rename { it == 'test1.txt' ? 'test4.txt' : 'test3.txt' }
@@ -343,8 +345,8 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
             task ${taskName}(type: ${taskType}) {
                 reproducibleFileOrder = true
                 preserveFileTimestamps = false
-                destinationDir = buildDir
-                archiveName = 'test.${fileExtension}'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.${fileExtension}'
 
                 from 'dir2'
                 from 'dir1'

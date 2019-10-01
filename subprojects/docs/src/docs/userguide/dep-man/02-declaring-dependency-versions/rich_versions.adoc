@@ -1,5 +1,5 @@
 [[rich-version-constraints]]
-= Rich version declarations
+= Declaring Rich Versions
 
 Gradle supports a rich model for declaring versions, which allows to combine different level of version information.
 The terms and their meaning are explained below, from the strongest to the weakest:
@@ -10,7 +10,7 @@ Any version not matched by this version notation will be excluded.
 This is the strongest version declaration.
 On a declared dependency, a `strictly` can downgrade a version.
 When on a transitive dependency, it will cause dependency resolution to fail if no version acceptable by this clause can be selected.
-See <<controlling_transitive_dependencies.adoc#sec:enforcing_dependency_version,overriding dependency version>> for details.
+See <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,overriding dependency version>> for details.
 This term supports dynamic versions.
 +
 When defined, overrides previous `require` declaration and clears previous `reject`.
@@ -126,7 +126,7 @@ Another concept that relates with rich version declaration is the ability to pub
 
 Using `strictly`, especially for a library, must be a well thought process as it has an impact on downstream consumers.
 At the same time, used correctly, it will help consumers understand what combination of libraries do not work together in their context.
-See <<controlling_transitive_dependencies.adoc#sec:enforcing_dependency_version,overriding dependency version>> for more information.
+See <<dependency_downgrade_and_exclude.adoc#sec:enforcing_dependency_version,overriding dependency version>> for more information.
 
 
 [NOTE]

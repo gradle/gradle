@@ -496,7 +496,6 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
             assert it.groupId.text() == 'org.test'
             assert it.artifactId.text() == 'bar'
             assert it.version.text() == '1.0'
-            assert it.scope.text() == 'compile'
         }
         dependencies[1].with {
             assert it.groupId.text() == 'org.test'

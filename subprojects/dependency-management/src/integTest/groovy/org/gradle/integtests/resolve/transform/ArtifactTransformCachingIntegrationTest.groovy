@@ -91,7 +91,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         fails "badTask", "--continue"
         then:
         ['lib', 'app', 'util'].each {
-            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask'.")
+            failure.assertHasDescription("A problem was found with the configuration of task ':${it}:badTask' (type 'DefaultTask').")
             failure.assertHasCause("The output ${file("${it}/build/${forbiddenPath}")} must not be in a reserved location.")
         }
     }
@@ -1688,13 +1688,13 @@ ${getFileSizerBody(fileValue, 'outputs.dir(', 'outputs.file(')}
         """
             project(':lib') {
                 task jar1(type: Jar) {
-                    archiveName = 'lib1.jar'
+                    archiveFileName = 'lib1.jar'
                 }
                 task jar2(type: Jar) {
-                    archiveName = 'lib2.jar'
+                    archiveFileName = 'lib2.jar'
                 }
                 tasks.withType(Jar) {
-                    destinationDir = buildDir
+                    destinationDirectory = buildDir
                 }
                 artifacts {
                     compile jar1

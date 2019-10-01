@@ -25,9 +25,15 @@ class AbstractAutoTestedSamplesTest extends AbstractIntegrationTest {
             println "Found sample: ${sample.split("\n")[0]} (...) in $file"
             def buildFile = testFile('build.gradle')
             def settingsFile = testFile('settings.gradle')
-            def fileToTest = tagSuffix == 'Settings' ? settingsFile : buildFile
+            def fileToTest = tagSuffix.contains('Settings') ? settingsFile : buildFile
+            executer.withFullDeprecationStackTraceDisabled()
+            if (tagSuffix.contains('WithDeprecations')) {
+                executer.noDeprecationChecks()
+            }
             fileToTest.text = sample
-            executer.withTasks('help').withArguments("-s")
+            executer
+                .withTasks('help')
+                .withArguments("--stacktrace")
             beforeSample()
             executer.run()
             fileToTest.delete()

@@ -26,6 +26,8 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             ${mavenCentralRepository()}
         """
+        executer.expectDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
     }
 
 
