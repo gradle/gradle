@@ -28,7 +28,7 @@ include::sample[dir="testKit/gradleRunner/junitQuickstart/groovy",files="build.g
 include::sample[dir="testKit/gradleRunner/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
 ====
 
-The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<embedding.adoc#embedding,Gradle Tooling API client>>. It does not include a version of http://junit.org[JUnit], http://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
+The `gradleTestKit()` encompasses the classes of the TestKit, as well as the <<third_party_integration.adoc#embedding,Gradle Tooling API client>>. It does not include a version of http://junit.org[JUnit], http://testng.org[TestNG], or any other test execution framework. Such a dependency must be explicitly declared.
 
 .Declaring the JUnit dependency
 ====
@@ -78,7 +78,7 @@ It is a common practice to implement any custom build logic (like plugins and ta
 [[sub:test-kit-classpath-injection]]
 == Getting the plugin-under-test into the test build
 
-The GradleRunner uses the <<embedding.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
+The GradleRunner uses the <<third_party_integration.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, the test build does not share the same classpath or classloaders as the test process and the code under test is not implicitly available to the test build.
 
 Starting with version 2.13, Gradle provides a <<#sub:test-kit-automatic-classpath-injection,conventional mechanism to inject the code under test into the test build>>.
 
@@ -236,7 +236,7 @@ The following table lists the features that are sensitive to the Gradle version 
 [[sub:test-kit-debug]]
 == Debugging build logic
 
-The runner uses the <<embedding.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect. Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
+The runner uses the <<third_party_integration.adoc#embedding,Tooling API>> to execute builds. An implication of this is that the builds are executed in a separate process (i.e. not the same process executing the tests). Therefore, executing your _tests_ in debug mode does not allow you to debug your build logic as you may expect. Any breakpoints set in your IDE will be not be tripped by the code being exercised by the test build.
 
 The TestKit provides two different ways to enable the debug mode:
 

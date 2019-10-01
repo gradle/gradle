@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
-plugins {
-    `java-library`
-    gradlebuild.classycle
-    gradlebuild.`strict-compile`
-}
+package org.gradle.kotlin.dsl.tooling.models;
 
-description = "Kotlin DSL Tooling Models for IDEs"
+import javax.annotation.Nullable;
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
 
-dependencies {
-    api(library("jsr305"))
+public interface EditorReport {
+
+    EditorReportSeverity getSeverity();
+
+    String getMessage();
+
+    @Nullable
+    EditorPosition getPosition();
 }

@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.TaskProvider
 
+import java.io.File
 import java.util.function.Consumer
 
 
@@ -35,6 +36,8 @@ interface PrecompiledScriptPluginsSupport {
     )
 
     fun enableOn(target: Target): Boolean
+
+    fun collectScriptPluginFilesOf(project: Project): List<File>
 
     interface Target {
         val project: Project

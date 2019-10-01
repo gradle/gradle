@@ -13,7 +13,7 @@
 // limitations under the License.
 
 [[troubleshooting]]
-= Troubleshooting
+= Troubleshooting builds
 
 The following is a collection of common issues and suggestions for addressing them. You can get other tips and search the link:https://discuss.gradle.org/c/help-discuss[Gradle forums] and link:https://stackoverflow.com/questions/tagged/gradle[StackOverflow #gradle] answers, as well as Gradle documentation from link:https://help.gradle.org/[help.gradle.org].
 

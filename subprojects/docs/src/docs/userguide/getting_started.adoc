@@ -50,7 +50,7 @@ There are also many other {guidesUrl}/[tutorials and guides] available, which yo
 
 Some folks are hard-core command-line users, while others prefer to never leave the comfort of their IDE.
 Many people happily use both and Gradle endeavors not to discriminate.
-Gradle is supported by <<third_party_integration#ides,several major IDEs>> and everything that can be done from the <<command_line_interface#command_line_interface,command line>> is available to IDEs via the <<embedding#embedding,Tooling API>>.
+Gradle is supported by <<third_party_integration#ides,several major IDEs>> and everything that can be done from the <<command_line_interface#command_line_interface,command line>> is available to IDEs via the <<third_party_integration.adoc#embedding,Tooling API>>.
 
 Android Studio and IntelliJ IDEA users should consider using <<kotlin_dsl#kotlin_dsl,Kotlin DSL build scripts>> for the superior IDE support when editing them.
 
@@ -101,7 +101,7 @@ Gradle's flexibility means that it readily works with other tools, such as those
 
 There are two main modes of integration:
 
- * A tool drives Gradle — uses it to extract information about a build and run it — via the <<embedding#embedding,Tooling API>>
+ * A tool drives Gradle — uses it to extract information about a build and run it — via the <<third_party_integration.adoc#embedding,Tooling API>>
  * Gradle invokes or generates information for a tool via the 3rd-party tool's APIs — this is usually done via plugins and custom task types
 
 Tools that have existing Java-based APIs are generally straightforward to integrate. You can find many such integrations on Gradle's https://plugins.gradle.org/[plugin portal].
