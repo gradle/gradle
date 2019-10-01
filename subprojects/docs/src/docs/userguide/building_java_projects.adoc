@@ -17,19 +17,27 @@
 
 Gradle uses a convention-over-configuration approach to building JVM-based projects that borrows several conventions from Apache Maven. In particular, it uses the same default directory structure for source files and resources, and it works with Maven-compatible repositories.
 
-We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>. If you don't have much experience with building JVM-based projects with Gradle, take a look at the link:{guidesUrl}/?q=JVM[Java tutorials] for step-by-step instructions on how to build various types of basic Java projects.
+We will look at Java projects in detail in this chapter, but most of the topics apply to other supported JVM languages as well, such as https://guides.gradle.org/building-kotlin-jvm-libraries/[Kotlin], <<groovy_plugin.adoc#groovy_plugin,Groovy>> and <<scala_plugin.adoc#scala_plugin,Scala>>.
+If you don't have much experience with building JVM-based projects with Gradle, take a look at the link:{guidesUrl}/?q=JVM[Java tutorials] for step-by-step instructions on how to build various types of basic Java projects.
+
+[NOTE]
+====
+The example in this section use the Java Library Plugin.
+However the described features are shared by all JVM plugins.
+Specifics of the different plugins are available in their dedicated documentation.
+====
 
 == Introduction
 
-The simplest build script for a Java project applies the <<java_plugin.adoc#java_plugin,Java Plugin>> and optionally sets the project version and Java compatibility versions:
+The simplest build script for a Java project applies the <<java_library_plugin.adoc#,Java Library Plugin>> and optionally sets the project version and Java compatibility versions:
 
-.Applying the Java Plugin
+.Applying the Java Library Plugin
 ====
 include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=apply-java-plugin]"]
 include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=apply-java-plugin]"]
 ====
 
-By applying the Java Plugin, you get a whole host of features:
+By applying the Java Library Plugin, you get a whole host of features:
 
  * A `compileJava` task that compiles all the Java source files under _src/main/java_
  * A `compileTestJava` task for source files under _src/test/java_
@@ -41,7 +49,7 @@ This isn't sufficient to build any non-trivial Java project — at the very leas
 
 NOTE: Although the properties in the example are optional, we recommend that you specify them in your projects. The compatibility options mitigate against problems with the project being built with different Java compiler versions, and the version string is important for tracking the progression of the project. The project version is also used in archive names by default.
 
-The Java Plugin also integrates the above tasks into the standard <<base_plugin.adoc#sec:base_tasks,Base Plugin lifecycle tasks>>:
+The Java Library Plugin also integrates the above tasks into the standard <<base_plugin.adoc#sec:base_tasks,Base Plugin lifecycle tasks>>:
 
  * `jar` is attached to `assemble` footnote:[In fact, any artifact added to the `archives` configuration will be built by `assemble`]
  * `test` is attached to `check`
@@ -64,7 +72,8 @@ You can see how these relate to one another in this diagram:
 .Source sets and Java compilation
 image::java-sourcesets-compilation.png[]
 
-The shaded boxes represent properties of the source set itself. On top of that, the Java Plugin automatically creates a compilation task for every source set you or a plugin defines — named `compile__SourceSet__Java` — and several <<java_plugin.adoc#java_source_set_configurations,dependency configurations>>.
+The shaded boxes represent properties of the source set itself.
+On top of that, the Java Library Plugin automatically creates a compilation task for every source set you or a plugin defines — named `compile__SourceSet__Java` — and several <<java_plugin.adoc#java_source_set_configurations,dependency configurations>>.
 
 [NOTE]
 .The `main` source set
@@ -72,16 +81,21 @@ The shaded boxes represent properties of the source set itself. On top of that, 
 Most language plugins, Java included, automatically create a source set called `main`, which is used for the project's production code. This source set is special in that its name is not included in the names of the configurations and tasks, hence why you have just a `compileJava` task and `compileOnly` and `implementation` configurations rather than `compileMainJava`, `mainCompileOnly` and `mainImplementation` respectively.
 ====
 
-Java projects typically include resources other than source files, such as properties files, that may need processing — for example by replacing tokens within the files — and packaging within the final JAR. The Java Plugin handles this by automatically creating a dedicated task for each defined source set called `process__SourceSet__Resources` (or `processResources` for the `main` source set). The following diagram shows how the source set fits in with this task:
+Java projects typically include resources other than source files, such as properties files, that may need processing — for example by replacing tokens within the files — and packaging within the final JAR.
+The Java Library Plugin handles this by automatically creating a dedicated task for each defined source set called `process__SourceSet__Resources` (or `processResources` for the `main` source set).
+The following diagram shows how the source set fits in with this task:
 
 .Processing non-source files for a source set
 image::java-sourcesets-process-resources.png[]
 
 As before, the shaded boxes represent properties of the source set, which in this case comprises the locations of the resource files and where they are copied to.
 
-In addition to the `main` source set, the Java Plugin defines a `test` source set that represents the project's tests. This source set is used by the `test` task, which runs the tests. You can learn more about this task and related topics in the <<java_testing.adoc#java_testing,Java testing>> chapter.
+In addition to the `main` source set, the Java Library Plugin defines a `test` source set that represents the project's tests.
+This source set is used by the `test` task, which runs the tests.
+You can learn more about this task and related topics in the <<java_testing.adoc#java_testing,Java testing>> chapter.
 
-Projects typically use this source set for unit tests, but you can also use it for integration, acceptance and other types of test if you wish. The alternative approach is to <<#sec:custom_java_source_sets,define a new source set>> for each of your other test types, which is typically done for one or both of the following reasons:
+Projects typically use this source set for unit tests, but you can also use it for integration, acceptance and other types of test if you wish.
+The alternative approach is to <<#sec:custom_java_source_sets,define a new source set>> for each of your other test types, which is typically done for one or both of the following reasons:
 
  * You want to keep the tests separate from one another for aesthetics and manageability
  * The different test types require different compilation or runtime classpaths or some other difference in setup
@@ -138,7 +152,9 @@ Be aware that the <<java_library_plugin.adoc#java_library_plugin,Java Library Pl
 [NOTE]
 .Why no `compile` configuration?
 ====
-The Java Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code. It is now deprecated — although it won't be going away any time soon — because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't. You can learn more about the importance of this distinction in <<#sec:building_java_libraries,Building Java libraries>>.
+The Java Library Plugin has historically used the `compile` configuration for dependencies that are required to both compile and run a project's production code.
+It is now deprecated, and will issue warnings when used, because it doesn't distinguish between dependencies that impact the public API of a Java library project and those that don't.
+You can learn more about the importance of this distinction in <<#sec:building_java_libraries,Building Java libraries>>.
 ====
 
 We have only scratched the surface here, so we recommend that you read the dedicated dependency management chapters once you're comfortable with the basics of building Java projects with Gradle. Some common scenarios that require further reading include:
@@ -267,7 +283,9 @@ If you're unsure whether to create a custom source set or not, then go ahead and
 [[sec:java_resources]]
 == Managing resources
 
-Many Java projects make use of resources beyond source files, such as images, configuration files and localization data. Sometimes these files simply need to be packaged unchanged and sometimes they need to be processed as template files or in some other way. Either way, the Java Plugin adds a specific link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task for each source set that handles the processing of its associated resources.
+Many Java projects make use of resources beyond source files, such as images, configuration files and localization data.
+Sometimes these files simply need to be packaged unchanged and sometimes they need to be processed as template files or in some other way.
+Either way, the Java Library Plugin adds a specific link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[Copy] task for each source set that handles the processing of its associated resources.
 
 The task's name follows the convention of `process__SourceSet__Resources` — or `processResources` for the `main` source set — and it will automatically copy any files in _src/[sourceSet]/resources_ to a directory that will be included in the production JAR. This target directory will also be included in the runtime classpath of the tests.
 
@@ -291,7 +309,8 @@ These tweaks not only lead to better incremental build integration, but they als
 [[sec:running_java_tests]]
 == Running tests
 
-Alongside providing automatic compilation of unit tests in _src/test/java_, the Java Plugin has native support for running tests that use JUnit 3, 4 & 5 (JUnit 5 support https://docs.gradle.org/4.6/release-notes.html#junit-5-support[came in Gradle 4.6]) and TestNG. You get:
+Alongside providing automatic compilation of unit tests in _src/test/java_, the Java Library Plugin has native support for running tests that use JUnit 3, 4 & 5 (JUnit 5 support https://docs.gradle.org/4.6/release-notes.html#junit-5-support[came in Gradle 4.6]) and TestNG.
+You get:
 
  * An automatic `test` task of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test], using the `test` source set
  * An HTML test report that includes the results from _all_ `Test` tasks that run
@@ -317,9 +336,9 @@ You can also learn more about configuring tests in the DSL reference for link:{g
 
 How you package and potentially publish your Java project depends on what type of project it is.
 Libraries, applications, web applications and enterprise applications all have differing requirements.
-In this section, we will focus on the bare bones provided by the Java Plugin.
+In this section, we will focus on the bare bones provided by the Java Library Plugin.
 
-By default, the Java Plugin provides the `jar` task that packages all the compiled production classes and resources into a single JAR.
+By default, the Java Library Plugin provides the `jar` task that packages all the compiled production classes and resources into a single JAR.
 This JAR is also automatically built by the `assemble` task.
 Furthermore, the plugin can be configured to provide the `javadocJar` and `sourcesJar` tasks to package Javadoc and source code if so desired.
 If a publishing plugin is used, these tasks will automatically run during publishing or can be called directly.
@@ -389,7 +408,9 @@ include::sample[dir="userguide/tutorial/manifest/kotlin",files="build.gradle.kts
 [[sec:generating_javadocs]]
 == Generating API documentation
 
-The Java Plugin provides a `javadoc` task of type link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc], that will generate standard Javadocs for all your production code, i.e. whatever source is in the `main` source set. The task supports the core Javadoc and standard doclet options described in the link:{javadocReferenceUrl}#options[Javadoc reference documentation]. See link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadocPath}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions] for a complete list of those options.
+The Java Library Plugin provides a `javadoc` task of type link:{groovyDslPath}/org.gradle.api.tasks.javadoc.Javadoc.html[Javadoc], that will generate standard Javadocs for all your production code, i.e. whatever source is in the `main` source set.
+The task supports the core Javadoc and standard doclet options described in the link:{javadocReferenceUrl}#options[Javadoc reference documentation].
+See link:{javadocPath}/org/gradle/external/javadoc/CoreJavadocOptions.html[CoreJavadocOptions] and link:{javadocPath}/org/gradle/external/javadoc/StandardJavadocDocletOptions.html[StandardJavadocDocletOptions] for a complete list of those options.
 
 As an example of what you can do, imagine you want to use Asciidoc syntax in your Javadoc comments. To do this, you need to add Asciidoclet to Javadoc's doclet path. Here's an example that does just that:
 
@@ -414,31 +435,42 @@ These are just two non-trivial but common customizations that you might come acr
 [[sec:cleaning_java_build]]
 == Cleaning the build
 
-The Java Plugin adds a `clean` task to your project by virtue of applying the <<base_plugin.adoc#base_plugin,Base Plugin>>. This task simply deletes everything in the `$buildDir` directory, hence why you should always put files generated by the build in there. The task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete] and you can change what directory it deletes by setting its `dir` property.
+The Java Library Plugin adds a `clean` task to your project by virtue of applying the <<base_plugin.adoc#base_plugin,Base Plugin>>.
+This task simply deletes everything in the `$buildDir` directory, hence why you should always put files generated by the build in there.
+The task is an instance of link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete] and you can change what directory it deletes by setting its `dir` property.
+
+[[sec:building_jvm_components]]
+== Building JVM components
+
+All of the specific JVM plugins are built on top of the <<java_plugin.adoc#,Java Plugin>>.
+The examples above only illustrated concepts provided by this base plugin and shared with all JVM plugins.
+
+Read on to understand which plugins fits which project type, as it is recommended to pick a specific plugin instead of applying the Java Plugin directly.
 
 [[sec:building_java_libraries]]
 == Building Java libraries
 
-The unique aspect of library projects is that they are used (or "consumed") by other Java projects. That means the dependency metadata published with the JAR file — usually in the form of a Maven POM —  is crucial. In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
+The unique aspect of library projects is that they are used (or "consumed") by other Java projects.
+That means the dependency metadata published with the JAR file — usually in the form of a Maven POM —  is crucial.
+In particular, consumers of your library should be able to distinguish between two different types of dependencies: those that are only required to compile your library and those that are also required to compile the consumer.
 
-Gradle manages this distinction via the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ one covered in this chapter. If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration. Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
-
-NOTE: The Java Library Plugin automatically applies the standard Java Plugin as well.
+Gradle manages this distinction via the <<java_library_plugin.adoc#java_library_plugin,Java Library Plugin>>, which introduces an _api_ configuration in addition to the _implementation_ one covered in this chapter.
+If the types from a dependency appear in public fields or methods of your library's public classes, then that dependency is exposed via your library's public API and should therefore be added to the _api_ configuration.
+Otherwise, the dependency is an internal implementation detail and should be added to _implementation_.
 
 If you're unsure of the difference between an API and implementation dependency, the <<java_library_plugin.adoc#sec:java_library_recognizing_dependencies,Java Library Plugin chapter>> has a detailed explanation. In addition, you can see a basic, practical example of building a Java library in the corresponding https://guides.gradle.org/building-java-libraries/[_guide_].
 
 [[sec:building_java_applications]]
 == Building Java applications
 
-Java applications packaged as a JAR aren't set up for easy launching from the command line or a desktop environment. The <<application_plugin.adoc#application_plugin,Application Plugin>> solves the command line aspect by creating a distribution that includes the production JAR, its dependencies and launch scripts Unix-like and Windows systems.
+Java applications packaged as a JAR aren't set up for easy launching from the command line or a desktop environment.
+The <<application_plugin.adoc#application_plugin,Application Plugin>> solves the command line aspect by creating a distribution that includes the production JAR, its dependencies and launch scripts Unix-like and Windows systems.
 
 See the plugin's chapter for more details, but here's a quick summary of what you get:
 
  * `assemble` creates ZIP and TAR distributions of the application containing everything needed to run it
  * A `run` task that starts the application from the build (for easy testing)
  * Shell and Windows Batch scripts to start the application
-
-Note that you will need to explicitly apply the Java Plugin in your build script.
 
 You can see a basic example of building a Java application in the corresponding https://guides.gradle.org/building-java-applications/[_guide_].
 
@@ -471,6 +503,11 @@ The platform has no source and no artifact of its own.
 It maps in the Maven world to a https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Management[BOM].
 
 The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, which sets up the different configurations and publication components.
+
+[NOTE]
+====
+This plugin is the exception as it does not apply the Java Plugin.
+====
 
 [[sec:building_jvm_lang]]
 == Building other JVM language projects

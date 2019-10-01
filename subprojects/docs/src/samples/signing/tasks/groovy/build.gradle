@@ -9,7 +9,7 @@ project.ext['signing.secretKeyRingFile'] = file('secKeyRingFile.gpg').absolutePa
 
 // tag::sign-task[]
 task stuffZip (type: Zip) {
-    baseName = 'stuff'
+    archiveBaseName = 'stuff'
     from 'src/stuff'
 }
 

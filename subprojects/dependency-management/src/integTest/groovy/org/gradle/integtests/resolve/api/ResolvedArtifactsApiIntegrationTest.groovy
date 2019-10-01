@@ -220,9 +220,9 @@ configurations.compile.attributes.attribute(flavor, 'preview')
 
 project(':a') {
     dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(OneRule)
-    task oneJar(type: Jar) { baseName = 'a1' }
-    task twoJar(type: Jar) { baseName = 'a2' }
-    tasks.withType(Jar) { destinationDir = buildDir }
+    task oneJar(type: Jar) { archiveBaseName = 'a1' }
+    task twoJar(type: Jar) { archiveBaseName = 'a2' }
+    tasks.withType(Jar) { destinationDirectory = buildDir }
     configurations {
         compile {
             attributes.attribute(buildType, 'debug')
@@ -246,9 +246,9 @@ project(':a') {
 }
 project(':b') {
     dependencies.attributesSchema.attribute(flavor).compatibilityRules.add(TwoRule)
-    task oneJar(type: Jar) { baseName = 'b1' }
-    task twoJar(type: Jar) { baseName = 'b2' }
-    tasks.withType(Jar) { destinationDir = buildDir }
+    task oneJar(type: Jar) { archiveBaseName = 'b1' }
+    task twoJar(type: Jar) { archiveBaseName = 'b2' }
+    tasks.withType(Jar) { destinationDirectory = buildDir }
     configurations {
         compile {
             outgoing {
@@ -322,9 +322,9 @@ dependencies {
 
 project(':a') {
     dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(OneRule)
-    task oneJar(type: Jar) { baseName = 'a1' }
-    task twoJar(type: Jar) { baseName = 'a2' }
-    tasks.withType(Jar) { destinationDir = buildDir }
+    task oneJar(type: Jar) { archiveBaseName = 'a1' }
+    task twoJar(type: Jar) { archiveBaseName = 'a2' }
+    tasks.withType(Jar) { destinationDirectory = buildDir }
     configurations {
         compile {
             attributes.attribute(buildType, 'debug')
@@ -348,9 +348,9 @@ project(':a') {
 }
 project(':b') {
     dependencies.attributesSchema.attribute(flavor).disambiguationRules.add(TwoRule)
-    task oneJar(type: Jar) { baseName = 'b1' }
-    task twoJar(type: Jar) { baseName = 'b2' }
-    tasks.withType(Jar) { destinationDir = buildDir }
+    task oneJar(type: Jar) { archiveBaseName = 'b1' }
+    task twoJar(type: Jar) { archiveBaseName = 'b2' }
+    tasks.withType(Jar) { destinationDirectory = buildDir }
     configurations {
         compile {
             outgoing {
@@ -412,8 +412,8 @@ dependencies {
 }
 
 project(':a') {
-    task oneJar(type: Jar) { baseName = 'a1' }
-    task twoJar(type: Jar) { baseName = 'a2' }
+    task oneJar(type: Jar) { archiveBaseName = 'a1' }
+    task twoJar(type: Jar) { archiveBaseName = 'a2' }
     configurations {
         compile {
             attributes.attribute(buildType, 'debug')
@@ -436,8 +436,8 @@ project(':a') {
     }
 }
 project(':b') {
-    task oneJar(type: Jar) { baseName = 'b1' }
-    task twoJar(type: Jar) { baseName = 'b2' }
+    task oneJar(type: Jar) { archiveBaseName = 'b1' }
+    task twoJar(type: Jar) { archiveBaseName = 'b2' }
     configurations {
         compile {
             outgoing {
@@ -921,8 +921,8 @@ Searched in the following locations:
 allprojects {
     repositories { maven { url '$mavenHttpRepo.uri' } }
     tasks.withType(Jar) {
-        archiveName = project.name + '-' + name + ".jar"
-        destinationDir = buildDir
+        archiveFileName = project.name + '-' + name + ".jar"
+        destinationDirectory = buildDir
     }
 }
 dependencies {

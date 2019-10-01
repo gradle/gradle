@@ -49,6 +49,12 @@ include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAll
 include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=locking-all]"]
 ====
 
+.Unocking a specific configuration
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/unlockingSingleConfiguration/groovy",files="build.gradle[tags=unlocking-one]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/unlockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=unlocking-one]"]
+====
+
 [NOTE]
 ====
 Only configurations that can be resolved will have lock state attached to them.

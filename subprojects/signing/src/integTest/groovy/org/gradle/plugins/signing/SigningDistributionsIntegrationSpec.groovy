@@ -33,7 +33,7 @@ class SigningDistributionsIntegrationSpec extends SigningIntegrationSpec {
 
             distributions {
                 main {
-                    baseName = 'main'
+                    distributionBaseName = 'main'
                     contents.from "src/main/java"
                 }
             }

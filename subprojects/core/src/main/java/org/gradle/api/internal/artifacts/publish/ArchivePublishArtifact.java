@@ -48,39 +48,41 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact implements C
         if (name != null) {
             return name;
         }
-        if (archiveTask.getBaseName() != null) {
-            return withAppendix(archiveTask.getBaseName());
+        String baseName = archiveTask.getArchiveBaseName().getOrNull();
+        if (baseName != null) {
+            return withAppendix(baseName);
         }
-        return archiveTask.getAppendix();
+        return archiveTask.getArchiveAppendix().getOrNull();
     }
 
     private String withAppendix(String baseName) {
-        return baseName + (GUtil.isTrue(archiveTask.getAppendix())? "-" + archiveTask.getAppendix() : "");
+        String appendix = archiveTask.getArchiveAppendix().getOrNull();
+        return baseName + (GUtil.isTrue(appendix)? "-" + appendix : "");
     }
 
     @Override
     public String getExtension() {
-        return GUtil.elvis(extension, archiveTask.getExtension());
+        return GUtil.elvis(extension, archiveTask.getArchiveExtension().getOrNull());
     }
 
     @Override
     public String getType() {
-        return GUtil.elvis(type, archiveTask.getExtension());
+        return GUtil.elvis(type, archiveTask.getArchiveExtension().getOrNull());
     }
 
     @Override
     public String getClassifier() {
-        return GUtil.elvis(classifier, archiveTask.getClassifier());
+        return GUtil.elvis(classifier, archiveTask.getArchiveClassifier().getOrNull());
     }
 
     @Override
     public File getFile() {
-        return GUtil.elvis(file, archiveTask.getArchivePath());
+        return GUtil.elvis(file, archiveTask.getArchiveFile().get().getAsFile());
     }
 
     @Override
     public Date getDate() {
-        return GUtil.elvis(date, new Date(archiveTask.getArchivePath().lastModified()));
+        return GUtil.elvis(date, new Date(archiveTask.getArchiveFile().get().getAsFile().lastModified()));
     }
 
     public AbstractArchiveTask getArchiveTask() {

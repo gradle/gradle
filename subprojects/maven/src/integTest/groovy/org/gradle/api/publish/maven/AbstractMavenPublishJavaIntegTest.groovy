@@ -509,7 +509,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         createBuildScripts("""
             task sourceJar(type: Jar) {
                 from sourceSets.main.allJava
-                classifier "source"
+                archiveClassifier = "source"
             }
 
             publishing {

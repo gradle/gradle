@@ -191,8 +191,8 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
                         extension "txt"
                     }
                     artifact customJar {
-                        classifier null
-                        extension "war"
+                        archiveClassifier = null
+                        archiveExtension = "war"
                     }
                 }
             }
@@ -416,7 +416,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
 
             task customJar(type: Jar) {
                 from file("customFile.txt")
-                classifier "customjar"
+                archiveClassifier = "customjar"
             }
 
             publishing {

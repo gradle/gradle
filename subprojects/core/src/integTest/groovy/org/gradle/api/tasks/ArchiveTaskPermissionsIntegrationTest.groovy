@@ -42,8 +42,8 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
             task pack(type: $taskName) {
-                archiveName = "$archName"
-                destinationDir = projectDir
+                archiveFileName = "$archName"
+                destinationDirectory = projectDir
                 from 'parent'
             }
             """
@@ -74,8 +74,8 @@ class ArchiveTaskPermissionsIntegrationTest extends AbstractIntegrationSpec {
         and:
         buildFile << """
                 task pack(type: $taskName) {
-                    archiveName = "$archName"
-                    destinationDir = projectDir
+                    archiveFileName = "$archName"
+                    destinationDirectory = projectDir
                     fileMode = 0774
                     dirMode = 0756
                     from 'parent'

@@ -33,6 +33,9 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
         addApplyPluginScript(buildFile)
         addGradlePublicJsRepoScript(buildFile)
+        executer.expectDeprecationWarning("The org.gradle.coffeescript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
     }
 
     def "can download coffeescript by default"() {
@@ -82,6 +85,7 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
         f2.text.startsWith("(function() {")
 
         when:
+        executer.noDeprecationChecks()
         run "compile"
 
         then:

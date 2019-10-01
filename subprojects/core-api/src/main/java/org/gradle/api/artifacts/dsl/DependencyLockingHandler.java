@@ -16,6 +16,8 @@
 
 package org.gradle.api.artifacts.dsl;
 
+import org.gradle.api.Incubating;
+
 /**
  * A {@code DependencyLockingHandler} manages the behaviour and configuration of dependency locking.
  *
@@ -32,4 +34,16 @@ public interface DependencyLockingHandler {
      *
      */
     void lockAllConfigurations();
+
+    /**
+     * Convenience method for doing:
+     *
+     * configurations.all {
+     *     resolutionStrategy.deactivateDependencyLocking()
+     * }
+     *
+     * @since 6.0
+     */
+    @Incubating
+    void unlockAllConfigurations();
 }

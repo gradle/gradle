@@ -92,7 +92,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/c")
                 from("external/d")
                 
-                archiveName = "external.jar"
+                archiveFileName = "external.jar"
             }
             task reverseAlphabetic(type: Jar) {
                 from("external/d")
@@ -100,7 +100,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/b")
                 from("external/a")
                 
-                archiveName = "external.jar"
+                archiveFileName = "external.jar"
             }
         """
         ['a', 'b', 'c', 'd'].each {
@@ -137,7 +137,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/c")
                 from("external/d")
                 
-                archiveName = "external.jar"
+                archiveFileName = "external.jar"
             }
             task oldTime(type: Jar) {
                 from("external/a")
@@ -145,7 +145,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/c")
                 from("external/d")
                 
-                archiveName = "external.jar"
+                archiveFileName = "external.jar"
                 preserveFileTimestamps = false
             }
         """
@@ -183,7 +183,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
                 from("external/c")
                 from("external/d")
                 from("duplicate/a")
-                archiveName = "external.jar"
+                archiveFileName = "external.jar"
             }
         """
         def externalJar = file("build/libs/external.jar")

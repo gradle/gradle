@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.Iterables;
 import org.gradle.internal.execution.BeforeExecutionContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.Result;
@@ -67,18 +66,16 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
     private void cleanupOverlappingOutputs(BeforeExecutionContext context, UnitOfWork work) {
         context.getAfterPreviousExecutionState().ifPresent(previousOutputs -> {
             Set<File> outputDirectoriesToPreserve = new HashSet<>();
-            work.visitOutputProperties((name, type, roots) -> {
+            work.visitOutputProperties((name, type, root) -> {
                 switch (type) {
                     case FILE:
-                        for (File root : roots) {
-                            File parentFile = root.getParentFile();
-                            if (parentFile != null) {
-                                outputDirectoriesToPreserve.add(parentFile);
-                            }
+                        File parentFile = root.getParentFile();
+                        if (parentFile != null) {
+                            outputDirectoriesToPreserve.add(parentFile);
                         }
                         break;
                     case DIRECTORY:
-                        Iterables.addAll(outputDirectoriesToPreserve, roots);
+                        outputDirectoriesToPreserve.add(root);
                         break;
                     default:
                         throw new AssertionError();
@@ -100,23 +97,21 @@ public class CleanupOutputsStep<C extends InputChangesContext, R extends Result>
     }
 
     private void cleanupExclusiveOutputs(UnitOfWork work) {
-        work.visitOutputProperties((name, type, roots) -> {
-            for (File root : roots) {
-                if (root.exists()) {
-                    try {
-                        switch (type) {
-                            case FILE:
-                                deleter.delete(root);
-                                break;
-                            case DIRECTORY:
-                                deleter.ensureEmptyDirectory(root);
+        work.visitOutputProperties((name, type, root) -> {
+            if (root.exists()) {
+                try {
+                    switch (type) {
+                        case FILE:
+                            deleter.delete(root);
                             break;
-                            default:
-                                throw new AssertionError();
-                        }
-                    } catch (IOException ex) {
-                        throw new UncheckedIOException(ex);
+                        case DIRECTORY:
+                            deleter.ensureEmptyDirectory(root);
+                            break;
+                        default:
+                            throw new AssertionError();
                     }
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
                 }
             }
         });

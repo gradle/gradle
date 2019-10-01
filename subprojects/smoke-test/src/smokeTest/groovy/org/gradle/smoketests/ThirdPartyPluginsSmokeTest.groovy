@@ -283,7 +283,8 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
         then:
         expectDeprecationWarnings(result,
-            "Property 'classesJarScanningRequired' is private and annotated with @Internal. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0."
+            "Property 'classesJarScanningRequired' is private and annotated with @Internal. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+                "The baseName property has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the archiveBaseName property instead."
         )
     }
 

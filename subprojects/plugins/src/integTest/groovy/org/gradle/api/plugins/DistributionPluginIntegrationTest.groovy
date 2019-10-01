@@ -100,7 +100,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
             distributions {
                 custom{
-                    baseName='customName'
+                    distributionBaseName = 'customName'
                     contents {
                         from { "someFile" }
                     }
@@ -114,14 +114,13 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         file("unzip/customName/someFile").assertIsFile()
     }
 
-
     def createTaskForCustomDistributionWithEmptyCustomName() {
         when:
         buildFile << """
             apply plugin:'distribution'
             distributions {
                 custom{
-                    baseName=''
+                    distributionBaseName = ''
                     contents {
                         from { "someFile" }
                     }
@@ -132,7 +131,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             """
         then:
         runAndFail('customDistZip')
-        failure.assertHasCause "Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."
+        failure.assertHasCause "Distribution 'custom' must not have an empty distributionBaseName."
     }
 
     def createDistributionWithoutVersion() {
@@ -145,12 +144,12 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         }
         and:
         buildFile << """
-            apply plugin:'distribution'
+            apply plugin: 'distribution'
 
 
             distributions {
                 main{
-                    baseName='myDistribution'
+                    distributionBaseName = 'myDistribution'
                 }
             }
             """
@@ -175,7 +174,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
             distributions {
                 main{
-                    baseName='myDistribution'
+                    distributionBaseName = 'myDistribution'
                 }
             }
             """
@@ -201,7 +200,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             version = '1.2'
             distributions {
                 main{
-                    baseName='myDistribution'
+                    distributionBaseName = 'myDistribution'
                 }
             }
             distZip{

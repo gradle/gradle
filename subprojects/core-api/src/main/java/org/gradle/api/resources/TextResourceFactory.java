@@ -38,7 +38,9 @@ import org.gradle.api.Incubating;
  * def sourcedFromConfiguration =
  *   resources.text.fromArchiveEntry(configurations.someConfig, "path/to/archive/entry.txt")
  *
- * def sourceFromUri = resources.text.fromUri("https://path/to/the/resource")
+ * def sourceFromUri = resources.text.fromUri("https://example.com/resource")
+ *
+ * def sourceFromInsecureUri = resources.text.fromInsecureUri("http://example.com/resource")
  * </pre>
  *
  * File based factory methods optionally accept a character encoding. If no encoding is specified,

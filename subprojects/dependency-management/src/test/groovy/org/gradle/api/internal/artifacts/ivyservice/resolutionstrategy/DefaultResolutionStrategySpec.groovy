@@ -287,4 +287,12 @@ class DefaultResolutionStrategySpec extends Specification {
         true            | dependencyLockingProvider
         false           | NoOpDependencyLockingProvider.instance
     }
+
+    def 'Does not provide DependencyLockingProvider when deactivatingLocking'() {
+        when:
+        strategy.deactivateDependencyLocking()
+
+        then:
+        strategy.dependencyLockingProvider.is( NoOpDependencyLockingProvider.instance)
+    }
 }

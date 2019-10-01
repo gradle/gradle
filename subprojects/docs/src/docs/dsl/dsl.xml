@@ -148,9 +148,6 @@
                 <td>org.gradle.api.Script</td>
             </tr>
             <tr>
-                <td>org.gradle.jvm.toolchain.JavaToolChain</td>
-            </tr>
-            <tr>
                 <td>org.gradle.api.tasks.SourceSet</td>
             </tr>
             <tr>
@@ -931,65 +928,6 @@
             <tr>
                 <td>org.gradle.language.rc.tasks.WindowsResourceCompile</td>
             </tr>
-        </table>
-    </section>
-
-    <section condition="noNavBar">
-        <title>Play Framework model types</title>
-        <para>Used to configure software components developed with the Play Framework.</para>
-        <table>
-            <title>Play Framework model types</title>
-            <tr>
-                <td>org.gradle.play.PlayApplicationBinarySpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.PlayApplicationSpec</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.platform.PlayPlatform</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.JvmClasses</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.PublicAssets</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.distribution.PlayDistributionContainer</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.twirl.TwirlSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.routes.RoutesSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.coffeescript.CoffeeScriptSourceSet</td>
-            </tr>
-            <tr>
-                <td>org.gradle.language.javascript.JavaScriptSourceSet</td>
-            </tr>
-        </table>
-    </section>
-
-    <section condition="noNavBar">
-        <title>Play Framework task types</title>
-        <para>Tasks used to build applications using the Play Framework.</para>
-        <table>
-            <title>Play Framework task types</title>
-            <tr>
-                <td>org.gradle.play.tasks.JavaScriptMinify</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.tasks.PlayRun</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.tasks.RoutesCompile</td>
-            </tr>
-            <tr>
-                <td>org.gradle.play.tasks.TwirlCompile</td>
-            </tr>
-            <!-- add PlatformScalaCompile -->
         </table>
     </section>
 

@@ -91,19 +91,19 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
                                     }
                                 }
                                 def mergeResourcesTask = p.tasks.create("merge${f.capitalize()}${bt.capitalize()}Resources", Zip) { task ->
-                                    task.baseName = "resources-${p.name}-${f}${bt}"
+                                    task.archiveBaseName = "resources-${p.name}-${f}${bt}"
                                     task.from mergedResourcesConf
                                 }
                                 def aarTask = p.tasks.create("${f}${bt.capitalize()}Aar", Jar) { task ->
                                     // it's called AAR to reflect something that bundles everything
                                     task.dependsOn mergeResourcesTask
-                                    task.baseName = "${p.name}-${f}${bt}"
-                                    task.extension = 'aar'
+                                    task.archiveBaseName = "${p.name}-${f}${bt}"
+                                    task.archiveExtension = 'aar'
                                     task.from compileTask.outputs.files
                                     task.from p.zipTree(mergeResourcesTask.outputs.files.singleFile)
                                 }
                                 def jarTask = p.tasks.create("${f}${bt.capitalize()}Jar", Jar) { task ->
-                                    task.baseName = "${p.name}-${f}${bt}"
+                                    task.archiveBaseName = "${p.name}-${f}${bt}"
                                     task.from compileTask.outputs.files
                                 }
                                 p.artifacts.add("compile$baseName", jarTask)

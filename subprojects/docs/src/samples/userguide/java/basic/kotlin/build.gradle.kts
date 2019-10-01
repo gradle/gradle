@@ -1,12 +1,14 @@
 // tag::apply-java-plugin[]
 plugins {
-    java
+    `java-library`
 }
 
+// tag::java-extension[]
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
+// end::java-extension[]
 
 version = "1.2.1"
 // end::apply-java-plugin[]

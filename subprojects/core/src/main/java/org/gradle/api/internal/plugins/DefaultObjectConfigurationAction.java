@@ -117,14 +117,16 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             () -> DeprecationLogger
                 .nagUserOfDeprecated(
                     "Applying script plugins from insecure URIs",
-                    "Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning."
+                        String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")' to silence the warning.", GUtil.toSecureUrl(scriptUri), scriptUri),
+                        String.format("The provided URI '%s' uses an insecure protocol (HTTP).", scriptUri)
+
                 ),
             redirect -> DeprecationLogger
                 .nagUserOfDeprecated(
                     "Applying script plugins from an insecure redirect",
-                    "Switch to HTTPS or use TextResourceFactory.fromInsecureUri() to silence the warning.",
+                    "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.",
                     String.format(
-                        "'%s' redirects to '%s'.",
+                        "'%s' redirects to insecure '%s'.",
                         scriptUri,
                         redirect
                     )

@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -503,6 +504,14 @@ public class GUtil {
             }
         }
         return true;
+    }
+
+    public static URI toSecureUrl(URI scriptUri) {
+        try {
+            return new URI("https", null, scriptUri.getHost(), scriptUri.getPort(), scriptUri.getPath(), scriptUri.getQuery(), scriptUri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("could not make url use https", e);
+        }
     }
 
     public static boolean isSecureUrl(URI url) {

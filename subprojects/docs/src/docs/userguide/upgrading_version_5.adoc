@@ -77,6 +77,18 @@ The related APIs in `StartParameter` are now deprecated.
 These methods currently do not work as expected.
 They are being deprecated to avoid confusion.
 
+==== Deprecated plugins
+
+The following bundled plugins are no longer maintained and will be removed in the next major release of Gradle:
+
+- `org.gradle.coffeescript-base`
+- `org.gradle.envjs`
+- `org.gradle.javascript-base`
+- `org.gradle.jshint`
+- `org.gradle.rhino`
+
+Some of these plugins may have replacements on the https://plugins.gradle.org/[Plugin Portal]. 
+
 ==== Copy or archive duplicate paths without explicitly specifying a duplicates strategy has been deprecated
 
 Archive tasks `Tar` and `Zip` by default allow multiple entries for the same path to exist in the created archive.
@@ -196,6 +208,11 @@ The deprecated announce and build-announcements plugins have been removed.  Ther
 The deprecated Compare Gradle Builds plugin has been removed.
 Please use https://scans.gradle.com/[build scans] for build analysis and comparison.
 
+==== The Play plugins have been removed
+
+The deprecated Play plugins has been removed.
+An external replacement link:https://gradle.github.io/playframework[Play Framework plugin] available from the plugin portal.
+
 ==== Changes to the task container
 
 The following deprecated methods on the task container now result in errors:
@@ -243,6 +260,7 @@ Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kot
 
 - Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
+- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.7.html[Ant 1.10.7].
 
 ==== Updates to default integration versions
 

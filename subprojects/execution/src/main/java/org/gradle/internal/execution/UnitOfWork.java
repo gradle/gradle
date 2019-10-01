@@ -70,7 +70,7 @@ public interface UnitOfWork extends CacheableEntity {
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, Iterable<File> roots);
+        void visitOutputProperty(String propertyName, TreeType type, File root);
     }
 
     void visitLocalState(LocalStateVisitor visitor);

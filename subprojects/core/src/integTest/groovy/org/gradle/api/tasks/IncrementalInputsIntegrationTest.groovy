@@ -21,6 +21,7 @@ import org.gradle.work.Incremental
 import spock.lang.Issue
 import spock.lang.Unroll
 
+@Unroll
 class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrationTest {
 
     String getTaskAction() {
@@ -81,7 +82,6 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         executesNonIncrementally()
     }
 
-    @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4166")
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
@@ -324,7 +324,6 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         propertyDefinition << ["abstract DirectoryProperty getInput()", "abstract RegularFileProperty getInput()"]
     }
 
-    @Unroll
     def "provides normalized paths (#pathSensitivity)"() {
         buildFile << """
             abstract class MyCopy extends DefaultTask {
@@ -481,7 +480,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         outputDir.assertIsEmptyDir()
     }
 
-    def "outputs are cleaned out on rebuild"() {
+    def "outputs are cleaned out on rebuild (output type: #type)"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
             abstract class MyCopy extends DefaultTask {
@@ -493,8 +492,8 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @InputFile
                 abstract RegularFileProperty getNonIncrementalInput()
 
-                @OutputDirectory
-                abstract DirectoryProperty getOutputDirectory()
+                @${annotation.simpleName}
+                abstract ${type} getOutputDirectory()
 
                 @TaskAction
                 void copy(InputChanges changes) {
@@ -502,7 +501,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                         println("Rebuilding")
                     }
                     changes.getFileChanges(inputDirectory).each { change ->
-                        File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)
+                        File outputFile = new File(outputDirectory.${getter}, change.normalizedPath)
                         if (change.changeType != ChangeType.REMOVED
                             && change.file.file) {
                             outputFile.parentFile.mkdirs()
@@ -515,7 +514,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
             task copy(type: MyCopy) {
                 inputDirectory = file("input")
                 nonIncrementalInput = file("nonIncremental.txt")
-                outputDirectory = file("build/output")
+                outputDirectory.${setter}(file("build/output"))
             }
         """
         def inputFilePath = "in/some/input.txt"
@@ -536,5 +535,10 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         then:
         executedAndNotSkipped(":copy")
         file("build/output").assertIsEmptyDir()
+
+        where:
+        type                   | annotation      | getter         | setter
+        'DirectoryProperty'    | OutputDirectory | 'get().asFile' | 'set'
+        'ConfigurableFileTree' | OutputFiles     | 'dir'          | 'from'
     }
 }
