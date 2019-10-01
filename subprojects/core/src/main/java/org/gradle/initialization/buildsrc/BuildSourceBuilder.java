@@ -50,7 +50,6 @@ public class BuildSourceBuilder {
     public static final String BUILD_SRC = "buildSrc";
 
     private final BuildState currentBuild;
-    private final ClassLoaderScope classLoaderScope;
     private final FileLockManager fileLockManager;
     private final BuildOperationExecutor buildOperationExecutor;
     private final CachedClasspathTransformer cachedClasspathTransformer;
@@ -58,9 +57,8 @@ public class BuildSourceBuilder {
     private final BuildStateRegistry buildRegistry;
     private final PublicBuildPath publicBuildPath;
 
-    public BuildSourceBuilder(BuildState currentBuild, ClassLoaderScope classLoaderScope, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
+    public BuildSourceBuilder(BuildState currentBuild, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, BuildSrcBuildListenerFactory buildSrcBuildListenerFactory, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
         this.currentBuild = currentBuild;
-        this.classLoaderScope = classLoaderScope;
         this.fileLockManager = fileLockManager;
         this.buildOperationExecutor = buildOperationExecutor;
         this.cachedClasspathTransformer = cachedClasspathTransformer;
@@ -69,10 +67,10 @@ public class BuildSourceBuilder {
         this.publicBuildPath = publicBuildPath;
     }
 
-    public ClassLoaderScope buildAndCreateClassLoader(File rootDir, StartParameter containingBuildParameters) {
+    public ClassLoaderScope buildAndCreateClassLoader(File rootDir, StartParameter containingBuildParameters, ClassLoaderScope parentClassLoaderScope) {
         File buildSrcDir = new File(rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR);
         ClassPath classpath = createBuildSourceClasspath(buildSrcDir, containingBuildParameters);
-        return classLoaderScope.createChild(buildSrcDir.getAbsolutePath())
+        return parentClassLoaderScope.createChild(buildSrcDir.getAbsolutePath())
             .export(classpath)
             .lock();
     }
