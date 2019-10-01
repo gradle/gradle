@@ -1,6 +1,7 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.eq
 import com.nhaarman.mockito_kotlin.inOrder
@@ -16,6 +17,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.HasConvention
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.Convention
+import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
 
@@ -416,6 +418,42 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     fun `precompiled init script receiver is undecorated`() {
 
         assertUndecoratedImplicitReceiverOf<Gradle>("my-init-plugin.init.gradle.kts")
+    }
+
+    @Test
+    fun `can use PluginAware extensions against nested receiver`() {
+
+        val scriptFileName = "my-project-plugin.gradle.kts"
+
+        givenPrecompiledKotlinScript(scriptFileName, """
+            project(":nested") {
+                apply(from = "./gradle/conventions.gradle.kts")
+            }
+        """)
+
+        val configurationAction = mock<ObjectConfigurationAction>()
+        val nestedReceiver = mock<Project> {
+            on { apply(any<Action<ObjectConfigurationAction>>()) } doAnswer {
+                it.getArgument<Action<ObjectConfigurationAction>>(0).execute(configurationAction)
+                Unit
+            }
+        }
+        val project = mock<Project> {
+            on { project(eq(":p"), any<Action<Project>>()) } doAnswer {
+                it.getArgument<Action<Project>>(1).execute(nestedReceiver)
+                nestedReceiver
+            }
+        }
+
+        instantiatePrecompiledScriptOf(
+            project,
+            scriptClassNameForFile(scriptFileName)
+        )
+
+        inOrder(configurationAction) {
+            verify(configurationAction).from("./gradle/conventions.gradle.kts")
+            verifyNoMoreInteractions()
+        }
     }
 
     private
