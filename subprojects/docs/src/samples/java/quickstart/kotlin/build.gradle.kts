@@ -29,7 +29,7 @@ tasks.jar {
     manifest {
         attributes(
             "Implementation-Title" to "Gradle Quickstart",
-            "Implementation-Version" to version)
+            "Implementation-Version" to archiveVersion)
     }
 }
 // end::customization[]

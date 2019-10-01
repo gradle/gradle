@@ -133,6 +133,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    public ResolutionStrategy deactivateDependencyLocking() {
+        mutationValidator.validateMutation(STRATEGY);
+        dependencyLockingEnabled = false;
+        return this;
+    }
+
+
+    @Override
     public void sortArtifacts(SortOrder sortOrder) {
         this.sortOrder = sortOrder;
     }

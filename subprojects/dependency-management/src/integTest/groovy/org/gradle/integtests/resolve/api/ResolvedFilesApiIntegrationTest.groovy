@@ -603,9 +603,9 @@ task show {
 
     private String freeAndPaidFlavoredJars(String prefix) {
         """
-            task freeJar(type: Jar) { archiveName = '$prefix-free.jar' }
-            task paidJar(type: Jar) { archiveName = '$prefix-paid.jar' }
-            tasks.withType(Jar) { destinationDir = buildDir }
+            task freeJar(type: Jar) { archiveFileName = '$prefix-free.jar' }
+            task paidJar(type: Jar) { archiveFileName = '$prefix-paid.jar' }
+            tasks.withType(Jar) { destinationDirectory = buildDir }
             configurations.compile.outgoing.variants {
                 free {
                     attributes.attribute(flavor, 'free')

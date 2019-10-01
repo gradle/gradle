@@ -27,7 +27,7 @@ class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionGradleProfilerP
 
     def setup() {
         runner.minimumVersion = '4.6'
-        runner.targetVersions = ["6.0-20190920115514+0000"]
+        runner.targetVersions = ["6.0-20190823180744+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
 

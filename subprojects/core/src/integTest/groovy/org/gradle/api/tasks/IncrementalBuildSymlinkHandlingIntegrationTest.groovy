@@ -130,7 +130,7 @@ task work {
 
         expect:
         fails("work")
-        failure.assertHasDescription("A problem was found with the configuration of task ':work'.")
+        failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
         failure.assertHasCause("File '$link' specified for property '\$1' does not exist.")
     }
 

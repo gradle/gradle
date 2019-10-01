@@ -58,4 +58,20 @@ public class StartParameterInternal extends StartParameter implements Deprecatab
     public void setGradleHomeDir(File gradleHomeDir) {
         this.gradleHomeDir = gradleHomeDir;
     }
+
+    public void useEmptySettingsWithoutDeprecationWarning() {
+        doUseEmptySettings();
+    }
+
+    public boolean isUseEmptySettingsWithoutDeprecationWarning() {
+        return super.useEmptySettings;
+    }
+
+    public boolean isSearchUpwardsWithoutDeprecationWarning() {
+        return super.searchUpwards;
+    }
+
+    public void setSearchUpwardsWithoutDeprecationWarning(boolean searchUpwards) {
+        super.searchUpwards = searchUpwards;
+    }
 }

@@ -80,7 +80,8 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             }
             """
         then:
-        executer.expectDeprecationWarnings(2)
+        executer.expectDeprecationWarning("The maven plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the maven-publish plugin instead.")
+        executer.expectDeprecationWarning("The uploadArchives task has been deprecated. This is scheduled to be removed in Gradle 7.0. Use the 'maven-publish' plugin instead")
         succeeds("uploadArchives")
         file("repo/org/acme/TestProject/1.0/TestProject-1.0.zip").assertIsFile()
 
@@ -99,7 +100,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
             distributions {
                 custom{
-                    baseName='customName'
+                    distributionBaseName = 'customName'
                     contents {
                         from { "someFile" }
                     }
@@ -113,14 +114,13 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         file("unzip/customName/someFile").assertIsFile()
     }
 
-
     def createTaskForCustomDistributionWithEmptyCustomName() {
         when:
         buildFile << """
             apply plugin:'distribution'
             distributions {
                 custom{
-                    baseName=''
+                    distributionBaseName = ''
                     contents {
                         from { "someFile" }
                     }
@@ -131,7 +131,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             """
         then:
         runAndFail('customDistZip')
-        failure.assertHasCause "Distribution baseName must not be null or empty! Check your configuration of the distribution plugin."
+        failure.assertHasCause "Distribution 'custom' must not have an empty distributionBaseName."
     }
 
     def createDistributionWithoutVersion() {
@@ -144,12 +144,12 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
         }
         and:
         buildFile << """
-            apply plugin:'distribution'
+            apply plugin: 'distribution'
 
 
             distributions {
                 main{
-                    baseName='myDistribution'
+                    distributionBaseName = 'myDistribution'
                 }
             }
             """
@@ -174,7 +174,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
 
             distributions {
                 main{
-                    baseName='myDistribution'
+                    distributionBaseName = 'myDistribution'
                 }
             }
             """
@@ -200,7 +200,7 @@ class DistributionPluginIntegrationTest extends WellBehavedPluginTest {
             version = '1.2'
             distributions {
                 main{
-                    baseName='myDistribution'
+                    distributionBaseName = 'myDistribution'
                 }
             }
             distZip{

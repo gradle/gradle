@@ -69,12 +69,15 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         withAgpNightly()
 
         when:
+        executer.expectDeprecationWarning() // Coming from Android plugin
         instantRun("assembleDebug", "--no-build-cache")
 
         and:
+        executer.expectDeprecationWarning() // Coming from Android plugin
         run 'clean'
 
         then:
+        // Instant execution avoid registering the listener inside Android plugin
         instantRun("assembleDebug", "--no-build-cache")
     }
 }

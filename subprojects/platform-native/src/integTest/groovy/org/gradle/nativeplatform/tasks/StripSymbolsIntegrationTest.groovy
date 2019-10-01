@@ -24,7 +24,9 @@ import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputAp
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
+@Ignore
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
 @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
 class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {

@@ -120,6 +120,7 @@
                 <ul id="upgrading-gradle">
                     <li><a href="upgrading_version_5.html">version 5.X</a></li>
                     <li><a href="upgrading_version_4.html">version 4.X to 5.0</a></li>
+                    <li><a href="feature_lifecycle.html">Gradle's Feature Lifecycle</a></li>
                 </ul>
             </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#migrating-to-gradle" aria-expanded="false" aria-controls="migrating-to-gradle">Migrating to Gradle...</a>
@@ -148,7 +149,6 @@
                     <li><a href="build_cache.html">Enabling and Configuring the Build Cache</a></li>
                 </ul>
             </li>
-            <li><a href="composite_builds.html">Integrating Separate Gradle Builds (Composite Builds)</a></li>
         </ul>
 
         <h3 id="authoring-gradle-builds">Authoring Gradle Builds</h3>
@@ -163,50 +163,108 @@
                     <li><a href="build_lifecycle.html">Understanding the Build Lifecycle</a></li>
                     <li><a href="logging.html">Working with Logging</a></li>
                     <li><a href="multi_project_builds.html">Configuring Multi-Project Builds</a></li>
+                    <li><a href="potential_traps.html">Avoiding Traps</a></li>
                 </ul>
             </li>
-            <li><a href="organizing_gradle_projects.html">Organizing Build Logic</a></li>
-            <li><a href="authoring_maintainable_build_scripts.html">Authoring Maintainable Builds</a></li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#dependency-management" aria-expanded="false" aria-controls="dependency-management">Managing Dependencies</a>
-                <ul id="dependency-management">
-                    <li><a href="core_dependency_management.html">Core Dependency Management</a></li>
-                    <li><a href="declaring_dependency_versions.html">Declaring Dependency Versions</a></li>
-                    <li><a href="controlling_transitive_dependencies.html">Controlling Transitive Dependencies</a></li>
-                    <li><p></p></li>
-                    <li><a href="modeling_features.html">Modeling Features</a></li>
-                    <li><a href="working_multi_source_repo_env.html">Working Multi Repositories</a></li>
-                    <li><p></p></li>
-                    <li><a href="fine_grained_dm_apis.html">Fine Grained Dependency Management Apis</a></li>
-                </ul>
-            </li>
-            <li><a href="publishing.html">Publishing Artifacts</a></li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#java-projects" aria-expanded="false" aria-controls="java-projects">Java Projects</a>
-                <ul id="java-projects">
-                    <li><a href="building_java_projects.html">Building Java &amp; JVM projects</a></li>
-                    <li><a href="java_testing.html">Testing Java &amp; JVM projects</a></li>
-                </ul>
-            </li>
-            <li><a class="nav-dropdown" data-toggle="collapse" href="#native-projects" aria-expanded="false" aria-controls="native-projects">C++/Swift Projects</a>
-                <ul id="native-projects">
-                    <li><a href="building_cpp_projects.html">Building C++ projects</a></li>
-                    <li><a href="cpp_testing.html">Testing C++ projects</a></li>
-                    <li><a href="building_swift_projects.html">Building Swift projects</a></li>
-                    <li><a href="swift_testing.html">Testing Swift projects</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#authoring-sustainable-builds" aria-expanded="false" aria-controls="authoring-sustainable-builds">Authoring Sustainable Builds</a>
+                <ul id="authoring-sustainable-builds">
+                    <li><a href="organizing_gradle_projects.html">Organizing Build Logic</a></li>
+                    <li><a href="authoring_maintainable_build_scripts.html">Following Best Practices</a></li>
                 </ul>
             </li>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#advanced-techniques" aria-expanded="false" aria-controls="advanced-techniques">Advanced Techniques</a>
-                <ul id="advanced-techniques">
-                    <li><a href="https://guides.gradle.org/using-the-worker-api/">Developing Parallel Tasks</a></li>
-                    <li><a href="test_kit.html">Testing Your Build with TestKit</a></li>
-                    <li><a href="ant.html">Using Ant from Gradle</a></li>
-                </ul>
-            </li>
+            <ul id="advanced-techniques">
+                <li><a href="https://guides.gradle.org/using-the-worker-api/">Developing Parallel Tasks</a></li>
+                <li><a href="test_kit.html">Testing a Build with TestKit</a></li>
+                <li><a href="ant.html">Using Ant from Gradle</a></li>
+            </ul>
             <li><a class="nav-dropdown" data-toggle="collapse" href="#sample-gradle-builds" aria-expanded="false" aria-controls="sample-gradle-builds">Example Gradle Projects</a>
                 <ul id="sample-gradle-builds">
                     <li><a href="https://github.com/gradle/gradle/tree/master/subprojects/docs/src/samples">Groovy DSL Samples</a></li>
                     <li><a href="https://github.com/gradle/kotlin-dsl/tree/master/samples">Kotlin DSL Samples</a></li>
                 </ul>
             </li>
+        </ul>
+
+        <h3 id="authoring-gradle-builds-java">Authoring JVM Builds</h3>
+        <ul>
+            <li><a href="building_java_projects.html">Building Java &amp; JVM projects</a></li>
+            <li><a href="java_testing.html">Testing Java &amp; JVM projects</a></li>
+            <li><a href="dependency_management_for_java_projects.html">Managing Dependencies</a></li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#jvm-plugins" aria-expanded="false" aria-controls="jvm-plugins">JVM Plugins</a>
+                <ul id="jvm-plugins">
+                    <li><a href="java_library_plugin.html">Java Library Plugin</a></li>
+                    <li><a href="application_plugin.html">Java Application Plugin</a></li>
+                    <li><a href="java_platform_plugin.html">Java Platform Plugin</a></li>
+                    <li><a href="groovy_plugin.html">Groovy Plugin</a></li>
+                    <li><a href="scala_plugin.html">Scala Plugin</a></li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3 id="authoring-gradle-builds-native">Authoring C++/Swift Builds</h3>
+        <ul>
+            <li><a href="building_cpp_projects.html">Building C++ projects</a></li>
+            <li><a href="cpp_testing.html">Testing C++ projects</a></li>
+            <li><a href="building_swift_projects.html">Building Swift projects</a></li>
+            <li><a href="swift_testing.html">Testing Swift projects</a></li>
+        </ul>
+
+        <h3 id="managing-dependencies">Working with Dependencies</h3>
+        <ul>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#learning-the-basics-dependency-management" aria-expanded="false" aria-controls="learning-the-basics-dependency-management">Learning the Basics</a>
+                <ul id="learning-the-basics-dependency-management">
+                    <li><a href="core_dependency_management.html">What is Dependency Management?</a></li>
+                    <li><a href="declaring_repositories.html">Declaring Repositories</a></li>
+                    <li><a href="declaring_dependencies.html">Declaring Dependencies</a></li>
+                    <li><a href="library_vs_application.html">Understanding Library and Application Differences</a></li>
+                    <li><a href="viewing_debugging_dependencies.html">Viewing and Debugging Dependencies</a></li>
+                    <li><a href="dependency_resolution.html">Understanding Resolution</a></li>
+                </ul>
+            </li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#declaring-dependency-versions" aria-expanded="false" aria-controls="declaring-dependency-versions">Declaring Versions</a>
+                <ul id="declaring-dependency-versions">
+                    <li><a href="single_versions.html">Declaring Versions and Ranges</a></li>
+                    <li><a href="rich_versions.html">Declaring Rich Versions</a></li>
+                    <li><a href="dynamic_versions.html">Handling Changing Versions</a></li>
+                    <li><a href="dependency_locking.html">Locking Versions</a></li>
+                </ul>
+            </li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#controlling-transitive-dependencies" aria-expanded="false" aria-controls="controlling-transitive-dependencies">Controlling Transitives</a>
+                <ul id="controlling-transitive-dependencies">
+                    <li><a href="dependency_constraints.html">Upgrading Versions</a></li>
+                    <li><a href="dependency_downgrade_and_exclude.html">Downgrading and Excluding</a></li>
+                    <li><a href="platforms.html">Sharing Versions</a></li>
+                    <li><a href="dependency_version_alignment.html">Aligning Dependencies</a></li>
+                    <li><a href="dependency_capability_conflict.html">Handling Mutually Exclusive Dependencies</a></li>
+                    <li><a href="component_metadata_rules.html">Fixing Metadata</a></li>
+                    <li><a href="resolution_rules.html">Customizing Resolution</a></li>
+                </ul>
+            </li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#modeling-features" aria-expanded="false" aria-controls="modeling-features">Producing and Consuming Variants of Libraries</a>
+                <ul id="modeling-features">
+                    <li><a href="component_capabilities.html">Declaring Capabilities of a Library</a></li>
+                    <li><a href="feature_variants.html">Modeling Feature Variants and Optional Dependencies</a></li>
+                    <li><a href="variant_model.html">Understanding Variant Selection</a></li>
+                    <li><a href="variant_attributes.html">Declaring Variant Attributes</a></li>
+                    <li><a href="cross_project_publications.html">Sharing Outputs of Projects</a></li>
+                    <li><a href="artifact_transforms.html">Transforming Artifacts</a></li>
+                </ul>
+            </li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#multi-repo" aria-expanded="false" aria-controls="multi-repo">Working in a Multi-repo Environment</a>
+                <ul id="multi-repo">
+                    <li><a href="composite_builds.html">Composing Builds</a></li>
+                </ul>
+            </li>
+            <li><a class="nav-dropdown" data-toggle="collapse" href="#publishing" aria-expanded="false" aria-controls="publishing">Publishing Libraries</a>
+                <ul id="publishing">
+                    <li><a href="publishing_setup.html">Setting up Publishing</a></li>
+                    <li><a href="publishing_gradle_module_metadata.html">Understanding Gradle Module Metadata</a></li>
+                    <li><a href="publishing_signing.html">Signing Artifacts</a></li>
+                    <li><a href="publishing_customization.html">Customizing Publishing</a></li>
+                </ul>
+            </li>
+            <li><a href="dependency_management_terminology.html">Terminology</a></li>
         </ul>
 
         <h3 id="extending-gradle">Extending Gradle</h3>

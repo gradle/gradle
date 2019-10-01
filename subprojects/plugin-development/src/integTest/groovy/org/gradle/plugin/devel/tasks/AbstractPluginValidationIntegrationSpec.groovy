@@ -37,14 +37,14 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 import javax.inject.Inject
 
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.ERROR
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.STRICT_WARNING
-import static org.gradle.plugin.devel.tasks.AbstractPluginValidationIntegrationSpec.Severity.WARNING
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -147,7 +147,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
             import java.util.*;
 
             public class MyTask extends DefaultTask {
-                @${application}
+                ${application}
                 public ${type.name} getThing() {
                     return ${value};
                 }
@@ -160,23 +160,51 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
 
         where:
-        annotation        | application                   | type           | value
-        Inject            | Inject.name                   | ObjectFactory  | null
-        OptionValues      | "${OptionValues.name}(\"a\")" | List           | null
-        Internal          | 'Internal'                    | String         | null
-        ReplacedBy        | 'ReplacedBy("")'              | String         | null
-        Console           | 'Console'                     | Boolean        | null
-        Destroys          | 'Destroys'                    | FileCollection | null
-        LocalState        | 'LocalState'                  | FileCollection | null
-        InputFile         | 'InputFile'                   | File           | "new File(\"input.txt\")"
-        InputFiles        | 'InputFiles'                  | Set            | "new HashSet()"
-        InputDirectory    | 'InputDirectory'              | File           | "new File(\"input\")"
-        Input             | 'Input'                       | String         | "\"value\""
-        OutputFile        | 'OutputFile'                  | File           | "new File(\"output.txt\")"
-        OutputFiles       | 'OutputFiles'                 | Map            | "new HashMap<String, File>()"
-        OutputDirectory   | 'OutputDirectory'             | File           | "new File(\"output\")"
-        OutputDirectories | 'OutputDirectories'           | Map            | "new HashMap<String, File>()"
-        Nested            | 'Nested'                      | List           | "new ArrayList()"
+        annotation        | application                                                | type           | value
+        Inject            | "@$Inject.name"                                            | ObjectFactory  | null
+        OptionValues      | "@$OptionValues.name(\"a\")"                               | List           | null
+        Internal          | '@Internal'                                                | String         | null
+        ReplacedBy        | '@ReplacedBy("")'                                          | String         | null
+        Console           | '@Console'                                                 | Boolean        | null
+        Destroys          | '@Destroys'                                                | FileCollection | null
+        LocalState        | '@LocalState'                                              | FileCollection | null
+        InputFile         | '@InputFile @PathSensitive(PathSensitivity.NONE)'          | File           | "new File(\"input.txt\")"
+        InputFiles        | '@InputFiles @PathSensitive(PathSensitivity.NAME_ONLY)'    | Set            | "new HashSet()"
+        InputDirectory    | '@InputDirectory @PathSensitive(PathSensitivity.RELATIVE)' | File           | "new File(\"input\")"
+        Input             | '@Input'                                                   | String         | "\"value\""
+        OutputFile        | '@OutputFile'                                              | File           | "new File(\"output.txt\")"
+        OutputFiles       | '@OutputFiles'                                             | Map            | "new HashMap<String, File>()"
+        OutputDirectory   | '@OutputDirectory'                                         | File           | "new File(\"output\")"
+        OutputDirectories | '@OutputDirectories'                                       | Map            | "new HashMap<String, File>()"
+        Nested            | '@Nested'                                                  | List           | "new ArrayList()"
+    }
+
+    @Unroll
+    def "detects optional primitive type #type"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
+
+            public class MyTask extends DefaultTask {
+                @Optional @Input
+                ${type.name} getPrimitive() { 
+                    return ${value};
+                }
+
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'primitive' @Input properties with primitive type '${type.name}' cannot be @Optional.": WARNING,
+        )
+
+        where:
+        type    | value
+        boolean | true
+        int     | 1
+        double  | 1
     }
 
     def "validates task caching annotations"() {
@@ -206,20 +234,13 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Cannot use @CacheableTask with type MyTask.Options. This annotation can only be used with Task types.": ERROR,
-            "Cannot use @CacheableTransform with type MyTask. This annotation can only be used with TransformAction types.": ERROR,
-            "Cannot use @CacheableTransform with type MyTask.Options. This annotation can only be used with TransformAction types.": ERROR,
+            "Type 'MyTask': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
+            "Type 'MyTask.Options': Cannot use @CacheableTask on type. This annotation can only be used with Task types.": ERROR,
+            "Type 'MyTask.Options': Cannot use @CacheableTransform on type. This annotation can only be used with TransformAction types.": ERROR,
         )
     }
 
     def "detects missing annotation on Groovy properties"() {
-        buildFile << """
-            apply plugin: "groovy"
-
-            dependencies {
-                implementation localGroovy()
-            }
-        """
         groovyTaskSource << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
@@ -241,6 +262,12 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 }
                 
                 @TaskAction public void execute() {}
+            }
+        """
+
+        buildFile << """
+            dependencies {
+                implementation localGroovy()
             }
         """
 
@@ -336,23 +363,24 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
-    def "report setters for property of mutable type #type"() {
+    def "reports setters for property of mutable type #type"() {
         file("input.txt").text = "input"
 
         javaTaskSource << """
-            import org.gradle.api.DefaultTask;
-            import org.gradle.api.tasks.InputFiles;
-            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.api.*;
+            import org.gradle.api.tasks.*;
 
             public class MyTask extends DefaultTask {
                 private final ${type} mutableProperty = ${init};
 
                 // getter and setter
-                @InputFiles public ${type} getMutablePropertyWithSetter() { return mutableProperty; } 
+                @InputFiles @PathSensitive(PathSensitivity.NONE)
+                public ${type} getMutablePropertyWithSetter() { return mutableProperty; } 
                 public void setMutablePropertyWithSetter(${type} value) {} 
 
                 // just getter
-                @InputFiles public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; } 
+                @InputFiles @PathSensitive(PathSensitivity.NONE)
+                public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; } 
 
                 // just setter
                 // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
@@ -364,7 +392,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself": WARNING,
+            "Type 'MyTask': property 'mutablePropertyWithSetter' of mutable type '${type.replaceAll("<.+>", "")}' is writable. Properties of this type should be read-only and mutated via the value itself.": WARNING,
         )
 
         where:
@@ -380,45 +408,18 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         javaTaskSource << """
             import org.gradle.api.*;
+            import org.gradle.api.file.*;
             import org.gradle.api.tasks.*;
             import java.util.Set;
             import java.util.Collections;
             import java.io.File;
+            import java.nio.file.Path;
 
             @CacheableTask
-            public class MyTask extends DefaultTask {
-                @Input
-                public long getGoodTime() {
-                    return 0;
-                }
-
-                @Nested
-                public Options getOptions() {
-                    return new Options();
-                }
-
+            public abstract class MyTask extends DefaultTask {
                 @javax.inject.Inject
                 org.gradle.api.internal.file.FileResolver fileResolver;
 
-                public long getBadTime() {
-                    return 0;
-                }
-
-                public static class Options {
-                    @Input
-                    public String getGoodNested() {
-                        return "good";
-                    }
-                    public String getBadNested(){
-                        return "bad";
-                    }
-                }
-                
-                @OutputDirectory
-                public File getOutputDir() {
-                    return new File("outputDir");
-                }
-                
                 @InputDirectory
                 @Optional
                 public File getInputDirectory() {
@@ -439,7 +440,22 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public File getFile() {
                     return new File("some-file");
                 }
-                
+
+                @Input
+                public FileCollection getFileCollection() {
+                    return getProject().files();
+                }
+
+                @Input
+                public Path getFilePath() {
+                    return new File("some-file").toPath();
+                }
+
+                @Input
+                public FileTree getFileTree() {
+                    return getProject().files().getAsFileTree();
+                }
+
                 @TaskAction
                 public void doStuff() { }
             }
@@ -447,12 +463,125 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask': property 'badTime' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': property 'file' has @Input annotation used on property of type java.io.File.": WARNING,
-            "Type 'MyTask': property 'inputDirectory' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
-            "Type 'MyTask': property 'inputFile' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
-            "Type 'MyTask': property 'inputFiles' is missing a normalization annotation, defaulting to PathSensitivity.ABSOLUTE.": STRICT_WARNING,
-            "Type 'MyTask': property 'options.badNested' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'file' has @Input annotation used on property of type 'File'.": WARNING,
+            "Type 'MyTask': property 'fileCollection' has @Input annotation used on property of type 'FileCollection'.": WARNING,
+            "Type 'MyTask': property 'filePath' has @Input annotation used on property of type 'Path'.": WARNING,
+            "Type 'MyTask': property 'fileTree' has @Input annotation used on property of type 'FileTree'.": WARNING,
+            "Type 'MyTask': property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'inputFile' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+            "Type 'MyTask': property 'inputFiles' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE.": WARNING,
+        )
+    }
+
+    def "detects problems on nested collections"() {
+        javaTaskSource << """
+            import org.gradle.api.*;
+            import org.gradle.api.provider.*;
+            import org.gradle.api.tasks.*;
+            import java.util.*;
+            import java.io.File;
+
+            public class MyTask extends DefaultTask {
+                @Nested
+                public Options getOptions() {
+                    return new Options();
+                }
+
+                @Nested
+                public List<Options> getOptionsList() {
+                    return Arrays.asList(new Options());
+                }
+
+                @Nested
+                public Iterable<Options> getIterableOptions() {
+                    return Arrays.asList(new Options());
+                }
+
+                @Nested
+                public Iterable<Iterable<Options>> getDoubleIterableOptions() {
+                    return Arrays.asList(Arrays.asList(new Options()));
+                }
+                
+                @Nested
+                public Map<String, Options> getMappedOptions() {
+                    return Collections.singletonMap("alma", new Options());
+                }
+
+                @Nested
+                public Iterable<Map<String, Iterable<Options>>> getIterableMappedOptions() {
+                    return Arrays.asList(Collections.singletonMap("alma", Arrays.asList(new Options())));
+                }
+
+                @Nested
+                public Provider<Options> getProvidedOptions() {
+                    return getProject().getObjects().property(Options.class).convention(new Options());
+                }
+
+                @Nested
+                public Iterable<NamedBean> getNamedIterable() {
+                    return Arrays.asList(new NamedBean());
+                }
+                
+                @Nested
+                public AnnotatedList getAnnotatedList() {
+                    return new AnnotatedList();
+                }
+                
+                public static class Options {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                
+                    public String getNotAnnotated() {
+                        return null;
+                    }
+                }
+
+                public static class NamedBean implements Named {
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                
+                    public String getNotAnnotated() {
+                        return null;
+                    }
+                
+                    @Internal
+                    public String getName() {
+                        return "tibor";
+                    }                
+                }
+                
+                // Does not validate the type parameter of extended collection
+                // because it has annotated properties
+                public static class AnnotatedList extends ArrayList<Options> {
+                    public AnnotatedList() {
+                        add(new Options());
+                    }
+
+                    @Input
+                    public String getGood() {
+                        return "good";
+                    }
+                }
+
+                @TaskAction
+                public void doStuff() { }
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'doubleIterableOptions${iterableSymbol}${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'iterableMappedOptions${iterableSymbol}${getKeySymbolFor("alma")}${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'iterableOptions${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'mappedOptions${getKeySymbolFor("alma")}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'namedIterable${getNameSymbolFor("tibor")}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'options.notAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'optionsList${iterableSymbol}.notAnnotated' is not annotated with an input or output annotation.": WARNING,
+            "Type 'MyTask': property 'providedOptions.notAnnotated' is not annotated with an input or output annotation.": WARNING,
         )
     }
 
@@ -529,8 +658,8 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask\$Options': non-property method 'notANestedGetter()' should not be annotated with: @Input": WARNING,
-            "Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask': non-property method 'notAGetter()' should not be annotated with: @Input.": WARNING,
+            "Type 'MyTask.Options': non-property method 'notANestedGetter()' should not be annotated with: @Input.": WARNING,
         )
     }
 
@@ -580,11 +709,11 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask\$Options': setter method 'setReadWrite()' should not be annotated with: @Input": WARNING,
-            "Type 'MyTask\$Options': setter method 'setWriteOnly()' should not be annotated with: @Input": WARNING,
             "Type 'MyTask': property 'readWrite' is not annotated with an input or output annotation.": WARNING,
-            "Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input": WARNING,
-            "Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input": WARNING,
+            "Type 'MyTask': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
+            "Type 'MyTask': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
+            "Type 'MyTask.Options': setter method 'setReadWrite()' should not be annotated with: @Input.": WARNING,
+            "Type 'MyTask.Options': setter method 'setWriteOnly()' should not be annotated with: @Input.": WARNING,
         )
     }
 
@@ -623,42 +752,15 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    enum Severity {
-        /**
-         * A validation warning, emitted as a deprecation warning during runtime.
-         */
-        WARNING("Warning"),
+    abstract String getIterableSymbol()
 
-        /**
-         * A validation warning emitted only when strict mode is enabled (never during runtime).
-         */
-        STRICT_WARNING("Warning"),
+    abstract String getNameSymbolFor(String name)
 
-        /**
-         * A validation error, emitted as a failure cause during runtime.
-         */
-        ERROR("Error"),
-
-        /**
-         * A validation error emitted only when strict mode is enabled (never during runtime).
-         */
-        STRICT_ERROR("Error");
-
-        private final String displayName
-
-        Severity(String displayName) {
-            this.displayName = displayName
-        }
-
-        @Override
-        String toString() {
-            return displayName
-        }
-    }
+    abstract String getKeySymbolFor(String name)
 
     abstract void assertValidationSucceeds()
 
-    abstract void assertValidationFailsWith(Map<String, Severity> messages)
+    abstract void assertValidationFailsWith(Map<String, TypeValidationContext.Severity> messages)
 
     abstract TestFile source(String path)
 
@@ -667,6 +769,9 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     TestFile getGroovyTaskSource() {
+        buildFile << """
+            apply plugin: "groovy"
+        """
         source("src/main/groovy/MyTask.groovy")
     }
 }

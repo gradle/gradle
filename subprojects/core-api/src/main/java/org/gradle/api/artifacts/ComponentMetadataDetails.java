@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 
@@ -81,7 +80,6 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      *
      * @since 6.0
      */
-    @Incubating
     void addVariant(String name, Action<? super VariantMetadata> action);
 
     /**
@@ -105,7 +103,6 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      *
      * @since 6.0
      */
-    @Incubating
     void addVariant(String name, String base, Action<? super VariantMetadata> action);
 
     /**

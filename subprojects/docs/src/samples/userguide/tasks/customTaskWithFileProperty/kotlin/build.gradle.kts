@@ -4,6 +4,7 @@ open class GreetingToFileTask : DefaultTask() {
 
     var destination: Any? = null
 
+    @OutputFile
     fun getDestination(): File {
         return project.file(destination!!)
     }

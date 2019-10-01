@@ -84,7 +84,7 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
 internal
 fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet, testType: TestType, extraConfig: Action<IntegrationTest>): TaskProvider<IntegrationTest> =
     tasks.register(name, IntegrationTest::class) {
-        configureTestSplitIfNecessary(sourceSet)
+        configureTestSplitIfNecessary(name, sourceSet, testType)
         description = "Runs ${testType.prefix} with $executer executer"
         systemProperties["org.gradle.integtest.executer"] = executer
         addDebugProperties()
@@ -96,9 +96,10 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
 
 
 private
-fun DistributionTest.configureTestSplitIfNecessary(sourceSet: SourceSet) {
+fun DistributionTest.configureTestSplitIfNecessary(name: String, sourceSet: SourceSet, testType: TestType) {
     val testSplit = project.stringPropertyOrEmpty("testSplit")
-    if (testSplit.isBlank()) {
+    if (testSplit.isBlank() || testType == TestType.CROSSVERSION) {
+        // Cross version tests are splitted by tasks
         return
     }
 
@@ -106,7 +107,8 @@ fun DistributionTest.configureTestSplitIfNecessary(sourceSet: SourceSet) {
     val numberOfSplits = testSplit.split("/")[1].toInt()
     val sourceFiles = sourceSet.groovy.files.sortedBy { it.absolutePath }
 
-    if (sourceFiles.size < numberOfSplits) {
+    if (sourceFiles.size < numberOfSplits || name == "integMultiVersionTest") {
+        // https://github.com/gradle/gradle-private/issues/2740
         enabled = currentSplit == 1
         return
     }

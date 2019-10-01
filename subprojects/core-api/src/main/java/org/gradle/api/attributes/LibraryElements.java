@@ -16,7 +16,6 @@
 
 package org.gradle.api.attributes;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
@@ -24,7 +23,6 @@ import org.gradle.api.Named;
  *
  * @since 5.6
  */
-@Incubating
 public interface LibraryElements extends Named {
     Attribute<LibraryElements> LIBRARY_ELEMENTS_ATTRIBUTE = Attribute.of("org.gradle.libraryelements", LibraryElements.class);
 

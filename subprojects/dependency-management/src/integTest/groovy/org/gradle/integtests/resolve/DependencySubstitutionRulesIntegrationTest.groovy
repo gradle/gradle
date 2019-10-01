@@ -853,7 +853,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 group "org.utils"
                 version = '3.0'
 
-                jar.version = '3.0'
+                jar.archiveVersion = '3.0'
             }
 
             project(":impl") {
@@ -1401,12 +1401,12 @@ Required by:
             }
 
             task jar(type: Jar) { 
-                baseName = project.name
+                archiveBaseName = project.name
                 // TODO LJA: No idea why I have to do this
                 if (project.version != 'unspecified') {
-                    archiveName = "\${project.name}-\${project.version}.jar"
+                    archiveFileName = "\${project.name}-\${project.version}.jar"
                 }
-                destinationDir = buildDir
+                destinationDirectory = buildDir
             }
             artifacts { conf jar }
         }

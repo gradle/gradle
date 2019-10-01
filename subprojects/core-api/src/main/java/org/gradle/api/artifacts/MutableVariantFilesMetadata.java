@@ -17,14 +17,12 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 
 /**
  * Mutable information about the files that belong to a variant.
  *
  * @since 6.0
  */
-@Incubating
 public interface MutableVariantFilesMetadata {
 
     /**

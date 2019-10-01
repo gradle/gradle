@@ -152,7 +152,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
-        executer.expectDeprecationWarnings(1)
+        executer.expectDeprecationWarning("The DeprecatedPlugin plugin has been deprecated. This is scheduled to be removed in ${GradleVersion.current().nextMajor}. Consider using the Foobar plugin instead.")
         executer.withWarningMode(WarningMode.Fail)
 
         then:

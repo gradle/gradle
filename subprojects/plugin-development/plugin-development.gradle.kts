@@ -30,6 +30,7 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))
+    implementation(project(":execution"))
     implementation(project(":core"))
     implementation(project(":dependencyManagement"))
     implementation(project(":maven"))
@@ -41,6 +42,8 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":pluginUse"))
     implementation(project(":publish"))
+    implementation(project(":messaging"))
+    implementation(project(":workers"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))

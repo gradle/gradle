@@ -17,7 +17,6 @@
 package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.VersionMappingStrategy;
@@ -198,7 +197,7 @@ public interface IvyPublication extends Publication {
      * apply plugin: "ivy-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   archiveClassifier = "source"
      * }
      *
      * task genDocs {
@@ -233,7 +232,7 @@ public interface IvyPublication extends Publication {
      * apply plugin: "ivy-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   archiveClassifier = "source"
      * }
 
      * task genDocs {
@@ -279,7 +278,7 @@ public interface IvyPublication extends Publication {
      * apply plugin: "ivy-publish"
      *
      * task sourceJar(type: Jar) {
-     *   classifier "source"
+     *   archiveClassifier = "source"
      * }
      *
      * publishing {
@@ -370,7 +369,6 @@ public interface IvyPublication extends Publication {
      *
      * @since 6.0
      */
-    @Incubating
     void suppressIvyMetadataWarningsFor(String variantName);
 
     /**
@@ -380,6 +378,5 @@ public interface IvyPublication extends Publication {
      *
      * @since 6.0
      */
-    @Incubating
     void suppressAllIvyMetadataWarnings();
 }

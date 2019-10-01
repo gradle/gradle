@@ -2,7 +2,7 @@ apply plugin: 'java'
 
 // tag::groovyJdk[]
 // Iterable gets an each() method
-configurations.runtime.each { File f -> println f }
+configurations.runtimeClasspath.each { File f -> println f }
 // end::groovyJdk[]
 
 // tag::propertyAccessors[]

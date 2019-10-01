@@ -222,7 +222,7 @@ fun projectSchemaWith(
     conventions = conventions,
     tasks = tasks,
     containerElements = containerElements,
-    configurations = configurations
+    configurations = configurations.map { ConfigurationEntry(it) }
 )
 
 

@@ -78,6 +78,10 @@ trait HttpServerFixture {
         }
     }
 
+    URI uri(String path) {
+        return getUri().resolve(path)
+    }
+
     boolean isRunning() {
         server.running
     }

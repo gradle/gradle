@@ -15,7 +15,6 @@
  */
 package org.gradle.profile;
 
-import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.Describable;
 import org.gradle.api.Project;
@@ -30,13 +29,14 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.taskgraph.TaskListenerInternal;
 import org.gradle.initialization.BuildCompletionListener;
+import org.gradle.internal.InternalBuildListener;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.time.Clock;
 
 /**
  * Adapts various events to build a {@link BuildProfile} model, and then notifies a {@link ReportGeneratingProfileListener} when the model is ready.
  */
-public class ProfileEventAdapter implements BuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, BuildCompletionListener, ArtifactTransformListener {
+public class ProfileEventAdapter implements InternalBuildListener, ProjectEvaluationListener, TaskListenerInternal, DependencyResolutionListener, BuildCompletionListener, ArtifactTransformListener {
     private final BuildStartedTime buildStartedTime;
     private final Clock clock;
     private final ProfileListener listener;

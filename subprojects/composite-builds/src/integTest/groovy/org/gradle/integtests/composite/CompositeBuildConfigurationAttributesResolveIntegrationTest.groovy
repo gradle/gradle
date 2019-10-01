@@ -835,12 +835,12 @@ All of them match the consumer attributes:
     private String fooAndBarJars() {
         '''
             task fooJar(type: Jar) {
-                baseName = 'c-foo'
-                destinationDir = projectDir
+                archiveBaseName = 'c-foo'
+                destinationDirectory = projectDir
             }
             task barJar(type: Jar) {
-                baseName = 'c-bar'
-                destinationDir = projectDir
+                archiveBaseName = 'c-bar'
+                destinationDirectory = projectDir
             }
             artifacts {
                 foo fooJar

@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
@@ -215,6 +216,18 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     @Override
     public String getError() {
         return error.withNormalizedEol();
+    }
+
+    @Override
+    public String getOutputLineThatContains(String text) {
+        Optional<String> foundLine = getMainContent().getLines().stream()
+            .filter(line -> line.contains(text))
+            .findFirst();
+        return foundLine.orElseGet(() -> {
+            failOnMissingOutput("Did not find expected text in build output.", "Build output", text, text);
+            // never returned
+            return "";
+        });
     }
 
     public List<String> getExecutedTasks() {

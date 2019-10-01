@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 
 import java.io.File;
 
-public interface TaskValidationContext extends WorkValidationContext {
+public interface TaskValidationContext extends TypeValidationContext {
     FileOperations getFileOperations();
 
     boolean isInReservedFileSystemLocation(File location);

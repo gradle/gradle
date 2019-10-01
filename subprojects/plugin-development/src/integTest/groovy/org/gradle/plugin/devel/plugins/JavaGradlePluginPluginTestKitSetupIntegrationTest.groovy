@@ -73,6 +73,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
                 custom {
                     java {
                         srcDir 'src'
+                        compileClasspath = configurations.compileClasspath
                     }
                     resources {
                         srcDir 'resources'

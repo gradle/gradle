@@ -1,4 +1,4 @@
-= Dependency resolution
+= Understanding dependency resolution
 
 This chapter covers the way dependency resolution works _inside_ Gradle.
 After covering how you can declare <<declaring_repositories.adoc#,repositories>> and <<declaring_dependencies.adoc#,dependencies>>, it makes sense to explain how these declarations come together during dependency resolution.
@@ -25,7 +25,7 @@ That is when the dependency graph contains module that provide the same implemen
 The following sections will explain in detail how Gradle attempts to resolve these conflicts.
 
 The dependency resolution process is highly customizable to meet enterprise requirements.
-For more information, see the chapter on <<controlling_transitive_dependencies.adoc#,Controlling transitive dependencies>>.
+For more information, see the chapter on <<dependency_constraints.adoc#,Controlling transitive dependencies>>.
 
 [[sec:version-conflict]]
 == Version conflict resolution
@@ -94,7 +94,7 @@ A conflict occurs the moment two modules either:
 * Attempt to select incompatible variants,
 * Declare the same capability
 
-Learn more about handling these type of conflicts in <<controlling_transitive_dependencies.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
+Learn more about handling these type of conflicts in <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,Selecting between candidates>>.
 
 [[sec:how-gradle-downloads-deps]]
 == How Gradle retrieves dependency metadata?
@@ -117,7 +117,7 @@ When multiple are defined, they are inspected _in the order they were added_.
 This process results in a list of candidate versions that are then matched to the dynamic version expressed.
 At this point, <<#sub:resolution-strategy,version conflict resolution>> is resumed.
 
-Note that Gradle caches the version information, more information can be found in the section <<declaring_dependency_versions.adoc#sec:controlling-dynamic-version-caching,Controlling dynamic version caching>>.
+Note that Gradle caches the version information, more information can be found in the section <<dynamic_versions.adoc#sec:controlling-dynamic-version-caching,Controlling dynamic version caching>>.
 
 === Obtaining module metadata
 
@@ -226,3 +226,19 @@ This concurrent access is only supported if the different Gradle processes can c
 Gradle keeps track of which artifacts in the dependency cache are accessed.
 Using this information, the cache is periodically (at most every 24 hours) scanned for artifacts that have not been used for more than 30 days.
 Obsolete artifacts are then deleted to ensure the cache does not grow indefinitely.
+
+[[sec:programmatic_api]]
+== Accessing the resolution result programmatically
+
+While most users only need access to a "flat list" of files, there are cases where it can be interesting to reason on a _graph_ and get more information about the resolution result:
+
+- for tooling integration, where a model of the dependency graph is required
+- for tasks generating a visual representation (image, `.dot` file, ...) of a dependency graph
+- for tasks providing diagnostics (similar to the `dependencyInsight` task)
+- for tasks which need to perform dependency resolution at execution time (e.g, download files on demand)
+
+For those use cases, Gradle provides lazy, thread-safe APIs, accessible by calling the link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getIncoming--[Configuration.getIncoming()] method:
+
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getResolutionResult--[ResolutionResult API] gives access to a resolved dependency graph, whether the resolution was successful or not.
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#getArtifacts--[artifacts API] provides a simple access to the resolved artifacts, untransformed, but with lazy download of artifacts (they would only be downloaded on demand).
+- the link:{javadocPath}/org/gradle/api/artifacts/ResolvableDependencies.html#artifactView-org.gradle.api.Action-[artifact view API] provides an advanced, filtered view of artifacts, possibly <<artifact_transforms.adoc#sec:abm_artifact_transforms,transformed>>.

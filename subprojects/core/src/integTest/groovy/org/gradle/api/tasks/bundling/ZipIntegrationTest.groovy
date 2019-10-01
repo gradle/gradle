@@ -27,90 +27,6 @@ import java.nio.charset.Charset
 @TestReproducibleArchives
 class ZipIntegrationTest extends AbstractIntegrationSpec {
 
-    def 'ensure duplicates not included by default'() {
-        given:
-        createTestFiles()
-        buildFile << '''
-            task zip(type: Zip) {
-                from 'dir1'
-                from 'dir2'
-                from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
-            }
-        '''
-
-        when:
-        fails 'zip'
-        then:
-        failure.assertHasCause('Encountered duplicate path "file1.txt" during copy operation configured with DuplicatesStrategy.FAIL')
-    }
-
-    def 'ensure duplicates can be included in zip'() {
-        given:
-        createTestFiles()
-        buildFile << '''
-            task zip(type: Zip) {
-                duplicatesStrategy = DuplicatesStrategy.INCLUDE
-                from 'dir1'
-                from 'dir2'
-                from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
-            }
-        '''
-
-        when:
-        run 'zip'
-        then:
-        def zip = new ZipTestFixture(file('build/test.zip'))
-        zip.assertContainsFile('file1.txt', 2)
-        zip.assertContainsFile('file2.txt', 1)
-    }
-
-    def ensureDuplicatesCanBeExcluded() {
-        given:
-        createTestFiles()
-        buildFile << '''
-            task zip(type: Zip) {
-                from 'dir1'
-                from 'dir2'
-                from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
-                eachFile { it.duplicatesStrategy = 'exclude' }
-            }
-            '''
-        when:
-        run 'zip'
-
-        then:
-        def theZip = new ZipTestFixture(file('build/test.zip'))
-        theZip.hasDescendants('file1.txt', 'file2.txt')
-    }
-
-    def renamedFileWillBeTreatedAsDuplicateZip() {
-        given:
-        createTestFiles()
-        buildFile << '''
-                task zip(type: Zip) {
-                    from 'dir1'
-                    from 'dir2'
-                    destinationDir = buildDir
-                    rename 'file2.txt', 'file1.txt'
-                    archiveName = 'test.zip'
-                    eachFile { it.duplicatesStrategy = 'exclude' }
-                }
-                '''
-        when:
-        run 'zip'
-
-        then:
-        def theZip = new ZipTestFixture(file('build/test.zip'))
-        theZip.hasDescendants('file1.txt')
-        theZip.assertFileContent('file1.txt', "dir1/file1.txt")
-    }
-
     def zip64Support() {
         given:
         createTestFiles()
@@ -118,8 +34,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
             task zip(type: Zip) {
                 from 'dir1'
                 from 'dir2'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 zip64 = true
             }
             '''
@@ -140,8 +56,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 from 'dir2'
                 from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 metadataCharset = '$metadataCharset'
             }
             """
@@ -169,8 +85,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
                 from 'dir1'
                 from 'dir2'
                 from 'dir3'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 metadataCharset = 'US-ASCII'
             }
             """
@@ -192,8 +108,8 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task zip(type: Zip) {
                 from 'dir1'
-                destinationDir = buildDir
-                archiveName = 'test.zip'
+                destinationDirectory = buildDir
+                archiveFileName = 'test.zip'
                 metadataCharset = $metadataCharset
             }
             """

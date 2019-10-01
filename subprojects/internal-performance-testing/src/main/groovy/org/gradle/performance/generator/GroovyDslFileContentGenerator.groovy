@@ -22,6 +22,21 @@ class GroovyDslFileContentGenerator extends FileContentGenerator {
     }
 
     @Override
+    protected String generateEnableFeaturePreviewCode() {
+        return """def enableFeaturePreviewSafe(String feature) {
+                     try {
+                        enableFeaturePreview(feature)
+                        println "Enabled feature preview " + feature
+                     } catch(Exception ignored) {
+                        println "Failed to enable feature preview " + feature
+                     }
+                }
+
+                ${config.featurePreviews.collect { "enableFeaturePreviewSafe(\"$it\")" }.join("\n")}
+            """
+    }
+
+    @Override
     protected String missingJavaLibrarySupportFlag() {
         "def missingJavaLibrarySupport = GradleVersion.current() < GradleVersion.version('3.4')"
     }

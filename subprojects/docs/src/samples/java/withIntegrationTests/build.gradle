@@ -25,7 +25,7 @@ task integrationTest(type: Test, dependsOn: jar) {
     description 'Runs the integration tests.'
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
-    systemProperties['jar.path'] = jar.archivePath
+    systemProperties['jar.path'] = jar.archiveFile.get().asFile
 }
 
 check.dependsOn integrationTest

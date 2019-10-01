@@ -18,14 +18,12 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.external.model.maven.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Collections;
-import java.util.List;
 
 public class JavaEcosystemVariantDerivationStrategy implements VariantDerivationStrategy {
     @Override
@@ -42,7 +40,7 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
             DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
             DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
             ModuleComponentIdentifier componentId = md.getId();
-            List<Capability> shadowedPlatformCapability = buildShadowPlatformCapability(componentId);
+            ImmutableCapabilities shadowedPlatformCapability = buildShadowPlatformCapability(componentId);
             return ImmutableList.of(
                     // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
                     // and there's no way to figure out what was the intent when it was published. So we derive variants, but we also need
@@ -60,13 +58,14 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
         return null;
     }
 
-    private List<Capability> buildShadowPlatformCapability(ModuleComponentIdentifier componentId) {
-        return Collections.singletonList(
+    private ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId) {
+        return ImmutableCapabilities.of(Collections.singletonList(
                 new DefaultShadowedCapability(new ImmutableCapability(
                         componentId.getGroup(),
                         componentId.getModule(),
                         componentId.getVersion()
                 ), "-derived-platform")
+            )
         );
     }
 
@@ -78,7 +77,7 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
                 .build();
     }
 
-    private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform, List<Capability> shadowedPlatformCapability) {
+    private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform, ImmutableCapabilities shadowedPlatformCapability) {
         ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, enforcedPlatform);
         String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
         DefaultConfigurationMetadata.Builder builder = conf.mutate()

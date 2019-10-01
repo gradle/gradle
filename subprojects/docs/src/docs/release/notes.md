@@ -21,6 +21,7 @@ We would like to thank the following community contributors to this release of G
 [jutoft](https://github.com/jutoft),
 [Robin Verduijn](https://github.com/robinverduijn),
 [Pedro Tôrres](https://github.com/t0rr3sp3dr0),
+[Michael Berry](https://github.com/MikeBerryFR),
 and [Robert Stupp](https://github.com/snazy).
 
 <!-- 
@@ -106,6 +107,14 @@ Deleting complex file hierarchies on Windows can sometimes be tricky, and errors
 To avoid these errors, Gradle has been employing workarounds in some but not all cases when it had to remove files.
 From now on Gradle uses these workarounds every time it removes file hierarchies.
 The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
+
+## Update to latest Zinc compiler
+
+The Zinc compiler has been upgraded to version 1.2.5. Gradle no longer supports building for Scala 2.9. 
+
+This fixes some Scala incremental compilation bugs and improves performance. 
+
+The minimum Zinc compiler supported by Gradle is 1.2.0 and the maximum version is 1.2.5.
 
 ## Automatic shortening of long classpaths on Windows
 
@@ -195,9 +204,39 @@ See the [user manual](userguide/custom_gradle_types.html#service_injection) for 
 
 ### Improving integrity of builds
 
-Gradle will now warn when resolving dependencies, text resources and script plugins with the insecure HTTP protocol.
+Gradle will now warn when resolving dependencies, text resources, and script plugins with the insecure HTTP protocol.
 
-TBD
+We encourage all users to switch to using HTTPS instead of HTTP.
+Free HTTPS certificates for your artifact server can be acquired from [Lets Encrypt](https://letsencrypt.org/).
+The use of HTTPS is important for [protecting your supply chain and the entire JVM ecosystem](https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb?source=friends_link&sk=3c99970c55a899ad9ef41f126efcde0e).
+
+For users that require the use of HTTP, Gradle has several new APIs to continue to allow HTTP.
+
+```kotlin
+repositories {
+    maven {
+        url = "http://my-company.example"
+        allowInsecureProtocol = true
+    }
+    ivy {
+        url = "http://my-company.example"
+        allowInsecureProtocol = true
+    }
+}
+```
+
+```groovy
+apply from: resources.text.fromInsecureUri("http://my-company.example/external.gradle")
+```
+
+On January 13th, 2020 through January 15th, 2020, some of the most widely used artifact servers in the JVM ecosystem
+will drop support for HTTP and will only support HTTPS. Their announcements can be found below:
+
+ - [Sonatype: Maven Central](https://central.sonatype.org/articles/2019/Apr/30/http-access-to-repo1mavenorg-and-repomavenapacheorg-is-being-deprecated/)
+ - [JFrog: JCenter](https://jfrog.com/blog/secure-jcenter-with-https/)
+ - [Pivotal: Spring](https://spring.io/blog/2019/09/16/goodbye-http-repo-spring-use-https)
+
+The Gradle team will be making an announcement soon about use of HTTP with `services.gradle.org` and `plugins.gradle.org`.
 
 ### Signing Plugin now uses SHA512 instead of SHA1
 
@@ -221,6 +260,17 @@ This was contributed by [szhem](https://github.com/szhem).
 Gradle now reports the progress of the distribution downloaded. 
 
 Initially contributed by [Artur Dryomov](https://github.com/ming13).
+
+## Features for native developers
+
+### IntelliSense support for C++17 and latest C++ standard within Visual Studio
+
+Gradle will now generate IDE solution honoring the C++17 `/std:cpp17` and latest C++ standard `/std:cpplatest` compiler flag.
+The Visual Studio IntelliSense will help you write great code with those new standard.
+
+### Support for Visual Studio 2019
+
+Gradle now officially supports building application and libraries with Visual Studio 2019.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

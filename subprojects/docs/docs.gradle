@@ -280,13 +280,17 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
-
 def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
     dependsOn css, samples, defaultImports
     finalizedBy("checkDeadInternalLinks")
 
     duplicatesStrategy = DuplicatesStrategy.FAIL
     into("${buildDir}/userguide-resources")
+
+    def adocDir = file("src/docs/userguide")
+    def adocFiles = fileTree(adocDir).matching {
+        include "**/*.adoc"
+    }
     from("src/docs/css") {
         into("css")
     }
@@ -299,9 +303,14 @@ def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
     from(generatedResourcesDir) {
         into(generatedResourcesDir.name)
     }
-    from fileTree("src/docs/userguide").matching {
-        include "**/*.adoc"
-    }.files
+    from adocFiles.files
+
+    doLast {
+        adocFiles.each { adocFile ->
+            file("${buildDir}/userguide-resources/${adocFile.name.substring(0, adocFile.name.length() - 5)}-docinfo.html").text =
+                """<meta name="adoc-src-path" content="${adocFile.path - adocDir.path}">"""
+        }
+    }
 }
 
 def userguideSinglePage = tasks.register("userguideSinglePage", CacheableAsciidoctorTask) {
@@ -409,6 +418,7 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         sectlinks           : true,
         linkattrs           : true,
         reproducible        : '',
+        docinfo             : '',
         lang                : 'en-US',
         encoding            : 'utf-8',
         idprefix            : '',

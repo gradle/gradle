@@ -26,7 +26,7 @@ import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -70,7 +70,7 @@ public interface UnitOfWork extends CacheableEntity {
     void visitOutputProperties(OutputPropertyVisitor visitor);
 
     interface OutputPropertyVisitor {
-        void visitOutputProperty(String propertyName, TreeType type, Iterable<File> roots);
+        void visitOutputProperty(String propertyName, TreeType type, File root);
     }
 
     void visitLocalState(LocalStateVisitor visitor);
@@ -85,6 +85,10 @@ public interface UnitOfWork extends CacheableEntity {
      * Validate the work definition and configuration.
      */
     void validate(WorkValidationContext validationContext);
+
+    interface WorkValidationContext {
+        TypeValidationContext createContextFor(Class<?> type, boolean cacheable);
+    }
 
     /**
      * Return a reason to disable caching for this work.

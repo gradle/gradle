@@ -20,6 +20,7 @@ import org.gradle.api.NamedDomainObjectCollectionSchema
 import org.gradle.api.NamedDomainObjectCollectionSchema.NamedDomainObjectSchema
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.reflect.HasPublicType
@@ -27,19 +28,17 @@ import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
-
+import org.gradle.internal.deprecation.DeprecatableConfiguration
+import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
-
 import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
-
+import java.lang.reflect.Modifier
 import kotlin.reflect.KClass
 import kotlin.reflect.KVisibility
-
-import java.lang.reflect.Modifier
 
 
 class DefaultProjectSchemaProvider : ProjectSchemaProvider {
@@ -200,7 +199,15 @@ val Class<*>.firstNonSyntheticOrNull: Class<*>?
 
 private
 fun accessibleConfigurationsOf(project: Project) =
-    project.configurations.names.filter(::isPublic)
+    project.configurations
+        .filter { isPublic(it.name) }
+        .map(::toConfigurationEntry)
+
+
+private
+fun toConfigurationEntry(configuration: Configuration) = (configuration as DeprecatableConfiguration).run {
+    ConfigurationEntry(name, declarationAlternatives ?: listOf())
+}
 
 
 private

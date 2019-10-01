@@ -179,6 +179,118 @@
             "changes": []
         },
         {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.doUseEmptySettings()",
+            "acceptation": "Method added to work around the deprecation of useEmptySettings(). Users are not intended to extend the StartParameter class.",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.ComponentMetadataDetails",
+            "member": "Method org.gradle.api.artifacts.ComponentMetadataDetails.addVariant(java.lang.String,org.gradle.api.Action)",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.ComponentMetadataDetails",
+            "member": "Method org.gradle.api.artifacts.ComponentMetadataDetails.addVariant(java.lang.String,java.lang.String,org.gradle.api.Action)",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.artifacts.MutableVariantFilesMetadata",
+            "member": "Class org.gradle.api.artifacts.MutableVariantFilesMetadata",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.MutableVariantFilesMetadata",
+            "member": "Method org.gradle.api.artifacts.MutableVariantFilesMetadata.addFile(java.lang.String)",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.MutableVariantFilesMetadata",
+            "member": "Method org.gradle.api.artifacts.MutableVariantFilesMetadata.addFile(java.lang.String,java.lang.String)",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.MutableVariantFilesMetadata",
+            "member": "Method org.gradle.api.artifacts.MutableVariantFilesMetadata.removeAllFiles()",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.VariantFileMetadata",
+            "member": "Class org.gradle.api.artifacts.VariantFileMetadata",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.VariantFileMetadata",
+            "member": "Method org.gradle.api.artifacts.VariantFileMetadata.getName()",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.artifacts.VariantFileMetadata",
+            "member": "Method org.gradle.api.artifacts.VariantFileMetadata.getUrl()",
+            "acceptation": "Method added to complete component metadata rules functionality that is de-incubated in 6.0",
+            "changes": []
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.IvyPublication",
+            "member": "Method org.gradle.api.publish.ivy.IvyPublication.suppressAllIvyMetadataWarnings()",
+            "acceptation": "Method added to complete GMM publishing functionality that is the default in 6.0",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.ivy.IvyPublication",
+            "member": "Method org.gradle.api.publish.ivy.IvyPublication.suppressIvyMetadataWarningsFor(java.lang.String)",
+            "acceptation": "Method added to complete GMM publishing functionality that is the default in 6.0",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenPublication",
+            "member": "Method org.gradle.api.publish.maven.MavenPublication.suppressAllPomMetadataWarnings()",
+            "acceptation": "Method added to complete GMM publishing functionality that is the default in 6.0",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.publish.maven.MavenPublication",
+            "member": "Method org.gradle.api.publish.maven.MavenPublication.suppressPomMetadataWarningsFor(java.lang.String)",
+            "acceptation": "Method added to complete GMM publishing functionality that is the default in 6.0",
+            "changes": [
+                "Method added to interface"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getDistsDirectory()",
+            "acceptation": "This replaces getDistsDir",
+            "changes": [
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.BasePluginConvention",
+            "member": "Method org.gradle.api.plugins.BasePluginConvention.getLibsDirectory()",
+            "acceptation": "This replaces getLibsDir",
+            "changes": [
+                "Abstract method has been added to this class"
+            ]
+        },
+        {
             "type": "org.gradle.kotlin.dsl.KotlinScriptTemplate",
             "member": "Class org.gradle.kotlin.dsl.KotlinScriptTemplate",
             "acceptation": "Annotation is no longer required",

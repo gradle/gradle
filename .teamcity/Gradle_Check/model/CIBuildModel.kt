@@ -161,6 +161,7 @@ data class CIBuildModel(
         GradleSubproject("scala"),
         GradleSubproject("signing"),
         GradleSubproject("snapshots"),
+        GradleSubproject("samples", unitTests = false, functionalTests = true),
         GradleSubproject("testKit"),
         GradleSubproject("testingBase"),
         GradleSubproject("testingJvm"),
@@ -207,9 +208,22 @@ data class CIBuildModel(
             "bucket1" to listOf("kotlinDslProviderPlugins", "buildCachePackaging", "native", "snapshots", "internalPerformanceTesting", "internalIntegTesting", "execution", "publish", "ear", "languageJvm"),
             "bucket2" to listOf("baseServices", "processServices", "messaging", "buildProfile", "modelGroovy"),
             "bucket3" to listOf("javascript", "fileCollections", "buildCache", "toolingNative", "buildCacheHttp"),
-            "bucket4" to listOf("antlr", "languageGroovy", "reporting", "diagnostics", "versionControl")
+            "bucket4" to listOf("antlr", "languageGroovy", "reporting", "diagnostics", "versionControl"),
+            "bucket5" to listOf("testingBase", "testingNative", "wrapper", "ideNative"),
+            "bucket7" to listOf("jacoco", "idePlay"),
+            "bucket8" to listOf("signing", "ivy"),
+            "bucket9" to listOf("kotlinDsl", "kotlinDslToolingBuilders"),
+            "bucket10" to listOf("modelCore", "ide"),
+            "bucket11" to listOf("codeQuality", "persistentCache")
         )
-        val largeSubprojects = mapOf("integTest" to 3, "core" to 4, "dependencyManagement" to 3, "toolingApi" to 2)
+        val largeSubprojects = mapOf(
+            "integTest" to 3,
+            "core" to 4,
+            "dependencyManagement" to 3,
+            "toolingApi" to 2,
+            "samples" to 2,
+            "launcher" to 2,
+            "languageJava" to 2)
 
         val nonTrivialBuckets = listOf<BuildTypeBucket>(
             SubprojectBucket(name = "AllUnitTest", subprojects = subProjects.filter { it.hasOnlyUnitTests() })
@@ -247,11 +261,7 @@ data class SubprojectSplit(val subproject: GradleSubproject, val total: Int) : B
     private fun getName(number: Int) = if (number == 1) subproject.name else "${subproject.name}_$number"
 
     override fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage) =
-        if (testCoverage.testType.supportTestSplit) {
-            (1..total).map { createFunctionalTestsFor(model, stage, testCoverage, getName(it), "-PtestSplit=$it/$total") }
-        } else {
-            listOf(createFunctionalTestsFor(model, stage, testCoverage, getName(1), ""))
-        }
+        (1..total).map { createFunctionalTestsFor(model, stage, testCoverage, getName(it), "-PtestSplit=$it/$total") }
 
     private fun createFunctionalTestsFor(model: CIBuildModel, stage: Stage, testCoverage: TestCoverage, name: String, parameter: String): FunctionalTest = FunctionalTest(model,
         testCoverage.asConfigurationId(model, name),
@@ -381,7 +391,7 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
     }
 }
 
-enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180, val supportTestSplit: Boolean = true) {
+enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     quick(true, true, true, 60),
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
@@ -389,7 +399,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     // Cross version tests select a small set of versions to cover when run as part of this stage
     quickFeedbackCrossVersion(false, false, true),
     // Cross version tests select all versions to cover when run as part of this stage
-    allVersionsCrossVersion(false, true, true, 240, false),
+    allVersionsCrossVersion(false, true, true, 240),
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
     soak(false, false, false),
@@ -400,7 +410,7 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
     test("PerformanceTest", "Performance Regression Test", 420, "defaults"),
     slow("SlowPerformanceTest", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
     experiment("PerformanceExperiment", "Performance Experiment", 420, "defaults", uuid = "PerformanceExperimentOnlyCoordinator"),
-    flakinessDetection("FlakinessDetection", "Performance Test Flakiness Detection", 420, "flakiness-detection-commit"),
+    flakinessDetection("FlakinessDetection", "Performance Test Flakiness Detection", 600, "flakiness-detection-commit"),
     historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
 
     fun asId(model: CIBuildModel): String =

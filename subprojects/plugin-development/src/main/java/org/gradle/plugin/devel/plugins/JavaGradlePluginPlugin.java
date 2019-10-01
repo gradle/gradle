@@ -148,7 +148,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         registerPlugins(project, extension);
         configureDescriptorGeneration(project, extension);
         validatePluginDeclarations(project, extension);
-        configurePluginValidations(project);
+        configurePluginValidations(project, extension);
     }
 
     private void registerPlugins(Project project, GradlePluginDevelopmentExtension extension) {
@@ -238,8 +238,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
         });
     }
 
-    private void configurePluginValidations(Project project) {
-        SourceSet mainSourceSet = project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+    private void configurePluginValidations(Project project, GradlePluginDevelopmentExtension extension) {
         TaskProvider<Task> naggerTask = project.getTasks().register("nagAboutValidateTaskProperties", task -> {
             //noinspection Convert2Lambda - Shouldn't use lambdas for task actions
             task.doFirst(new Action<Task>() {
@@ -256,9 +255,8 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
             task.getOutputFile().set(project.getLayout().getBuildDirectory().file("reports/plugin-development/validation-report.txt"));
 
-            task.getClasses().setFrom(mainSourceSet.getOutput().getClassesDirs());
-            task.getClasspath().setFrom(mainSourceSet.getCompileClasspath());
-            task.dependsOn(mainSourceSet.getOutput());
+            task.getClasses().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getOutput().getClassesDirs());
+            task.getClasspath().setFrom((Callable<Object>) () -> extension.getPluginSourceSet().getCompileClasspath());
             task.mustRunAfter(naggerTask);
         });
         project.getTasks().register(VALIDATE_TASK_PROPERTIES_TASK_NAME, org.gradle.plugin.devel.tasks.ValidateTaskProperties.class, validatorTask, (Runnable) JavaGradlePluginPlugin::nagAboutDeprecatedValidateTaskPropertiesTask)

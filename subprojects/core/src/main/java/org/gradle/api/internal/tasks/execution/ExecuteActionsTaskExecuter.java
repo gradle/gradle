@@ -24,6 +24,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -45,6 +46,7 @@ import org.gradle.api.internal.tasks.properties.CacheableOutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.InputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.OutputFilePropertySpec;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
@@ -60,6 +62,7 @@ import org.gradle.internal.execution.ExecutionRequestContext;
 import org.gradle.internal.execution.InputChangesContext;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkExecutor;
+import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.AfterPreviousExecutionState;
@@ -81,8 +84,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.reflect.WorkValidationContext;
-import org.gradle.internal.reflect.WorkValidationException;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
@@ -310,7 +311,10 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public void visitOutputProperties(OutputPropertyVisitor visitor) {
             for (OutputFilePropertySpec property : context.getTaskProperties().getOutputFileProperties()) {
-                visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), property.getPropertyFiles());
+                File outputFile = property.getOutputFile();
+                if (outputFile != null) {
+                    visitor.visitOutputProperty(property.getPropertyName(), property.getOutputType(), outputFile);
+                }
             }
         }
 
@@ -466,7 +470,14 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         @Override
         public void validate(WorkValidationContext validationContext) {
             FileOperations fileOperations = ((ProjectInternal) task.getProject()).getFileOperations();
-            context.getTaskProperties().validate(new DefaultTaskValidationContext(fileOperations, reservedFileSystemLocationRegistry, validationContext));
+            Class<?> taskType = GeneratedSubclasses.unpackType(task);
+            // TODO This should probably use the task class info store
+            boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);
+            context.getTaskProperties().validate(new DefaultTaskValidationContext(
+                fileOperations,
+                reservedFileSystemLocationRegistry,
+                validationContext.createContextFor(taskType, cacheable)
+            ));
         }
 
         @Override

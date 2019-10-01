@@ -273,7 +273,7 @@ project(':b') {
     sourceSets { extra }
 
     task additionalJar(type: Jar) {
-        classifier = 'extra'
+        archiveClassifier = 'extra'
         from sourceSets.extra.output
     }
 

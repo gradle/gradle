@@ -17,7 +17,7 @@
 // tag::repository-filter[]
 repositories {
     maven {
-        url "http://repo.mycompany.com/maven2"
+        url "https://repo.mycompany.com/maven2"
         content {
             // this repository *only* contains artifacts with group "my.company"
             includeGroup "my.company"
@@ -35,13 +35,13 @@ repositories {
 // tag::repository-snapshots[]
 repositories {
     maven {
-        url "http://repo.mycompany.com/releases"
+        url "https://repo.mycompany.com/releases"
         mavenContent {
             releasesOnly()
         }
     }
     maven {
-        url "http://repo.mycompany.com/snapshots"
+        url "https://repo.mycompany.com/snapshots"
         mavenContent {
             snapshotsOnly()
         }

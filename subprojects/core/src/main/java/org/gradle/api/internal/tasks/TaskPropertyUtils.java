@@ -20,7 +20,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
-import org.gradle.internal.reflect.WorkValidationContext;
+import org.gradle.internal.reflect.TypeValidationContext;
 
 @NonNullApi
 public class TaskPropertyUtils {
@@ -29,7 +29,7 @@ public class TaskPropertyUtils {
      * properties declared via the runtime API ({@link org.gradle.api.tasks.TaskInputs} etc.).
      */
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, PropertyVisitor visitor) {
-        visitProperties(propertyWalker, task, WorkValidationContext.NOOP, visitor);
+        visitProperties(propertyWalker, task, TypeValidationContext.NOOP, visitor);
     }
 
     /**
@@ -38,7 +38,7 @@ public class TaskPropertyUtils {
      *
      * Reports errors and warnings to the given validation context.
      */
-    public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, WorkValidationContext validationContext, PropertyVisitor visitor) {
+    public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
         propertyWalker.visitProperties(task, validationContext, visitor);
         if (!visitor.visitOutputFilePropertiesOnly()) {
             task.getInputs().visitRegisteredProperties(visitor);

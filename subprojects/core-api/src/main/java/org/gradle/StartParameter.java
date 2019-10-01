@@ -72,13 +72,13 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildProjectDependencies = true;
     private File currentDir;
     private File projectDir;
-    private boolean searchUpwards;
+    protected boolean searchUpwards;
     private Map<String, String> projectProperties = new HashMap<>();
     private Map<String, String> systemPropertiesArgs = new HashMap<>();
     private File gradleUserHomeDir;
     protected File gradleHomeDir;
     private File settingsFile;
-    private boolean useEmptySettings;
+    protected boolean useEmptySettings;
     private File buildFile;
     private List<File> initScripts = new ArrayList<>();
     private boolean dryRun;
@@ -297,10 +297,14 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public StartParameter useEmptySettings() {
         DeprecationLogger.nagUserOfDeprecated("StartParameter#useEmptySettings()");
+        doUseEmptySettings();
+        return this;
+    }
+
+    protected void doUseEmptySettings() {
         searchUpwards = false;
         useEmptySettings = true;
         settingsFile = null;
-        return this;
     }
 
     /**

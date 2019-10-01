@@ -68,7 +68,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         and:
         buildB.buildFile << """
             task myJar(type: Jar) {
-                classifier 'my'
+                archiveClassifier = 'my'
             }
 
             artifacts {
@@ -203,7 +203,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                     other
                 }
                 task myJar(type: Jar) {
-                    classifier 'my'
+                    archiveClassifier = 'my'
                 }
                 artifacts {
                     other myJar
@@ -226,10 +226,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             task jar1(type: Jar) {
-                classifier '1'
+                archiveClassifier = '1'
             }
             dependencies {
-                implementation files(jar1.archivePath) { builtBy jar1 }
+                implementation files(jar1.archiveFile)
             }
 """
 
@@ -257,7 +257,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 other 'org.test:buildC:1.0'
             }
             task myJar(type: Jar) {
-                classifier 'my'
+                archiveClassifier = 'my'
             }
             artifacts {
                 other myJar
@@ -283,7 +283,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             task myZip(type: Zip) {
-                extension 'zip'
+                archiveExtension = 'zip'
                 from 'src'
             }
             artifacts {
@@ -315,10 +315,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 
         buildB.buildFile << """
             task myJar(type: Jar) {
-                classifier 'my'
+                archiveClassifier = 'my'
             }
             task anotherJar(type: Jar) {
-                baseName 'another'
+                archiveBaseName = 'another'
             }
             artifacts {
                 implementation myJar
@@ -348,7 +348,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 other
             }
             task myJar(type: Jar) {
-                classifier 'my'
+                archiveClassifier = 'my'
             }
             artifacts {
                 other myJar
@@ -443,7 +443,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 other
             }
             task myJar(type: Jar) {
-                classifier 'my'
+                archiveClassifier = 'my'
             }
             artifacts {
                 other myJar

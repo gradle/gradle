@@ -22,4 +22,5 @@ public interface FileCopyDetailsInternal extends FileCopyDetails {
 
     boolean isIncludeEmptyDirs();
 
+    boolean isDefaultDuplicatesStrategy();
 }

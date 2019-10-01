@@ -16,14 +16,11 @@
 
 package org.gradle.api.artifacts;
 
-import org.gradle.api.Incubating;
-
 /**
  * Part of a component variant's metadata representing a file and its location.
  *
  * @since 6.0
  */
-@Incubating
 public interface VariantFileMetadata {
 
     /**

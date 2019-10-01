@@ -18,11 +18,14 @@ package org.gradle.api.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.external.model.ProjectTestFixtures;
 
+import static org.gradle.api.plugins.JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
+import static org.gradle.api.plugins.JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME;
 import static org.gradle.api.plugins.internal.JvmPluginsHelper.addApiToSourceSet;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_API;
 import static org.gradle.internal.component.external.model.TestFixturesSupport.TEST_FIXTURES_FEATURE_NAME;
@@ -57,8 +60,16 @@ public class JavaTestFixturesPlugin implements Plugin<Project> {
     private void createImplicitTestFixturesDependencies(Project project, JavaPluginConvention convention) {
         DependencyHandler dependencies = project.getDependencies();
         dependencies.add(TEST_FIXTURES_API, dependencies.create(project));
-        ProjectDependency testDependency = (ProjectDependency) dependencies.add(findTestSourceSet(convention).getImplementationConfigurationName(), dependencies.create(project));
+        SourceSet testSourceSet = findTestSourceSet(convention);
+        ProjectDependency testDependency = (ProjectDependency) dependencies.add(testSourceSet.getImplementationConfigurationName(), dependencies.create(project));
         testDependency.capabilities(new ProjectTestFixtures(project));
+
+        // Overwrite what the Java plugin defines for test, in order to avoid duplicate classes
+        // see gradle/gradle#10872
+        ConfigurationContainer configurations = project.getConfigurations();
+        testSourceSet.setCompileClasspath(project.getObjects().fileCollection().from(configurations.getByName(TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)));
+        testSourceSet.setRuntimeClasspath(project.getObjects().fileCollection().from(testSourceSet.getOutput(), configurations.getByName(TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+
     }
 
     private SourceSet findTestSourceSet(JavaPluginConvention convention) {

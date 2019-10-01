@@ -58,8 +58,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.reflect.WorkValidationContext
-import org.gradle.internal.reflect.WorkValidationException
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
@@ -79,6 +77,7 @@ import java.util.function.Supplier
 
 import static org.gradle.internal.execution.ExecutionOutcome.EXECUTED_NON_INCREMENTALLY
 import static org.gradle.internal.execution.ExecutionOutcome.UP_TO_DATE
+import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 
 class IncrementalExecutionIntegrationTest extends Specification {
 
@@ -129,8 +128,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
     final inputDirFile = inputDir.file("input-file2").createFile()
     final missingInputFile = temporaryFolder.file("missing-input-file")
     final inputFiles = [file: [inputFile], dir: [inputDir], missingFile: [missingInputFile]]
-    final outputFiles = [file: [outputFile], missingFile: [missingOutputFile]]
-    final outputDirs = [emptyDir: [emptyOutputDir], dir: [outputDir], missingDir: [missingOutputDir]]
+    final outputFiles = [file: outputFile, missingFile: missingOutputFile]
+    final outputDirs = [emptyDir: emptyOutputDir, dir: outputDir, missingDir: missingOutputDir]
     final createFiles = [outputFile, outputDirFile, outputDirFile2] as Set
 
     def unitOfWork = builder.build()
@@ -163,11 +162,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def "outputs are created"() {
         def unitOfWork = builder.withOutputDirs(
-            dir: [file("outDir")],
-            dirs: [file("outDir1"), file("outDir2")],
+            dir1: file("outDir1"),
+            dir2: file("outDir2")
         ).withOutputFiles(
-            "file": [file("parent/outFile")],
-            "files": [file("parent1/outFile"), file("parent2/outputFile1"), file("parent2/outputFile2")],
+            "file1": file("parent1/outFile"),
+            "file2": file("parent2/outFile")
         ).withWork { ->
             UnitOfWork.WorkResult.DID_WORK
         }.build()
@@ -179,8 +178,8 @@ class IncrementalExecutionIntegrationTest extends Specification {
         result.outcome.get() == EXECUTED_NON_INCREMENTALLY
         !result.reusedOutputOriginMetadata.present
 
-        def allDirs = ["outDir", "outDir1", "outDir2"].collect { file(it) }
-        def allFiles = ["parent/outFile", "parent1/outFile1", "parent2/outFile1", "parent2/outFile2"].collect { file(it) }
+        def allDirs = ["outDir1", "outDir2"].collect { file(it) }
+        def allFiles = ["parent1/outFile", "parent2/outFile"].collect { file(it) }
         allDirs.each {
             assert it.isDirectory()
         }
@@ -359,7 +358,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     def "out-of-date when any output files properties are added"() {
         when:
         execute(unitOfWork)
-        def outputFilesAddedUnitOfWork = builder.withOutputFiles(*:outputFiles, newFile: [temporaryFolder.createFile("output-file-2")]).build()
+        def outputFilesAddedUnitOfWork = builder.withOutputFiles(*:outputFiles, newFile: temporaryFolder.createFile("output-file-2")).build()
 
         then:
         outOfDate(outputFilesAddedUnitOfWork, "Output property 'newFile' has been added for ${outputFilesAddedUnitOfWork.displayName}")
@@ -561,9 +560,9 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
     def "invalid work is not executed"() {
         def invalidWork = builder
-            .withValidator({ validationContext ->
-                validationContext.visitError("Validation error")
-            })
+            .withValidator { validationContext ->
+                validationContext.createContextFor(Object, true).visitTypeProblem(ERROR, Object, "Validation error")
+            }
             .withWork({ throw new RuntimeException("Should not get executed") })
             .build()
 
@@ -572,8 +571,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
 
         then:
         def ex = thrown WorkValidationException
-        ex.causes.size() == 1
-        ex.causes[0].message == "Validation error"
+        ex.causes*.message as List == ["Type '$Object.simpleName': Validation error."]
     }
 
     List<String> inputFilesRemoved(Map<String, List<File>> removedFiles) {
@@ -655,21 +653,21 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     static class OutputPropertySpec {
-        Iterable<File> roots
+        File root
         TreeType treeType
 
-        OutputPropertySpec(Iterable<File> roots, TreeType treeType) {
+        OutputPropertySpec(File root, TreeType treeType) {
             this.treeType = treeType
-            this.roots = ImmutableList.copyOf(roots)
+            this.root = root
         }
     }
 
-    static OutputPropertySpec outputDirectorySpec(File... dirs) {
-        return new OutputPropertySpec(ImmutableList.<File>copyOf(dirs), TreeType.DIRECTORY)
+    static OutputPropertySpec outputDirectorySpec(File dir) {
+        return new OutputPropertySpec(dir, TreeType.DIRECTORY)
     }
 
-    static OutputPropertySpec outputFileSpec(File... files) {
-        return new OutputPropertySpec(ImmutableList.<File>copyOf(files), TreeType.FILE)
+    static OutputPropertySpec outputFileSpec(File file) {
+        return new OutputPropertySpec(file, TreeType.FILE)
     }
 
     UnitOfWorkBuilder getBuilder() {
@@ -685,11 +683,11 @@ class IncrementalExecutionIntegrationTest extends Specification {
         }
         private Map<String, Object> inputProperties = [prop: "value"]
         private Map<String, ? extends Collection<? extends File>> inputs = inputFiles
-        private Map<String, ? extends Collection<? extends File>> outputFiles = IncrementalExecutionIntegrationTest.this.outputFiles
-        private Map<String, ? extends Collection<? extends File>> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
+        private Map<String, ? extends File> outputFiles = IncrementalExecutionIntegrationTest.this.outputFiles
+        private Map<String, ? extends File> outputDirs = IncrementalExecutionIntegrationTest.this.outputDirs
         private Collection<? extends TestFile> create = createFiles
         private ImplementationSnapshot implementation = ImplementationSnapshot.of(UnitOfWork.name, HashCode.fromInt(1234))
-        private Consumer<WorkValidationContext> validator
+        private Consumer<UnitOfWork.WorkValidationContext> validator
 
         UnitOfWorkBuilder withWork(Supplier<UnitOfWork.WorkResult> closure) {
             work = closure
@@ -712,19 +710,25 @@ class IncrementalExecutionIntegrationTest extends Specification {
         }
 
         UnitOfWorkBuilder withOutputFiles(File... outputFiles) {
-            return withOutputFiles(defaultFiles: Arrays.asList(outputFiles))
+            return withOutputFiles((outputFiles as List)
+                .withIndex()
+                .collectEntries { outputFile, index -> [('defaultFiles' + index): outputFile] }
+            )
         }
 
-        UnitOfWorkBuilder withOutputFiles(Map<String, ? extends Collection<? extends File>> files) {
+        UnitOfWorkBuilder withOutputFiles(Map<String, ? extends File> files) {
             this.outputFiles = files
             return this
         }
 
         UnitOfWorkBuilder withOutputDirs(File... outputDirs) {
-            return withOutputDirs(defaultDir: Arrays.asList(outputDirs))
+            return withOutputDirs((outputDirs as List)
+                .withIndex()
+                .collectEntries { outputFile, index -> [('defaultDir' + index): outputFile] }
+            )
         }
 
-        UnitOfWorkBuilder withOutputDirs(Map<String, ? extends Collection<? extends File>> dirs) {
+        UnitOfWorkBuilder withOutputDirs(Map<String, ? extends File> dirs) {
             this.outputDirs = dirs
             return this
         }
@@ -744,14 +748,14 @@ class IncrementalExecutionIntegrationTest extends Specification {
             return this
         }
 
-        UnitOfWorkBuilder withValidator(Consumer<WorkValidationContext> validator) {
+        UnitOfWorkBuilder withValidator(Consumer<UnitOfWork.WorkValidationContext> validator) {
             this.validator = validator
             return this
         }
 
         UnitOfWork build() {
-            Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(*value) } )
-            Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(*value) } )
+            Map<String, OutputPropertySpec> outputFileSpecs = Maps.transformEntries(outputFiles, { key, value -> outputFileSpec(value) } )
+            Map<String, OutputPropertySpec> outputDirSpecs = Maps.transformEntries(outputDirs, { key, value -> outputDirectorySpec(value) } )
             Map<String, OutputPropertySpec> outputs = outputFileSpecs + outputDirSpecs
 
             return new UnitOfWork() {
@@ -802,7 +806,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 @Override
                 void visitOutputProperties(UnitOfWork.OutputPropertyVisitor visitor) {
                     outputs.forEach { name, spec ->
-                        visitor.visitOutputProperty(name, spec.treeType, spec.roots)
+                        visitor.visitOutputProperty(name, spec.treeType, spec.root)
                     }
                 }
 
@@ -817,7 +821,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
                 }
 
                 @Override
-                void validate(WorkValidationContext validationContext) {
+                void validate(UnitOfWork.WorkValidationContext validationContext) {
                     validator?.accept(validationContext)
                 }
 
@@ -889,7 +893,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
         private ImmutableSortedMap<String, FileSystemSnapshot> snapshotOutputs(Map<String, OutputPropertySpec> outputs) {
             def builder = ImmutableSortedMap.<String, FileSystemSnapshot>naturalOrder()
             outputs.each { propertyName, spec ->
-                builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(ImmutableFileCollection.of(spec.roots))))
+                builder.put(propertyName, CompositeFileSystemSnapshot.of(snapshotter.snapshot(ImmutableFileCollection.of(spec.root))))
             }
             return builder.build()
         }

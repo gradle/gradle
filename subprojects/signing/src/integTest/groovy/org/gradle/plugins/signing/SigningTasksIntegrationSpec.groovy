@@ -288,8 +288,8 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
             }
 
             jar {
-                baseName = "changed"
-                classifier = "custom"
+                archiveBaseName = "changed"
+                archiveClassifier = "custom"
             }
         """
 

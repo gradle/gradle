@@ -544,7 +544,7 @@ public class SigningExtension {
      * Signs the POM artifact for the given Maven deployment.
      *
      * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin. </p>
-     * <pre class='autoTested'>
+     * <pre class='autoTestedWithDeprecations'>
      * apply plugin: 'maven'
      *
      * uploadArchives {
@@ -597,7 +597,7 @@ public class SigningExtension {
      * Signs the POM artifact for the given Maven deployment.
      *
      * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin. </p>
-     * <pre class='autoTested'>
+     * <pre class='autoTestedWithDeprecations'>
      * apply plugin: 'maven'
      *
      * uploadArchives {

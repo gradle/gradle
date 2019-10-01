@@ -116,7 +116,7 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
 
             @CacheableTask
             open class CustomTask() : DefaultTask() {
-                @get:InputFile var inputFile: File? = null
+                @get:InputFile @get:PathSensitive(PathSensitivity.NONE) var inputFile: File? = null
                 @get:OutputFile var outputFile: File? = null
                 @TaskAction fun doSomething() {
                     outputFile!!.apply {

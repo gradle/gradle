@@ -200,7 +200,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         file("in.txt").text = "in"
 
         when:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning("Changing the value for a FileCollection with a final value has been deprecated. This will fail with an error in Gradle 7.0.")
         run("merge")
 
         then:
@@ -224,7 +224,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         file("in.txt").text = "in"
 
         when:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning("Changing the value for a FileCollection with a final value has been deprecated. This will fail with an error in Gradle 7.0.")
         run("show")
 
         then:
