@@ -21,7 +21,7 @@ In the <<tutorial_using_tasks.adoc#tutorial_using_tasks,introductory tutorial>> 
 [[sec:task_outcomes]]
 == Task outcomes
 
-When Gradle executes a task, it can label the task with different outcomes in the console UI and via the <<embedding.adoc#embedding,Tooling API>>. These labels are based on if a task has actions to execute, if it should execute those actions, if it did execute those actions and if those actions made any changes.
+When Gradle executes a task, it can label the task with different outcomes in the console UI and via the <<third_party_integration.adoc#embedding,Tooling API>>. These labels are based on if a task has actions to execute, if it should execute those actions, if it did execute those actions and if those actions made any changes.
 
 `(no label)` or `EXECUTED`::
 Task executed its actions.

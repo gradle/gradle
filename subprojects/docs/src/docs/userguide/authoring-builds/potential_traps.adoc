@@ -13,13 +13,14 @@
 // limitations under the License.
 
 [[potential_traps]]
-= Potential Traps
-
+= Avoiding traps
 
 [[sec:groovy_script_variables]]
 == Groovy script variables
 
-For Gradle users it is important to understand how Groovy deals with script variables. Groovy has two types of script variables. One with a local scope and one with a script-wide scope.
+For users of the Groovy DSL it is important to understand how Groovy deals with script variables.
+Groovy has two types of script variables.
+One with a local scope and one with a script-wide scope.
 
 === Example: Variables scope: local and script wide
 
