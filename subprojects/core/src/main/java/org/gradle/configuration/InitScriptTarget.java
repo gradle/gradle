@@ -39,4 +39,5 @@ public class InitScriptTarget extends DefaultScriptTarget {
     public String getClasspathBlockName() {
         return "initscript";
     }
+
 }
