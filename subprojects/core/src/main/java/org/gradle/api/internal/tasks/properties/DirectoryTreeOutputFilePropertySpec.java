@@ -20,16 +20,26 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.fingerprint.OutputNormalizer;
 
-public class CompositeOutputFilePropertySpec extends AbstractFilePropertySpec implements OutputFilePropertySpec {
-    private final TreeType outputType;
+import java.io.File;
 
-    public CompositeOutputFilePropertySpec(String propertyName, FileCollection files, TreeType outputType) {
+/**
+ * A (possibly filtered) directory tree which is used as an output.
+ */
+public class DirectoryTreeOutputFilePropertySpec extends AbstractFilePropertySpec implements OutputFilePropertySpec {
+    private final File root;
+
+    public DirectoryTreeOutputFilePropertySpec(String propertyName, FileCollection files, File root) {
         super(propertyName, OutputNormalizer.class, files);
-        this.outputType = outputType;
+        this.root = root;
     }
 
     @Override
     public TreeType getOutputType() {
-        return outputType;
+        return TreeType.DIRECTORY;
+    }
+
+    @Override
+    public File getOutputFile() {
+        return root;
     }
 }
