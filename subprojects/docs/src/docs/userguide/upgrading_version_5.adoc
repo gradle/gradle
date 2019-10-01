@@ -142,6 +142,14 @@ The buildSrc classes remain visible to project build scripts and script plugins.
 
 Custom logic can be used from a settings script by <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declaring external dependencies>>.
 
+==== pluginManagement {} in settings scripts is now isolated
+
+Previously, any `pluginManagement {}` blocks inside a settings script were executed during the normal execution of the script.
+Now, they are executed earlier in a similar manner to `buildscript {}` or `plugins {}`.
+This also means that code inside such a block cannot reference anything declared elsewhere in the script.
+
+This change has been made so that the `pluginManagement {}` configuration can also be applied when resolving plugins for the settings script itself.
+
 ==== `@Nullable` annotation is gone
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
