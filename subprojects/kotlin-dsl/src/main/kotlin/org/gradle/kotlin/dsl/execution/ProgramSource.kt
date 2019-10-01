@@ -45,10 +45,10 @@ data class ProgramText private constructor(val text: String) {
         else ProgramText(text.erase(ranges))
 
     fun preserve(vararg ranges: IntRange): ProgramText =
-        erase(complementOf(ranges.asList()))
+        erase(complementOf(ranges))
 
     fun preserve(ranges: List<IntRange>): ProgramText =
-        erase(complementOf(ranges))
+        preserve(*ranges.toTypedArray())
 
     fun subText(range: IntRange): ProgramText =
         ProgramText(text.substring(range))
@@ -57,7 +57,7 @@ data class ProgramText private constructor(val text: String) {
         text.lineAndColumnFor(index).first
 
     private
-    fun complementOf(ranges: List<IntRange>): ArrayList<IntRange> {
+    fun complementOf(ranges: Array<out IntRange>): ArrayList<IntRange> {
         require(ranges.isNotEmpty())
 
         val sortedRanges = ranges.sortedBy { it.first }
