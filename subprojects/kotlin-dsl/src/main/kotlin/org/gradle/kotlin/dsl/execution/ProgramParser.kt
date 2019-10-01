@@ -103,13 +103,6 @@ object ProgramParser {
     }
 
     private
-    fun topLevelBlockIdsFor(target: ProgramTarget): Array<String> = when (target) {
-        ProgramTarget.Project -> arrayOf("buildscript", "plugins")
-        ProgramTarget.Settings -> arrayOf("buildscript", "pluginManagement", "plugins")
-        ProgramTarget.Gradle -> arrayOf("initscript")
-    }
-
-    private
     fun checkForSingleBlocksOf(
         topLevelBlockIds: Array<TopLevelBlockId>,
         topLevelBlocks: List<TopLevelBlock>
