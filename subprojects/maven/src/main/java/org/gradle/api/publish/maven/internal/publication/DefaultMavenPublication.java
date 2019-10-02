@@ -324,13 +324,21 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
             if (!usageContext.getCapabilities().isEmpty()) {
                 for (Capability capability : usageContext.getCapabilities()) {
-                    publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    if (isNotDefaultCapability(capability)) {
+                        publicationWarningsCollector.addVariantUnsupported(String.format("Declares capability %s:%s:%s which cannot be mapped to Maven", capability.getGroup(), capability.getName(), capability.getVersion()));
+                    }
                 }
             }
         }
         if (!silenceAllPublicationWarnings) {
-            publicationWarningsCollector.complete(getDisplayName() + "pom metadata", silencedVariants);
+            publicationWarningsCollector.complete(getDisplayName() + " pom metadata", silencedVariants);
         }
+    }
+
+    private boolean isNotDefaultCapability(Capability capability) {
+        return !capability.getGroup().equals(getCoordinates().getGroup())
+            || !capability.getName().equals(getCoordinates().getName())
+            || !capability.getVersion().equals(getCoordinates().getVersion());
     }
 
     private boolean isDependencyWithDefaultArtifact(ModuleDependency dependency) {
