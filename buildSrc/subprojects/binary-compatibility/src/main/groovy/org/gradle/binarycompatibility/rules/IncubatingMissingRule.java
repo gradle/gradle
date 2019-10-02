@@ -35,7 +35,7 @@ public class IncubatingMissingRule extends AbstractGradleViolationRule {
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
         if (member instanceof JApiMethod || member instanceof JApiField || member instanceof JApiClass || member instanceof JApiConstructor) {
-            if (!isIncubatingOrDeprecated((JApiHasAnnotations) member) && !isInject((JApiHasAnnotations) member)) {
+            if (!isIncubating((JApiHasAnnotations) member) && !isInject((JApiHasAnnotations) member)) {
                 return violationError(member);
             }
         }
