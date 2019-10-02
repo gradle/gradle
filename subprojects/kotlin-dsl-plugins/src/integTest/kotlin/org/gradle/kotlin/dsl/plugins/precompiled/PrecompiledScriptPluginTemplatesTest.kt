@@ -39,6 +39,7 @@ import org.hamcrest.MatcherAssert.assertThat
 
 import org.jetbrains.kotlin.name.NameUtils
 
+import org.junit.Ignore
 import org.junit.Test
 
 
@@ -418,6 +419,47 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     fun `precompiled init script receiver is undecorated`() {
 
         assertUndecoratedImplicitReceiverOf<Gradle>("my-init-plugin.init.gradle.kts")
+    }
+
+    @Ignore("wip")
+    @Test
+    fun `can apply plugin using ObjectConfigurationAction syntax`() {
+
+        withKotlinBuildSrc()
+
+        withFile("buildSrc/src/main/kotlin/my-project-plugin.gradle.kts", """
+
+            open class ProjectPlugin : Plugin<Project> {
+                override fun apply(target: Project) {
+                    target.task("run") {
+                        doLast { println(target.name + ":42") }
+                    }
+                }
+            }
+
+            apply { plugin<ProjectPlugin>() }
+
+            subprojects {
+                apply { plugin<ProjectPlugin>() }
+            }
+        """)
+
+        withBuildScript("""
+            plugins { `my-project-plugin` }
+        """)
+
+        withSettings("""
+            rootProject.name = "foo"
+            include("bar")
+        """)
+
+        assertThat(
+            build("run", "-q").output,
+            allOf(
+                containsString("foo:42"),
+                containsString("bar:42")
+            )
+        )
     }
 
     @Test
