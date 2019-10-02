@@ -19,6 +19,7 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
     def setup() {
@@ -1039,9 +1040,86 @@ Required by:
 """)
     }
 
-    private expectModuleServed(MavenHttpModule module) {
+    @Unroll
+    def "can resolve unique and non-unique snapshots using Gradle Module Metadata (redirection = #redirection, metadata sources=#metadataSources)"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+repositories {
+    maven { 
+      url "${mavenHttpRepo.uri}" 
+      metadataSources {
+          ${metadataSources.code}
+      }
+    }
+}
+configurations {
+    compile
+}
+dependencies {
+    compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
+    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
+    
+    components {
+        all(CheckIsChangingRule)
+    }
+}
+
+class CheckIsChangingRule implements ComponentMetadataRule {
+    @Override
+    void execute(ComponentMetadataContext context) {
+        assert context.details.changing
+    }
+}
+
+"""
+        def resolve = new ResolveTestFixture(buildFile, "compile")
+        def usesGradleMetadata = metadataSources == Sources.GRADLE || redirection
+        resolve.prepare()
+
+        when:
+        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").withModuleMetadata()
+        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().withModuleMetadata()
+
+        if (!redirection) {
+            uniqueVersionModule.withoutGradleMetadataRedirection()
+            nonUniqueVersionModule.withoutGradleMetadataRedirection()
+        }
+        uniqueVersionModule.publish()
+        nonUniqueVersionModule.publish()
+
+        and:
+        expectModuleServed(uniqueVersionModule, metadataSources == Sources.POM, usesGradleMetadata)
+        expectModuleServed(nonUniqueVersionModule, metadataSources == Sources.POM, usesGradleMetadata)
+
+        and:
+        run 'checkDeps'
+
+        then:
+        resolve.expectDefaultConfiguration("runtime")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
+                module("org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT")
+            }
+        }
+
+        where:
+        redirection | metadataSources
+        true        | Sources.GRADLE
+        false       | Sources.GRADLE
+        true        | Sources.POM
+        false       | Sources.POM
+    }
+
+    private expectModuleServed(MavenHttpModule module, boolean pom=true, boolean gmm = false) {
         module.metaData.expectGet()
-        module.pom.expectGet()
+        if (pom) {
+            module.pom.expectGet()
+        }
+        if (gmm) {
+            module.moduleMetadata.expectGet()
+        }
         module.artifact.expectGet()
     }
 
@@ -1084,5 +1162,16 @@ Required by:
     private expectModuleMissing(MavenHttpModule module) {
         module.metaData.expectGetMissing()
         module.pom.expectGetMissing()
+    }
+
+    enum Sources {
+        GRADLE("gradleMetadata()"),
+        POM("mavenPom()")
+
+        private final String code
+
+        Sources(String code) {
+            this.code = code
+        }
     }
 }
