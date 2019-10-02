@@ -85,8 +85,10 @@ class ScriptApiTest {
 
 
 private
-inline fun <reified T> assertScriptApiOf() =
-    assertApiOf<T>(ScriptApi::class)
+inline fun <reified T> assertScriptApiOf() {
+    if (!KotlinScript::class.java.isAssignableFrom(T::class.java))
+        assertApiOf<T>(KotlinScript::class)
+}
 
 
 private
