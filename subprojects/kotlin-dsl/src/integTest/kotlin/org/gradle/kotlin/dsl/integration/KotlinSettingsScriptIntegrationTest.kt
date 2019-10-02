@@ -3,12 +3,20 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.DeepThought
 import org.gradle.test.fixtures.plugin.PluginBuilder
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.Rule
+
 import org.junit.Test
 
 
 class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
+
+    @Rule
+    @JvmField
+    val pluginPortal: MavenHttpPluginRepository = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
@@ -31,6 +39,23 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         withBuildScript("")
         build("help", "-q")
+    }
+
+    @Test
+    fun `Can apply plugin using plugins block`() {
+        val pluginBuilder = PluginBuilder(file("plugin"))
+        pluginBuilder.addSettingsPlugin("println '*42*'", "test.MySettingsPlugin", "MySettingsPlugin")
+        pluginBuilder.publishAs("g", "m", "1.0", pluginPortal, createExecuter()).allowAll()
+
+        withSettings("""
+            plugins {
+                id("test.MySettingsPlugin").version("1.0")
+            }
+        """)
+
+        assertThat(
+            build().output,
+            containsString("*42*"))
     }
 
     @Test

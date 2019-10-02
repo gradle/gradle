@@ -48,7 +48,7 @@ Gradle allows you to build any software, because it makes few assumptions about 
 
 This doesn't mean you have to do a lot of work to create a build. Gradle makes it easy to build common types of project — say Java libraries — by adding a layer of conventions and prebuilt functionality through <<plugins#plugins,_plugins_>>. You can even create and publish custom plugins to encapsulate your own conventions and build functionality.
 
-[[2_the_core_model_is_based_on_tasks]]
+[[the_core_model_is_based_on_tasks]]
 === 2. The core model is based on tasks
 
 Gradle models its builds as Directed Acyclic Graphs (DAGs) of tasks (units of work). What this means is that a build essentially configures a set of tasks and wires them together — based on their dependencies — to create that DAG. Once the task graph has been created, Gradle determines which tasks need to be run in which order and then proceeds to execute them.

@@ -23,7 +23,7 @@ import java.util.Set;
 public class CollectedWarnings {
     private Set<String> unsupportedUsages = null;
     private Set<String> incompatibleUsages = null;
-    private String variantUnsupported;
+    private Set<String> variantUnsupported = null;
 
     public void addUnsupported(String text) {
         if (unsupportedUsages == null) {
@@ -39,7 +39,7 @@ public class CollectedWarnings {
         incompatibleUsages.add(text);
     }
 
-    public String getVariantUnsupported() {
+    public Set<String> getVariantUnsupported() {
         return variantUnsupported;
     }
 
@@ -56,6 +56,9 @@ public class CollectedWarnings {
     }
 
     public void addVariantUnsupported(String text) {
-        this.variantUnsupported = text;
+        if (variantUnsupported == null) {
+            variantUnsupported = Sets.newHashSet();
+        }
+        variantUnsupported.add(text);
     }
 }

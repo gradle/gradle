@@ -9,18 +9,18 @@ repositories {
 // tag::exclude-transitive-dependencies[]
 configurations {
     implementation {
-        exclude group: 'javax.jms', module: 'jms'
-        exclude group: 'com.sun.jdmk', module: 'jmxtools'
-        exclude group: 'com.sun.jmx', module: 'jmxri'
+        exclude group: 'commons-collections', module: 'commons-collections'
     }
 }
 
 dependencies {
-    implementation 'log4j:log4j:1.2.15'
+    implementation 'commons-beanutils:commons-beanutils:1.9.4'
+    implementation 'com.opencsv:opencsv:4.6'
 }
 // end::exclude-transitive-dependencies[]
 
-task copyLibs(type: Copy) {
-    from configurations.compileClasspath
-    into "$buildDir/libs"
+tasks.register("printArtifacts") {
+    doLast {
+        configurations.runtimeClasspath.each { println(it.name) }
+    }
 }

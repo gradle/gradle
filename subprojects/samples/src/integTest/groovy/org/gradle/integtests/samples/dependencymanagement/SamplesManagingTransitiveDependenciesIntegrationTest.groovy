@@ -17,7 +17,6 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
@@ -54,83 +53,6 @@ class SamplesManagingTransitiveDependenciesIntegrationTest extends AbstractInteg
 
         where:
         dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/unresolved")
-    def "reports an error for unresolved transitive dependency artifacts with #dsl dsl"() {
-        executer.inDirectory(sample.dir.file(dsl))
-
-        when:
-        fails('compileJava')
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':compileJava'.")
-        failure.assertHasCause("Could not resolve all files for configuration ':compileClasspath'.")
-        failure.assertHasCause("""Could not find jms-1.1.jar (javax.jms:jms:1.1).
-Searched in the following locations:
-    ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}javax/jms/jms/1.1/jms-1.1.jar""")
-        failure.assertHasCause("""Could not find jmxtools-1.2.1.jar (com.sun.jdmk:jmxtools:1.2.1).
-Searched in the following locations:
-    ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}com/sun/jdmk/jmxtools/1.2.1/jmxtools-1.2.1.jar""")
-        failure.assertHasCause("""Could not find jmxri-1.2.1.jar (com.sun.jmx:jmxri:1.2.1).
-Searched in the following locations:
-    ${RepoScriptBlockUtil.mavenCentralRepositoryMirrorUrl()}com/sun/jmx/jmxri/1.2.1/jmxri-1.2.1.jar""")
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForDependency")
-    def "can exclude transitive dependencies for declared dependency for #dsl dsl"() {
-        TestFile dslDir = sample.dir.file(dsl)
-        executer.inDirectory(dslDir)
-
-        when:
-        succeeds('compileJava', COPY_LIBS_TASK_NAME)
-
-        then:
-        dslDir.file('build/classes/java/main/Main.class').isFile()
-        def libs = listFilesInBuildLibsDir(dslDir)
-        libs.size() == 3
-        libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration")
-    def "can exclude transitive dependencies for particular configuration"() {
-        TestFile dslDir = sample.dir.file(dsl)
-        executer.inDirectory(dslDir)
-
-        when:
-        succeeds('compileJava', COPY_LIBS_TASK_NAME)
-
-        then:
-        dslDir.file('build/classes/java/main/Main.class').isFile()
-        def libs = listFilesInBuildLibsDir(dslDir)
-        libs.size() == 3
-        libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @UsesSample("userguide/dependencyManagement/managingTransitiveDependencies/excludeForAllConfigurations")
-    def "can exclude transitive dependencies for all configurations"() {
-        executer.inDirectory(sample.dir)
-
-        when:
-        succeeds('compileJava', COPY_LIBS_TASK_NAME)
-
-        then:
-        sample.dir.file('build/classes/java/main/Main.class').isFile()
-        def libs = listFilesInBuildLibsDir(sample.dir)
-        libs.size() == 3
-        libs.any { it.name == 'log4j-1.2.15.jar' || it.name == 'mail-1.4.jar' || it.name == 'activation-1.1.jar' }
     }
 
     @Unroll

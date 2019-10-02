@@ -53,8 +53,6 @@ import org.gradle.kotlin.dsl.provider.ignoringErrors
 import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
-import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelCorrelationId
-import org.gradle.kotlin.dsl.resolver.kotlinBuildScriptModelTarget
 
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptType
@@ -63,6 +61,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 
@@ -74,22 +73,35 @@ import java.io.StringWriter
 import java.util.EnumSet
 
 
-private
+internal
 data class KotlinBuildScriptModelParameter(
-    val scriptPath: String?,
+    val scriptFile: File?,
     val correlationId: String?
 )
 
 
-private
+internal
 data class StandardKotlinBuildScriptModel(
-    override val classPath: List<File>,
-    override val sourcePath: List<File>,
-    override val implicitImports: List<String>,
-    override val editorReports: List<EditorReport>,
-    override val exceptions: List<String>,
-    override val enclosingScriptProjectDir: File?
-) : KotlinBuildScriptModel, Serializable
+    private val classPath: List<File>,
+    private val sourcePath: List<File>,
+    private val implicitImports: List<String>,
+    private val editorReports: List<EditorReport>,
+    private val exceptions: List<String>,
+    private val enclosingScriptProjectDir: File?
+) : KotlinBuildScriptModel, Serializable {
+
+    override fun getClassPath() = classPath
+
+    override fun getSourcePath() = sourcePath
+
+    override fun getImplicitImports() = implicitImports
+
+    override fun getEditorReports() = editorReports
+
+    override fun getExceptions() = exceptions
+
+    override fun getEnclosingScriptProjectDir() = enclosingScriptProjectDir
+}
 
 
 internal
@@ -113,7 +125,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         }
     }
 
-    private
+    internal
     fun kotlinBuildScriptModelFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter) =
         scriptModelBuilderFor(modelRequestProject as ProjectInternal, parameter).buildModel()
 
@@ -152,8 +164,8 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     private
     fun requestParameterOf(modelRequestProject: Project) =
         KotlinBuildScriptModelParameter(
-            modelRequestProject.findProperty(kotlinBuildScriptModelTarget) as? String,
-            modelRequestProject.findProperty(kotlinBuildScriptModelCorrelationId) as? String
+            (modelRequestProject.findProperty(KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME) as? String)?.let(::canonicalFile),
+            modelRequestProject.findProperty(KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME) as? String
         )
 
     private
@@ -446,11 +458,6 @@ data class KotlinScriptTargetModelBuilder(
 
 
 private
-val KotlinBuildScriptModelParameter.scriptFile
-    get() = scriptPath?.let { canonicalFile(it) }
-
-
-private
 val Settings.scriptCompilationClassPath
     get() = serviceOf<KotlinScriptClassPathProvider>().safeCompilationClassPathOf(classLoaderScope, false) {
         (this as SettingsInternal).gradle
@@ -516,6 +523,6 @@ val Project.isLocationAwareEditorHintsEnabled: Boolean
     get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
 
 
-private
+internal
 fun canonicalFile(path: String): File =
     File(path).canonicalFile

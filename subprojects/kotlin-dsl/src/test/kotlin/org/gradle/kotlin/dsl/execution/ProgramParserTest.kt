@@ -35,6 +35,9 @@ class ProgramParserTest {
     @Test
     fun `empty Stage 1 with empty Stage 2 parse to empty program`() {
 
+        assertEmptyProgram("pluginManagement {}", programTarget = ProgramTarget.Settings)
+        assertEmptyProgram("plugins {}", programTarget = ProgramTarget.Settings)
+        assertEmptyProgram("initscript {}", programTarget = ProgramTarget.Gradle)
         assertEmptyProgram("buildscript {}")
         assertEmptyProgram("plugins {}")
         assertEmptyProgram("buildscript {}\r\nplugins {}")
@@ -96,7 +99,7 @@ class ProgramParserTest {
             print("stage 2")
         """.replaceIndent())
 
-        val expectedScript =
+        val expectedScript = "" +
             "                                              \n" +
             "                                      \n" +
             "print(\"stage 2\")"
@@ -105,6 +108,7 @@ class ProgramParserTest {
             source,
             Program.Staged(
                 Program.Stage1Sequence(
+                    null,
                     Program.Buildscript(source.fragment(0..10, 12..45)),
                     Program.Plugins(source.fragment(47..53, 55..84))
                 ),
@@ -138,6 +142,36 @@ class ProgramParserTest {
                 Program.Script(source.map { scriptText })
             ),
             programTarget = ProgramTarget.Gradle)
+    }
+
+    @Test
+    fun `buildscript followed by pluginManagement block followed by plugins block followed by script body`() {
+
+        val source = ProgramSource(
+            "settings.gradle.kts", """
+            pluginManagement { println("stage 1 pluginManagement") }
+            buildscript { println("stage 1 buildscript") }
+            plugins { println("stage 1 plugins") }
+            print("stage 2")
+        """.replaceIndent())
+
+        val expectedScript = "" +
+            "                                                        \n" +
+            "                                              \n" +
+            "                                      \n" +
+            "print(\"stage 2\")"
+
+        assertProgramOf(
+            source,
+            Program.Staged(
+                Program.Stage1Sequence(
+                    Program.PluginManagement(source.fragment(0..15, 17..55)),
+                    Program.Buildscript(source.fragment(57..67, 69..102)),
+                    Program.Plugins(source.fragment(104..110, 112..141))
+                ),
+                Program.Script(source.map { text(expectedScript) })),
+            programTarget = ProgramTarget.Settings
+        )
     }
 
     @Test
@@ -176,6 +210,7 @@ class ProgramParserTest {
             source,
             Program.Staged(
                 Program.Stage1Sequence(
+                    null,
                     Program.Buildscript(source.fragment(79..89, 91..207)),
                     Program.Plugins(source.fragment(13..19, 21..64))
                 ),
@@ -183,8 +218,8 @@ class ProgramParserTest {
     }
 
     private
-    fun assertEmptyProgram(contents: String) {
-        assertProgramOf(programSourceWith(contents), Program.Empty)
+    fun assertEmptyProgram(contents: String, programTarget: ProgramTarget = ProgramTarget.Project) {
+        assertProgramOf(programSourceWith(contents), Program.Empty, programTarget = programTarget)
     }
 
     private

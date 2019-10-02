@@ -18,7 +18,7 @@ See <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the Java plugin
 .Configurations use declared dependencies for specific purposes
 image::dependency-management-configurations.png[]
 
-For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, see <<working_with_dependencies.adoc#working_with_dependencies,Working with Dependencies>>.
+For more examples on the usage of configurations to navigate, inspect and post-process metadata and artifacts of assigned dependencies, have a look at the <<dependency_resolution.adoc#sec:programmatic_api,resolution result APIs>>.
 
 [[sub:config-inheritance-composition]]
 === Configuration inheritance and composition
@@ -57,6 +57,7 @@ In the end, what we want to make a difference is between a _consumer_ and a _pro
 1. to declare dependencies
 2. as a _consumer_, to resolve a set of dependencies to files
 3. as a _producer_, to expose artifacts and their dependencies for consumption by other projects
+   (such _consumable_ configurations usually represent the <<variant_model.adoc#,variants>> the producer offers to its consumers)
 
 For example, if I want to express that my application `app` _depends on_ library `lib`, we need _at least_ one configuration:
 

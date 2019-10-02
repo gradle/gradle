@@ -600,7 +600,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
     def "can publish java-library with capabilities"() {
         given:
         createBuildScripts("""
-
             configurations.api.outgoing.capability 'org:foo:1.0'
             configurations.implementation.outgoing.capability 'org:bar:1.0'
 
@@ -617,7 +616,21 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         run "publish"
 
         then:
-        outputContains('Declares capability org:foo:1.0')
+        outputContains '''
+Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetadataWarningsFor(variant)'):
+  - Variant apiElements:
+      - Declares capability org:foo:1.0 which cannot be mapped to Maven'''
+        outputContains '''
+  - Variant runtimeElements:
+      - Declares capability org:bar:1.0 which cannot be mapped to Maven
+      - Declares capability org:foo:1.0 which cannot be mapped to Maven'''
+
+        for (def feature : features().findAll { it != MavenJavaModule.MAIN_FEATURE }) {
+            outputContains """
+  - Variant ${feature}SourceSetApiElements:
+      - Declares capability org.gradle.test:publishTest-${feature}:1.9 which cannot be mapped to Maven"""
+        }
+
         javaLibrary.assertPublished()
 
         and:
@@ -628,6 +641,50 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
         javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
             capability('org', 'foo', '1.0')
+            capability('org', 'bar', '1.0')
+            noMoreCapabilities()
+        }
+    }
+
+    def "does not warn for the default capability if it was declared explicitly"() {
+        given:
+        createBuildScripts("""
+            configurations.api.outgoing.capability 'org.gradle.test:publishTest:1.9'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """)
+
+        when:
+        run "publish"
+
+        then:
+        outputContains '''
+  - Variant runtimeElements:
+      - Declares capability org:bar:1.0 which cannot be mapped to Maven
+'''
+        for (def feature : features().findAll { it != MavenJavaModule.MAIN_FEATURE }) {
+            outputContains """
+  - Variant ${feature}SourceSetApiElements:
+      - Declares capability org.gradle.test:publishTest-${feature}:1.9 which cannot be mapped to Maven"""
+        }
+
+        javaLibrary.assertPublished()
+
+        and:
+        javaLibrary.parsedModuleMetadata.variant("apiElements") {
+            capability('org.gradle.test', 'publishTest', '1.9')
+            noMoreCapabilities()
+        }
+
+        javaLibrary.parsedModuleMetadata.variant("runtimeElements") {
+            capability('org.gradle.test', 'publishTest', '1.9')
             capability('org', 'bar', '1.0')
             noMoreCapabilities()
         }

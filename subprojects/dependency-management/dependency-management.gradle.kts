@@ -89,6 +89,7 @@ dependencies {
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
     integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":pluginDevelopment"))
 
     testFixturesApi(project(":baseServices")) {
         because("Test fixtures export the Action class")

@@ -46,6 +46,10 @@ class PluginBuilder {
         this.projectDir = projectDir
     }
 
+    TestFile getBuildFile() {
+        file("build.gradle")
+    }
+
     TestFile file(String path) {
         projectDir.file(path)
     }
@@ -65,28 +69,31 @@ class PluginBuilder {
     @SuppressWarnings("GrMethodMayBeStatic")
     String generateManagedBuildScript() {
         """
+            apply plugin: "java-gradle-plugin"
             apply plugin: "groovy"
             dependencies {
               implementation localGroovy()
-              implementation gradleApi()
             }
+            group = "${packageName}"
+            version = "1.0"
         """
     }
 
-    String generateBuildScript(String additions = "") {
-        file("build.gradle").text = (generateManagedBuildScript() + additions)
+    void prepareToExecute() {
+        buildFile << generateManagedBuildScript()
+        buildFile << getPluginDescriptors(pluginIds)
+        projectDir.file('settings.gradle').write("")
     }
 
     void publishTo(GradleExecuter executer, TestFile testFile, String buildScript = "") {
-        generateBuildScript buildScript + """
+        prepareToExecute()
+        buildFile << buildScript
+        buildFile << """
             jar {
                 archiveFileName = "$testFile.name"
                 destinationDirectory = file("${TextUtil.escapeString(testFile.parentFile.absolutePath)}")
             }
         """
-
-        writePluginDescriptors(pluginIds)
-        projectDir.file('settings.gradle').write('')
         executer.inDirectory(projectDir).withTasks("jar").run()
     }
 
@@ -144,19 +151,19 @@ class PluginBuilder {
     }
 
     void generateForBuildSrc() {
-        generateBuildScript()
-        writePluginDescriptors(pluginIds)
+        prepareToExecute()
     }
 
-    protected void writePluginDescriptors(Map<String, String> pluginIds) {
-        descriptorsDir.deleteDir()
-        pluginIds.each { id, className ->
-            descriptorsDir.file("${id}.properties") << "implementation-class=${packageName}.${className}"
-        }
-    }
-
-    TestFile getDescriptorsDir() {
-        file("src/main/resources/META-INF/gradle-plugins")
+    protected String getPluginDescriptors(Map<String, String> pluginIds) {
+        return """
+            gradlePlugin {
+                plugins {
+                    ${pluginIds.collect { id, className ->
+                        "'${id}' { id='${id}'; implementationClass='${packageName}.${className}' }"
+                    }.join("\n")}
+                }
+            }
+        """
     }
 
     PluginBuilder addPluginSource(String id, String className, String impl) {
@@ -190,6 +197,7 @@ class PluginBuilder {
         """)
         this
     }
+
     PluginBuilder addUnloadablePlugin(String id = "test-plugin", String className = "TestPlugin") {
         addPluginSource(id, className, """
             ${packageName ? "package $packageName" : ""}

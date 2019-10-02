@@ -146,21 +146,14 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
                 group = 'org.test'
                 version = '1.0'
             }
-        """, "com.example.MyPlugin", "MyPlugin"
-
-
-        def pluginJar = file("plugin.jar")
-        pluginBuilder.publishTo(executer, pluginJar)
+        """, "org.gradle.test.MyPlugin", "MyPlugin"
+        pluginBuilder.prepareToExecute()
 
         settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath files("$pluginJar.name")
-                }
-            }
+            includeBuild("plugin")
         """
 
-        mappingFor(repo, "org.test:dep", 'plugins { id("com.example.MyPlugin") }')
+        mappingFor(repo, "org.test:dep", 'plugins { id("org.gradle.test.MyPlugin") }')
 
         expect:
         succeeds('assemble')
@@ -173,27 +166,21 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
             project.apply plugin: 'java'
             project.group = 'org.test'
             project.version = '1.0'
-        """, "com.example.MyProjectPlugin", "MyProjectPlugin"
+        """, "org.gradle.test.MyProjectPlugin", "MyProjectPlugin"
 
         pluginBuilder.addSettingsPlugin """
             settings.gradle.allprojects {
                 apply plugin: MyProjectPlugin
             }
-        """, "com.example.MySettingsPlugin", "MySettingsPlugin"
+        """, "org.gradle.test.MySettingsPlugin", "MySettingsPlugin"
 
-
-        def pluginJar = file("plugin.jar")
-        pluginBuilder.publishTo(executer, pluginJar)
+        pluginBuilder.prepareToExecute()
 
         settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath files("$pluginJar.name")
-                }
-            }
+            includeBuild("plugin")
         """
 
-        mappingFor(repo, "org.test:dep", 'plugins { id("com.example.MySettingsPlugin") }')
+        mappingFor(repo, "org.test:dep", 'plugins { id("org.gradle.test.MySettingsPlugin") }')
 
         expect:
         succeeds('assemble')
@@ -206,7 +193,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         expect:
         fails('assemble')
         assertRepoCheckedOut()
-        failure.assertHasCause("Plugin with id 'com.example.DoesNotExist' not found.")
+        failure.assertHasDescription("Plugin [id: 'com.example.DoesNotExist'] was not found in any of the following sources:")
     }
 
     def 'can build from sub-directory of repository'() {

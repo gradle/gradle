@@ -19,7 +19,7 @@
 [[sec:gradle_documentation]]
 == Gradle Documentation
 
-_Copyright © 2007-2018 Gradle, Inc._
+_Copyright © 2007-2019 Gradle, Inc._
 
 Gradle build tool source code is open-source and licensed under the link:https://github.com/gradle/gradle/blob/master/LICENSE[Apache License 2.0].
 

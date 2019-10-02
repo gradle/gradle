@@ -39,9 +39,9 @@ import java.util.List;
  */
 public class RedirectingGradleMetadataModuleMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
     private final MetadataSource<?> delegate;
-    private final DefaultGradleModuleMetadataSource gradleModuleMetadataSource;
+    private final MetadataSource<MutableModuleComponentResolveMetadata> gradleModuleMetadataSource;
 
-    public RedirectingGradleMetadataModuleMetadataSource(MetadataSource<?> delegate, DefaultGradleModuleMetadataSource gradleModuleMetadataSource) {
+    public RedirectingGradleMetadataModuleMetadataSource(MetadataSource<?> delegate, MetadataSource<MutableModuleComponentResolveMetadata> gradleModuleMetadataSource) {
         this.delegate = delegate;
         this.gradleModuleMetadataSource = gradleModuleMetadataSource;
     }

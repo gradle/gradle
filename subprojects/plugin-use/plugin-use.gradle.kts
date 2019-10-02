@@ -38,6 +38,7 @@ dependencies {
     testImplementation(testFixtures(project(":resourcesHttp")))
 
     integTestImplementation(project(":baseServicesGroovy"))
+    integTestImplementation(library("jetbrains_annotations"))
 
     integTestRuntimeOnly(project(":plugins"))
     integTestRuntimeOnly(project(":pluginDevelopment"))

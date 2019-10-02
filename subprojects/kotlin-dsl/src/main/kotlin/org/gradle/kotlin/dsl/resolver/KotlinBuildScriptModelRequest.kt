@@ -16,11 +16,11 @@
 
 package org.gradle.kotlin.dsl.resolver
 
-import org.gradle.kotlin.dsl.provider.KotlinDslProviderMode
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.isParentOf
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
@@ -35,7 +35,7 @@ import java.util.function.Function
 @VisibleForTesting
 sealed class GradleInstallation {
 
-    data class Local(val dir: java.io.File) : GradleInstallation()
+    data class Local(val dir: File) : GradleInstallation()
 
     data class Remote(val uri: java.net.URI) : GradleInstallation()
 
@@ -67,15 +67,10 @@ internal
 typealias ModelBuilderCustomization = ModelBuilder<KotlinBuildScriptModel>.() -> Unit
 
 
-@VisibleForTesting
-fun fetchKotlinBuildScriptModelFor(
-    request: KotlinBuildScriptModelRequest,
-    modelBuilderCustomization: ModelBuilderCustomization = {}
-): KotlinBuildScriptModel =
-
+internal
+fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): KotlinBuildScriptModel =
     fetchKotlinBuildScriptModelFor(request.toFetchParametersWith {
         setJavaHome(request.javaHome)
-        modelBuilderCustomization()
     })
 
 
@@ -181,32 +176,18 @@ private
 fun ProjectConnection.modelBuilderFor(parameters: FetchParameters) =
     model(KotlinBuildScriptModel::class.java).apply {
         setEnvironmentVariables(parameters.environmentVariables.takeIf { it.isNotEmpty() })
-        setJvmArguments(parameters.jvmOptions + modelSpecificJvmOptions)
-        forTasks(kotlinBuildScriptModelTask)
+        setJvmArguments(parameters.jvmOptions + KotlinDslModelsParameters.CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION)
+        forTasks(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
 
         val arguments = parameters.options.toMutableList()
-        arguments += "-P$kotlinBuildScriptModelCorrelationId=${parameters.correlationId}"
+        arguments += "-P${KotlinDslModelsParameters.CORRELATION_ID_GRADLE_PROPERTY_NAME}=${parameters.correlationId}"
 
         parameters.scriptFile?.let {
-            arguments += "-P$kotlinBuildScriptModelTarget=${it.canonicalPath}"
+            arguments += "-P${KotlinBuildScriptModel.SCRIPT_GRADLE_PROPERTY_NAME}=${it.canonicalPath}"
         }
 
         withArguments(arguments)
     }
-
-
-private
-val modelSpecificJvmOptions =
-    listOf("-D${KotlinDslProviderMode.systemPropertyName}=${KotlinDslProviderMode.classPathMode}")
-
-
-const val kotlinBuildScriptModelTarget = "org.gradle.kotlin.dsl.provider.script"
-
-
-const val kotlinBuildScriptModelCorrelationId = "org.gradle.kotlin.dsl.provider.cid"
-
-
-const val kotlinBuildScriptModelTask = "prepareKotlinBuildScriptModel"
 
 
 private

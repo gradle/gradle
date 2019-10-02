@@ -16,8 +16,7 @@
 
 package org.gradle.initialization.definition;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
@@ -27,12 +26,6 @@ import java.util.List;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class InjectedPluginResolver {
-    private final ClassLoaderScope classLoaderScope;
-
-    public InjectedPluginResolver(ClassLoaderScope classLoaderScope) {
-        this.classLoaderScope = classLoaderScope;
-    }
-
     public PluginRequests resolveAll(List<DefaultInjectedPluginDependency> requests) {
         if (requests.isEmpty()) {
             return DefaultPluginRequests.EMPTY;
@@ -41,11 +34,6 @@ public class InjectedPluginResolver {
     }
 
     private List<PluginRequestInternal> convert(List<DefaultInjectedPluginDependency> requests) {
-        return collect(requests, new Transformer<PluginRequestInternal, DefaultInjectedPluginDependency>() {
-            @Override
-            public PluginRequestInternal transform(DefaultInjectedPluginDependency original) {
-                return new SelfResolvingPluginRequest(original.getId(), classLoaderScope);
-            }
-        });
+        return collect(requests, original -> new DefaultPluginRequest(original.getId(), null, true, null, null));
     }
 }

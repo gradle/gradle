@@ -32,7 +32,6 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.definition.InjectedPluginResolver;
 import org.gradle.internal.Pair;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.PublicBuildPath;
@@ -70,17 +69,15 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VcsResolver vcsResolver;
     private final VersionControlRepositoryConnectionFactory versionControlSystemFactory;
     private final VcsVersionWorkingDirResolver workingDirResolver;
-    private final BuildState containingBuild;
     private final PublicBuildPath publicBuildPath;
     private final BuildStateRegistry buildRegistry;
 
-    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver, BuildState containingBuild, PublicBuildPath publicBuildPath) {
+    public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver, PublicBuildPath publicBuildPath) {
         this.localComponentRegistry = localComponentRegistry;
         this.vcsResolver = vcsResolver;
         this.versionControlSystemFactory = versionControlSystemFactory;
         this.buildRegistry = buildRegistry;
         this.workingDirResolver = workingDirResolver;
-        this.containingBuild = containingBuild;
         this.publicBuildPath = publicBuildPath;
     }
 
@@ -115,7 +112,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     public boolean isSatisfiedBy(Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry) {
                         ModuleVersionIdentifier possibleMatch = entry.left;
                         return depSelector.getGroup().equals(possibleMatch.getGroup())
-                            && depSelector.getModule().equals(possibleMatch.getName());
+                                && depSelector.getModule().equals(possibleMatch.getName());
                     }
                 });
                 if (entry == null) {
@@ -129,7 +126,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     }
 
     private BuildDefinition toBuildDefinition(AbstractVersionControlSpec spec, File buildDirectory) {
-        InjectedPluginResolver resolver = new InjectedPluginResolver(containingBuild.getLoadedSettings().getClassLoaderScope());
+        InjectedPluginResolver resolver = new InjectedPluginResolver();
         return BuildDefinition.fromStartParameterForBuild(buildRegistry.getRootBuild().getStartParameter(), null, buildDirectory, resolver.resolveAll(spec.getInjectedPlugins()), publicBuildPath);
     }
 
