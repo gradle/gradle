@@ -421,7 +421,6 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         assertUndecoratedImplicitReceiverOf<Gradle>("my-init-plugin.init.gradle.kts")
     }
 
-    @Ignore("wip")
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 

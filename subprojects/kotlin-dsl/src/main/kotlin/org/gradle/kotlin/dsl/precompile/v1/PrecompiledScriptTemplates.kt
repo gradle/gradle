@@ -24,6 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
+import org.gradle.api.plugins.PluginAware
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
@@ -129,7 +130,7 @@ open class PrecompiledSettingsScript(
 @GradleDsl
 open class PrecompiledProjectScript(
     private val target: Project
-) : DefaultKotlinScript(defaultKotlinScriptHostForProject(target)) {
+) : DefaultKotlinScript(defaultKotlinScriptHostForProject(target)), PluginAware by target {
 
     /**
      * Configures the build script classpath for this project.
