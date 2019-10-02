@@ -193,7 +193,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         expect:
         fails('assemble')
         assertRepoCheckedOut()
-        failure.assertHasCause("Plugin with id 'com.example.DoesNotExist' not found.")
+        failure.assertHasDescription("Plugin [id: 'com.example.DoesNotExist'] was not found in any of the following sources:")
     }
 
     def 'can build from sub-directory of repository'() {

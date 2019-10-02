@@ -36,6 +36,6 @@ public class InjectedPluginResolver {
     }
 
     private List<PluginRequestInternal> convert(List<DefaultInjectedPluginDependency> requests) {
-        return collect(requests, original -> new DefaultPluginRequest(original.getId(), null, true, null, "injected plugin by outer build"));
+        return collect(requests, original -> new DefaultPluginRequest(original.getId(), null, true, null, null));
     }
 }
