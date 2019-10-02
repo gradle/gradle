@@ -19,8 +19,6 @@ package org.gradle.api.initialization.definition;
 /**
  * The DSL for declaring plugins to inject into an included build.
  *
- * TODO: Plugins need to be located in this build's buildSrc.
- *
  * @since 4.6
  */
 public interface InjectedPluginDependencies {

@@ -578,7 +578,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public ExecutionResult assertTasksExecuted(Object... taskPaths) {
             Set<String> flattenedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
-            assertEquals(new TreeSet<>(executedTasks), new TreeSet<>(flattenedTasks));
+            assertEquals(new TreeSet<>(flattenedTasks), new TreeSet<>(executedTasks));
             outputResult.assertTasksExecuted(flattenedTasks);
             return this;
         }
@@ -716,7 +716,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             if (count == 1) {
                 assertFalse(failure instanceof MultipleBuildFailures);
             } else {
-                assertEquals(((MultipleBuildFailures) failure).getCauses().size(), count);
+                assertEquals(count, ((MultipleBuildFailures) failure).getCauses().size());
             }
             return this;
         }

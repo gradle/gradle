@@ -47,7 +47,7 @@ public interface PluginResolutionResult {
      * <p>
      * If a plugin is found, no further resolvers will be queried.
      *
-     * @param sourceDescription a description of the source of plugins, where the plugin requested could not be found
+     * @param sourceDescription a description of the source of plugins, where the plugin requested could be found
      * @param pluginResolution the plugin resolution
      */
     void found(String sourceDescription, PluginResolution pluginResolution);
