@@ -435,7 +435,6 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                     apply { plugin<ProjectPlugin>() }
                 }
             """)
-
         }
 
         val pluginRepositoriesBlock = repositoriesBlockFor(pluginsRepository)
