@@ -369,6 +369,38 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.isInteractive()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.isRecompileScripts()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.setInteractive(boolean)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.StartParameter",
+            "member": "Method org.gradle.StartParameter.setRecompileScripts(boolean)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
