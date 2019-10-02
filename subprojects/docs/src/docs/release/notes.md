@@ -1,6 +1,11 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features [vastly improved feature set in dependency management](#improved-dependency-management-feature-set), [support for running Gradle with Java 13](#support-for-java-13-ea), [built-in packaging and publishing of javadoc and sources](#javadoc-and-sources-packaging-and-publishing-is-now-a-built-in-feature-of-the-java-plugins), ... [n](), and more.
+
+The release notes list what's new since Gradle 5.6.
+You can review the [highlights since Gradle 5.0 here](https://gradle.org/whats-new/gradle-6/).
+
+Read the [Gradle 6.0 upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
 
 We would like to thank the following community contributors to this release of Gradle:
 [Nathan Strong](https://github.com/NathanStrong-Tripwire),
@@ -64,22 +69,55 @@ Earlier AGP versions are not supported.
 * Kotlin versions between 1.3.21 and 1.3.50 are tested.
 Earlier Kotlin versions are not supported.
 
-## Endorse strict versions from platforms by default
+## Improved Dependency Management feature set
 
-When depending on a platform component, Gradle will automatically _endorse_ strict versions from the platform.
-This means that all _strict_ constraints defined in the platform will automatically be added to your dependency graph _as if they were first level constraints_.
-This behavior can be opted out by calling the `doNotEndorseStrictVersions()` method:
+Note that some of the features below were released in stages in Gradle versions before 6.0.
+However, with Gradle 6.0 they are now stable, production ready and available between projects _and_ binary dependencies.
 
-```
-dependencies {
-    implementation(platform(project(':platform'))) {
-       doNotEndorseStrictVersions()
-    }
-    ...
-}
-```
+### Rich versions declaration
 
-More information about [strict version constraints](userguide/rich_versions.adoc#rich-version-constraints) can be found in the documentation.
+When declaring a dependency version, [more context](userguide/rich_versions.html) can be provided, including preferences within ranges, strict requirements (including downgrades), rejected versions and human readable descriptions for why a dependency is used.
+
+### Dependency constraints
+
+Enables [influencing the version](userguide/dependency_constraints.html) of transitive dependencies.
+
+### Capabilities
+
+Gives the ability to [configure](userguide/component_capabilities.html), [detect and resolve implementation conflicts](userguide/dependency_capability_conflict.html).
+A well-known example in the JVM world: competing logging implementations.
+
+### Support for platforms
+
+Offers an easy way to [recommend and share versions](userguide/platforms.html) between projects.
+With native Gradle platforms, rich versions declaration is available and strict versions are endorsed.
+Projects can also leverage the [integration with Maven BOMs](userguide/platforms.html#sub:bom_import).
+
+### Alignment of dependency versions
+
+Provides the ability to declare that a set of dependencies belong together and need to be [aligned](userguide/dependency_version_alignment.html).
+A well-known example in the JVM world: the Jackson library and its many parts.
+
+### Feature variants instead of optional dependencies
+
+Provides the ability to model [optional features](userguide/feature_variants.html) of a library, each with their own dependencies
+
+### First class test fixtures support
+
+Allows to [create and publish test fixtures](userguide/java_testing.html#sec:java_test_fixtures), enabling their consumption in other projects
+
+### Publishing and consuming Gradle Module Metadata
+
+The [publication of Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) is now the default when using the `maven-publish` or `ivy-publish` plugins.
+
+### Component Metadata Rules
+
+Allows you to [enrich traditional metadata](userguide/component_metadata_rules.html) with information that could not be published before (dependency constraints, rich versions, capabilities, …).
+Includes the possibility to [add Gradle variants](userguide/component_metadata_rules.html#making_variants_published_as_classified_jars_explicit), mapping to additional published artifacts.
+
+### Improved documentation
+
+Dependency management documentation has been reorganised and structured around use cases to help users find the information they need faster.
 
 ## Support for Java 13 EA
 
