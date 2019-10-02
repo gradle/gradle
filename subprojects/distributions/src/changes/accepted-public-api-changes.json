@@ -321,6 +321,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.dsl.ConventionProperty",
+            "member": "Class org.gradle.api.dsl.ConventionProperty",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.dsl.ConventionProperty",
+            "member": "Constructor org.gradle.api.dsl.ConventionProperty()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
