@@ -226,6 +226,35 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivy", "module.json.asc").text
     }
 
+    def "disallows signing Gradle metadata if version is a snapshot"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+            ${keyInfo.addAsPropertiesScript()}
+
+            version = '1.0-SNAPSHOT'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications.maven
+            }
+        """
+
+        when:
+        fails "signMavenPublication"
+
+        then:
+        failure.assertHasCause("Signing Gradle Module Metadata is not supported for snapshot dependencies.")
+    }
+
     def "publishes signature files for Maven publication"() {
         given:
         buildFile << """
