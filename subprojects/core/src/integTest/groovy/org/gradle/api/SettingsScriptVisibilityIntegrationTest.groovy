@@ -25,7 +25,7 @@ class SettingsScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @org.junit.Rule
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
-    def "classes loaded in settings are not visible to buildSrc and are visible to build"() {
+    def "classes loaded in settings are visible to buildSrc build scripts and project scripts"() {
         def plugin1Builder = new PluginBuilder(file("plugin1"))
         plugin1Builder.addSettingsPlugin("", "test.plugin1", "MySettingsPlugin1")
         def plugin1Jar = file("plugin1.jar")
