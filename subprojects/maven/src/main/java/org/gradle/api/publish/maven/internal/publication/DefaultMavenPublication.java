@@ -329,7 +329,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
             }
         }
         if (!silenceAllPublicationWarnings) {
-            publicationWarningsCollector.complete(getDisplayName() + "pom metadata", silencedVariants);
+            publicationWarningsCollector.complete(getDisplayName() + " pom metadata", silencedVariants);
         }
     }
 

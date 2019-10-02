@@ -65,7 +65,7 @@ public class PublicationWarningsCollector {
                 treeFormatter.node("Variant " + entry.getKey() + ":");
                 treeFormatter.startChildren();
                 if (warnings.getVariantUnsupported() != null) {
-                    treeFormatter.node(warnings.getVariantUnsupported());
+                    warnings.getVariantUnsupported().forEach(treeFormatter::node);
                 }
                 if (warnings.getUnsupportedUsages() != null) {
                     treeFormatter.node(unsupportedFeature);
