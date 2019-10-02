@@ -25,10 +25,8 @@ import org.gradle.plugin.use.PluginDependencySpec
 
 /**
  * Legacy script template definition for precompiled Kotlin scripts targeting [Project] instances.
- *
- * Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0.
  */
-@Deprecated("Kept for backward compatibility")
+@Deprecated("Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0")
 open class PrecompiledProjectScript(
     override val delegate: Project
 ) : ProjectDelegate() {

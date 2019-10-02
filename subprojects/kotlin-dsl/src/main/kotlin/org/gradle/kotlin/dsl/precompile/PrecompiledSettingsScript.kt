@@ -25,11 +25,9 @@ import org.gradle.kotlin.dsl.support.serviceOf
 /**
  * Legacy script template definition for precompiled Kotlin script targeting [Settings] instances.
  *
- * Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0.
- *
  * @see PrecompiledProjectScript
  */
-@Deprecated("Kept for backward compatibility")
+@Deprecated("Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0")
 open class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target) {
 
     override val fileOperations by lazy { fileOperationsFor(delegate) }
