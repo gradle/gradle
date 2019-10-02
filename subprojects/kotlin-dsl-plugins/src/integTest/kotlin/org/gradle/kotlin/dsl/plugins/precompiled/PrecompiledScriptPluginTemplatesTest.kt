@@ -21,6 +21,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.bundling.Jar
 
+import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.assertFailsWith
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
@@ -40,6 +41,8 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.name.NameUtils
 
 import org.junit.Test
+
+import java.io.File
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -231,14 +234,14 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                     classpath(files("${movedPluginJar.name}"))
                 }
             }
-            
+
             gradle.apply<MyInitPluginPlugin>()
             apply(plugin = "my-settings-plugin")
         """)
 
         withFile("buildSrc/build.gradle", """
             dependencies {
-                api files("../${movedPluginJar.name}")            
+                api files("../${movedPluginJar.name}")
             }
         """)
 
@@ -264,61 +267,28 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     @Test
     fun `precompiled script plugins can be published by maven-publish plugin`() {
 
-        withFolders {
+        val repository = newDir("repository")
 
-            "plugins" {
+        publishPluginsTo(repository) {
 
-                "src/main/kotlin" {
+            withFile("my-plugin.gradle.kts", """
+                println("my-plugin applied!")
+            """)
 
-                    withFile("my-plugin.gradle.kts", """
-                        println("my-plugin applied!")
-                    """)
+            withFile("org/acme/my-other-plugin.gradle.kts", """
+                package org.acme
 
-                    withFile("org/acme/my-other-plugin.gradle.kts", """
-                        package org.acme
+                println("org.acme.my-other-plugin applied!")
+            """)
 
-                        println("org.acme.my-other-plugin applied!")
-                    """)
+            withFile("org/acme/plugins/my-init.init.gradle.kts", """
+                package org.acme.plugins
 
-                    withFile("org/acme/plugins/my-init.init.gradle.kts", """
-
-                        package org.acme.plugins
-
-                        println("org.acme.plugins.my-init applied!")
-                    """)
-                }
-
-                withFile("settings.gradle.kts", defaultSettingsScript)
-
-                withFile("build.gradle.kts", """
-
-                    plugins {
-                        `kotlin-dsl`
-                        `maven-publish`
-                    }
-
-                    group = "org.acme"
-
-                    version = "0.1.0"
-
-                    $repositoriesBlock
-
-                    publishing {
-                        repositories {
-                            maven(url = "../repository")
-                        }
-                    }
-                """)
-            }
+                println("org.acme.plugins.my-init applied!")
+            """)
         }
 
-        build(existing("plugins"), "publish")
-
-        val repositoriesBlock = """
-            repositories {
-                maven { url = uri("./repository") }
-            }
-        """
+        val repositoriesBlock = repositoriesBlockFor(repository)
 
         withSettings("""
             pluginManagement {
@@ -328,8 +298,8 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
 
         withBuildScript("""
             plugins {
-                id("my-plugin") version "0.1.0"
-                id("org.acme.my-other-plugin") version "0.1.0"
+                id("my-plugin") version "1.0"
+                id("org.acme.my-other-plugin") version "1.0"
             }
         """)
 
@@ -339,7 +309,7 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 initscript {
                     $repositoriesBlock
                     dependencies {
-                        classpath("org.acme:plugins:0.1.0")
+                        classpath("org.acme:plugins:1.0")
                     }
                 }
 
@@ -423,39 +393,78 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
-        withKotlinBuildSrc()
+        val pluginsRepository = newDir("repository")
 
-        withFile("buildSrc/src/main/kotlin/my-project-plugin.gradle.kts", """
+        publishPluginsTo(pluginsRepository) {
 
-            open class ProjectPlugin : Plugin<Project> {
-                override fun apply(target: Project) {
-                    target.task("run") {
-                        doLast { println(target.name + ":42") }
+            withFile("MyInit.init.gradle.kts", """
+
+                open class GradlePlugin : Plugin<Gradle> {
+                    override fun apply(target: Gradle) = println("Gradle!")
+                }
+
+                apply { plugin<GradlePlugin>() }
+
+            """)
+
+            withFile("MySettings.settings.gradle.kts", """
+
+                open class SettingsPlugin : Plugin<Settings> {
+                    override fun apply(target: Settings) = println("Settings!")
+                }
+
+                gradle.apply { plugin<MyInitPlugin>() }
+
+                apply { plugin<SettingsPlugin>() }
+
+            """)
+
+            withFile("MyProject.gradle.kts", """
+
+                open class ProjectPlugin : Plugin<Project> {
+                    override fun apply(target: Project) {
+                        target.task("run") {
+                            doLast { println("Project " + target.name + "!") }
+                        }
                     }
                 }
-            }
 
-            apply { plugin<ProjectPlugin>() }
-
-            subprojects {
                 apply { plugin<ProjectPlugin>() }
+
+                subprojects {
+                    apply { plugin<ProjectPlugin>() }
+                }
+            """)
+
+        }
+
+        val pluginRepositoriesBlock = repositoriesBlockFor(pluginsRepository)
+
+        withSettings("""
+            pluginManagement {
+                $pluginRepositoriesBlock
             }
+
+            plugins {
+                id("MySettings") version "1.0"
+            }
+
+            rootProject.name = "foo"
+
+            include("bar")
         """)
 
         withBuildScript("""
-            plugins { `my-project-plugin` }
-        """)
-
-        withSettings("""
-            rootProject.name = "foo"
-            include("bar")
+            plugins { id("MyProject") }
         """)
 
         assertThat(
             build("run", "-q").output,
             allOf(
-                containsString("foo:42"),
-                containsString("bar:42")
+                containsString("Gradle!"),
+                containsString("Settings!"),
+                containsString("Project foo!"),
+                containsString("Project bar!")
             )
         )
     }
@@ -539,6 +548,56 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
                 scriptClassNameForFile(fileName)
             )
         }
+    }
+
+    private
+    fun repositoriesBlockFor(repository: File): String = """
+        repositories {
+            maven { url = uri("${repository.toURI()}") }
+        }
+    """
+
+    private
+    fun publishPluginsTo(
+        repository: File,
+        group: String = "org.acme",
+        version: String = "1.0",
+        sourceFiles: FoldersDslExpression
+    ) {
+        withFolders {
+
+            "plugins" {
+
+                "src/main/kotlin" {
+                    sourceFiles()
+                }
+
+                withFile("settings.gradle.kts", defaultSettingsScript)
+
+                withFile("build.gradle.kts", """
+
+                    plugins {
+                        `kotlin-dsl`
+                        `maven-publish`
+                    }
+
+                    group = "$group"
+
+                    version = "$version"
+
+                    $repositoriesBlock
+
+                    publishing {
+                        ${repositoriesBlockFor(repository)}
+                    }
+                """)
+            }
+        }
+
+        build(
+            existing("plugins"),
+            "publish"
+        )
     }
 
     private

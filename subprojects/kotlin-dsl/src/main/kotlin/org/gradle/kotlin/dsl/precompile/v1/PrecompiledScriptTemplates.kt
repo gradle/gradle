@@ -63,7 +63,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @GradleDsl
 open class PrecompiledInitScript(
     target: Gradle
-) : DefaultKotlinScript(InitScriptHost(target)) {
+) : DefaultKotlinScript(InitScriptHost(target)), PluginAware by target {
 
     private
     class InitScriptHost(val gradle: Gradle) : Host {
@@ -89,7 +89,7 @@ open class PrecompiledInitScript(
 @GradleDsl
 open class PrecompiledSettingsScript(
     target: Settings
-) : DefaultKotlinScript(SettingsScriptHost(target)) {
+) : DefaultKotlinScript(SettingsScriptHost(target)), PluginAware by target {
 
     private
     class SettingsScriptHost(val settings: Settings) : Host {
