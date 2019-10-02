@@ -69,13 +69,13 @@ public class BuildSourceBuilder {
 
     public ClassLoaderScope buildAndCreateClassLoader(File rootDir, StartParameter containingBuildParameters, ClassLoaderScope parentClassLoaderScope) {
         File buildSrcDir = new File(rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR);
-        ClassPath classpath = createBuildSourceClasspath(buildSrcDir, containingBuildParameters);
+        ClassPath classpath = createBuildSourceClasspath(buildSrcDir, containingBuildParameters, parentClassLoaderScope);
         return parentClassLoaderScope.createChild(buildSrcDir.getAbsolutePath())
             .export(classpath)
             .lock();
     }
 
-    private ClassPath createBuildSourceClasspath(File buildSrcDir, final StartParameter containingBuildParameters) {
+    private ClassPath createBuildSourceClasspath(File buildSrcDir, final StartParameter containingBuildParameters, ClassLoaderScope parentClassLoaderScope) {
         if (!buildSrcDir.isDirectory()) {
             LOGGER.debug("Gradle source dir does not exist. We leave.");
             return ClassPath.EMPTY;
@@ -84,7 +84,7 @@ public class BuildSourceBuilder {
         final StartParameter buildSrcStartParameter = containingBuildParameters.newBuild();
         buildSrcStartParameter.setCurrentDir(buildSrcDir);
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
-        ((StartParameterInternal)buildSrcStartParameter).setSearchUpwardsWithoutDeprecationWarning(false);
+        ((StartParameterInternal) buildSrcStartParameter).setSearchUpwardsWithoutDeprecationWarning(false);
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
         final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(buildSrcStartParameter, "buildSrc", buildSrcDir, publicBuildPath);
         assert buildSrcStartParameter.getBuildFile() == null;
@@ -92,7 +92,7 @@ public class BuildSourceBuilder {
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {
             @Override
             public ClassPath call(BuildOperationContext context) {
-                ClassPath classPath = buildBuildSrc(buildDefinition);
+                ClassPath classPath = buildBuildSrc(buildDefinition, parentClassLoaderScope);
                 context.setResult(BUILD_BUILDSRC_RESULT);
                 return classPath;
             }
@@ -112,17 +112,17 @@ public class BuildSourceBuilder {
         });
     }
 
-    private ClassPath buildBuildSrc(final BuildDefinition buildDefinition) {
+    private ClassPath buildBuildSrc(final BuildDefinition buildDefinition, ClassLoaderScope parentClassLoaderScope) {
         StandAloneNestedBuild nestedBuild = buildRegistry.addNestedBuild(buildDefinition, currentBuild);
         return nestedBuild.run(new Transformer<ClassPath, BuildController>() {
             @Override
             public ClassPath transform(BuildController buildController) {
+                // Expose any contributions from the parent's settings
+                buildController.getGradle().setClassLoaderScope(parentClassLoaderScope);
+
                 File lockTarget = new File(buildDefinition.getBuildRootDir(), ".gradle/noVersion/buildSrc");
-                FileLock lock = fileLockManager.lock(lockTarget, LOCK_OPTIONS, "buildSrc build lock");
-                try {
+                try (FileLock ignored = fileLockManager.lock(lockTarget, LOCK_OPTIONS, "buildSrc build lock")) {
                     return new BuildSrcUpdateFactory(buildController, buildSrcBuildListenerFactory, cachedClasspathTransformer).create();
-                } finally {
-                    lock.close();
                 }
             }
         });

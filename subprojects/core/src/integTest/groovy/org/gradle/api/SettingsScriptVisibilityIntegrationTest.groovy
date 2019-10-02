@@ -26,31 +26,62 @@ class SettingsScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def "classes loaded in settings are not visible to buildSrc and are visible to build"() {
-        def pluginBuilder = new PluginBuilder(file("plugin"))
-        pluginBuilder.addSettingsPlugin("", "test.plugin", "MySettingsPlugin")
-        def pluginJar = file("plugin.jar")
-        pluginBuilder.publishTo(executer, pluginJar)
-        def pluginClassName = "${pluginBuilder.packageName}.MySettingsPlugin"
+        def plugin1Builder = new PluginBuilder(file("plugin1"))
+        plugin1Builder.addSettingsPlugin("", "test.plugin1", "MySettingsPlugin1")
+        def plugin1Jar = file("plugin1.jar")
+        plugin1Builder.publishTo(executer, plugin1Jar)
+        def plugin1ClassName = "${plugin1Builder.packageName}.MySettingsPlugin1"
 
-        settingsFile << "buildscript { dependencies { classpath files(\"plugin.jar\") } }"
-        file("buildSrc/build.gradle") << """
-            try {
-               getClass().classLoader.loadClass('${pluginClassName}')
-            } catch (ClassNotFoundException e) {
-                println "buildSrc: not visible"    
-            }
+        def plugin2Builder = new PluginBuilder(file("plugin2"))
+        plugin2Builder.addSettingsPlugin("", "test.plugin2", "MySettingsPlugin2")
+        def plugin2Jar = file("plugin2.jar")
+        plugin2Builder.publishTo(executer, plugin2Jar)
+        def plugin2ClassName = "${plugin2Builder.packageName}.MySettingsPlugin2"
+
+        settingsFile << """
+            buildscript { dependencies { classpath files(\"${plugin1Jar.name}\") } }
+
+            getClass().classLoader.loadClass('${plugin1ClassName}')
+            println "settings: plugin 1 visible"    
         """
+
+        file("buildSrc/settings.gradle") << """
+            buildscript { dependencies { classpath files(\"../${plugin2Jar.name}\") } }
+
+            getClass().classLoader.loadClass('${plugin1ClassName}')
+            println "buildSrc settings: plugin 1 visible"    
+            getClass().classLoader.loadClass('${plugin2ClassName}')
+            println "buildSrc settings: plugin 2 visible"
+        """
+
+        file("buildSrc/build.gradle") << """
+            getClass().classLoader.loadClass('${plugin1ClassName}')
+            println "buildSrc: plugin 1 visible"    
+            getClass().classLoader.loadClass('${plugin2ClassName}')
+            println "buildSrc: plugin 2 visible"
+        """
+
         file("build.gradle") << """
-            getClass().classLoader.loadClass('${pluginClassName}')
-            println "build: visible"
+            getClass().classLoader.loadClass('${plugin1ClassName}')
+            println "project: plugin 1 visible"
+            try {
+                getClass().classLoader.loadClass('${plugin2ClassName}')
+            } catch (ClassNotFoundException e) {
+                println "project: plugin 2 not visible"
+            }    
         """
 
         when:
         succeeds("tasks")
 
         then:
-        outputContains("buildSrc: not visible")
-        outputContains("build: visible")
+        outputContains("settings: plugin 1 visible")
+        outputContains("buildSrc settings: plugin 1 visible")
+        outputContains("buildSrc settings: plugin 2 visible")
+        outputContains("buildSrc: plugin 1 visible")
+        outputContains("buildSrc: plugin 2 visible")
+        outputContains("project: plugin 1 visible")
+        outputContains("project: plugin 2 not visible")
     }
 
 }
