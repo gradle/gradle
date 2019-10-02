@@ -20,11 +20,14 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
-        val pluginBuilder = PluginBuilder(file("plugin"))
-        pluginBuilder.packageName = null
-        pluginBuilder.addSettingsPlugin("", "test.MySettingsPlugin", "MySettingsPlugin")
+
         val pluginJar = file("plugin.jar")
-        pluginBuilder.publishTo(executer, pluginJar)
+
+        PluginBuilder(file("plugin")).run {
+            packageName = null
+            addSettingsPlugin("", "test.MySettingsPlugin", "MySettingsPlugin")
+            publishTo(executer, pluginJar)
+        }
 
         withSettings("""
             buildscript {
@@ -42,10 +45,12 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
-    fun `Can apply plugin using plugins block`() {
-        val pluginBuilder = PluginBuilder(file("plugin"))
-        pluginBuilder.addSettingsPlugin("println '*42*'", "test.MySettingsPlugin", "MySettingsPlugin")
-        pluginBuilder.publishAs("g", "m", "1.0", pluginPortal, createExecuter()).allowAll()
+    fun `can apply plugin using plugins block`() {
+
+        PluginBuilder(file("plugin")).run {
+            addSettingsPlugin("println '*42*'", "test.MySettingsPlugin", "MySettingsPlugin")
+            publishAs("g", "m", "1.0", pluginPortal, createExecuter()).allowAll()
+        }
 
         withSettings("""
             plugins {
@@ -55,7 +60,8 @@ class KotlinSettingsScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         assertThat(
             build().output,
-            containsString("*42*"))
+            containsString("*42*")
+        )
     }
 
     @Test
