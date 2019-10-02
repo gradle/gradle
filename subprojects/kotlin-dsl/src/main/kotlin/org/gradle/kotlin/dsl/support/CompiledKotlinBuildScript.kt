@@ -16,7 +16,6 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -26,19 +25,16 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
-
-import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginAware
 
 import org.gradle.kotlin.dsl.ScriptHandlerScope
-import org.gradle.kotlin.dsl.support.delegates.PluginAwareDelegate
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
 @ImplicitReceiver(Project::class)
 open class CompiledKotlinBuildScript(
     private val host: KotlinScriptHost<Project>
-) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)) {
+) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), PluginAware by host.target {
 
     /**
      * The [ScriptHandler] for this script.
@@ -63,18 +59,6 @@ open class CompiledKotlinBuildScript(
     @Suppress("unused")
     open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit): Unit =
         invalidPluginsCall()
-
-    /**
-     * Applies zero or more plugins or scripts.
-     * <p>
-     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
-     * <p>
-     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
-     * @see [PluginAware.apply]
-     */
-    // Method is only required to disambiguate from the standard `T.apply(T.() -> Unit)` combinator
-    fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.target.apply(action)
 }
 
 
@@ -119,7 +103,7 @@ open class CompiledKotlinSettingsBuildscriptBlock(
 @ImplicitReceiver(Gradle::class)
 open class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
-) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareDelegate(host) {
+) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareScript(host) {
 
     /**
      * The [ScriptHandler] for this script.

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.support.delegates
+package org.gradle.kotlin.dsl.support
 
 import groovy.lang.Closure
 import org.gradle.api.Action
@@ -22,23 +22,24 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
-import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.internalError
 
 
-open class PluginAwareDelegate(
+open class PluginAwareScript(
     private val host: KotlinScriptHost<PluginAware>
 ) : PluginAware {
 
-    override fun getPlugins(): PluginContainer = host.target.plugins
+    override fun getPlugins(): PluginContainer =
+        host.target.plugins
 
-    override fun getPluginManager(): PluginManager = host.target.pluginManager
+    override fun getPluginManager(): PluginManager =
+        host.target.pluginManager
 
-    override fun apply(action: Action<in ObjectConfigurationAction>) {
+    override fun apply(action: Action<in ObjectConfigurationAction>) =
         host.applyObjectConfigurationAction(action)
-    }
 
-    override fun apply(options: MutableMap<String, *>) = internalError()
+    override fun apply(options: Map<String, *>) =
+        host.applyObjectConfigurationAction(options)
 
-    override fun apply(closure: Closure<Any>) = internalError()
+    override fun apply(closure: Closure<Any>) =
+        internalError()
 }

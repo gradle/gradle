@@ -31,6 +31,8 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fileOperationsFor
 import org.gradle.kotlin.dsl.invoke
 
+import org.gradle.util.ConfigureUtil.configureByMap
+
 
 class KotlinScriptHost<out T : Any>(
     val target: T,
@@ -55,7 +57,17 @@ class KotlinScriptHost<out T : Any>(
 
     internal
     fun applyObjectConfigurationAction(configure: Action<in ObjectConfigurationAction>) {
-        createObjectConfigurationAction().also { configure(it) }.execute()
+        executeObjectConfigurationAction { configure(it) }
+    }
+
+    internal
+    fun applyObjectConfigurationAction(options: Map<String, *>) {
+        executeObjectConfigurationAction { configureByMap(options, it) }
+    }
+
+    private
+    inline fun executeObjectConfigurationAction(configure: (ObjectConfigurationAction) -> Unit) {
+        createObjectConfigurationAction().also(configure).execute()
     }
 
     private

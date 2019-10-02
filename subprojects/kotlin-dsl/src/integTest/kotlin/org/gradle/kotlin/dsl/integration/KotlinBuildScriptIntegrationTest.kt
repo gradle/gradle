@@ -5,6 +5,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 
+import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 
@@ -15,6 +16,40 @@ import java.io.StringWriter
 
 
 class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
+
+    @Test
+    fun `can apply plugin using ObjectConfigurationAction syntax`() {
+
+        withSettings("""
+            rootProject.name = "foo"
+            include("bar")
+        """)
+
+        withBuildScript("""
+
+            open class ProjectPlugin : Plugin<Project> {
+                override fun apply(target: Project) {
+                    target.task("run") {
+                        doLast { println(target.name + ":42") }
+                    }
+                }
+            }
+
+            apply { plugin<ProjectPlugin>() }
+
+            subprojects {
+                apply { plugin<ProjectPlugin>() }
+            }
+        """)
+
+        assertThat(
+            build("run", "-q").output,
+            allOf(
+                containsString("foo:42"),
+                containsString("bar:42")
+            )
+        )
+    }
 
     @Test
     fun `Project receiver is undecorated`() {
