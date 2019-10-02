@@ -289,6 +289,38 @@
             "changes": [
                 "Abstract method has been added to this class"
             ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.newInputDirectory()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.newInputFile()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.newOutputDirectory()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.DefaultTask",
+            "member": "Method org.gradle.api.DefaultTask.newOutputFile()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
