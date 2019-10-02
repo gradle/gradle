@@ -401,6 +401,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.testfixtures.ProjectBuilder",
+            "member": "Constructor org.gradle.testfixtures.ProjectBuilder()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Constructor is less accessible"
+            ]
         }
     ]
 }
