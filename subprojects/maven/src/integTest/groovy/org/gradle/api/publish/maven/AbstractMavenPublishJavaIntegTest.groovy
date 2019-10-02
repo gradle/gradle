@@ -600,7 +600,6 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
     def "can publish java-library with capabilities"() {
         given:
         createBuildScripts("""
-
             configurations.api.outgoing.capability 'org:foo:1.0'
             configurations.implementation.outgoing.capability 'org:bar:1.0'
 
@@ -617,7 +616,21 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         run "publish"
 
         then:
-        outputContains('Declares capability org:foo:1.0')
+        outputContains '''
+Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetadataWarningsFor(variant)'):
+  - Variant apiElements:
+      - Declares capability org:foo:1.0 which cannot be mapped to Maven'''
+        outputContains '''
+  - Variant runtimeElements:
+      - Declares capability org:bar:1.0 which cannot be mapped to Maven
+      - Declares capability org:foo:1.0 which cannot be mapped to Maven'''
+
+        for (def feature : features().findAll { it != MavenJavaModule.MAIN_FEATURE }) {
+            outputContains """
+  - Variant ${feature}SourceSetApiElements:
+      - Declares capability org.gradle.test:publishTest-${feature}:1.9 which cannot be mapped to Maven"""
+        }
+
         javaLibrary.assertPublished()
 
         and:
