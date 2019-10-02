@@ -345,10 +345,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected BuildSourceBuilder createBuildSourceBuilder(BuildState currentBuild, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
+    protected BuildSourceBuilder createBuildSourceBuilder(BuildState currentBuild, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
         return new BuildSourceBuilder(
             currentBuild,
-            classLoaderScopeRegistry.getCoreAndPluginsScope(),
             fileLockManager,
             buildOperationExecutor,
             cachedClasspathTransformer,

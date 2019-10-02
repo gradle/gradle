@@ -114,6 +114,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     ServiceRegistryFactory getServiceRegistryFactory();
 
+    void setClassLoaderScope(ClassLoaderScope classLoaderScope);
+
     ClassLoaderScope getClassLoaderScope();
 
     void setIncludedBuilds(Collection<? extends IncludedBuild> includedBuilds);
