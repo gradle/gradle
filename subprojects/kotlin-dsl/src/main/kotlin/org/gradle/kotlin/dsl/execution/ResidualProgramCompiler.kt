@@ -231,9 +231,10 @@ class ResidualProgramCompiler(
             is Program.Buildscript -> fragment
             is Program.Plugins -> fragment
             is Program.PluginManagement -> fragment
-            else -> TODO()
+            else -> TODO("Unsupported fragment: $fragment")
         }
 
+    private
     fun MethodVisitor.emitStage1Sequence(vararg stage1Seq: Program.Stage1?) {
         emitStage1Sequence(listOfNotNull(*stage1Seq))
     }
