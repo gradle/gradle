@@ -337,6 +337,14 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.Nullable",
+            "member": "Class org.gradle.api.Nullable",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
         }
     ]
 }
