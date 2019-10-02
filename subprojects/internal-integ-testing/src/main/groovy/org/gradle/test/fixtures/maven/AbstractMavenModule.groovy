@@ -463,7 +463,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         def defaultArtifacts = getArtifact([:]).collect {
             new FileSpec(it.file.name, it.file.name)
         }
-        GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version,
+        GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(groupId, artifactId, version, publishArtifactVersion,
             variants.collect { v ->
                 def artifacts = v.artifacts
                 if (!artifacts && v.useDefaultArtifacts) {

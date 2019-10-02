@@ -86,7 +86,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
                 expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
             }
             withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+                expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
             }
         }
 
@@ -165,7 +165,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
                 expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
             }
             withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+                expectFiles "bar-1.1.jar", "foo-1.1.jar", "publishTest-1.9.jar"
             }
         }
 
@@ -256,7 +256,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
                 expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
             }
             withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
             }
         }
 
@@ -361,7 +361,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
                 expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
             }
             withoutModuleMetadata {
-                expectFiles "foo-1.0.jar", "publishTest-1.9.jar"
+                expectFiles "bar-1.1.jar", "foo-1.0.jar", "publishTest-1.9.jar"
             }
         }
 
