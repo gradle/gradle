@@ -98,7 +98,6 @@ abstract class KotlinInitScript(
  * Standard implementation of the API exposed to all types of [Gradle] scripts,
  * precompiled and otherwise.
  */
-@Deprecated("Kept for backward compatibility")
 abstract class InitScriptApi(
     override val delegate: Gradle
 ) : GradleDelegate() {
