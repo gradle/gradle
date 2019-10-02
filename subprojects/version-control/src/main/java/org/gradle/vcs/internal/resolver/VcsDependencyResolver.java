@@ -32,7 +32,6 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.definition.InjectedPluginResolver;
 import org.gradle.internal.Pair;
-import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.PublicBuildPath;
@@ -113,7 +112,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     public boolean isSatisfiedBy(Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry) {
                         ModuleVersionIdentifier possibleMatch = entry.left;
                         return depSelector.getGroup().equals(possibleMatch.getGroup())
-                            && depSelector.getModule().equals(possibleMatch.getName());
+                                && depSelector.getModule().equals(possibleMatch.getName());
                     }
                 });
                 if (entry == null) {

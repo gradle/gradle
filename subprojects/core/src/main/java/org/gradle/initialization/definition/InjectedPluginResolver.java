@@ -16,8 +16,6 @@
 
 package org.gradle.initialization.definition;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
