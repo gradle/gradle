@@ -37,7 +37,6 @@ import org.junit.Ignore
 import org.junit.Test
 
 
-@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
@@ -475,6 +474,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 containsString("Error logging from Project")))
     }
 
+    @Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
     @Test
     fun `automatically applies build scan plugin when --scan is provided on command-line and a script is applied in the buildscript block`() {
 
