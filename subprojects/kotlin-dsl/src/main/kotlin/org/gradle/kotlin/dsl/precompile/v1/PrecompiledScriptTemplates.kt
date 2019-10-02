@@ -157,6 +157,7 @@ open class PrecompiledProjectScript(
         )
     }
 
+    private
     object NullPluginDependencySpec : PluginDependencySpec {
         override fun apply(apply: Boolean) = this
         override fun version(version: String?) = this
