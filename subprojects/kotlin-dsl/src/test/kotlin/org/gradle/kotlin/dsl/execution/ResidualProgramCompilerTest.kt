@@ -543,7 +543,6 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
                     programTarget,
                     accessorsClassPath)
 
-
                 verifyNoMoreInteractions()
             }
         }
