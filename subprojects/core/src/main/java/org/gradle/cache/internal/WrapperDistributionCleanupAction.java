@@ -95,7 +95,7 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
         Multimap<GradleVersion, File> checksumDirsByVersion = determineChecksumDirsByVersion();
         for (GradleVersion version : checksumDirsByVersion.keySet()) {
             if (!usedVersions.contains(version) && version.compareTo(GradleVersion.current()) < 0) {
-                deleteDistributions(checksumDirsByVersion.get(version), maximumTimestamp, progressMonitor);
+                deleteDistributions(version, checksumDirsByVersion.get(version), maximumTimestamp, progressMonitor);
             } else {
                 progressMonitor.incrementSkipped(checksumDirsByVersion.get(version).size());
             }
@@ -103,17 +103,43 @@ public class WrapperDistributionCleanupAction implements DirectoryCleanupAction 
         return true;
     }
 
-    private void deleteDistributions(Collection<File> dirs, long maximumTimestamp, CleanupProgressMonitor progressMonitor) {
+    private void deleteDistributions(GradleVersion version, Collection<File> dirs, long maximumTimestamp, CleanupProgressMonitor progressMonitor) {
         Set<File> parentsOfDeletedDistributions = Sets.newLinkedHashSet();
         for (File checksumDir : dirs) {
             if (checksumDir.lastModified() > maximumTimestamp) {
                 progressMonitor.incrementSkipped();
-                LOGGER.debug("Skipping distribution at {} because it was recently added", checksumDir);
+                LOGGER.debug("Skipping distribution for {} at {} because it was recently added", version, checksumDir);
             } else {
+                /*
+                 * An extracted distribution usually looks like:
+                 * checksumDir/
+                 *      | gradle-5.5.1-bin.zip.ok
+                 *      | gradle-5.5.1-bin.zip.lck
+                 *      | gradle-5.5.1-bin.zip
+                 *      | gradle-5.5.1
+                 */
                 progressMonitor.incrementDeleted();
-                LOGGER.debug("Deleting distribution at {}", checksumDir);
-                if (FileUtils.deleteQuietly(checksumDir)) {
-                    parentsOfDeletedDistributions.add(checksumDir.getParentFile());
+                LOGGER.debug("Marking distribution for {} at {} unusable", version, checksumDir);
+
+                // The wrapper uses the .ok file to identify distributions that are safe to use.
+                // If we delete anything from the distribution before deleting the OK file, the
+                // wrapper will attempt to use the distribution as-is and fail in strange and unrecoverable
+                // ways.
+                File[] markerFiles = checksumDir.listFiles((dir, name) -> name.endsWith(".ok"));
+                boolean canBeDeleted = true;
+                if (markerFiles!=null) {
+                    for (File markerFile : markerFiles) {
+                        canBeDeleted &= markerFile.delete();
+                    }
+                }
+                if (canBeDeleted) {
+                    if (FileUtils.deleteQuietly(checksumDir)) {
+                        parentsOfDeletedDistributions.add(checksumDir.getParentFile());
+                    } else {
+                        LOGGER.info("Distribution for {} at {} was not completely deleted.", version, checksumDir);
+                    }
+                } else {
+                    LOGGER.info("Distribution for {} at {} cannot be deleted because Gradle is unable to mark it as unusable.", version, checksumDir);
                 }
             }
         }
