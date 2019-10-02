@@ -19,16 +19,12 @@ import groovy.lang.Closure;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.internal.logging.StandardOutputCapture;
-import org.gradle.plugin.use.PluginDependenciesSpec;
-import org.gradle.plugin.use.internal.PluginRequestCollector;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import java.util.Map;
 
-public abstract class ProjectScript extends DefaultScript {
-    public PluginRequestCollector pluginRequestCollector;
+public abstract class ProjectScript extends PluginsAwareScript {
 
     @Override
     public void apply(Closure closure) {
@@ -49,14 +45,6 @@ public abstract class ProjectScript extends DefaultScript {
     @Override
     public void buildscript(Closure configureClosure) {
         getScriptTarget().buildscript(configureClosure);
-    }
-
-    public void plugins(int lineNumber, Closure configureClosure) {
-        if (pluginRequestCollector == null) {
-            pluginRequestCollector = new PluginRequestCollector(getScriptSource());
-        }
-        PluginDependenciesSpec spec = pluginRequestCollector.createSpec(lineNumber);
-        ConfigureUtil.configure(configureClosure, spec);
     }
 
     @Override

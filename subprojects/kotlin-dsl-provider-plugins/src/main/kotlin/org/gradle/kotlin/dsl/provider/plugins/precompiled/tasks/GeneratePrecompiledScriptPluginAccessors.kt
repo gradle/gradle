@@ -230,7 +230,6 @@ abstract class GeneratePrecompiledScriptPluginAccessors : ClassPathSensitiveCode
             pluginRequests
         }
 
-
     private
     fun pluginRequestCollectorFor(plugin: PrecompiledScriptPlugin) =
         PluginRequestCollector(scriptSourceFor(plugin))

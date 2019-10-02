@@ -126,7 +126,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         snapshot3.is(snapshot)
     }
 
-    def "fetches details of a directory tree with patterns patterns and does not cache the result"() {
+    def "fetches details of a directory tree with patterns and does not cache the result"() {
         def d = tmpDir.createDir("d")
         d.createFile("f1")
         d.createFile("d1/f2")

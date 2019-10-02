@@ -6,17 +6,38 @@ repositories {
     mavenCentral()
 }
 
-// tag::exclude-transitive-dependencies[]
+if (project.hasProperty("sample1")) {
+// tag::exclude-transitive-dependencies-1[]
 dependencies {
-    implementation("log4j:log4j:1.2.15") {
-        exclude(group = "javax.jms", module = "jms")
-        exclude(group = "com.sun.jdmk", module = "jmxtools")
-        exclude(group = "com.sun.jmx", module = "jmxri")
+    implementation("commons-beanutils:commons-beanutils:1.9.4") {
+        exclude(group = "commons-collections", module = "commons-collections")
     }
 }
-// end::exclude-transitive-dependencies[]
+// end::exclude-transitive-dependencies-1[]
+} else if (project.hasProperty("sample2")) {
+// tag::exclude-transitive-dependencies-2[]
+dependencies {
+    implementation("commons-beanutils:commons-beanutils:1.9.4") {
+        exclude(group = "commons-collections", module = "commons-collections")
+    }
+    implementation("com.opencsv:opencsv:4.6") // depends on 'commons-beanutils' without exclude and brings back 'commons-collections'
+}
+// end::exclude-transitive-dependencies-2[]
+} else if (project.hasProperty("sample3")) {
+// tag::exclude-transitive-dependencies-3[]
+    dependencies {
+        implementation("commons-beanutils:commons-beanutils:1.9.4") {
+            exclude(group = "commons-collections", module = "commons-collections")
+        }
+        implementation("com.opencsv:opencsv:4.6") {
+            exclude(group = "commons-collections", module = "commons-collections")
+        }
+    }
+// end::exclude-transitive-dependencies-3[]
+}
 
-tasks.register<Copy>("copyLibs") {
-    from(configurations.compileClasspath)
-    into("$buildDir/libs")
+tasks.register("printArtifacts") {
+    doLast {
+        configurations["runtimeClasspath"].forEach { println(it.name) }
+    }
 }

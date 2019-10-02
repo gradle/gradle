@@ -10,6 +10,8 @@ import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.precompile.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledProjectScript
 import org.gradle.kotlin.dsl.precompile.PrecompiledSettingsScript
+import org.gradle.kotlin.dsl.support.KotlinPluginManagementBuildscriptAndPluginsBlock
+import org.gradle.kotlin.dsl.support.KotlinSettingsBuildscriptBlock
 
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
@@ -43,6 +45,14 @@ class ScriptApiTest {
     @Test
     fun `settings script template implements script api`() =
         assertScriptApiOf<KotlinSettingsScript>()
+
+    @Test
+    fun `settings buildscript block template implements script api`() =
+        assertScriptApiOf<KotlinSettingsBuildscriptBlock>()
+
+    @Test
+    fun `settings pluginManagement block template implements script api`() =
+        assertScriptApiOf<KotlinPluginManagementBuildscriptAndPluginsBlock>()
 
     @Test
     fun `settings script template implements Settings#enableFeaturePreview`() =

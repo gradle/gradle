@@ -84,8 +84,6 @@ include::multi_project_builds.adoc[leveloffset=+2]
 
 include::organizing_gradle_projects.adoc[leveloffset=+2]
 
-include::composite_builds.adoc[leveloffset=+2]
-
 include::authoring_maintainable_build_scripts.adoc[leveloffset=+2]
 
 include::lazy_configuration.adoc[leveloffset=+2]
@@ -119,7 +117,6 @@ include::building_swift_projects.adoc[leveloffset=+2]
 
 include::swift_testing.adoc[leveloffset=+2]
 
-[[part:native_projects]]
 == Native Projects using the Software Model
 
 include::native_software.adoc[leveloffset=+2]
@@ -142,8 +139,6 @@ include::custom_plugins.adoc[leveloffset=+2]
 include::custom_gradle_types.adoc[leveloffset=+2]
 
 include::java_gradle_plugin.adoc[leveloffset=+2]
-
-include::embedding.adoc[leveloffset=+2]
 
 [[part:reference]]
 == Reference
