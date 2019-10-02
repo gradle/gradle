@@ -345,6 +345,14 @@
             "changes": [
                 "Class has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.ExtensionContainer",
+            "member": "Method org.gradle.api.plugins.ExtensionContainer.getSchema()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
