@@ -119,6 +119,7 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
                     url "${mavenRepo.uri}"
                     metadataSources {
                         ${params.resolveModuleMetadata?'gradleMetadata':'mavenPom'}()
+                        ${params.resolveModuleMetadata?'':'ignoreGradleMetadataRedirection()'}
                     }
                 }
                 ${externalRepo}
@@ -175,8 +176,8 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
         }
 
         void validate() {
-            singleValidation(true, withModuleMetadataSpec)
             singleValidation(false, withoutModuleMetadataSpec)
+            singleValidation(true, withModuleMetadataSpec)
         }
 
         void singleValidation(boolean withModuleMetadata, SingleArtifactResolutionResultSpec expectationSpec) {

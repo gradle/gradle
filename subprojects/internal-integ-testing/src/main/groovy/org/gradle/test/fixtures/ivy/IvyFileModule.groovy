@@ -417,7 +417,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         def defaultArtifacts = artifacts.findAll {!it.undeclared}.collect { moduleArtifact(it) }.collect {
             new FileSpec(it.file.name, it.file.name)
         }
-        GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(organisation, module, revision,
+        GradleFileModuleAdapter adapter = new GradleFileModuleAdapter(organisation, module, revision, revision,
             variants.collect { v ->
                 def artifacts = v.artifacts
                 if (!artifacts && v.useDefaultArtifacts) {

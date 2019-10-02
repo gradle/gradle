@@ -150,6 +150,7 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
     integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":testKit"))
 
     crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
 

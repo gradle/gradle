@@ -83,7 +83,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private boolean projectsLoaded;
     private Path identityPath;
-    private final ClassLoaderScope classLoaderScope;
+    private ClassLoaderScope classLoaderScope;
     private BuildType buildType = BuildType.NONE;
     private SharedResourceContainer sharedResourceContainer;
     private ClassLoaderScope baseProjectClassLoaderScope;
@@ -93,7 +93,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.startParameter = startParameter;
         this.services = parentRegistry.createFor(this);
         this.crossProjectConfigurator = services.get(CrossProjectConfigurator.class);
-        classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
         sharedResourceContainer = services.get(SharedResourceContainer.class);
@@ -504,7 +503,18 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
+    public void setClassLoaderScope(ClassLoaderScope classLoaderScope) {
+        if (this.classLoaderScope != null) {
+            throw new IllegalStateException("Class loader scope already used");
+        }
+        this.classLoaderScope = classLoaderScope;
+    }
+
+    @Override
     public ClassLoaderScope getClassLoaderScope() {
+        if (classLoaderScope == null) {
+            classLoaderScope = services.get(ClassLoaderScopeRegistry.class).getCoreAndPluginsScope();
+        }
         return classLoaderScope;
     }
 

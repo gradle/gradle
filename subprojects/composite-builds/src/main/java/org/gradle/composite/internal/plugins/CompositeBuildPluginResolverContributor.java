@@ -16,8 +16,6 @@
 
 package org.gradle.composite.internal.plugins;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.build.BuildState;
@@ -58,37 +56,38 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         @Override
         public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) throws InvalidPluginRequestException {
             Resolution resolution = results.get(pluginRequest.getId());
-            if (resolution != null) {
-                if (resolution.pluginResolution != null) {
-                    result.found("??", resolution.pluginResolution);
-                }
-                return;
-            }
-
-            for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
-                if (build == consumingBuild || build.isImplicitBuild()) {
-                    // Do not substitute plugins from same build or builds that were not explicitly included
-                    continue;
-                }
-                PluginResolution pluginResolution = build.withState(new Transformer<PluginResolution, GradleInternal>() {
-                    @Override
-                    public PluginResolution transform(GradleInternal gradleInternal) {
+            if (resolution == null) {
+                // need to check the included builds for a matching plugin
+                for (IncludedBuildState build : buildRegistry.getIncludedBuilds()) {
+                    if (build == consumingBuild || build.isImplicitBuild()) {
+                        // Do not substitute plugins from same build or builds that were not explicitly included
+                        continue;
+                    }
+                    Resolution pluginResolution = build.withState(gradleInternal -> {
                         ProjectPublicationRegistry publicationRegistry = gradleInternal.getServices().get(ProjectPublicationRegistry.class);
                         for (ProjectPublicationRegistry.Reference<PluginPublication> reference : publicationRegistry.getPublications(PluginPublication.class)) {
                             PluginId pluginId = reference.get().getPluginId();
                             if (pluginId.equals(pluginRequest.getId())) {
-                                return new LocalPluginResolution(pluginId, reference.getProducingProject());
+                                return new Resolution(new LocalPluginResolution(pluginId, reference.getProducingProject()));
                             }
                         }
-                        return null;
+                        return UNKNOWN;
+                    });
+
+                    results.put(pluginRequest.getId(), pluginResolution);
+
+                    if (pluginResolution != UNKNOWN) {
+                        result.found("Included Builds", pluginResolution.pluginResolution);
+                        return;
                     }
-                });
-                if (pluginResolution != null) {
-                    results.put(pluginRequest.getId(), new Resolution(pluginResolution));
-                    result.found("??", pluginResolution);
-                } else {
-                    results.put(pluginRequest.getId(), UNKNOWN);
                 }
+            } else if (resolution != UNKNOWN) {
+                result.found("Included Builds", resolution.pluginResolution);
+                return;
+            }
+
+            if (!buildRegistry.getIncludedBuilds().isEmpty()) {
+                result.notFound("Included Builds", "None of the included builds contain this plugin");
             }
         }
     }

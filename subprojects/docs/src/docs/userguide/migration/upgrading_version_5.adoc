@@ -197,6 +197,14 @@ This also means that code inside such a block cannot reference anything declared
 
 This change has been made so that the `pluginManagement {}` configuration can also be applied when resolving plugins for the settings script itself.
 
+==== Plugins and classes loaded in settings scripts are visible to project scripts and build src
+
+Previously, any classes added to the a settings script by using `buildscript {}` were not visible outside of the script.
+Now, they they are visible to all of the project build scripts.
+They are also visible to the buildSrc build's script, including its settings script.
+
+This change has been made so that settings plugins can contribute logic to the entire build.
+
 ==== `@Nullable` annotation is gone
 
 The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
