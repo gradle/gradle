@@ -34,11 +34,8 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionApplicator;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ExactVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphSelector;
@@ -404,26 +401,6 @@ public class DependencyGraphBuilder {
 
     private static boolean isDynamic(SelectorState selector) {
         return selector.getVersionConstraint().isDynamic();
-    }
-
-    private static boolean isSimpleRangeSelector(ResolvedVersionConstraint rvc) {
-        return isSimpleSelector(rvc, VersionRangeSelector.class);
-    }
-
-    private static boolean isSimpleExactSelector(ResolvedVersionConstraint rvc) {
-        return isSimpleSelector(rvc, ExactVersionSelector.class);
-    }
-
-    private static boolean isSimpleSelector(ResolvedVersionConstraint rvc, Class<? extends VersionSelector> selectorClass) {
-        VersionSelector preferredSelector = rvc.getPreferredSelector();
-        if (preferredSelector != null && !(selectorClass.isAssignableFrom(preferredSelector.getClass()))) {
-            return false;
-        }
-        VersionSelector requireSelector = rvc.getRequiredSelector();
-        if (requireSelector != null && !(selectorClass.isAssignableFrom(requireSelector.getClass()))) {
-            return false;
-        }
-        return true;
     }
 
     private void validateDynamicSelectors(ComponentState selected) {
