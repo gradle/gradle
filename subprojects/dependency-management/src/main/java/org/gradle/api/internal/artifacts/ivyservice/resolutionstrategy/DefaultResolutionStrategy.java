@@ -138,6 +138,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     @Override
+    public ResolutionStrategy failOnNonReproducibleResolution() {
+        failOnChangingVersions();
+        failOnDynamicVersions();
+        return this;
+    }
+
+    @Override
     public void preferProjectModules() {
         conflictResolution = ConflictResolution.preferProjectModules;
     }

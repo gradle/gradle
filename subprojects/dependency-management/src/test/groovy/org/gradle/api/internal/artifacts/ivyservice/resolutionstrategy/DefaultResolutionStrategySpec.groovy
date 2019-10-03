@@ -234,6 +234,9 @@ class DefaultResolutionStrategySpec extends Specification {
         when: strategy.failOnChangingVersions()
         then: 1 * validator.validateMutation(STRATEGY)
 
+        when: strategy.failOnNonReproducibleResolution()
+        then: 2 * validator.validateMutation(STRATEGY)
+
         when: strategy.force("org.utils:api:1.3")
         then: 1 * validator.validateMutation(STRATEGY)
 

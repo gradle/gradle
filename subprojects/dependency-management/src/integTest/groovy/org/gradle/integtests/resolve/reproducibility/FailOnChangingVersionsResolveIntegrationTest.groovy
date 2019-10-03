@@ -14,19 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.reproducibility
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
 class FailOnChangingVersionsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
+    String getNotation() {
+        "failOnChangingVersions"
+    }
+
     def setup() {
         buildFile << """
             configurations.all {
-                resolutionStrategy.failOnChangingVersions()
+                resolutionStrategy.$notation()
             }
         """
     }

@@ -110,6 +110,20 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnChangingVersions();
 
     /**
+     * Configures Gradle to fail the build is the resolution result is expected to be unstable, that is to say that
+     * it includes dynamic versions or changing versions and therefore the result may change depending
+     * on when the build is executed.
+     *
+     * This method is equivalent to calling both {@link #failOnDynamicVersions()} and
+     * {@link #failOnChangingVersions()}.
+     *
+     * @return this resolution strategy
+     * @since 6.1
+     */
+    @Incubating
+    ResolutionStrategy failOnNonReproducibleResolution();
+
+    /**
      * Gradle can resolve conflicts purely by version number or prioritize project dependencies over binary.
      * The default is <b>by version number</b>.<p>
      * This applies to both first level and transitive dependencies. See example below:
