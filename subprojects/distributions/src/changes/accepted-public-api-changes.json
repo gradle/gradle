@@ -519,6 +519,22 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.Sign",
+            "member": "Method org.gradle.plugins.signing.Sign.getInputFiles()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugins.signing.Sign",
+            "member": "Method org.gradle.plugins.signing.Sign.getOutputFiles()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
