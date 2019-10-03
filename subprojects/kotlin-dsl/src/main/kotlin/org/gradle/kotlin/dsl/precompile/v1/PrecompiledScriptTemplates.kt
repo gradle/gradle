@@ -29,6 +29,7 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
+import org.gradle.kotlin.dsl.support.invalidPluginsCall
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -129,7 +130,7 @@ open class PrecompiledSettingsScript(
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledProjectScript(
-    private val target: Project
+    target: Project
 ) : DefaultKotlinScript(defaultKotlinScriptHostForProject(target)), PluginAware by target {
 
     /**
@@ -148,14 +149,36 @@ open class PrecompiledProjectScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit) {
+    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
         block(
             PluginDependenciesSpec { pluginId ->
-                target.pluginManager.apply(pluginId)
+                pluginManager.apply(pluginId)
                 NullPluginDependencySpec
             }
         )
     }
+
+    /**
+     * Nested `plugins` blocks are **NOT** allowed, for example:
+     * ```
+     * project(":core") {
+     *   plugins { java }
+     * }
+     * ```
+     * If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead.
+     * ```
+     * project(":core") {
+     *   apply(plugin = "java")
+     * }
+     * ```
+     */
+    @Suppress("unused", "DeprecatedCallableAddReplaceWith")
+    @Deprecated(
+        "The plugins {} block must not be used here. " + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.",
+        level = DeprecationLevel.ERROR
+    )
+    fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing =
+        invalidPluginsCall()
 
     private
     object NullPluginDependencySpec : PluginDependencySpec {
