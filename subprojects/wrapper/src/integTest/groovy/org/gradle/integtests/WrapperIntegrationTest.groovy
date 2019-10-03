@@ -72,7 +72,7 @@ defaultTasks 'hello'
         result = executer.withTasks("hello").run()
         then:
         deletedSomething
-        result.assertHasErrorOutput("does not appear to be a valid Gradle distribution or is partially installed.")
+        result.assertHasErrorOutput("does not appear to contain a Gradle distribution.")
         result.assertTaskExecuted(":hello")
     }
 }

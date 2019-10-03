@@ -21,6 +21,7 @@ import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.time.Time
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.StartEvent
 import org.gradle.tooling.events.StatusEvent
@@ -126,22 +127,22 @@ class DistributionFactoryTest extends Specification {
     def usesContentsOfDistributionZipLibDirectoryAsImplementationClasspath() {
         def zipFile = createZip {
             lib {
-                file("a.jar")
-                file("b.jar")
+                file("gradle-core-0.9.jar")
+                file("gradle-launcher-0.9.jar")
             }
         }
         def dist = factory.getDistribution(zipFile.toURI())
 
         expect:
-        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken).asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, null, cancellationToken).asFiles.name as Set == ['gradle-core-0.9.jar', 'gradle-launcher-0.9.jar'] as Set
     }
 
     def usesWrapperDistributionInstalledIntoSpecifiedUserHomeDirAsImplementationClasspath() {
         File customUserHome = tmpDir.file('customUserHome')
         def zipFile = createZip {
             lib {
-                file("a.jar")
-                file("b.jar")
+                file("gradle-core-0.9.jar")
+                file("gradle-launcher-0.9.jar")
             }
         }
         tmpDir.file('gradle/wrapper/gradle-wrapper.properties') << "distributionUrl=${zipFile.toURI()}"
@@ -149,7 +150,7 @@ class DistributionFactoryTest extends Specification {
         def result = dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, customUserHome, cancellationToken)
 
         expect:
-        result.asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        result.asFiles.name as Set == ['gradle-core-0.9.jar', 'gradle-launcher-0.9.jar'] as Set
         (result.asFiles.path as Set).every { it.contains('customUserHome')}
     }
 
@@ -157,15 +158,15 @@ class DistributionFactoryTest extends Specification {
         File customUserHome = tmpDir.file('customUserHome')
         def zipFile = createZip {
             lib {
-                file("a.jar")
-                file("b.jar")
+                file("gradle-core-0.9.jar")
+                file("gradle-launcher-0.9.jar")
             }
         }
         def dist = factory.getDistribution(zipFile.toURI())
         def result = dist.getToolingImplementationClasspath(progressLoggerFactory, buildProgressListener, customUserHome, cancellationToken)
 
         expect:
-        result.asFiles.name as Set == ['a.jar', 'b.jar'] as Set
+        result.asFiles.name as Set == ['gradle-core-0.9.jar', 'gradle-launcher-0.9.jar'] as Set
         (result.asFiles.path as Set).every { it.contains('customUserHome')}
     }
 
@@ -173,7 +174,7 @@ class DistributionFactoryTest extends Specification {
         File customUserHome = tmpDir.file('customUserHome')
         def zipFile = createZip {
             lib {
-                file("a.jar")
+                file("gradle-launcher-0.9.jar")
             }
         }
         def dist = factory.getDistribution(zipFile.toURI())
@@ -221,8 +222,8 @@ class DistributionFactoryTest extends Specification {
 
         then:
         1 * cancellationToken.addCallback(_)
-        IllegalArgumentException e = thrown()
-        e.message == "The specified Gradle distribution '${zipFile.toURI()}' does not appear to contain a Gradle distribution."
+        GradleConnectionException e = thrown()
+        e.cause.message == "Gradle distribution '${zipFile.toURI()}' does not appear to contain a Gradle distribution."
     }
 
     private TestFile createZip(Closure cl) {

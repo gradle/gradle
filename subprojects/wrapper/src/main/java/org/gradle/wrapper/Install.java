@@ -135,7 +135,7 @@ public class Install {
 
         File gradleHome = dirs.get(0);
         if (BootstrapMainStarter.findLauncherJar(gradleHome) == null) {
-            return InstallCheck.failure(String.format("Gradle distribution '%s' does not appear to be a valid Gradle distribution or is partially installed.", distributionDescription));
+            return InstallCheck.failure(String.format("Gradle distribution '%s' does not appear to contain a Gradle distribution.", distributionDescription));
         }
         return InstallCheck.success(gradleHome);
     }
