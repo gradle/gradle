@@ -95,7 +95,8 @@ private
 inline fun <reified T> assertApiOf(expectedApi: KClass<*>) =
     assertThat(
         expectedApi.apiMembers.missingMembersFrom(T::class),
-        equalTo(emptyList()))
+        equalTo(emptyList())
+    )
 
 
 private
@@ -109,9 +110,7 @@ val KClass<*>.apiMembers: ScriptApiMembers
 
 private
 fun ScriptApiMembers.missingMembersFrom(scriptTemplate: KClass<*>): List<KCallable<*>> =
-    scriptTemplate.publicMembers.let { scriptTemplateMembers ->
-        filterNot(scriptTemplateMembers::containsMemberCompatibleWith)
-    }
+    filterNot(scriptTemplate.publicMembers::containsMemberCompatibleWith)
 
 
 private
@@ -173,7 +172,7 @@ fun List<KParameter>.isCompatibleWith(api: List<KParameter>) =
     when {
         size != api.size -> false
         isEmpty() -> true
-        else -> (0..(size - 1)).all { idx -> this[idx].isCompatibleWith(api[idx]) }
+        else -> (0 until size).all { idx -> this[idx].isCompatibleWith(api[idx]) }
     }
 
 
