@@ -64,7 +64,8 @@ defaultTasks 'hello'
         boolean deletedSomething = false
         gradleUserHome.eachFileRecurse(FileType.FILES) { file ->
             if (file.name.startsWith("gradle-launcher")) {
-                deletedSomething = file.delete()
+                deletedSomething |= file.delete()
+                println("Deleting " + file)
             }
         }
         and:
