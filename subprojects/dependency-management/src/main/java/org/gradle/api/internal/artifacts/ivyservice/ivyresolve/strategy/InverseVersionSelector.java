@@ -25,6 +25,10 @@ public class InverseVersionSelector implements VersionSelector {
         this.versionSelector = versionSelector;
     }
 
+    public VersionSelector getInverseSelector() {
+        return versionSelector;
+    }
+
     @Override
     public String getSelector() {
         return "!(" + versionSelector.getSelector() + ")";
