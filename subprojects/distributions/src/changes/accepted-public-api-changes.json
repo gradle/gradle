@@ -1552,6 +1552,14 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinScriptTemplate",
+            "acceptation": "Annotation is no longer required",
+            "changes": [
+                "Class has been removed"
+            ]
         }
     ]
 }

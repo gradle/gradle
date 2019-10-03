@@ -30,10 +30,10 @@ import org.gradle.api.plugins.PluginAware
  */
 fun PluginAware.apply(from: Any? = null, plugin: String? = null, to: Any? = null) {
     require(from != null || plugin != null) { "At least one of 'from' or 'plugin' must be given." }
-    apply {
-        if (plugin != null) it.plugin(plugin)
-        if (from != null) it.from(from)
-        if (to != null) it.to(to)
+    apply { action ->
+        if (plugin != null) action.plugin(plugin)
+        if (from != null) action.from(from)
+        if (to != null) action.to(to)
     }
 }
 

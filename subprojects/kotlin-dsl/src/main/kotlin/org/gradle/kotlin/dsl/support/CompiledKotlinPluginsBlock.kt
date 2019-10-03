@@ -18,21 +18,14 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.dsl.ScriptHandler
-
-import org.gradle.kotlin.dsl.KotlinSettingsScript
-import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
-import org.gradle.kotlin.dsl.ScriptHandlerScope
-import org.gradle.kotlin.dsl.support.delegates.ProjectDelegate
-import org.gradle.plugin.management.PluginManagementSpec
-
+import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.use.PluginDependenciesSpec
 
 
 /**
  * Base class for `plugins` block evaluation.
  */
-abstract class KotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec) {
+open class CompiledKotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec) {
 
     inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
         pluginDependencies.configuration()
@@ -44,16 +37,39 @@ abstract class KotlinPluginsBlock(val pluginDependencies: PluginDependenciesSpec
  * Base class for the evaluation of a `pluginManagement` block followed by a
  * `buildscript` block followed by a `plugins` block.
  *
- * @constructor Must match the constructor of the [KotlinBuildscriptAndPluginsBlock] the object!
+ * @constructor Must match the constructor of the [CompiledKotlinBuildscriptAndPluginsBlock] the object!
  */
-abstract class KotlinPluginManagementBuildscriptAndPluginsBlock(
+@ImplicitReceiver(Settings::class)
+open class CompiledKotlinSettingsPluginManagementBlock(
     host: KotlinScriptHost<Settings>,
     private val pluginDependencies: PluginDependenciesSpec
-) : KotlinSettingsScript(host) {
+) : CompiledKotlinSettingsScript(host) {
 
-    override fun pluginManagement(configuration: PluginManagementSpec.() -> Unit) {
-        delegate.pluginManagement.configuration()
+    /**
+     * Configures the build script classpath for this project.
+     *
+     * @see [Project.buildscript]
+     */
+    open fun buildscript(block: ScriptHandlerScope.() -> Unit) {
+        buildscript.configureWith(block)
     }
+
+    open fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
+        PluginDependenciesSpecScope(pluginDependencies).configuration()
+    }
+}
+
+
+/**
+ * Base class for the evaluation of a `buildscript` block followed by a `plugins` block.
+ *
+ * @constructor Must match the constructor of the [CompiledKotlinSettingsPluginManagementBlock] object!
+ */
+@ImplicitReceiver(Project::class)
+open class CompiledKotlinBuildscriptAndPluginsBlock(
+    host: KotlinScriptHost<Project>,
+    private val pluginDependencies: PluginDependenciesSpec
+) : CompiledKotlinBuildScript(host) {
 
     /**
      * Configures the build script classpath for this project.
@@ -64,41 +80,7 @@ abstract class KotlinPluginManagementBuildscriptAndPluginsBlock(
         buildscript.configureWith(block)
     }
 
-    override fun plugins(configuration: PluginDependenciesSpecScope.() -> Unit) {
-        PluginDependenciesSpecScope(pluginDependencies).configuration()
-    }
-}
-
-
-/**
- * Base class for the evaluation of a `buildscript` block followed by a `plugins` block.
- *
- * @constructor Must match the constructor of the [KotlinPluginManagementBuildscriptAndPluginsBlock] object!
- */
-abstract class KotlinBuildscriptAndPluginsBlock(
-    private val host: KotlinScriptHost<Project>,
-    val pluginDependencies: PluginDependenciesSpec
-) : ProjectDelegate() {
-
-    override val delegate: Project
-        get() = host.target
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
-
-    /**
-     * Configures the build script classpath for this project.
-     *
-     * @see [Project.buildscript]
-     */
-    fun buildscript(block: ScriptHandlerScope.() -> Unit) {
-        buildscript.configureWith(block)
-    }
-
-    inline fun plugins(configuration: PluginDependenciesSpec.() -> Unit) {
-        pluginDependencies.configuration()
+    override fun plugins(block: PluginDependenciesSpec.() -> Unit) {
+        pluginDependencies.block()
     }
 }

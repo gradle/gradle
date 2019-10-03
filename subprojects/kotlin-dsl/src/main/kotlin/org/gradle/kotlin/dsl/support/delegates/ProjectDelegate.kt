@@ -67,10 +67,8 @@ import java.util.concurrent.Callable
 
 /**
  * Facilitates the implementation of the [Project] interface by delegation via subclassing.
- *
- * See [GradleDelegate] for why this is currently necessary.
  */
-abstract class ProjectDelegate() : Project {
+abstract class ProjectDelegate : Project {
 
     internal
     abstract val delegate: Project
