@@ -551,6 +551,46 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.setAdditionalClassDirs(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.setAdditionalSourceDirs(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.setClassDirectories(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.setExecutionData(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.tasks.JacocoReportBase",
+            "member": "Method org.gradle.testing.jacoco.tasks.JacocoReportBase.setSourceDirectories(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
