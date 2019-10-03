@@ -600,6 +600,102 @@
                 "Method is less accessible",
                 "Method return type has changed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Class org.gradle.api.plugins.quality.JDependPlugin",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Field DEFAULT_JDEPEND_VERSION",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.beforeApply()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.configureConfiguration(org.gradle.api.artifacts.Configuration)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.configureForSourceSet(org.gradle.api.tasks.SourceSet,org.gradle.api.plugins.quality.JDepend)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.configureForSourceSet(org.gradle.api.tasks.SourceSet,java.lang.Object)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.configureTaskDefaults(org.gradle.api.plugins.quality.JDepend,java.lang.String)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.configureTaskDefaults(java.lang.Object,java.lang.String)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.createExtension()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.getTaskType()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Method org.gradle.api.plugins.quality.JDependPlugin.getToolName()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependPlugin",
+            "member": "Constructor org.gradle.api.plugins.quality.JDependPlugin()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
