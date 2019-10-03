@@ -167,7 +167,7 @@ Doing so allows these problems to be surfaced more easily.
 
 ==== Gradle Module Metadata is always published
 
-[Gradle Module Metadata](https://blog.gradle.org/gradle-metadata-1.0), officially introduced in Gradle 5.3, was created to solve many of the problems that have plagued dependency management for years, in particular, but not exclusively, in the Java ecosystem.
+https://blog.gradle.org/gradle-metadata-1.0[Gradle Module Metadata], officially introduced in Gradle 5.3, was created to solve many of the problems that have plagued dependency management for years, in particular, but not exclusively, in the Java ecosystem.
 With Gradle 6.0, Gradle Module Metadata is enabled by default.
 This means, if you are publishing libraries with Gradle, using the <<publishing_maven.adoc#,maven-publish>> or <<publishing_ivy.adoc#,ivy-publish>> plugin, the Gradle Module Metadata file is always published *in addition* to the traditional metadata.
 The traditional metadata file will contain a marker so that Gradle knows that there is additional metadata to consume.
@@ -237,7 +237,7 @@ Use `ObjectFactory.directoryProperty()` instead of the following methods that ar
 ==== The FindBugs plugin has been removed
 
 The deprecated FindBugs plugin has been removed.
-As an alternative, you can use the link:https://plugins.gradle.org/plugin/com.github.spotbugs[SpotBugs plugin] from the link:https://plugins.gradle.org[Gradle Plugin Portal].
+As an alternative, you can use the link:https://plugins.gradle.org/plugin/com.github.spotbugs[SpotBugs plugin] from the link:https://plugins.gradle.org/search?term=spotbugs[Gradle Plugin Portal].
 
 ==== The JDepend plugin has been removed
 
@@ -246,11 +246,13 @@ There are a number of community-provided plugins for code and architecture analy
 
 ==== The OSGI plugin has been removed
 
-The deprecated OSGI plugin has been removed.  There are a number of community-provided OSGI plugins available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
+The deprecated OSGI plugin has been removed.
+There are a number of community-provided OSGI plugins available on the link:https://plugins.gradle.org/search?term=osgi[Gradle Plugin Portal].
 
 ==== The announce and build-announcements plugins have been removed
 
-The deprecated announce and build-announcements plugins have been removed.  There are a number of community-provided plugins for sending out notifications available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
+The deprecated announce and build-announcements plugins have been removed.
+There are a number of community-provided plugins for sending out notifications available on the link:https://plugins.gradle.org[Gradle Plugin Portal].
 
 ==== The Compare Gradle Builds plugin has been removed
 
@@ -259,8 +261,8 @@ Please use https://scans.gradle.com/[build scans] for build analysis and compari
 
 ==== The Play plugins have been removed
 
-The deprecated Play plugins has been removed.
-An external replacement link:https://gradle.github.io/playframework[Play Framework plugin] available from the plugin portal.
+The deprecated Play plugin has been removed.
+An external replacement, the link:https://gradle.github.io/playframework[Play Framework plugin], is available from the plugin portal.
 
 ==== Changes to the task container
 
@@ -329,7 +331,7 @@ Gradle always uses `configDirectory` as the value for 'config_loc' when running 
 ==== Changing the pom packaging no longer changes the artifact extension
 
 Previously, the extension of the main artifact published to a Maven repository, typically a _jar_, was changed during publishing if the pom packaging was not _jar_, _ejb_, _bundle_ or _maven-plugin_.
-This behavior let to broken Gradle Module Metadata and was difficult to understand due to different handling of different packaging types.
+This behavior led to broken Gradle Module Metadata and was difficult to understand due to different handling of different packaging types.
 Build authors can change the artifact name when the artifact is created to obtain the same result as before - e.g. by setting `jar.archiveExtension.set(pomPackaging)`.
 
 ==== Ivy.xml published for Java libraries contains more information
