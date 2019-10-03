@@ -19,9 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.InverseVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
@@ -131,13 +129,7 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         if (vs == null) {
             return true;
         }
-        if (vs instanceof VersionRangeSelector) {
-            return true;
-        }
-        if (vs instanceof InverseVersionSelector) {
-            return canBeStable(((InverseVersionSelector) vs).getInverseSelector());
-        }
-        return false;
+        return vs.canShortCircuitWhenVersionAlreadyPreselected();
     }
 
     private boolean doComputeIsDynamic() {
