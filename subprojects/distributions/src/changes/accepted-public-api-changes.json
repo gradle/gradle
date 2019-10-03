@@ -463,6 +463,46 @@
             "changes": [
                 "Method return type has changed"
             ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.getClassLoaderFactory()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.getDocumentationRegistry()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.setClasses(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.setClasspath(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.plugin.devel.tasks.ValidateTaskProperties",
+            "member": "Method org.gradle.plugin.devel.tasks.ValidateTaskProperties.validateTaskClasses()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
