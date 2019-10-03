@@ -423,9 +423,6 @@ public class DependencyGraphBuilder {
         if (requireSelector != null && !(selectorClass.isAssignableFrom(requireSelector.getClass()))) {
             return false;
         }
-        if (rvc.getRejectedSelector() != null) {
-            return false;
-        }
         return true;
     }
 
