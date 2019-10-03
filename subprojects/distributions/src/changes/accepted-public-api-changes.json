@@ -431,6 +431,38 @@
             "member": "Method org.gradle.api.tasks.compile.JavaCompile.getSources()",
             "acceptation": "Deprecated member removed",
             "changes": []
+        },
+        {
+            "type": "org.gradle.caching.configuration.BuildCacheConfiguration",
+            "member": "Method org.gradle.caching.configuration.BuildCacheConfiguration.local(java.lang.Class)",
+            "acceptation": "Local cache configuration is always a DirectoryBuildCache now",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.caching.configuration.BuildCacheConfiguration",
+            "member": "Method org.gradle.caching.configuration.BuildCacheConfiguration.local(java.lang.Class,org.gradle.api.Action)",
+            "acceptation": "Local cache configuration is always a DirectoryBuildCache now",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuildCacheConfigurationExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuildCacheConfigurationExtensionsKt.local(org.gradle.caching.configuration.BuildCacheConfiguration)",
+            "acceptation": "Local cache configuration is always a DirectoryBuildCache now",
+            "changes": [
+                "Method return type has changed"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.BuildCacheConfigurationExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.BuildCacheConfigurationExtensionsKt.local(org.gradle.caching.configuration.BuildCacheConfiguration,kotlin.jvm.functions.Function1)",
+            "acceptation": "Local cache configuration is always a DirectoryBuildCache now",
+            "changes": [
+                "Method return type has changed"
+            ]
         }
     ]
 }
