@@ -2,10 +2,12 @@ package org.gradle.kotlin.dsl.resolver
 
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 
+import org.junit.Test
+
 
 class ResolverCoordinatorTest {
 
-    @org.junit.Test
+    @Test
     fun `given an environment with a 'getScriptSectionTokens' entry, when no buildscript change, it will not try to retrieve the model`() {
 
         val environment =
@@ -20,7 +22,7 @@ class ResolverCoordinatorTest {
         }
     }
 
-    @org.junit.Test
+    @Test
     fun `given an environment with a 'getScriptSectionTokens' entry, when buildscript changes, it will try to retrieve the model again`() {
 
         val env1 = environmentWithGetScriptSectionTokensReturning("buildscript" to sequenceOf("foo"))
@@ -33,7 +35,7 @@ class ResolverCoordinatorTest {
         }
     }
 
-    @org.junit.Test
+    @Test
     fun `given an environment with a 'getScriptSectionTokens' entry, when plugins block changes, it will try to retrieve the model again`() {
 
         val env1 = environmentWithGetScriptSectionTokensReturning("plugins" to sequenceOf("foo"))
@@ -46,7 +48,7 @@ class ResolverCoordinatorTest {
         }
     }
 
-    @org.junit.Test
+    @Test
     fun `given an environment lacking a 'getScriptSectionTokens' entry, it will always try to retrieve the model`() {
 
         val environment = emptyMap<String, Any?>()
