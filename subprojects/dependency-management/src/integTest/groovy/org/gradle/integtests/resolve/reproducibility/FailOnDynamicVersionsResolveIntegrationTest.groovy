@@ -14,18 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve
+package org.gradle.integtests.resolve.reproducibility
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
 class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
+    String getNotation() {
+        "failOnDynamicVersions"
+    }
+
     def setup() {
         buildFile << """
             configurations.all {
-                resolutionStrategy.failOnDynamicVersions()
+                resolutionStrategy.$notation()
             }
         """
     }
