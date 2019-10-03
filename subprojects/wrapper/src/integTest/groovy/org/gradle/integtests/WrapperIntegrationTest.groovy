@@ -54,7 +54,8 @@ defaultTasks 'hello'
         def gradleUserHome = testDirectory.file('some-custom-user-home')
         when:
         def executer = wrapperExecuter.withGradleUserHomeDir(null)
-        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath")
+        // We can't use a daemon since on Windows the distribution jars will be kept open by the daemon
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath", "--no-daemon")
         result = executer.withTasks("hello").run()
         then:
         result.assertTaskExecuted(":hello")
@@ -69,7 +70,7 @@ defaultTasks 'hello'
             }
         }
         and:
-        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath")
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath", "--no-daemon")
         result = executer.withTasks("hello").run()
         then:
         deletedSomething
