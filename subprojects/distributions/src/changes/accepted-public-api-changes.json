@@ -832,6 +832,102 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Class org.gradle.api.plugins.quality.FindBugsPlugin",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Field DEFAULT_FINDBUGS_VERSION",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Field has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.beforeApply()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.configureConfiguration(org.gradle.api.artifacts.Configuration)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.configureForSourceSet(org.gradle.api.tasks.SourceSet,org.gradle.api.plugins.quality.FindBugs)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.configureForSourceSet(org.gradle.api.tasks.SourceSet,java.lang.Object)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.configureTaskDefaults(org.gradle.api.plugins.quality.FindBugs,java.lang.String)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.configureTaskDefaults(java.lang.Object,java.lang.String)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.createExtension()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.getTaskType()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsPlugin.getToolName()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsPlugin",
+            "member": "Constructor org.gradle.api.plugins.quality.FindBugsPlugin()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
