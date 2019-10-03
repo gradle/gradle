@@ -712,6 +712,102 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Class org.gradle.api.plugins.quality.JDepend",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.getAntBuilder()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.getClassesDirs()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.getJdependClasspath()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.getObjectFactory()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.getReports()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.reports(groovy.lang.Closure)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.reports(org.gradle.api.Action)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.run()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.setClassesDirs(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Method org.gradle.api.plugins.quality.JDepend.setJdependClasspath(org.gradle.api.file.FileCollection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDepend",
+            "member": "Constructor org.gradle.api.plugins.quality.JDepend()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
