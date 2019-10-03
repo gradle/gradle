@@ -72,6 +72,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private boolean assumeFluidDependencies;
     private SortOrder sortOrder = SortOrder.DEFAULT;
     private boolean failOnDynamicVersions;
+    private boolean failOnChangingVersions;
 
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
@@ -126,6 +127,13 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     public ResolutionStrategy failOnDynamicVersions() {
         mutationValidator.validateMutation(STRATEGY);
         this.failOnDynamicVersions = true;
+        return this;
+    }
+
+    @Override
+    public ResolutionStrategy failOnChangingVersions() {
+        mutationValidator.validateMutation(STRATEGY);
+        this.failOnChangingVersions = true;
         return this;
     }
 
@@ -286,6 +294,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         if (isFailingOnDynamicVersions()) {
             out.failOnDynamicVersions();
         }
+        if (isFailingOnChangingVersions()) {
+            out.failOnChangingVersions();
+        }
         return out;
     }
 
@@ -311,5 +322,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public boolean isFailingOnDynamicVersions() {
         return failOnDynamicVersions;
+    }
+
+    @Override
+    public boolean isFailingOnChangingVersions() {
+        return failOnChangingVersions;
     }
 }

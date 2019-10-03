@@ -98,6 +98,18 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnDynamicVersions();
 
     /**
+     * If this method is called, Gradle will make sure that no changing version participates in resolution.
+     *
+     * This can be used in cases you want to make sure your build is reproducible, <i>without</i> relying on
+     * dependency locking.
+     *
+     * @return this resolution strategy
+     * @since 6.1
+     */
+    @Incubating
+    ResolutionStrategy failOnChangingVersions();
+
+    /**
      * Gradle can resolve conflicts purely by version number or prioritize project dependencies over binary.
      * The default is <b>by version number</b>.<p>
      * This applies to both first level and transitive dependencies. See example below:
