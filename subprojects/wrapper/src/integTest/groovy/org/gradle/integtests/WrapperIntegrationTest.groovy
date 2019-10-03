@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests
 
+import groovy.io.FileType
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -45,5 +46,33 @@ defaultTasks 'hello'
         ConcurrentTestUtil.poll(60, 1) {
             assert file("hello.txt").exists()
         }
+    }
+
+    def "can recover from a broken distribution"() {
+        buildFile << "task hello"
+        prepareWrapper()
+        def gradleUserHome = testDirectory.file('some-custom-user-home')
+        when:
+        def executer = wrapperExecuter.withGradleUserHomeDir(null)
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath")
+        result = executer.withTasks("hello").run()
+        then:
+        result.assertTaskExecuted(":hello")
+
+        when:
+        // Delete important file in distribution
+        boolean deletedSomething = false
+        gradleUserHome.eachFileRecurse(FileType.FILES) { file ->
+            if (file.name.startsWith("gradle-launcher")) {
+                deletedSomething = file.delete()
+            }
+        }
+        and:
+        executer.withArguments("-Dgradle.user.home=$gradleUserHome.absolutePath")
+        result = executer.withTasks("hello").run()
+        then:
+        deletedSomething
+        result.assertHasErrorOutput("does not appear to be a valid Gradle distribution or is partially installed.")
+        result.assertTaskExecuted(":hello")
     }
 }
