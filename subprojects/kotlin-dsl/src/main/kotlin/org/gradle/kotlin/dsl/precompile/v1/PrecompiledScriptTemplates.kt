@@ -29,7 +29,6 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
-import org.gradle.kotlin.dsl.support.invalidPluginsCall
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
@@ -157,28 +156,6 @@ open class PrecompiledProjectScript(
             }
         )
     }
-
-    /**
-     * Nested `plugins` blocks are **NOT** allowed, for example:
-     * ```
-     * project(":core") {
-     *   plugins { java }
-     * }
-     * ```
-     * If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead.
-     * ```
-     * project(":core") {
-     *   apply(plugin = "java")
-     * }
-     * ```
-     */
-    @Suppress("unused", "DeprecatedCallableAddReplaceWith")
-    @Deprecated(
-        "The plugins {} block must not be used here. " + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.",
-        level = DeprecationLevel.ERROR
-    )
-    fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing =
-        invalidPluginsCall()
 
     private
     object NullPluginDependencySpec : PluginDependencySpec {

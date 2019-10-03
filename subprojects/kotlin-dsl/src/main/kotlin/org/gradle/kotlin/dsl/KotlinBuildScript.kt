@@ -77,26 +77,4 @@ abstract class KotlinBuildScript(
     @Suppress("unused")
     fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         invalidPluginsCall()
-
-    /**
-     * Nested `plugins` blocks are **NOT** allowed, for example:
-     * ```
-     * project(":core") {
-     *   plugins { java }
-     * }
-     * ```
-     * If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead.
-     * ```
-     * project(":core") {
-     *   apply(plugin = "java")
-     * }
-     * ```
-     */
-    @Suppress("unused", "DeprecatedCallableAddReplaceWith")
-    @Deprecated(
-        "The plugins {} block must not be used here. " + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.",
-        level = DeprecationLevel.ERROR
-    )
-    fun Project.plugins(block: PluginDependenciesSpec.() -> Unit): Nothing =
-        invalidPluginsCall()
 }
