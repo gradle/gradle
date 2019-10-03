@@ -40,6 +40,7 @@ import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 import kotlin.collections.contentEquals
 
+
 private
 typealias Report = (ReportSeverity, String, Position?) -> Unit
 
@@ -107,23 +108,22 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
         val cid = newCorrelationId()
         try {
             log(ResolutionRequest(cid, script.file, environment, previousDependencies))
-            when (val action = ResolverCoordinator.selectNextActionFor(script, environment, previousDependencies)) {
-                is ResolverAction.Return -> {
-                    action.dependencies
-                }
-                is ResolverAction.ReturnPrevious -> {
-                    log(ResolvedToPrevious(cid, script.file, previousDependencies))
+            if (environment.isShortCircuitEnabled) {
+                assembleDependenciesWithShortCircuit(
+                    cid,
+                    script,
+                    environment!!,
+                    report,
                     previousDependencies
-                }
-                is ResolverAction.RequestNew -> {
-                    assembleDependenciesFrom(
-                        cid,
-                        script.file,
-                        environment!!,
-                        report,
-                        previousDependencies,
-                        action.classPathBlocksHash)
-                }
+                )
+            } else {
+                assembleDependenciesFrom(
+                    cid,
+                    script.file,
+                    environment!!,
+                    report,
+                    previousDependencies
+                )
             }
         } catch (e: BuildException) {
             log(ResolutionFailure(cid, script.file, e))
@@ -139,13 +139,42 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
     }
 
     private
+    suspend fun assembleDependenciesWithShortCircuit(
+        cid: String,
+        script: ScriptContents,
+        environment: Environment,
+        report: Report,
+        previousDependencies: KotlinScriptExternalDependencies?
+    ): KotlinScriptExternalDependencies? =
+
+        when (val action = ResolverCoordinator.selectNextActionFor(script, environment, previousDependencies)) {
+            is ResolverAction.Return -> {
+                action.dependencies
+            }
+            is ResolverAction.ReturnPrevious -> {
+                log(ResolvedToPrevious(cid, script.file, previousDependencies))
+                previousDependencies
+            }
+            is ResolverAction.RequestNew -> {
+                assembleDependenciesFrom(
+                    cid,
+                    script.file,
+                    environment,
+                    report,
+                    previousDependencies,
+                    action.classPathBlocksHash
+                )
+            }
+        }
+
+    private
     suspend fun assembleDependenciesFrom(
         cid: String,
         scriptFile: File?,
         environment: Environment,
         report: Report,
         previousDependencies: KotlinScriptExternalDependencies?,
-        classPathBlocksHash: ByteArray?
+        classPathBlocksHash: ByteArray? = null
     ): KotlinScriptExternalDependencies? {
 
         val request = scriptModelRequestFrom(scriptFile, environment, cid)
