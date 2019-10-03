@@ -696,6 +696,22 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependExtension",
+            "member": "Class org.gradle.api.plugins.quality.JDependExtension",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependExtension",
+            "member": "Constructor org.gradle.api.plugins.quality.JDependExtension()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
