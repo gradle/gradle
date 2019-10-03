@@ -24,7 +24,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.junit.experimental.categories.Categories.CategoryFilter.include
 import java.io.File
 
 
