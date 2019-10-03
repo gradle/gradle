@@ -291,7 +291,7 @@ class PublicAPIRulesTest extends Specification {
     }
 
     @Unroll
-    def "if a new #apiElement is annotated with @Deprecated it does not require @Incubating or @since annotations"() {
+    def "if a new #apiElement is annotated with @Deprecated it does require @Incubating or @since annotations"() {
         given:
         JApiCompatibility jApiType = getProperty(jApiTypeName)
         def incubatingMissingRule = withContext(new IncubatingMissingRule([:]))
@@ -310,8 +310,8 @@ class PublicAPIRulesTest extends Specification {
         """
 
         then:
-        incubatingMissingRule.maybeViolation(jApiType) == null
-        sinceMissingRule.maybeViolation(jApiType) == null
+        incubatingMissingRule.maybeViolation(jApiType).severity == Severity.error
+        sinceMissingRule.maybeViolation(jApiType).severity == Severity.error
 
         where:
         apiElement  | jApiTypeName

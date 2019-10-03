@@ -212,8 +212,13 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     public static MutableMavenModuleResolveMetadata processMetaData(MutableMavenModuleResolveMetadata metaData) {
-        if (isNonUniqueSnapshot(metaData.getId())) {
+        ModuleComponentIdentifier id = metaData.getId();
+        if (isNonUniqueSnapshot(id)) {
             metaData.setChanging(true);
+        }
+        if (isUniqueSnapshot(id)) {
+            MavenUniqueSnapshotComponentIdentifier mus = (MavenUniqueSnapshotComponentIdentifier) id;
+            metaData.setSnapshotTimestamp(mus.getTimestamp());
         }
         return metaData;
     }
@@ -268,6 +273,10 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
         protected void resolveSourceArtifacts(MavenModuleResolveMetadata module, BuildableArtifactSetResolveResult result) {
             result.resolved(findOptionalArtifacts(module, "source", "sources"));
         }
+    }
+
+    private static boolean isUniqueSnapshot(ModuleComponentIdentifier id) {
+        return id instanceof MavenUniqueSnapshotComponentIdentifier;
     }
 
     protected static boolean isNonUniqueSnapshot(ModuleComponentIdentifier moduleComponentIdentifier) {
