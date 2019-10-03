@@ -19,7 +19,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.InverseVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.UnionVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionRangeSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 
@@ -102,6 +104,40 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
     @Override
     public boolean isStrict() {
         return isStrict;
+    }
+
+    @Override
+    public boolean accepts(String candidate) {
+        boolean accepted = true;
+        if (requiredVersionSelector != null) {
+            accepted = requiredVersionSelector.accept(candidate);
+        } else if (preferredVersionSelector != null) {
+            accepted = preferredVersionSelector.accept(candidate);
+        }
+        if (accepted && rejectedVersionsSelector != null) {
+            accepted = !rejectedVersionsSelector.accept(candidate);
+        }
+        return accepted;
+    }
+
+    @Override
+    public boolean canBeStable() {
+        return canBeStable(preferredVersionSelector)
+            && canBeStable(requiredVersionSelector)
+            && canBeStable(rejectedVersionsSelector);
+    }
+
+    private static boolean canBeStable(VersionSelector vs) {
+        if (vs == null) {
+            return true;
+        }
+        if (vs instanceof VersionRangeSelector) {
+            return true;
+        }
+        if (vs instanceof InverseVersionSelector) {
+            return canBeStable(((InverseVersionSelector) vs).getInverseSelector());
+        }
+        return false;
     }
 
     private boolean doComputeIsDynamic() {

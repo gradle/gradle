@@ -246,6 +246,35 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         }
     }
 
+    def "fails if exact selector is below the range"() {
+        buildFile << """
+            dependencies {
+               conf 'org:test:[1.2, 2.0['
+               conf 'org:test:1.0'
+            }
+        """
+        repository {
+            'org:test' {
+                '1.0'()
+                '1.1'()
+                '1.2'()
+            }
+        }
+        when:
+        repositoryInteractions {
+            'org:test' {
+                expectVersionListing()
+                '1.2' {
+                    expectGetMetadata()
+                }
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        failure.assertHasCause("Could not resolve org:test:[1.2, 2.0[: Resolution strategy disallows usage of dynamic versions")
+    }
+
     @Unroll
     def "fails with combination of selectors (#selector1 and #selector2)"() {
         buildFile << """

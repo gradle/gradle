@@ -439,19 +439,26 @@ public class DependencyGraphBuilder {
     }
 
     private void checkIfDynamicVersionAllowed(ComponentState selected, List<SelectorState> selectors) {
-        // if there's at least one dynamic selector, it's more complicated
-        // as the only stable combination is range + exact
-        int rangeCount = 0;
-        int exactCount = 0;
+        String version = selected.getId().getVersion();
+        // There must be at least one non dynamic selector agreeing with the selection
+        // for the resolution result to be stable
+        // and for dynamic selectors, only the "stable" ones work, which is currently
+        // only ranges because those are the only ones which accept a selection without
+        // upgrading
+        boolean accept = false;
         for (SelectorState selector : selectors) {
-            if (isSimpleRangeSelector(selector.getVersionConstraint())) {
-                rangeCount++;
-            } else if (isSimpleExactSelector(selector.getVersionConstraint())) {
-                exactCount++;
+            ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+            if (!versionConstraint.isDynamic()) {
+                // this selector is not dynamic, let's see if it agrees with the selection
+                if (versionConstraint.accepts(version)) {
+                    accept = true;
+                }
+            } else if (!versionConstraint.canBeStable()) {
+                accept = false;
+                break;
             }
         }
-        if (selectors.size() != rangeCount + exactCount) {
-            // invalid combination
+        if (!accept) {
             markDeniedDynamicVersions(selected);
         }
     }
