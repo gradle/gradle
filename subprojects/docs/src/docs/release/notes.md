@@ -69,6 +69,8 @@ Note that you can still configure the executable to use for the compile or test 
 Earlier AGP versions are not supported.
 * Kotlin versions between 1.3.21 and 1.3.50 are tested.
 Earlier Kotlin versions are not supported.
+* Kotlin DSL [precompiled script plugins](https://docs.gradle.org/current/userguide/kotlin_dsl.html#kotdsl:precompiled_plugins) built with Gradle 6.0 cannot be used with earlier versions of Gradle.
+  This limitation will be lifted in a future version of Gradle.
 
 ## Improved Dependency Management feature set
 
