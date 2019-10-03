@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Action
 import org.gradle.api.Incubating
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
@@ -178,7 +179,7 @@ interface KotlinScript {
      * @return The file collection.
      * @see files
      */
-    fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection
+    fun files(paths: Any, configuration: Action<ConfigurableFileCollection>): ConfigurableFileCollection
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -202,7 +203,7 @@ interface KotlinScript {
      * @return The file tree.
      * @see [fileTree]
      */
-    fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree
+    fun fileTree(baseDir: Any, configuration: Action<ConfigurableFileTree>): ConfigurableFileTree
 
     /**
      * Creates a new [FileTree] which contains the contents of the given ZIP file.
@@ -247,7 +248,7 @@ interface KotlinScript {
      * @param configuration The block to use to configure the [CopySpec].
      * @return `WorkResult` that can be used to check if the copy did any work.
      */
-    fun copy(configuration: CopySpec.() -> Unit): WorkResult
+    fun copy(configuration: Action<CopySpec>): WorkResult
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
@@ -262,7 +263,7 @@ interface KotlinScript {
      * @param configuration The block to use to configure the [CopySpec].
      * @return The configured [CopySpec]
      */
-    fun copySpec(configuration: CopySpec.() -> Unit): CopySpec
+    fun copySpec(configuration: Action<CopySpec>): CopySpec
 
     /**
      * Creates a directory and returns a file pointing to it.
@@ -289,7 +290,7 @@ interface KotlinScript {
      * @param configuration The block to use to configure the [DeleteSpec].
      * @return `WorkResult` that can be used to check if delete did any work.
      */
-    fun delete(configuration: DeleteSpec.() -> Unit): WorkResult
+    fun delete(configuration: Action<DeleteSpec>): WorkResult
 
     /**
      * Executes an external command.
@@ -299,7 +300,7 @@ interface KotlinScript {
      * @param configuration The block to use to configure the [ExecSpec].
      * @return The result of the execution.
      */
-    fun exec(configuration: ExecSpec.() -> Unit): ExecResult
+    fun exec(configuration: Action<ExecSpec>): ExecResult
 
     /**
      * Executes an external Java process.
@@ -309,5 +310,5 @@ interface KotlinScript {
      * @param configuration The block to use to configure the [JavaExecSpec].
      * @return The result of the execution.
      */
-    fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult
+    fun javaexec(configuration: Action<JavaExecSpec>): ExecResult
 }

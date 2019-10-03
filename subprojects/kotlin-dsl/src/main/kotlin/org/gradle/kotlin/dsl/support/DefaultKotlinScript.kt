@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.file.ConfigurableFileCollection
@@ -76,14 +77,14 @@ open class DefaultKotlinScript internal constructor(
     override fun files(vararg paths: Any): ConfigurableFileCollection =
         fileOperations.configurableFiles(paths)
 
-    override fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
-        fileOperations.configurableFiles(paths).also(configuration)
+    override fun files(paths: Any, configuration: Action<ConfigurableFileCollection>): ConfigurableFileCollection =
+        fileOperations.configurableFiles(paths).also(configuration::execute)
 
     override fun fileTree(baseDir: Any): ConfigurableFileTree =
         fileOperations.fileTree(baseDir)
 
-    override fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree =
-        fileOperations.fileTree(baseDir).also(configuration)
+    override fun fileTree(baseDir: Any, configuration: Action<ConfigurableFileTree>): ConfigurableFileTree =
+        fileOperations.fileTree(baseDir).also(configuration::execute)
 
     override fun zipTree(zipPath: Any): FileTree =
         fileOperations.zipTree(zipPath)
@@ -91,14 +92,14 @@ open class DefaultKotlinScript internal constructor(
     override fun tarTree(tarPath: Any): FileTree =
         fileOperations.tarTree(tarPath)
 
-    override fun copy(configuration: CopySpec.() -> Unit): WorkResult =
+    override fun copy(configuration: Action<CopySpec>): WorkResult =
         fileOperations.copy(configuration)
 
     override fun copySpec(): CopySpec =
         fileOperations.copySpec()
 
-    override fun copySpec(configuration: CopySpec.() -> Unit): CopySpec =
-        fileOperations.copySpec().also(configuration)
+    override fun copySpec(configuration: Action<CopySpec>): CopySpec =
+        copySpec().also(configuration::execute)
 
     override fun mkdir(path: Any): File =
         fileOperations.mkdir(path)
@@ -106,13 +107,13 @@ open class DefaultKotlinScript internal constructor(
     override fun delete(vararg paths: Any): Boolean =
         fileOperations.delete(*paths)
 
-    override fun delete(configuration: DeleteSpec.() -> Unit): WorkResult =
+    override fun delete(configuration: Action<DeleteSpec>): WorkResult =
         fileOperations.delete(configuration)
 
-    override fun exec(configuration: ExecSpec.() -> Unit): ExecResult =
+    override fun exec(configuration: Action<ExecSpec>): ExecResult =
         processOperations.exec(configuration)
 
-    override fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
+    override fun javaexec(configuration: Action<JavaExecSpec>): ExecResult =
         processOperations.javaexec(configuration)
 
     private

@@ -188,9 +188,9 @@ fun KParameter.isCompatibleWith(api: KParameter) =
 
 private
 fun KParameter.isGradleActionCompatibleWith(api: KParameter) =
-    type.jvmErasure == Action::class
-        && api.isSamWithReceiverReturningUnit()
-        && type.arguments[0].type!!.isTypeArgumentCompatibleWith(api.type.arguments[0].type!!)
+    api.type.jvmErasure == Action::class
+        && isSamWithReceiverReturningUnit()
+        && api.type.arguments[0].type!!.isTypeArgumentCompatibleWith(type.arguments[0].type!!)
 
 
 private
