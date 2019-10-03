@@ -1488,6 +1488,46 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsReports",
+            "member": "Class org.gradle.api.plugins.quality.FindBugsReports",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsReports",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsReports.getEmacs()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsReports",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsReports.getHtml()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsReports",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsReports.getText()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsReports",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsReports.getXml()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
