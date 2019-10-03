@@ -107,7 +107,7 @@ val Environment.gradleEnvironmentVariables: Map<String, String>
  */
 internal
 val Map<String, Any?>?.isShortCircuitEnabled: Boolean
-    get() = (this?.get("gradleKotlinDslScriptDependenciesResolverShortCircuit") as? Boolean) ?: false
+    get() = this?.get("gradleKotlinDslScriptDependenciesResolverShortCircuit") == true
 
 
 private
