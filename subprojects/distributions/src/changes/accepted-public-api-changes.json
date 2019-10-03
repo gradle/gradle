@@ -808,6 +808,30 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependReports",
+            "member": "Class org.gradle.api.plugins.quality.JDependReports",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependReports",
+            "member": "Method org.gradle.api.plugins.quality.JDependReports.getText()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.JDependReports",
+            "member": "Method org.gradle.api.plugins.quality.JDependReports.getXml()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
