@@ -591,6 +591,15 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.testing.jacoco.plugins.JacocoPlugin",
+            "member": "Method org.gradle.testing.jacoco.plugins.JacocoPlugin.configureDefaultOutputPathForJacocoMerge()",
+            "acceptation": "Deprecated member made private",
+            "changes": [
+                "Method is less accessible",
+                "Method return type has changed"
+            ]
         }
     ]
 }
