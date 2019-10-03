@@ -1528,6 +1528,30 @@
             "changes": [
                 "Method has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsXmlReport",
+            "member": "Class org.gradle.api.plugins.quality.FindBugsXmlReport",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsXmlReport",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsXmlReport.isWithMessages()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsXmlReport",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsXmlReport.setWithMessages(boolean)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
         }
     ]
 }
