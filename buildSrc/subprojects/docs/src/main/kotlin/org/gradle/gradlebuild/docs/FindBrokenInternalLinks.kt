@@ -24,6 +24,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.junit.experimental.categories.Categories.CategoryFilter.include
 import java.io.File
 
 
@@ -75,7 +76,7 @@ open class FindBrokenInternalLinks : DefaultTask() {
             }
         }
         reportFile.get().asFile.appendText(messageBuilder.toString())
-        throw GradleException("Found invalid internal links. See ${reportFile.get().asFile}")
+        throw GradleException("Documentation check failed: found invalid internal links. See ${reportFile.get().asFile}")
     }
 
     private
