@@ -19,6 +19,7 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.artifacts.ModuleComponentSelectorSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -136,7 +138,14 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
             String type = decoder.readString();
             String extension = decoder.readNullableString();
             String classifier = decoder.readNullableString();
-            artifacts.add(new DefaultModuleComponentArtifactMetadata(componentIdentifier, new DefaultIvyArtifactName(name, type, extension, classifier)));
+            String timestamp = decoder.readNullableString();
+            String version = null;
+            ModuleComponentIdentifier cid = componentIdentifier;
+            if (timestamp != null) {
+                version = decoder.readString();
+                cid = new MavenUniqueSnapshotComponentIdentifier(componentIdentifier.getModuleIdentifier(), version, timestamp);
+            }
+            artifacts.add(new DefaultModuleComponentArtifactMetadata(cid, new DefaultIvyArtifactName(name, type, extension, classifier)));
         }
         int filesCount = decoder.readSmallInt();
         for (int i = 0; i < filesCount; i++) {
@@ -183,6 +192,14 @@ public abstract class AbstractRealisedModuleResolveMetadataSerializationHelper {
                 encoder.writeString(artifactName.getType());
                 encoder.writeNullableString(artifactName.getExtension());
                 encoder.writeNullableString(artifactName.getClassifier());
+                ComponentIdentifier componentId = artifact.getComponentId();
+                if (componentId instanceof MavenUniqueSnapshotComponentIdentifier) {
+                    MavenUniqueSnapshotComponentIdentifier uid = (MavenUniqueSnapshotComponentIdentifier) componentId;
+                    encoder.writeNullableString(uid.getTimestamp());
+                    encoder.writeString(uid.getSnapshotVersion());
+                } else {
+                    encoder.writeNullableString(null);
+                }
             }
         }
         encoder.writeSmallInt(fileArtifactsCount);
