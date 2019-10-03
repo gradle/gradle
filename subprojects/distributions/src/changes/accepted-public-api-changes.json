@@ -928,6 +928,198 @@
             "changes": [
                 "Constructor has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Class org.gradle.api.plugins.quality.FindBugsExtension",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Class has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getEffort()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getExcludeBugsFilter()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getExcludeBugsFilterConfig()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getExcludeFilter()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getExcludeFilterConfig()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getExtraArgs()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getIncludeFilter()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getIncludeFilterConfig()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getOmitVisitors()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getReportLevel()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.getVisitors()",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setEffort(java.lang.String)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setExcludeBugsFilter(java.io.File)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setExcludeBugsFilterConfig(org.gradle.api.resources.TextResource)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setExcludeFilter(java.io.File)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setExcludeFilterConfig(org.gradle.api.resources.TextResource)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setExtraArgs(java.util.Collection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setIncludeFilter(java.io.File)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setIncludeFilterConfig(org.gradle.api.resources.TextResource)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setOmitVisitors(java.util.Collection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setReportLevel(java.lang.String)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Method org.gradle.api.plugins.quality.FindBugsExtension.setVisitors(java.util.Collection)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Method has been removed"
+            ]
+        },
+        {
+            "type": "org.gradle.api.plugins.quality.FindBugsExtension",
+            "member": "Constructor org.gradle.api.plugins.quality.FindBugsExtension(org.gradle.api.Project)",
+            "acceptation": "Deprecated member removed",
+            "changes": [
+                "Constructor has been removed"
+            ]
         }
     ]
 }
