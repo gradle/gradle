@@ -148,9 +148,6 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
     ): KotlinScriptExternalDependencies? =
 
         when (val action = ResolverCoordinator.selectNextActionFor(script, environment, previousDependencies)) {
-            is ResolverAction.Return -> {
-                action.dependencies
-            }
             is ResolverAction.ReturnPrevious -> {
                 log(ResolvedToPrevious(cid, script.file, previousDependencies))
                 previousDependencies
@@ -260,7 +257,6 @@ internal
 sealed class ResolverAction {
     object ReturnPrevious : ResolverAction()
     class RequestNew(val classPathBlocksHash: ByteArray?) : ResolverAction()
-    class Return(val dependencies: KotlinScriptExternalDependencies?) : ResolverAction()
 }
 
 
