@@ -167,6 +167,7 @@ class DefaultResolutionStrategySpec extends Specification {
 
         strategy.failOnVersionConflict()
         strategy.failOnDynamicVersions()
+        strategy.failOnChangingVersions()
         strategy.force("org:foo:1.0")
         strategy.componentSelection.addRule(new NoInputsRuleAction<ComponentSelection>({}))
 
@@ -185,6 +186,7 @@ class DefaultResolutionStrategySpec extends Specification {
         copy.dependencySubstitution == newDependencySubstitutions
 
         ((ResolutionStrategyInternal)copy).isFailingOnDynamicVersions() == ((ResolutionStrategyInternal)strategy).isFailingOnDynamicVersions()
+        ((ResolutionStrategyInternal)copy).isFailingOnChangingVersions() == ((ResolutionStrategyInternal)strategy).isFailingOnChangingVersions()
     }
 
     def "configures changing modules cache with jdk5+ units"() {
@@ -227,6 +229,9 @@ class DefaultResolutionStrategySpec extends Specification {
         then: 1 * validator.validateMutation(STRATEGY)
 
         when: strategy.failOnDynamicVersions()
+        then: 1 * validator.validateMutation(STRATEGY)
+
+        when: strategy.failOnChangingVersions()
         then: 1 * validator.validateMutation(STRATEGY)
 
         when: strategy.force("org.utils:api:1.3")

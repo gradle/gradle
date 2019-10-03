@@ -94,4 +94,6 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     CapabilitiesResolutionInternal getCapabilitiesResolutionRules();
 
     boolean isFailingOnDynamicVersions();
+
+    boolean isFailingOnChangingVersions();
 }
