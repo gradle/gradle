@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.events.test.internal;
 
-import org.gradle.tooling.events.OperationDescriptor;
-import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.TestOutputDescriptor;
 import org.gradle.tooling.events.test.TestOutputEvent;
 
