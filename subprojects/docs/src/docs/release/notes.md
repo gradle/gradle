@@ -1,12 +1,22 @@
 The Gradle team is excited to announce a new major version of Gradle, @version@.
 
-This release features [vastly improved feature set in dependency management](#improved-dependency-management-feature-set), [support for running Gradle with Java 13](#support-for-java-13), [built-in packaging and publishing of javadoc and sources](#javadoc-and-sources-packaging-and-publishing-is-now-a-built-in-feature-of-the-java-plugins), ... [n](), and more.
+In the JVM ecosystem, we've made [incremental Java compilation faster](#faster-incremental-java), added [support for JDK13](#java-13) and provided [out of the box support for javadoc and source jars](#javadoc-sources-jar). For Scala projects, we've updated the [Zinc compiler](#zinc-compiler) and made it easier to select which version of Zinc to use.
 
-These release notes list what's new since Gradle 5.6, but you can review the [highlights since Gradle 5.0 here](https://gradle.org/whats-new/gradle-6/).
+For Gradle [plugin authors](#plugin-ecosystem), we've added new APIs to make it easier to lazily connect tasks and properties together, [made useful services available to worker API actions](#worker-api-services) and Gradle will now [complain at runtime if a task appears misconfigured](#task-problems).
 
-Read the [Gradle 6.0 upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
+A major highlight of this release is the [vastly improved feature set in dependency management](#dependency-management). Some of the features were released in stages, but with Gradle 6.0 they are now stable and production ready. We now publish [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) by default, which makes these new features available between projects _and_ binary dependencies.
+
+In the [native ecosystem](#native-ecosystem), we've added support for Visual Studio 2019 and the latest C++ standards.
+
+This release contains some updates to help [protect the integrity and security of your build](#security). 
+
+As always, we also incorporated some [smaller changes](#quality-of-life) and more.
+
+This release features changes across the board, but these release notes only list what's new since Gradle 5.6.
+You can review the [highlights since Gradle 5.0 here](https://gradle.org/whats-new/gradle-6/).
 
 We would like to thank the following community contributors to this release of Gradle:
+
 [Nathan Strong](https://github.com/NathanStrong-Tripwire),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Tetsuya Ikenaga](https://github.com/ikngtty),
@@ -50,10 +60,8 @@ This version of Gradle is tested with
 
 other versions may or may not work.
 
+<a name="dependency-management"></a>
 ## Improved Dependency Management feature set
-
-Note that some of the features below were released in stages in Gradle versions before 6.0.
-However, with Gradle 6.0 they are now stable, production ready and available between projects _and_ binary dependencies.
 
 ### Rich versions declaration
 
@@ -100,6 +108,7 @@ Includes the possibility to [add Gradle variants](userguide/component_metadata_r
 
 Dependency management documentation has been reorganised and structured around use cases to help users find the information they need faster.
 
+<a name="faster-incremental-java"></a>
 ## Faster incremental Java compilation
 
 When analyzing the impact of a changed class, the incremental compiler can now exclude classes that are an implementation detail of another class.  This limits the number of classes that need to be recompiled.
@@ -129,10 +138,12 @@ In Gradle 6.0, Gradle will only recompile `A` and `B`. For deep dependency chain
 
 If `A`, `B` and `C` were all in different projects, Gradle would skip recompiling `C` through [compilation avoidance](userguide/java_plugin.html#sec:java_compile_avoidance). 
 
+<a name="java-13"></a>
 ## Support for Java 13
 
 Gradle now supports running with [Java 13](https://openjdk.java.net/projects/jdk/13/).
 
+<a name="javadoc-sources-jar"></a>
 ## Built-in javadoc and sources packaging and publishing
 
 You can now activate Javadoc and sources publishing for a Java Library or Java project:
@@ -149,6 +160,7 @@ This means that you can query for the Javadoc or sources _variant_ of a module a
 
 If activated, a Java and Java Library project automatically provides the `javadocJar` and `sourcesJar` tasks.
 
+<a name="zinc-compiler"></a>
 ## Update to newer Scala Zinc compiler
 
 The Zinc compiler has been upgraded to version 1.2.5. Gradle no longer supports building for Scala 2.9. 
@@ -166,15 +178,8 @@ scala {
 
 Please note that the coordinates for the supported version of Zinc has changed since Zinc 1.0. You may no longer use a `com.typesafe.zinc:zinc` dependency.
 
-## Automatic shortening of long command-lines for Java applications on Windows
-
-When Gradle detects that a Java process command-line will exceed Windows's 32,768 character limit, Gradle will attempt to shorten the command-line by passing the classpath of the Java application via a ["classpath jar"](https://docs.oracle.com/javase/tutorial/deployment/jar/downman.html). 
-
-The classpath jar contains a manifest with the full classpath of the application. Gradle will only pass the generated jar on the command-line to the application. If the command-line is still too long, the Java process will fail to start as before.
-
-If the command-line does not require shortening, Gradle will not change the command-line arguments for the Java process.
-
-## Problems with task definitions called out during build
+<a name="task-problems"></a>
+## Problems with tasks called out during build
 
 Tasks that define their inputs or outputs incorrectly can cause problems when running incremental builds or when using the build cache.
 As part of an ongoing effort to bring these problems to light, Gradle now reports these problems as deprecation warnings during the build.
@@ -190,7 +195,16 @@ Deprecation warnings will always show up in [build scans](https://scans.gradle.c
 
 See the user manual for [how to address these deprecation warnings](userguide/more_about_tasks.html#sec:task_input_validation). 
 
-## Smaller quality of life improvements
+<a name="quality-of-life"></a>
+## Quality of life improvements
+
+### Automatic shortening of long command-lines for Java applications on Windows
+
+When Gradle detects that a Java process command-line will exceed Windows's 32,768 character limit, Gradle will attempt to shorten the command-line by passing the classpath of the Java application via a ["classpath jar"](https://docs.oracle.com/javase/tutorial/deployment/jar/downman.html). 
+
+The classpath jar contains a manifest with the full classpath of the application. Gradle will only pass the generated jar on the command-line to the application. If the command-line is still too long, the Java process will fail to start as before.
+
+If the command-line does not require shortening, Gradle will not change the command-line arguments for the Java process.
 
 ### More consistent & robust file deletion on Windows
 
@@ -198,18 +212,29 @@ Deleting complex file hierarchies on Windows can sometimes fail with errors like
 
 Gradle now deletes files in a consistent way that should avoid failures when cleaning output files of a task.
 
-### `gradle init` generates `.gitattributes` file
+### Windows line endings: `gradle init` generates `.gitattributes` file
 
 To ensure Windows batch scripts retain the appropriate line endings, `gradle init` now generates a `.gitattributes` file.
 
 This was contributed by [Tom Eyckmans](https://github.com/teyckmans).
 
-### Wrapper reports download progress
+### Wrapper reports download progress as percentage
 
 Gradle now reports the progress of the distribution downloaded. 
 
 Initially contributed by [Artur Dryomov](https://github.com/ming13).
 
+### Wrapper tries to recover from an invalid Gradle installation
+
+If the wrapper determines a Gradle distribution installed by the wrapper is invalid, the wrapper will attempt to re-install the distribution.  Previous versions of the wrapper would fail and require manual intervention.
+
+### Daemon logs contain the date and timestamp
+
+When logging messages to the Gradle daemon log, our log format only contain the time and not the date. 
+
+Gradle now logs with ISO-8601 date timestamps.
+
+<a name="plugin-ecosystem"></a>
 ## Features for plugin authors
 
 ### New types available as managed properties
@@ -220,13 +245,11 @@ In this release, it is possible for a task or other custom types to have an abst
 
 ### New `ConfigurableFileTree` and `FileCollection` factory methods
 
-Previously, it was only possible to create a `ConfigurableFileTree` or a fixed `FileCollection` by using the APIs provided by a `Project`.
-
-However, a `Project` object is not always available, for example in a project extension object or a [worker action](userguide/custom_tasks.html#worker_api).
+Previously, it was only possible to create a `ConfigurableFileTree` or a fixed `FileCollection` by using the APIs provided by a `Project`. However, a `Project` object is not always available, for example in a project extension object or a [worker action](userguide/custom_tasks.html#worker_api).
 
 The `ObjectFactory` service now has a [fileTree()](javadoc/org/gradle/api/model/ObjectFactory.html#fileTree--) method for creating `ConfigurableFileTree` instances.
 
-The `Directory` and `DirectoryProperty` types now both have a `files(Object...)` method to create fixed `FileCollection` instances resolving files relativel to the referenced directory.
+The `Directory` and `DirectoryProperty` types both have a new `files(Object...)` method to create fixed `FileCollection` instances resolving files relativel to the referenced directory.
 - [`Directory.files(Object...)`](javadoc/org/gradle/api/file/Directory.html#files-java.lang.Object++...++-)
 - [`DirectoryProperty.files(Object...)`](javadoc/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-)
 
@@ -238,6 +261,7 @@ In the same vein, doing file system operations such as `copy()`, `sync()` and `d
 
 See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`FileSystemOperations`](javadoc/org/gradle/api/file/FileSystemOperations.html) and [`ExecOperations`](javadoc/org/gradle/process/ExecOperations.html) api documentation for more details and examples.
 
+<a name="worker-api-services"></a>
 ### Services available in Worker API actions
 
 The following services are now available for injection in `WorkAction` classes:
@@ -279,17 +303,20 @@ See the [user manual](userguide/custom_gradle_types.html#service_injection) for 
 - [`RegularFileProperty.fileProvider​(Provider<File>)`](javadoc/org/gradle/api/file/RegularFileProperty.html#fileProvider-org.gradle.api.provider.Provider-)
 - [`ProjectLayout.dir(Provider<File>)`](javadoc/org/gradle/api/file/ProjectLayout.html#dir-org.gradle.api.provider.Provider-)
 
+<a name="native-ecosystem"></a>
 ## Features for native developers
 
 ### IntelliSense support for C++17 and latest C++ standard within Visual Studio
 
-Gradle will now generate IDE solution honoring the C++17 `/std:cpp17` and latest C++ standard `/std:cpplatest` compiler flag.
-The Visual Studio IntelliSense will help you write great code with those new standard.
+Gradle will now generate IDE solutions honoring the C++17 `/std:cpp17` and latest C++ standard `/std:cpplatest` compiler flags.
+
+Visual Studio IntelliSense will help you write great code with these new standards.
 
 ### Support for Visual Studio 2019
 
-Gradle now officially supports building application and libraries with Visual Studio 2019.
+Gradle now supports building application and libraries with [Visual Studio 2019](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes).
 
+<a name="security"></a>
 ## Security
 
 ### Protecting the integrity of builds
@@ -336,7 +363,7 @@ will drop support for HTTP and will only support HTTPS. Their announcements can 
  - [JFrog: JCenter](https://jfrog.com/blog/secure-jcenter-with-https/)
  - [Pivotal: Spring](https://spring.io/blog/2019/09/16/goodbye-http-repo-spring-use-https)
 
-The Gradle team will be making an announcement soon about use of HTTP with `services.gradle.org` and `plugins.gradle.org`.
+The Gradle team will be making an announcement soon about the use of HTTP with [wrapper downloads](https://services.gradle.org) and [plugin portal](https://plugins.gradle.org).
 
 ### Signing Plugin now uses SHA512 instead of SHA1
 
