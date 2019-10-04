@@ -63,6 +63,8 @@ public enum OperationType {
 
     /**
      *  Flag for test output operation progress events.
+     *  <p>
+     *  Clients must subscribe to {@link #TEST} events too if they want to receive test output events.
      *
      * @since 6.0
      */

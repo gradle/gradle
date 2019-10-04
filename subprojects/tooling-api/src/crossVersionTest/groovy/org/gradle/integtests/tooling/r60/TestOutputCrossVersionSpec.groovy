@@ -46,10 +46,10 @@ class TestOutputCrossVersionSpec extends ToolingApiSpecification {
         def events = getOutputEvents()
 
         then:
-        events.find { TestOutputEvent event -> event.message == "out1" && event.destination == Destination.StdOut }
-        events.find { TestOutputEvent event -> event.message == "err1" && event.destination == Destination.StdErr }
-        events.find { TestOutputEvent event -> event.message == "out2" && event.destination == Destination.StdOut }
-        events.find { TestOutputEvent event -> event.message == "err2" && event.destination == Destination.StdErr }
+        events.find { TestOutputEvent event -> event.descriptor.message == "out1" && event.descriptor.destination == Destination.StdOut }
+        events.find { TestOutputEvent event -> event.descriptor.message == "err1" && event.descriptor.destination == Destination.StdErr }
+        events.find { TestOutputEvent event -> event.descriptor.message == "out2" && event.descriptor.destination == Destination.StdOut }
+        events.find { TestOutputEvent event -> event.descriptor.message == "err2" && event.descriptor.destination == Destination.StdErr }
     }
 
     def "output events have correct parent test events"() {

@@ -394,9 +394,8 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private TestOutputEvent transformTestOutput(InternalTestOutputEvent event, InternalTestOutputDescriptor descriptor) {
-        TestOutputDescriptor outputDescriptor = addDescriptor(event.getDescriptor(), toTestOutputDescriptor(descriptor));
-        Destination destination = Destination.fromCode(event.getResult().getDestination());
-        return new DefaultTestOutputEvent(event.getEventTime(), outputDescriptor, destination, event.getResult().getMessage());
+        TestOutputDescriptor outputDescriptor = addDescriptor(event.getDescriptor(), toTestOutputDescriptor(event, descriptor));
+        return new DefaultTestOutputEvent(event.getEventTime(), outputDescriptor);
     }
 
     private StartEvent genericStartedEvent(InternalOperationStartedProgressEvent event) {
@@ -507,9 +506,11 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         return new DefaultTransformOperationDescriptor(descriptor, parent, collectDescriptors(descriptor.getDependencies()));
     }
 
-    private TestOutputDescriptor toTestOutputDescriptor(InternalOperationDescriptor descriptor) {
+    private TestOutputDescriptor toTestOutputDescriptor(InternalTestOutputEvent event, InternalTestOutputDescriptor descriptor) {
         OperationDescriptor parent = getParentDescriptor(descriptor.getParentId());
-        return new DefaultTestOutputOperationDescriptor(descriptor, parent);
+        Destination destination = Destination.fromCode(event.getResult().getDestination());
+        String message = event.getResult().getMessage();
+        return new DefaultTestOutputOperationDescriptor(descriptor, parent, destination, message);
     }
 
     private Set<OperationDescriptor> collectDescriptors(Set<? extends InternalOperationDescriptor> dependencies) {

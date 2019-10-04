@@ -17,16 +17,19 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
- * An event that informs about a test having started its execution.
+ * An event that informs about a test printing text to the standard output or to the standard error.
+ * <p>
+ * A new test output event instance is created for each line of text printed by the test.
  *
  * @since 6.0
  */
 @Incubating
 public interface TestOutputEvent extends ProgressEvent {
 
-    Destination getDestination();
-    String getMessage();
+    @Override
+    TestOutputDescriptor getDescriptor();
 }

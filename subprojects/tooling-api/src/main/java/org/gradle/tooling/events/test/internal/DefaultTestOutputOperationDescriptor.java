@@ -18,12 +18,28 @@ package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.internal.DefaultOperationDescriptor;
+import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.events.test.TestOutputDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 
 public class DefaultTestOutputOperationDescriptor extends DefaultOperationDescriptor implements TestOutputDescriptor {
 
-    public DefaultTestOutputOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent) {
+    private final Destination destination;
+    private final String message;
+
+    public DefaultTestOutputOperationDescriptor(InternalOperationDescriptor internalDescriptor, OperationDescriptor parent, Destination destination, String message) {
         super(internalDescriptor, parent);
+        this.destination = destination;
+        this.message = message;
+    }
+
+    @Override
+    public Destination getDestination() {
+        return destination;
+    }
+
+    @Override
+    public String getMessage() {
+        return message;
     }
 }

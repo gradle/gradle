@@ -18,6 +18,7 @@ package org.gradle.tooling.events.test.internal;
 
 import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.test.Destination;
+import org.gradle.tooling.events.test.TestOutputDescriptor;
 import org.gradle.tooling.events.test.TestOutputEvent;
 
 /**
@@ -26,25 +27,11 @@ import org.gradle.tooling.events.test.TestOutputEvent;
 public final class DefaultTestOutputEvent implements TestOutputEvent {
 
     private final long eventTime;
-    private final OperationDescriptor descriptor;
-    private final Destination destination;
-    private final String message;
+    private final TestOutputDescriptor descriptor;
 
-    public DefaultTestOutputEvent(long eventTime, OperationDescriptor descriptor, Destination destination, String message) {
+    public DefaultTestOutputEvent(long eventTime, TestOutputDescriptor descriptor) {
         this.eventTime = eventTime;
         this.descriptor = descriptor;
-        this.destination = destination;
-        this.message = message;
-    }
-
-    @Override
-    public Destination getDestination() {
-        return destination;
-    }
-
-    @Override
-    public String getMessage() {
-        return message;
     }
 
     @Override
@@ -54,11 +41,11 @@ public final class DefaultTestOutputEvent implements TestOutputEvent {
 
     @Override
     public String getDisplayName() {
-        return destination.toString() + ": " + message;
+        return descriptor.getDestination().toString() + ": " + descriptor.getMessage();
     }
 
     @Override
-    public OperationDescriptor getDescriptor() {
+    public TestOutputDescriptor getDescriptor() {
         return descriptor;
     }
 

@@ -38,7 +38,7 @@ public enum Destination implements Serializable {
     }
 
     public int getCode() {
-        return code; // TODO (donat) can we directly serialize the enum?
+        return code;
     }
 
     public static Destination fromCode(int code) {
