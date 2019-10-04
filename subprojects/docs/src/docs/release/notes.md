@@ -1,9 +1,8 @@
-The Gradle team is excited to announce Gradle @version@.
+The Gradle team is excited to announce a new major version of Gradle, @version@.
 
-This release features [vastly improved feature set in dependency management](#improved-dependency-management-feature-set), [support for running Gradle with Java 13](#support-for-java-13-ea), [built-in packaging and publishing of javadoc and sources](#javadoc-and-sources-packaging-and-publishing-is-now-a-built-in-feature-of-the-java-plugins), ... [n](), and more.
+This release features [vastly improved feature set in dependency management](#improved-dependency-management-feature-set), [support for running Gradle with Java 13](#support-for-java-13), [built-in packaging and publishing of javadoc and sources](#javadoc-and-sources-packaging-and-publishing-is-now-a-built-in-feature-of-the-java-plugins), ... [n](), and more.
 
-The release notes list what's new since Gradle 5.6.
-You can review the [highlights since Gradle 5.0 here](https://gradle.org/whats-new/gradle-6/).
+These release notes list what's new since Gradle 5.6, but you can review the [highlights since Gradle 5.0 here](https://gradle.org/whats-new/gradle-6/).
 
 Read the [Gradle 6.0 upgrade guide](userguide/upgrading_version_5.html) to learn about breaking changes and considerations for upgrading from Gradle 5.x.
 
@@ -29,48 +28,27 @@ We would like to thank the following community contributors to this release of G
 [Michael Berry](https://github.com/MikeBerryFR),
 and [Robert Stupp](https://github.com/snazy).
 
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
--->
-
-<!-- 
-## Cancellable custom tasks
-
-When a build is cancelled (e.g. using CTRL+C), the threads executing each task are interrupted.
-Task authors only need to make their tasks respond to interrupts in order for the task to be cancellable.
-
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
-
 ## Upgrade Instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
 
 `./gradlew wrapper --gradle-version=@version@`
 
-See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
+See the [upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
 ### Compatibility Notes
 
-* Java version between 8 and 13 is required to execute Gradle.
-Java 6 and 7 are also supported for forked test execution.
-Java 14 and later versions are not supported.
-Note that you can still configure the executable to use for the compile or test tasks, using any version available on your machine.
-* This version of Gradle is tested with Android Gradle Plugin versions 3.4, 3.5 and 3.6.
-Earlier AGP versions are not supported.
-* Kotlin versions between 1.3.21 and 1.3.50 are tested.
-Earlier Kotlin versions are not supported.
-* Kotlin DSL [precompiled script plugins](https://docs.gradle.org/current/userguide/kotlin_dsl.html#kotdsl:precompiled_plugins) built with Gradle 6.0 cannot be used with earlier versions of Gradle.
-  This limitation will be lifted in a future version of Gradle.
+A Java version between 8 and 13 is required to execute Gradle. Java 14 and later versions are not yet supported.
+
+Java 6 and 7 can still be used for [compilation and forked test execution](userguide/building_java_projects.html#sec:java_cross_compilation). Just like Gradle 5.x, any supported version of Java can be used for compile or test.
+
+This version of Gradle is tested with 
+* Android Gradle Plugin 3.4, 3.5 and 3.6
+* Kotlin 1.3.21 through 1.3.50
+
+other versions may or may not work.
 
 ## Improved Dependency Management feature set
 
@@ -122,11 +100,40 @@ Includes the possibility to [add Gradle variants](userguide/component_metadata_r
 
 Dependency management documentation has been reorganised and structured around use cases to help users find the information they need faster.
 
-## Support for Java 13 EA
+## Faster incremental Java compilation
 
-Gradle now supports running with Java 13 EA (tested with OpenJDK build 13-ea+32).
+When analyzing the impact of a changed class, the incremental compiler can now exclude classes that are an implementation detail of another class.  This limits the number of classes that need to be recompiled.
 
-## Javadoc and sources packaging and publishing is now a built-in feature of the Java plugins 
+For instance, if you have:
+
+```
+class A {}
+
+class B {
+    static void foo() {
+        A a = new A();
+        // ... use A
+    }
+}
+
+class C {
+    void bar() {
+        B.foo();
+    }
+}
+```
+
+When `A` is changed, Gradle previously recompiled all 3 source files, even though `B` did not change in a way that required `C` to be recompiled. 
+
+In Gradle 6.0, Gradle will only recompile `A` and `B`. For deep dependency chains, this may greatly reduce the number of files that require recompilation within a compilation task.
+
+If `A`, `B` and `C` were all in different projects, Gradle would skip recompiling `C` through [compilation avoidance](userguide/java_plugin.html#sec:java_compile_avoidance). 
+
+## Support for Java 13
+
+Gradle now supports running with [Java 13](https://openjdk.java.net/projects/jdk/13/).
+
+## Built-in javadoc and sources packaging and publishing
 
 You can now activate Javadoc and sources publishing for a Java Library or Java project:
 
@@ -137,35 +144,12 @@ java {
 }
 ```
 
-Using the `maven-publish` or `ivy-publish` plugin, this will not only automatically create and publish a `-javadoc.jar` and `-sources.jar`, but also publish the information that these exist as variants in Gradle Module Metadata.
+Using the `maven-publish` or `ivy-publish` plugin, this will not only automatically create and publish a `-javadoc.jar` and `-sources.jar` but also publish the information that these exist as variants in Gradle Module Metadata.
 This means that you can query for the Javadoc or sources _variant_ of a module and also retrieve the Javadoc (or sources) of its dependencies.
-This also works in multi-projects.
+
 If activated, a Java and Java Library project automatically provides the `javadocJar` and `sourcesJar` tasks.
 
-## Problems with task definitions called out during build
-
-Tasks that define their inputs or outputs incorrectly can cause problems when running incremental builds or when using the the build cache.
-As part of an ongoing effort to bring these problems to light Gradle now displays these problems as deprecation warnings during the build.
-When such problems are encountered, Gradle will show warnings like these on the console:
-
-```
-> Task :myTask
-Property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
-Property 'outputFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
-```
-
-Deprecation warnings always show up in [build scans](https://scans.gradle.com/s/txrptciitl2ha/deprecations) regardless of the command-line arguments used.
-
-See the user manual for [how to address these deprecation warnings](userguide/more_about_tasks.html#sec:task_input_validation). 
-
-## More robust file deletion on Windows
-
-Deleting complex file hierarchies on Windows can sometimes be tricky, and errors like `Unable to delete directory ...` can happen at times.
-To avoid these errors, Gradle has been employing workarounds in some but not all cases when it had to remove files.
-From now on Gradle uses these workarounds every time it removes file hierarchies.
-The two most important cases that are now covered are cleaning stale output files of a task, and removing previous outputs before loading fresh ones from the build cache.
-
-## Update to latest Zinc compiler
+## Update to newer Scala Zinc compiler
 
 The Zinc compiler has been upgraded to version 1.2.5. Gradle no longer supports building for Scala 2.9. 
 
@@ -173,58 +157,88 @@ This fixes some Scala incremental compilation bugs and improves performance.
 
 The minimum Zinc compiler supported by Gradle is 1.2.0 and the maximum version is 1.2.5.
 
-## Automatic shortening of long classpaths on Windows
+To make it easier to select the version of the Zinc compiler that's compatible with Gradle, you can now configure a `zincVersion` property:
+```
+scala {
+    zincVersion = "1.2.1"
+}
+```
 
-When Gradle detects that a Java process command-line will exceed Windows's 32,768 character limit, Gradle will now attempt to shorten the command-line by passing the classpath of the Java application via a "classpath jar". 
-The classpath jar contains a manifest with the full classpath of the application and the command-line's classpath will only consist of the classpath jar.  If this doesn't shorten the command-line enough, the Java process will still fail to start.
+Please note that the coordinates for the supported version of Zinc has changed since Zinc 1.0. You may no longer use a `com.typesafe.zinc:zinc` dependency.
 
-If the command-line is not long enough to require shortening, Gradle will not change the command-line arguments for the Java process.
+## Automatic shortening of long command-lines for Java applications on Windows
 
-## `gradle init` generates `.gitattributes` file
+When Gradle detects that a Java process command-line will exceed Windows's 32,768 character limit, Gradle will attempt to shorten the command-line by passing the classpath of the Java application via a ["classpath jar"](https://docs.oracle.com/javase/tutorial/deployment/jar/downman.html). 
+
+The classpath jar contains a manifest with the full classpath of the application. Gradle will only pass the generated jar on the command-line to the application. If the command-line is still too long, the Java process will fail to start as before.
+
+If the command-line does not require shortening, Gradle will not change the command-line arguments for the Java process.
+
+## Problems with task definitions called out during build
+
+Tasks that define their inputs or outputs incorrectly can cause problems when running incremental builds or when using the build cache.
+As part of an ongoing effort to bring these problems to light, Gradle now reports these problems as deprecation warnings during the build.
+
+When issues are detected, Gradle will show warnings when run with `--warning-mode=all`:
+```
+> Task :myTask
+Property 'inputDirectory' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+Property 'outputFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+```
+
+Deprecation warnings will always show up in [build scans](https://scans.gradle.com/s/txrptciitl2ha/deprecations) regardless of the command-line arguments used.
+
+See the user manual for [how to address these deprecation warnings](userguide/more_about_tasks.html#sec:task_input_validation). 
+
+## Smaller quality of life improvements
+
+### More consistent & robust file deletion on Windows
+
+Deleting complex file hierarchies on Windows can sometimes fail with errors like `Unable to delete directory ...`.  In the past, Gradle has used workarounds in some but not all cases when deleting files.
+
+Gradle now deletes files in a consistent way that should avoid failures when cleaning output files of a task.
+
+### `gradle init` generates `.gitattributes` file
 
 To ensure Windows batch scripts retain the appropriate line endings, `gradle init` now generates a `.gitattributes` file.
 
 This was contributed by [Tom Eyckmans](https://github.com/teyckmans).
 
-## Improved Java/Groovy compilation avoidance
+### Wrapper reports download progress
 
-The class analysis used as part of the incremental compilation will now exclude any classes that are an implementation details.
-It will help Gradle narrow the number of classes to recompile implementation detail changes.
+Gradle now reports the progress of the distribution downloaded. 
+
+Initially contributed by [Artur Dryomov](https://github.com/ming13).
 
 ## Features for plugin authors
 
-### ConfigurableFileTree managed property methods
+### New types available as managed properties
 
-Gradle 5.5 introduced the concept of a _managed property_ for tasks and other types. A managed property is a property whose getters and setters are abstract, and for these properties
-Gradle provides an implementation of the getters and setters. This simplifies plugin implementation by removing a bunch of boilerplate.
+Gradle 5.5 introduced the concept of a [_managed property_ for tasks and other types](userguide/custom_gradle_types.html#managed_properties). Gradle provides an implementation of the getters and setters for a managed property. This simplifies plugin implementation by removing a bunch of boilerplate.
 
-In this release, it is possible for a task or other custom types to have an abstract read-only property of type `ConfigurableFileTree`.  
+In this release, it is possible for a task or other custom types to have an abstract read-only property of type `ConfigurableFileTree` and `NamedDomainObjectContainer<T>`. 
 
-### NamedDomainObjectContainer<T> managed property methods
-
-In this release, it is also possible for a task or other custom types to have an abstract read-only property of type `NamedDomainObjectContainer<T>`. 
-
-### File and directory property methods
-
-TBD - Added `fileValue()` and `fileProvider()` methods.
-
-### New `ConfigurableFileTree` and `FileCollection` factories
+### New `ConfigurableFileTree` and `FileCollection` factory methods
 
 Previously, it was only possible to create a `ConfigurableFileTree` or a fixed `FileCollection` by using the APIs provided by a `Project`.
+
 However, a `Project` object is not always available, for example in a project extension object or a [worker action](userguide/custom_tasks.html#worker_api).
 
 The `ObjectFactory` service now has a [fileTree()](javadoc/org/gradle/api/model/ObjectFactory.html#fileTree--) method for creating `ConfigurableFileTree` instances.
-The `Directory` and `DirectoryProperty` types now both have a `files(Object...)` method, respectively [`Directory.files(Object...)`](javadoc/org/gradle/api/file/Directory.html#files-java.lang.Object++...++-) and [`DirectoryProperty.files(Object...)`](javadoc/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-), for creating fixed `FileCollection` instances resolving files relatively to the referenced directory.
 
-See the user manual for how to [inject services]((userguide/custom_gradle_types.html#service_injection)) and how to [work with files in lazy properties](userguide/lazy_configuration.html#sec:working_with_files_in_lazy_properties). 
+The `Directory` and `DirectoryProperty` types now both have a `files(Object...)` method to create fixed `FileCollection` instances resolving files relativel to the referenced directory.
+- [`Directory.files(Object...)`](javadoc/org/gradle/api/file/Directory.html#files-java.lang.Object++...++-)
+- [`DirectoryProperty.files(Object...)`](javadoc/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-)
 
-### Injected `FileSystemOperations` and `ExecOperations` services
+See the user manual for how to [inject services](userguide/custom_gradle_types.html#service_injection) and how to [work with files in lazy properties](userguide/lazy_configuration.html#sec:working_with_files_in_lazy_properties). 
 
-In the same vein, doing file system operations such as `copy()`, `sync()` and `delete()` or running external processes via `exec()` and `javaexec()` was only possible by using the APIs provided by a `Project`. Two new injectable services now allow to do all that when a `Project` is not available.
+### Injectable `FileSystemOperations` and `ExecOperations` services
+
+In the same vein, doing file system operations such as `copy()`, `sync()` and `delete()` or running external processes via `exec()` and `javaexec()` was only possible by using the APIs provided by a `Project`. Two new injectable services now allow to do all that when a `Project` instance is not available.
 
 See the [user manual](userguide/custom_gradle_types.html#service_injection) for how to inject services and the [`FileSystemOperations`](javadoc/org/gradle/api/file/FileSystemOperations.html) and [`ExecOperations`](javadoc/org/gradle/process/ExecOperations.html) api documentation for more details and examples.
 
-### Services available to Worker API actions
+### Services available in Worker API actions
 
 The following services are now available for injection in `WorkAction` classes:
 - [ObjectFactory](javadoc/org/gradle/api/model/ObjectFactory.html)
@@ -257,18 +271,38 @@ abstract class ReverseFile implements WorkAction<ReverseParameters> {
 
 See the [user manual](userguide/custom_gradle_types.html#service_injection) for further information on injecting services into custom Gradle types.
 
+### New convenience methods for bridging between a `RegularFileProperty` or `DirectoryProperty` and a `File`
+
+- [`DirectoryProperty.fileValue(File)`](javadoc/org/gradle/api/file/DirectoryProperty.html#fileValue-java.io.File-)
+- [`DirectoryProperty.fileProvider(Provider<File>)`](javadoc/org/gradle/api/file/DirectoryProperty.html#fileProvider-org.gradle.api.provider.Provider-)
+- [`RegularFileProperty.fileValue(File)`](javadoc/org/gradle/api/file/RegularFileProperty.html#fileValue-java.io.File-)
+- [`RegularFileProperty.fileProvider​(Provider<File>)`](javadoc/org/gradle/api/file/RegularFileProperty.html#fileProvider-org.gradle.api.provider.Provider-)
+- [`ProjectLayout.dir(Provider<File>)`](javadoc/org/gradle/api/file/ProjectLayout.html#dir-org.gradle.api.provider.Provider-)
+
+## Features for native developers
+
+### IntelliSense support for C++17 and latest C++ standard within Visual Studio
+
+Gradle will now generate IDE solution honoring the C++17 `/std:cpp17` and latest C++ standard `/std:cpplatest` compiler flag.
+The Visual Studio IntelliSense will help you write great code with those new standard.
+
+### Support for Visual Studio 2019
+
+Gradle now officially supports building application and libraries with Visual Studio 2019.
+
 ## Security
 
-### Improving integrity of builds
+### Protecting the integrity of builds
 
-Gradle will now warn when resolving dependencies, text resources, and script plugins with the insecure HTTP protocol.
+Gradle will now emit a deprecation warning when resolving dependencies, pulling cache hits from a remote build cache, retrieving text resources, and applying script plugins with the insecure HTTP protocol.
 
 We encourage all users to switch to using HTTPS instead of HTTP.
 Free HTTPS certificates for your artifact server can be acquired from [Lets Encrypt](https://letsencrypt.org/).
-The use of HTTPS is important for [protecting your supply chain and the entire JVM ecosystem](https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb?source=friends_link&sk=3c99970c55a899ad9ef41f126efcde0e).
+The use of HTTPS is important for [protecting your supply chain and the entire JVM ecosystem](https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb).
 
-For users that require the use of HTTP, Gradle has several new APIs to continue to allow HTTP.
+For users that require the use of HTTP, Gradle has several new APIs to continue to allow HTTP on a case-by-case basis.
 
+For repositories:
 ```kotlin
 repositories {
     maven {
@@ -282,9 +316,18 @@ repositories {
 }
 ```
 
+For script plugins:
 ```groovy
 apply from: resources.text.fromInsecureUri("http://my-company.example/external.gradle")
 ```
+
+The new APIs:
+- [`HttpBuildCache.allowInsecureProtocol`](dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowInsecureProtocol) 
+- [`IvyArtifactRepository.allowInsecureProtocol`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:allowInsecureProtocol)
+- [`MavenArtifactRepository.allowInsecureProtocol`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html#org.gradle.api.artifacts.repositories.MavenArtifactRepository:allowInsecureProtocol)
+- [`TextResourceFactory.fromInsecureUri(Object)`](dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object))
+
+### Deprecation of HTTP services
 
 On January 13th, 2020 through January 15th, 2020, some of the most widely used artifact servers in the JVM ecosystem
 will drop support for HTTP and will only support HTTPS. Their announcements can be found below:
@@ -297,8 +340,6 @@ The Gradle team will be making an announcement soon about use of HTTP with `serv
 
 ### Signing Plugin now uses SHA512 instead of SHA1
 
-This was contributed by [Vladimir Sitnikov](https://github.com/vlsi).
-
 A low severity security issue was reported in the Gradle signing plugin.
 
 More information can be found below:
@@ -306,28 +347,13 @@ More information can be found below:
  - [Gradle GitHub Advisory](https://github.com/gradle/gradle/security/advisories/GHSA-mrm8-42q4-6rm7)
  - [CVE-2019-16370](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16370)
  
+This was contributed by [Vladimir Sitnikov](https://github.com/vlsi).
+
 ### Support for in-memory signing with subkeys
 
 Gradle now supports [in-memory signing](userguide/signing_plugin.html#sec:in-memory-keys) with subkeys.
 
 This was contributed by [szhem](https://github.com/szhem).
-
-## Wrapper reports download progress
-
-Gradle now reports the progress of the distribution downloaded. 
-
-Initially contributed by [Artur Dryomov](https://github.com/ming13).
-
-## Features for native developers
-
-### IntelliSense support for C++17 and latest C++ standard within Visual Studio
-
-Gradle will now generate IDE solution honoring the C++17 `/std:cpp17` and latest C++ standard `/std:cpplatest` compiler flag.
-The Visual Studio IntelliSense will help you write great code with those new standard.
-
-### Support for Visual Studio 2019
-
-Gradle now officially supports building application and libraries with Visual Studio 2019.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -338,7 +364,7 @@ The following are the features that have been promoted in this Gradle release.
 ### C++ and Swift support
 
 We promoted all the new native plugins (i.e. `cpp-application`, `cpp-library`, `cpp-unit-test`, `swift-application`, `swift-library`, `xctest`, `visual-studio` and `xcode`).
-Note that all [software model plugins are still incubating and will be phased out](https://blog.gradle.org/state-and-future-of-the-gradle-software-model) instead of being promoted.
+Note that all [software model plugins will be phased out](https://blog.gradle.org/state-and-future-of-the-gradle-software-model) instead of being promoted.
 
 ### New incremental tasks API
 

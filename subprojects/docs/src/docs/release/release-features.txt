@@ -1,2 +1,4 @@
- - Full Gradle Module Metadata support
+ - Full Gradle Module Metadata support & more dependency management features
  - Support for Java 13
+ - Upgraded Zinc compiler
+ -
