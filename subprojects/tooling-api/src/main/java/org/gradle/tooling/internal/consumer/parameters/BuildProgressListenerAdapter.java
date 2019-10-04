@@ -286,7 +286,6 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     private void broadcastTestOutputEvent(InternalProgressEvent event, InternalTestOutputDescriptor descriptor) {
-        // Everything else treat as a generic operation
         TestOutputEvent outputEvent = toTestOutputEvent(event, descriptor);
         if (outputEvent != null) {
             testOutputProgressListeners.getSource().statusChanged(outputEvent);
