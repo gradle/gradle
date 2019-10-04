@@ -69,9 +69,11 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
         PseudoFuture(
             KotlinBuildScriptDependencies(
-                imports = implicitImportsForScript(script.text!!, environment),
                 classpath = emptyList(),
-                sources = emptyList()
+                sources = emptyList(),
+                imports = implicitImportsForScript(script.text!!, environment),
+                javaHome = null,
+                classPathBlocksHash = null
             )
         )
 }
