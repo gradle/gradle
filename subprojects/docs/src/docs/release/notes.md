@@ -63,7 +63,8 @@ other versions may or may not work.
 <a name="dependency-management"></a>
 ## Techniques for Dependency Management
 
-The dependency management documentation has been reorganised and structured around use cases to help users find the information they need faster and we've added a [terminology section](userguide/dependency_management_terminology.html) to explain some commonly used terms.
+The dependency management documentation has been reorganised and structured around use cases to help users find the information they need faster.
+We've improved the [terminology section](userguide/dependency_management_terminology.html) to explain the commonly used terms.
 
 The [publication of Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) is now the default when using the `maven-publish` or `ivy-publish` plugins.
 
