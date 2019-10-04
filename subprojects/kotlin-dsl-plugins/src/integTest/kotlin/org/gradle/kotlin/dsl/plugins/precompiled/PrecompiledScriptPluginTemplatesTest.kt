@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.plugins.precompiled
 
+import com.nhaarman.mockito_kotlin.KStubbing
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.doAnswer
 import com.nhaarman.mockito_kotlin.doReturn
@@ -41,6 +42,8 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.name.NameUtils
 
 import org.junit.Test
+
+import org.mockito.invocation.InvocationOnMock
 
 import java.io.File
 
@@ -391,6 +394,28 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
+    fun `nested plugins block fails to compile with reasonable message`() {
+
+        withKotlinDslPlugin()
+        withPrecompiledKotlinScript("my-project-plugin.gradle.kts", """
+            project(":nested") {
+                plugins {
+                    java
+                }
+            }
+        """)
+
+        buildAndFail("classes").run {
+            assertHasDescription(
+                "Execution failed for task ':compileKotlin'."
+            )
+            assertHasErrorOutput(
+                """my-project-plugin.gradle.kts: (3, 17): Using 'plugins(PluginDependenciesSpec.() -> Unit): Nothing' is an error. The plugins {} block must not be used here. If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead."""
+            )
+        }
+    }
+
+    @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
         val pluginsRepository = newDir("repository")
@@ -482,15 +507,12 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
         val configurationAction = mock<ObjectConfigurationAction>()
         val nestedReceiver = mock<Project> {
             on { apply(any<Action<ObjectConfigurationAction>>()) } doAnswer {
-                it.getArgument<Action<ObjectConfigurationAction>>(0).execute(configurationAction)
+                it.executeActionArgument(0, configurationAction)
                 Unit
             }
         }
         val project = mock<Project> {
-            on { project(eq(":nested"), any<Action<Project>>()) } doAnswer {
-                it.getArgument<Action<Project>>(1).execute(nestedReceiver)
-                nestedReceiver
-            }
+            onProject(":nested", nestedReceiver)
         }
 
         instantiatePrecompiledScriptOf(
@@ -502,6 +524,19 @@ class PrecompiledScriptPluginTemplatesTest : AbstractPrecompiledScriptPluginTest
             verify(configurationAction).from("./gradle/conventions.gradle.kts")
             verifyNoMoreInteractions()
         }
+    }
+
+    private
+    fun KStubbing<Project>.onProject(path: String, project: Project) {
+        on { project(eq(path), any<Action<Project>>()) } doAnswer {
+            it.executeActionArgument(1, project)
+            project
+        }
+    }
+
+    private
+    fun <T : Any> InvocationOnMock.executeActionArgument(index: Int, configurationAction: T) {
+        getArgument<Action<T>>(index).execute(configurationAction)
     }
 
     private
