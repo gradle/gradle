@@ -22,8 +22,12 @@ import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
-import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
+import org.gradle.tooling.model.kotlin.dsl.EditorPosition
+import org.gradle.tooling.model.kotlin.dsl.EditorReport
+import org.gradle.tooling.model.kotlin.dsl.EditorReportSeverity
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import java.io.File
 import java.io.Serializable
@@ -33,7 +37,7 @@ private
 data class StandardKotlinDslScriptsModel(
     private val scripts: List<File>,
     private val commonModel: CommonKotlinDslScriptModel,
-    private val dehydratedScriptModels: Map<File, KotlinBuildScriptModel>
+    private val dehydratedScriptModels: Map<File, KotlinDslScriptModel>
 ) : KotlinDslScriptsModel, Serializable {
 
     override fun getScriptModels() =
@@ -42,15 +46,62 @@ data class StandardKotlinDslScriptsModel(
     private
     fun hydrateScriptModel(script: File) =
         dehydratedScriptModels.getValue(script).let { lightModel ->
-            StandardKotlinBuildScriptModel(
+            StandardKotlinDslScriptModel(
                 commonModel.classPath + lightModel.classPath,
                 commonModel.sourcePath + lightModel.sourcePath,
                 commonModel.implicitImports + lightModel.implicitImports,
                 lightModel.editorReports,
-                lightModel.exceptions,
-                lightModel.enclosingScriptProjectDir
+                lightModel.exceptions
             )
         }
+}
+
+
+internal
+data class StandardKotlinDslScriptModel(
+    private val classPath: List<File>,
+    private val sourcePath: List<File>,
+    private val implicitImports: List<String>,
+    private val editorReports: List<EditorReport>,
+    private val exceptions: List<String>
+) : KotlinDslScriptModel, Serializable {
+
+    override fun getClassPath() = classPath
+
+    override fun getSourcePath() = sourcePath
+
+    override fun getImplicitImports() = implicitImports
+
+    override fun getEditorReports() = editorReports
+
+    override fun getExceptions() = exceptions
+}
+
+
+private
+data class StandardEditorReport(
+    private val severity: EditorReportSeverity,
+    private val message: String,
+    private val position: EditorPosition? = null
+) : EditorReport, Serializable {
+
+    override fun getSeverity() = severity
+
+    override fun getMessage() = message
+
+    override fun getPosition() = position
+}
+
+
+internal
+data class StandardEditorPosition(
+    private val line: Int,
+    private val column: Int = 0
+) : EditorPosition, Serializable {
+
+    override fun getLine() = line
+
+    override fun getColumn() = column
 }
 
 
@@ -105,7 +156,7 @@ data class CommonKotlinDslScriptModel(
 private
 fun dehydrateScriptModels(
     scriptModels: Map<File, KotlinBuildScriptModel>
-): Pair<CommonKotlinDslScriptModel, Map<File, KotlinBuildScriptModel>> {
+): Pair<CommonKotlinDslScriptModel, Map<File, KotlinDslScriptModel>> {
 
     val commonClassPath = mutableSetOf<File>()
     val commonSourcePath = mutableSetOf<File>()
@@ -124,13 +175,12 @@ fun dehydrateScriptModels(
         }
     }
     val dehydratedScriptModels = scriptModels.mapValues { (_, model) ->
-        StandardKotlinBuildScriptModel(
+        StandardKotlinDslScriptModel(
             model.classPath.minus(commonClassPath),
             model.sourcePath.minus(commonSourcePath),
             model.implicitImports.minus(commonImplicitImports),
-            model.editorReports,
-            model.exceptions,
-            model.enclosingScriptProjectDir
+            mapEditorReports(model.editorReports),
+            model.exceptions
         )
     }
     val commonModel = CommonKotlinDslScriptModel(
@@ -195,3 +245,17 @@ data class KotlinDslScriptsParameter(
     var correlationId: String?,
     var scriptFiles: List<File>
 )
+
+
+private
+fun mapEditorReports(internalReports: List<org.gradle.kotlin.dsl.tooling.models.EditorReport>): List<EditorReport> {
+    return internalReports.map { internalReport ->
+        StandardEditorReport(
+            EditorReportSeverity.valueOf(internalReport.severity.name),
+            internalReport.message,
+            internalReport.position?.run {
+                StandardEditorPosition(line, column)
+            }
+        )
+    }
+}
