@@ -46,9 +46,20 @@ include::sample[dir="userguide/dependencyManagement/managingTransitiveDependenci
 
 By adding this rule, we will make sure that Gradle _will_ detect conflicts and properly fail:
 
-```
-Cannot choose between log4j:log4j:1.2.16 and org.slf4j:log4j-over-slf4j:1.7.10 because they provide the same capability: org.slf4j:slf4j-capability:1.0
-```
+
+----
+> Could not resolve all files for configuration ':compileClasspath'.
+   > Could not resolve org.slf4j:log4j-over-slf4j:1.7.10.
+     Required by:
+         project :
+      > Module 'org.slf4j:log4j-over-slf4j' has been rejected:
+           Cannot select module with conflict on capability 'log4j:log4j:1.7.10' also provided by [log4j:log4j:1.2.16(compile)]
+   > Could not resolve log4j:log4j:1.2.16.
+     Required by:
+         project : > org.apache.zookeeper:zookeeper:3.4.9
+      > Module 'log4j:log4j' has been rejected:
+           Cannot select module with conflict on capability 'log4j:log4j:1.2.16' also provided by [org.slf4j:log4j-over-slf4j:1.7.10(compile)]
+----
 
 See the <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps, capabilities section of the documentation>> to figure out how to fix capability conflicts.
 

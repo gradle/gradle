@@ -159,8 +159,9 @@ Tasks & properties::
 +
 Attempting to replace a built-in task will produce an error similar to the following:
 +
-[source, console]
+----
 > Cannot add task 'wrapper' as a task with that name already exists.
+----
 Scala & Play::
  * Play 2.2 is no longer supported — please upgrade the version of Play you are using.
  * The `ScalaDocOptions.styleSheet` property has been removed — the Scaladoc Ant task in Scala 2.11.8 and later no longer supports this property.
