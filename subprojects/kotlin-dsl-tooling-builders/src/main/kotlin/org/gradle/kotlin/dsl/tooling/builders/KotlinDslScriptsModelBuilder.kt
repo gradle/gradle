@@ -248,8 +248,8 @@ data class KotlinDslScriptsParameter(
 
 
 private
-fun mapEditorReports(internalReports: List<org.gradle.kotlin.dsl.tooling.models.EditorReport>): List<EditorReport> {
-    return internalReports.map { internalReport ->
+fun mapEditorReports(internalReports: List<org.gradle.kotlin.dsl.tooling.models.EditorReport>): List<EditorReport> =
+    internalReports.map { internalReport ->
         StandardEditorReport(
             EditorReportSeverity.valueOf(internalReport.severity.name),
             internalReport.message,
@@ -258,4 +258,3 @@ fun mapEditorReports(internalReports: List<org.gradle.kotlin.dsl.tooling.models.
             }
         )
     }
-}
