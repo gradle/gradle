@@ -28,12 +28,12 @@ import org.gradle.tooling.events.OperationDescriptor;
 public interface TestOutputDescriptor extends OperationDescriptor {
 
     /**
-     * @return Whether the content was printed to the standard output or the standard error.
+     * Describes whether the content was printed to the standard output or the standard error.
      */
     Destination getDestination();
 
     /**
-     * @return The text printed by the test.
+     * The text printed by the test.
      */
     String getMessage();
 }
