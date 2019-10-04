@@ -2,15 +2,15 @@ The Gradle team is excited to announce a new major version of Gradle, @version@.
 
 In the JVM ecosystem, we've made [incremental Java compilation faster](#faster-incremental-java), added [support for JDK13](#java-13) and provided [out of the box support for javadoc and source jars](#javadoc-sources-jar). For Scala projects, we've updated the [Zinc compiler](#zinc-compiler) and made it easier to select which version of Zinc to use.
 
-For Gradle [plugin authors](#plugin-ecosystem), we've added new APIs to make it easier to lazily connect tasks and properties together, [made useful services available to worker API actions](#worker-api-services) and Gradle will now [complain at runtime if a task appears misconfigured](#task-problems).
+For Gradle [plugin authors](#plugin-ecosystem), we've added new APIs to make it easier to lazily connect tasks and properties together, [made useful services available to worker API actions](#worker-api-services) and Gradle will [complain at runtime if a task appears misconfigured](#task-problems).
 
-A major highlight of this release is the [vastly improved feature set in dependency management](#dependency-management). Some of the features were released in stages, but with Gradle 6.0 they are now stable and production ready. We now publish [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) by default, which makes these new features available between projects _and_ binary dependencies.
+A major highlight of this release is the [vastly improved feature set in dependency management](#dependency-management). Some of the features were released in stages, but with Gradle 6.0 they are stable and production ready. We publish [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) by default, which makes these new features available between projects _and_ binary dependencies.
 
 In the [native ecosystem](#native-ecosystem), we've added support for Visual Studio 2019 and the latest C++ standards.
 
 This release contains some updates to help [protect the integrity and security of your build](#security). 
 
-As always, we also incorporated some [smaller changes](#quality-of-life) and more.
+As always, we also incorporated some [smaller changes](#quality-of-life) and [many other fixed issues](#fixed-issues).
 
 This release features changes across the board, but these release notes only list what's new since Gradle 5.6.
 You can review the [highlights since Gradle 5.0 here](https://gradle.org/whats-new/gradle-6/).
@@ -61,52 +61,53 @@ This version of Gradle is tested with
 other versions may or may not work.
 
 <a name="dependency-management"></a>
-## Improved Dependency Management feature set
+## Techniques for Dependency Management
 
-### Rich versions declaration
-
-When declaring a dependency version, [more context](userguide/rich_versions.html) can be provided, including preferences within ranges, strict requirements (including downgrades), rejected versions and human readable descriptions for why a dependency is used.
-
-### Dependency constraints
-
-Enables [influencing the version](userguide/dependency_constraints.html) of transitive dependencies.
-
-### Capabilities
-
-Gives the ability to [configure](userguide/component_capabilities.html), [detect and resolve implementation conflicts](userguide/dependency_capability_conflict.html).
-A well-known example in the JVM world: competing logging implementations.
-
-### Support for platforms
-
-Offers an easy way to [recommend and share versions](userguide/platforms.html) between projects.
-With native Gradle platforms, rich versions declaration is available and strict versions are endorsed.
-Projects can also leverage the [integration with Maven BOMs](userguide/platforms.html#sub:bom_import).
-
-### Alignment of dependency versions
-
-Provides the ability to declare that a set of dependencies belong together and need to be [aligned](userguide/dependency_version_alignment.html).
-A well-known example in the JVM world: the Jackson library and its many parts.
-
-### Feature variants instead of optional dependencies
-
-Provides the ability to model [optional features](userguide/feature_variants.html) of a library, each with their own dependencies
-
-### First class test fixtures support
-
-Allows to [create and publish test fixtures](userguide/java_testing.html#sec:java_test_fixtures), enabling their consumption in other projects
-
-### Publishing and consuming Gradle Module Metadata
+The dependency management documentation has been reorganised and structured around use cases to help users find the information they need faster and we've added a [terminology section](userguide/dependency_management_terminology.html) to explain some commonly used terms.
 
 The [publication of Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) is now the default when using the `maven-publish` or `ivy-publish` plugins.
 
-### Component Metadata Rules
+Many of the features below rely on the production or consumption of additional metadata not found in Ivy or Maven POM files.
 
-Allows you to [enrich traditional metadata](userguide/component_metadata_rules.html) with information that could not be published before (dependency constraints, rich versions, capabilities, …).
-Includes the possibility to [add Gradle variants](userguide/component_metadata_rules.html#making_variants_published_as_classified_jars_explicit), mapping to additional published artifacts.
+### Sharing dependency versions between projects
 
-### Improved documentation
+Gradle offers an easy way to [recommend and share versions](userguide/platforms.html) between projects called _platforms_.
 
-Dependency management documentation has been reorganised and structured around use cases to help users find the information they need faster.
+With Gradle platforms, more context around version declaration are available, versions can be recommended and strict versions are enforced.
+
+For interoperability, builds can also leverage [integration with Maven BOMs](userguide/platforms.html#sub:bom_import).
+
+### Handling mutually exclusive dependencies
+
+Gradle uses [_component capabilities_](userguide/component_capabilities.html) to allow plugins and builds to [detect and resolve implementation conflicts](userguide/dependency_capability_conflict.html) between mutually exclusive dependencies.
+
+A well-known example in the JVM world is competing logging implementations. Component capabilities let builds configure which dependency to select.
+
+### Upgrading versions of transitive dependencies
+
+Issues with dependency management are often about dealing with transitive dependencies. Often developers incorrectly fix transitive dependency issues by adding direct dependencies. To avoid this, Gradle provides the concept of dependency constraints to [influence the version](userguide/dependency_constraints.html) of transitive dependencies.
+
+### Aligning versions across multiple dependencies
+
+[Dependency version alignment](userguide/dependency_version_alignment.html) allows builds to express that different modules belong to the same logical group (like a platform) and need to have identical (a.k.a _aligned_) versions in a dependency graph.
+
+A well-known example in the JVM world is the Jackson libraries.
+
+### Expressing intent with context
+
+When declaring a dependency, a build [can provide more context](userguide/rich_versions.html) to Gradle about its version, including version preferences within a range, strict version requirements or rejected versions.  Developers can also provide human readable descriptions for why a dependency is used or needed.
+
+### Fixing broken published metadata 
+
+Gradle allows builds to [fix or enrich traditional metadata](userguide/component_metadata_rules.html) with information that could not be published before, such as dependency constraints, rich versions, capabilities and variants. These are called _component metadata rules_.
+
+Component metadata rules also make it possible to [map additional published artifacts](userguide/component_metadata_rules.html#making_variants_published_as_classified_jars_explicit) to new Gradle variants.
+
+### Modeling feature variants and optional dependencies
+
+Gradle provides the ability to model [optional features](userguide/feature_variants.html) of a library.  Each feature can have its own set of dependencies and can be consumed separately.
+
+With feature variants, Gradle provides first-class support for to [create and publish test fixtures](userguide/java_testing.html#sec:java_test_fixtures).  Test fixtures can be consumed by other projects in a multi-project build.
 
 <a name="faster-incremental-java"></a>
 ## Faster incremental Java compilation
