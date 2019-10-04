@@ -14,18 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.fixture
+package org.gradle.tooling.model.kotlin.dsl;
 
-import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.api.Incubating;
+
+import java.io.File;
+import java.util.List;
 
 
 /**
- * Provides TAPI client additional classpath.
+ * Model for a Kotlin DSL script.
+ *
+ * @since 6.0
  */
-interface ToolingApiAdditionalClasspathProvider {
+@Incubating
+public interface KotlinDslScriptModel {
 
-    /**
-     * Additional classpath for given TAPI and target Gradle distribution to be added to the loader of the test class.
-     */
-    List<File> additionalClasspathFor(ToolingApiDistribution toolingApi, GradleDistribution distribution)
+    List<File> getClassPath();
+
+    List<File> getSourcePath();
+
+    List<String> getImplicitImports();
+
+    List<EditorReport> getEditorReports();
+
+    List<String> getExceptions();
 }

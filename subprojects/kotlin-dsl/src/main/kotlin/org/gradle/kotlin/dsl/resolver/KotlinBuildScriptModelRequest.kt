@@ -20,11 +20,11 @@ import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.isParentOf
 import org.gradle.kotlin.dsl.support.kotlinScriptTypeFor
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 
 import com.google.common.annotations.VisibleForTesting
 
