@@ -140,6 +140,8 @@ In Gradle 6.0, Gradle will only recompile `A` and `B`. For deep dependency chain
 
 If `A`, `B` and `C` were all in different projects, Gradle would skip recompiling `C` through [compilation avoidance](userguide/java_plugin.html#sec:java_compile_avoidance). 
 
+This was contributed by [Robert Stupp](https://github.com/snazy).
+
 <a name="java-13"></a>
 ## Support for Java 13
 
