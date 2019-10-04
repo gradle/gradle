@@ -59,6 +59,9 @@ class InstallTest extends Specification {
         TestFile gradleScript = explodedZipDir.file('gradle-0.9/bin/gradle')
         gradleScript.parentFile.createDir()
         gradleScript.write('something')
+        TestFile gradleLauncherJar = explodedZipDir.file('gradle-0.9/lib/gradle-launcher-0.9.jar')
+        gradleLauncherJar.parentFile.createDir()
+        gradleLauncherJar.write('something')
         explodedZipDir.zipTo(new TestFile(zipDestination))
     }
 
