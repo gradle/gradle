@@ -70,8 +70,8 @@ class BuildProgressListenerAdapterForTestOutputOperationsTest extends Specificat
         1 * listener.statusChanged(_ as TestOutputEvent) >> { TestOutputEvent event ->
             assert event.eventTime == 999
             assert event.displayName == "StdErr: output message"
-            assert event.destination == Destination.StdErr
-            assert event.message == 'output message'
+            assert event.descriptor.destination == Destination.StdErr
+            assert event.descriptor.message == 'output message'
         }
     }
 
