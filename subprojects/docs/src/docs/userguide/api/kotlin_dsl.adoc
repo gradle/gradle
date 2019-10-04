@@ -619,11 +619,16 @@ val myOtherNewProperty by extra { "calculated initial value" }  // <2>
 
 val myProperty: String by extra  // <3>
 val myNullableProperty: String? by extra  // <4>
+
+val myPropertyWithDefault by extra.default("default value") // <5>
+val myOtherPropertyWithDefault by extra.default { "calculated default value" } // <6>
 ----
 <1> Creates a new extra property called `myNewProperty` in the current context (the project in this case) and initializes it with the value `"initial value"`, which also determines the property's _type_
 <2> Create a new extra property whose initial value is calculated by the provided lambda
 <3> Binds an existing extra property from the current context (the project in this case) to a `myProperty` reference
 <4> Does the same as the previous line but allows the property to have a null value
+<5> Creates a new extra property and assigns it default value if it was not initialized before
+<6> Creates extra property with default value eagerly calculated by executing provided lambda
 
 This approach works for all Gradle scripts: project build scripts, script plugins, settings scripts and initialization scripts.
 
@@ -746,7 +751,7 @@ You write these as `*.gradle.kts` files in that same `src/main/kotlin` directory
 
 Precompiled script plugins are Kotlin DSL scripts that are compiled as part of a regular Kotlin source set and then placed on the build classpath or packaged in a binary plugin, depending on what type of project they're in.
 For all intents and purposes, they _are_ binary plugins, particularly as they can be applied by plugin ID, just like a normal plugin.
-In fact, the Kotlin DSL Plugin generates plugin metadata for them thanks to integration with the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>. 
+In fact, the Kotlin DSL Plugin generates plugin metadata for them thanks to integration with the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>.
 
 [NOTE]
 ====

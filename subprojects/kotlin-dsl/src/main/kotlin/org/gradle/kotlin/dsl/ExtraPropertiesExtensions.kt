@@ -96,20 +96,50 @@ operator fun <T> ExtraPropertiesExtension.invoke(initialValue: T): InitialValueE
 
 
 /**
+ * Returns a property delegate provider that will initialize the default value for extra property to
+ * the value provided by [defaultValueProvider]
+ *
+ * Usage: `val answer by extra.default { 42 }`
+ *
+ * @see [default]
+ */
+inline fun <T> ExtraPropertiesExtension.default(defaultValueProvider: () -> T): InitialValueExtraPropertyDelegateProvider<T> =
+    default(defaultValueProvider())
+
+
+/**
+ * Returns a property delegate provider that will initialize the default value for extra property to
+ * the given [defaultValue]
+ *
+ * Usage: `val answer by extra.default(42)`
+ *
+ * Same as:
+ * ```
+ * extra["answer"] = if(extra.has("answer")) extra["answer"] else 42
+ * val answer by extra
+ * ```
+ */
+fun <T> ExtraPropertiesExtension.default(defaultValue: T): InitialValueExtraPropertyDelegateProvider<T> =
+    InitialValueExtraPropertyDelegateProvider.of(this, defaultValue, overrideExistingValue = false)
+
+
+/**
  * Enables typed access to extra properties with initial value.
  */
 class InitialValueExtraPropertyDelegateProvider<T>
 private constructor(
     private val extra: ExtraPropertiesExtension,
-    private val initialValue: T
+    private val initialValue: T,
+    private val overrideExistingValue: Boolean
 ) {
     companion object {
-        fun <T> of(extra: ExtraPropertiesExtension, initialValue: T) =
-            InitialValueExtraPropertyDelegateProvider(extra, initialValue)
+        fun <T> of(extra: ExtraPropertiesExtension, initialValue: T, overrideExistingValue: Boolean = true) =
+            InitialValueExtraPropertyDelegateProvider(extra, initialValue, overrideExistingValue)
     }
 
     operator fun provideDelegate(thisRef: Any?, property: kotlin.reflect.KProperty<*>): InitialValueExtraPropertyDelegate<T> {
-        extra.set(property.name, initialValue)
+        if (overrideExistingValue || !extra.has(property.name))
+            extra.set(property.name, initialValue)
         return InitialValueExtraPropertyDelegate.of(extra)
     }
 }
