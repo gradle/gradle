@@ -20,9 +20,9 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelClient
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelRequest
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import java.lang.reflect.Proxy
 
@@ -181,7 +181,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
     }
 
     private static List<File> canonicalClasspathOf(KotlinDslScriptsModel model, File script) {
-        return model.scriptModels[script].classPath.collect { it.canonicalFile }
+        return canonicalClasspathOf(model.scriptModels[script])
     }
 
     private static class BuildSpec {

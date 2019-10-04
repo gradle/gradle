@@ -108,9 +108,7 @@ class ToolingApiExecution extends AbstractMultiTestRunner.Execution implements T
 
     private List<File> collectAdditionalClasspath() {
         target.annotations.findAll { it instanceof ToolingApiAdditionalClasspath }.collectMany { annotation ->
-            (annotation as ToolingApiAdditionalClasspath).value()
-                .newInstance()
-                .additionalClasspathFor(toolingApi, gradle)
+            (annotation as ToolingApiAdditionalClasspath).value().newInstance().additionalClasspathFor(gradle)
         }
     }
 

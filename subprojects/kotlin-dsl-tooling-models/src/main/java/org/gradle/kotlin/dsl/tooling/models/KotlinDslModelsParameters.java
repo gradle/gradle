@@ -14,17 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.kotlin.dsl;
-
-import org.gradle.api.Incubating;
+package org.gradle.kotlin.dsl.tooling.models;
 
 
 /**
- * Parameters for Kotlin DSL models.
+ * Parameters common to {@link KotlinBuildScriptModel} and {@link KotlinDslScriptsModel}.
  *
- * @since 6.0
+ * See their respective documentation for more details.
  */
-@Incubating
 public final class KotlinDslModelsParameters {
 
     public static final String PREPARATION_TASK_NAME = "prepareKotlinBuildScriptModel";

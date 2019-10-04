@@ -15,7 +15,7 @@
  */
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 
 
 fun inClassPathMode() =

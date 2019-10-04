@@ -26,8 +26,6 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
 
-import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
-
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -47,6 +45,8 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateExternal
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GeneratePrecompiledScriptPluginAccessors
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.GenerateScriptPluginAdapters
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks.HashedProjectSchema
+
+import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
 
 import org.gradle.kotlin.dsl.support.serviceOf
 
