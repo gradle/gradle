@@ -57,7 +57,7 @@ class TestOutputCrossVersionSpec extends ToolingApiSpecification {
         runTestAndCollectProgressEvents()
 
         TestFinishEvent testEvent = testEvents.find { TestFinishEvent e -> e.descriptor instanceof JvmTestOperationDescriptor && e.descriptor.methodName == 'works'}
-        TestOutputEvent outputEvent = outputEvents.find { TestOutputEvent event -> event.message == "out1" && event.destination == Destination.StdOut }
+        TestOutputEvent outputEvent = outputEvents.find { TestOutputEvent event -> event.descriptor.message == "out1" && event.descriptor.destination == Destination.StdOut }
 
         then:
         testEvent.descriptor == outputEvent.descriptor.parent
