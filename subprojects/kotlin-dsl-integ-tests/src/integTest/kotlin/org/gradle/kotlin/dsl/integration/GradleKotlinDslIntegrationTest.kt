@@ -37,7 +37,6 @@ import org.junit.Ignore
 import org.junit.Test
 
 
-@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
@@ -416,11 +415,12 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `script plugin can by applied to either Project or Settings`() {
+    fun `script plugin can be applied to either Project or Settings`() {
 
         withFile("common.gradle.kts", """
-            println("Target is Settings? ${"$"}{Settings::class.java.isAssignableFrom(this::class.java)}")
-            println("Target is Project? ${"$"}{Project::class.java.isAssignableFrom(this::class.java)}")
+            fun Project.targetName() = "Project"
+            fun Settings.targetName() = "Settings"
+            println("Target is " + targetName())
         """)
 
         withSettings("""
@@ -429,9 +429,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             build("help").output,
-            allOf(
-                containsString("Target is Settings? true"),
-                containsString("Target is Project? false")))
+            containsString("Target is Settings")
+        )
 
         withSettings("")
         withBuildScript("""
@@ -440,9 +439,8 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
         assertThat(
             build("help").output,
-            allOf(
-                containsString("Target is Settings? false"),
-                containsString("Target is Project? true")))
+            containsString("Target is Project")
+        )
     }
 
     @Test
@@ -476,6 +474,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
                 containsString("Error logging from Project")))
     }
 
+    @Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
     @Test
     fun `automatically applies build scan plugin when --scan is provided on command-line and a script is applied in the buildscript block`() {
 

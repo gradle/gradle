@@ -75,7 +75,7 @@ open class FindBrokenInternalLinks : DefaultTask() {
             }
         }
         reportFile.get().asFile.appendText(messageBuilder.toString())
-        throw GradleException("Found invalid internal links. See ${reportFile.get().asFile}")
+        throw GradleException("Documentation check failed: found invalid internal links. See ${reportFile.get().asFile}")
     }
 
     private

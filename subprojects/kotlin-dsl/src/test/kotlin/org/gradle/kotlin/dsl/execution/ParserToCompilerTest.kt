@@ -28,19 +28,17 @@ class ParserToCompilerTest : TestWithCompiler() {
     @Test
     fun `solo pluginManagement`() {
         val source = ProgramSource("settings.gradle.kts", """
-        pluginManagement { println("stage 1") }
-        """.trimIndent()
-        )
+            pluginManagement { println("stage 1") }
+        """.trimIndent())
         assertStageOneOutput(source, "stage 1\n")
     }
 
     @Test
     fun `pluginManagement then buildscipt`() {
         val source = ProgramSource("settings.gradle.kts", """
-        pluginManagement { println("stage 1 pluginManagement") }
-        buildscript { println("stage 1 buildscript") }
-        """.trimIndent()
-        )
+            pluginManagement { println("stage 1 pluginManagement") }
+            buildscript { println("stage 1 buildscript") }
+        """.trimIndent())
         assertStageOneOutput(
             source,
             "stage 1 pluginManagement\nstage 1 buildscript\n"
@@ -50,10 +48,9 @@ class ParserToCompilerTest : TestWithCompiler() {
     @Test
     fun `pluginManagement then plugins`() {
         val source = ProgramSource("settings.gradle.kts", """
-        pluginManagement { println("stage 1 pluginManagement") }
-        plugins { println("stage 1 plugins") }
-        """.trimIndent()
-        )
+            pluginManagement { println("stage 1 pluginManagement") }
+            plugins { println("stage 1 plugins") }
+        """.trimIndent())
         assertStageOneOutput(
             source,
             "stage 1 pluginManagement\nstage 1 plugins\n"
@@ -63,10 +60,9 @@ class ParserToCompilerTest : TestWithCompiler() {
     @Test
     fun `buildscript then plugins`() {
         val source = ProgramSource("settings.gradle.kts", """
-        buildscript { println("stage 1 buildscript") }
-        plugins { println("stage 1 plugins") }
-        """.trimIndent()
-        )
+            buildscript { println("stage 1 buildscript") }
+            plugins { println("stage 1 plugins") }
+        """.trimIndent())
         assertStageOneOutput(
             source,
             "stage 1 buildscript\nstage 1 plugins\n"
@@ -76,11 +72,10 @@ class ParserToCompilerTest : TestWithCompiler() {
     @Test
     fun `pluginManagement then buildscript then plugins`() {
         val source = ProgramSource("settings.gradle.kts", """
-        pluginManagement { println("stage 1 pluginManagement") }
-        buildscript { println("stage 1 buildscript") }
-        plugins { println("stage 1 plugins") }
-        """.trimIndent()
-        )
+            pluginManagement { println("stage 1 pluginManagement") }
+            buildscript { println("stage 1 buildscript") }
+            plugins { println("stage 1 plugins") }
+        """.trimIndent())
         assertStageOneOutput(
             source,
             "stage 1 pluginManagement\nstage 1 buildscript\nstage 1 plugins\n"

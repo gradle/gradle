@@ -46,7 +46,6 @@ public class SinceAnnotationMissingRule extends AbstractGradleViolationRule {
 
     private boolean shouldSkipViolationCheckFor(JApiCompatibility member) {
         return !isClassFieldConstructorOrMethod(member) ||
-            isDeprecated(member) ||
             isInject(member) ||
             isOverrideMethod(member) ||
             isKotlinFileFacadeClass(member);

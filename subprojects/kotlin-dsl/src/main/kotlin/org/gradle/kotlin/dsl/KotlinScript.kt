@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
@@ -23,122 +24,46 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
-import org.gradle.api.initialization.Settings
-import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.ProcessOperations
-import org.gradle.api.internal.file.DefaultFileOperations
-import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
-import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.internal.service.ServiceRegistry
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
-import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.delegates.SettingsDelegate
-import org.gradle.kotlin.dsl.support.get
-import org.gradle.kotlin.dsl.support.internalError
-import org.gradle.kotlin.dsl.support.serviceOf
-import org.gradle.kotlin.dsl.support.unsafeLazy
-import org.gradle.plugin.management.PluginManagementSpec
-import org.gradle.plugin.use.PluginDependenciesSpec
-
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
 import java.io.File
 import java.net.URI
-import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
-import kotlin.script.templates.ScriptTemplateDefinition
 
 
 /**
- * Base class for Kotlin settings scripts.
+ * Base contract for all Gradle Kotlin DSL scripts.
+ *
+ * This is the Kotlin flavored equivalent of [org.gradle.api.Script].
+ *
+ * It is not implemented directly by the IDE script templates to overcome ambiguous conflicts and Kotlin language
+ * limitations.
+ *
+ * @since 6.0
  */
-@ScriptTemplateDefinition(
-    resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
-@ScriptTemplateAdditionalCompilerArguments([
-    "-jvm-target", "1.8",
-    "-Xjsr305=strict",
-    "-XXLanguage:+NewInference",
-    "-XXLanguage:+SamConversionForKotlinFunctions"
-])
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-@GradleDsl
-abstract class KotlinSettingsScript(
-    private val host: KotlinScriptHost<Settings>
-) : SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
+@Incubating
+interface KotlinScript {
 
     /**
-     * The [ScriptHandler] for this script.
+     * Logger for scripts. You can use this in your script to write log messages.
      */
-    override fun getBuildscript(): ScriptHandler =
-        host.scriptHandler
-
-    override val fileOperations
-        get() = host.fileOperations
-
-    override val processOperations
-        get() = host.processOperations
-
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.applyObjectConfigurationAction(action)
-
-    /**
-     * Configures the plugin dependencies for the project's settings.
-     *
-     * @see [PluginDependenciesSpec]
-     * @since 6.0
-     */
-    @Incubating
-    @Suppress("unused")
-    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
-        throw Exception("The plugins {} block must not be used here. "
-            + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.")
-}
-
-
-/**
- * Standard implementation of the API exposed to all types of [Settings] scripts,
- * precompiled and otherwise.
- */
-abstract class SettingsScriptApi(
-    override val delegate: Settings
-) : SettingsDelegate() {
-
-    protected
-    abstract val fileOperations: FileOperations
-
-    protected
-    abstract val processOperations: ProcessOperations
-
-    /**
-     * Logger for settings. You can use this in your settings file to write log messages.
-     */
-    @Suppress("unused")
-    val logger: Logger by unsafeLazy { Logging.getLogger(Settings::class.java) }
+    val logger: Logger
 
     /**
      * The [LoggingManager] which can be used to receive logging and to control the standard output/error capture for
      * this script. By default, `System.out` is redirected to the Gradle logging system at the `QUIET` log level,
      * and `System.err` is redirected at the `ERROR` log level.
      */
-    @Suppress("unused")
-    val logging by unsafeLazy { settings.serviceOf<LoggingManager>() }
+    val logging: LoggingManager
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
      */
-    @Suppress("unused")
-    val resources: ResourceHandler by unsafeLazy { fileOperations.resources }
+    val resources: ResourceHandler
 
     /**
      * Returns the relative path from this script's target base directory to the given path.
@@ -149,9 +74,7 @@ abstract class SettingsScriptApi(
      * @param path The path to convert to a relative path.
      * @return The relative path.
      */
-    @Suppress("unused")
-    fun relativePath(path: Any): String =
-        fileOperations.relativePath(path)
+    fun relativePath(path: Any): String
 
     /**
      * Resolves a file path to a URI, relative to this script's target base directory.
@@ -159,9 +82,7 @@ abstract class SettingsScriptApi(
      * Evaluates the provided path object as described for [file],
      * with the exception that any URI scheme is supported, not just `file:` URIs.
      */
-    @Suppress("unused")
-    fun uri(path: Any): URI =
-        fileOperations.uri(path)
+    fun uri(path: Any): URI
 
     /**
      * Resolves a file path relative to this script's target base directory.
@@ -171,6 +92,8 @@ abstract class SettingsScriptApi(
      *
      * If this script targets [org.gradle.api.initialization.Settings],
      * then `path` is resolved relative to the build root directory.
+     *
+     * Otherwise the file is resolved relative to the script itself.
      *
      * This method converts the supplied path based on its type:
      *
@@ -191,9 +114,7 @@ abstract class SettingsScriptApi(
      * @param path The object to resolve as a `File`.
      * @return The resolved file.
      */
-    @Suppress("unused")
-    fun file(path: Any): File =
-        fileOperations.file(path)
+    fun file(path: Any): File
 
     /**
      * Resolves a file path relative to this script's target base directory.
@@ -203,9 +124,7 @@ abstract class SettingsScriptApi(
      * @return The resolved file.
      * @see file
      */
-    @Suppress("unused")
-    fun file(path: Any, validation: PathValidation): File =
-        fileOperations.file(path, validation)
+    fun file(path: Any, validation: PathValidation): File
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -250,9 +169,7 @@ abstract class SettingsScriptApi(
      * @param paths The paths to the files. May be empty.
      * @return The file collection.
      */
-    @Suppress("unused")
-    fun files(vararg paths: Any): ConfigurableFileCollection =
-        fileOperations.configurableFiles(paths)
+    fun files(vararg paths: Any): ConfigurableFileCollection
 
     /**
      * Creates a [ConfigurableFileCollection] containing the given files.
@@ -262,9 +179,7 @@ abstract class SettingsScriptApi(
      * @return The file collection.
      * @see files
      */
-    @Suppress("unused")
-    fun files(paths: Any, configuration: ConfigurableFileCollection.() -> Unit): ConfigurableFileCollection =
-        fileOperations.configurableFiles(paths).also(configuration)
+    fun files(paths: Any, configuration: Action<ConfigurableFileCollection>): ConfigurableFileCollection
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -278,9 +193,7 @@ abstract class SettingsScriptApi(
      * @param baseDir The base directory of the file tree. Evaluated as per [file].
      * @return The file tree.
      */
-    @Suppress("unused")
-    fun fileTree(baseDir: Any): ConfigurableFileTree =
-        fileOperations.fileTree(baseDir)
+    fun fileTree(baseDir: Any): ConfigurableFileTree
 
     /**
      * Creates a new [ConfigurableFileTree] using the given base directory.
@@ -290,9 +203,7 @@ abstract class SettingsScriptApi(
      * @return The file tree.
      * @see [fileTree]
      */
-    @Suppress("unused")
-    fun fileTree(baseDir: Any, configuration: ConfigurableFileTree.() -> Unit): ConfigurableFileTree =
-        fileOperations.fileTree(baseDir).also(configuration)
+    fun fileTree(baseDir: Any, configuration: Action<ConfigurableFileTree>): ConfigurableFileTree
 
     /**
      * Creates a new [FileTree] which contains the contents of the given ZIP file.
@@ -308,9 +219,7 @@ abstract class SettingsScriptApi(
      * @param zipPath The ZIP file. Evaluated as per [file].
      * @return The file tree.
      */
-    @Suppress("unused")
-    fun zipTree(zipPath: Any): FileTree =
-        fileOperations.zipTree(zipPath)
+    fun zipTree(zipPath: Any): FileTree
 
     /**
      * Creates a new [FileTree] which contains the contents of the given TAR file.
@@ -331,9 +240,7 @@ abstract class SettingsScriptApi(
      * @param tarPath The TAR file or an instance of [org.gradle.api.resources.Resource].
      * @return The file tree.
      */
-    @Suppress("unused")
-    fun tarTree(tarPath: Any): FileTree =
-        fileOperations.tarTree(tarPath)
+    fun tarTree(tarPath: Any): FileTree
 
     /**
      * Copies the specified files.
@@ -341,18 +248,14 @@ abstract class SettingsScriptApi(
      * @param configuration The block to use to configure the [CopySpec].
      * @return `WorkResult` that can be used to check if the copy did any work.
      */
-    @Suppress("unused")
-    fun copy(configuration: CopySpec.() -> Unit): WorkResult =
-        fileOperations.copy(configuration)
+    fun copy(configuration: Action<CopySpec>): WorkResult
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
      *
      * @return The created [CopySpec]
      */
-    @Suppress("unused")
-    fun copySpec(): CopySpec =
-        fileOperations.copySpec()
+    fun copySpec(): CopySpec
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
@@ -360,9 +263,7 @@ abstract class SettingsScriptApi(
      * @param configuration The block to use to configure the [CopySpec].
      * @return The configured [CopySpec]
      */
-    @Suppress("unused")
-    fun copySpec(configuration: CopySpec.() -> Unit): CopySpec =
-        fileOperations.copySpec().also(configuration)
+    fun copySpec(configuration: Action<CopySpec>): CopySpec
 
     /**
      * Creates a directory and returns a file pointing to it.
@@ -371,9 +272,7 @@ abstract class SettingsScriptApi(
      * @return The created directory.
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
      */
-    @Suppress("unused")
-    fun mkdir(path: Any): File =
-        fileOperations.mkdir(path)
+    fun mkdir(path: Any): File
 
     /**
      * Deletes files and directories.
@@ -383,9 +282,7 @@ abstract class SettingsScriptApi(
      * @param paths Any type of object accepted by [file]
      * @return true if anything got deleted, false otherwise
      */
-    @Suppress("unused")
-    fun delete(vararg paths: Any): Boolean =
-        fileOperations.delete(*paths)
+    fun delete(vararg paths: Any): Boolean
 
     /**
      * Deletes the specified files.
@@ -393,9 +290,7 @@ abstract class SettingsScriptApi(
      * @param configuration The block to use to configure the [DeleteSpec].
      * @return `WorkResult` that can be used to check if delete did any work.
      */
-    @Suppress("unused")
-    fun delete(configuration: DeleteSpec.() -> Unit): WorkResult =
-        fileOperations.delete(configuration)
+    fun delete(configuration: Action<DeleteSpec>): WorkResult
 
     /**
      * Executes an external command.
@@ -405,9 +300,7 @@ abstract class SettingsScriptApi(
      * @param configuration The block to use to configure the [ExecSpec].
      * @return The result of the execution.
      */
-    @Suppress("unused")
-    fun exec(configuration: ExecSpec.() -> Unit): ExecResult =
-        processOperations.exec(configuration)
+    fun exec(configuration: Action<ExecSpec>): ExecResult
 
     /**
      * Executes an external Java process.
@@ -417,50 +310,5 @@ abstract class SettingsScriptApi(
      * @param configuration The block to use to configure the [JavaExecSpec].
      * @return The result of the execution.
      */
-    @Suppress("unused")
-    fun javaexec(configuration: JavaExecSpec.() -> Unit): ExecResult =
-        processOperations.javaexec(configuration)
-
-    /**
-     * Configures the plugin management for the entire build.
-     *
-     * @see [Settings.getPluginManagement]
-     * @since 6.0
-     */
-    @Incubating
-    @Suppress("unused")
-    open fun pluginManagement(@Suppress("unused_parameter") block: PluginManagementSpec.() -> Unit): Unit =
-        internalError()
-
-    /**
-     * Configures the build script classpath for settings.
-     *
-     * @see [Settings.getBuildscript]
-     */
-    @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
-        internalError()
-}
-
-
-internal
-fun fileOperationsFor(settings: Settings): FileOperations =
-    fileOperationsFor(settings.gradle, settings.rootDir)
-
-
-internal
-fun fileOperationsFor(gradle: Gradle, baseDir: File?): FileOperations =
-    fileOperationsFor((gradle as GradleInternal).services, baseDir)
-
-
-internal
-fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
-    val fileLookup = services.get<FileLookup>()
-    val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
-    val fileCollectionFactory = services.get<FileCollectionFactory>().withResolver(fileResolver)
-    return DefaultFileOperations.createSimple(
-        fileResolver,
-        fileCollectionFactory,
-        services
-    )
+    fun javaexec(configuration: Action<JavaExecSpec>): ExecResult
 }

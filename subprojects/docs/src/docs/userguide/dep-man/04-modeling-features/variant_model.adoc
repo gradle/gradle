@@ -23,7 +23,7 @@ image::component-model-gradle.png[]
 This intermediate level, which associates artifacts and dependencies to variants instead of directly to the component, allows Gradle to model properly what each artifact is used for.
 
 However, this raises the question about how variants are selected: how does Gradle know which variant to choose when there's more than one?
-In practice, variants are selected thanks to the use of <<variant_attributes.adoc#abm_declaring_attributes,attributes>>, which provide semantics to the variants and help the engine in achieving a _consistent resolution result_.
+In practice, variants are selected thanks to the use of <<variant_attributes.adoc#,attributes>>, which provide semantics to the variants and help the engine in achieving a _consistent resolution result_.
 
 For historical reasons, Gradle differentiates between two kind of components:
 

@@ -101,6 +101,15 @@ val Environment.gradleEnvironmentVariables: Map<String, String>
     get() = stringMap("gradleEnvironmentVariables")
 
 
+/**
+ * Environment flag to enabled short circuiting TAPI resolution when script
+ * is changed outside classpath blocks. Defaults to false.
+ */
+internal
+val Map<String, Any?>?.isShortCircuitEnabled: Boolean
+    get() = this?.get("gradleKotlinDslScriptDependenciesResolverShortCircuit") == true
+
+
 private
 fun Environment.path(key: String): File? =
     (get(key) as? String)?.let(::File)

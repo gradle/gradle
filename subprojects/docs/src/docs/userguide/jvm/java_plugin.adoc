@@ -787,3 +787,8 @@ Gradle ignores annotation processors on the compile classpath.
 include::sample[dir="java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
 include::sample[dir="java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
 ====
+
+== Variant aware selection
+
+The whole set of JVM plugins leverage <<variant_model.adoc#,variant aware resolution>> for the dependencies used.
+They also install a set of attributes compatibility and disambiguation rules to <<variant_attributes.adoc#sub:jvm_default_attributes,configure the Gradle attributes>> for the specifics of the JVM ecosystem.

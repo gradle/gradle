@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl
+package org.gradle.kotlin.dsl.support
 
-import org.gradle.api.Action
+import kotlin.reflect.KClass
 
 
 /**
- * Enables function invocation syntax on [Action] references.
+ * Associates a script template with the type of its implicit receiver
+ * which must match the type of the given [KotlinScriptHost.target].
  */
-operator fun <T> Action<in T>.invoke(target: T) = execute(target)
+internal
+annotation class ImplicitReceiver(val type: KClass<*>)

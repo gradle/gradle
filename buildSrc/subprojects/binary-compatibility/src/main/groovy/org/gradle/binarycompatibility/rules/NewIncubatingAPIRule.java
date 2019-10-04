@@ -34,7 +34,7 @@ public class NewIncubatingAPIRule extends AbstractGradleViolationRule {
     @Override
     public Violation maybeViolation(final JApiCompatibility member) {
         if (member instanceof JApiMethod || member instanceof JApiField || member instanceof JApiClass) {
-            if (!isIncubatingOrDeprecated((JApiHasAnnotations) member)) {
+            if (!isIncubating((JApiHasAnnotations) member)) {
                 return null;
             }
             if (member instanceof JApiMethod && isOverride((JApiMethod) member)) {
