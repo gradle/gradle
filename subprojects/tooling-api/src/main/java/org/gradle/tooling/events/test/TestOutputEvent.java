@@ -17,7 +17,6 @@
 package org.gradle.tooling.events.test;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.events.OperationDescriptor;
 import org.gradle.tooling.events.ProgressEvent;
 
 /**
