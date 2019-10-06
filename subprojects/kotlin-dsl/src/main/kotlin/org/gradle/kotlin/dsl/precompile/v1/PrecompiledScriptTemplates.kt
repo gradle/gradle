@@ -129,7 +129,7 @@ open class PrecompiledSettingsScript(
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledProjectScript(
-    private val target: Project
+    target: Project
 ) : DefaultKotlinScript(defaultKotlinScriptHostForProject(target)), PluginAware by target {
 
     /**
@@ -148,10 +148,10 @@ open class PrecompiledProjectScript(
      * @see [PluginDependenciesSpec]
      */
     @Suppress("unused")
-    fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit) {
+    fun plugins(block: PluginDependenciesSpec.() -> Unit) {
         block(
             PluginDependenciesSpec { pluginId ->
-                target.pluginManager.apply(pluginId)
+                pluginManager.apply(pluginId)
                 NullPluginDependencySpec
             }
         )

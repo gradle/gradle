@@ -40,6 +40,7 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":plugins"))
     implementation(project(":pluginDevelopment"))
+    implementation(project(":toolingApi"))
 
     implementation(futureKotlin("scripting-compiler-impl-embeddable")) {
         isTransitive = false

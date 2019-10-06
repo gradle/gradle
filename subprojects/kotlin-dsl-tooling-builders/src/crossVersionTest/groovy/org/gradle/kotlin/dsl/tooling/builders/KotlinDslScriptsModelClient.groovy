@@ -16,9 +16,9 @@
 
 package org.gradle.kotlin.dsl.tooling.builders
 
-import org.gradle.kotlin.dsl.tooling.models.KotlinDslModelsParameters
-import org.gradle.kotlin.dsl.tooling.models.KotlinDslScriptsModel
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import javax.annotation.Nullable
 

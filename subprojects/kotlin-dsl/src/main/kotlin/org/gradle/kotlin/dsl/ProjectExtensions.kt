@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -37,6 +38,9 @@ import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.provider.fileCollectionOf
 import org.gradle.kotlin.dsl.provider.gradleKotlinDslOf
 import org.gradle.kotlin.dsl.support.configureWith
+import org.gradle.kotlin.dsl.support.invalidPluginsCall
+
+import org.gradle.plugin.use.PluginDependenciesSpec
 
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -230,3 +234,28 @@ fun Project.gradleKotlinDsl(): Dependency =
             "gradleKotlinDsl"
         ) as FileCollectionInternal
     )
+
+
+/**
+ * Nested `plugins` blocks are **NOT** allowed, for example:
+ * ```
+ * project(":core") {
+ *   plugins { java }
+ * }
+ * ```
+ * If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = "id") instead.
+ * ```
+ * project(":core") {
+ *   apply(plugin = "java")
+ * }
+ * ```
+ * @since 6.0
+ */
+@Suppress("unused", "DeprecatedCallableAddReplaceWith")
+@Deprecated(
+    "The plugins {} block must not be used here. " + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.",
+    level = DeprecationLevel.ERROR
+)
+@Incubating
+fun Project.plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit): Nothing =
+    invalidPluginsCall()

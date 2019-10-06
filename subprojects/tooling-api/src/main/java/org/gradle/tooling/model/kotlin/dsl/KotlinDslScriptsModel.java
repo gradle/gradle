@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.tooling.models;
+package org.gradle.tooling.model.kotlin.dsl;
+
+import org.gradle.api.Incubating;
 
 import java.io.File;
 import java.util.Map;
 
 
 /**
- * Kotlin DSL scripts model.
+ * Editor model for a set of Kotlin DSL scripts.
  *
  * Can only be requested on the root project, the builder will throw otherwise.
  *
@@ -44,16 +46,19 @@ import java.util.Map;
  * Optionally, an identifier can be provided as a Gradle property named <code>org.gradle.kotlin.dsl.provider.cid</code>,
  * it can then be used to correlate Gradle and TAPI client log statements.
  * See {@link KotlinDslModelsParameters#CORRELATION_ID_GRADLE_PROPERTY_NAME}.
+ *
+ * @since 6.0
  */
+@Incubating
 public interface KotlinDslScriptsModel {
 
     /**
      * Gradle property name for the set of scripts to be queried for.
      */
-    String SCRIPTS_GRADLE_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.scripts";
+    String SCRIPTS_GRADLE_PROPERTY_NAME = "org.gradle.tooling.model.kotlin.dsl.scripts";
 
     /**
      * Script models by file.
      */
-    Map<File, KotlinBuildScriptModel> getScriptModels();
+    Map<File, KotlinDslScriptModel> getScriptModels();
 }
