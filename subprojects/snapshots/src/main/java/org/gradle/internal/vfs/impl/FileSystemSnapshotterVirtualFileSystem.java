@@ -16,9 +16,12 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.file.Stat;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
+import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -28,6 +31,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
+import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
@@ -40,9 +44,9 @@ public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem
     private final FileSystemSnapshotter snapshotter;
     private final DefaultFileSystemMirror mirror;
 
-    public FileSystemSnapshotterVirtualFileSystem(FileSystemSnapshotter snapshotter, DefaultFileSystemMirror mirror) {
-        this.snapshotter = snapshotter;
-        this.mirror = mirror;
+    public FileSystemSnapshotterVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, String... defaultExcludes) {
+        this.mirror = new DefaultFileSystemMirror();
+        this.snapshotter = new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, mirror, defaultExcludes);
     }
 
     @Override

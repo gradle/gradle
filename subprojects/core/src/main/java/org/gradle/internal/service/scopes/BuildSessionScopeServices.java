@@ -94,8 +94,6 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
@@ -190,10 +188,10 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         WellKnownFileLocations wellKnownFileLocations,
         ListenerManager listenerManager
     ) {
-        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
+        String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
         VirtualFileSystem buildSessionsScopedVirtualFileSystem = GradleUserHomeScopeServices.VFS_ENABLED
-            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes())
-            : new FileSystemSnapshotterVirtualFileSystem(new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes()), fileSystemMirror);
+            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes)
+            : new FileSystemSnapshotterVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes);
 
         listenerManager.addListener(new OutputChangeListener() {
             @Override

@@ -87,8 +87,6 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -166,10 +164,10 @@ public class GradleUserHomeScopeServices {
     }
 
     VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager) {
-        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
+        String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
         VirtualFileSystem virtualFileSystem = VFS_ENABLED
-            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes())
-            : new FileSystemSnapshotterVirtualFileSystem(new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror), fileSystemMirror);
+            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes)
+            : new FileSystemSnapshotterVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes);
         listenerManager.addListener(new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
