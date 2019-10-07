@@ -1,6 +1,6 @@
 The Gradle team is excited to announce a new major version of Gradle, @version@.
 
-In the JVM ecosystem, we've made [incremental Java compilation faster](#faster-incremental-java), added [support for JDK13](#java-13) and provided [out of the box support for javadoc and source jars](#javadoc-sources-jar). For Scala projects, we've updated the [Zinc compiler](#zinc-compiler) and made it easier to select which version of Zinc to use.
+In the JVM ecosystem, we've made [incremental Java and Groovy compilation faster](#faster-incremental-java), added [support for JDK13](#java-13) and provided [out of the box support for javadoc and source jars](#javadoc-sources-jar). For Scala projects, we've updated the [Zinc compiler](#zinc-compiler) and made it easier to select which version of Zinc to use.
 
 For Gradle [plugin authors](#plugin-ecosystem), we've added new APIs to make it easier to lazily connect tasks and properties together, [made useful services available to worker API actions](#worker-api-services) and Gradle will [complain at runtime if a task appears misconfigured](#task-problems).
 
@@ -111,9 +111,10 @@ Gradle provides the ability to model [optional features](userguide/feature_varia
 With feature variants, Gradle provides first-class support for to [create and publish test fixtures](userguide/java_testing.html#sec:java_test_fixtures).  Test fixtures can be consumed by other projects in a multi-project build.
 
 <a name="faster-incremental-java"></a>
-## Faster incremental Java compilation
+## Faster incremental Java and Groovy compilation
 
-When analyzing the impact of a changed class, the incremental compiler can now exclude classes that are an implementation detail of another class.  This limits the number of classes that need to be recompiled.
+When analyzing the impact of a changed class, the incremental compiler can now exclude classes that are an implementation detail of another class.
+This limits the number of classes that need to be recompiled.
 
 For instance, if you have:
 
