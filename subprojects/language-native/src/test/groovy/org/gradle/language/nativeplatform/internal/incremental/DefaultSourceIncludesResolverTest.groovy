@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-import org.gradle.internal.snapshot.impl.TestFileSnapshotter
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.RegexBackedCSourceParser
@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultSourceIncludesResolverTest extends Specification {
     @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-    def fileSystemSnapshotter = new TestFileSnapshotter()
+    def virtualFileSystem = TestFiles.virtualFileSystem()
     def testDirectory = temporaryFolder.testDirectory
     def sourceDirectory = testDirectory.createDir("sources")
     def systemIncludeDir = testDirectory.createDir("headers")
@@ -53,7 +53,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
     def resolve(Include include) {
         def macros = new CollectingMacroLookup()
         macros.append(sourceFile, included)
-        return new DefaultSourceIncludesResolver(includePaths, fileSystemSnapshotter).resolveInclude(sourceFile, include, macros)
+        return new DefaultSourceIncludesResolver(includePaths, virtualFileSystem).resolveInclude(sourceFile, include, macros)
     }
 
     def "ignores system include file that does not exist"() {

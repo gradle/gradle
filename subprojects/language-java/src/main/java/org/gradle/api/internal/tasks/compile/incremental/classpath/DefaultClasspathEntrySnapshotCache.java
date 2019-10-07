@@ -31,7 +31,7 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
 
     public DefaultClasspathEntrySnapshotCache(VirtualFileSystem virtualFileSystem, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
         this.virtualFileSystem = virtualFileSystem;
-        cache = new MinimalPersistentCache<>(persistentCache);
+        this.cache = new MinimalPersistentCache<>(persistentCache);
     }
 
     @Override

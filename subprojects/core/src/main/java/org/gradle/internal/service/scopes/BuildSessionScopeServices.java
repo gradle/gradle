@@ -49,6 +49,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -56,6 +57,7 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.Stat;
@@ -91,13 +93,14 @@ import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemMirror;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
+import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.vfs.impl.VfsFileSystemSnapshotter;
+import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
+import org.gradle.internal.vfs.impl.FileSystemSnapshotterVirtualFileSystem;
+import org.gradle.internal.vfs.impl.RoutingVirtualFileSystem;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
 import org.gradle.plugin.use.internal.InjectedPluginClasspath;
@@ -170,7 +173,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory);
     }
 
-    FileHasher createFileSnapshotter(FileHasher globalHasher, CrossBuildFileHashCache cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher, WellKnownFileLocations wellKnownFileLocations) {
+    FileHasher createFileHasher(FileHasher globalHasher, CrossBuildFileHashCache cacheAccess, StringInterner stringInterner, FileSystem fileSystem, BuildScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher, WellKnownFileLocations wellKnownFileLocations) {
         CachingFileHasher localHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), cacheAccess, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
         return new SplitFileHasher(globalHasher, localHasher, wellKnownFileLocations);
     }
@@ -179,10 +182,42 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new DefaultScriptSourceHasher();
     }
 
-    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, VirtualFileSystem vfs) {
-        return GradleUserHomeScopeServices.VFS_ENABLED
-            ? new VfsFileSystemSnapshotter(vfs, stringInterner, hasher)
-            : new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+    VirtualFileSystem createVirtualFileSystem(
+        FileHasher hasher,
+        StringInterner stringInterner,
+        Stat stat,
+        VirtualFileSystem gradleUserHomeVirtualFileSystem,
+        WellKnownFileLocations wellKnownFileLocations,
+        ListenerManager listenerManager
+    ) {
+        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
+        VirtualFileSystem buildSessionsScopedVirtualFileSystem = GradleUserHomeScopeServices.VFS_ENABLED
+            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes())
+            : new FileSystemSnapshotterVirtualFileSystem(new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes()), fileSystemMirror);
+
+        listenerManager.addListener(new OutputChangeListener() {
+            @Override
+            public void beforeOutputChange() {
+                buildSessionsScopedVirtualFileSystem.invalidateAll();
+            }
+
+            @Override
+            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+                buildSessionsScopedVirtualFileSystem.update(affectedOutputPaths, () -> {});
+            }
+        });
+        listenerManager.addListener(new RootBuildLifecycleListener() {
+            @Override
+            public void afterStart() {
+            }
+
+            @Override
+            public void beforeComplete() {
+                buildSessionsScopedVirtualFileSystem.invalidateAll();
+            }
+        });
+
+        return new RoutingVirtualFileSystem(wellKnownFileLocations, gradleUserHomeVirtualFileSystem, buildSessionsScopedVirtualFileSystem);
     }
 
     FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, Stat stat) {

@@ -92,17 +92,20 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def added(TestFile sourceFile) {
+        virtualFileSystem.invalidateAll()
         modifiedFiles << sourceFile
         graph[sourceFile] = []
     }
 
     def sourceAdded(TestFile sourceFile, List<File> deps = []) {
+        virtualFileSystem.invalidateAll()
         sourceFiles << sourceFile
         modifiedFiles << sourceFile
         graph[sourceFile] = deps
     }
 
     def modified(TestFile sourceFile, List<File> deps = null) {
+        virtualFileSystem.invalidateAll()
         modifiedFiles << sourceFile
         sourceFile << "More text"
         if (deps != null) {
@@ -111,11 +114,13 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def sourceRemoved(TestFile sourceFile) {
+        virtualFileSystem.invalidateAll()
         sourceFiles.remove(sourceFile)
         graph.remove(sourceFile)
     }
 
     def dependencyRemoved(TestFile sourceFile) {
+        virtualFileSystem.invalidateAll()
         graph.remove(sourceFile)
         sourceFile.delete()
     }

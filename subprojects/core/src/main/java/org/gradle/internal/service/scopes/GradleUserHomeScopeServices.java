@@ -86,8 +86,6 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemMirror;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
@@ -95,7 +93,7 @@ import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
-import org.gradle.internal.vfs.impl.VfsFileSystemSnapshotter;
+import org.gradle.internal.vfs.impl.FileSystemSnapshotterVirtualFileSystem;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -167,17 +165,19 @@ public class GradleUserHomeScopeServices {
         return new DefaultWellKnownFileLocations(fileStores);
     }
 
-    FileSystemMirror createFileSystemMirror(ListenerManager listenerManager, WellKnownFileLocations wellKnownFileLocations) {
-        final DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
+    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager, WellKnownFileLocations wellKnownFileLocations) {
+        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
+        VirtualFileSystem virtualFileSystem = VFS_ENABLED
+            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes())
+            : new FileSystemSnapshotterVirtualFileSystem(new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror), fileSystemMirror);
         listenerManager.addListener(new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
-                fileSystemMirror.beforeOutputChange();
             }
 
             @Override
             public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
+                virtualFileSystem.update(affectedOutputPaths, () -> {});
             }
         });
         listenerManager.addListener(new RootBuildLifecycleListener() {
@@ -187,42 +187,10 @@ public class GradleUserHomeScopeServices {
 
             @Override
             public void beforeComplete() {
-                fileSystemMirror.beforeBuildFinished();
+                virtualFileSystem.invalidateAll();
             }
         });
-        return fileSystemMirror;
-    }
-
-    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager) {
-        DefaultVirtualFileSystem vfs = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
-        listenerManager.addListener(new OutputChangeListener() {
-            @Override
-            public void beforeOutputChange() {
-                vfs.invalidateAll();
-            }
-
-            @Override
-            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                vfs.update(affectedOutputPaths, () -> {});
-            }
-        });
-        listenerManager.addListener(new RootBuildLifecycleListener() {
-            @Override
-            public void afterStart() {
-            }
-
-            @Override
-            public void beforeComplete() {
-                vfs.invalidateAll();
-            }
-        });
-        return vfs;
-    }
-
-    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror, VirtualFileSystem vfs) {
-        return VFS_ENABLED
-            ? new VfsFileSystemSnapshotter(vfs, stringInterner, hasher)
-            : new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+        return virtualFileSystem;
     }
 
     FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, Stat stat) {

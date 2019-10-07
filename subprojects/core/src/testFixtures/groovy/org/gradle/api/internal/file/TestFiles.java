@@ -34,9 +34,6 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
-import org.gradle.internal.snapshot.FileSystemMirror;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
@@ -154,21 +151,8 @@ public class TestFiles {
         return new DefaultFileCollectionSnapshotter(virtualFileSystem(), fileSystem());
     }
 
-    public static DefaultFileSystemSnapshotter fileSystemSnapshotter() {
-        return fileSystemSnapshotter(new DefaultFileSystemMirror(file -> false), new StringInterner());
-    }
-
     public static VirtualFileSystem virtualFileSystem() {
         return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem());
-    }
-
-    public static DefaultFileSystemSnapshotter fileSystemSnapshotter(FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
-        return new DefaultFileSystemSnapshotter(
-            fileHasher(),
-            stringInterner,
-            fileSystem(),
-            fileSystemMirror
-        );
     }
 
     public static FileCollectionFactory fileCollectionFactory() {
