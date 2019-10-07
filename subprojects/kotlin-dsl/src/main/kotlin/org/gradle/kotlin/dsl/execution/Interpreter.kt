@@ -281,9 +281,9 @@ class Interpreter(val host: Host) {
                     val program =
                         ProgramParser.parse(programSource, programKind, programTarget)
 
-                    val residualProgram = program.map { program ->
-                        PartialEvaluator(programKind, programTarget).reduce(program)
-                    }
+                    val residualProgram = program.map(
+                        PartialEvaluator(programKind, programTarget)::reduce
+                    )
 
                     scriptSource.withLocationAwareExceptionHandling {
                         ResidualProgramCompiler(
