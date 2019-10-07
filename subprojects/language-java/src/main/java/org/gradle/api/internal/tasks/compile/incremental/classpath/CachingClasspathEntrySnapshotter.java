@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
@@ -42,12 +41,7 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     @Override
     public ClasspathEntrySnapshot createSnapshot(final File classpathEntry) {
         final HashCode hash = getHash(classpathEntry);
-        return cache.get(classpathEntry, new Factory<ClasspathEntrySnapshot>() {
-            @Override
-            public ClasspathEntrySnapshot create() {
-                return snapshotter.createSnapshot(hash, classpathEntry);
-            }
-        });
+        return cache.get(classpathEntry, () -> snapshotter.createSnapshot(hash, classpathEntry));
     }
 
     private HashCode getHash(File classpathEntry) {
