@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.transform.LegacyTransformer
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -72,7 +73,7 @@ class DefaultTransformerCodec(
         val previousContextClassLoader = Thread.currentThread().contextClassLoader
         Thread.currentThread().contextClassLoader = implementationClass.classLoader
         val isolatedParameters = try {
-            isolatableSerializerRegistry.readIsolatable(this) as Isolatable<out TransformParameters>
+            isolatableSerializerRegistry.readIsolatable(this).uncheckedCast<Isolatable<out TransformParameters>>()
         } finally {
             Thread.currentThread().contextClassLoader = previousContextClassLoader
         }
