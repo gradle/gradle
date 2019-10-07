@@ -34,7 +34,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     private final ClassLoaderScope parent;
 
-    private boolean locked;
+    private volatile boolean locked;
 
     protected ClassPath export = ClassPath.EMPTY;
     private List<ClassLoader> exportLoaders; // if not null, is not empty
