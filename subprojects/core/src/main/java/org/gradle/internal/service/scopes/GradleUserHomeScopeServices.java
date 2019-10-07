@@ -165,8 +165,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultWellKnownFileLocations(fileStores);
     }
 
-    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager, WellKnownFileLocations wellKnownFileLocations) {
-        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
+    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager) {
+        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
         VirtualFileSystem virtualFileSystem = VFS_ENABLED
             ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes())
             : new FileSystemSnapshotterVirtualFileSystem(new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror), fileSystemMirror);

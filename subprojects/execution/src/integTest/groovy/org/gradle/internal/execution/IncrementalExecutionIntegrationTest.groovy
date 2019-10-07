@@ -60,8 +60,6 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.WellKnownFileLocations
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
@@ -83,7 +81,6 @@ class IncrementalExecutionIntegrationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def snapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)

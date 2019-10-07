@@ -190,7 +190,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         WellKnownFileLocations wellKnownFileLocations,
         ListenerManager listenerManager
     ) {
-        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
+        DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror();
         VirtualFileSystem buildSessionsScopedVirtualFileSystem = GradleUserHomeScopeServices.VFS_ENABLED
             ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes())
             : new FileSystemSnapshotterVirtualFileSystem(new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes()), fileSystemMirror);

@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.internal.classpath.CachedJarFileStore
 import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.hash.HashCode
@@ -40,7 +39,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         cacheDir = tmpDir.createDir("cache")
         def fileStore = Stub(CachedJarFileStore)
         fileStore.fileStoreRoots >> [cacheDir]
-        mirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([fileStore]))
+        mirror = new DefaultFileSystemMirror()
     }
 
     def "keeps state about a file until task outputs are generated"() {
