@@ -38,6 +38,8 @@ import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
@@ -149,11 +151,15 @@ public class TestFiles {
     }
 
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
-        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter(), fileSystem());
+        return new DefaultFileCollectionSnapshotter(virtualFileSystem(), fileSystem());
     }
 
     public static DefaultFileSystemSnapshotter fileSystemSnapshotter() {
         return fileSystemSnapshotter(new DefaultFileSystemMirror(file -> false), new StringInterner());
+    }
+
+    public static VirtualFileSystem virtualFileSystem() {
+        return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem());
     }
 
     public static DefaultFileSystemSnapshotter fileSystemSnapshotter(FileSystemMirror fileSystemMirror, StringInterner stringInterner) {

@@ -27,6 +27,8 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -40,6 +42,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
@@ -48,11 +51,13 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         ? Splitter.on(CharMatcher.anyOf("/" + File.separator))
         : Splitter.on('/');
     private final RootNode root = new RootNode();
+    private final Interner<String> stringInterner;
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
 
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, String... defaultExcludes) {
+        this.stringInterner = stringInterner;
         this.stat = stat;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
         this.hasher = hasher;
@@ -162,6 +167,13 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             pathSegments.get(pathSegments.size() - 1),
             it -> CompleteDirectoryNode.convertToNode(snapshot, parent),
             old -> true);
+    }
+
+    @Override
+    public FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
+        FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner, hasher);
+        buildAction.accept(builder);
+        return builder.build();
     }
 
     @Nullable

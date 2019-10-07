@@ -59,9 +59,10 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -85,7 +86,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private static final String INPUT_FILE_PATH_PREFIX = "i/";
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final VirtualFileSystem virtualFileSystem;
     private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
@@ -96,7 +97,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
     public DefaultTransformerInvocationFactory(
         WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
-        FileSystemSnapshotter fileSystemSnapshotter,
+        VirtualFileSystem virtualFileSystem,
         ArtifactTransformListener artifactTransformListener,
         CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
@@ -105,7 +106,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         BuildOperationExecutor buildOperationExecutor
     ) {
         this.workExecutor = workExecutor;
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.virtualFileSystem = virtualFileSystem;
         this.artifactTransformListener = artifactTransformListener;
         this.immutableTransformationWorkspaceProvider = immutableTransformationWorkspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -124,7 +125,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         FileCollectionFingerprinter outputFingerprinter = fingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
         FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
 
-        FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemSnapshotter.snapshot(inputArtifact);
+        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
+        virtualFileSystem.read(inputArtifact.getAbsolutePath(), builder);
+        FileSystemLocationSnapshot inputArtifactSnapshot = builder.getResult();
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
 

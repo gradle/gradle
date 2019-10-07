@@ -225,8 +225,8 @@ public class GradleUserHomeScopeServices {
             : new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
     }
 
-    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, Stat stat) {
-        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter, stat);
+    FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, Stat stat) {
+        return new DefaultFileCollectionSnapshotter(virtualFileSystem, stat);
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {

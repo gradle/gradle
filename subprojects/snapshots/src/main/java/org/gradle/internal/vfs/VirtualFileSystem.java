@@ -18,10 +18,13 @@ package org.gradle.internal.vfs;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface VirtualFileSystem {
@@ -40,4 +43,6 @@ public interface VirtualFileSystem {
     void invalidateAll();
 
     void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot);
+
+    FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction);
 }

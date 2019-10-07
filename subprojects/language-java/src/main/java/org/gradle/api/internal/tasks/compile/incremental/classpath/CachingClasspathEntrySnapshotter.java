@@ -22,19 +22,20 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
 
 public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshotter {
 
     private final DefaultClasspathEntrySnapshotter snapshotter;
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final VirtualFileSystem virtualFileSystem;
     private final ClasspathEntrySnapshotCache cache;
 
-    public CachingClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, FileSystemSnapshotter fileSystemSnapshotter, ClassDependenciesAnalyzer analyzer, ClasspathEntrySnapshotCache cache, FileOperations fileOperations) {
+    public CachingClasspathEntrySnapshotter(FileHasher fileHasher, StreamHasher streamHasher, VirtualFileSystem virtualFileSystem, ClassDependenciesAnalyzer analyzer, ClasspathEntrySnapshotCache cache, FileOperations fileOperations) {
         this.snapshotter = new DefaultClasspathEntrySnapshotter(fileHasher, streamHasher, analyzer, fileOperations);
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.virtualFileSystem = virtualFileSystem;
         this.cache = cache;
     }
 
@@ -50,6 +51,8 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     }
 
     private HashCode getHash(File classpathEntry) {
-        return fileSystemSnapshotter.snapshot(classpathEntry).getHash();
+        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
+        virtualFileSystem.read(classpathEntry.getAbsolutePath(), builder);
+        return builder.getResult().getHash();
     }
 }

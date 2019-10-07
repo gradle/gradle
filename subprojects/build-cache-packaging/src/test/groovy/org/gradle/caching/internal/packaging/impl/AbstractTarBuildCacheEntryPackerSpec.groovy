@@ -30,6 +30,7 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -50,7 +51,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
     def packer = new TarBuildCacheEntryPacker(deleter, fileSystem, streamHasher, stringInterner)
-    def snapshotter = TestFiles.fileSystemSnapshotter()
+    def virtualFileSystem = TestFiles.virtualFileSystem()
 
     abstract protected FileSystem createFileSystem()
     abstract protected Deleter createDeleter()
@@ -87,7 +88,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
-                        return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
+                        return fingerprint(output, fingerprintingStrategy)
                     }
                 }
             case DIRECTORY:
@@ -97,7 +98,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
-                        return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
+                        return fingerprint(output, fingerprintingStrategy)
                     }
                 }
             default:
@@ -113,5 +114,11 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
         }
 
         abstract CurrentFileCollectionFingerprint fingerprint()
+    }
+
+    protected CurrentFileCollectionFingerprint fingerprint(File file, FingerprintingStrategy strategy) {
+        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
+        virtualFileSystem.read(file.getAbsolutePath(), builder)
+        return DefaultCurrentFileCollectionFingerprint.from([builder.getResult()], strategy)
     }
 }

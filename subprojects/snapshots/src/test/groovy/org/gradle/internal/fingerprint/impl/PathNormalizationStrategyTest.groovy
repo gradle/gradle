@@ -19,7 +19,9 @@ package org.gradle.internal.fingerprint.impl
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.fingerprint.FingerprintingStrategy
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -34,6 +36,8 @@ class PathNormalizationStrategyTest extends Specification {
     private StringInterner stringInterner = new StringInterner()
 
     public static final String IGNORED = "IGNORED"
+    def virtualFileSystem = TestFiles.virtualFileSystem()
+
     List<FileSystemSnapshot> roots
     TestFile jarFile1
     TestFile jarFile2
@@ -59,15 +63,19 @@ class PathNormalizationStrategyTest extends Specification {
         emptyDir.mkdirs()
         missingFile = file("missing-file")
 
-        def snapshotter = TestFiles.fileSystemSnapshotter()
-
         roots = [
-            snapshotter.snapshot(jarFile1),
-            snapshotter.snapshot(jarFile2),
-            snapshotter.snapshot(resources),
-            snapshotter.snapshot(emptyDir),
-            snapshotter.snapshot(missingFile)
+            snapshot(jarFile1),
+            snapshot(jarFile2),
+            snapshot(resources),
+            snapshot(emptyDir),
+            snapshot(missingFile)
         ]
+    }
+
+    private FileSystemLocationSnapshot snapshot(File file) {
+        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
+        virtualFileSystem.read(file.absolutePath, builder)
+        return builder.getResult()
     }
 
     def "sensitivity NONE"() {
