@@ -82,7 +82,7 @@ class VariantFilesMetadataRulesTest extends Specification {
     }
 
     private gradleComponentMetadata(String[] deps) {
-        def metadata = mavenMetadataFactory.create(componentIdentifier, [])
+        def metadata = mavenMetadataFactory.create(componentIdentifier)
         defaultVariant = metadata.addVariant("runtime", attributes)
         deps.each { name ->
             defaultVariant.addDependency("org.test", name, new DefaultMutableVersionConstraint("1.0"), [], null, ImmutableAttributes.EMPTY, [], false, null)

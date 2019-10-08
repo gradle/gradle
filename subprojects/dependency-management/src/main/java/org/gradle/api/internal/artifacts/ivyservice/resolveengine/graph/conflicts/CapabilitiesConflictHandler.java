@@ -37,7 +37,6 @@ public interface CapabilitiesConflictHandler extends ConflictHandler<Capabilitie
 
     interface CandidateDetails {
         ComponentIdentifier getId();
-        String getVariantName();
         void evict();
         void select();
         void reject();

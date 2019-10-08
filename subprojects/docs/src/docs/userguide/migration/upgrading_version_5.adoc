@@ -353,11 +353,9 @@ In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnosti
 
 Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
 
-==== New Tooling API progress event
+==== Miscellaneous
 
-In Gradle 6.0 we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the task outputs. This new event breaks the convention of having a `StartEvent`-`FinisEvent` pair to express progress. Instead `TaskOutputEvent` is a simple `ProgressEvent`.
-
-==== Removed Deprecated Behaviors and APIs
+The following breaking changes will appear as deprecation warnings with Gradle 5.6:
 
 * The `org.gradle.util.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
 * The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
@@ -391,7 +389,6 @@ In Gradle 6.0 we introduced a new progress event (link:{javadocPath}/org/gradle/
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
 * The map returned by `TaskInputs.getProperties()` is now unmodifiable.
   Trying to modify it will result in an `UnsupportedOperationException` being thrown.
-* There are slight changes in the incubating <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capabilities resolution>> API, which has been introduced in 5.6, to also allow variant selection based on variant name
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier

@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -42,7 +41,7 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
             }
 
             ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration(ServiceRegistry services) {
-                return new ToolingApiSubscribableBuildActionRunnerRegistration(services.get(BuildOperationIdFactory.class), new CompositeOperationResultPostProcessor(services.getAll(OperationResultPostProcessor.class)));
+                return new ToolingApiSubscribableBuildActionRunnerRegistration(new CompositeOperationResultPostProcessor(services.getAll(OperationResultPostProcessor.class)));
             }
         });
     }

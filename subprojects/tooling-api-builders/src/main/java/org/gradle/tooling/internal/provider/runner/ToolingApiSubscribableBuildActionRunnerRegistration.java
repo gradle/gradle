@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.internal.operations.BuildOperationDescriptor;
-import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -37,11 +36,9 @@ import static java.util.Collections.emptyList;
 public class ToolingApiSubscribableBuildActionRunnerRegistration implements SubscribableBuildActionRunnerRegistration {
 
     private final OperationResultPostProcessor operationResultPostProcessor;
-    private final BuildOperationIdFactory idFactory;
 
-    ToolingApiSubscribableBuildActionRunnerRegistration(BuildOperationIdFactory idFactory, CompositeOperationResultPostProcessor compositeOperationResultPostProcessor) {
-        this.idFactory = idFactory;
-        this.operationResultPostProcessor = compositeOperationResultPostProcessor;
+    ToolingApiSubscribableBuildActionRunnerRegistration(OperationResultPostProcessor operationResultPostProcessor) {
+        this.operationResultPostProcessor = operationResultPostProcessor;
     }
 
     @Override
@@ -54,11 +51,7 @@ public class ToolingApiSubscribableBuildActionRunnerRegistration implements Subs
         List<Object> listeners = new ArrayList<Object>();
         listeners.add(parentTracker);
         if (clientSubscriptions.isRequested(OperationType.TEST)) {
-            BuildOperationListener buildListener = new ClientForwardingTestOperationListener(progressEventConsumer, clientSubscriptions);
-            if (clientSubscriptions.isRequested(OperationType.TEST_OUTPUT)) {
-                buildListener = new ClientForwardingTestOutputOperationListener(buildListener, progressEventConsumer, idFactory);
-            }
-            listeners.add(buildListener);
+            listeners.add(new ClientForwardingTestOperationListener(progressEventConsumer, clientSubscriptions));
         }
         if (clientSubscriptions.isAnyRequested(OperationType.GENERIC, OperationType.WORK_ITEM, OperationType.TASK, OperationType.PROJECT_CONFIGURATION, OperationType.TRANSFORM)) {
             BuildOperationListener buildListener = NO_OP;

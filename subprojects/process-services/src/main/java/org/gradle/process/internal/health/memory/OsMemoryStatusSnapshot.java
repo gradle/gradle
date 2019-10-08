@@ -37,6 +37,6 @@ public class OsMemoryStatusSnapshot implements OsMemoryStatus {
 
     @Override
     public String toString() {
-        return "OS memory {Total: " + totalMemory + ", Free: " + freeMemory + '}';
+        return "{Total: " + totalMemory + ", Free: " + freeMemory + '}';
     }
 }

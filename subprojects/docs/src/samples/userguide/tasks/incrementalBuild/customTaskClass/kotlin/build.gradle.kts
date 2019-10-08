@@ -56,6 +56,7 @@ tasks.register("processTemplatesAdHocSkipWhenEmpty") {
         .withPropertyName("outputDir")
 
     doLast {
+        // Process the templates here
         copy {
             into("$buildDir/genOutput2")
             from(fileTree("src/templates"))

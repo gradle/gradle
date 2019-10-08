@@ -22,8 +22,7 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
  * A factory for creating instances of `MutableComponentResolveMetadata` for different repository formats.
  */
 public interface MutableModuleMetadataFactory<S extends MutableModuleComponentResolveMetadata> {
-
-    S createForGradleModuleMetadata(ModuleComponentIdentifier from);
+    S create(ModuleComponentIdentifier from);
 
     S missing(ModuleComponentIdentifier from);
 }
