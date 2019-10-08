@@ -58,7 +58,7 @@ This version of Gradle is tested with
 * Android Gradle Plugin 3.4, 3.5 and 3.6
 * Kotlin 1.3.21 through 1.3.50
 
-other versions may or may not work.
+Other versions may or may not work.
 
 <a name="dependency-management"></a>
 ## Dependency management improvements
