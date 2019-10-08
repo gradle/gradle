@@ -357,9 +357,7 @@ Once a project is evaluated, Gradle ignores all configuration passed to `Project
 
 In Gradle 6.0 we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the task outputs. This new event breaks the convention of having a `StartEvent`-`FinisEvent` pair to express progress. Instead `TaskOutputEvent` is a simple `ProgressEvent`.
 
-==== Miscellaneous
-
-The following breaking changes will appear as deprecation warnings with Gradle 5.6:
+==== Removed Deprecated Behaviors and APIs
 
 * The `org.gradle.util.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
 * The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
