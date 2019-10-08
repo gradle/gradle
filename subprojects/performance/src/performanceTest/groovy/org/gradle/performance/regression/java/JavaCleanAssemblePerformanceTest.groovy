@@ -35,7 +35,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionGradleInterna
         runner.runs = runs
         runner.tasksToRun = ["clean", "assemble"]
         runner.targetVersions = ["6.0-20190823180744+0000"]
-        runner.minimumVersion = minimumVersion
+        runner.minimumBaseVersion = minimumBaseVersion
 
         when:
         def result = runner.run()
@@ -44,7 +44,7 @@ class JavaCleanAssemblePerformanceTest extends AbstractCrossVersionGradleInterna
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                            | warmUpRuns | runs  | minimumVersion
+        testProject                            | warmUpRuns | runs  | minimumBaseVersion
         LARGE_MONOLITHIC_JAVA_PROJECT          | 2          | 6     | null
         LARGE_JAVA_MULTI_PROJECT               | 2          | 6     | null
         MEDIUM_JAVA_COMPOSITE_BUILD            | 2          | 6     | "4.0"

@@ -26,7 +26,7 @@ import spock.lang.Unroll
 class SwiftCleanBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
     def setup() {
-        runner.minimumVersion = '4.6'
+        runner.minimumBaseVersion = '4.6'
         runner.targetVersions = ["6.0-20190823180744+0000"]
         runner.args += ["--parallel", "--${ParallelismBuildOptions.MaxWorkersOption.LONG_OPTION}=6"]
     }
