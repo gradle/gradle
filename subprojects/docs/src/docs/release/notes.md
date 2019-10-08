@@ -61,7 +61,7 @@ This version of Gradle is tested with
 other versions may or may not work.
 
 <a name="dependency-management"></a>
-## Techniques for Dependency Management
+## Dependency management improvements
 
 The dependency management documentation has been reorganised and structured around use cases to help users find the information they need faster.
 We've improved the [terminology section](userguide/dependency_management_terminology.html) to explain the commonly used terms.
