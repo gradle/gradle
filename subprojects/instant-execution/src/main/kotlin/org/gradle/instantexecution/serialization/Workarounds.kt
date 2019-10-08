@@ -17,11 +17,21 @@
 package org.gradle.instantexecution.serialization
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import java.lang.reflect.Field
 import java.util.concurrent.ForkJoinPool
 
 
 internal
 object Workarounds {
+
+    private
+    val ignoredBeanFields = listOf(
+        // Ignore a lambda field for now
+        "mFolderFilter" to "com.android.ide.common.resources.DataSet"
+    )
+
+    fun isIgnoredBeanField(field: Field) =
+        ignoredBeanFields.contains(field.name to field.declaringClass.name)
 
     private
     val staticFieldsByTypeName = mapOf(
