@@ -325,6 +325,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, OperationType.PROJECT_CONFIGURATION)
             .put(InternalBuildProgressListener.TRANSFORM_EXECUTION, OperationType.TRANSFORM)
             .put(InternalBuildProgressListener.BUILD_EXECUTION, OperationType.GENERIC)
+            .put(InternalBuildProgressListener.TEST_OUTPUT, OperationType.TEST_OUTPUT)
             .build();
 
         private final BuildClientSubscriptions clientSubscriptions;
