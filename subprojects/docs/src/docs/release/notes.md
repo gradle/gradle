@@ -335,7 +335,7 @@ See the [user manual](userguide/custom_gradle_types.html#service_injection) for 
 <a name="worker-api-services"></a>
 ### Services available in Worker API actions
 
-The following services are now available for injection in `WorkAction` classes:
+The following services are now available for injection in [tasks that use the Worker API](userguide/custom_tasks.html#worker_api) and the `WorkAction` classes:
 - [ObjectFactory](javadoc/org/gradle/api/model/ObjectFactory.html)
 - [ProviderFactory](javadoc/org/gradle/api/provider/ProviderFactory.html)
 - [ProjectLayout](javadoc/org/gradle/api/file/ProjectLayout.html)
