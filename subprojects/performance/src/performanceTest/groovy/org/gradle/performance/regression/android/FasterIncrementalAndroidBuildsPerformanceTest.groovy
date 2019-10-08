@@ -50,7 +50,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
                 displayName("instant non abi change")
             }
             runner.buildSpec {
-                testProject.configureForNonAbiChange(it)
+                testProject.configureForAbiChange(it)
                 configureFastIncrementalBuild(it)
                 displayName("instant abi change")
             }
