@@ -101,7 +101,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         mavenMetadataFactory.create(componentIdentifier, dependencies)
     }
     private gradleComponentMetadata(String[] deps) {
-        def metadata = mavenMetadataFactory.create(componentIdentifier)
+        def metadata = mavenMetadataFactory.create(componentIdentifier, [])
         //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         defaultVariant = metadata.addVariant("default", attributes)
         deps.each { name ->

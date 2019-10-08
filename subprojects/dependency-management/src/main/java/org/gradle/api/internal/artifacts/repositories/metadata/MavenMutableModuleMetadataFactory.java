@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
+import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -46,9 +47,9 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
     }
 
     @Override
-    public MutableMavenModuleResolveMetadata create(ModuleComponentIdentifier from) {
+    public MutableMavenModuleResolveMetadata createForGradleModuleMetadata(ModuleComponentIdentifier from) {
         ModuleVersionIdentifier mvi = asVersionIdentifier(from);
-        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.emptyList(), attributesFactory, objectInstantiator, schema);
+        return new DefaultMutableMavenModuleResolveMetadata(mvi, from, Collections.emptyList(), attributesFactory, objectInstantiator, schema, ImmutableMap.of());
     }
 
     private ModuleVersionIdentifier asVersionIdentifier(ModuleComponentIdentifier from) {
@@ -57,7 +58,7 @@ public class MavenMutableModuleMetadataFactory implements MutableModuleMetadataF
 
     @Override
     public MutableMavenModuleResolveMetadata missing(ModuleComponentIdentifier from) {
-        MutableMavenModuleResolveMetadata metadata = create(from);
+        MutableMavenModuleResolveMetadata metadata = create(from, Collections.emptyList());
         metadata.setMissing(true);
         return MavenResolver.processMetaData(metadata);
     }
