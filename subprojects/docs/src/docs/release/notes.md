@@ -201,7 +201,7 @@ Deprecation warnings will always show up in [build scans](https://scans.gradle.c
 See the user manual for [how to address these deprecation warnings](userguide/more_about_tasks.html#sec:task_input_validation). 
 
 <a name="quality-of-life"></a>
-## Quality of life improvements
+## Usability improvements
 
 ### Automatic shortening of long command-lines for Java applications on Windows
 
