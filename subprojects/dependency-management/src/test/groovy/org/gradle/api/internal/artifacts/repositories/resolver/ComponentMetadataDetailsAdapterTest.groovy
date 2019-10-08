@@ -64,7 +64,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
         ivyMetadataFactory.create(componentIdentifier, [], [new Configuration("configurationDefinedInIvyMetadata", true, true, [])], [], [])
     }
     private gradleComponentMetadata() {
-        def metadata = mavenMetadataFactory.create(componentIdentifier)
+        def metadata = mavenMetadataFactory.create(componentIdentifier, [])
         metadata.addVariant("variantDefinedInGradleMetadata1", attributes) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         metadata.addVariant("variantDefinedInGradleMetadata2", AttributeTestUtil.attributesFactory().of(testAttribute, "other")) //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         gradleMetadata = metadata
@@ -72,7 +72,7 @@ class ComponentMetadataDetailsAdapterTest extends Specification {
     }
 
     private MutableMavenModuleResolveMetadata mavenComponentMetadata() {
-        mavenMetadataFactory.create(componentIdentifier)
+        mavenMetadataFactory.create(componentIdentifier, [])
     }
 
     def setup() {

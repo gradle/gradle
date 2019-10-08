@@ -186,7 +186,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
 
     private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {
         def module = DefaultModuleIdentifier.newId("group", "module")
-        def metadata = ivyMetadataFactory.create(DefaultModuleComponentIdentifier.newId(module, "version"))
+        def metadata = ivyMetadataFactory.create(DefaultModuleComponentIdentifier.newId(module, "version"), [])
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata
@@ -194,7 +194,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
 
     private DefaultMutableMavenModuleResolveMetadata mavenMetadata() {
         def module = DefaultModuleIdentifier.newId("group", "module")
-        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId(module, "version"))
+        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId(module, "version"), [])
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata

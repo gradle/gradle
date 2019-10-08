@@ -46,7 +46,8 @@ class BuildProgressListenerAdapterTest extends Specification {
         operationTypes << Sets.powerSet(EnumSet.allOf(OperationType))
         expectedSubscribedOperations << Sets.powerSet([InternalBuildProgressListener.TEST_EXECUTION, InternalBuildProgressListener.TASK_EXECUTION,
                                                        InternalBuildProgressListener.BUILD_EXECUTION, InternalBuildProgressListener.WORK_ITEM_EXECUTION,
-                                                       InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, InternalBuildProgressListener.TRANSFORM_EXECUTION] as Set)
+                                                       InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION, InternalBuildProgressListener.TRANSFORM_EXECUTION,
+                                                       InternalBuildProgressListener.TEST_OUTPUT] as Set)
     }
 
     def "parent descriptor of a descriptor can be of a different type"() {

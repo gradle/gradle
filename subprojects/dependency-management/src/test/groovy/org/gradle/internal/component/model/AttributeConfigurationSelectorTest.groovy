@@ -315,6 +315,24 @@ All of them match the consumer attributes:
         selected.name == 'second'
     }
 
+    def "should select the variant with the most exact capability match"() {
+        given:
+        component(
+            variant('A', attributes('org.gradle.usage': 'java-api', 'other': 'c'), capability('first'), capability('second')),
+            variant('B', attributes('org.gradle.usage': 'java-api', 'other': 'c'), capability('first'))
+        )
+
+        and:
+        consumerAttributes('org.gradle.usage': 'java-api', 'other': 'c')
+        requestCapability capability('first')
+
+        when:
+        performSelection()
+
+        then:
+        selected.name == 'B' // B matches best: capabilities match exactly, attributes match exactly
+    }
+    
     def "should select the variant with the most exact match in case of ambiguity between attributes and capabilities"() {
         given:
         attributesSchema.attribute(Attribute.of('other', String)) {

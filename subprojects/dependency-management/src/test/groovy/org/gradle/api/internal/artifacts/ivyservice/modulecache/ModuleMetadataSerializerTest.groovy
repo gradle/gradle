@@ -140,7 +140,7 @@ class ModuleMetadataSerializerTest extends Specification {
     }
 
     MutableModuleComponentResolveMetadata parseGradle(File gradleFile) {
-        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('test', 'test-module'), '1.0'))
+        def metadata = mavenMetadataFactory.create(DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId('test', 'test-module'), '1.0'), [])
         gradleMetadataParser.parse(resource(gradleFile), metadata)
         metadata
     }

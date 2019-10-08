@@ -107,7 +107,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
     def "copy with different source"() {
         given:
         def source = Stub(ModuleSource)
-        def mutable = mavenMetadataFactory.create(id)
+        def mutable = mavenMetadataFactory.create(id, [])
         mutable.packaging = "other"
         mutable.relocated = true
         mutable.snapshotTimestamp = "123"
@@ -125,7 +125,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
 
     def "recognises pom packaging"() {
         when:
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
         metadata.packaging = packaging
 
         then:
@@ -146,7 +146,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
         def componentTypeAttribute = Attribute.of(Category.CATEGORY_ATTRIBUTE.getName(), String.class)
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
         metadata.packaging = packaging
         metadata.variantMetadataRules.variantDerivationStrategy = new JavaEcosystemVariantDerivationStrategy()
 

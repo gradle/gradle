@@ -203,6 +203,11 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
                             }
 
                             @Override
+                            public String getVariantName() {
+                                return node.getResolvedConfigurationId().getConfiguration();
+                            }
+
+                            @Override
                             public void evict() {
                                 node.evict();
                                 evicted.add(node);
