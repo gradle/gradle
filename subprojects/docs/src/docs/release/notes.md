@@ -1,10 +1,10 @@
 The Gradle team is excited to announce a new major version of Gradle, @version@.
 
+A major highlight of this release is the [vastly improved feature set in dependency management](#dependency-management). Some of the features were released in stages, but with Gradle 6.0 they are stable and production ready. We publish [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) by default, which makes these new features available between projects _and_ binary dependencies.
+
 In the JVM ecosystem, we've made [incremental Java and Groovy compilation faster](#faster-incremental-java), added [support for JDK13](#java-13) and provided [out of the box support for javadoc and source jars](#javadoc-sources-jar). For Scala projects, we've updated the [Zinc compiler](#zinc-compiler) and made it easier to select which version of Zinc to use.
 
 For Gradle [plugin authors](#plugin-ecosystem), we've added new APIs to make it easier to lazily connect tasks and properties together, [made useful services available to worker API actions](#worker-api-services) and Gradle will [complain at runtime if a task appears misconfigured](#task-problems).
-
-A major highlight of this release is the [vastly improved feature set in dependency management](#dependency-management). Some of the features were released in stages, but with Gradle 6.0 they are stable and production ready. We publish [Gradle Module Metadata](userguide/publishing_gradle_module_metadata.html) by default, which makes these new features available between projects _and_ binary dependencies.
 
 In the [native ecosystem](#native-ecosystem), we've added support for Visual Studio 2019 and the latest C++ standards.
 
