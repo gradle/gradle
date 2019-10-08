@@ -107,11 +107,11 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         }
 
         where:
-        rule                                                                               | reason
+        rule                                                                                  | reason
         'all { selectHighestVersion() }'                                                      | 'latest version of capability cglib:cglib'
         'withCapability("cglib:cglib") { selectHighestVersion() }'                            | 'latest version of capability cglib:cglib'
         'withCapability("cglib", "cglib") { selectHighestVersion() }'                         | 'latest version of capability cglib:cglib'
-        'all { select(candidates.find { it.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
+        'all { select(candidates.find { it.id.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
 
     }
 
@@ -319,7 +319,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             }
             
             configurations.conf.resolutionStrategy.capabilitiesResolution.withCapability('org:cap') {
-                select candidates.find { it.module == "$expected" }
+                select candidates.find { it.id.module == "$expected" }
                 because "prefers module ${expected}"
             }
         """

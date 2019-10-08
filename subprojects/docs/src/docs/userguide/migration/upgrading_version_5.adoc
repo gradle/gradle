@@ -389,6 +389,7 @@ The following breaking changes will appear as deprecation warnings with Gradle 5
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
 * The map returned by `TaskInputs.getProperties()` is now unmodifiable.
   Trying to modify it will result in an `UnsupportedOperationException` being thrown.
+* There are slight changes in the incubating <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capabilities resolution>> API, which has been introduced in 5.6, to also allow variant selection based on variant name
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
