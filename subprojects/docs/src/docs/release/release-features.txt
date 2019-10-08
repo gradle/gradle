@@ -1,3 +1,7 @@
- - Vastly improved feature set in dependency management
- - Support for Java 13
- - Upgraded Zinc compiler
+- Substantial improvements in dependency management, including
+   - Gradle Module Metadata in addition to pom.xml
+   - Advanced control of transitive versions
+   - Support for optional features and dependencies
+   - Rules to tweak published metadata
+- Support for Java 13
+- Usability and security improvements

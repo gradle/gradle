@@ -98,7 +98,7 @@ A well-known example in the JVM world is the Jackson libraries.
 
 When declaring a dependency, a build [can provide more context](userguide/rich_versions.html) to Gradle about its version, including version preferences within a range, strict version requirements or rejected versions.  Developers can also provide human readable descriptions for why a dependency is used or needed.
 
-### Fixing broken published metadata 
+### Tweak published metadata 
 
 Gradle allows builds to [fix or enrich traditional metadata](userguide/component_metadata_rules.html) with information that could not be published before, such as dependency constraints, rich versions, capabilities and variants. These are called _component metadata rules_.
 
@@ -109,6 +109,23 @@ Component metadata rules also make it possible to [map additional published arti
 Gradle provides the ability to model [optional features](userguide/feature_variants.html) of a library.  Each feature can have its own set of dependencies and can be consumed separately.
 
 With feature variants, Gradle provides first-class support for to [create and publish test fixtures](userguide/java_testing.html#sec:java_test_fixtures).  Test fixtures can be consumed by other projects in a multi-project build.
+
+<a name="javadoc-sources-jar"></a>
+### Built-in javadoc and sources packaging and publishing
+
+You can now activate Javadoc and sources publishing for a Java Library or Java project:
+
+```
+java {
+    publishJavadoc()
+    publishSources()
+}
+```
+
+Using the `maven-publish` or `ivy-publish` plugin, this will not only automatically create and publish a `-javadoc.jar` and `-sources.jar` but also publish the information that these exist as variants in Gradle Module Metadata.
+This means that you can query for the Javadoc or sources _variant_ of a module and also retrieve the Javadoc (or sources) of its dependencies.
+
+If activated, a Java and Java Library project automatically provides the `javadocJar` and `sourcesJar` tasks.
 
 <a name="faster-incremental-java"></a>
 ## Faster incremental Java and Groovy compilation
@@ -147,23 +164,6 @@ This was contributed by [Robert Stupp](https://github.com/snazy).
 ## Support for Java 13
 
 Gradle now supports running with [Java 13](https://openjdk.java.net/projects/jdk/13/).
-
-<a name="javadoc-sources-jar"></a>
-## Built-in javadoc and sources packaging and publishing
-
-You can now activate Javadoc and sources publishing for a Java Library or Java project:
-
-```
-java {
-    publishJavadoc()
-    publishSources()
-}
-```
-
-Using the `maven-publish` or `ivy-publish` plugin, this will not only automatically create and publish a `-javadoc.jar` and `-sources.jar` but also publish the information that these exist as variants in Gradle Module Metadata.
-This means that you can query for the Javadoc or sources _variant_ of a module and also retrieve the Javadoc (or sources) of its dependencies.
-
-If activated, a Java and Java Library project automatically provides the `javadocJar` and `sourcesJar` tasks.
 
 <a name="zinc-compiler"></a>
 ## Update to newer Scala Zinc compiler
