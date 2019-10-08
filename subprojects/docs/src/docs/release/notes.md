@@ -200,6 +200,72 @@ Deprecation warnings will always show up in [build scans](https://scans.gradle.c
 
 See the user manual for [how to address these deprecation warnings](userguide/more_about_tasks.html#sec:task_input_validation). 
 
+<a name="security"></a>
+## Security improvements
+
+### Protecting the integrity of builds
+
+Gradle will now emit a deprecation warning when resolving dependencies, pulling cache hits from a remote build cache, retrieving text resources, and applying script plugins with the insecure HTTP protocol.
+
+We encourage all users to switch to using HTTPS instead of HTTP.
+Free HTTPS certificates for your artifact server can be acquired from [Lets Encrypt](https://letsencrypt.org/).
+The use of HTTPS is important for [protecting your supply chain and the entire JVM ecosystem](https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb).
+
+For users that require the use of HTTP, Gradle has several new APIs to continue to allow HTTP on a case-by-case basis.
+
+For repositories:
+```kotlin
+repositories {
+    maven {
+        url = "http://my-company.example"
+        allowInsecureProtocol = true
+    }
+    ivy {
+        url = "http://my-company.example"
+        allowInsecureProtocol = true
+    }
+}
+```
+
+For script plugins:
+```groovy
+apply from: resources.text.fromInsecureUri("http://my-company.example/external.gradle")
+```
+
+The new APIs:
+- [`HttpBuildCache.allowInsecureProtocol`](dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowInsecureProtocol) 
+- [`IvyArtifactRepository.allowInsecureProtocol`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:allowInsecureProtocol)
+- [`MavenArtifactRepository.allowInsecureProtocol`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html#org.gradle.api.artifacts.repositories.MavenArtifactRepository:allowInsecureProtocol)
+- [`TextResourceFactory.fromInsecureUri(Object)`](dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object))
+
+### Deprecation of HTTP services
+
+On January 13th, 2020 through January 15th, 2020, some of the most widely used artifact servers in the JVM ecosystem
+will drop support for HTTP and will only support HTTPS. Their announcements can be found below:
+
+ - [Sonatype: Maven Central](https://central.sonatype.org/articles/2019/Apr/30/http-access-to-repo1mavenorg-and-repomavenapacheorg-is-being-deprecated/)
+ - [JFrog: JCenter](https://jfrog.com/blog/secure-jcenter-with-https/)
+ - [Pivotal: Spring](https://spring.io/blog/2019/09/16/goodbye-http-repo-spring-use-https)
+
+The Gradle team will be making an announcement soon about the use of HTTP with [wrapper downloads](https://services.gradle.org) and [plugin portal](https://plugins.gradle.org).
+
+### Signing Plugin now uses SHA512 instead of SHA1
+
+A low severity security issue was reported in the Gradle signing plugin.
+
+More information can be found below:
+
+ - [Gradle GitHub Advisory](https://github.com/gradle/gradle/security/advisories/GHSA-mrm8-42q4-6rm7)
+ - [CVE-2019-16370](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16370)
+ 
+This was contributed by [Vladimir Sitnikov](https://github.com/vlsi).
+
+### Support for in-memory signing with subkeys
+
+Gradle now supports [in-memory signing](userguide/signing_plugin.html#sec:in-memory-keys) with subkeys.
+
+This was contributed by [szhem](https://github.com/szhem).
+
 <a name="quality-of-life"></a>
 ## Usability improvements
 
@@ -320,72 +386,6 @@ Visual Studio IntelliSense will help you write great code with these new standar
 ### Support for Visual Studio 2019
 
 Gradle now supports building application and libraries with [Visual Studio 2019](https://docs.microsoft.com/en-us/visualstudio/releases/2019/release-notes).
-
-<a name="security"></a>
-## Security
-
-### Protecting the integrity of builds
-
-Gradle will now emit a deprecation warning when resolving dependencies, pulling cache hits from a remote build cache, retrieving text resources, and applying script plugins with the insecure HTTP protocol.
-
-We encourage all users to switch to using HTTPS instead of HTTP.
-Free HTTPS certificates for your artifact server can be acquired from [Lets Encrypt](https://letsencrypt.org/).
-The use of HTTPS is important for [protecting your supply chain and the entire JVM ecosystem](https://medium.com/bugbountywriteup/want-to-take-over-the-java-ecosystem-all-you-need-is-a-mitm-1fc329d898fb).
-
-For users that require the use of HTTP, Gradle has several new APIs to continue to allow HTTP on a case-by-case basis.
-
-For repositories:
-```kotlin
-repositories {
-    maven {
-        url = "http://my-company.example"
-        allowInsecureProtocol = true
-    }
-    ivy {
-        url = "http://my-company.example"
-        allowInsecureProtocol = true
-    }
-}
-```
-
-For script plugins:
-```groovy
-apply from: resources.text.fromInsecureUri("http://my-company.example/external.gradle")
-```
-
-The new APIs:
-- [`HttpBuildCache.allowInsecureProtocol`](dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowInsecureProtocol) 
-- [`IvyArtifactRepository.allowInsecureProtocol`](dsl/org.gradle.api.artifacts.repositories.IvyArtifactRepository.html#org.gradle.api.artifacts.repositories.IvyArtifactRepository:allowInsecureProtocol)
-- [`MavenArtifactRepository.allowInsecureProtocol`](dsl/org.gradle.api.artifacts.repositories.MavenArtifactRepository.html#org.gradle.api.artifacts.repositories.MavenArtifactRepository:allowInsecureProtocol)
-- [`TextResourceFactory.fromInsecureUri(Object)`](dsl/org.gradle.api.resources.TextResourceFactory.html#org.gradle.api.resources.TextResourceFactory:fromInsecureUri(java.lang.Object))
-
-### Deprecation of HTTP services
-
-On January 13th, 2020 through January 15th, 2020, some of the most widely used artifact servers in the JVM ecosystem
-will drop support for HTTP and will only support HTTPS. Their announcements can be found below:
-
- - [Sonatype: Maven Central](https://central.sonatype.org/articles/2019/Apr/30/http-access-to-repo1mavenorg-and-repomavenapacheorg-is-being-deprecated/)
- - [JFrog: JCenter](https://jfrog.com/blog/secure-jcenter-with-https/)
- - [Pivotal: Spring](https://spring.io/blog/2019/09/16/goodbye-http-repo-spring-use-https)
-
-The Gradle team will be making an announcement soon about the use of HTTP with [wrapper downloads](https://services.gradle.org) and [plugin portal](https://plugins.gradle.org).
-
-### Signing Plugin now uses SHA512 instead of SHA1
-
-A low severity security issue was reported in the Gradle signing plugin.
-
-More information can be found below:
-
- - [Gradle GitHub Advisory](https://github.com/gradle/gradle/security/advisories/GHSA-mrm8-42q4-6rm7)
- - [CVE-2019-16370](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16370)
- 
-This was contributed by [Vladimir Sitnikov](https://github.com/vlsi).
-
-### Support for in-memory signing with subkeys
-
-Gradle now supports [in-memory signing](userguide/signing_plugin.html#sec:in-memory-keys) with subkeys.
-
-This was contributed by [szhem](https://github.com/szhem).
 
 ## Features for Gradle tooling providers
 
