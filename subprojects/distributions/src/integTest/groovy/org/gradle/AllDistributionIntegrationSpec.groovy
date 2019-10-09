@@ -16,7 +16,6 @@
 
 package org.gradle
 
-import groovy.io.FileType
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Shared
 
@@ -44,15 +43,7 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         contentsDir.file('src/wrapper/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
 
         // Samples
-        contentsDir.file('samples/java/quickstart/groovy/build.gradle').assertIsFile()
-
-        def buildAndGradleDirs = []
-        contentsDir.file('samples').eachFileRecurse(FileType.DIRECTORIES) {
-            if (it.name == "build" || it.name == ".gradle") {
-                buildAndGradleDirs << it
-            }
-        }
-        buildAndGradleDirs == []
+        contentsDir.file('samples').assertDoesNotExist()
 
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()

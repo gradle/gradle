@@ -128,11 +128,6 @@ ext {
         into('docs') {
             from configurations.gradleFullDocs
         }
-        into('samples') {
-            from configurations.gradleSamples
-            exclude '**/*.out'
-            exclude '**/*.sample.conf*'
-        }
     }
 }
 
