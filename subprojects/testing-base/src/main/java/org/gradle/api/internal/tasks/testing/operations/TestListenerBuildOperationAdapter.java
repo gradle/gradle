@@ -73,7 +73,7 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
     public void output(final TestDescriptorInternal testDescriptor, final TestOutputEvent event) {
         long currentTime = clock.getCurrentTime();
         InProgressExecuteTestBuildOperation runningOp = runningTests.get(testDescriptor);
-        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event)));
+        listener.progress(runningOp.descriptor.getId(), new OperationProgressEvent(currentTime, new OutputProgress(event, testDescriptor.getId())));
     }
 
     private BuildOperationDescriptor createTestBuildOperationDescriptor(TestDescriptor testDescriptor, TestStartEvent testStartEvent) {
@@ -109,16 +109,22 @@ public class TestListenerBuildOperationAdapter implements TestListenerInternal {
         }
     }
 
-    private static class OutputProgress implements ExecuteTestBuildOperationType.Output {
+    public static class OutputProgress implements ExecuteTestBuildOperationType.Output {
         private final TestOutputEvent event;
+        private final Object testDescriptorId;
 
-        private OutputProgress(TestOutputEvent event) {
+        private OutputProgress(TestOutputEvent event, Object testDescriptorId) {
             this.event = event;
+            this.testDescriptorId = testDescriptorId;
         }
 
         @Override
         public TestOutputEvent getOutput() {
             return event;
+        }
+
+        public Object getTestDescriptorId() {
+            return testDescriptorId;
         }
     }
 

@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultMemoryManager implements MemoryManager, Stoppable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MemoryManager.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultMemoryManager.class);
     public static final int STATUS_INTERVAL_SECONDS = 5;
     private static final double DEFAULT_MIN_FREE_MEMORY_PERCENTAGE = 0.1D; // 10%
     private static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024; // 384M
@@ -144,11 +144,9 @@ public class DefaultMemoryManager implements MemoryManager, Stoppable {
             try {
                 if (osMemoryStatusSupported) {
                     OsMemoryStatus os = osMemoryInfo.getOsSnapshot();
-                    LOGGER.debug("Emitting OS memory status event {}", os);
                     osBroadcast.onOsMemoryStatus(os);
                 }
                 JvmMemoryStatus jvm = jvmMemoryInfo.getJvmSnapshot();
-                LOGGER.debug("Emitting JVM memory status event {}", jvm);
                 jvmBroadcast.onJvmMemoryStatus(jvm);
             } catch (Exception ex) {
                 LOGGER.debug("Failed to collect memory status: {}", ex.getMessage(), ex);

@@ -41,12 +41,12 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id) {
-        mavenMetadataFactory.create(id) as AbstractMutableModuleComponentResolveMetadata
+        mavenMetadataFactory.create(id, []) as AbstractMutableModuleComponentResolveMetadata
     }
 
     def "defines configurations for maven scopes and several usage buckets"() {
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
 
         expect:
         def immutable = metadata.asImmutable()
@@ -62,7 +62,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
 
     def "default metadata"() {
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
 
         expect:
         metadata.packaging == 'jar'
@@ -81,7 +81,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
 
         def vid = Mock(ModuleVersionIdentifier)
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
 
         expect:
         metadata.id == id
@@ -132,7 +132,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def source = Stub(ModuleSource)
         def contentHash = new HashValue("123")
 
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
 
         when:
         metadata.id = newId
@@ -188,7 +188,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def source = Stub(ModuleSource)
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
 
         when:
         def immutable = metadata.asImmutable()
@@ -237,7 +237,7 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def source = Stub(ModuleSource)
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
 
         when:
         def immutable = metadata.asImmutable()
