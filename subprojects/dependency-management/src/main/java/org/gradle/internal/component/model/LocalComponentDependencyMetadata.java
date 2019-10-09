@@ -93,7 +93,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private static List<IvyArtifactName> asImmutable(List<IvyArtifactName> artifactNames) {
-        return artifactNames.isEmpty() ? Collections.emptyList() : ImmutableList.copyOf(artifactNames);
+        return artifactNames.isEmpty() ? Collections.emptyList() : artifactNames instanceof ImmutableList ? artifactNames : ImmutableList.copyOf(artifactNames);
     }
 
     @Override
