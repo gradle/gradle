@@ -25,23 +25,23 @@ import java.util.Collections;
 import java.util.List;
 
 public class DefaultComponentOverrideMetadata implements ComponentOverrideMetadata {
-    public static final ComponentOverrideMetadata EMPTY = new DefaultComponentOverrideMetadata();
+    public static final ComponentOverrideMetadata EMPTY = new DefaultComponentOverrideMetadata(false, (IvyArtifactName) null, null);
 
     private final boolean changing;
     private final List<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
 
-    public static ComponentOverrideMetadata forDependency(DependencyMetadata dependencyMetadata) {
-        return new DefaultComponentOverrideMetadata(dependencyMetadata.isChanging(), dependencyMetadata.getArtifacts(), extractClientModule(dependencyMetadata));
+    public static ComponentOverrideMetadata forDependency(DependencyMetadata dependencyMetadata, IvyArtifactName mainArtifact) {
+        return new DefaultComponentOverrideMetadata(dependencyMetadata.isChanging(), mainArtifact, extractClientModule(dependencyMetadata));
     }
 
-    private DefaultComponentOverrideMetadata() {
-        this(false, Collections.emptyList(), null);
+    private DefaultComponentOverrideMetadata(boolean changing, IvyArtifactName artifact, ClientModule clientModule) {
+        this(changing, artifact == null ? Collections.emptyList() : ImmutableList.of(artifact), clientModule);
     }
 
     private DefaultComponentOverrideMetadata(boolean changing, List<IvyArtifactName> artifacts, ClientModule clientModule) {
         this.changing = changing;
-        this.artifacts = ImmutableList.copyOf(artifacts);
+        this.artifacts = artifacts;
         this.clientModule = clientModule;
     }
 

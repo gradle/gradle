@@ -371,6 +371,7 @@ class ModuleResolveState implements CandidateModule {
             return false;
         }
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
+        newSelected.setSelectors(selectors);
         if (selected == null) {
             select(newSelected);
             return true;

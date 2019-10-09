@@ -28,7 +28,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.RepositoryChainMo
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.ComponentResolutionState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.VersionConflictResolutionDetails;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
@@ -66,7 +65,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     private ComponentSelectionState state = ComponentSelectionState.Selectable;
     private ModuleVersionResolveException metadataResolveFailure;
-    private SelectorState firstSelectedBy;
+    private ModuleSelectors<SelectorState> selectors;
     private DependencyGraphBuilder.VisitState visitState = DependencyGraphBuilder.VisitState.NotSeen;
 
     private boolean rejected;
@@ -165,11 +164,8 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         }
     }
 
-    @Override
-    public void selectedBy(ResolvableSelectorState selectorState) {
-        if (firstSelectedBy == null) {
-            firstSelectedBy = (SelectorState) selectorState;
-        }
+    public void setSelectors(ModuleSelectors<SelectorState> selectors) {
+        this.selectors = selectors;
     }
 
     /**
@@ -186,9 +182,12 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
             return;
         }
 
-        // Any metadata overrides (e.g classifier/artifacts/client-module) will be taken from the first dependency that referenced this component
-        ComponentOverrideMetadata componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(firstSelectedBy.getDependencyMetadata());
-
+        ComponentOverrideMetadata componentOverrideMetadata;
+        if (selectors != null && selectors.size() > 0) {
+            componentOverrideMetadata = DefaultComponentOverrideMetadata.forDependency(selectors.first().getDependencyMetadata(), selectors.getFirstDependencyArtifact());
+        } else {
+            componentOverrideMetadata = DefaultComponentOverrideMetadata.EMPTY;
+        }
         DefaultBuildableComponentResolveResult result = new DefaultBuildableComponentResolveResult();
         if (tryResolveVirtualPlatform()) {
             return;

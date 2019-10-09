@@ -53,8 +53,6 @@ class PotentialEdge {
         EdgeState edge = new EdgeState(from, dependencyState, from.previousTraversalExclusions, resolveState);
         ModuleVersionIdentifier toModuleVersionId = DefaultModuleVersionIdentifier.newId(toSelector.getModuleIdentifier(), toSelector.getVersion());
         ComponentState version = resolveState.getModule(toSelector.getModuleIdentifier()).getVersion(toModuleVersionId, toComponent);
-        SelectorState selector = edge.getSelector();
-        version.selectedBy(selector);
         // We need to check if the target version exists. For this, we have to try to get metadata for the aligned version.
         // If it's there, it means we can align, otherwise, we must NOT add the edge, or resolution would fail
         ComponentResolveMetadata metadata = version.getMetadata();

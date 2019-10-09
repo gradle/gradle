@@ -106,7 +106,6 @@ class SelectorStateResolverResults {
 
     public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
         T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getMetadata());
-        component.selectedBy(selector);
         if (idResolveResult.isRejected()) {
             component.reject();
         }
