@@ -411,12 +411,13 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     ModuleArtifact getArtifact(Map<String, ?> options) {
         def artifact = toArtifact(options)
         def suffix = (artifact.classifier ? "-${artifact.classifier}" : "") + (artifact.type ? ".${artifact.type}" : "")
+        def artifactName = artifact.name ? artifact.name : artifactId
         return new ModuleArtifact() {
             String getFileName() {
                 if (version.endsWith("-SNAPSHOT") && !metaDataFile.exists() && uniqueSnapshots) {
-                    return "${artifactId}-${version}${suffix}"
+                    return "${artifactName}-${version}${suffix}"
                 } else {
-                    return "$artifactId-${publishArtifactVersion}${suffix}"
+                    return "$artifactName-${publishArtifactVersion}${suffix}"
                 }
             }
 
@@ -440,7 +441,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
 
     protected Map<String, Object> toArtifact(Map<String, ?> options) {
         options = new HashMap<String, Object>(options)
-        def artifact = [type: options.containsKey('type') ? options.remove('type') : type, classifier: options.remove('classifier') ?: null]
+        def artifact = [type: options.containsKey('type') ? options.remove('type') : type, classifier: options.remove('classifier') ?: null, name: options.containsKey('name') ? options.remove('name') : null]
         assert options.isEmpty(): "Unknown options : ${options.keySet()}"
         return artifact
     }
