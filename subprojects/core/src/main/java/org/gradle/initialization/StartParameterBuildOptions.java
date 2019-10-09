@@ -35,6 +35,8 @@ import java.util.List;
 
 public class StartParameterBuildOptions {
 
+    public static final String ADD_PLUGIN = "add-plugin";
+
     private static List<BuildOption<StartParameterInternal>> options;
 
     static {
@@ -59,6 +61,7 @@ public class StartParameterBuildOptions {
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
         options.add(new DependencyLockingUpdateOption());
+        options.add(new AdditionalPluginsOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -317,6 +320,18 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(List<String> modulesToUpdate, StartParameterInternal settings, Origin origin) {
             settings.setLockedDependenciesToUpdate(modulesToUpdate);
+        }
+    }
+
+    public static class AdditionalPluginsOption extends ListBuildOption<StartParameterInternal> {
+
+        public AdditionalPluginsOption() {
+            super(null, CommandLineOptionConfiguration.create(ADD_PLUGIN, "Adds a plugin to the root project"));
+        }
+
+        @Override
+        public void applyTo(List<String> values, StartParameterInternal settings, Origin origin) {
+            settings.setAdditionalPlugins(values);
         }
     }
 }

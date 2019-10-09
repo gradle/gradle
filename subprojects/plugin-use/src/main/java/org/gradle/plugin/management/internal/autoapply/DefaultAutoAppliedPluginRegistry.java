@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.management.internal.autoapply;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
@@ -23,11 +24,13 @@ import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
 import org.gradle.plugin.management.internal.DefaultPluginRequests;
+import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
-import java.util.Collections;
+import java.util.List;
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption;
 
@@ -44,10 +47,29 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
+        List<PluginRequestInternal> requests = null;
         if (shouldApplyScanPlugin(target)) {
-            return new DefaultPluginRequests(Collections.singletonList(createScanPluginRequest()));
+            requests = Lists.newArrayList(createScanPluginRequest());
+        }
+        requests = appendStartParameterPluginRequests(requests);
+        if (requests != null) {
+            return new DefaultPluginRequests(requests);
         }
         return DefaultPluginRequests.EMPTY;
+    }
+
+    private List<PluginRequestInternal> appendStartParameterPluginRequests(List<PluginRequestInternal> requests) {
+        // only include plugins for the main build, not the included ones
+        if (buildDefinition.getFromBuild() == null) {
+            List<String> additionalPlugins = buildDefinition.getStartParameter().getAdditionalPlugins();
+            for (String pluginAndVersion : additionalPlugins) {
+                if (requests == null) {
+                    requests = Lists.newArrayListWithExpectedSize(additionalPlugins.size());
+                }
+                requests.add(createAdditionalPluginRequest(pluginAndVersion));
+            }
+        }
+        return requests;
     }
 
     @Override
@@ -68,7 +90,21 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         return new DefaultPluginRequest(AutoAppliedBuildScanPlugin.ID, AutoAppliedBuildScanPlugin.VERSION, true, null, getScriptDisplayName(), artifact);
     }
 
+    private static DefaultPluginRequest createAdditionalPluginRequest(String pluginAndVersion) {
+        String[] parts = pluginAndVersion.split(":");
+        String id = parts[0];
+        String version = "";
+        if (parts.length == 2) {
+            version = parts[1];
+        }
+        return new DefaultPluginRequest(id, version, true, null, getCommandLineDisplayName(pluginAndVersion));
+    }
+
     private static String getScriptDisplayName() {
         return String.format("auto-applied by using --%s", BuildScanOption.LONG_OPTION);
+    }
+
+    private static String getCommandLineDisplayName(String pluginRequest) {
+        return String.format("Applied using command-line option --%s %s", StartParameterBuildOptions.ADD_PLUGIN, pluginRequest);
     }
 }

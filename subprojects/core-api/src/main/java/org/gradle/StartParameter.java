@@ -97,6 +97,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean noBuildScan;
     private boolean writeDependencyLocks;
     private List<String> lockedDependenciesToUpdate = emptyList();
+    private List<String> additionalPlugins = emptyList();
 
     /**
      * {@inheritDoc}
@@ -250,6 +251,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.writeDependencyLocks = writeDependencyLocks;
         p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
+        p.additionalPlugins = new ArrayList<>(additionalPlugins);
         return p;
     }
 
@@ -743,6 +745,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
             + ", writeDependencyLocks=" + writeDependencyLocks
+            + ", additionalPlugins=" + additionalPlugins
             + '}';
     }
 
@@ -855,5 +858,13 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public List<String> getLockedDependenciesToUpdate() {
         return lockedDependenciesToUpdate;
+    }
+
+    public List<String> getAdditionalPlugins() {
+        return additionalPlugins;
+    }
+
+    public void setAdditionalPlugins(List<String> additionalPlugins) {
+        this.additionalPlugins = additionalPlugins;
     }
 }
