@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.plugins.PluginAware
@@ -31,6 +32,8 @@ import kotlin.script.experimental.annotations.KotlinScript
 
 /**
  * Base class for Kotlin build scripts.
+ *
+ * @since 6.0
  */
 @GradleDsl
 @KotlinScript(
@@ -39,6 +42,7 @@ import kotlin.script.experimental.annotations.KotlinScript
     filePathPattern = ".*\\.gradle\\.kts",
     compilationConfiguration = KotlinBuildScriptCompilationConfiguration::class
 )
+@Incubating
 open class KotlinBuildScript(
     private val host: KotlinScriptHost<Project>
 ) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), PluginAware by host.target {
