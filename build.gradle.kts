@@ -21,6 +21,7 @@ import org.gradle.gradlebuild.ProjectGroups.javaProjects
 import org.gradle.gradlebuild.ProjectGroups.kotlinJsProjects
 import org.gradle.gradlebuild.ProjectGroups.pluginProjects
 import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
+import org.gradle.gradlebuild.UpdateBranchStatus
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 
@@ -373,6 +374,8 @@ tasks.register<Install>("installAll") {
     with(distributionImage("allDistImage"))
     installDirPropertyName = ::gradle_installPath.name
 }
+
+tasks.register<UpdateBranchStatus>("updateBranchStatus")
 
 fun distributionImage(named: String) =
         project(":distributions").property(named) as CopySpec

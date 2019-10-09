@@ -36,6 +36,25 @@ fun Project.execAndGetStdout(workingDir: File, vararg args: String): String {
 }
 
 
+fun Project.execAndGetOutput(ignoreExitCode: Boolean = true, vararg args: String): String {
+    val out = ByteArrayOutputStream()
+    exec {
+        isIgnoreExitValue = ignoreExitCode
+        commandLine(*args)
+        standardOutput = out
+        errorOutput = out
+        this.workingDir = File(".")
+    }
+    return out.toString().trim()
+}
+
+
+fun Project.execAndGetOutput(vararg args: String) = execAndGetOutput(true, *args)
+
+
+fun Project.execAndGetOutputExpectingZeroCode(vararg args: String) = execAndGetOutput(false, *args)
+
+
 fun Project.execAndGetStdout(vararg args: String) = execAndGetStdout(File("."), *args)
 
 

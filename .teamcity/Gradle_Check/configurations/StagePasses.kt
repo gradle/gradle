@@ -16,6 +16,7 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
 import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
 import model.CIBuildModel
 import model.Stage
+import model.StageNames
 import model.Trigger
 import projects.StageProject
 
@@ -82,7 +83,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     steps {
         gradleWrapper {
             name = "GRADLE_RUNNER"
-            tasks = "createBuildReceipt"
+            tasks = "createBuildReceipt" + if (stage.stageName == StageNames.READY_FOR_NIGHTLY) " updateBranchStatus" else ""
             gradleParams = defaultGradleParameters
         }
         script {
