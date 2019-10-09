@@ -958,8 +958,6 @@ task generate(type: TransformerTask) {
             def srcDir = file('src')
             // Note: task mutates inputs _without_ declaring any inputs or outputs
             task src1 {
-                outputs.dir(srcDir)
-                outputs.upToDateWhen { false }
                 doLast {
                     srcDir.mkdirs()
                     new File(srcDir, "src.txt").text = "123"
@@ -973,8 +971,6 @@ task generate(type: TransformerTask) {
             // Note: task mutates inputs _without_ declaring any inputs or outputs
             task src2 {
                 mustRunAfter transform1
-                outputs.dir(srcDir)
-                outputs.upToDateWhen { false }
                 doLast {
                     srcDir.mkdirs()
                     new File(srcDir, "src.txt").text = "abcd"
