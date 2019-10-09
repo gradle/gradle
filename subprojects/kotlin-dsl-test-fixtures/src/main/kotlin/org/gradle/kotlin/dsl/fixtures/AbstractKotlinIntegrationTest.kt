@@ -18,9 +18,12 @@ package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.dsl.GradleDsl
+
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
 import org.gradle.kotlin.dsl.support.zipTo
 import org.junit.Assume.assumeFalse
@@ -38,13 +41,19 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
     open val defaultSettingsScript
-        get() = ""
+        get() = """
+            pluginManagement {
+                repositories {
+                    ${gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+        """.trimIndent()
 
     protected
     val repositoriesBlock
         get() = """
             repositories {
-                gradlePluginPortal()
+                ${gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
 

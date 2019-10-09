@@ -43,6 +43,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
 
     @Test
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
+        withDefaultSettings()
         withBuildScript("""
             plugins {
                 kotlin("jvm") version "1.3.31"
