@@ -17,7 +17,6 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.collect.Interner;
-import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
@@ -81,19 +80,20 @@ public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem
 
     @Override
     public void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot) {
-        determineMetadata(snapshot.getType())
-            .ifPresent(metadata -> mirror.putMetadata(snapshot.getAbsolutePath(), metadata));
+        updateMetadata(snapshot.getAbsolutePath(), snapshot.getType());
         mirror.putSnapshot(snapshot);
     }
 
-    private Optional<FileMetadataSnapshot> determineMetadata(FileType fileType) {
+    private void updateMetadata(String location, FileType fileType) {
         switch (fileType) {
             case RegularFile:
-                return Optional.empty();
+                break;
             case Directory:
-                return Optional.of(DefaultFileMetadata.directory());
+                mirror.putMetadata(location, DefaultFileMetadata.directory());
+                break;
             case Missing:
-                return Optional.of(DefaultFileMetadata.missing());
+                mirror.putMetadata(location, DefaultFileMetadata.missing());
+                break;
             default:
                 throw new AssertionError("Unknown file type: " + fileType);
         }
