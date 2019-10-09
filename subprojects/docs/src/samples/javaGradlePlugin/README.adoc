@@ -1,12 +1,3 @@
-ifdef::env-github[]
-:kotlindsldir: https://github.com/gradle/gradle/tree/lacasseio/samples/subprojects/docs/src/samples/javaGradlePlugin/kotlin
-:groovydsldir: https://github.com/gradle/gradle/tree/lacasseio/samples/subprojects/docs/src/samples/javaGradlePlugin/groovy
-endif::[]
-ifndef::env-github[]
-:kotlindsldir: ./kotlin
-:groovydsldir: ./groovy
-endif::[]
-
 = Java Gradle Plugin Sample
 
 ifndef::env-github[]
@@ -17,32 +8,3 @@ endif::[]
 This example demonstrates the use of the java gradle plugin development plugin.
 By applying the plugin, the java plugin is automatically applied as well as the gradleApi() dependency.
 Furthermore, validations are performed against the plugin metadata during jar execution.
-
-ifdef::env-github[]
-|===
-|Groovy DSL |Kotlin DSL
-
-|link:{groovydsldir}/build.gradle[build.gradle]
-|link:{kotlindsldir}/build.gradle.kts[build.gradle.kts]
-|===
-endif::[]
-
-ifndef::env-github[]
-.Build Script
-====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-include::{groovydsldir}/build.gradle[]
-----
-=====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-include::{kotlindsldir}/build.gradle.kts[]
-----
-=====
-====
-endif::[]
