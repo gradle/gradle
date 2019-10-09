@@ -98,8 +98,9 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
 private
 fun DistributionTest.configureTestSplitIfNecessary(name: String, sourceSet: SourceSet, testType: TestType) {
     val testSplit = project.stringPropertyOrEmpty("testSplit")
-    if (testSplit.isBlank() || testType == TestType.CROSSVERSION) {
+    if (testSplit.isBlank() || (testType == TestType.CROSSVERSION && name != "crossVersionTest")) {
         // Cross version tests are splitted by tasks
+        // But if it's crossVersionTest in quickTest, we still split it
         return
     }
 
