@@ -208,7 +208,7 @@ fun ScriptCompilationConfiguration.Builder.defaultImportsForPrecompiledScript() 
 }
 
 
-private
+internal
 fun scriptResolverEnvironmentOf(context: ScriptConfigurationRefinementContext): Environment? =
     context
         .compilationConfiguration[ScriptCompilationConfiguration.hostConfiguration]
