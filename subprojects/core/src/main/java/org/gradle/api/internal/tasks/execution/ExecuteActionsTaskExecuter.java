@@ -125,7 +125,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final FileCollectionFactory fileCollectionFactory;
-    private final boolean vfsEnabled = GradleUserHomeScopeServices.VFS_ENABLED;
+    private final boolean fineGrainedInvalidationEnabled = GradleUserHomeScopeServices.VFS_ENABLED;
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -354,7 +354,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public Optional<? extends Iterable<String>> getChangingOutputs() {
-            if (!vfsEnabled) {
+            if (!fineGrainedInvalidationEnabled) {
                 return Optional.empty();
             }
             ImmutableList.Builder<String> builder = ImmutableList.builder();
