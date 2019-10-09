@@ -122,7 +122,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void update(Iterable<String> locations, Runnable action) {
+    public synchronized void update(Iterable<String> locations, Runnable action) {
         locations.forEach(location -> {
             List<String> pathSegments = getPathSegments(location);
             Node parentLocation = findParentNotCreating(pathSegments);
