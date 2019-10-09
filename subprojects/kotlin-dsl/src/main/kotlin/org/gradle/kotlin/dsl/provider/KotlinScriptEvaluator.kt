@@ -134,6 +134,9 @@ class StandardKotlinScriptEvaluator(
             scriptHandler.dependencies,
             "classpath"
         )
+        scriptHandler.repositories.maven {
+            it.setUrl("https://dl.bintray.com/kotlin/kotlin-eap/")
+        }
     }
 
     private
