@@ -68,7 +68,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
     private File resolveMetaDataArtifactFile(ModuleComponentIdentifier moduleComponentIdentifier, ComponentMetaDataResolver componentResolver,
                                              ArtifactResolver artifactResolver, ArtifactType artifactType) {
         BuildableComponentResolveResult moduleVersionResolveResult = new DefaultBuildableComponentResolveResult();
-        componentResolver.resolve(moduleComponentIdentifier, new DefaultComponentOverrideMetadata(), moduleVersionResolveResult);
+        componentResolver.resolve(moduleComponentIdentifier, DefaultComponentOverrideMetadata.EMPTY, moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
         artifactResolver.resolveArtifactsWithType(moduleVersionResolveResult.getMetadata(), artifactType, moduleArtifactsResolveResult);

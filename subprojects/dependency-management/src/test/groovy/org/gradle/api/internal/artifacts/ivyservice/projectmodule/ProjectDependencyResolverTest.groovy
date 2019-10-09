@@ -71,7 +71,7 @@ class ProjectDependencyResolverTest extends Specification {
         def projectComponentId = newProjectId(":projectPath")
 
         when:
-        resolver.resolve(projectComponentId, new DefaultComponentOverrideMetadata(), result)
+        resolver.resolve(projectComponentId, DefaultComponentOverrideMetadata.EMPTY, result)
 
         then:
         1 * registry.getComponent(projectComponentId) >> componentMetaData

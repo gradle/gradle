@@ -75,7 +75,7 @@ class IvyResolverTest extends Specification {
     @Unroll
     def "remote access fails directly for module id #moduleId with layout #layoutPattern"() {
         given:
-        def overrideMetadata = new DefaultComponentOverrideMetadata()
+        def overrideMetadata = DefaultComponentOverrideMetadata.EMPTY
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
 
         when:
@@ -105,7 +105,7 @@ class IvyResolverTest extends Specification {
     @Unroll
     def "remote access attempts to access metadata for id #moduleId with layout #layoutPattern"() {
         given:
-        def overrideMetadata = new DefaultComponentOverrideMetadata()
+        def overrideMetadata = DefaultComponentOverrideMetadata.EMPTY
         def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
 
         when:
