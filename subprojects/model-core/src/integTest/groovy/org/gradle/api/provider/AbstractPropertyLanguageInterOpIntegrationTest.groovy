@@ -20,11 +20,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.kotlinDslBuildSrcScript
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapRepositoryDefinition
 
 @Requires(TestPrecondition.KOTLIN_SCRIPT)
 abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
@@ -269,6 +272,12 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         pluginDefinesTask()
 
         file("buildSrc/settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
             include("other")
         """
         file("buildSrc/build.gradle.kts") << """
