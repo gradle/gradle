@@ -107,13 +107,11 @@ class DependencyArtifactsResolveIntegrationTest extends AbstractModuleDependency
         when:
         repositoryInteractions {
             'org:foo:1.0' {
-                (0..declarationCount).each {
-                    // These happen in parallel when Gradle downloads metadata.
-                    // In this cases "downloading metadata" means testing for the artifact.
-                    // Each declaration is treated separately with it's own "consumer provided" metadata
-                    expectHeadArtifact(name: artifactName, type: 'distribution-tgz')
-                }
-                expectGetArtifact(name: artifactName, type: 'distribution-tgz')
+                // HEAD requests happen in parallel when Gradle downloads metadata.
+                // In this cases "downloading metadata" means testing for the artifact.
+                // Each declaration is treated separately with it's own "consumer provided" metadata
+                // Depending on the timing, this can lead to multiple parallel requests (one for each declaration)
+                maybeHeadOrGetArtifact(name: artifactName, type: 'distribution-tgz')
                 expectGetArtifact(name: artifactName, type: 'zip')
             }
         }
@@ -131,9 +129,9 @@ class DependencyArtifactsResolveIntegrationTest extends AbstractModuleDependency
         }
 
         where:
-        notation                                               | artifactName | declarationCount | declaration
-        'multiple dependency declarations (AT notation)'       | 'foo'        | 2                | "conf('org:foo@distribution-tgz'); conf('org:foo@zip')"
-        'multiple dependency declarations (artifact notation)' | 'bar'        | 2                | "conf('org:foo') { artifact { name = 'bar'; type = 'distribution-tgz' } }; conf('org:foo') { artifact { name = 'bar'; type = 'zip' } }"
-        'multiple artifact declaration'                        | 'bar'        | 1                | "conf('org:foo') { artifact { name = 'bar'; type = 'distribution-tgz' }; artifact { name = 'bar'; type = 'zip' } }"
+        notation                                               | artifactName | declaration
+        'multiple dependency declarations (AT notation)'       | 'foo'        | "conf('org:foo@distribution-tgz'); conf('org:foo@zip')"
+        'multiple dependency declarations (artifact notation)' | 'bar'        | "conf('org:foo') { artifact { name = 'bar'; type = 'distribution-tgz' } }; conf('org:foo') { artifact { name = 'bar'; type = 'zip' } }"
+        'multiple artifact declaration'                        | 'bar'        | "conf('org:foo') { artifact { name = 'bar'; type = 'distribution-tgz' }; artifact { name = 'bar'; type = 'zip' } }"
     }
 }
