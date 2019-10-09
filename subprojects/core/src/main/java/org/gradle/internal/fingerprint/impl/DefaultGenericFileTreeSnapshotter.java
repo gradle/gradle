@@ -25,7 +25,6 @@ import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 
 public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapshotter {
 
