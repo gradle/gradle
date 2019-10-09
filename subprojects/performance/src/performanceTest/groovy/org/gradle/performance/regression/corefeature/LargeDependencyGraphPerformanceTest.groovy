@@ -28,7 +28,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
     public static final String MAX_MEMORY = "-Xmx800m"
 
     def setup() {
-        runner.minimumVersion = '4.8'
+        runner.minimumBaseVersion = '4.8'
         runner.targetVersions = ["6.0-20190823180744+0000"]
     }
 
@@ -80,7 +80,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
 
     @Ignore
     def "resolve large dependency graph with strict versions"() {
-        runner.minimumVersion = '5.7-20190807220120+0000'
+        runner.minimumBaseVersion = '6.0'
         runner.testProject = TEST_PROJECT_NAME
         startServer()
 

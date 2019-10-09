@@ -133,7 +133,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         String displayName
         String testClassName
         List<String> targetVersions = []
-        String minimumVersion
+        String minimumBaseVersion
         List<File> extraTestClassPath = []
         Closure<?> action
         Integer invocationCount
@@ -204,7 +204,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             )
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
-                List<String> baselines = AbstractCrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumVersion).toList()
+                List<String> baselines = AbstractCrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experiment.targetVersions, experiment.minimumBaseVersion).toList()
                 [*baselines, 'current'].each { String version ->
                     def experimentSpec = new ToolingApiBuildExperimentSpec(version, temporaryFolder.testDirectory, experiment)
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)

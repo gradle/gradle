@@ -62,7 +62,10 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> previousTestIds = []
 
     List<String> targetVersions = []
-    String minimumVersion
+    /**
+     * Minimum base version to be used. For example, a 6.0-nightly target version is OK if minimumBaseVersion is 6.0.
+     */
+    String minimumBaseVersion
 
     AbstractCrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.resultsStore = resultsStore
@@ -105,7 +108,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             teamCityBuildId: ResultsStoreHelper.determineTeamCityBuildId()
         )
 
-        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }
+        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
         def maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
         runVersion('current', current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
@@ -135,7 +138,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         version.replace('+', '')
     }
 
-    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumVersion) {
+    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumBaseVersion) {
         Iterable<String> versions
         boolean addMostRecentRelease = true
         def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
@@ -146,7 +149,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             versions = targetVersions
         }
 
-        def baselineVersions = new LinkedHashSet<String>()
+        def resultBaselineVersions = new LinkedHashSet<String>()
 
         def mostRecentRelease = releases.mostRecentRelease.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
@@ -158,12 +161,12 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
             if (version == 'last') {
                 addMostRecentRelease = false
-                baselineVersions.add(mostRecentRelease)
+                resultBaselineVersions.add(mostRecentRelease)
                 continue
             }
             if (version == 'nightly') {
                 addMostRecentRelease = false
-                baselineVersions.add(LatestNightlyBuildDeterminer.latestNightlyVersion)
+                resultBaselineVersions.add(LatestNightlyBuildDeterminer.latestNightlyVersion)
                 continue
             }
             if (version == 'none') {
@@ -174,46 +177,46 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
             def releasedVersion = findRelease(releases, version)
             def versionObject = GradleVersion.version(version)
-            if (minimumVersion != null && targetVersionLowerThanMinimumRequirement(versionObject, GradleVersion.version(minimumVersion))) {
+            if (minimumBaseVersion != null && baseVersionLowerThanMinimunRequirement(versionObject, minimumBaseVersion)) {
                 //this version is not supported by this scenario, as it uses features not yet available in this version of Gradle
                 continue
             }
             if (releasedVersion) {
-                baselineVersions.add(releasedVersion.version.version)
+                resultBaselineVersions.add(releasedVersion.version.version)
             } else if (versionObject.snapshot || isRcVersion(versionObject)) {
                 // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
                 // blindly add it to the list and trust the test author
                 // Only active rc versions are listed in all-released-versions.properties that ReleasedVersionDistributions uses
                 addMostRecentRelease = false
-                baselineVersions.add(version)
+                resultBaselineVersions.add(version)
             } else {
                 throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
             }
         }
 
-        if (baselineVersions.empty || addMostRecentRelease) {
-            // Always include the most recent final release if we're not testing against a nightly or a snapshot
-            baselineVersions.add(mostRecentRelease)
+        if (allBaselineVersionsAreFiltered(resultBaselineVersions, versions, minimumBaseVersion)) {
+            throw new RuntimeException("All versions are filtered out by minimumBaseVersion!")
         }
 
-        baselineVersions
+        if (resultBaselineVersions.empty || addMostRecentRelease) {
+            // Always include the most recent final release if we're not testing against a nightly or a snapshot
+            resultBaselineVersions.add(mostRecentRelease)
+        }
+
+        resultBaselineVersions
     }
 
-    private static boolean targetVersionLowerThanMinimumRequirement(GradleVersion target, GradleVersion minimum) {
-        if (isCommitVersion(target)) {
-            return target.getBaseVersion() < minimum.getBaseVersion()
-        } else {
-            return target < minimum
-        }
+    static boolean allBaselineVersionsAreFiltered(LinkedHashSet<String> resultBaselineVersions, Iterable<String> versionsToBeAdded, String minimumBaseVersion) {
+        return resultBaselineVersions.empty && minimumBaseVersion != null && versionsToBeAdded.any { baseVersionLowerThanMinimunRequirement(GradleVersion.version(it), minimumBaseVersion) }
+    }
+
+    private static boolean baseVersionLowerThanMinimunRequirement(GradleVersion version, String minimumBaseVersion) {
+        return version.getBaseVersion() < GradleVersion.version(minimumBaseVersion)
     }
 
     private static boolean isRcVersion(GradleVersion versionObject) {
         // there is no public API for checking for RC version, this is an internal way
         versionObject.stage.stage == 3
-    }
-
-    private static boolean isCommitVersion(GradleVersion version) {
-        return version.toString().contains("-commit-")
     }
 
     private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {
