@@ -99,7 +99,7 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
 
     @Override
     public CopySpec from(Object sourcePath, final Closure c) {
-        return getDelegateCopySpec().from(sourcePath, new ClosureBackedAction<CopySpec>(c));
+        return getDelegateCopySpec().from(sourcePath, new ClosureBackedAction<>(c));
     }
 
     @Override
