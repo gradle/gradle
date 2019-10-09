@@ -25,6 +25,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class DefaultComponentOverrideMetadata implements ComponentOverrideMetadata {
+    public static final ComponentOverrideMetadata EMPTY = new DefaultComponentOverrideMetadata();
+
     private final boolean changing;
     private final List<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
@@ -33,8 +35,8 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
         return new DefaultComponentOverrideMetadata(dependencyMetadata.isChanging(), dependencyMetadata.getArtifacts(), extractClientModule(dependencyMetadata));
     }
 
-    public DefaultComponentOverrideMetadata() {
-        this(false, Collections.<IvyArtifactName>emptyList(), null);
+    private DefaultComponentOverrideMetadata() {
+        this(false, Collections.emptyList(), null);
     }
 
     private DefaultComponentOverrideMetadata(boolean changing, List<IvyArtifactName> artifacts, ClientModule clientModule) {
