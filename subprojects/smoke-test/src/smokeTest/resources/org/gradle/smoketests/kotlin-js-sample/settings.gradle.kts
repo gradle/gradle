@@ -17,6 +17,10 @@
 rootProject.name = "kotlin-js-sample"
 
 pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven(url = "https://dl.bintray.com/kotlin/kotlin-eap/")
+    }
     resolutionStrategy {
         eachPlugin {
             if (requested.id.id == "kotlin2js") {
