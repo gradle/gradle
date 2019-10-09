@@ -57,11 +57,6 @@ public class TestComponentResolutionState implements ComponentResolutionState {
         return id;
     }
 
-    @Override
-    public void selectedBy(ResolvableSelectorState selectorState) {
-
-    }
-
     @Nullable
     @Override
     public ComponentResolveMetadata getMetadata() {
