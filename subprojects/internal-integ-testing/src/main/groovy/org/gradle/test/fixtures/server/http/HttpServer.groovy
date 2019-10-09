@@ -624,10 +624,9 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         expectations << expectation
         add(path, matchPrefix, methods, new AbstractHandler() {
             void handle(String target, HttpServletRequest request, HttpServletResponse response, int dispatch) {
-                if (expectation.run) {
+                if (expectation.atomicRun.getAndSet(true)) {
                     return
                 }
-                expectation.run = true
                 action.handle(request, response)
                 request.handled = true
             }
