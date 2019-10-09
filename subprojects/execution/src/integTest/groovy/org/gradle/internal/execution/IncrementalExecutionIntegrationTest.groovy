@@ -82,7 +82,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
     def virtualFileSystem = TestFiles.virtualFileSystem()
-    def snapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.fileSystem())
+    def snapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()

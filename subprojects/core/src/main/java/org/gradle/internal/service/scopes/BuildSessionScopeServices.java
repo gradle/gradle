@@ -65,11 +65,13 @@ import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.impl.IgnoredPathFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.NameOnlyFileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter;
@@ -218,8 +220,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new RoutingVirtualFileSystem(wellKnownFileLocations, gradleUserHomeVirtualFileSystem, buildSessionsScopedVirtualFileSystem);
     }
 
-    FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, Stat stat) {
-        return new DefaultFileCollectionSnapshotter(virtualFileSystem, stat);
+    GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
+        return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
+    }
+
+    FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+        return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
     }
 
     AbsolutePathFileCollectionFingerprinter createAbsolutePathFileCollectionFingerprinter(FileCollectionSnapshotter fileCollectionSnapshotter) {

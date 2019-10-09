@@ -17,16 +17,14 @@
 package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
@@ -38,10 +36,12 @@ import java.util.List;
 
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter {
     private final VirtualFileSystem virtualFileSystem;
+    private final GenericFileTreeSnapshotter genericFileTreeSnapshotter;
     private final Stat stat;
 
-    public DefaultFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, Stat stat) {
+    public DefaultFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
         this.virtualFileSystem = virtualFileSystem;
+        this.genericFileTreeSnapshotter = genericFileTreeSnapshotter;
         this.stat = stat;
     }
 
@@ -65,7 +65,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         @Override
         public void visitGenericFileTree(FileTreeInternal fileTree) {
-            roots.add(snapshotFileTree(fileTree));
+            roots.add(genericFileTreeSnapshotter.snapshotFileTree(fileTree));
         }
 
         @Override
@@ -90,31 +90,5 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         public List<FileSystemSnapshot> getRoots() {
             return roots;
         }
-    }
-
-    private FileSystemSnapshot snapshotFileTree(FileTreeInternal tree) {
-        return virtualFileSystem.snapshotWithBuilder(builder -> tree.visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                builder.addDir(
-                    dirDetails.getFile(),
-                    dirDetails.getRelativePath().getSegments()
-                );
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                builder.addFile(
-                    fileDetails.getFile(),
-                    fileDetails.getRelativePath().getSegments(),
-                    fileDetails.getName(),
-                    new DefaultFileMetadata(
-                        FileType.RegularFile,
-                        fileDetails.getLastModified(),
-                        fileDetails.getSize()
-                    )
-                );
-            }
-        }));
     }
 }

@@ -18,13 +18,10 @@ package org.gradle.internal.vfs;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -65,11 +62,4 @@ public interface VirtualFileSystem {
      * Updates the cached state at the location with the snapshot.
      */
     void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot);
-
-    /**
-     * Creates a builder which allows building your own file system snapshot.
-     *
-     * The virtual file system is not updated by this method.
-     */
-    FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction);
 }

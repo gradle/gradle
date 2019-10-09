@@ -27,7 +27,6 @@ import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -37,7 +36,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -169,13 +167,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 return filterSnapshot(snapshot, filter);
             }
         });
-    }
-
-    @Override
-    public FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
-        FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner, hasher);
-        buildAction.accept(builder);
-        return builder.build();
     }
 
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter filter) {

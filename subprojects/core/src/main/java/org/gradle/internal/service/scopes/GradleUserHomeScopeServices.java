@@ -69,9 +69,11 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -191,8 +193,12 @@ public class GradleUserHomeScopeServices {
         return virtualFileSystem;
     }
 
-    FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, Stat stat) {
-        return new DefaultFileCollectionSnapshotter(virtualFileSystem, stat);
+    GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
+        return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
+    }
+
+    FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+        return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {

@@ -111,7 +111,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def asyncWorkTracker = Mock(AsyncWorkTracker)
 
     def virtualFileSystem = TestFiles.virtualFileSystem()
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_) >> fingerprinter

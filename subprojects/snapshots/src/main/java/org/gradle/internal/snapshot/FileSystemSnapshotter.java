@@ -21,7 +21,6 @@ import org.gradle.internal.hash.HashCode;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
-import java.util.function.Consumer;
 
 /**
  * Provides access to snapshots of the content and metadata of the file system.
@@ -60,11 +59,4 @@ public interface FileSystemSnapshotter {
      * then we cache the result as unfiltered tree.
      */
     FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter filter);
-
-    /**
-     * Use a {@link FileSystemSnapshotBuilder} to create custom {@link FileSystemSnapshot}s.
-     *
-     * The builder uses the same hashing infrastructure as the snapshotter.
-     */
-    FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction);
 }

@@ -25,7 +25,6 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
@@ -36,7 +35,6 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
 import java.util.Optional;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem {
@@ -99,11 +97,6 @@ public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem
             default:
                 throw new AssertionError("Unknown file type: " + fileType);
         }
-    }
-
-    @Override
-    public FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
-        return snapshotter.snapshotWithBuilder(buildAction);
     }
 
     private void maybeShortCircuitVisitor(FileSystemLocationSnapshot snapshot, FileSystemSnapshotVisitor visitor) {

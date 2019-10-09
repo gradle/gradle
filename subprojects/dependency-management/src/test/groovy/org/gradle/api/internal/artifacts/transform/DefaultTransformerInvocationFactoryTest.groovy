@@ -65,7 +65,7 @@ class DefaultTransformerInvocationFactoryTest extends AbstractProjectBuilderSpec
     def executionHistoryStore = new TestExecutionHistoryStore()
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def workExecutorTestFixture = new WorkExecutorTestFixture(virtualFileSystem, classloaderHasher, valueSnapshotter)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.fileSystem())
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
 
     def transformationWorkspaceProvider = new TestTransformationWorkspaceProvider(immutableTransformsStoreDirectory, executionHistoryStore)
 
