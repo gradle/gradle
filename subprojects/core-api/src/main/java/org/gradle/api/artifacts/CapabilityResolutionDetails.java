@@ -49,6 +49,8 @@ public interface CapabilityResolutionDetails {
      *
      * @param candidate the selected candidate
      * @return this details instance
+     *
+     * @since 6.1
      */
     CapabilityResolutionDetails select(ComponentIdentifier candidate);
 
