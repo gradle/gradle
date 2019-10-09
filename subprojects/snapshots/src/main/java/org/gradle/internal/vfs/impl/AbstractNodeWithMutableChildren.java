@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -23,6 +24,12 @@ import java.util.function.Predicate;
 
 public abstract class AbstractNodeWithMutableChildren implements Node {
     private final ConcurrentHashMap<String, Node> children = new ConcurrentHashMap<>();
+
+    @Nullable
+    @Override
+    public Node getChild(String name) {
+        return children.get(name);
+    }
 
     @Override
     public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
@@ -50,11 +57,6 @@ public abstract class AbstractNodeWithMutableChildren implements Node {
                 ? nodeSupplier.apply(parent)
                 : current
         );
-    }
-
-    @Override
-    public synchronized void underLock(Runnable action) {
-        action.run();
     }
 
     public Map<String, Node> getChildren() {

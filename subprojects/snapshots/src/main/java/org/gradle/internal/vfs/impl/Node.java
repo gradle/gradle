@@ -18,11 +18,14 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface Node {
+    @Nullable
+    Node getChild(String name);
     Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier);
     Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting);
     void removeChild(String name);
@@ -34,8 +37,6 @@ public interface Node {
     default String getChildAbsolutePath(String name) {
         return getAbsolutePath() + File.separatorChar + name;
     }
-
-    void underLock(Runnable action);
 
     enum Type {
         FILE,

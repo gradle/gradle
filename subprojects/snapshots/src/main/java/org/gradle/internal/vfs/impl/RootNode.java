@@ -18,6 +18,7 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -38,6 +39,12 @@ public class RootNode extends AbstractNodeWithMutableChildren {
     public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
         if (name.isEmpty()) {
             return new Node() {
+                @Nullable
+                @Override
+                public Node getChild(String name) {
+                    return RootNode.super.getChild(name);
+                }
+
                 @Override
                 public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
                     return RootNode.super.getOrCreateChild(name, nodeSupplier, this);
@@ -73,10 +80,6 @@ public class RootNode extends AbstractNodeWithMutableChildren {
                     return RootNode.this.getSnapshot();
                 }
 
-                @Override
-                public void underLock(Runnable action) {
-                    RootNode.super.underLock(action);
-                }
             };
         }
         return super.getOrCreateChild(name, nodeSupplier);

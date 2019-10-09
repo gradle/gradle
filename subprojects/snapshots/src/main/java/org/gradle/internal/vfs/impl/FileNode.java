@@ -19,6 +19,7 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
+import javax.annotation.Nonnull;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -31,9 +32,15 @@ public class FileNode implements Node {
         this.parent = parent;
     }
 
+    @Nonnull
+    @Override
+    public Node getChild(String name) {
+        return new MissingFileNode(this, getChildAbsolutePath(name), name);
+    }
+
     @Override
     public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
-        return new MissingFileNode(this, getChildAbsolutePath(name), name);
+        return getChild(name);
     }
 
     @Override
@@ -59,10 +66,5 @@ public class FileNode implements Node {
     @Override
     public FileSystemLocationSnapshot getSnapshot() {
         return snapshot;
-    }
-
-    @Override
-    public void underLock(Runnable action) {
-        parent.underLock(action);
     }
 }

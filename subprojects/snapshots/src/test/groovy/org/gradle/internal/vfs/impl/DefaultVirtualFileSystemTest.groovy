@@ -16,8 +16,6 @@
 
 package org.gradle.internal.vfs.impl
 
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
-import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.TestFile
 
 class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {

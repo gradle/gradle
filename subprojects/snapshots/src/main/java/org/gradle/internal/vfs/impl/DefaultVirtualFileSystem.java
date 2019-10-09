@@ -36,8 +36,10 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -51,6 +53,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
+    private final Set<List<String>> currentlyModifiedLocations = new HashSet<>();
 
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, String... defaultExcludes) {
         this.stat = stat;
@@ -105,11 +108,74 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private Node readLocation(String location) {
         List<String> pathSegments = getPathSegments(location);
         Function<Node, Node> nodeCreator = parent -> createNode(location, parent);
-        Node parent = findParent(pathSegments);
-        return parent.replaceChild(
-            pathSegments.get(pathSegments.size() - 1),
-            nodeCreator,
-            current -> current.getType() == Node.Type.UNKNOWN);
+        Node foundParent = findParent(pathSegments);
+        String name = pathSegments.get(pathSegments.size() - 1);
+        Node existingChild = foundParent.getChild(name);
+        if (existingChild != null && existingChild.getType() != Node.Type.UNKNOWN) {
+            return existingChild;
+        }
+
+        return modifyLocation(pathSegments,
+            parent -> parent.replaceChild(
+                name,
+                nodeCreator,
+                current -> current.getType() == Node.Type.UNKNOWN));
+    }
+
+    private <T> T modifyLocation(List<String> pathSegments, Function<Node, T> modifyParent) {
+        try {
+            Node foundNode = null;
+            List<String> pathToMutableParent = null;
+            synchronized (currentlyModifiedLocations) {
+                boolean canModifyLocation = false;
+                while (!canModifyLocation) {
+                    foundNode = root;
+                    int mutableParentIndex = 0;
+                    for (int i = 0; i < pathSegments.size() - 1; i++) {
+                        String pathSegment = pathSegments.get(i);
+                        foundNode = foundNode.getOrCreateChild(pathSegment, parent -> new DefaultNode(pathSegment, parent));
+                        if (foundNode instanceof AbstractNodeWithMutableChildren) {
+                            mutableParentIndex = i;
+                        }
+                    }
+                    pathToMutableParent = pathSegments.subList(0, mutableParentIndex + 1);
+                    canModifyLocation = canModifyLocation(pathToMutableParent);
+                    if (!canModifyLocation) {
+                        currentlyModifiedLocations.wait();
+                    }
+                }
+                currentlyModifiedLocations.add(pathToMutableParent);
+            }
+            T result = modifyParent.apply(foundNode);
+            synchronized (currentlyModifiedLocations) {
+                currentlyModifiedLocations.remove(pathToMutableParent);
+                currentlyModifiedLocations.notifyAll();
+            }
+            return result;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean canModifyLocation(List<String> locationToModify) {
+        return currentlyModifiedLocations.stream()
+            .noneMatch(modifiedLocation -> isPrefixOrSuffix(modifiedLocation, locationToModify));
+    }
+
+    private static boolean isPrefixOrSuffix(List<String> list1, List<String> list2) {
+        int size1 = list1.size();
+        int size2 = list2.size();
+        if (size1 == size2) {
+            return list1.equals(list2);
+        }
+        int prefixSize = Math.min(size1, size2);
+        for (int i = 0; i < prefixSize; i++) {
+            if (!list1.get(i).equals(list2.get(i))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Node findParent(List<String> pathSegments) {
@@ -122,15 +188,18 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public synchronized void update(Iterable<String> locations, Runnable action) {
+    public void update(Iterable<String> locations, Runnable action) {
         locations.forEach(location -> {
             List<String> pathSegments = getPathSegments(location);
             Node parentLocation = findParentNotCreating(pathSegments);
             if (parentLocation != null) {
-                parentLocation.underLock(() -> {
-                    String name = pathSegments.get(pathSegments.size() - 1);
-                    parentLocation.removeChild(name);
-                });
+                modifyLocation(pathSegments,
+                    parent -> {
+                        String name = pathSegments.get(pathSegments.size() - 1);
+                        parent.removeChild(name);
+                        return null;
+                    }
+                );
             }
         });
         action.run();

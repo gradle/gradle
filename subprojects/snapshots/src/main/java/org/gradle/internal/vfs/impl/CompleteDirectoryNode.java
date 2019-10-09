@@ -41,6 +41,12 @@ public class CompleteDirectoryNode implements Node {
             ));
     }
 
+    @Nullable
+    @Override
+    public Node getChild(String name) {
+        return getChildOrMissing(name);
+    }
+
     @Override
     public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
         return getChildOrMissing(name);
@@ -123,8 +129,4 @@ public class CompleteDirectoryNode implements Node {
         return directorySnapshot;
     }
 
-    @Override
-    public void underLock(Runnable action) {
-        parent.underLock(action);
-    }
 }
