@@ -31,9 +31,6 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
 
-import java.util.Collections;
-import java.util.List;
-
 public class TestModuleSelectorState implements ResolvableSelectorState {
 
     private static final VersionParser VERSION_PARSER = new VersionParser();
