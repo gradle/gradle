@@ -72,12 +72,13 @@ public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
-        locations.forEach(location -> mirror.beforeOutputChange(locations));
+        mirror.invalidate(locations);
+        action.run();
     }
 
     @Override
     public void invalidateAll() {
-        mirror.beforeBuildFinished();
+        mirror.invalidateAll();
     }
 
     @Override

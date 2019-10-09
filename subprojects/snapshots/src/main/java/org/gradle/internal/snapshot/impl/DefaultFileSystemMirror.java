@@ -56,20 +56,14 @@ public class DefaultFileSystemMirror implements FileSystemMirror {
         this.metadata.put(absolutePath, metadata);
     }
 
-    public void beforeOutputChange() {
-        // When the outputs are generated, throw away all state for files that do not live in an append-only cache.
+    public void invalidateAll() {
+        // When the outputs are generated, throw away all state.
         // This is intentionally very simple, to be improved later
         metadata.clear();
         files.clear();
     }
 
-    public void beforeBuildFinished() {
-        // We throw away all state between builds
-        metadata.clear();
-        files.clear();
-    }
-
-    public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+    public void invalidate(Iterable<String> affectedOutputPaths) {
         for (String affectedOutputPath : affectedOutputPaths) {
             metadata.remove(affectedOutputPath);
             files.remove(affectedOutputPath);
