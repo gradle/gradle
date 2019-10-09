@@ -48,7 +48,7 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionGradleInterna
     def setup() {
         runner.targetVersions = ["6.0-20190823180744+0000"]
         // Example project requires TaskContainer.register
-        runner.minimumVersion = "4.9"
+        runner.minimumBaseVersion = "4.9"
         runner.warmUpRuns = 5
         runner.runs = 15
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {

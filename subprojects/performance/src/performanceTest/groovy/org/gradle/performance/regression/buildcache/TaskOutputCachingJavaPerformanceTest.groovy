@@ -41,7 +41,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
     def setup() {
         runner.warmUpRuns = 11
         runner.runs = 21
-        runner.minimumVersion = "3.5"
+        runner.minimumBaseVersion = "3.5"
         runner.targetVersions = ["6.0-20190823180744+0000"]
     }
 

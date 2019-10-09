@@ -36,7 +36,7 @@ class JavaNonABIChangePerformanceTest extends AbstractCrossVersionGradleInternal
         runner.addBuildExperimentListener(new ApplyNonAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
         runner.targetVersions = ["6.0-20190823180744+0000"]
         if (testProject.name().contains("GROOVY")) {
-            runner.minimumVersion = '5.0'
+            runner.minimumBaseVersion = '5.0'
         }
 
 

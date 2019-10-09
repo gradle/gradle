@@ -33,7 +33,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     def "get IDE model on #testProject for Eclipse"() {
         given:
         experiment(testProject.projectName) {
-            minimumVersion = "2.11"
+            minimumBaseVersion = "2.11"
             targetVersions = [BASELINE_VERSION]
             invocationCount = iterations
             warmUpCount = iterations
@@ -93,7 +93,7 @@ class JavaIDEModelPerformanceTest extends AbstractToolingApiCrossVersionPerforma
     def "get IDE model on #testProject for IDEA"() {
         given:
         experiment(testProject.projectName) {
-            minimumVersion = "2.11"
+            minimumBaseVersion = "2.11"
             targetVersions = [BASELINE_VERSION]
             invocationCount = iterations
             warmUpCount = iterations

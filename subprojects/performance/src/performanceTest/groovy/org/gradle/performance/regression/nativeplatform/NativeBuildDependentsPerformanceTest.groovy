@@ -23,7 +23,7 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionGradlePro
 
     def setup() {
         runner.targetVersions = ["6.0-20190823180744+0000"]
-        runner.minimumVersion = "4.0"
+        runner.minimumBaseVersion = "4.0"
     }
 
     @Unroll

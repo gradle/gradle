@@ -43,7 +43,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        runner.minimumVersion = "5.6.1" // AGP 3.6 requires 5.6.1+
+        runner.minimumBaseVersion = "5.6.1" // AGP 3.6 requires 5.6.1+
         runner.targetVersions = ["6.0-20190823180744+0000"]
 
         when:
@@ -73,7 +73,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.warmUpRuns = warmUpRuns
         runner.cleanTasks = ["clean"]
         runner.runs = runs
-        runner.minimumVersion = "5.4"
+        runner.minimumBaseVersion = "5.4"
         runner.targetVersions = ["5.7-20190807220120+0000"]
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
@@ -97,7 +97,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configureForAbiChange(runner)
         runner.args = ['-Dorg.gradle.parallel=true']
-        runner.minimumVersion = "5.4"
+        runner.minimumBaseVersion = "5.4"
         runner.targetVersions = ["6.0-20190823180744+0000"]
 
         when:
@@ -115,7 +115,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configureForNonAbiChange(runner)
         runner.args = ['-Dorg.gradle.parallel=true']
-        runner.minimumVersion = "5.4"
+        runner.minimumBaseVersion = "5.4"
         runner.targetVersions = ["6.0-20190823180744+0000"]
 
         when:
