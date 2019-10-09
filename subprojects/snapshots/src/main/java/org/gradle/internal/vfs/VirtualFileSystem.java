@@ -27,22 +27,49 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+/**
+ * Provides access to snapshots of the content and metadata of the file system.
+ *
+ * The implementation will attempt to efficiently honour the queries, maintaining some or all state in-memory and dealing with concurrent access to the same parts of the file system.
+ *
+ * The virtual file system needs to be informed when some state on disk changes, so it does not become out of sync with the actual file system.
+ */
 public interface VirtualFileSystem {
-
-    void read(String location, FileSystemSnapshotVisitor visitor);
 
     /**
      * Visits the hash of the content of the file only if the file is a regular file.
      */
     <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor);
 
+    /**
+     * Visits the hierarchy of files at the given location.
+     */
+    void read(String location, FileSystemSnapshotVisitor visitor);
+
+    /**
+     * Visits the hierarchy of files which match the filter at the given location.
+     */
     void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor);
 
+    /**
+     * Runs an action which potentially updates the given locations.
+     */
     void update(Iterable<String> locations, Runnable action);
 
+    /**
+     * Removes all cached state from the virtual file system.
+     */
     void invalidateAll();
 
+    /**
+     * Updates the cached state at the location with the snapshot.
+     */
     void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot);
 
+    /**
+     * Creates a builder which allows building your own file system snapshot.
+     *
+     * The virtual file system is not updated by this method.
+     */
     FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction);
 }
