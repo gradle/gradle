@@ -34,13 +34,15 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
         and:
         def settingsDependency = withEmptyJar("settings-dependency.jar")
-        def settings = withSettings("""
-            buildscript {
-                dependencies {
-                    classpath(files("${normalizedPathOf(settingsDependency)}"))
+        def settings = withDefaultSettings().tap {
+            append("""
+                buildscript {
+                    dependencies {
+                        classpath(files("${normalizedPathOf(settingsDependency)}"))
+                    }
                 }
-            }
-        """)
+            """)
+        }
 
         and:
         def projectDependency = withEmptyJar("project-dependency.jar")
@@ -103,9 +105,11 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
         given:
         withKotlinBuildSrc()
-        def settings = withDefaultSettings().append("""
-            include(":sub")
-        """)
+        def settings = withDefaultSettings().tap {
+            append("""
+                include(":sub")
+            """)
+        }
 
         expect:
         assertThat(
@@ -118,9 +122,11 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
         given:
         def sourceRoots = withMultiProjectKotlinBuildSrc()
-        def settings = withDefaultSettings().append("""
-            include(":sub")
-        """)
+        def settings = withDefaultSettings().tap {
+            append("""
+                include(":sub")
+            """)
+        }
 
         expect:
         assertThat(

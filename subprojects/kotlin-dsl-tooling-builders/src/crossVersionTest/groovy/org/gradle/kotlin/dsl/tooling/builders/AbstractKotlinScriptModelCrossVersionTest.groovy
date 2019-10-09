@@ -23,6 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiAdditionalClasspath
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.archive.JarTestFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
 
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
@@ -35,6 +36,8 @@ import java.util.function.Consumer
 import java.util.function.Predicate
 import java.util.regex.Pattern
 import java.util.zip.ZipOutputStream
+
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
 
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.fetchKotlinBuildScriptModelFor
 
@@ -69,11 +72,15 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         toolingApi.requireDaemons()
     }
 
-    private String defaultSettingsScript = ""
+    private String defaultSettingsScript = """
+        pluginManagement {
+            $repositoriesBlock
+        }
+    """.stripIndent()
 
     protected String repositoriesBlock = """
         repositories {
-            gradlePluginPortal()
+            ${gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
         }
     """.stripIndent()
 
@@ -97,7 +104,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return withSettings(defaultSettingsScript)
     }
 
-    protected TestFile withSettings(String script) {
+    private TestFile withSettings(String script) {
         return withSettingsIn(".", script)
     }
 
