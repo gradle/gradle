@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.ComponentIdResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
@@ -59,16 +60,16 @@ class TestProjectSelectorState implements ResolvableSelectorState {
 
     @Override
     void failed(ModuleVersionResolveException failure) {
-        throw new UnsupportedOperationException("To be implemented");
+        throw new UnsupportedOperationException("To be implemented")
     }
 
     @Override
-    public void markResolved() {
+    void markResolved() {
     }
 
     @Override
-    public boolean isForce() {
-        return false;
+    boolean isForce() {
+        return false
     }
 
     @Override
@@ -79,6 +80,11 @@ class TestProjectSelectorState implements ResolvableSelectorState {
     @Override
     boolean isFromLock() {
         return false
+    }
+
+    @Override
+    IvyArtifactName getFirstDependencyArtifact() {
+        return null
     }
 }
 

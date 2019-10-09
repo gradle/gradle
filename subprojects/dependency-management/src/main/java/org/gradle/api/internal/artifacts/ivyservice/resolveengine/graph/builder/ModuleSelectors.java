@@ -26,6 +26,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionP
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.internal.Cast;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -171,5 +172,14 @@ public class ModuleSelectors<T extends ResolvableSelectorState> implements Itera
             return selectors.get(0);
         }
         return selectors.get(0);
+    }
+
+    public IvyArtifactName getFirstDependencyArtifact() {
+        for (T selector: selectors) {
+            if (selector.getFirstDependencyArtifact() != null) {
+                return selector.getFirstDependencyArtifact();
+            }
+        }
+        return null;
     }
 }

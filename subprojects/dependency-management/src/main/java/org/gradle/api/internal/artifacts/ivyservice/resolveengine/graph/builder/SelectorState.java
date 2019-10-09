@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.RejectedByAttributesVersion;
@@ -72,6 +74,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean forced;
     private boolean softForced;
     private boolean fromLock;
+    private IvyArtifactName firstDependencyArtifact;
 
     // An internal counter used to track the number of outgoing edges
     // that use this selector. Since a module resolve state tracks all selectors
@@ -287,6 +290,11 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
+    public IvyArtifactName getFirstDependencyArtifact() {
+        return firstDependencyArtifact;
+    }
+
+    @Override
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
     }
@@ -326,6 +334,12 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
                 resolved = false; // when a selector changes from non lock to lock, we must reselect
             }
             dependencyState.addSelectionReasons(dependencyReasons);
+            if (firstDependencyArtifact == null) {
+                List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
+                if (!artifacts.isEmpty()) {
+                    firstDependencyArtifact = artifacts.get(0);
+                }
+            }
         }
     }
 

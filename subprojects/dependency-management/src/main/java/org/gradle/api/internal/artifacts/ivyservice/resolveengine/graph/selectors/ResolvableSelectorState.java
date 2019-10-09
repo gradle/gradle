@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
@@ -63,6 +64,8 @@ public interface ResolvableSelectorState {
     boolean isSoftForce();
 
     boolean isFromLock();
+
+    IvyArtifactName getFirstDependencyArtifact();
 
     default boolean isProject() {
         return getSelector() instanceof ProjectComponentSelector;
