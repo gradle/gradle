@@ -38,6 +38,7 @@ import java.util.regex.Pattern
 import java.util.zip.ZipOutputStream
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapRepositoryDefinition
 
 import static org.gradle.kotlin.dsl.resolver.KotlinBuildScriptModelRequestKt.fetchKotlinBuildScriptModelFor
 
@@ -81,6 +82,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
     protected String repositoriesBlock = """
         repositories {
             ${gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+            ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
         }
     """.stripIndent()
 
