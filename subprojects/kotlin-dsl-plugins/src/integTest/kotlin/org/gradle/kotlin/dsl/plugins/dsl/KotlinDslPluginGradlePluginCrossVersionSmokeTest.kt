@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepositoryDefinition
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapRepositoryDefinition
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.kotlin.dsl.*
@@ -76,6 +77,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
             repositories {
                 ${jcenterRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             dependencies {
@@ -97,6 +99,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
             repositories {
                 ${jcenterRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             dependencies {
