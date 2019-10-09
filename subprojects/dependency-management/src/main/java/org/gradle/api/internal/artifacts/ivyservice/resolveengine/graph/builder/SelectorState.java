@@ -59,7 +59,6 @@ import java.util.List;
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
     private final Long id;
     private final DependencyState dependencyState;
-    private final DependencyMetadata firstSeenDependency;
     private final DependencyToComponentIdResolver resolver;
     private final ResolvedVersionConstraint versionConstraint;
     private final List<ComponentSelectionDescriptorInternal> dependencyReasons = Lists.newArrayListWithExpectedSize(4);
@@ -92,10 +91,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
         update(dependencyState);
         this.dependencyState = dependencyState;
-        this.firstSeenDependency = dependencyState.getDependency();
         this.versionConstraint = versionByAncestor ?
             resolveState.resolveVersionConstraint(DefaultImmutableVersionConstraint.of()) :
-            resolveState.resolveVersionConstraint(firstSeenDependency.getSelector());
+            resolveState.resolveVersionConstraint(dependencyState.getDependency().getSelector());
         this.isProjectSelector = getSelector() instanceof ProjectComponentSelector;
         this.attributeDesugaring = resolveState.getAttributeDesugaring();
     }
@@ -133,7 +131,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
     @Override
     public String toString() {
-        return firstSeenDependency.toString();
+        return dependencyState.getDependency().toString();
     }
 
     @Override
@@ -181,7 +179,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             if (dependencyState.failure != null) {
                 idResolveResult.failed(dependencyState.failure);
             } else {
-                resolver.resolve(firstSeenDependency, selector, rejector, idResolveResult);
+                resolver.resolve(dependencyState.getDependency(), selector, rejector, idResolveResult);
             }
 
             if (idResolveResult.getFailure() != null) {
@@ -291,7 +289,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     public DependencyMetadata getDependencyMetadata() {
-        return firstSeenDependency;
+        return dependencyState.getDependency();
     }
 
     @Override
