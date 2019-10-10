@@ -81,7 +81,7 @@ class InstantExecutionHost internal constructor(
         gradle.services.get(serviceType)
 
     override fun getSystemProperty(propertyName: String) =
-        startParameter.systemPropertiesArgs[propertyName]
+        startParameter.systemPropertiesArgs[propertyName] ?: System.getProperty(propertyName)
 
     override val requestedTaskNames: List<String> = startParameter.taskNames
 
