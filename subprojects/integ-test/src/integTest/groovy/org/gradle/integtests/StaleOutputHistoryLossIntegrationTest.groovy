@@ -124,46 +124,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.assertBuildTasksSkipped(result)
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/1274")
-    def "buildSrc included in multi-project build as subproject"() {
-        file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
-            import org.gradle.api.*
-
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.tasks.create("myTask") {
-                        doLast {
-                            def closure = {
-                                println "From plugin"
-                            }
-                            closure()
-                        }
-                    }
-                }
-            }
-        """
-        file("buildSrc/build.gradle") << "apply plugin: 'groovy'"
-        buildFile << """
-            apply plugin: 'java'
-            apply plugin: MyPlugin
-            myTask.dependsOn 'jar'
-        """
-        settingsFile << """
-            include 'buildSrc'
-        """
-
-        when:
-        runWithMostRecentFinalRelease("myTask")
-
-        then:
-        outputContains("From plugin")
-
-        when:
-        succeeds "myTask"
-        then:
-        outputContains("From plugin")
-    }
-
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
     @Issue("https://github.com/gradle/gradle/issues/821")
     def "production class files are removed even if output directory is reconfigured during execution phase"() {

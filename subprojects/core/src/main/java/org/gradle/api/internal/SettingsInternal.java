@@ -26,9 +26,12 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.IncludedBuildSpec;
 
+import java.io.File;
 import java.util.List;
 
 public interface SettingsInternal extends Settings, PluginAwareInternal {
+
+    String BUILD_SRC = "buildSrc";
 
     @Override
     StartParameter getStartParameter();
@@ -60,4 +63,5 @@ public interface SettingsInternal extends Settings, PluginAwareInternal {
      */
     ClassLoaderScope getClassLoaderScope();
 
+    File getBuildSrcDir();
 }
