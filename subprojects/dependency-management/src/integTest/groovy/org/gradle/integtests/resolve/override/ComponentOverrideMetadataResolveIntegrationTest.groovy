@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.resolve.artifacts
+package org.gradle.integtests.resolve.override
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
@@ -29,20 +29,11 @@ import spock.lang.Unroll
     // This test bypasses all metadata using 'artifact()' metadata sources. It is sufficient to test with one metadata setup.
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 )
-class DependencyArtifactsResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
-
-    def setup() {
-        resolve.expectDefaultConfiguration(useMaven() ? 'runtime' : 'default')
-        buildFile << """
-            repositories.all {
-                metadataSources {
-                    artifact() //sss
-                }
-            }
-        """
-    }
+class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def "can combine artifact notation and constraints"() {
+        resolve.expectDefaultConfiguration(useMaven() ? 'runtime' : 'default')
+
         given:
         repository {
             'org:foo:1.0' {
@@ -53,6 +44,9 @@ class DependencyArtifactsResolveIntegrationTest extends AbstractModuleDependency
         }
 
         buildFile << """
+            repositories.all {
+                metadataSources { artifact() }
+            }
             dependencies {
                 conf('org:foo@distribution-tgz')
               
@@ -85,6 +79,8 @@ class DependencyArtifactsResolveIntegrationTest extends AbstractModuleDependency
 
     @Unroll
     def "The first artifact is used as replacement for metadata if multiple artifacts are declared using #declaration"() {
+        resolve.expectDefaultConfiguration(useMaven() ? 'runtime' : 'default')
+
         given:
         repository {
             'org:foo:1.0' {
@@ -96,6 +92,9 @@ class DependencyArtifactsResolveIntegrationTest extends AbstractModuleDependency
         }
 
         buildFile << """
+            repositories.all {
+                metadataSources { artifact() }
+            }
             dependencies {
                 $declaration
                 constraints {
@@ -132,6 +131,123 @@ class DependencyArtifactsResolveIntegrationTest extends AbstractModuleDependency
         notation                                               | artifactName | declaration
         'multiple dependency declarations (AT notation)'       | 'foo'        | "conf('org:foo@distribution-tgz'); conf('org:foo@zip')"
         'multiple dependency declarations (artifact notation)' | 'bar'        | "conf('org:foo') { artifact { name = 'bar'; type = 'distribution-tgz' } }; conf('org:foo') { artifact { name = 'bar'; type = 'zip' } }"
-        'multiple artifact declaration'                        | 'bar'        | "conf('org:foo') { artifact { name = 'bar'; type = 'distribution-tgz' }; artifact { name = 'bar'; type = 'zip' } }"
+        'multiple artifact declarations'                       | 'bar'        | "conf('org:foo') { artifact { name = 'bar'; type = 'distribution-tgz' }; artifact { name = 'bar'; type = 'zip' } }"
+    }
+
+    @Unroll
+    def "client module for version 1.0 is selected over other dependency with version #otherVersion"() {
+        resolve.expectDefaultConfiguration('default')
+
+        given:
+        repository {
+            'org:foo:0.9' {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:foo:1.0' {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:bar:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:$otherVersion'
+                conf module('org:foo:1.0') { 
+                    // no dependencies
+                }
+            } 
+
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        def notSelectedModule = "org:foo:$otherVersion"
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:foo:1.0')
+                if (notSelectedModule != 'org:foo:1.0') {
+                    edge(notSelectedModule, 'org:foo:1.0')
+                }
+            }
+        }
+
+        where:
+        otherVersion << ['0.9', '1.0']
+    }
+
+    def "client module for a not selected version or range is ignored"() {
+        given:
+        repository {
+            'org:foo:1.1' {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:foo:1.0' {
+                dependsOn 'org:bar:1.0'
+            }
+            'org:bar:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.1'
+                conf module('org:foo:[1.0,1.1]') { 
+                    // no dependencies
+                }
+                conf module('org:foo:1.0') { 
+                    // no dependencies
+                }
+            } 
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.1' {
+                expectResolve()
+            }
+            'org:bar:1.0' {
+                expectResolve()
+            }
+        }
+        succeeds 'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org:foo:1.1') {
+                    module('org:bar:1.0')
+                }
+                edge('org:foo:[1.0,1.1]', 'org:foo:1.1')
+                edge('org:foo:1.0', 'org:foo:1.1')
+            }
+        }
+    }
+
+    def "clashing client modules fail the build"() {
+        given:
+        buildFile << """
+            configurations {
+                conf
+            }
+            dependencies {
+                conf module('org:foo:1.0') { 
+                }
+                conf module('org:foo:1.0') {
+                    dependency("org:baz:1.0")
+                }
+            } 
+        """
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("org:foo:1.0 has more than one client module definitions.")
     }
 }
