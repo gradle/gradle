@@ -86,11 +86,11 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :test", "test:test:2.0") {
+                edge("test:test:latest.integration", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
@@ -102,11 +102,11 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :test", "test:test:3.0") {
+                edge("test:test:latest.integration", "project :dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
 
         when:
         repo.createBranch("ignore")
@@ -120,11 +120,11 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:latest.integration", "project :test", "test:test:3.0") {
+                edge("test:test:latest.integration", "project :dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
     }
 
     def "selects and builds from tag for static selector"() {
@@ -149,11 +149,11 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                edge("test:test:2.0", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -162,11 +162,11 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                edge("test:test:2.0", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
     }
 
     def "reports on and recovers from missing version for static selector"() {
@@ -203,11 +203,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                edge("test:test:2.0", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -216,11 +216,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:2.0", "project :test", "test:test:2.0") {
+                edge("test:test:2.0", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
     }
 
     @Unroll
@@ -246,11 +246,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :test", "test:test:1.1") {
+                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '1.2'")
@@ -263,11 +263,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :test", "test:test:1.2") {
+                edge("test:test:${selector}", "project :dep", "test:test:1.2") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_1.2", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_1.2", ":checkDeps")
 
         where:
         selector    | _
@@ -309,11 +309,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :test", "test:test:1.1") {
+                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -322,11 +322,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test:${selector}", "project :test", "test:test:1.1") {
+                edge("test:test:${selector}", "project :dep", "test:test:1.1") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_1.1", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_1.1", ":checkDeps")
 
         where:
         selector    | _
@@ -385,11 +385,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repoSettingsFile.replace("version = '2.0'", "version = '3.0'")
@@ -401,11 +401,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:3.0") {
+                edge("test:test", "project :dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -414,11 +414,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:3.0") {
+                edge("test:test", "project :dep", "test:test:3.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_3.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_3.0", ":checkDeps")
     }
 
     def "reports on and recovers from missing branch"() {
@@ -456,11 +456,11 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
 
         when:
         repo.expectListVersions()
@@ -469,10 +469,10 @@ Required by:
         then:
         fixture.expectGraph {
             root(":", "test:consumer:1.2") {
-                edge("test:test", "project :test", "test:test:2.0") {
+                edge("test:test", "project :dep", "test:test:2.0") {
                 }
             }
         }
-        result.assertTasksExecuted(":test:jar_2.0", ":checkDeps")
+        result.assertTasksExecuted(":dep:jar_2.0", ":checkDeps")
     }
 }
