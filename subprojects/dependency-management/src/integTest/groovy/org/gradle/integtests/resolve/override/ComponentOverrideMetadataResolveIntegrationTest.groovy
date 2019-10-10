@@ -59,9 +59,8 @@ class ComponentOverrideMetadataResolveIntegrationTest extends AbstractModuleDepe
         when:
         repositoryInteractions {
             'org:foo:1.0' {
-                expectHeadArtifact(type: 'distribution-tgz') // test for the artifact when we would usually download metadata
-                expectHeadArtifact(type: 'distribution-tgz') // test for the artifact before actually retrieving it
-                expectGetArtifact(type: 'distribution-tgz')
+                // expectHeadArtifact(type: 'distribution-tgz') <- head request can happen once or twice depending on timing
+                maybeHeadOrGetArtifact(type: 'distribution-tgz')
             }
         }
         succeeds 'checkDeps'
