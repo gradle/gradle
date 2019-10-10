@@ -246,7 +246,7 @@ class ModuleVersionSpec {
                     } else if (module instanceof MavenModule) {
                         artifacts << module.getArtifact(expectation.spec)
                     } else if (module instanceof IvyModule) {
-                        artifacts << module.artifact(expectation.spec)
+                        artifacts << module.getArtifact(expectation.spec)
                     }
                 } else {
                     artifacts << module.artifact
