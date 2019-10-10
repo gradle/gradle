@@ -73,11 +73,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         toolingApi.requireDaemons()
     }
 
-    private String defaultSettingsScript = """
-        pluginManagement {
-            $repositoriesBlock
-        }
-    """.stripIndent()
+    private String defaultSettingsScript = ""
 
     protected String repositoriesBlock = """
         repositories {
@@ -106,7 +102,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return withSettings(defaultSettingsScript)
     }
 
-    private TestFile withSettings(String script) {
+    protected TestFile withSettings(String script) {
         return withSettingsIn(".", script)
     }
 

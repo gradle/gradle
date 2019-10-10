@@ -15,7 +15,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `generated code follows kotlin-dsl coding conventions`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins {
                 `kotlin-dsl`
@@ -107,7 +106,6 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
-        withDefaultSettings()
         withBuildScript("""
             plugins { `kotlin-dsl` }
             $repositoriesBlock
