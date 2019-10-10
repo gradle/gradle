@@ -16,9 +16,11 @@
 
 package org.gradle.composite.internal
 
-
+import org.gradle.api.GradleException
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.initialization.GradleLauncher
@@ -107,28 +109,27 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def dir1 = tmpDir.createDir("b1")
         def dir2 = tmpDir.createDir("other/b1")
         def dir3 = tmpDir.createDir("other2/b1")
-        def buildDefinition1 = build(dir1)
-        def buildDefinition2 = build(dir2)
-        def buildDefinition3 = build(dir3)
-        def includedBuild1 = Stub(IncludedBuildState)
-        def includedBuild2 = Stub(IncludedBuildState)
-        def includedBuild3 = Stub(IncludedBuildState)
-
-        // This just demonstrates existing behaviour, not necessarily desired behaviour
+        def buildDefinition1 = build(dir1, "b1")
+        def buildDefinition2 = build(dir2, "b2")
+        def buildDefinition3 = build(dir3, "b3")
         def id1 = new DefaultBuildIdentifier("b1")
-        def id2 = new DefaultBuildIdentifier("b1:1")
-        def id3 = new DefaultBuildIdentifier("b1:2")
-        includedBuild1.buildIdentifier >> id1
-        includedBuild2.buildIdentifier >> id2
-        includedBuild3.buildIdentifier >> id3
-
+        def id2 = new DefaultBuildIdentifier("b2")
+        def id3 = new DefaultBuildIdentifier("b3")
         def idPath1 = Path.path(":b1")
+        def idPath2 = Path.path(":b2")
+        def idPath3 = Path.path(":b3")
+        def includedBuild1 = Stub(IncludedBuildState) { getBuildIdentifier() >> id1 }
+        def includedBuild2 = Stub(IncludedBuildState) { getBuildIdentifier() >> id2 }
+        def includedBuild3 = Stub(IncludedBuildState) { getBuildIdentifier() >> id3 }
+        includedBuild1.identityPath >> idPath1
+        includedBuild2.identityPath >> idPath2
+        includedBuild3.identityPath >> idPath3
 
         given:
         registry.attachRootBuild(rootBuild())
         includedBuildFactory.createBuild(id1, idPath1, buildDefinition1, false, _) >> includedBuild1
-        includedBuildFactory.createBuild(id2, idPath1, buildDefinition2, false, _) >> includedBuild2
-        includedBuildFactory.createBuild(id3, idPath1, buildDefinition3, false, _) >> includedBuild3
+        includedBuildFactory.createBuild(id2, idPath2, buildDefinition2, false, _) >> includedBuild2
+        includedBuildFactory.createBuild(id3, idPath3, buildDefinition3, false, _) >> includedBuild3
 
         expect:
         registry.addIncludedBuild(buildDefinition1)
@@ -175,9 +176,11 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         given:
         def buildDefinition = Stub(BuildDefinition)
         buildDefinition.name >> "nested"
+        registry.attachRootBuild(rootBuild())
+        def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
 
         expect:
-        def nestedBuild = registry.addNestedBuild(buildDefinition, Stub(BuildState))
+        def nestedBuild = registry.addNestedBuild(buildDefinition, owner)
         nestedBuild.implicitBuild
         nestedBuild.buildIdentifier == new DefaultBuildIdentifier("nested")
         nestedBuild.identityPath == Path.path(":nested")
@@ -185,23 +188,19 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         registry.getBuild(nestedBuild.buildIdentifier).is(nestedBuild)
     }
 
-    def "can add multiple nested builds with same name"() {
+    def "cannot add multiple nested builds with same name"() {
         given:
         def buildDefinition = Stub(BuildDefinition)
         buildDefinition.name >> "nested"
+        registry.attachRootBuild(rootBuild())
+        def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
 
-        expect:
-        def nestedBuild1 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
-        nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("nested")
-        nestedBuild1.identityPath == Path.path(":nested")
+        when:
+        registry.addNestedBuild(buildDefinition, owner)
+        registry.addNestedBuild(buildDefinition, owner)
 
-        def nestedBuild2 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
-        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
-        nestedBuild2.identityPath == Path.path(":nested:1")
-
-        def nestedBuild3 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
-        nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
-        nestedBuild3.identityPath == Path.path(":nested:2")
+        then:
+        thrown GradleException
     }
 
     def "can add multiple nested builds with same name and different levels of nesting"() {
@@ -215,6 +214,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         def buildDefinition = Stub(BuildDefinition)
         buildDefinition.name >> "nested"
+        buildDefinition.buildRootDir >> new File("d")
 
         expect:
         def nestedBuild1 = registry.addNestedBuild(buildDefinition, rootBuild)
@@ -222,23 +222,19 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         nestedBuild1.identityPath == Path.path(":nested")
 
         def nestedBuild2 = registry.addNestedBuild(buildDefinition, parent1)
-        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
         // Shows current behaviour, not necessarily desired behaviour
+        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
         nestedBuild2.identityPath == Path.path(":parent:nested")
 
         def nestedBuild3 = registry.addNestedBuild(buildDefinition, nestedBuild1)
         nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
         nestedBuild3.identityPath == Path.path(":nested:nested")
-
-        def nestedBuild4 = registry.addNestedBuild(buildDefinition, parent1)
-        nestedBuild4.buildIdentifier == new DefaultBuildIdentifier("nested:3")
-        nestedBuild4.identityPath == Path.path(":parent:nested")
     }
 
-    def build(File rootDir) {
+    def build(File rootDir, String name = rootDir.name) {
         return BuildDefinition.fromStartParameterForBuild(
             StartParameterInternal.getConstructor().newInstance(),
-            rootDir.getName(),
+            name,
             rootDir,
             PluginRequests.EMPTY,
             Actions.doNothing(),
@@ -246,21 +242,31 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         )
     }
 
-    def rootBuild() {
+    RootBuildState rootBuild(String... projects) {
         def nestedBuildFactory = Stub(NestedBuildFactory)
         def gradleLauncher = Stub(GradleLauncher)
         def gradle = Stub(GradleInternal)
+        def settings = Stub(SettingsInternal)
         def services = Stub(ServiceRegistry)
 
         nestedBuildFactory.nestedInstance(_, _) >> gradleLauncher
         gradleLauncher.gradle >> gradle
         gradle.services >> services
+        gradle.settings >> settings
+        settings.rootProject >> Stub(ProjectDescriptor) {
+            getName() >> "root"
+        }
+        settings.findProject(_) >> {
+            it[0] in projects ? Stub(ProjectDescriptor) : null
+        }
+
         services.get(NestedBuildFactory) >> nestedBuildFactory
 
         def build = Stub(RootBuildState)
         build.buildIdentifier >> DefaultBuildIdentifier.ROOT
         build.identityPath >> Path.ROOT
         build.nestedBuildFactory >> nestedBuildFactory
+        build.loadedSettings >> settings
         return build
     }
 }

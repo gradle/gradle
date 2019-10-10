@@ -169,8 +169,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         if (buildDefinition.getName() == null) {
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
-        BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
         Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
+        BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
         DefaultNestedBuild build = new DefaultNestedBuild(buildIdentifier, identityPath, buildDefinition, owner);
         addBuild(build);
         return build;
@@ -183,8 +183,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
         File dir = buildDefinition.getStartParameter().getCurrentDir();
         String name = MoreObjects.firstNonNull(buildName, dir.getName());
-        BuildIdentifier buildIdentifier = idFor(name);
         Path identityPath = assignPath(owner, name, dir);
+        BuildIdentifier buildIdentifier = idFor(name);
         return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
     }
 
@@ -199,8 +199,8 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDefinition.getBuildRootDir());
         if (includedBuild == null) {
             String buildName = buildDefinition.getName();
-            BuildIdentifier buildIdentifier = idFor(buildName);
             Path idPath = assignPath(rootBuild, buildDefinition.getName(), buildDefinition.getBuildRootDir());
+            BuildIdentifier buildIdentifier = idFor(buildName);
 
             includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
             includedBuildsByRootDir.put(buildDefinition.getBuildRootDir(), includedBuild);
