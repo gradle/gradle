@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -41,14 +40,10 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
     public ClasspathEntrySnapshot createSnapshot(final File classpathEntry) {
         return cache.get(
             classpathEntry,
-            () -> {
-                MutableReference<ClasspathEntrySnapshot> result = MutableReference.empty();
-                virtualFileSystem.read(
-                    classpathEntry.getAbsolutePath(),
-                    snapshot -> result.set(snapshotter.createSnapshot(snapshot.getHash(), classpathEntry))
-                );
-                return result.get();
-            }
+            () -> virtualFileSystem.read(
+                classpathEntry.getAbsolutePath(),
+                snapshot -> snapshotter.createSnapshot(snapshot.getHash(), classpathEntry)
+            )
         );
     }
 }

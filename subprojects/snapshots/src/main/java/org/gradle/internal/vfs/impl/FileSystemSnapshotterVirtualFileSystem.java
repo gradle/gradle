@@ -46,20 +46,21 @@ public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem
     }
 
     @Override
-    public void read(String location, Consumer<FileSystemLocationSnapshot> visitor) {
-        visitor.accept(snapshotter.snapshot(new File(location)));
-    }
-
-    @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
         HashCode hashCode = snapshotter.getRegularFileContentHash(new File(location));
         return Optional.ofNullable(hashCode).map(visitor);
     }
 
     @Override
+    public <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor) {
+        FileSystemLocationSnapshot snapshot = snapshotter.snapshot(new File(location));
+        return visitor.apply(snapshot);
+    }
+
+    @Override
     public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
         FileSystemSnapshot snapshot = snapshotter.snapshotDirectoryTree(new File(location), filter);
-        if (snapshot instanceof FileSystemLocationSnapshot) {
+        if (snapshot != FileSystemSnapshot.EMPTY) {
             visitor.accept((FileSystemLocationSnapshot) snapshot);
         }
     }

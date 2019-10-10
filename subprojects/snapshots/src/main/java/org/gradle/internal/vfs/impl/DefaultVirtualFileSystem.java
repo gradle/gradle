@@ -59,15 +59,15 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void read(String location, Consumer<FileSystemLocationSnapshot> visitor) {
-        visitor.accept(readLocation(location).getSnapshot());
+    public <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor) {
+        return visitor.apply(readLocation(location).getSnapshot());
     }
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        FileSystemLocationSnapshot result = readLocation(location).getSnapshot();
-        if (result.getType() == FileType.RegularFile) {
-            return Optional.ofNullable(visitor.apply(result.getHash()));
+        FileSystemLocationSnapshot snapshot = readLocation(location).getSnapshot();
+        if (snapshot.getType() == FileType.RegularFile) {
+            return Optional.ofNullable(visitor.apply(snapshot.getHash()));
         }
         return Optional.empty();
     }
@@ -75,7 +75,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
         if (filter.isEmpty()) {
-            read(location, visitor);
+            visitor.accept(readLocation(location).getSnapshot());
         } else {
             FileSystemLocationSnapshot unfilteredSnapshot = readLocation(location).getSnapshot();
             FileSystemSnapshot filteredSnapshot = FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), unfilteredSnapshot);

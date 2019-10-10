@@ -35,18 +35,20 @@ public interface VirtualFileSystem {
 
     /**
      * Visits the hash of the content of the file only if the file is a regular file.
+     *
+     * @return the visitor function applied to the found snapshot.
      */
     <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor);
 
     /**
      * Visits the hierarchy of files at the given location.
      */
-    void read(String location, Consumer<FileSystemLocationSnapshot> visitor);
+    <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor);
 
     /**
      * Visits the hierarchy of files which match the filter at the given location.
      *
-     * The consumer is only called if not everything has been filtered.
+     * The consumer is only called if if something matches the filter.
      */
     void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor);
 

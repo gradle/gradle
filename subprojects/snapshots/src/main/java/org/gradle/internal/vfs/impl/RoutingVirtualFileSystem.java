@@ -43,8 +43,8 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void read(String location, Consumer<FileSystemLocationSnapshot> visitor) {
-        getVirtualFileSystemFor(location).read(location, visitor);
+    public <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor) {
+        return getVirtualFileSystemFor(location).read(location, visitor);
     }
 
     @Override

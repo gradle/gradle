@@ -30,7 +30,6 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.CachingResult;
@@ -73,6 +72,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -125,9 +125,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         FileCollectionFingerprinter outputFingerprinter = fingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
         FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
 
-        MutableReference<FileSystemLocationSnapshot> inputArtifactSnapshotReference = MutableReference.empty();
-        virtualFileSystem.read(inputArtifact.getAbsolutePath(), inputArtifactSnapshotReference::set);
-        FileSystemLocationSnapshot inputArtifactSnapshot = inputArtifactSnapshotReference.get();
+        FileSystemLocationSnapshot inputArtifactSnapshot = virtualFileSystem.read(inputArtifact.getAbsolutePath(), Function.identity());
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
 

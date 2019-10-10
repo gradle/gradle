@@ -19,8 +19,8 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.Factory;
-import org.gradle.internal.MutableReference;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
@@ -42,11 +42,10 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
 
     @Override
     public ClasspathEntrySnapshot get(File key, final Factory<ClasspathEntrySnapshot> factory) {
-        MutableReference<HashCode> fileContentHash = MutableReference.empty();
-        virtualFileSystem.read(
+        HashCode fileContentHash = virtualFileSystem.read(
             key.getAbsolutePath(),
-            snapshot -> fileContentHash.set(snapshot.getHash())
+            FileSystemLocationSnapshot::getHash
         );
-        return new ClasspathEntrySnapshot(cache.get(fileContentHash.get(), () -> factory.create().getData()));
+        return new ClasspathEntrySnapshot(cache.get(fileContentHash, () -> factory.create().getData()));
     }
 }

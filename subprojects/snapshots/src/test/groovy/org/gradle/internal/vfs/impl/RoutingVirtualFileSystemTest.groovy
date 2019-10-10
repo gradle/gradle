@@ -57,7 +57,8 @@ class RoutingVirtualFileSystemTest extends Specification {
         def hashFunction = { it } as Function<HashCode, HashCode>
         def location = inGradleUserHome ? userHomeFile.absolutePath : projectFile.absolutePath
         def expectedVirtualFileSystem = inGradleUserHome ? gradleUserHomeVirtualFileSystem : buildSessionScopedVirtualFileSystem
-        def visitor = {} as Consumer<FileSystemLocationSnapshot>
+        def consumer = {} as Consumer<FileSystemLocationSnapshot>
+        def snapshotFunction = { it } as Function<FileSystemLocationSnapshot, FileSystemLocationSnapshot>
 
         when:
         routingVirtualFileSystem.updateWithKnownSnapshot(location, fileSnapshot)
@@ -66,15 +67,15 @@ class RoutingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        routingVirtualFileSystem.read(location, visitor)
+        routingVirtualFileSystem.read(location, snapshotFunction)
         then:
-        1 * expectedVirtualFileSystem.read(location, visitor)
+        1 * expectedVirtualFileSystem.read(location, snapshotFunction)
         0 * _
 
         when:
-        routingVirtualFileSystem.read(location, snapshottingFilter, visitor)
+        routingVirtualFileSystem.read(location, snapshottingFilter, consumer)
         then:
-        1 * expectedVirtualFileSystem.read(location, snapshottingFilter, visitor)
+        1 * expectedVirtualFileSystem.read(location, snapshottingFilter, consumer)
         0 * _
 
         when:
