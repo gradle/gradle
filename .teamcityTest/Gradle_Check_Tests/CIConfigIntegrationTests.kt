@@ -3,6 +3,7 @@ import common.JvmVersion
 import common.NoBuildCache
 import common.Os
 import configurations.FunctionalTest
+import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
@@ -200,22 +201,21 @@ class CIConfigIntegrationTests {
         assertTrue(rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_ReadyforRelease"))
     }
 
-    private fun Project.hasSubProject(vararg patterns: String): Boolean {
-        return findSubProject(*patterns) != null
-    }
+    @Test
+    fun onlyReadyForNightlyTriggerHasUpdateBranchStatus() {
+        val model = CIBuildModel()
+        val rootProject = RootProject(model)
+        val triggerNameToTasks = rootProject.buildTypes.map { it.uuid to ((it as StagePasses).steps.items[0] as GradleBuildStep).tasks }.toMap()
 
-    private fun Project.findSubProject(vararg patterns: String): Project? {
-        val tail = patterns.drop(1).toTypedArray()
-        val sub = this.subProjects.find { it.name.contains(patterns[0]) }
-        return if (sub == null || tail.isEmpty()) sub else sub.findSubProject(*tail)
-    }
-
-    private fun Project.hasBuildType(vararg patterns: String): Boolean {
-        return this.buildTypes.find { buildType ->
-            patterns.all { pattern ->
-                buildType.name.contains(pattern)
-            }
-        } != null
+        assertEquals(mapOf(
+            "Gradle_Check_Stage_QuickFeedbackLinuxOnly_Trigger" to "createBuildReceipt",
+            "Gradle_Check_Stage_QuickFeedback_Trigger" to "createBuildReceipt",
+            "Gradle_Check_Stage_BranchBuildAccept_Trigger" to "createBuildReceipt",
+            "Gradle_Check_Stage_MasterAccept_Trigger" to "createBuildReceipt updateBranchStatus",
+            "Gradle_Check_Stage_ReleaseAccept_Trigger" to "createBuildReceipt",
+            "Gradle_Check_Stage_HistoricalPerformance_Trigger" to "createBuildReceipt",
+            "Gradle_Check_Stage_Experimental_Trigger" to "createBuildReceipt"),
+            triggerNameToTasks)
     }
 
     @Test
