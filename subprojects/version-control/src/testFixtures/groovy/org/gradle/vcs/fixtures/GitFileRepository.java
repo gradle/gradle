@@ -147,7 +147,7 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
             add.addFilepattern(path);
         }
         add.call();
-        return git.commit().setMessage(message).call();
+        return commit(message);
     }
 
     /**
