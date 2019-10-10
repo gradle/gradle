@@ -27,14 +27,14 @@ class ClientModuleDependencySpec extends AbstractModuleDependencySpec {
         new DefaultClientModule(group, name, version, configuration)
     }
 
-    def "equals but content not equal with different module dependencies"() {
+    def "not equal with different module dependencies"() {
         when:
         def dep1 = createDependency("group1", "name1", "version1", null)
         def dep2 = createDependency("group1", "name1", "version1", null)
         dep2.addDependency(Mock(ModuleDependency))
 
         then:
-        dep1 == dep2
+        dep1 != dep2
         !dep1.contentEquals(dep2)
         !dep2.contentEquals(dep1)
     }
