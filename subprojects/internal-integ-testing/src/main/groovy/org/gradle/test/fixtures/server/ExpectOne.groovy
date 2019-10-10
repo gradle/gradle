@@ -16,8 +16,14 @@
 
 package org.gradle.test.fixtures.server
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 abstract class ExpectOne implements ServerExpectation {
-    boolean run
+    AtomicBoolean atomicRun = new AtomicBoolean()
+
+    boolean isRun() {
+        return atomicRun.get()
+    }
 
     void assertMet() {
         if (!run) {

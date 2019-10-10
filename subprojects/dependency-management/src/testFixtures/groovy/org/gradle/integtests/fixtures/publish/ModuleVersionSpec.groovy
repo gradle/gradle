@@ -105,6 +105,10 @@ class ModuleVersionSpec {
         expectGetArtifact << new ArtifactExpectation(InteractionExpectation.HEAD_MISSING, artifact)
     }
 
+    void maybeHeadOrGetArtifact(Map<String, String> artifact) {
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.MAYBE, artifact)
+    }
+
     void maybeGetMetadata() {
         expectGetMetadata << InteractionExpectation.MAYBE
     }
