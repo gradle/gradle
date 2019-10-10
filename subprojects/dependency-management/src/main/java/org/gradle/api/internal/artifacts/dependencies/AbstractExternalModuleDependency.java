@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -49,10 +50,11 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     protected boolean isContentEqualsFor(ExternalModuleDependency dependencyRhs) {
-        if (!isKeyEquals(dependencyRhs) || !isCommonContentEquals(dependencyRhs)) {
+        if (!isCommonContentEquals(dependencyRhs)) {
             return false;
         }
-        return force == dependencyRhs.isForce() && changing == dependencyRhs.isChanging();
+        return force == dependencyRhs.isForce() && changing == dependencyRhs.isChanging() &&
+            Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
     }
 
     @Override

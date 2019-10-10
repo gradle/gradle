@@ -480,7 +480,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                         return
                     }
                     if (!((Request) request).isHandled()) {
-                        expectation.run = true
+                        expectation.atomicRun.set(true)
                         action.handle(request, response)
                         ((Request) request).setHandled(true)
                     }

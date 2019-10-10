@@ -620,4 +620,37 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             }
         }
     }
+
+    def "does not ignore a second dependency declaration which only differs in strictly detail"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0')
+                conf('org:foo') {
+                   version { strictly '1.0' }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.0")
+                edge("org:foo:{strictly 1.0}", "org:foo:1.0")
+            }
+        }
+    }
 }
