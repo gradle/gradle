@@ -24,7 +24,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.FileUtils
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
-import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class DefaultSettingsLoaderTest extends Specification {
