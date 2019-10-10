@@ -848,13 +848,13 @@ task generate(type: TransformerTask) {
         when:
         succeeds "transform"
         then:
-        result.assertTasksNotSkipped(":build:generate", ":otherBuild", ':transform')
+        result.assertTasksNotSkipped(":${testDirectory.name}:generate", ":otherBuild", ':transform')
 
         when:
         succeeds "transform"
         then:
         result.assertTasksNotSkipped(":otherBuild")
-        result.assertTasksSkipped(":build:generate", ":transform")
+        result.assertTasksSkipped(":${testDirectory.name}:generate", ":transform")
     }
 
     def "task can have outputs and no inputs"() {
