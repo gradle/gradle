@@ -124,14 +124,12 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         includedBuild3.buildIdentifier >> id3
 
         def idPath1 = Path.path(":b1")
-        def idPath2 = Path.path(":b1:1")
-        def idPath3 = Path.path(":b1:2")
 
         given:
         registry.attachRootBuild(rootBuild())
         includedBuildFactory.createBuild(id1, idPath1, buildDefinition1, false, _) >> includedBuild1
-        includedBuildFactory.createBuild(id2, idPath2, buildDefinition2, false, _) >> includedBuild2
-        includedBuildFactory.createBuild(id3, idPath3, buildDefinition3, false, _) >> includedBuild3
+        includedBuildFactory.createBuild(id2, idPath1, buildDefinition2, false, _) >> includedBuild2
+        includedBuildFactory.createBuild(id3, idPath1, buildDefinition3, false, _) >> includedBuild3
 
         expect:
         registry.addIncludedBuild(buildDefinition1)
@@ -227,15 +225,15 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def nestedBuild2 = registry.addNestedBuild(buildDefinition, parent1)
         nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
         // Shows current behaviour, not necessarily desired behaviour
-        nestedBuild2.identityPath == Path.path(":parent:nested:1")
+        nestedBuild2.identityPath == Path.path(":parent:nested")
 
         def nestedBuild3 = registry.addNestedBuild(buildDefinition, nestedBuild1)
         nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
-        nestedBuild3.identityPath == Path.path(":nested:nested:2")
+        nestedBuild3.identityPath == Path.path(":nested:nested")
 
         def nestedBuild4 = registry.addNestedBuild(buildDefinition, parent1)
         nestedBuild4.buildIdentifier == new DefaultBuildIdentifier("nested:3")
-        nestedBuild4.identityPath == Path.path(":parent:nested:3")
+        nestedBuild4.identityPath == Path.path(":parent:nested")
     }
 
     def build(File rootDir) {
