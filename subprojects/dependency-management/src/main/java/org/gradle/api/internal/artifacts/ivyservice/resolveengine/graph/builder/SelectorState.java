@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import org.gradle.api.Describable;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
@@ -31,6 +33,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Compone
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -73,7 +76,11 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean forced;
     private boolean softForced;
     private boolean fromLock;
+
+    // The following state needs to be tracked to consistently construct `` independent of the order dependencies are vistited
     private IvyArtifactName firstDependencyArtifact;
+    private ClientModule clientModule;
+    private boolean changing;
 
     // An internal counter used to track the number of outgoing edges
     // that use this selector. Since a module resolve state tracks all selectors
@@ -294,6 +301,16 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
+    public ClientModule getClientModule() {
+        return clientModule;
+    }
+
+    @Override
+    public boolean isChanging() {
+        return changing;
+    }
+
+    @Override
     public ResolvedVersionConstraint getVersionConstraint() {
         return versionConstraint;
     }
@@ -333,13 +350,26 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
                 resolved = false; // when a selector changes from non lock to lock, we must reselect
             }
             dependencyState.addSelectionReasons(dependencyReasons);
-            if (firstDependencyArtifact == null) {
-                List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
-                if (!artifacts.isEmpty()) {
-                    firstDependencyArtifact = artifacts.get(0);
-                }
+            trackDetailsForOverrideMetadata(dependencyState);
+        }
+    }
+
+    private void trackDetailsForOverrideMetadata(DependencyState dependencyState) {
+        if (firstDependencyArtifact == null) {
+            List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
+            if (!artifacts.isEmpty()) {
+                firstDependencyArtifact = artifacts.get(0);
             }
         }
+        ClientModule nextClientModule = DefaultComponentOverrideMetadata.extractClientModule(dependencyState.getDependency());
+        if (nextClientModule != null) {
+            if (clientModule == null) {
+                clientModule = nextClientModule;
+            } else {
+                throw new InvalidUserDataException(dependencyState.getDependency().getSelector().getDisplayName() + " has more than one client module definitions.");
+            }
+        }
+        changing = changing || dependencyState.getDependency().isChanging();
     }
 
     private class UnmatchedVersionsReason implements Describable {

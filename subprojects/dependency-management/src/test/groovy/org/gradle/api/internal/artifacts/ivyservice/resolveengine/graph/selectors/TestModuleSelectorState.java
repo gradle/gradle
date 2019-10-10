@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors;
 
+import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ResolvedVersionConstraint;
@@ -117,5 +118,15 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     @Override
     public IvyArtifactName getFirstDependencyArtifact() {
         return null;
+    }
+
+    @Override
+    public ClientModule getClientModule() {
+        return null;
+    }
+
+    @Override
+    public boolean isChanging() {
+        return false;
     }
 }
