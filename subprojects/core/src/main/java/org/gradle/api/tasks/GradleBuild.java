@@ -154,6 +154,8 @@ public class GradleBuild extends ConventionTask {
         getStartParameter().setTaskNames(tasks);
     }
 
+    // TODO add setName() to allow controlling the build name used
+
     @TaskAction
     void build() {
         // TODO: Allow us to inject plugins into GradleBuild nested builds too.
