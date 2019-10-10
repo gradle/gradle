@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.cached;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.FileAccessTracker;
@@ -27,15 +28,16 @@ import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.nio.file.Path;
 
 public class DefaultCachedExternalResourceIndex<K extends Serializable> extends AbstractCachedIndex<K, CachedExternalResource> implements CachedExternalResourceIndex<K> {
-    private static final CachedExternalResourceSerializer CACHED_EXTERNAL_RESOURCE_SERIALIZER = new CachedExternalResourceSerializer();
     private final BuildCommencedTimeProvider timeProvider;
 
-    public DefaultCachedExternalResourceIndex(String persistentCacheFile, Serializer<K> keySerializer, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker) {
-        super(persistentCacheFile, keySerializer, CACHED_EXTERNAL_RESOURCE_SERIALIZER, artifactCacheLockingManager, fileAccessTracker);
+    public DefaultCachedExternalResourceIndex(String persistentCacheFile, Serializer<K> keySerializer, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, FileAccessTracker fileAccessTracker, Path commonRootPath) {
+        super(persistentCacheFile, keySerializer, new CachedExternalResourceSerializer(commonRootPath), artifactCacheLockingManager, fileAccessTracker);
         this.timeProvider = timeProvider;
     }
 
@@ -56,12 +58,36 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
         storeInternal(key, new DefaultCachedExternalResource(timeProvider.getCurrentTime()));
     }
 
-    private static class CachedExternalResourceSerializer implements Serializer<CachedExternalResource> {
+    @VisibleForTesting
+    static class CachedExternalResourceSerializer implements Serializer<CachedExternalResource> {
+        private final Path commonRootPath;
+
+        public CachedExternalResourceSerializer(Path commonRootPath) {
+            this.commonRootPath = commonRootPath;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            CachedExternalResourceSerializer that = (CachedExternalResourceSerializer) o;
+            return commonRootPath.equals(that.commonRootPath);
+        }
+
+        @Override
+        public int hashCode() {
+            return commonRootPath.hashCode();
+        }
+
         @Override
         public CachedExternalResource read(Decoder decoder) throws Exception {
             File cachedFile = null;
             if (decoder.readBoolean()) {
-                cachedFile = new File(decoder.readString());
+                cachedFile = denormalizeAndResolveFilePath(decoder.readString());
             }
             long cachedAt = decoder.readLong();
             ExternalResourceMetaData metaData = null;
@@ -87,7 +113,7 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
         public void write(Encoder encoder, CachedExternalResource value) throws Exception {
             encoder.writeBoolean(value.getCachedFile() != null);
             if (value.getCachedFile() != null) {
-                encoder.writeString(value.getCachedFile().getAbsolutePath());
+                encoder.writeString(relativizeAndNormalizeFilePath(value.getCachedFile()));
             }
             encoder.writeLong(value.getCachedAt());
             ExternalResourceMetaData metaData = value.getExternalResourceMetaData();
@@ -107,5 +133,23 @@ public class DefaultCachedExternalResourceIndex<K extends Serializable> extends 
                 }
             }
         }
+
+        private String relativizeAndNormalizeFilePath(File cachedFile) {
+            Path filePath = cachedFile.toPath();
+            assert filePath.startsWith(commonRootPath) : "Attempting to cache file " + filePath + " not in " + commonRootPath;
+            String systemDependentPath = commonRootPath.relativize(filePath).toString();
+            if (!filePath.getFileSystem().getSeparator().equals("/")) {
+                return systemDependentPath.replace(filePath.getFileSystem().getSeparator(), "/");
+            }
+            return systemDependentPath;
+        }
+
+        private File denormalizeAndResolveFilePath(String relativePath) throws IOException {
+            if (!commonRootPath.getFileSystem().getSeparator().equals("/")) {
+                relativePath = relativePath.replace("/", commonRootPath.getFileSystem().getSeparator());
+            }
+            return commonRootPath.resolve(relativePath).toFile();
+        }
+
     }
 }

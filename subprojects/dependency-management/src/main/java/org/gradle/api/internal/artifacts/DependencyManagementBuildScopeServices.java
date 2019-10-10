@@ -217,7 +217,8 @@ class DependencyManagementBuildScopeServices {
                 "module-artifact",
                 timeProvider,
                 artifactCacheLockingManager,
-                artifactIdentifierFileStore.getFileAccessTracker()
+                artifactIdentifierFileStore.getFileAccessTracker(),
+                artifactCacheMetadata.getCacheDir().toPath()
             ))
         );
         ModuleRepositoryCaches inMemoryCaches = new ModuleRepositoryCaches(
@@ -229,12 +230,13 @@ class DependencyManagementBuildScopeServices {
         return new ModuleRepositoryCacheProvider(caches, inMemoryCaches);
     }
 
-    ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore) {
+    ByUrlCachedExternalResourceIndex createArtifactUrlCachedResolutionIndex(BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ExternalResourceFileStore externalResourceFileStore, ArtifactCacheMetadata artifactCacheMetadata) {
         return new ByUrlCachedExternalResourceIndex(
             "resource-at-url",
             timeProvider,
             artifactCacheLockingManager,
-            externalResourceFileStore.getFileAccessTracker()
+            externalResourceFileStore.getFileAccessTracker(),
+            artifactCacheMetadata.getCacheDir().toPath()
         );
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.cache
 
 import groovy.transform.SelfType
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -26,5 +27,9 @@ import static org.gradle.cache.internal.DefaultCacheScopeMapping.GLOBAL_CACHE_DI
 trait CachingIntegrationFixture {
     TestFile getUserHomeCacheDir() {
         return executer.gradleUserHomeDir.file(GLOBAL_CACHE_DIR_NAME)
+    }
+
+    TestFile getMetadataCacheDir() {
+        return executer.gradleUserHomeDir.file(GLOBAL_CACHE_DIR_NAME).file(CacheLayout.ROOT.key)
     }
 }
