@@ -73,6 +73,11 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
     }
 
     @Override
+    public int hashCode() {
+        return super.hashCode();
+    }
+
+    @Override
     public boolean contentEquals(Dependency dependency) {
         if (this == dependency) {
             return true;
