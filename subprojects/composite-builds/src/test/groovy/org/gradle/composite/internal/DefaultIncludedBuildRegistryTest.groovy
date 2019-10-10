@@ -21,7 +21,6 @@ import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.NestedBuildFactory
@@ -42,7 +41,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def includedBuildFactory = Stub(IncludedBuildFactory)
-    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(ProjectStateRegistry), Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(GradleLauncherFactory), Stub(ListenerManager), Stub(BuildTreeScopeServices))
+    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(GradleLauncherFactory), Stub(ListenerManager), Stub(BuildTreeScopeServices))
 
     def "is empty by default"() {
         expect:

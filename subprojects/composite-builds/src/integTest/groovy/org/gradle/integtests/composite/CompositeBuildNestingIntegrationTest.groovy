@@ -198,9 +198,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("""Multiple included builds have the same build name 'buildB':
-  - Included build in ${buildB}
-  - Included build in ${buildC}""")
+        failure.assertHasDescription("Included build $buildC has build path :buildB which is the same as included build $buildB")
     }
 
     def "reports failure for included build name that conflicts with subproject name"() {
