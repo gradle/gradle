@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -34,7 +33,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.Callable;
 
@@ -55,35 +53,26 @@ public class Jar extends Zip {
         manifest = new DefaultManifest(getFileResolver());
         // Add these as separate specs, so they are not affected by the changes to the main spec
         metaInf = (CopySpecInternal) getRootSpec().addFirst().into("META-INF");
-        metaInf.addChild().from(new Callable<FileTreeAdapter>() {
-            @Override
-            public FileTreeAdapter call() throws Exception {
-                GeneratedSingletonFileTree manifestSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), "MANIFEST.MF", new Action<OutputStream>() {
-                    @Override
-                    public void execute(OutputStream outputStream) {
-                        Manifest manifest = getManifest();
-                        if (manifest == null) {
-                            manifest = new DefaultManifest(null);
-                        }
-                        ManifestInternal manifestInternal;
-                        if (manifest instanceof ManifestInternal) {
-                            manifestInternal = (ManifestInternal) manifest;
-                        } else {
-                            manifestInternal = new CustomManifestInternalWrapper(manifest);
-                        }
-                        manifestInternal.setContentCharset(manifestContentCharset);
-                        manifestInternal.writeTo(outputStream);
-                    }
-                });
-                return new FileTreeAdapter(manifestSource);
-            }
-        });
-        getMainSpec().appendCachingSafeCopyAction(new Action<FileCopyDetails>() {
-            @Override
-            public void execute(FileCopyDetails details) {
-                if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
-                    details.exclude();
+        metaInf.addChild().from((Callable<FileTreeAdapter>) () -> {
+            GeneratedSingletonFileTree manifestSource = new GeneratedSingletonFileTree(getTemporaryDirFactory(), "MANIFEST.MF", outputStream -> {
+                Manifest manifest = getManifest();
+                if (manifest == null) {
+                    manifest = new DefaultManifest(null);
                 }
+                ManifestInternal manifestInternal;
+                if (manifest instanceof ManifestInternal) {
+                    manifestInternal = (ManifestInternal) manifest;
+                } else {
+                    manifestInternal = new CustomManifestInternalWrapper(manifest);
+                }
+                manifestInternal.setContentCharset(manifestContentCharset);
+                manifestInternal.writeTo(outputStream);
+            });
+            return new FileTreeAdapter(manifestSource);
+        });
+        getMainSpec().appendCachingSafeCopyAction(details -> {
+            if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
+                details.exclude();
             }
         });
     }
