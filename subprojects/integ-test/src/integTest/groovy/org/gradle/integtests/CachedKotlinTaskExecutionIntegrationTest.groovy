@@ -108,7 +108,6 @@ class CachedKotlinTaskExecutionIntegrationTest extends AbstractPluginIntegration
     }
 
     def withKotlinBuildSrc() {
-        file("buildSrc/settings.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcSettingsScript
         file("buildSrc/build.gradle.kts") << KotlinDslTestUtil.kotlinDslBuildSrcScript
     }
 

@@ -42,14 +42,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
     open val defaultSettingsScript
-        get() = """
-            pluginManagement {
-                repositories {
-                    ${gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
-            }
-        """.trimIndent()
+        get() = ""
 
     protected
     val repositoriesBlock
