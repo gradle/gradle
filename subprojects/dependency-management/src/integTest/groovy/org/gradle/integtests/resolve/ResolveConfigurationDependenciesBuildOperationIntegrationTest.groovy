@@ -316,7 +316,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
 
         then:
         def op = operations.first(ResolveConfigurationDependenciesBuildOperationType) {
-            it.details.configurationName == 'classpath' && it.details.buildPath == ':project-b'
+            it.details.configurationName == 'classpath' && it.details.buildPath == ':projectB'
         }
         op.result.resolvedDependenciesCount == 1
     }
