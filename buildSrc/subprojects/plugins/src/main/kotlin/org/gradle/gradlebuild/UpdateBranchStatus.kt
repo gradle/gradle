@@ -37,8 +37,8 @@ open class UpdateBranchStatus : DefaultTask() {
 
     private
     fun publishBranchStatus(branch: String) {
-        project.execAndGetOutput("git", "tag", "-d", "green-$branch")
-        project.execAndGetOutputExpectingZeroCode("git", "tag", "green-$branch")
-        project.execAndGetOutputExpectingZeroCode("git", "push", "origin", "green-$branch")
+        project.execAndGetStdout("git", "tag", "-d", "green-$branch")
+        project.execAndGetStdout("git", "tag", "green-$branch")
+        project.execAndGetStdout("git", "push", "origin", "green-$branch")
     }
 }
