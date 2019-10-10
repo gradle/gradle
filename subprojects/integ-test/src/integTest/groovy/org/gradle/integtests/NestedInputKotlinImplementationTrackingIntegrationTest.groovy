@@ -98,7 +98,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
     }
 
     private void setupTaskWithNestedAction(String actionType, String actionInvocation) {
-        file("buildSrc/settings.gradle.kts") << ""
+        file('buildSrc/settings.gradle.kts') << ""
         file('buildSrc/build.gradle.kts') << KotlinDslTestUtil.kotlinDslBuildSrcScript
         file("buildSrc/src/main/kotlin/TaskWithNestedAction.kt") << """
             import org.gradle.api.DefaultTask
