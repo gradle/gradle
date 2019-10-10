@@ -42,12 +42,14 @@ class DefaultSettingsLoaderTest extends Specification {
     void findAndLoadSettingsWithExistingSettings() {
         when:
         def projectRegistry = Mock(ProjectRegistry)
-        def projectDescriptor = Mock(DefaultProjectDescriptor)
+        def projectDescriptor = Mock(DefaultProjectDescriptor) {
+            getPath() >> ":"
+        }
         def services = Mock(ServiceRegistry)
         startParameter.setCurrentDir(settingsLocation.getSettingsDir())
 
         settings.getProjectRegistry() >> projectRegistry
-        projectRegistry.getAllProjects() >> WrapUtil.toSet(projectDescriptor)
+        projectRegistry.getAllProjects() >> Collections.singleton(projectDescriptor)
         projectDescriptor.getProjectDir() >> settingsLocation.settingsDir
         projectDescriptor.getBuildFile() >> new File(settingsLocation.getSettingsDir(), "build.gradle")
         gradle.getStartParameter() >> startParameter
