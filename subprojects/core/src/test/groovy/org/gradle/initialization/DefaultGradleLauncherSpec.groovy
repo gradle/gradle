@@ -289,7 +289,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void isNestedBuild() {
         _ * gradleMock.parent >> Mock(GradleInternal)
-        _ * gradleMock.findIdentityPath() >> path(":nested")
+        _ * gradleMock.getIdentityPath() >> path(":nested")
         _ * gradleMock.contextualize(_) >> { "${it[0]} (:nested)" }
     }
 

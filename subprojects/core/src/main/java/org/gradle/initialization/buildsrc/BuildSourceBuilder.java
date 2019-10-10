@@ -25,6 +25,7 @@ import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
 import org.gradle.initialization.DefaultSettings;
+import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
@@ -36,6 +37,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +88,14 @@ public class BuildSourceBuilder {
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
         ((StartParameterInternal) buildSrcStartParameter).setSearchUpwardsWithoutDeprecationWarning(false);
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
-        final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(buildSrcStartParameter, "buildSrc", buildSrcDir, publicBuildPath);
+        final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
+            buildSrcStartParameter,
+            "buildSrc",
+            buildSrcDir,
+            PluginRequests.EMPTY,
+            Actions.doNothing(),
+            publicBuildPath
+        );
         assert buildSrcStartParameter.getBuildFile() == null;
 
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {

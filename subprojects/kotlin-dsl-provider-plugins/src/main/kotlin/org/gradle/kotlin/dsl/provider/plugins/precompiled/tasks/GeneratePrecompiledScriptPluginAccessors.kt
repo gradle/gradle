@@ -58,7 +58,6 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.serviceOf
 
-import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
 
@@ -379,7 +378,7 @@ class SyntheticProjectSchemaBuilder(
 
         addScriptClassPathDependencyTo(project, rootProjectClassPath)
 
-        applyPluginsTo(project, DefaultPluginRequests.EMPTY)
+        applyPluginsTo(project, PluginRequests.EMPTY)
 
         return project
     }

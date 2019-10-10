@@ -58,7 +58,6 @@ import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
@@ -284,6 +283,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 }
             }
         }
-        return DefaultPluginRequests.EMPTY;
+        return PluginRequests.EMPTY;
     }
 }

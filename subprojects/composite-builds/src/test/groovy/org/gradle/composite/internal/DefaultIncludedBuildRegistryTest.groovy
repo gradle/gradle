@@ -25,13 +25,14 @@ import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildTreeScopeServices
-import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.junit.Rule
@@ -238,7 +239,14 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     }
 
     def build(File rootDir) {
-        return BuildDefinition.fromStartParameterForBuild(StartParameterInternal.getConstructor().newInstance(), null, rootDir, DefaultPluginRequests.EMPTY, null)
+        return BuildDefinition.fromStartParameterForBuild(
+            StartParameterInternal.getConstructor().newInstance(),
+            rootDir.getName(),
+            rootDir,
+            PluginRequests.EMPTY,
+            Actions.doNothing(),
+            null
+        )
     }
 
     def rootBuild() {
