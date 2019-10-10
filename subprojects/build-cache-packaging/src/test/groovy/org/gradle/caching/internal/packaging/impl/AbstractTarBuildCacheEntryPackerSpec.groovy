@@ -22,6 +22,7 @@ import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
+import org.gradle.internal.MutableReference
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -30,7 +31,6 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -117,8 +117,10 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     }
 
     protected CurrentFileCollectionFingerprint fingerprint(File file, FingerprintingStrategy strategy) {
-        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
-        virtualFileSystem.read(file.getAbsolutePath(), builder)
-        return DefaultCurrentFileCollectionFingerprint.from([builder.getResult()], strategy)
+        MutableReference<CurrentFileCollectionFingerprint> fingerprint = MutableReference.empty()
+        virtualFileSystem.read(file.getAbsolutePath()) { snapshot ->
+            fingerprint.set(DefaultCurrentFileCollectionFingerprint.from([snapshot], strategy))
+        }
+        return fingerprint.get()
     }
 }

@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import java.util.function.Function;
@@ -57,8 +57,8 @@ public class FileNode implements Node {
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
-        visitor.visitFile(snapshot);
+    public FileSystemLocationSnapshot getSnapshot() {
+        return snapshot;
     }
 
     @Override

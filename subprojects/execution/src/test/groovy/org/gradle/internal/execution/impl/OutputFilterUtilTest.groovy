@@ -18,6 +18,7 @@ package org.gradle.internal.execution.impl
 
 import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
@@ -26,7 +27,6 @@ import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -165,9 +165,9 @@ class OutputFilterUtilTest extends Specification {
 
     private FileSystemSnapshot snapshotOutput(File output) {
         virtualFileSystem.invalidateAll()
-        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
-        virtualFileSystem.read(output.getAbsolutePath(), builder)
-        return builder.getResult()
+        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        virtualFileSystem.read(output.getAbsolutePath(), result.&set)
+        return result.get()
     }
 
     private CurrentFileCollectionFingerprint fingerprintOutput(File outputDir) {

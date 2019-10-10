@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
 import java.util.function.Function;
@@ -69,8 +69,8 @@ public class RootNode extends AbstractNodeWithMutableChildren {
                 }
 
                 @Override
-                public void accept(FileSystemSnapshotVisitor visitor) {
-                    RootNode.this.accept(visitor);
+                public FileSystemLocationSnapshot getSnapshot() {
+                    return RootNode.this.getSnapshot();
                 }
 
                 @Override
@@ -83,7 +83,7 @@ public class RootNode extends AbstractNodeWithMutableChildren {
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
+    public FileSystemLocationSnapshot getSnapshot() {
         throw new UnsupportedOperationException("Cannot visit root node");
     }
 

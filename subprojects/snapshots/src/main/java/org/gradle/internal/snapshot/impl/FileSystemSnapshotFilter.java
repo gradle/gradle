@@ -42,7 +42,7 @@ public class FileSystemSnapshotFilter {
         return hasBeenFiltered.get() ? builder.getResult() : unfiltered;
     }
 
-    public static class FilteringVisitor implements FileSystemSnapshotVisitor {
+    private static class FilteringVisitor implements FileSystemSnapshotVisitor {
         private final RelativePathSegmentsTracker relativePathTracker;
         private final SnapshottingFilter.FileSystemSnapshotPredicate predicate;
         private final FileSystemSnapshotVisitor delegate;

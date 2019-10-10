@@ -19,12 +19,12 @@ package org.gradle.internal.vfs.impl;
 import com.google.common.collect.Iterables;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class RoutingVirtualFileSystem implements VirtualFileSystem {
@@ -43,7 +43,7 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void read(String location, FileSystemSnapshotVisitor visitor) {
+    public void read(String location, Consumer<FileSystemLocationSnapshot> visitor) {
         getVirtualFileSystemFor(location).read(location, visitor);
     }
 
@@ -53,7 +53,7 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor) {
+    public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
         getVirtualFileSystemFor(location).read(location, filter, visitor);
     }
 

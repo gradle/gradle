@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
 import java.util.function.Function;
@@ -29,7 +29,7 @@ public interface Node {
     String getAbsolutePath();
     Type getType();
 
-    void accept(FileSystemSnapshotVisitor visitor);
+    FileSystemLocationSnapshot getSnapshot();
 
     default String getChildAbsolutePath(String name) {
         return getAbsolutePath() + File.separatorChar + name;

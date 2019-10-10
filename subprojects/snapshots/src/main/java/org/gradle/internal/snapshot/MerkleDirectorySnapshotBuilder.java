@@ -115,11 +115,4 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
     public FileSystemLocationSnapshot getResult() {
         return result;
     }
-
-    /**
-     * If the snapshot which is visited is a merkle directory snapshot, no need to make a copy.
-     */
-    public void resultKnown(FileSystemLocationSnapshot result) {
-        this.result = result;
-    }
 }

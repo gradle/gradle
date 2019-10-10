@@ -18,6 +18,7 @@ package org.gradle.internal.vfs.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.MutableReference
 import org.gradle.internal.file.FileException
 import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.file.FileType
@@ -27,7 +28,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -235,15 +235,15 @@ class DefaultVirtualFileSystemTest extends Specification {
     }
 
     private FileSystemLocationSnapshot readFromVfs(File file) {
-        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
-        vfs.read(file.absolutePath, builder)
-        return builder.result
+        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        vfs.read(file.absolutePath, result.&set)
+        return result.get()
     }
 
     private FileSystemLocationSnapshot readFromVfs(File file, SnapshottingFilter filter) {
-        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
-        vfs.read(file.absolutePath, filter, builder)
-        return builder.result
+        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        vfs.read(file.absolutePath, filter, result.&set)
+        return result.get()
     }
 
     static class AllowingHasher implements FileHasher {
@@ -330,7 +330,7 @@ class DefaultVirtualFileSystemTest extends Specification {
         assert (((DirectorySnapshot) snapshot).children*.name as Set) == (file.list() as Set)
     }
 
-    private HashCode hashFile(File file) {
+    private static HashCode hashFile(File file) {
         TestFiles.fileHasher().hash(file)
     }
 

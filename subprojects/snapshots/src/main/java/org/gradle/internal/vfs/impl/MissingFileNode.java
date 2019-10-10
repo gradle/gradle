@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 
 import java.util.function.Function;
@@ -60,8 +60,8 @@ public class MissingFileNode implements Node {
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
-        visitor.visitFile(new MissingFileSnapshot(absolutePath, name));
+    public FileSystemLocationSnapshot getSnapshot() {
+        return new MissingFileSnapshot(absolutePath, name);
     }
 
     @Override

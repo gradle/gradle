@@ -19,7 +19,7 @@ package org.gradle.internal.vfs.impl
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.internal.classpath.CachedJarFileStore
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -28,6 +28,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.function.Consumer
 import java.util.function.Function
 
 class RoutingVirtualFileSystemTest extends Specification {
@@ -56,7 +57,7 @@ class RoutingVirtualFileSystemTest extends Specification {
         def hashFunction = { it } as Function<HashCode, HashCode>
         def location = inGradleUserHome ? userHomeFile.absolutePath : projectFile.absolutePath
         def expectedVirtualFileSystem = inGradleUserHome ? gradleUserHomeVirtualFileSystem : buildSessionScopedVirtualFileSystem
-        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
+        def visitor = {} as Consumer<FileSystemLocationSnapshot>
 
         when:
         routingVirtualFileSystem.updateWithKnownSnapshot(location, fileSnapshot)
@@ -65,15 +66,15 @@ class RoutingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        routingVirtualFileSystem.read(location, builder)
+        routingVirtualFileSystem.read(location, visitor)
         then:
-        1 * expectedVirtualFileSystem.read(location, builder)
+        1 * expectedVirtualFileSystem.read(location, visitor)
         0 * _
 
         when:
-        routingVirtualFileSystem.read(location, snapshottingFilter, builder)
+        routingVirtualFileSystem.read(location, snapshottingFilter, visitor)
         then:
-        1 * expectedVirtualFileSystem.read(location, snapshottingFilter, builder)
+        1 * expectedVirtualFileSystem.read(location, snapshottingFilter, visitor)
         0 * _
 
         when:

@@ -30,6 +30,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.Try;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.execution.CachingResult;
@@ -59,7 +60,6 @@ import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -125,9 +125,9 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         FileCollectionFingerprinter outputFingerprinter = fingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
         FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
 
-        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
-        virtualFileSystem.read(inputArtifact.getAbsolutePath(), builder);
-        FileSystemLocationSnapshot inputArtifactSnapshot = builder.getResult();
+        MutableReference<FileSystemLocationSnapshot> inputArtifactSnapshotReference = MutableReference.empty();
+        virtualFileSystem.read(inputArtifact.getAbsolutePath(), inputArtifactSnapshotReference::set);
+        FileSystemLocationSnapshot inputArtifactSnapshot = inputArtifactSnapshotReference.get();
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
 

@@ -25,9 +25,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
@@ -59,7 +57,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents) {
             for (File file : contents) {
-                snapshotFile(file);
+                virtualFileSystem.read(file.getAbsolutePath(), roots::add);
             }
         }
 
@@ -70,21 +68,20 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
         @Override
         public void visitFileTree(File root, PatternSet patterns, FileTreeInternal fileTree) {
-            MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
-            virtualFileSystem.read(root.getAbsolutePath(), new PatternSetSnapshottingFilter(patterns, stat), builder);
-            FileSystemLocationSnapshot result = builder.getResult();
-            roots.add((result == null || result.getType() == FileType.Missing) ? FileSystemSnapshot.EMPTY : result);
+            virtualFileSystem.read(
+                root.getAbsolutePath(),
+                new PatternSetSnapshottingFilter(patterns, stat),
+                snapshot -> {
+                    if (snapshot.getType() != FileType.Missing) {
+                        roots.add(snapshot);
+                    }
+                }
+            );
         }
 
         @Override
         public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
-            snapshotFile(file);
-        }
-
-        private void snapshotFile(File file) {
-            MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
-            virtualFileSystem.read(file.getAbsolutePath(), builder);
-            roots.add(builder.getResult());
+            virtualFileSystem.read(file.getAbsolutePath(), roots::add);
         }
 
         public List<FileSystemSnapshot> getRoots() {

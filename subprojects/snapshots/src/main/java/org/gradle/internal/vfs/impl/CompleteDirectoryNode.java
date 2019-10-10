@@ -18,8 +18,6 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import javax.annotation.Nullable;
@@ -121,12 +119,8 @@ public class CompleteDirectoryNode implements Node {
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
-        if (visitor instanceof MerkleDirectorySnapshotBuilder) {
-            ((MerkleDirectorySnapshotBuilder) visitor).resultKnown(directorySnapshot);
-        } else {
-            directorySnapshot.accept(visitor);
-        }
+    public FileSystemLocationSnapshot getSnapshot() {
+        return directorySnapshot;
     }
 
     @Override

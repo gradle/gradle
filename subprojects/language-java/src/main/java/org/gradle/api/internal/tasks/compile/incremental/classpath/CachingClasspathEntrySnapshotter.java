@@ -18,10 +18,9 @@ package org.gradle.api.internal.tasks.compile.incremental.classpath;
 
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
+import org.gradle.internal.MutableReference;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.StreamHasher;
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
@@ -40,13 +39,16 @@ public class CachingClasspathEntrySnapshotter implements ClasspathEntrySnapshott
 
     @Override
     public ClasspathEntrySnapshot createSnapshot(final File classpathEntry) {
-        final HashCode hash = getHash(classpathEntry);
-        return cache.get(classpathEntry, () -> snapshotter.createSnapshot(hash, classpathEntry));
-    }
-
-    private HashCode getHash(File classpathEntry) {
-        MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
-        virtualFileSystem.read(classpathEntry.getAbsolutePath(), builder);
-        return builder.getResult().getHash();
+        return cache.get(
+            classpathEntry,
+            () -> {
+                MutableReference<ClasspathEntrySnapshot> result = MutableReference.empty();
+                virtualFileSystem.read(
+                    classpathEntry.getAbsolutePath(),
+                    snapshot -> result.set(snapshotter.createSnapshot(snapshot.getHash(), classpathEntry))
+                );
+                return result.get();
+            }
+        );
     }
 }

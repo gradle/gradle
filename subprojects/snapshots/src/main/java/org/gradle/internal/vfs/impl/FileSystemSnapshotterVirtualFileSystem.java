@@ -24,9 +24,7 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
 import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
@@ -34,6 +32,7 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem {
@@ -47,8 +46,8 @@ public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem
     }
 
     @Override
-    public void read(String location, FileSystemSnapshotVisitor visitor) {
-        maybeShortCircuitVisitor(snapshotter.snapshot(new File(location)), visitor);
+    public void read(String location, Consumer<FileSystemLocationSnapshot> visitor) {
+        visitor.accept(snapshotter.snapshot(new File(location)));
     }
 
     @Override
@@ -58,12 +57,10 @@ public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem
     }
 
     @Override
-    public void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor) {
+    public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
         FileSystemSnapshot snapshot = snapshotter.snapshotDirectoryTree(new File(location), filter);
         if (snapshot instanceof FileSystemLocationSnapshot) {
-            maybeShortCircuitVisitor((FileSystemLocationSnapshot) snapshot, visitor);
-        } else {
-            snapshot.accept(visitor);
+            visitor.accept((FileSystemLocationSnapshot) snapshot);
         }
     }
 
@@ -96,14 +93,6 @@ public class FileSystemSnapshotterVirtualFileSystem implements VirtualFileSystem
                 break;
             default:
                 throw new AssertionError("Unknown file type: " + fileType);
-        }
-    }
-
-    private void maybeShortCircuitVisitor(FileSystemLocationSnapshot snapshot, FileSystemSnapshotVisitor visitor) {
-        if (visitor instanceof MerkleDirectorySnapshotBuilder) {
-            ((MerkleDirectorySnapshotBuilder) visitor).resultKnown(snapshot);
-        } else {
-            snapshot.accept(visitor);
         }
     }
 }

@@ -18,10 +18,10 @@ package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -73,9 +73,9 @@ class PathNormalizationStrategyTest extends Specification {
     }
 
     private FileSystemLocationSnapshot snapshot(File file) {
-        def builder = MerkleDirectorySnapshotBuilder.sortingRequired()
-        virtualFileSystem.read(file.absolutePath, builder)
-        return builder.getResult()
+        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        virtualFileSystem.read(file.absolutePath, result.&set)
+        return result.get()
     }
 
     def "sensitivity NONE"() {

@@ -209,7 +209,9 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
 
         then:
-        getSnapshotInfo(snapshot) == [null, 0]
+        snapshot instanceof FileSystemLocationSnapshot
+        snapshot.absolutePath == d.absolutePath
+        snapshot.type == FileType.Missing
     }
 
     def "snapshots file as directory tree"() {

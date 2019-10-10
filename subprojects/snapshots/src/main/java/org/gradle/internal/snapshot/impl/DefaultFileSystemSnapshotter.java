@@ -162,7 +162,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 snapshot = snapshotAndCache(root, filter);
                 return snapshot.getType() != FileType.Directory
                     ? filterSnapshot(snapshot, filter)
-                    : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
+                    : snapshot;
             } else {
                 return filterSnapshot(snapshot, filter);
             }
@@ -170,9 +170,6 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
     }
 
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter filter) {
-        if (snapshot.getType() == FileType.Missing) {
-            return FileSystemSnapshot.EMPTY;
-        }
         if (filter.isEmpty()) {
             return snapshot;
         }

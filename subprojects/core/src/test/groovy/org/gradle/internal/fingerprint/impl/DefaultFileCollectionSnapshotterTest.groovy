@@ -215,8 +215,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
 
     void assertEmptyTree(FileCollection fileCollection) {
         def snapshots = snapshotter.snapshot((FileCollectionInternal) fileCollection)
-        assert snapshots.size() == 1
-        assert snapshots[0] == FileSystemSnapshot.EMPTY
+        assert snapshots.size() == 0
         assert fileCollection.files.empty
     }
 

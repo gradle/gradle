@@ -18,10 +18,10 @@ package org.gradle.internal.vfs;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
@@ -41,12 +41,14 @@ public interface VirtualFileSystem {
     /**
      * Visits the hierarchy of files at the given location.
      */
-    void read(String location, FileSystemSnapshotVisitor visitor);
+    void read(String location, Consumer<FileSystemLocationSnapshot> visitor);
 
     /**
      * Visits the hierarchy of files which match the filter at the given location.
+     *
+     * The consumer is only called if not everything has been filtered.
      */
-    void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor);
+    void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor);
 
     /**
      * Runs an action which potentially updates the given locations.

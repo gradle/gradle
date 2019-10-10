@@ -27,7 +27,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
@@ -39,7 +39,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
@@ -48,55 +48,40 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         ? Splitter.on(CharMatcher.anyOf("/" + File.separator))
         : Splitter.on('/');
     private final RootNode root = new RootNode();
-    private final Interner<String> stringInterner;
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
 
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, String... defaultExcludes) {
-        this.stringInterner = stringInterner;
         this.stat = stat;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
         this.hasher = hasher;
     }
 
     @Override
-    public void read(String location, FileSystemSnapshotVisitor visitor) {
-        readLocation(location)
-            .accept(visitor);
+    public void read(String location, Consumer<FileSystemLocationSnapshot> visitor) {
+        visitor.accept(readLocation(location).getSnapshot());
     }
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        AtomicReference<T> result = new AtomicReference<>();
-        readLocation(location)
-            .accept(new FileSystemSnapshotVisitor() {
-                @Override
-                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-                    return false;
-                }
-
-                @Override
-                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
-                    if (fileSnapshot.getType() == FileType.RegularFile) {
-                        result.set(visitor.apply(fileSnapshot.getHash()));
-                    }
-                }
-
-                @Override
-                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
-                }
-            });
-        return Optional.ofNullable(result.get());
+        FileSystemLocationSnapshot result = readLocation(location).getSnapshot();
+        if (result.getType() == FileType.RegularFile) {
+            return Optional.ofNullable(visitor.apply(result.getHash()));
+        }
+        return Optional.empty();
     }
 
     @Override
-    public void read(String location, SnapshottingFilter filter, FileSystemSnapshotVisitor visitor) {
+    public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
         if (filter.isEmpty()) {
             read(location, visitor);
         } else {
-            readLocation(location)
-                .accept(new FileSystemSnapshotFilter.FilteringVisitor(filter.getAsSnapshotPredicate(), visitor, new AtomicBoolean(false)));
+            FileSystemLocationSnapshot unfilteredSnapshot = readLocation(location).getSnapshot();
+            FileSystemSnapshot filteredSnapshot = FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), unfilteredSnapshot);
+            if (filteredSnapshot instanceof FileSystemLocationSnapshot) {
+                visitor.accept((FileSystemLocationSnapshot) filteredSnapshot);
+            }
         }
     }
 

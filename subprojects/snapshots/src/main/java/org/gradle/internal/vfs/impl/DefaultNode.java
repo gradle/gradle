@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 public class DefaultNode extends AbstractNodeWithMutableChildren {
     private final String absolutePath;
@@ -36,7 +36,7 @@ public class DefaultNode extends AbstractNodeWithMutableChildren {
     }
 
     @Override
-    public void accept(FileSystemSnapshotVisitor visitor) {
+    public FileSystemLocationSnapshot getSnapshot() {
         throw new UnsupportedOperationException("Cannot query contents of Node: too much unknown. Path " + getAbsolutePath());
     }
 }
