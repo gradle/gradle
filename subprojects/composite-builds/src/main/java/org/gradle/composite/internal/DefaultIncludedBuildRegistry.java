@@ -209,7 +209,7 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
             throw new UnsupportedOperationException("Not yet implemented."); // but should be
         }
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getStartParameter().getCurrentDir().getName());
-        Path identityPath = pathFor(owner, buildDefinition.getName());
+        Path identityPath = pathFor(owner, buildIdentifier.getName());
         return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
     }
 
