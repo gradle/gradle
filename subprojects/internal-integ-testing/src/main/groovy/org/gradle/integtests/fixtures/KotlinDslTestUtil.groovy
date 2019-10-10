@@ -29,8 +29,9 @@ class KotlinDslTestUtil {
 
             allprojects {
                 repositories {
-                    ${jcenterRepositoryDefinition(GradleDsl.KOTLIN)}
+                    //TODO:kotlin-dsl remove once we're no longer on a kotlin eap 
                     ${kotlinEapRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${jcenterRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
         """
