@@ -177,21 +177,19 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         execute(buildA, "go")
 
         then:
-        result.assertTaskExecuted(":libc:jar")
+        result.assertTaskExecuted(":buildC:jar")
         result.assertTaskExecuted(":buildB:jar")
         result.assertTaskExecuted(":go")
     }
 
     def "reports failure for duplicate included build name"() {
         given:
-        def buildC = singleProjectBuild("buildC") {
-            settingsFile << """
-                rootProject.name = 'buildB'
-            """
-        }
+        def buildC = singleProjectBuild("buildC")
         def buildB = singleProjectBuild("buildB") {
             settingsFile << """
-                includeBuild('${buildC.toURI()}')
+                includeBuild('${buildC.toURI()}') {
+                    name = 'buildB'
+                }
             """
         }
         includeBuild(buildB)
@@ -200,7 +198,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("""Multiple included builds have the same root project name 'buildB':
+        failure.assertHasDescription("""Multiple included builds have the same build name 'buildB':
   - Included build in ${buildB}
   - Included build in ${buildC}""")
     }
@@ -222,7 +220,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Included build in ${buildC} has a root project whose name 'buildC' is the same as a project of the main build.")
+        failure.assertHasDescription("Included build in ${buildC} has name 'buildC' which is the same as a project of the main build.")
     }
 
     def "reports failure for included build name that conflicts with root project name"() {

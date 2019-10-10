@@ -25,6 +25,7 @@ import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.PublicBuildPath;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.management.internal.PluginRequests;
 
 import java.util.Collections;
@@ -33,14 +34,17 @@ import java.util.List;
 import java.util.Set;
 
 public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
+
     private final SettingsLoader delegate;
     private final BuildStateRegistry buildRegistry;
     private final PublicBuildPath publicBuildPath;
+    private final Instantiator instantiator;
 
-    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath) {
+    public ChildBuildRegisteringSettingsLoader(SettingsLoader delegate, BuildStateRegistry buildRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
         this.delegate = delegate;
         this.buildRegistry = buildRegistry;
         this.publicBuildPath = publicBuildPath;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -54,7 +58,7 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
             for (IncludedBuildSpec includedBuildSpec : includedBuilds) {
                 gradle.getOwner().assertCanAdd(includedBuildSpec);
 
-                final DefaultConfigurableIncludedBuild configurable = new DefaultConfigurableIncludedBuild(includedBuildSpec.rootDir);
+                DefaultConfigurableIncludedBuild configurable = instantiator.newInstance(DefaultConfigurableIncludedBuild.class, includedBuildSpec.rootDir);
                 includedBuildSpec.configurer.execute(configurable);
 
                 BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(

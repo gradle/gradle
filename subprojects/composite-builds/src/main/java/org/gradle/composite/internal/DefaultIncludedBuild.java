@@ -175,8 +175,8 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
-    public void loadSettings() {
-        gradleLauncher.getLoadedSettings();
+    public SettingsInternal loadSettings() {
+        return gradleLauncher.getLoadedSettings();
     }
 
     @Override

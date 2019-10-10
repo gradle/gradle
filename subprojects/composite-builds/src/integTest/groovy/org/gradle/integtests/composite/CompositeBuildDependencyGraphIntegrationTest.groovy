@@ -511,7 +511,8 @@ afterEvaluate {
             group = 'org.test'
             version = '1.0'
 """
-        includedBuilds << buildC
+
+        includeBuildAs(buildC, 'buildC')
 
         when:
         checkDependencies()

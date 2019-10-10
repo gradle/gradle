@@ -199,7 +199,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
         then:
         resolvedGraph {
-            edge("org.gradle:buildX:1.0", "project :buildB2", "org.test:buildB2:1.0") {
+            edge("org.gradle:buildX:1.0", "project :buildB", "org.test:buildB2:1.0") {
                 configuration = "runtimeElements"
                 compositeSubstitute()
             }

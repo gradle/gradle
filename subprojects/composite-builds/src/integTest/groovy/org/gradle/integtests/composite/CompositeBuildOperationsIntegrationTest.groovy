@@ -66,7 +66,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     @Unroll
     def "generates build lifecycle operations for included builds with #display"() {
         given:
-        dependency "org.test:${buildName}:1.0"
+        dependency "org.test:${dependencyName}:1.0"
 
         buildB.settingsFile << settings << "\n"
 
@@ -84,7 +84,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (buildB)"
+        loadOps[1].displayName == "Load build (:buildB)"
         loadOps[1].details.buildPath == ":${buildName}"
         loadOps[1].parentId == loadOps[0].id
 
@@ -123,9 +123,9 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[1].parentId == runTasksOps[1].id
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
@@ -153,7 +153,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (buildB)"
+        loadOps[1].displayName == "Load build (:buildB)"
         loadOps[1].details.buildPath == ":buildB"
         loadOps[1].parentId == loadOps[0].id
 
@@ -202,7 +202,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {
         for (BuildOperationRecord child : op.children) {
-            assert !allOps.contains(child) : "Task operation $origin has child $child which is also a task operation"
+            assert !allOps.contains(child): "Task operation $origin has child $child which is also a task operation"
             assertChildrenNotIn(origin, child, allOps)
         }
     }
