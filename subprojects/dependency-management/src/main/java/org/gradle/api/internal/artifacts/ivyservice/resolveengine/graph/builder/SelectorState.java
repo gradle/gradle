@@ -362,7 +362,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             }
         }
         ClientModule nextClientModule = DefaultComponentOverrideMetadata.extractClientModule(dependencyState.getDependency());
-        if (nextClientModule != null) {
+        if (nextClientModule != null && !nextClientModule.equals(clientModule)) {
             if (clientModule == null) {
                 clientModule = nextClientModule;
             } else {
