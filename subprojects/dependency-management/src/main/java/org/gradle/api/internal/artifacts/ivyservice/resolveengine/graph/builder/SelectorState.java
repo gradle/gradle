@@ -77,7 +77,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     private boolean softForced;
     private boolean fromLock;
 
-    // The following state needs to be tracked to consistently construct `` independent of the order dependencies are vistited
+    // The following state needs to be tracked to consistently construct `ComponentOverrideMetadata` independent of the order dependencies are visited
     private IvyArtifactName firstDependencyArtifact;
     private ClientModule clientModule;
     private boolean changing;
