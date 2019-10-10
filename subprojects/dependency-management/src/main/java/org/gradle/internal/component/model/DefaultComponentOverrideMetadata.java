@@ -31,8 +31,11 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     private final List<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
 
-    public static ComponentOverrideMetadata forDependency(DependencyMetadata dependencyMetadata, IvyArtifactName mainArtifact) {
-        return new DefaultComponentOverrideMetadata(dependencyMetadata.isChanging(), mainArtifact, extractClientModule(dependencyMetadata));
+    public static ComponentOverrideMetadata forDependency(boolean changing, IvyArtifactName mainArtifact, ClientModule clientModule) {
+        if (!changing && mainArtifact == null && clientModule == null) {
+            return EMPTY;
+        }
+        return new DefaultComponentOverrideMetadata(changing, mainArtifact, clientModule);
     }
 
     private DefaultComponentOverrideMetadata(boolean changing, IvyArtifactName artifact, ClientModule clientModule) {
@@ -45,7 +48,7 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
         this.clientModule = clientModule;
     }
 
-    private static ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
+    public static ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
             Dependency source = ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
             if (source instanceof ClientModule) {
