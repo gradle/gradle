@@ -68,7 +68,7 @@ class SourceDependencyIdentityIntegrationTest extends AbstractIntegrationSpec {
         """
         repo.commit("initial version")
         repo.createLightWeightTag("1.2")
-        dependency(buildName)
+        dependency(dependencyName)
 
         when:
         fails(":assemble")
@@ -81,9 +81,9 @@ Required by:
     project :${buildName}""")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
     @Unroll
@@ -98,7 +98,7 @@ Required by:
         """
         repo.commit("initial version")
         repo.createLightWeightTag("1.2")
-        dependency(buildName)
+        dependency(dependencyName)
 
         when:
         fails(":assemble")
@@ -108,9 +108,9 @@ Required by:
         failure.assertHasCause("broken")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
     @Unroll
@@ -125,7 +125,7 @@ Required by:
         """
         repo.commit("initial version")
         repo.createLightWeightTag("1.2")
-        dependency(buildName)
+        dependency(dependencyName)
 
         buildFile << """
             classes.doLast {
@@ -146,7 +146,7 @@ Required by:
 
                 def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
                 assert selectors.size() == 2
-                assert selectors[0].displayName == 'org.test:${buildName}:1.2'
+                assert selectors[0].displayName == 'org.test:${dependencyName}:1.2'
                 assert selectors[1].displayName == 'project :${buildName}:a'
                 // TODO - should be buildB
                 assert selectors[1].buildName == 'buildB'
@@ -155,11 +155,11 @@ Required by:
         """
 
         expect:
-        succeeds( ":assemble")
+        succeeds(":assemble")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 }
