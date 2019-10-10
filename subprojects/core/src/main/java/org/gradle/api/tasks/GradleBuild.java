@@ -102,7 +102,8 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The build file. May be null.
      */
-    @Nullable @Optional
+    @Nullable
+    @Optional
     @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputFile
     public File getBuildFile() {
@@ -186,7 +187,14 @@ public class GradleBuild extends ConventionTask {
     void build() {
         // TODO: Allow us to inject plugins into GradleBuild nested builds too.
         BuildDefinition buildDefinition = BuildDefinition.fromStartParameter(getStartParameter(), getServices().get(PublicBuildPath.class));
-        NestedRootBuild nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild, buildName);
+
+        NestedRootBuild nestedBuild;
+
+        // buildStateRegistry is not threadsafe, but this is the only concurrent use currently
+        synchronized (buildStateRegistry) {
+            nestedBuild = buildStateRegistry.addNestedBuildTree(buildDefinition, currentBuild, buildName);
+        }
+
         nestedBuild.run(new Transformer<Void, BuildController>() {
             @Override
             public Void transform(BuildController buildController) {

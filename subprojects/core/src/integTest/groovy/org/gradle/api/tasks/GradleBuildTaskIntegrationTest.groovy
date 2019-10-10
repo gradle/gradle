@@ -259,6 +259,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
                 task otherBuild(type:GradleBuild) {
                     dir = "\${rootProject.file('subprojects')}"
                     tasks = ['log']
+                    buildName = project.name + "nested"
                 }
                 otherBuild.doFirst {
                     ${barrier.callFromBuildUsingExpression('project.name + "-started"')}
