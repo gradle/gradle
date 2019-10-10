@@ -48,7 +48,7 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     protected boolean isContentEqualsFor(ExternalModuleDependency dependencyRhs) {
-        if (!isKeyEquals(dependencyRhs) || !isCommonContentEquals(dependencyRhs)) {
+        if (!isCommonContentEquals(dependencyRhs)) {
             return false;
         }
         return force == dependencyRhs.isForce() && changing == dependencyRhs.isChanging();
