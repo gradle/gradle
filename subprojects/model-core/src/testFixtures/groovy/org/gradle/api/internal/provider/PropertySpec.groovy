@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -1292,50 +1293,67 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         def property = propertyWithDefaultValue()
 
         expect:
-        !property.contentProducedByTask
+        assertContentIsNotProducedByTask(property)
         !property.valueProducedByTask
 
         property.attachProducer(task)
 
-        property.contentProducedByTask
+        assertContentIsProducedByTask(property, task)
         !property.valueProducedByTask
     }
 
     def "has content producer when value is provider with content producer"() {
-        def provider = contentProducedByTask()
+        def task = Mock(Task)
+        def provider = contentProducedByTask(task)
 
         def property = propertyWithNoValue()
         property.set(provider)
 
         expect:
-        property.contentProducedByTask
+        assertContentIsProducedByTask(property, task)
         !property.valueProducedByTask
     }
 
-    def "mapped value has value producer when producer task attached"() {
+    def "mapped value has value producer when producer task attached to original property"() {
         def task = Mock(Task)
         def property = propertyWithDefaultValue()
         def mapped = property.map { it }
 
         expect:
-        !mapped.contentProducedByTask
+        assertContentIsNotProducedByTask(mapped)
         !mapped.valueProducedByTask
 
         property.attachProducer(task)
 
-        mapped.contentProducedByTask
+        assertContentIsProducedByTask(mapped, task)
+        mapped.valueProducedByTask
+    }
+
+    def "chain of mapped value has value producer when producer task attached to original property"() {
+        def task = Mock(Task)
+        def property = propertyWithDefaultValue()
+        def mapped = property.map { it }.map { it }.map { it }
+
+        expect:
+        assertContentIsNotProducedByTask(mapped)
+        !mapped.valueProducedByTask
+
+        property.attachProducer(task)
+
+        assertContentIsProducedByTask(mapped, task)
         mapped.valueProducedByTask
     }
 
     def "mapped value has value producer when value is provider with content producer"() {
-        def provider = contentProducedByTask()
+        def task = Mock(Task)
+        def provider = contentProducedByTask(task)
 
         def property = propertyWithNoValue()
         property.set(provider)
         def mapped = property.map { it }
 
         expect:
-        mapped.contentProducedByTask
+        assertContentIsProducedByTask(mapped, task)
         mapped.valueProducedByTask
     }
 
@@ -1365,6 +1383,18 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         copy2.get() == someValue()
     }
 
+    void assertContentIsNotProducedByTask(ProviderInternal<?> provider) {
+        def producers = []
+        provider.visitProducerTasks { producers.add(it) }
+        assert producers.isEmpty()
+    }
+
+    void assertContentIsProducedByTask(ProviderInternal<?> provider, Task task) {
+        def producers = []
+        provider.visitProducerTasks { producers.add(it) }
+        assert producers == [task]
+    }
+
     ProviderInternal<T> broken() {
         return new AbstractReadOnlyProvider<T>() {
             @Override
@@ -1383,28 +1413,33 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
      * A provider that provides one of given values each time it is queried, in the order given.
      */
     ProviderInternal<T> provider(T... values) {
-        return new TestProvider<T>(type(), values as List<T>, null, false)
+        return new TestProvider<T>(type(), values as List<T>, null)
     }
 
     ProviderInternal<T> withProducer(Object value) {
-        return new TestProvider<T>(type(), [], value, true)
+        return new TestProvider<T>(type(), [], value)
     }
 
-    ProviderInternal<T> contentProducedByTask() {
-        return new TestProvider<T>(type(), [], null, true)
+    ProviderInternal<T> contentProducedByTask(Task producer) {
+        return new TestProvider<T>(type(), [], producer)
     }
 
     class TestProvider<T> extends AbstractReadOnlyProvider<T> {
         final Class<T> type
         final Iterator<T> values
         final Object producer
-        final boolean contentProducedByTask
 
-        TestProvider(Class<T> type, List<T> values, Object producer, boolean contentProducedByTask) {
-            this.contentProducedByTask = contentProducedByTask
+        TestProvider(Class<T> type, List<T> values, Object producer) {
             this.producer = producer
             this.values = values.iterator()
             this.type = type
+        }
+
+        @Override
+        void visitProducerTasks(Action<? super Task> visitor) {
+            if (producer != null) {
+                visitor.execute(producer)
+            }
         }
 
         @Override

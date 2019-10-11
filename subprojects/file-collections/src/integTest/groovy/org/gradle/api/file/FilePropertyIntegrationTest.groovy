@@ -16,10 +16,11 @@
 
 package org.gradle.api.file
 
+import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
-class FilePropertyIntegrationTest extends AbstractIntegrationSpec {
+class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "can attach a calculated directory to task property"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -819,5 +820,187 @@ class SomeTask extends DefaultTask {
         failure.assertHasDescription("A problem was found with the configuration of task ':consumer' (type 'ConsumerTask').")
         failure.assertHasCause("No value has been specified for property 'bean.inputFile'.")
         failure.assertTasksExecuted(':consumer')
+    }
+
+    def "can query task output file property at any time"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            task producer(type: FileProducer) {
+                output = layout.buildDir.file("text.out")
+            }
+            println("prop = " + producer.output.get())
+            task after {
+                dependsOn(producer)
+                doLast {
+                    println("prop = " + producer.output.get())
+                }
+            }
+            task before {
+                doLast {
+                    println("prop = " + producer.output.get())
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+    }
+
+    def "can query task output directory property at any time"() {
+        taskTypeWithOutputDirectoryProperty()
+        buildFile << """
+            task producer(type: DirProducer) {
+                output = layout.buildDir.dir("dir.out")
+                names = ["a", "b"]
+            }
+            println("prop = " + producer.output.get())
+            task after {
+                dependsOn(producer)
+                doLast {
+                    println("prop = " + producer.output.get())
+                }
+            }
+            task before {
+                doLast {
+                    println("prop = " + producer.output.get())
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+    }
+
+    def "can query mapped task output file location property at any time"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            task producer(type: FileProducer) {
+                output = layout.buildDir.file("text.out")
+            }
+            def prop = producer.output.locationOnly.map { it.asFile.name }
+            println("prop = " + prop.get())
+            task after {
+                dependsOn(producer)
+                doLast {
+                    println("prop = " + prop.get())
+                }
+            }
+            task before {
+                doLast {
+                    println("prop = " + prop.get())
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+    }
+
+    def "can query mapped task output directory location property at any time"() {
+        taskTypeWithOutputDirectoryProperty()
+        buildFile << """
+            task producer(type: DirProducer) {
+                output = layout.buildDir.dir("dir.out")
+                names = ["a", "b"]
+            }
+            def prop = producer.output.locationOnly.map { it.asFile.name }
+            println("prop = " + prop.get())
+            task after {
+                dependsOn(producer)
+                doLast {
+                    println("prop = " + prop.get())
+                }
+            }
+            task before {
+                doLast {
+                    println("prop = " + prop.get())
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+    }
+
+    def "querying the value of a mapped task output file property before the task has started is deprecated"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            task producer(type: FileProducer) {
+                output = layout.buildDir.file("text.out")
+            }
+            def prop = producer.output.map { it.asFile.file ? it.asFile.text : "(null)" }
+            println("prop = " + prop.get())
+        """
+
+        when:
+        executer.expectDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. This will fail with an error in Gradle 7.0.")
+        succeeds("producer")
+
+        then:
+        outputContains("prop = (null)")
+    }
+
+    def "querying the value of a mapped task output file property before the task has completed is deprecated"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            task producer(type: FileProducer) {
+                output = layout.buildDir.file("text.out")
+            }
+            def prop = producer.output.map { it.asFile.file ? it.asFile.text : "(null)" }
+            producer.doFirst {
+                println("prop = " + prop.get())
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. This will fail with an error in Gradle 7.0.")
+        succeeds("producer")
+
+        then:
+        outputContains("prop = (null)")
+    }
+
+    def "querying the value of a mapped task output directory property before the task has started is deprecated"() {
+        taskTypeWithOutputDirectoryProperty()
+        buildFile << """
+            task producer(type: DirProducer) {
+                output = layout.buildDir.dir("dir.out")
+                names = ["a", "b"]
+            }
+            def prop = producer.output.map { it.asFile.directory ? it.asFile.list().length : -1 }
+            println("prop = " + prop.get())
+        """
+
+        when:
+        executer.expectDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. This will fail with an error in Gradle 7.0.")
+        succeeds("producer")
+
+        then:
+        outputContains("prop = -1")
+    }
+
+    def "querying the value of a mapped task output directory property before the task has completed is deprecated"() {
+        taskTypeWithOutputDirectoryProperty()
+        buildFile << """
+            task producer(type: DirProducer) {
+                output = layout.buildDir.dir("dir.out")
+                names = ["a", "b"]
+            }
+            def prop = producer.output.map { it.asFile.directory ? it.asFile.list().length : -1 }
+            producer.doFirst {
+                println("prop = " + prop.get())
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. This will fail with an error in Gradle 7.0.")
+        succeeds("producer")
+
+        then:
+        outputContains("prop = 0")
     }
 }
