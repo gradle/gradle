@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -34,17 +36,21 @@ public interface ProviderInternal<T> extends Provider<T>, TaskDependencyContaine
     Class<T> getType();
 
     /**
-     * Returns true when the <em>value</em> of this provider is produced by a task.
+     * Returns true when the <em>value</em> of this provider is produced by a task. The <em>value</em> is the object returned by {@link #get()} and other query methods.
+     * This is distinct from the <em>content</em>, which is the state of the value or the thing that the value points to. For example, for a file property, the file path
+     * represents the value of the property, and the contents of the file on the file system represents the content of the property.
      *
-     * <p>Note that a task producing the value of this provider is not the same as a task producing the <em>content</em> of
+     * <p>Note that a task producing the value of this provider is not necessarily the same as a task producing the <em>content</em> of
      * the value of this provider.
      */
     boolean isValueProducedByTask();
 
     /**
-     * Returns true when the <em>content</em> of the value of this provider is produced by a task.
+     * Visits the tasks that produce the <em>content</em> of the value of this provider, if any.
+     *
+     * At some point, this method can {@link #maybeVisitBuildDependencies(TaskDependencyResolveContext)} could be merged.
      */
-    boolean isContentProducedByTask();
+    void visitProducerTasks(Action<? super Task> visitor);
 
     /**
      * Visits the build dependencies of this provider, if possible.

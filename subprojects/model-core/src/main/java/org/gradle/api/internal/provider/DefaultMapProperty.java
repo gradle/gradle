@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
@@ -332,24 +334,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
     }
 
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (super.maybeVisitBuildDependencies(context)) {
-            return true;
-        }
-        return value.maybeVisitBuildDependencies(context);
-    }
-
-    @Override
-    public boolean isContentProducedByTask() {
-        return super.isContentProducedByTask() || value.isContentProducedByTask();
-    }
-
-    @Override
-    public boolean isValueProducedByTask() {
-        return value.isValueProducedByTask();
-    }
-
     private class KeySetProvider extends AbstractReadOnlyProvider<Set<K>> {
 
         @Nullable
@@ -436,13 +420,14 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return left.isContentProducedByTask() || right.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            left.visitProducerTasks(visitor);
+            right.visitProducerTasks(visitor);
         }
 
         @Override
         public boolean isValueProducedByTask() {
-            return left.isValueProducedByTask() || right.isContentProducedByTask();
+            return left.isValueProducedByTask() || right.isValueProducedByTask();
         }
     }
 }

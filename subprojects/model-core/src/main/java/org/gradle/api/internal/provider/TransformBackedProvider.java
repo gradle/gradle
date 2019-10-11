@@ -16,7 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.util.DeprecationLogger;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OUT, IN> {
     private final Transformer<? extends OUT, ? super IN> transformer;
@@ -31,11 +36,33 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMappingProvider<OU
     }
 
     @Override
+    public boolean isValueProducedByTask() {
+        // Need the content in order to transform it to produce the value of this provider, so if the content is built by tasks, the value is also built by tasks
+        return super.isValueProducedByTask() || !getProducerTasks().isEmpty();
+    }
+
+    @Override
+    protected void beforeRead() {
+        for (Task producer : getProducerTasks()) {
+            if (!producer.getState().getExecuted()) {
+                DeprecationLogger.nagUserOfDiscontinuedInvocation(String.format("Querying the mapped value of %s before %s has completed", getProvider(), producer));
+                break; // Only report one producer
+            }
+        }
+    }
+
+    @Override
     protected OUT mapValue(IN v) {
         OUT result = transformer.transform(v);
         if (result == null) {
             throw new IllegalStateException(Providers.NULL_TRANSFORMER_RESULT);
         }
         return result;
+    }
+
+    private List<Task> getProducerTasks() {
+        List<Task> producers = new ArrayList<>();
+        getProvider().visitProducerTasks(producers::add);
+        return producers;
     }
 }

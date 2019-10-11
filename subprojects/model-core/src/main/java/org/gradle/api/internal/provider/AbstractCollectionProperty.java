@@ -17,6 +17,8 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
 import org.gradle.api.internal.provider.Collectors.ElementsFromArray;
 import org.gradle.api.internal.provider.Collectors.ElementsFromCollection;
@@ -329,8 +331,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return left.isContentProducedByTask() || right.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            left.visitProducerTasks(visitor);
+            right.visitProducerTasks(visitor);
         }
 
         @Override
