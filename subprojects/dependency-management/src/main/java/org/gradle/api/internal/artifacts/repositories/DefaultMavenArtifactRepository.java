@@ -277,6 +277,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
+    public MetadataSources getMetadataSources() {
+        return metadataSources;
+    }
+
+    @Override
     public void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction) {
         content(Cast.uncheckedCast(configureAction));
     }
@@ -413,6 +418,26 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         @Override
         public void ignoreGradleMetadataRedirection() {
             ignoreGradleMetadataRedirection = true;
+        }
+
+        @Override
+        public boolean isGradleMetadataEnabled() {
+            return gradleMetadata;
+        }
+
+        @Override
+        public boolean isMavenPomEnabled() {
+            return mavenPom;
+        }
+
+        @Override
+        public boolean isArtifactEnabled() {
+            return artifact;
+        }
+
+        @Override
+        public boolean isIgnoreGradleMetadataRedirectionEnabled() {
+            return ignoreGradleMetadataRedirection;
         }
     }
 

@@ -18,6 +18,7 @@ package org.gradle.api.artifacts.repositories;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ComponentMetadataSupplier;
 
 import java.net.URI;
@@ -269,6 +270,14 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
     void metadataSources(Action<? super MetadataSources> configureAction);
 
     /**
+     * Returns the current metadataSources configuration for the repository
+     *
+     * @since 6.0
+     */
+    @Incubating
+    MetadataSources getMetadataSources();
+
+    /**
      * Allows configuring the sources of metadata for a specific repository.
      *
      * @since 4.5
@@ -301,6 +310,42 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
          *
          */
         void ignoreGradleMetadataRedirection();
+
+        /**
+         * Indicates if this repository contains Gradle metadata
+         *
+         * @since 6.0
+         *
+         */
+        @Incubating
+        boolean isGradleMetadataEnabled();
+
+        /**
+         * Indicates if this repository contains Ivy descriptors
+         *
+         * @since 6.0
+         *
+         */
+        @Incubating
+        boolean isIvyDescriptorEnabled();
+
+        /**
+         * Indicates if this repository contains Artifact
+         *
+         * @since 6.0
+         *
+         */
+        @Incubating
+        boolean isArtifactEnabled();
+
+        /**
+         * Indicates if this repository ignores Gradle Metadata Redirection
+         *
+         * @since 6.0
+         *
+         */
+        @Incubating
+        boolean isIgnoreGradleMetadataRedirectionEnabled();
     }
 
 }
