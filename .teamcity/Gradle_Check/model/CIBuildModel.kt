@@ -161,6 +161,7 @@ data class CIBuildModel(
         GradleSubproject("resourcesHttp"),
         GradleSubproject("resourcesS3"),
         GradleSubproject("resourcesSftp"),
+        GradleSubproject("samples"),
         GradleSubproject("scala"),
         GradleSubproject("signing"),
         GradleSubproject("snapshots"),
