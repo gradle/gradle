@@ -3,6 +3,7 @@ package projects
 import configurations.FunctionalTest
 import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.VersionedSettings
 import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.versionedSettings
@@ -25,6 +26,10 @@ class RootProject(model: CIBuildModel) : Project({
             settingsFormat = VersionedSettings.Format.KOTLIN
             param("credentialsStorageType", "credentialsJSON")
         }
+    }
+
+    params {
+        password("teamcity.user.bot-gradle.token", "credentialsJSON:3c4f2642-d985-4d9d-bb10-f1bd1214a0a7", display = ParameterDisplay.HIDDEN)
     }
 
     var prevStage: Stage? = null
