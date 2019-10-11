@@ -30,9 +30,9 @@ class PlayCompositeBuildIntegrationTest extends PlayBinaryApplicationIntegration
     @Override
     String[] getBuildTasks() {
         return super.buildTasks + [
-            ":java-lib:compileJava",
-            ":java-lib:classes",
-            ":java-lib:jar",
+            ":javalibrary:compileJava",
+            ":javalibrary:classes",
+            ":javalibrary:jar",
         ]
     }
 
