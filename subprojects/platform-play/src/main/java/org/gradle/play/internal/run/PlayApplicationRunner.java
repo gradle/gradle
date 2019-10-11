@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.deployment.internal.Deployment;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.WorkerProcess;
@@ -32,9 +32,9 @@ import java.io.File;
 public class PlayApplicationRunner {
     private final WorkerProcessFactory workerFactory;
     private final VersionedPlayRunAdapter adapter;
-    private final ClasspathFingerprinter fingerprinter;
+    private final FileCollectionFingerprinter fingerprinter;
 
-    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, ClasspathFingerprinter fingerprinter) {
+    public PlayApplicationRunner(WorkerProcessFactory workerFactory, VersionedPlayRunAdapter adapter, FileCollectionFingerprinter fingerprinter) {
         this.workerFactory = workerFactory;
         this.adapter = adapter;
         this.fingerprinter = fingerprinter;

@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -51,12 +51,12 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
     private final WorkerDirectoryProvider workerDirectoryProvider;
-    private final ClasspathFingerprinter fingerprinter;
+    private final FileCollectionFingerprinter fingerprinter;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 
-    public DefaultPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public DefaultPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, FileCollectionFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
         this.workerDaemonFactory = workerDaemonFactory;
         this.configurationContainer = configurationContainer;
