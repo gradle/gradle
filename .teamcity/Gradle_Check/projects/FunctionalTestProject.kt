@@ -23,4 +23,3 @@ class FunctionalTestProject(model: CIBuildModel, testConfig: TestCoverage, stage
         functionalTests.forEach(this::buildType)
     }
 }
-
