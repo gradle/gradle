@@ -40,7 +40,7 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.service.scopes.ExecutionGradleServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
@@ -52,7 +52,7 @@ public class WorkExecutorTestFixture {
     private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
 
     WorkExecutorTestFixture(
-        DefaultFileSystemMirror fileSystemMirror,
+        VirtualFileSystem virtualFileSystem,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ValueSnapshotter valueSnapshotter
 
@@ -89,12 +89,12 @@ public class WorkExecutorTestFixture {
         OutputChangeListener outputChangeListener = new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
-                fileSystemMirror.beforeOutputChange();
+                virtualFileSystem.invalidateAll();
             }
 
             @Override
             public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
+                virtualFileSystem.update(affectedOutputPaths, () -> {});
             }
         };
         OutputFilesRepository outputFilesRepository = new OutputFilesRepository() {

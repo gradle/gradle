@@ -18,13 +18,10 @@ package org.gradle.internal.snapshot.impl
 
 import org.gradle.BuildResult
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
-import org.gradle.internal.classpath.CachedJarFileStore
 import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -33,15 +30,7 @@ class DefaultFileSystemMirrorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    DefaultFileSystemMirror mirror
-    TestFile cacheDir
-
-    def setup() {
-        cacheDir = tmpDir.createDir("cache")
-        def fileStore = Stub(CachedJarFileStore)
-        fileStore.fileStoreRoots >> [cacheDir]
-        mirror = new DefaultFileSystemMirror(new DefaultWellKnownFileLocations([fileStore]))
-    }
+    DefaultFileSystemMirror mirror = new DefaultFileSystemMirror()
 
     def "keeps state about a file until task outputs are generated"() {
         def file = tmpDir.file("a")
@@ -65,7 +54,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot
 
-        mirror.beforeOutputChange()
+        mirror.invalidateAll()
 
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null
@@ -94,40 +83,7 @@ class DefaultFileSystemMirrorTest extends Specification {
         mirror.getMetadata(file.path) == metadata
         mirror.getSnapshot(file.path) == fileSnapshot
 
-        mirror.beforeBuildFinished()
-
-        mirror.getMetadata(file.path) == null
-        mirror.getSnapshot(file.path) == null
-    }
-
-    def "does not discard state about a file that lives in the caches when task outputs are generated"() {
-        def file = cacheDir.file("some/dir/a")
-        def fileSnapshot = Stub(RegularFileSnapshot)
-        def metadata = Stub(FileMetadataSnapshot)
-        def buildResult = Stub(BuildResult)
-        def gradle = Stub(GradleInternal)
-
-        given:
-        _ * fileSnapshot.absolutePath >> file.path
-        _ * buildResult.gradle >> gradle
-        _ * gradle.parent >> null
-
-        expect:
-        mirror.getMetadata(file.path) == null
-        mirror.getSnapshot(file.path) == null
-
-        mirror.putMetadata(file.path, metadata)
-        mirror.putSnapshot(fileSnapshot)
-
-        mirror.getMetadata(file.path) == metadata
-        mirror.getSnapshot(file.path) == fileSnapshot
-
-        mirror.beforeOutputChange()
-
-        mirror.getMetadata(file.path) == metadata
-        mirror.getSnapshot(file.path) == fileSnapshot
-
-        mirror.beforeBuildFinished()
+        mirror.invalidateAll()
 
         mirror.getMetadata(file.path) == null
         mirror.getSnapshot(file.path) == null

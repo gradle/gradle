@@ -25,8 +25,6 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
-import org.gradle.internal.snapshot.WellKnownFileLocations
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -44,9 +42,8 @@ class DefaultClasspathFingerprinterTest extends Specification {
     def stringInterner = Stub(StringInterner) {
         intern(_) >> { String s -> s }
     }
-    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def fileSystemSnapshotter = TestFiles.fileSystemSnapshotter(fileSystemMirror, stringInterner)
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemSnapshotter, TestFiles.fileSystem())
+    def virtualFileSystem = TestFiles.virtualFileSystem()
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     InMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new InMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
     def fingerprinter = new DefaultClasspathFingerprinter(
@@ -207,7 +204,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     }
 
     def fingerprint(TestFile... classpath) {
-        fileSystemMirror.beforeOutputChange()
+        virtualFileSystem.invalidateAll()
         def fileCollectionFingerprint = fingerprinter.fingerprint(files(classpath))
         return fileCollectionFingerprint.fingerprints.collect { String path, FileSystemLocationFingerprint fingerprint ->
             [new File(path).getName(), fingerprint.normalizedPath, fingerprint.normalizedContentHash.toString()]

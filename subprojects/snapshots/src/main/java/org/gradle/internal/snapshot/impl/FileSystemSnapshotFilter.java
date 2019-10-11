@@ -35,45 +35,57 @@ public class FileSystemSnapshotFilter {
     public static FileSystemSnapshot filterSnapshot(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshot unfiltered) {
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.noSortingRequired();
         AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-        unfiltered.accept(new FileSystemSnapshotVisitor() {
-            private final RelativePathSegmentsTracker relativePathTracker = new RelativePathSegmentsTracker();
-
-            @Override
-            public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
-                boolean root = relativePathTracker.isRoot();
-                relativePathTracker.enter(directorySnapshot);
-                if (root || predicate.test(directorySnapshot, relativePathTracker.getRelativePath())) {
-                    builder.preVisitDirectory(directorySnapshot);
-                    return true;
-                } else {
-                    hasBeenFiltered.set(true);
-                }
-                relativePathTracker.leave();
-                return false;
-            }
-
-            @Override
-            public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
-                boolean root = relativePathTracker.isRoot();
-                relativePathTracker.enter(fileSnapshot);
-                Iterable<String> relativePathForFiltering = root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath();
-                if (predicate.test(fileSnapshot, relativePathForFiltering)) {
-                    builder.visitFile(fileSnapshot);
-                } else {
-                    hasBeenFiltered.set(true);
-                }
-                relativePathTracker.leave();
-            }
-
-            @Override
-            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
-                relativePathTracker.leave();
-                builder.postVisitDirectory();
-            }
-        });
+        unfiltered.accept(new FilteringVisitor(predicate, builder, hasBeenFiltered));
         if (builder.getResult() == null) {
             return FileSystemSnapshot.EMPTY;
         }
         return hasBeenFiltered.get() ? builder.getResult() : unfiltered;
+    }
+
+    private static class FilteringVisitor implements FileSystemSnapshotVisitor {
+        private final RelativePathSegmentsTracker relativePathTracker;
+        private final SnapshottingFilter.FileSystemSnapshotPredicate predicate;
+        private final FileSystemSnapshotVisitor delegate;
+        private final AtomicBoolean hasBeenFiltered;
+
+        public FilteringVisitor(SnapshottingFilter.FileSystemSnapshotPredicate predicate, FileSystemSnapshotVisitor delegate, AtomicBoolean hasBeenFiltered) {
+            this.predicate = predicate;
+            this.delegate = delegate;
+            this.hasBeenFiltered = hasBeenFiltered;
+            this.relativePathTracker = new RelativePathSegmentsTracker();
+        }
+
+        @Override
+        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            boolean root = relativePathTracker.isRoot();
+            relativePathTracker.enter(directorySnapshot);
+            if (root || predicate.test(directorySnapshot, relativePathTracker.getRelativePath())) {
+                delegate.preVisitDirectory(directorySnapshot);
+                return true;
+            } else {
+                hasBeenFiltered.set(true);
+            }
+            relativePathTracker.leave();
+            return false;
+        }
+
+        @Override
+        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            boolean root = relativePathTracker.isRoot();
+            relativePathTracker.enter(fileSnapshot);
+            Iterable<String> relativePathForFiltering = root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath();
+            if (predicate.test(fileSnapshot, relativePathForFiltering)) {
+                delegate.visitFile(fileSnapshot);
+            } else {
+                hasBeenFiltered.set(true);
+            }
+            relativePathTracker.leave();
+        }
+
+        @Override
+        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            relativePathTracker.leave();
+            delegate.postVisitDirectory(directorySnapshot);
+        }
     }
 }

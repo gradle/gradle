@@ -15,11 +15,11 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
-
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.PersistentStateCache
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.snapshot.impl.TestFileSnapshotter
+import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.language.nativeplatform.internal.Include
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.TestIncludeParser
@@ -38,9 +38,9 @@ class IncrementalCompileProcessorTest extends Specification {
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyResolver = new DummyResolver()
-    def fileSystemSnapshotter = new TestFileSnapshotter()
+    def virtualFileSystem = TestFiles.virtualFileSystem()
     def stateCache = new DummyPersistentStateCache()
-    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(IncludeDirectives.EMPTY, includesParser, dependencyResolver, fileSystemSnapshotter), new TestBuildOperationExecutor())
+    def incrementalCompileProcessor = new IncrementalCompileProcessor(stateCache, new IncrementalCompileFilesFactory(IncludeDirectives.EMPTY, includesParser, dependencyResolver, virtualFileSystem), new TestBuildOperationExecutor())
 
     def source1 = sourceFile("source1")
     def source2 = sourceFile("source2")
@@ -92,17 +92,20 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def added(TestFile sourceFile) {
+        virtualFileSystem.invalidateAll()
         modifiedFiles << sourceFile
         graph[sourceFile] = []
     }
 
     def sourceAdded(TestFile sourceFile, List<File> deps = []) {
+        virtualFileSystem.invalidateAll()
         sourceFiles << sourceFile
         modifiedFiles << sourceFile
         graph[sourceFile] = deps
     }
 
     def modified(TestFile sourceFile, List<File> deps = null) {
+        virtualFileSystem.invalidateAll()
         modifiedFiles << sourceFile
         sourceFile << "More text"
         if (deps != null) {
@@ -111,11 +114,13 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     def sourceRemoved(TestFile sourceFile) {
+        virtualFileSystem.invalidateAll()
         sourceFiles.remove(sourceFile)
         graph.remove(sourceFile)
     }
 
     def dependencyRemoved(TestFile sourceFile) {
+        virtualFileSystem.invalidateAll()
         graph.remove(sourceFile)
         sourceFile.delete()
     }
@@ -510,7 +515,8 @@ class IncrementalCompileProcessorTest extends Specification {
     }
 
     private HashCode getContentHash(File file) {
-        def self = fileSystemSnapshotter.snapshot(file)
-        return self.hash
+        virtualFileSystem.update([file.absolutePath], {})
+        return virtualFileSystem.readRegularFileContentHash(file.getAbsolutePath(), { it })
+            .orElse(new MissingFileSnapshot(file.getAbsolutePath(), file.getName()).hash)
     }
 }

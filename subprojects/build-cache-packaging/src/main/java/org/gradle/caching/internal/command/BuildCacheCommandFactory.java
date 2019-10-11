@@ -26,15 +26,14 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,13 +46,13 @@ public class BuildCacheCommandFactory {
 
     private final BuildCacheEntryPacker packer;
     private final OriginMetadataFactory originMetadataFactory;
-    private final FileSystemMirror fileSystemMirror;
+    private final VirtualFileSystem virtualFileSystem;
     private final Interner<String> stringInterner;
 
-    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, FileSystemMirror fileSystemMirror, Interner<String> stringInterner) {
+    public BuildCacheCommandFactory(BuildCacheEntryPacker packer, OriginMetadataFactory originMetadataFactory, VirtualFileSystem virtualFileSystem, Interner<String> stringInterner) {
         this.packer = packer;
         this.originMetadataFactory = originMetadataFactory;
-        this.fileSystemMirror = fileSystemMirror;
+        this.virtualFileSystem = virtualFileSystem;
         this.stringInterner = stringInterner;
     }
 
@@ -121,8 +120,8 @@ public class BuildCacheCommandFactory {
                 List<FileSystemSnapshot> roots = new ArrayList<>();
 
                 if (treeSnapshot == null) {
-                    fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.missing());
-                    fileSystemMirror.putSnapshot(new MissingFileSnapshot(internedAbsolutePath, root.getName()));
+                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath, root.getName());
+                    virtualFileSystem.updateWithKnownSnapshot(internedAbsolutePath, missingFileSnapshot);
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
                     return;
                 }
@@ -133,12 +132,11 @@ public class BuildCacheCommandFactory {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
                         }
                         roots.add(treeSnapshot);
-                        fileSystemMirror.putSnapshot(treeSnapshot);
+                        virtualFileSystem.updateWithKnownSnapshot(treeSnapshot.getAbsolutePath(), treeSnapshot);
                         break;
                     case DIRECTORY:
                         roots.add(treeSnapshot);
-                        fileSystemMirror.putMetadata(internedAbsolutePath, DefaultFileMetadata.directory());
-                        fileSystemMirror.putSnapshot(treeSnapshot);
+                        virtualFileSystem.updateWithKnownSnapshot(internedAbsolutePath, treeSnapshot);
                         break;
                     default:
                         throw new AssertionError();

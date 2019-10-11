@@ -22,6 +22,7 @@ import org.gradle.caching.internal.CacheableEntity
 import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
+import org.gradle.internal.MutableReference
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
@@ -50,7 +51,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
     def packer = new TarBuildCacheEntryPacker(deleter, fileSystem, streamHasher, stringInterner)
-    def snapshotter = TestFiles.fileSystemSnapshotter()
+    def virtualFileSystem = TestFiles.virtualFileSystem()
 
     abstract protected FileSystem createFileSystem()
     abstract protected Deleter createDeleter()
@@ -87,7 +88,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
-                        return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
+                        return fingerprint(output, fingerprintingStrategy)
                     }
                 }
             case DIRECTORY:
@@ -97,7 +98,7 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
-                        return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
+                        return fingerprint(output, fingerprintingStrategy)
                     }
                 }
             default:
@@ -113,5 +114,13 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
         }
 
         abstract CurrentFileCollectionFingerprint fingerprint()
+    }
+
+    protected CurrentFileCollectionFingerprint fingerprint(File file, FingerprintingStrategy strategy) {
+        MutableReference<CurrentFileCollectionFingerprint> fingerprint = MutableReference.empty()
+        virtualFileSystem.read(file.getAbsolutePath()) { snapshot ->
+            fingerprint.set(DefaultCurrentFileCollectionFingerprint.from([snapshot], strategy))
+        }
+        return fingerprint.get()
     }
 }
