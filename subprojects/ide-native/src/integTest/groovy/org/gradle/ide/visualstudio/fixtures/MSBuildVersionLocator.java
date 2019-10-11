@@ -60,6 +60,12 @@ public class MSBuildVersionLocator {
             msbuild = new TestFile("C:/program files (x86)/MSBuild/" + vsVersion.getMajor() + ".0/Bin/MSBuild.exe");
         }
 
+        // There is some value to the other ways to locate MSBuild (aka matching the MSBuild installation with the VS installation), this is a last chance to try and locate a usable MSBuild installation which will just try to get the latest available MSBuild. We can refine this later.
+        if (!msbuild.exists()) {
+            vsWhereOutput = new TestFile(vswhere).exec("-latest", "-requires", "Microsoft.Component.MSBuild", "-find", "MSBuild\\**\\Bin\\MSBuild.exe");
+            msbuild = new TestFile(vsWhereOutput.getOut().trim());
+        }
+
         if (!msbuild.exists()) {
             throw new IllegalStateException(String.format("This test requires MSBuild %s to be installed. Expected it to be installed at %s.", vsVersion.getMajor(), msbuild));
         }

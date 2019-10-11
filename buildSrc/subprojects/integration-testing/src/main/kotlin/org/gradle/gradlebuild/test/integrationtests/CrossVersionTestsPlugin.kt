@@ -15,6 +15,7 @@
  */
 package org.gradle.gradlebuild.test.integrationtests
 
+import com.google.common.collect.MultimapBuilder
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -57,10 +58,16 @@ class CrossVersionTestsPlugin : Plugin<Project> {
         }
 
         val quickTestVersions = releasedVersions.getTestedVersions(true)
-        releasedVersions.getTestedVersions(false).forEach { targetVersion ->
+        val allTestVersions = releasedVersions.getTestedVersions(false)
+        val testVersionsEnabledInCurrentSplit = getTestVersionsEnabledInCurrentSplit(allTestVersions)
+        if (testVersionsEnabledInCurrentSplit.size != allTestVersions.size) {
+            println("Only enable ${testVersionsEnabledInCurrentSplit.joinToString(", ")} for $name cross version tests")
+        }
+        allTestVersions.forEach { targetVersion ->
             val crossVersionTest = createTestTask("gradle${targetVersion}CrossVersionTest", "forking", sourceSet, TestType.CROSSVERSION, Action {
                 this.description = "Runs the cross-version tests against Gradle $targetVersion"
                 this.systemProperties["org.gradle.integtest.versions"] = targetVersion
+                enabled = targetVersion in testVersionsEnabledInCurrentSplit
             })
 
             allVersionsCrossVersionTests.configure { dependsOn(crossVersionTest) }
@@ -68,5 +75,26 @@ class CrossVersionTestsPlugin : Plugin<Project> {
                 quickFeedbackCrossVersionTests.configure { dependsOn(crossVersionTest) }
             }
         }
+    }
+
+    // Sample the list, for example, allTestVersions is [1.0, 1.1, 1.2, 1.3, 1.4]
+    // -PtestSplit=1/2 return [1.0, 1,2, 1.4]
+    // -PtestSplit=2/2 return [1.1, 1,3]
+    private
+    fun Project.getTestVersionsEnabledInCurrentSplit(allTestVersions: List<String>): List<String> {
+        val testSplit = project.stringPropertyOrEmpty("testSplit")
+        if (testSplit.isBlank()) {
+            return allTestVersions
+        }
+        val currentSplit = testSplit.split("/")[0].toInt()
+        val numberOfSplits = testSplit.split("/")[1].toInt()
+        val buckets = MultimapBuilder.SetMultimapBuilder
+            .hashKeys()
+            .arrayListValues()
+            .build<Int, String>()
+        for ((index, version) in allTestVersions.withIndex()) {
+            buckets.put(index % numberOfSplits, version)
+        }
+        return buckets[currentSplit - 1]
     }
 }

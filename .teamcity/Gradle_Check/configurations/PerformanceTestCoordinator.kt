@@ -8,7 +8,6 @@ import common.distributedPerformanceTestParameters
 import common.gradleWrapper
 import common.performanceTestCommandLine
 import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep.ExecutionMode
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
 import model.CIBuildModel
@@ -32,7 +31,7 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
         param("performance.baselines", type.defaultBaselines)
     }
 
-    fun BuildSteps.runner(runnerName: String, runnerTasks: String, extraParameters: String = "", runnerExecutionMode: BuildStep.ExecutionMode = ExecutionMode.DEFAULT) {
+    fun BuildSteps.runner(runnerName: String, runnerTasks: String, extraParameters: String = "", runnerExecutionMode: ExecutionMode = ExecutionMode.DEFAULT) {
         gradleWrapper {
             name = runnerName
             tasks = ""

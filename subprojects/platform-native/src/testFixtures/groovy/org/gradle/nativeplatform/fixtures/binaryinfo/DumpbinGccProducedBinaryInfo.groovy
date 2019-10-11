@@ -15,18 +15,28 @@
  */
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
-
-
+/**
+ * Binary information for GCC produced binaries. It approximate features required by our tests using dumpbin.exe from Visual Studio. It's not the right solution, but it works for most cases.
+ */
 class DumpbinGccProducedBinaryInfo extends DumpbinBinaryInfo {
-    DumpbinGccProducedBinaryInfo(File binaryFile) {
+    private final List<String> environments
+
+    DumpbinGccProducedBinaryInfo(File binaryFile, List<String> environments) {
         super(binaryFile)
+        this.environments = environments
+    }
+
+    @Override
+    List<Symbol> listSymbols() {
+        // With VS2019, dumpbin is not able to properly list the headers of a MinGW which prevent us from asserting the presence or not of debug symbols. For this, we started to migrate toward using the Linux tools within the MinGW installation.
+        return NMToolFixture.of(environments).listSymbols(binaryFile)
     }
 
     void assertHasDebugSymbols() {
-        assert dumpbinHeaders.readLines().find { it.contains("name (.debug_line)") } != null
+        assert listSymbols().find { it.name.contains(".debug_line") } != null
     }
 
     void assertDoesNotHaveDebugSymbols() {
-        assert dumpbinHeaders.readLines().find { it.contains("name (.debug_line)") } == null
+        assert listSymbols().find { it.name.contains(".debug_line") } == null
     }
 }

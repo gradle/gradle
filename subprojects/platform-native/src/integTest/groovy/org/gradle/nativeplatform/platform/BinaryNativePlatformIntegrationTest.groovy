@@ -424,7 +424,7 @@ model {
             return DumpbinBinaryInfo.findVisualStudio() ? new DumpbinBinaryInfo(file) : new FileArchOnlyBinaryInfo(file)
         }
         if (ReadelfBinaryInfo.canUseReadelf()) {
-            return new ReadelfBinaryInfo(file)
+            return new ReadelfBinaryInfo(file, toolchainUnderTest.runtimeEnv)
         } else {
             return new FileArchOnlyBinaryInfo(file)
         }

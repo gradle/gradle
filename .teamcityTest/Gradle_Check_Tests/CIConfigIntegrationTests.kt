@@ -1,33 +1,34 @@
-
 import common.JvmVendor
 import common.JvmVersion
 import common.NoBuildCache
 import common.Os
-import configurations.shouldBeSkipped
+import configurations.FunctionalTest
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
-import model.GradleSubproject
 import model.SpecificBuild
 import model.Stage
-import model.StageName
 import model.StageNames
+import model.SubprojectSplit
 import model.TestCoverage
 import model.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import projects.RootProject
+import projects.StageProject
 import java.io.File
 
+@Disabled
 class CIConfigIntegrationTests {
     @Test
     fun configurationTreeCanBeGenerated() {
-        val m = CIBuildModel()
-        val p = RootProject(m)
-        printTree(p)
-        assertEquals(p.subProjects.size, m.stages.size + 1)
+        val model = CIBuildModel()
+        val rootProject = RootProject(model)
+        assertEquals(rootProject.subProjects.size, model.stages.size + 1)
+        assertEquals(rootProject.buildTypes.size, model.stages.size)
     }
 
     @Test
@@ -65,25 +66,16 @@ class CIConfigIntegrationTests {
                 }
 
                 stage.functionalTests.forEach { testCoverage ->
-                    m.subProjects.forEach { subProject ->
-                        if (subProject.containsSlowTests && stage.omitsSlowProjects) {
+                    m.buildTypeBuckets.forEach { subprojectBucket ->
+                        if (subprojectBucket.containsSlowTests() && stage.omitsSlowProjects) {
                             return@forEach
                         }
-                        if (shouldBeSkipped(subProject, testCoverage)) {
+                        if (subprojectBucket.shouldBeSkipped(testCoverage)) {
                             return@forEach
                         }
-                        if (subProject.hasOnlyUnitTests()) {
-                            return@forEach
-                        } else if (subProject.unitTests && testCoverage.testType.unitTests) {
-                            functionalTestCount++
-                        } else if (subProject.functionalTests && testCoverage.testType.functionalTests) {
-                            functionalTestCount++
-                        } else if (subProject.crossVersionTests && testCoverage.testType.crossVersionTests) {
-                            functionalTestCount++
+                        if (subprojectBucket.hasTestsOf(testCoverage.testType)) {
+                            functionalTestCount += subprojectBucket.createFunctionalTestsFor(m, stage, testCoverage).size
                         }
-                    }
-                    if (testCoverage.testType.unitTests) {
-                        functionalTestCount++ // All unit tests build type
                     }
                     if (testCoverage.testType == TestType.soak) {
                         functionalTestCount++
@@ -104,69 +96,103 @@ class CIConfigIntegrationTests {
     @Test
     fun canDeactivateBuildCacheAndAdjustCIModel() {
         val m = CIBuildModel(
-                projectPrefix = "Gradle_BuildCacheDeactivated_",
-                parentBuildCache = NoBuildCache,
-                childBuildCache = NoBuildCache,
-                stages = listOf(
-                        Stage(StageNames.QUICK_FEEDBACK,
-                            specificBuilds = listOf(
-                                    SpecificBuild.CompileAll,
-                                    SpecificBuild.SanityCheck,
-                                    SpecificBuild.BuildDistributions),
-                            functionalTests = listOf(
-                                    TestCoverage(1, TestType.quick, Os.linux, JvmVersion.java8),
-                                    TestCoverage(2, TestType.quick, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
-                            omitsSlowProjects = true)
-                )
+            projectPrefix = "Gradle_BuildCacheDeactivated_",
+            parentBuildCache = NoBuildCache,
+            childBuildCache = NoBuildCache,
+            stages = listOf(
+                Stage(StageNames.QUICK_FEEDBACK,
+                    specificBuilds = listOf(
+                        SpecificBuild.CompileAll,
+                        SpecificBuild.SanityCheck,
+                        SpecificBuild.BuildDistributions),
+                    functionalTests = listOf(
+                        TestCoverage(1, TestType.quick, Os.linux, JvmVersion.java8),
+                        TestCoverage(2, TestType.quick, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
+                    omitsSlowProjects = true)
+            )
         )
         val p = RootProject(m)
         printTree(p)
         assertTrue(p.subProjects.size == 1)
     }
 
+    fun Project.searchSubproject(id: String): StageProject = (subProjects.find { it.id!!.value == id } as StageProject)
+
+    @Test
+    fun canSplitLargeProjects() {
+        val model = CIBuildModel()
+        val rootProject = RootProject(model)
+        val largeSubprojects = model.buildTypeBuckets.filterIsInstance<SubprojectSplit>()
+
+        fun FunctionalTest.isLargeProjectSplit(): Boolean {
+            return largeSubprojects.any { this.name.contains("(${it.subproject.name})") || this.name.contains("(${it.subproject.name}_") }
+        }
+
+        fun find(buildTypeName: String): String {
+            // Test Coverage - AllVersionsCrossVersion Java8 Oracle Linux (core_2) -> core_2
+            return """\((\w+(_\d+)?)\)""".toRegex().find(buildTypeName)!!.groupValues[1]
+        }
+
+        fun assertAllSplitsArePresent(functionalTests: List<FunctionalTest>) {
+            val projectNames = functionalTests.map { find(it.name) }.toSet()
+            val expectedProjectNames = largeSubprojects.flatMap { bucket ->
+                (1..bucket.total).map {
+                    if (it == 1) {
+                        bucket.subproject.name
+                    } else {
+                        "${bucket.subproject.name}_$it"
+                    }
+                }
+            }.toSet()
+            assertEquals(expectedProjectNames, projectNames)
+        }
+
+        fun assertCorrectParameters(functionalTests: List<FunctionalTest>) {
+            functionalTests.forEach {
+                // e.g. core_2
+                val projectNameWithSplit = find(it.name)
+                // e.g. core
+                val projectName = projectNameWithSplit.substringBefore('_')
+
+                val numberOfSplits = largeSubprojects.find { it.subproject.name == projectName }!!.total
+                val runnerStep = it.steps.items.find { it.name == "GRADLE_RUNNER" } as GradleBuildStep
+                if (projectNameWithSplit.contains("_")) {
+                    val split = projectNameWithSplit.substringAfter('_')
+                    assertTrue(runnerStep.tasks!!.startsWith("clean $projectName:") && runnerStep.gradleParams!!.contains("-PtestSplit=$split/$numberOfSplits"))
+                } else {
+                    assertTrue(runnerStep.tasks!!.startsWith("clean $projectName:") && runnerStep.gradleParams!!.contains("-PtestSplit=1/$numberOfSplits"))
+                }
+            }
+        }
+
+        fun assertLargeProjectsAreSplittedCorrectly(id: String) {
+            val functionalTestsWithSplit = rootProject.searchSubproject(id).functionalTests.filter(FunctionalTest::isLargeProjectSplit)
+
+            assertAllSplitsArePresent(functionalTestsWithSplit)
+            assertCorrectParameters(functionalTestsWithSplit)
+        }
+
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_QuickFeedbackLinuxOnly")
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_QuickFeedback")
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_ReadyforMerge")
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_ReadyforNightly")
+        assertLargeProjectsAreSplittedCorrectly("Gradle_Check_Stage_ReadyforRelease")
+    }
+
     @Test
     fun canDeferSlowTestsToLaterStage() {
+        val model = CIBuildModel()
+        val rootProject = RootProject(model)
+        val slowSubprojects = model.subProjects.filter { it.containsSlowTests }.map { it.name }
 
-        data class DefaultStageName(override val stageName: String, override val description: String) : StageName
+        fun FunctionalTest.isSlow(): Boolean = slowSubprojects.any { name.contains(it) }
+        fun Project.subprojectContainsSlowTests(id: String): Boolean = searchSubproject(id).functionalTests.any(FunctionalTest::isSlow)
 
-        val m = CIBuildModel(
-            projectPrefix = "",
-            parentBuildCache = NoBuildCache,
-            childBuildCache = NoBuildCache,
-            stages = listOf(
-                Stage(DefaultStageName("Stage1", "Stage1 description"),
-                    functionalTests = listOf(
-                        TestCoverage(1, TestType.quick, Os.linux, JvmVersion.java8),
-                        TestCoverage(2, TestType.quick, Os.windows, JvmVersion.java8)),
-                    omitsSlowProjects = true),
-                Stage(DefaultStageName("Stage2", "Stage2 description"),
-                    functionalTests = listOf(
-                        TestCoverage(3, TestType.noDaemon, Os.linux, JvmVersion.java8),
-                        TestCoverage(4, TestType.noDaemon, Os.windows, JvmVersion.java8)),
-                    omitsSlowProjects = true),
-                Stage(DefaultStageName("Stage3", "Stage3 description"),
-                    functionalTests = listOf(
-                        TestCoverage(5, TestType.platform, Os.linux, JvmVersion.java8),
-                        TestCoverage(6, TestType.platform, Os.windows, JvmVersion.java8)),
-                    omitsSlowProjects = false),
-                Stage(DefaultStageName("Stage4", "Stage4 description"),
-                    functionalTests = listOf(
-                        TestCoverage(7, TestType.parallel, Os.linux, JvmVersion.java8),
-                        TestCoverage(8, TestType.parallel, Os.windows, JvmVersion.java8)),
-                    omitsSlowProjects = false)
-            ),
-            subProjects = listOf(
-                GradleSubproject("fastBuild"),
-                GradleSubproject("slowBuild", containsSlowTests = true)
-            )
-        )
-        val p = RootProject(m)
-        assertTrue(!p.hasSubProject("Stage1", "deferred"))
-        assertTrue(!p.hasSubProject("Stage2", "deferred"))
-        assertTrue(p.hasSubProject("Stage3", "deferred"))
-        assertTrue(!p.hasSubProject("Stage4", "deferred"))
-        assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("Quick", "slowBuild"))
-        assertTrue(p.findSubProject("Stage3", "deferred")!!.hasBuildType("NoDaemon", "slowBuild"))
+        assertTrue(!rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_QuickFeedbackLinuxOnly"))
+        assertTrue(!rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_QuickFeedback"))
+        assertTrue(!rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_ReadyforMerge"))
+        assertTrue(rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_ReadyforNightly"))
+        assertTrue(rootProject.subprojectContainsSlowTests("Gradle_Check_Stage_ReadyforRelease"))
     }
 
     private fun Project.hasSubProject(vararg patterns: String): Boolean {
@@ -201,9 +227,10 @@ class CIConfigIntegrationTests {
     @Test
     fun allSubprojectsDefineTheirUnitTestPropertyCorrectly() {
         val projectsWithUnitTests = CIBuildModel().subProjects.filter { it.unitTests }
-        val projectFoldersWithUnitTests = subProjectFolderList().filter { File(it, "src/test").exists() &&
-                    it.name != "docs" && // docs:check is part of Sanity Check
-                    it.name != "architecture-test" // architectureTest:test is part of Sanity Check
+        val projectFoldersWithUnitTests = subProjectFolderList().filter {
+            File(it, "src/test").exists() &&
+                it.name != "docs" && // docs:check is part of Sanity Check
+                it.name != "architecture-test" // architectureTest:test is part of Sanity Check
         }
         assertFalse(projectFoldersWithUnitTests.isEmpty())
         projectFoldersWithUnitTests.forEach {
@@ -212,33 +239,12 @@ class CIConfigIntegrationTests {
     }
 
     @Test
-    fun allSubprojectsWithOnlyUnitTestsAreInASingleProject() {
-        val model = CIBuildModel()
-        val unitTestBuildTypes = RootProject(model).subProjects
-            .flatMap { it.subProjects }
-            .flatMap { it.buildTypes.filter { it.name.contains("AllUnitTests") } }
-        val unitTestProjects = model.subProjects.filter { it.hasOnlyUnitTests() }
-
-        assertTrue(unitTestBuildTypes.isNotEmpty())
-        unitTestBuildTypes.forEach {
-            val gradleSteps = it.steps.items.filterIsInstance<GradleBuildStep>()
-            assertTrue(gradleSteps.isNotEmpty())
-            gradleSteps.forEach { step ->
-                unitTestProjects.forEach { project ->
-                    if (step.name !in listOf("VERIFY_TEST_FILES_CLEANUP", "KILL_PROCESSES_STARTED_BY_GRADLE", "KILL_PROCESSES_STARTED_BY_GRADLE_RERUN")) {
-                        assertTrue(step.tasks!!.contains(project.name), "Step $step")
-                    }
-                }
-            }
-        }
-    }
-
-    @Test
     fun allSubprojectsDefineTheirFunctionTestPropertyCorrectly() {
         val projectsWithFunctionalTests = CIBuildModel().subProjects.filter { it.functionalTests }
-        val projectFoldersWithFunctionalTests = subProjectFolderList().filter { File(it, "src/integTest").exists() &&
-                    it.name != "distributions" && // distributions:integTest is part of Build Distributions
-                    it.name != "soak" // soak tests have their own test category
+        val projectFoldersWithFunctionalTests = subProjectFolderList().filter {
+            File(it, "src/integTest").exists() &&
+                it.name != "distributions" && // distributions:integTest is part of Build Distributions
+                it.name != "soak" // soak tests have their own test category
         }
         assertFalse(projectFoldersWithFunctionalTests.isEmpty())
         projectFoldersWithFunctionalTests.forEach {

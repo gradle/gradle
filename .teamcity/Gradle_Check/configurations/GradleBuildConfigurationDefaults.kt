@@ -17,15 +17,6 @@ import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
 import model.CIBuildModel
-import model.GradleSubproject
-import model.TestCoverage
-
-fun shouldBeSkipped(subProject: GradleSubproject, testConfig: TestCoverage): Boolean {
-    // TODO: Hacky. We should really be running all the subprojects on macOS
-    // But we're restricting this to just a subset of projects for now
-    // since we only have a small pool of macOS agents
-    return testConfig.os.ignoredSubprojects.contains(subProject.name)
-}
 
 val m2CleanScriptUnixLike = """
     REPO=%teamcity.agent.jvm.user.home%/.m2/repository
@@ -99,7 +90,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
                     "-PteamCityUsername=%teamcity.username.restbot%" +
                     "-PteamCityPassword=%teamcity.password.restbot%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { configurations.buildScanTag(it) }
+                    buildScanTags.map { buildScanTag(it) }
                 ).joinToString(separator = " ")
         }
     }
@@ -121,7 +112,7 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
                     "-PteamCityUsername=%teamcity.username.restbot%" +
                     "-PteamCityPassword=%teamcity.password.restbot%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { configurations.buildScanTag(it) } +
+                    buildScanTags.map { buildScanTag(it) } +
                     "-PonlyPreviousFailedTestClasses=true" +
                     "-Dscan.tag.RERUN_TESTS" +
                     "-PgithubToken=%github.ci.oauth.token%"
