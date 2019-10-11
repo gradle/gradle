@@ -89,4 +89,6 @@
     <suppress checks="ConstantName"
               files=".*[/\\]subprojects[/\\]architecture-test[/\\]src[/\\]test[/\\]java[/\\]org[/\\]gradle[/\\].+" />
 
+    <!-- Ignore all checks for the generated sources of org.gradle.samples plugin -->
+    <suppress checks=".*" files=".*[/\\]subprojects[/\\]docs[/\\]build[/\\]generated-source-sets[/\\].+" />
 </suppressions>
