@@ -37,7 +37,6 @@ open class UpdateBranchStatus : DefaultTask() {
 
     private
     fun publishBranchStatus(branch: String) {
-        project.execAndGetStdout("git", "tag", "-f", "green-$branch")
-        project.execAndGetStdout("git", "push", "-f", "origin", "green-$branch")
+        project.execAndGetStdout("git", "push", "origin", "$branch:green-$branch")
     }
 }
