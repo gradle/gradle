@@ -439,24 +439,6 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         'samples-dir'       : 'src/samples'
 }
 
-tasks.withType(AsciidoctorTask).matching { it.name.contains("Sample") }.configureEach {
-    options doctype: 'book'
-
-    inputs.file("$srcDocsDir/css/manual.css")
-            .withPropertyName("manual")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.dir(file("src/main/resources"))
-            .withPropertyName("resources")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-
-    attributes stylesdir    : file('src/docs/css/').absolutePath,
-            stylesheet          : 'manual.css',
-            nofooter            : true,
-            sectanchors         : true,
-            sectlinks           : true,
-            linkattrs           : true
-}
-
 def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
     dependsOn(userguideFlattenSources)
     sourceDir = userguideFlattenSources.get().destinationDir
@@ -589,6 +571,26 @@ def checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", org.gradle
 
 tasks.named("check") {
     dependsOn(checkDeadInternalLinks)
+}
+
+extensions.getByName('samples').configureEach { sample ->
+    sample.asciidoctorTask.configure {
+        options doctype: 'book'
+
+        inputs.file("$srcDocsDir/css/manual.css")
+                .withPropertyName("manual")
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+        inputs.dir(file("src/main/resources"))
+                .withPropertyName("resources")
+                .withPathSensitivity(PathSensitivity.RELATIVE)
+
+        attributes stylesdir: file('src/docs/css/').absolutePath,
+                stylesheet: 'manual.css',
+                nofooter: true,
+                sectanchors: true,
+                sectlinks: true,
+                linkattrs: true
+    }
 }
 
 extensions.getByName('samples').create('javaGradlePlugin') {
