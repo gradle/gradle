@@ -45,6 +45,47 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    def "can set build path"() {
+        given:
+        settingsFile << "rootProject.name = 'parent'"
+        buildFile << """
+            task b1(type:GradleBuild) {
+                tasks = ["t"]
+                buildName = 'bp'
+            }
+            task t
+        """
+
+        when:
+        run 'b1'
+
+        then:
+        executed(":bp:t")
+    }
+
+    def "fails when build path is not unique"() {
+        given:
+        settingsFile << "rootProject.name = 'parent'"
+        buildFile << """
+            task b1(type:GradleBuild) {
+                tasks = ["t"]
+                buildName = 'bp'
+            }
+            task b2(type:GradleBuild) {
+                tasks = ["t"]
+                buildName = 'bp'
+            }
+            task t
+        """
+
+        when:
+        fails 'b1', 'b2'
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':b2'")
+        failure.assertHasCause("Included build $testDirectory has build path :bp which is the same as included build $testDirectory")
+    }
+
     @Unroll
     def "shows deprecation warning when accessing #displayName when configuring GradleBuild task"() {
         given:
@@ -218,6 +259,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
                 task otherBuild(type:GradleBuild) {
                     dir = "\${rootProject.file('subprojects')}"
                     tasks = ['log']
+                    buildName = project.name + "nested"
                 }
                 otherBuild.doFirst {
                     ${barrier.callFromBuildUsingExpression('project.name + "-started"')}

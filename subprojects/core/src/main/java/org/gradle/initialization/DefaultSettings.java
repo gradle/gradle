@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
-    public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
     private ScriptSource settingsScript;
 
     private StartParameter startParameter;
@@ -260,6 +259,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
     @Override
     public ClassLoaderScope getClassLoaderScope() {
         return classLoaderScope;
+    }
+
+    @Override
+    public File getBuildSrcDir() {
+        return new File(getRootDir(), BUILD_SRC);
     }
 
     protected ServiceRegistry getServices() {

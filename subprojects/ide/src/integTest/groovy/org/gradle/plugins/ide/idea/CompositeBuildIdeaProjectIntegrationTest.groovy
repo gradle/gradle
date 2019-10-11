@@ -228,7 +228,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
             group = 'org.test'
             version = '1.0'
 """
-        includeBuild buildC
+        includeBuild buildC, "buildC"
 
         when:
         idea()
@@ -496,10 +496,18 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    def includeBuild(TestFile build) {
-        buildA.settingsFile << """
-includeBuild '${build.toURI()}'
-"""
+    def includeBuild(TestFile build, String name = null) {
+        if (name) {
+            buildA.settingsFile << """
+                includeBuild '${build.toURI()}', {
+                    name = '$name'
+                }
+            """
+        } else {
+            buildA.settingsFile << """
+                includeBuild '${build.toURI()}'
+            """
+        }
     }
 
     def idea(TestFile build = buildA) {

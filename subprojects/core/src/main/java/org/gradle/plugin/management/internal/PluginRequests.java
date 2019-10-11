@@ -16,9 +16,32 @@
 
 package org.gradle.plugin.management.internal;
 
+import java.util.Collections;
+import java.util.Iterator;
+
 public interface PluginRequests extends Iterable<PluginRequestInternal> {
+
+    PluginRequests EMPTY = new EmptyPluginRequests();
 
     boolean isEmpty();
 
     int size();
+
+    class EmptyPluginRequests implements PluginRequests {
+
+        @Override
+        public boolean isEmpty() {
+            return true;
+        }
+
+        @Override
+        public int size() {
+            return 0;
+        }
+
+        @Override
+        public Iterator<PluginRequestInternal> iterator() {
+            return Collections.emptyIterator();
+        }
+    }
 }

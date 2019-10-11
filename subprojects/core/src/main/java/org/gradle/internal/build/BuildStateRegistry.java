@@ -19,6 +19,7 @@ package org.gradle.internal.build;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 /**
@@ -89,5 +90,5 @@ public interface BuildStateRegistry {
     /**
      * Creates a new standalone nested build tree.
      */
-    NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner);
+    NestedRootBuild addNestedBuildTree(BuildDefinition buildDefinition, BuildState owner, @Nullable String buildName);
 }

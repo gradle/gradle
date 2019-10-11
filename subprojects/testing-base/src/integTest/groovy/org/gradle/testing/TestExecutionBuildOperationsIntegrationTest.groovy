@@ -95,8 +95,8 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest')
         settingsFile.text = """
             rootProject.name = "composite"
-            includeBuild "emitsBuildOperationsForJUnitTests"
-            includeBuild "emitsBuildOperationsForTestNgTests"
+            includeBuild "emitsBuildOperationsForJUnitTests", { name = 'junit' }
+            includeBuild "emitsBuildOperationsForTestNgTests", { name = 'testng' }
         """
         buildFile.text = """
             task testng {

@@ -28,7 +28,7 @@ import static org.gradle.util.CollectionUtils.collect;
 public class InjectedPluginResolver {
     public PluginRequests resolveAll(List<DefaultInjectedPluginDependency> requests) {
         if (requests.isEmpty()) {
-            return DefaultPluginRequests.EMPTY;
+            return PluginRequests.EMPTY;
         }
         return new DefaultPluginRequests(convert(requests));
     }

@@ -20,7 +20,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.plugins.PluginAwareInternal
 
-import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 
@@ -44,7 +43,7 @@ class PluginRequestsHandler @Inject constructor(
 
         val effectivePluginRequests = pluginRequests
             ?.let { withAutoAppliedPluginsFor(target, it) }
-            ?: DefaultPluginRequests.EMPTY
+            ?: PluginRequests.EMPTY
 
         pluginRequestApplicator.applyPlugins(
             effectivePluginRequests,

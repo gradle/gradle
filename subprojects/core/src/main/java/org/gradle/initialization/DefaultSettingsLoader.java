@@ -17,16 +17,19 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.GradleException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.util.Path;
 
 /**
  * Handles locating and processing setting.gradle files.  Also deals with the buildSrc module, since that modules is
  * found after settings is located, but needs to be built before settings is processed.
  */
 public class DefaultSettingsLoader implements SettingsLoader {
+    public static final String BUILD_SRC_PROJECT_PATH = ":" + SettingsInternal.BUILD_SRC;
     private ISettingsFinder settingsFinder;
     private SettingsProcessor settingsProcessor;
 
@@ -69,7 +72,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
     private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter) {
         StartParameter noSearchParameter = startParameter.newInstance();
-        ((StartParameterInternal)noSearchParameter).useEmptySettingsWithoutDeprecationWarning();
+        ((StartParameterInternal) noSearchParameter).useEmptySettingsWithoutDeprecationWarning();
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
 
         // Set explicit build file, if required
@@ -92,7 +95,19 @@ public class DefaultSettingsLoader implements SettingsLoader {
     private SettingsInternal findSettingsAndLoadIfAppropriate(GradleInternal gradle,
                                                               StartParameter startParameter) {
         SettingsLocation settingsLocation = findSettings(startParameter);
-        return settingsProcessor.process(gradle, settingsLocation, gradle.getClassLoaderScope(), startParameter);
+        SettingsInternal settings = settingsProcessor.process(gradle, settingsLocation, gradle.getClassLoaderScope(), startParameter);
+        validate(settings);
+        return settings;
+    }
+
+    private void validate(SettingsInternal settings) {
+        settings.getProjectRegistry().getAllProjects().forEach(project -> {
+            if (project.getPath().equals(BUILD_SRC_PROJECT_PATH)) {
+                Path buildPath = settings.getGradle().getIdentityPath();
+                String suffix = buildPath == Path.ROOT ? "" : " (in build " + buildPath + ")";
+                throw new GradleException("'" + SettingsInternal.BUILD_SRC + "' cannot be used as a project name as it is a reserved name" + suffix);
+            }
+        });
     }
 
     private SettingsLocation findSettings(StartParameter startParameter) {

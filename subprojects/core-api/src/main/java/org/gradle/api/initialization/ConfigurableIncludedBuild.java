@@ -17,6 +17,7 @@
 package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencySubstitutions;
 
 /**
@@ -25,6 +26,15 @@ import org.gradle.api.artifacts.DependencySubstitutions;
  * @since 3.1
  */
 public interface ConfigurableIncludedBuild extends IncludedBuild {
+
+    /**
+     * Sets the name of the included build.
+     *
+     * @param name the name of the build
+     * @since 6.0
+     */
+    @Incubating
+    void setName(String name);
 
     /**
      * Configures the dependency substitution rules for this included build.

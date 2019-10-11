@@ -22,6 +22,7 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.composite.ChildBuildRegisteringSettingsLoader;
 import org.gradle.internal.composite.CommandLineIncludedBuildSettingsLoader;
 import org.gradle.internal.composite.CompositeBuildSettingsLoader;
+import org.gradle.internal.reflect.Instantiator;
 
 public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final ISettingsFinder settingsFinder;
@@ -29,13 +30,15 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final BuildStateRegistry buildRegistry;
     private final ProjectStateRegistry projectRegistry;
     private final PublicBuildPath publicBuildPath;
+    private final Instantiator instantiator;
 
-    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath) {
+    public DefaultSettingsLoaderFactory(ISettingsFinder settingsFinder, SettingsProcessor settingsProcessor, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
         this.settingsFinder = settingsFinder;
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
         this.projectRegistry = projectRegistry;
         this.publicBuildPath = publicBuildPath;
+        this.instantiator = instantiator;
     }
 
     @Override
@@ -46,7 +49,9 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
                     defaultSettingsLoader()
                 ),
                 buildRegistry,
-                publicBuildPath),
+                publicBuildPath,
+                instantiator
+            ),
             buildRegistry);
     }
 
@@ -55,7 +60,8 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
         return new ChildBuildRegisteringSettingsLoader(
             defaultSettingsLoader(),
             buildRegistry,
-            publicBuildPath
+            publicBuildPath,
+            instantiator
         );
     }
 

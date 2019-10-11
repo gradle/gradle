@@ -24,7 +24,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.FileUtils
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
-import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
 class DefaultSettingsLoaderTest extends Specification {
@@ -42,12 +41,14 @@ class DefaultSettingsLoaderTest extends Specification {
     void findAndLoadSettingsWithExistingSettings() {
         when:
         def projectRegistry = Mock(ProjectRegistry)
-        def projectDescriptor = Mock(DefaultProjectDescriptor)
+        def projectDescriptor = Mock(DefaultProjectDescriptor) {
+            getPath() >> ":"
+        }
         def services = Mock(ServiceRegistry)
         startParameter.setCurrentDir(settingsLocation.getSettingsDir())
 
         settings.getProjectRegistry() >> projectRegistry
-        projectRegistry.getAllProjects() >> WrapUtil.toSet(projectDescriptor)
+        projectRegistry.getAllProjects() >> Collections.singleton(projectDescriptor)
         projectDescriptor.getProjectDir() >> settingsLocation.settingsDir
         projectDescriptor.getBuildFile() >> new File(settingsLocation.getSettingsDir(), "build.gradle")
         gradle.getStartParameter() >> startParameter

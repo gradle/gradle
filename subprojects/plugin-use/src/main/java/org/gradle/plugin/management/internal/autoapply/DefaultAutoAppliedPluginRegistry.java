@@ -47,7 +47,7 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
         if (shouldApplyScanPlugin(target)) {
             return new DefaultPluginRequests(Collections.singletonList(createScanPluginRequest()));
         }
-        return DefaultPluginRequests.EMPTY;
+        return PluginRequests.EMPTY;
     }
 
     @Override

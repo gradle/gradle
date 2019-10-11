@@ -25,7 +25,7 @@ import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -38,7 +38,6 @@ import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.initialization.NestedBuildFactory;
-import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.AbstractBuildState;
 import org.gradle.internal.build.BuildState;
@@ -54,7 +53,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Set;
 
-public class DefaultIncludedBuild extends AbstractBuildState implements IncludedBuildState, ConfigurableIncludedBuild, Stoppable {
+public class DefaultIncludedBuild extends AbstractBuildState implements IncludedBuildState, IncludedBuild, Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuild.class);
 
     private final BuildIdentifier buildIdentifier;
@@ -63,12 +62,8 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     private final boolean isImplicit;
     private final BuildState owner;
     private final WorkerLeaseRegistry.WorkerLease parentLease;
-    private ImmutableActionSet<DependencySubstitutions> dependencySubstitutionActions = ImmutableActionSet.empty();
-
-    private boolean resolvedDependencySubstitutions;
 
     private final GradleLauncher gradleLauncher;
-    private String name;
     private Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
     public DefaultIncludedBuild(BuildIdentifier buildIdentifier, Path identityPath, BuildDefinition buildDefinition, boolean isImplicit, BuildState owner, WorkerLeaseRegistry.WorkerLease parentLease) {
@@ -103,7 +98,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
-    public ConfigurableIncludedBuild getModel() {
+    public IncludedBuild getModel() {
         return this;
     }
 
@@ -120,10 +115,7 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
 
     @Override
     public String getName() {
-        if (name == null) {
-            name = getLoadedSettings().getRootProject().getName();
-        }
-        return name;
+        return identityPath.getName();
     }
 
     @Override
@@ -141,37 +133,17 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
 
     @Override
     public Path getCurrentPrefixForProjectsInChildBuilds() {
-        if (name != null) {
-            return owner.getCurrentPrefixForProjectsInChildBuilds().child(name);
-        } else {
-            return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildIdentifier.getName());
-        }
+        return owner.getCurrentPrefixForProjectsInChildBuilds().child(buildIdentifier.getName());
     }
 
     @Override
     public Path getIdentityPathForProject(Path projectPath) {
-        GradleInternal parentBuild = getLoadedSettings().getGradle().getParent();
-        Path rootPath;
-        if (parentBuild == null) {
-            rootPath = Path.ROOT.child(getName());
-        } else {
-            rootPath = parentBuild.getIdentityPath().child(getName());
-        }
-        return rootPath.append(projectPath);
+        return getIdentityPath().append(projectPath);
     }
 
     @Override
-    public void dependencySubstitution(Action<? super DependencySubstitutions> action) {
-        if (resolvedDependencySubstitutions) {
-            throw new IllegalStateException("Cannot configure included build after dependency substitutions are resolved.");
-        }
-        dependencySubstitutionActions = dependencySubstitutionActions.add(action);
-    }
-
-    @Override
-    public Action<DependencySubstitutions> getRegisteredDependencySubstitutions() {
-        resolvedDependencySubstitutions = true;
-        return dependencySubstitutionActions;
+    public Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions() {
+        return buildDefinition.getDependencySubstitutions();
     }
 
     @Override
@@ -203,8 +175,8 @@ public class DefaultIncludedBuild extends AbstractBuildState implements Included
     }
 
     @Override
-    public void loadSettings() {
-        gradleLauncher.getLoadedSettings();
+    public SettingsInternal loadSettings() {
+        return gradleLauncher.getLoadedSettings();
     }
 
     @Override
