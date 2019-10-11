@@ -20,20 +20,21 @@ import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.util.GradleVersion
+import org.junit.AssumptionViolatedException
 import spock.lang.Specification
 
 import static org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner.toBaselineVersions
 
 class CrossVersionPerformanceTestRunnerTest extends Specification {
-    private GradleDistribution gradle60 =
-        new DefaultGradleDistribution(GradleVersion.version('6.0'), null, null)
-    private GradleDistribution gradle61 =
-        new DefaultGradleDistribution(GradleVersion.version('6.1'), null, null)
     private ReleasedVersionDistributions distributions = Mock()
 
     def setup() {
-        _ * distributions.mostRecentRelease >> gradle61
-        _ * distributions.all >> [gradle60, gradle61]
+        _ * distributions.mostRecentRelease >> dist('6.1')
+        _ * distributions.all >> ['2.14.1', '3.5.1', '4.10.2', '6.1'].collect { dist(it) }
+    }
+
+    private GradleDistribution dist(String version) {
+        new DefaultGradleDistribution(GradleVersion.version(version), null, null)
     }
 
     def 'nightly can be used if minimumBaseVersion matched'() {
@@ -46,9 +47,18 @@ class CrossVersionPerformanceTestRunnerTest extends Specification {
         toBaselineVersions(distributions, ['6.0-20190823180744+0000'], '6.1')
 
         then:
-        def e = thrown(RuntimeException)
-        e.message == 'All versions are filtered out by minimumBaseVersion!'
+        def e = thrown(AssertionError)
+        e.message.contains('No versions selected: [6.0-20190823180744+0000]')
     }
+
+    def 'Ignore test if all versions are filtered out by minimumBaseVersion in historical performance test'() {
+        when:
+        toBaselineVersions(distributions, ['2.14.1', '3.5.1', '4.10.2', 'last'], '6.2')
+
+        then:
+        thrown(AssumptionViolatedException)
+    }
+
 
     def 'lastest release is added if no versions specified'() {
         expect:
