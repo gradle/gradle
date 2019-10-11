@@ -16,8 +16,6 @@
 
 package org.gradle.play.integtest.continuous
 
-import spock.lang.Ignore
-
 /**
  * Test that app requests block while a build is in progress when using `--continuous`.
  */
@@ -28,7 +26,6 @@ class PlayContinuousBuildReloadWaitingIntegrationTest extends AbstractPlayReload
         addPendingChangesHook()
     }
 
-    @Ignore("Ignored till fixed - caused by #10849")
     def "wait for changes to be built when a request comes in during a build"() {
         file('hooks.gradle') << """
             gradle.projectsLoaded {
