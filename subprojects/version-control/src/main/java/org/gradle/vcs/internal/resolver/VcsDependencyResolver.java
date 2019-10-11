@@ -31,6 +31,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.specs.Spec;
 import org.gradle.initialization.definition.InjectedPluginResolver;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
@@ -63,6 +64,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public class VcsDependencyResolver implements DependencyToComponentIdResolver, ComponentResolvers, ComponentMetaDataResolver, OriginArtifactSelector, ArtifactResolver {
     private final LocalComponentRegistry localComponentRegistry;
@@ -71,6 +74,8 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
     private final VcsVersionWorkingDirResolver workingDirResolver;
     private final PublicBuildPath publicBuildPath;
     private final BuildStateRegistry buildRegistry;
+
+    private final Set<String> names = new HashSet<>();
 
     public VcsDependencyResolver(LocalComponentRegistry localComponentRegistry, VcsResolver vcsResolver, VersionControlRepositoryConnectionFactory versionControlSystemFactory, BuildStateRegistry buildRegistry, VcsVersionWorkingDirResolver workingDirResolver, PublicBuildPath publicBuildPath) {
         this.localComponentRegistry = localComponentRegistry;
@@ -112,7 +117,7 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
                     public boolean isSatisfiedBy(Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> entry) {
                         ModuleVersionIdentifier possibleMatch = entry.left;
                         return depSelector.getGroup().equals(possibleMatch.getGroup())
-                                && depSelector.getModule().equals(possibleMatch.getName());
+                            && depSelector.getModule().equals(possibleMatch.getName());
                     }
                 });
                 if (entry == null) {
@@ -127,7 +132,22 @@ public class VcsDependencyResolver implements DependencyToComponentIdResolver, C
 
     private BuildDefinition toBuildDefinition(AbstractVersionControlSpec spec, File buildDirectory) {
         InjectedPluginResolver resolver = new InjectedPluginResolver();
-        return BuildDefinition.fromStartParameterForBuild(buildRegistry.getRootBuild().getStartParameter(), null, buildDirectory, resolver.resolveAll(spec.getInjectedPlugins()), publicBuildPath);
+        return BuildDefinition.fromStartParameterForBuild(
+            buildRegistry.getRootBuild().getStartParameter(),
+            assignBuildName(buildDirectory.getName()),
+            buildDirectory,
+            resolver.resolveAll(spec.getInjectedPlugins()),
+            Actions.doNothing(),
+            publicBuildPath
+        );
+    }
+
+    private String assignBuildName(String name) {
+        int counter = 0;
+        while (!names.add(name)) {
+            name = name + ++counter;
+        }
+        return name;
     }
 
     @Override

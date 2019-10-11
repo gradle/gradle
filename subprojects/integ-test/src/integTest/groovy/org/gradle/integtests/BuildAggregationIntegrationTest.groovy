@@ -136,7 +136,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "build"
 
         then:
-        executed ":upper", ":build", ":proj:upper"
-        skipped ":proj:upper"
+        executed ":upper", ":build", ":${testDirectory.name}:upper"
+        skipped ":${testDirectory.name}:upper"
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.vcs.fixtures;
 
 import com.google.common.collect.Lists;
 import org.eclipse.jgit.api.AddCommand;
+import org.eclipse.jgit.api.CommitCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Ref;
@@ -146,7 +147,7 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
             add.addFilepattern(path);
         }
         add.call();
-        return git.commit().setMessage(message).call();
+        return commit(message);
     }
 
     /**
@@ -160,7 +161,9 @@ public class GitFileRepository extends ExternalResource implements Named, GitRep
             add.addFilepattern(relativePath(file));
         }
         add.call();
-        return git.commit().setMessage(message).call();
+        final CommitCommand commit = git.commit();
+        commit.setSign(false);
+        return commit.setMessage(message).call();
     }
 
     @Override

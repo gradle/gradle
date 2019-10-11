@@ -94,6 +94,7 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
             task build2(type: GradleBuild) {
                 tasks = ['checkOpId']
                 startParameter.projectProperties = [resultFile: 'build2result.txt']
+                buildName = 'changed'
             }
         """
         succeeds "build1", "build2"

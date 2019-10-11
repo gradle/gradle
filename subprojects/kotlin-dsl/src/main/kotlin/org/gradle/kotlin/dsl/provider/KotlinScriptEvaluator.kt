@@ -58,7 +58,6 @@ import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
 
-import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
 
 import org.gradle.plugin.use.internal.PluginRequestApplicator
@@ -197,7 +196,7 @@ class StandardKotlinScriptEvaluator(
         override fun closeTargetScopeOf(scriptHost: KotlinScriptHost<*>) {
 
             pluginRequestApplicator.applyPlugins(
-                DefaultPluginRequests.EMPTY,
+                PluginRequests.EMPTY,
                 scriptHost.scriptHandler as ScriptHandlerInternal?,
                 null,
                 scriptHost.targetScope

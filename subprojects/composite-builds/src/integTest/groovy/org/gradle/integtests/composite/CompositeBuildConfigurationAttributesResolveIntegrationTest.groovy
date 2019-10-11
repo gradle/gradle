@@ -103,15 +103,15 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':external:fooJar'
-        notExecuted ':external:barJar'
+        executedAndNotSkipped ':includedBuild:fooJar'
+        notExecuted ':includedBuild:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':external:barJar'
-        notExecuted ':external:fooJar'
+        executedAndNotSkipped ':includedBuild:barJar'
+        notExecuted ':includedBuild:fooJar'
     }
 
     def "context travels to transitive dependencies via external components (Maven)"() {
@@ -197,15 +197,15 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':c:fooJar'
-        notExecuted ':c:barJar'
+        executedAndNotSkipped ':includedBuild:fooJar'
+        notExecuted ':includedBuild:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':c:barJar'
-        notExecuted ':c:fooJar'
+        executedAndNotSkipped ':includedBuild:barJar'
+        notExecuted ':includedBuild:fooJar'
     }
 
     def "context travels to transitive dependencies via external components (Ivy)"() {
@@ -291,15 +291,15 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':c:fooJar'
-        notExecuted ':c:barJar'
+        executedAndNotSkipped ':includedBuild:fooJar'
+        notExecuted ':includedBuild:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':c:barJar'
-        notExecuted ':c:fooJar'
+        executedAndNotSkipped ':includedBuild:barJar'
+        notExecuted ':includedBuild:fooJar'
     }
 
     @Unroll
@@ -385,15 +385,15 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         run ':a:checkFree'
 
         then:
-        executedAndNotSkipped ':external:fooJar'
-        notExecuted ':external:barJar'
+        executedAndNotSkipped ':includedBuild:fooJar'
+        notExecuted ':includedBuild:barJar'
 
         when:
         run ':a:checkPaid'
 
         then:
-        executedAndNotSkipped ':external:barJar'
-        notExecuted ':external:fooJar'
+        executedAndNotSkipped ':includedBuild:barJar'
+        notExecuted ':includedBuild:fooJar'
 
         where:
         type         | freeValue                      | paidValue
@@ -500,15 +500,15 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         run ':a:checkFree'
 
         then:
-        executedAndNotSkipped ':external:fooJar'
-        notExecuted ':external:barJar'
+        executedAndNotSkipped ':includedBuild:fooJar'
+        notExecuted ':includedBuild:barJar'
 
         when:
         run ':a:checkPaid'
 
         then:
-        executedAndNotSkipped ':external:barJar'
-        notExecuted ':external:fooJar'
+        executedAndNotSkipped ':includedBuild:barJar'
+        notExecuted ':includedBuild:fooJar'
     }
 
     def "reports failure to resolve due to incompatible attribute values"() {
@@ -596,7 +596,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
-        failure.assertHasCause("""Unable to find a matching variant of project :external:
+        failure.assertHasCause("""Unable to find a matching variant of project :includedBuild:
   - Variant 'bar' capability com.acme.external:external:2.0-SNAPSHOT:
       - Incompatible attribute:
           - Required flavor 'free' and found incompatible value 'blue'.
@@ -609,7 +609,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
-        failure.assertHasCause("""Cannot choose between the following variants of project :external:
+        failure.assertHasCause("""Cannot choose between the following variants of project :includedBuild:
   - bar
   - foo
 All of them match the consumer attributes:
@@ -715,15 +715,15 @@ All of them match the consumer attributes:
         run ':a:checkDebug'
 
         then:
-        executedAndNotSkipped ':external:fooJar'
-        notExecuted ':external:barJar'
+        executedAndNotSkipped ':includedBuild:fooJar'
+        notExecuted ':includedBuild:barJar'
 
         when:
         run ':a:checkRelease'
 
         then:
-        executedAndNotSkipped ':external:barJar'
-        notExecuted ':external:fooJar'
+        executedAndNotSkipped ':includedBuild:barJar'
+        notExecuted ':includedBuild:fooJar'
 
         where:
         v1    | v2    | usePluginsDSL

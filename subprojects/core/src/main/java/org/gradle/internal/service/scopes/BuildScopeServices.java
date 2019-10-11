@@ -143,7 +143,6 @@ import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.DefaultPublicBuildPath;
-import org.gradle.internal.build.MutablePublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classloader.ClassLoaderFactory;
@@ -201,8 +200,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    protected MutablePublicBuildPath createPublicBuildPath() {
-        return new DefaultPublicBuildPath();
+    protected PublicBuildPath createPublicBuildPath(BuildState buildState) {
+        return new DefaultPublicBuildPath(buildState.getIdentityPath());
     }
 
     protected TaskStatistics createTaskStatistics() {
@@ -335,13 +334,14 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(Deleter.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath) {
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildLayoutFactory buildLayoutFactory, ClassLoaderScopeRegistry classLoaderScopeRegistry, FileLockManager fileLockManager, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer, CachingServiceLocator cachingServiceLocator, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(buildLayoutFactory),
             settingsProcessor,
             buildRegistry,
             projectRegistry,
-            publicBuildPath
+            publicBuildPath,
+            instantiator
         );
     }
 

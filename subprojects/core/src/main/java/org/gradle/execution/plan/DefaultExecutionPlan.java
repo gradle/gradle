@@ -46,7 +46,6 @@ import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.util.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,11 +106,7 @@ public class DefaultExecutionPlan implements ExecutionPlan {
 
     @Override
     public String getDisplayName() {
-        Path path = gradle.findIdentityPath();
-        if (path == null) {
-            return "gradle";
-        }
-        return path.toString();
+        return gradle.getIdentityPath().toString();
     }
 
     @Override

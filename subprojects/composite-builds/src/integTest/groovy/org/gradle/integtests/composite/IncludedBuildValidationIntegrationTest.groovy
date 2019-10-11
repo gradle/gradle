@@ -74,16 +74,14 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
     def "reports failure for duplicate included build name"() {
         given:
         def buildC = singleProjectBuild("buildC")
-        buildC.settingsFile.text = "rootProject.name = 'buildB'"
-        includedBuilds << buildB << buildC
+        includeBuild(buildB)
+        includeBuildAs(buildC, 'buildB')
 
         when:
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("""Multiple included builds have the same root project name 'buildB':
-  - Included build in ${buildB}
-  - Included build in ${buildC}""")
+        failure.assertHasDescription("Included build $buildC has build path :buildB which is the same as included build $buildB")
     }
 
     def "reports failure for included build name that conflicts with subproject name"() {
@@ -97,7 +95,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Included build in ${buildB} has a root project whose name 'buildB' is the same as a project of the main build.")
+        failure.assertHasDescription("Included build in ${buildB} has name 'buildB' which is the same as a project of the main build.")
     }
 
     def "reports failure for included build name that conflicts with root project name"() {

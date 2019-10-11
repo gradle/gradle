@@ -21,8 +21,9 @@ import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.internal.Pair;
 
 import java.io.File;
@@ -34,7 +35,7 @@ import java.util.Set;
 public interface IncludedBuildState extends NestedBuildState {
     String getName();
     File getRootDirectory();
-    ConfigurableIncludedBuild getModel();
+    IncludedBuild getModel();
     Action<? super DependencySubstitutions> getRegisteredDependencySubstitutions();
     Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getAvailableModules();
 
@@ -43,7 +44,7 @@ public interface IncludedBuildState extends NestedBuildState {
      */
     ProjectComponentIdentifier idToReferenceProjectFromAnotherBuild(ProjectComponentIdentifier identifier);
 
-    void loadSettings();
+    SettingsInternal loadSettings();
 
     GradleInternal getConfiguredBuild();
     void finishBuild();

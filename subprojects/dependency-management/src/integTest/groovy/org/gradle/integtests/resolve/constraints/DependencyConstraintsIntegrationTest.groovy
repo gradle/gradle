@@ -418,7 +418,7 @@ class DependencyConstraintsIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo:1.0", "org:foo:1.1:runtime").byConflictResolution("between versions 1.1 and 1.0")
-                edge("org:included:1.0", "project :included", "org:included:1.0") {
+                edge("org:included:1.0", "project :includeBuild", "org:included:1.0") {
                     noArtifacts()
                     constraint("org:foo:1.1", "org:foo:1.1")
                 }.compositeSubstitute()

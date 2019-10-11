@@ -19,12 +19,14 @@ package org.gradle.initialization.buildsrc;
 import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.LockOptions;
-import org.gradle.initialization.DefaultSettings;
+import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.PublicBuildPath;
@@ -36,6 +38,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.plugin.management.internal.PluginRequests;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +50,6 @@ public class BuildSourceBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
     private static final BuildBuildSrcBuildOperationType.Result BUILD_BUILDSRC_RESULT = new BuildBuildSrcBuildOperationType.Result() {
     };
-    public static final String BUILD_SRC = "buildSrc";
 
     private final BuildState currentBuild;
     private final FileLockManager fileLockManager;
@@ -67,9 +69,12 @@ public class BuildSourceBuilder {
         this.publicBuildPath = publicBuildPath;
     }
 
-    public ClassLoaderScope buildAndCreateClassLoader(File rootDir, StartParameter containingBuildParameters, ClassLoaderScope parentClassLoaderScope) {
-        File buildSrcDir = new File(rootDir, DefaultSettings.DEFAULT_BUILD_SRC_DIR);
-        ClassPath classpath = createBuildSourceClasspath(buildSrcDir, containingBuildParameters, parentClassLoaderScope);
+    public ClassLoaderScope buildAndCreateClassLoader(GradleInternal gradle) {
+        SettingsInternal settings = gradle.getSettings();
+        File buildSrcDir = settings.getBuildSrcDir();
+        ClassLoaderScope parentClassLoaderScope = settings.getClassLoaderScope();
+
+        ClassPath classpath = createBuildSourceClasspath(buildSrcDir, gradle.getStartParameter(), parentClassLoaderScope);
         return parentClassLoaderScope.createChild(buildSrcDir.getAbsolutePath())
             .export(classpath)
             .lock();
@@ -86,7 +91,14 @@ public class BuildSourceBuilder {
         buildSrcStartParameter.setProjectProperties(containingBuildParameters.getProjectProperties());
         ((StartParameterInternal) buildSrcStartParameter).setSearchUpwardsWithoutDeprecationWarning(false);
         buildSrcStartParameter.setProfile(containingBuildParameters.isProfile());
-        final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(buildSrcStartParameter, "buildSrc", buildSrcDir, publicBuildPath);
+        final BuildDefinition buildDefinition = BuildDefinition.fromStartParameterForBuild(
+            buildSrcStartParameter,
+            "buildSrc",
+            buildSrcDir,
+            PluginRequests.EMPTY,
+            Actions.doNothing(),
+            publicBuildPath
+        );
         assert buildSrcStartParameter.getBuildFile() == null;
 
         return buildOperationExecutor.call(new CallableBuildOperation<ClassPath>() {

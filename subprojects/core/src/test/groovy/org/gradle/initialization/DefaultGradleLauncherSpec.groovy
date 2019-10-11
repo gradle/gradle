@@ -108,7 +108,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
-        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _, _) >> buildSrcClassLoaderScope
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_) >> buildSrcClassLoaderScope
         1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -126,7 +126,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
-        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _, _) >> buildSrcClassLoaderScope
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_) >> buildSrcClassLoaderScope
         1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         then:
@@ -289,7 +289,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void isNestedBuild() {
         _ * gradleMock.parent >> Mock(GradleInternal)
-        _ * gradleMock.findIdentityPath() >> path(":nested")
+        _ * gradleMock.getIdentityPath() >> path(":nested")
         _ * gradleMock.contextualize(_) >> { "${it[0]} (:nested)" }
     }
 

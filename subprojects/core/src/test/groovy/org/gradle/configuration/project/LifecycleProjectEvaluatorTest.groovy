@@ -45,8 +45,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         project.getProjectEvaluationBroadcaster() >> listener
         project.displayName >> "<project>"
         project.gradle >> gradle
-        gradle.findIdentityPath() >> Path.path(":")
-        gradle.identityPath >> gradle.findIdentityPath()
+        gradle.getIdentityPath() >> Path.path(":")
         gradle.startParameter >> new StartParameter()
         project.projectPath >> Path.path(":project1")
         project.path >> project.projectPath.toString()

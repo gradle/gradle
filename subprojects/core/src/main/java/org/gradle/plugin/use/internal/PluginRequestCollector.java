@@ -63,7 +63,7 @@ public class PluginRequestCollector {
 
     public PluginRequests getPluginRequests() {
         if (specs.isEmpty()) {
-            return DefaultPluginRequests.EMPTY;
+            return PluginRequests.EMPTY;
         }
         return new DefaultPluginRequests(listPluginRequests());
     }

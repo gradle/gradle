@@ -122,18 +122,8 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
 
     /**
      * Returns a unique path for this build within the current Gradle invocation.
-     *
-     * @throws IllegalStateException When the path is not yet known. The path is often a function of the name of the root project, which is not known when this `Gradle` instance is created.
      */
-    Path getIdentityPath() throws IllegalStateException;
-
-    /**
-     * Returns a unique path for this build within the current Gradle invocation, or null when not yet known
-     */
-    @Nullable
-    Path findIdentityPath();
-
-    void setIdentityPath(Path path);
+    Path getIdentityPath();
 
     String contextualize(String description);
 
