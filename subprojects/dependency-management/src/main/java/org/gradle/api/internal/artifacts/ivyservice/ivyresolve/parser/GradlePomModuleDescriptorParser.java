@@ -131,6 +131,12 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
                     new DefaultImmutableVersionConstraint(parentVersion));
                 PomReader parentPomReader = parsePomForSelector(parserSettings, parentId, pomReader.getAllPomProperties());
                 pomReader.setPomParent(parentPomReader);
+
+                // Current POM can derive version/artifactId from parent. Resolve GAV and substitute values
+                pomReader.resolveGAV();
+                groupId = pomReader.getGroupId();
+                artifactId = pomReader.getArtifactId();
+                version = pomReader.getVersion();
             }
         }
         mdBuilder.setModuleRevId(groupId, artifactId, version);
