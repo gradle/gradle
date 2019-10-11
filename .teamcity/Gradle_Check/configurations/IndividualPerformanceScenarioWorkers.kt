@@ -28,7 +28,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
         param("templates", "")
         param("scenario", "")
 
-        param("performance.db.url", "jdbc:h2:ssl://dev61.gradle.org:9092")
+        param("performance.db.url", "jdbc:h2:ssl://metrics.gradle.org:9094")
         param("performance.db.username", "tcagent")
 
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
