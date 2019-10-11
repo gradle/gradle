@@ -593,6 +593,7 @@ tasks.named("check") {
 
 extensions.getByName('samples').create('javaGradlePlugin') {
     sampleDirectory = file("src/samples/javaGradlePlugin")
+    description = "Demonstrate how to use the `java-gradle-plugin`core plugin to develop a Gradle plugin."
     gradleVersion = project.provider { project.version.toString() }
 }
 
