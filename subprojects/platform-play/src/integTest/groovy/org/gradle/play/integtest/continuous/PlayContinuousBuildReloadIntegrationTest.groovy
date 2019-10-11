@@ -18,7 +18,6 @@ package org.gradle.play.integtest.continuous
 
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Ignore
 
 /**
  * Test Play reload with `--continuous`
@@ -56,7 +55,6 @@ class PlayContinuousBuildReloadIntegrationTest extends AbstractPlayReloadIntegra
         pendingChangesMarker = buildOutput.length()
     }
 
-    @Ignore("Ignored till fixed - caused by #10849")
     def "should reload modified scala controller and routes and restart server"() {
         when:
         succeeds("runPlayBinary")
@@ -149,7 +147,6 @@ var message = "Hello JS";
         helloworldMinJs.contains('Hello JS')
     }
 
-    @Ignore("Ignored till fixed - caused by #10849")
     def "should reload modified java model and restart server"() {
         when:
         succeeds("runPlayBinary")
@@ -171,7 +168,6 @@ var message = "Hello JS";
         page.contains("<li>Hello foo:1 !</li>")
     }
 
-    @Ignore("Ignored till fixed - caused by #10849")
     def "should reload twirl template and restart server"() {
         when:
         succeeds("runPlayBinary")
