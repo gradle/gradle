@@ -18,7 +18,7 @@ package org.gradle.play.internal.toolchain;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.language.base.internal.compile.CompileSpec;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -55,7 +55,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     private final Set<File> twirlClasspath;
     private final Set<File> routesClasspath;
     private final Set<File> javaScriptClasspath;
-    private final ClasspathFingerprinter fingerprinter;
+    private final FileCollectionFingerprinter fingerprinter;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
@@ -63,7 +63,7 @@ class DefaultPlayToolProvider implements PlayToolProvider {
     public DefaultPlayToolProvider(JavaForkOptionsFactory forkOptionsFactory, File daemonWorkingDir, WorkerDaemonFactory workerDaemonFactory,
                                    WorkerProcessFactory workerProcessBuilderFactory, PlayPlatform targetPlatform,
                                    Set<File> twirlClasspath, Set<File> routesClasspath, Set<File> javaScriptClasspath,
-                                   ClasspathFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+                                   FileCollectionFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
         this.daemonWorkingDir = daemonWorkingDir;
         this.workerDaemonFactory = workerDaemonFactory;

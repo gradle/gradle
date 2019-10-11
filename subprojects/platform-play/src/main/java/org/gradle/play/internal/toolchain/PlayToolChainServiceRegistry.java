@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.play.internal.spec.PlayApplicationBinaryRenderer;
@@ -43,7 +43,7 @@ public class PlayToolChainServiceRegistry extends AbstractPluginServiceRegistry 
     }
 
     private static class ProjectScopeCompileServices {
-        PlayToolChainInternal createPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+        PlayToolChainInternal createPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, AbsolutePathFileCollectionFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
             return new DefaultPlayToolChain(forkOptionsFactory, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
         }
     }
