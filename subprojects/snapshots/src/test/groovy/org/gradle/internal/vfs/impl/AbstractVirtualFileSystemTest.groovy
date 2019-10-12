@@ -37,16 +37,21 @@ import spock.lang.Specification
 import javax.annotation.Nullable
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.concurrent.Executors
 import java.util.function.Predicate
 
 @CleanupTestDirectory
-class AbstractVirtualFileSystemTest extends Specification {
+abstract class AbstractVirtualFileSystemTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
-    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat)
+    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat, Executors.newFixedThreadPool(1))
+
+    def cleanup() {
+        vfs.close()
+    }
 
     void allowFileSystemAccess(boolean allow) {
         fileHasher.allowHashing(allow)

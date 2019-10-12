@@ -56,6 +56,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
@@ -187,9 +188,10 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         Stat stat,
         VirtualFileSystem gradleUserHomeVirtualFileSystem,
         WellKnownFileLocations wellKnownFileLocations,
+        ExecutorFactory executorFactory,
         ListenerManager listenerManager
     ) {
-        VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
+        VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, executorFactory.create("Build session virtual file system", 1), DirectoryScanner.getDefaultExcludes());
 
         listenerManager.addListener(new OutputChangeListener() {
             @Override

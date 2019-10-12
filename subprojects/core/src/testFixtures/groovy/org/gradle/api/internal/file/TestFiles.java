@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import com.google.common.util.concurrent.MoreExecutors;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
@@ -158,7 +159,7 @@ public class TestFiles {
     }
 
     public static VirtualFileSystem virtualFileSystem() {
-        return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem());
+        return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem(), MoreExecutors.newDirectExecutorService());
     }
 
     public static FileCollectionFactory fileCollectionFactory() {
