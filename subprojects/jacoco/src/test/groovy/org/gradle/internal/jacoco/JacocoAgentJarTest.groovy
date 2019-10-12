@@ -45,6 +45,7 @@ class JacocoAgentJarTest extends Specification {
         '0.7.8'               | true
         '0.8.3'               | true
         '0.8.4'               | true
+        '0.8.5'               | true
     }
 
     @Unroll
@@ -66,5 +67,6 @@ class JacocoAgentJarTest extends Specification {
         '0.7.8'               | true
         '0.8.3'               | true
         '0.8.4'               | true
+        '0.8.5'               | true
     }
 }
