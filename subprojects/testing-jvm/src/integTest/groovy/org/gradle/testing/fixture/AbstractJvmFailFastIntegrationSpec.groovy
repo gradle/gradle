@@ -139,7 +139,7 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         then:
         testExecution.release(FAILED_RESOURCE)
         gradleHandle.waitForFailure()
-        assert gradleHandle.standardOutput.matches(/(?s).*pkg\.FailedTest.*failTest.*FAILED.*java.lang.RuntimeException at FailedTest.java.*/)
+        assert gradleHandle.standardOutput.matches(/(?s).*FailedTest.*failTest.*FAILED.*java.lang.RuntimeException at FailedTest.java.*/)
         assert !gradleHandle.standardOutput.contains('pkg.OtherTest')
     }
 
