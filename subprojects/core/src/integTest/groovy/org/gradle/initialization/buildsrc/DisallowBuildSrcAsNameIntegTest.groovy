@@ -18,7 +18,7 @@ package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class DisallowIncludingBuildSrcAsProjectIntegTest extends AbstractIntegrationSpec {
+class DisallowBuildSrcAsNameIntegTest extends AbstractIntegrationSpec {
 
     def "fails when trying to include buildSrc as project"() {
         buildFile << """
@@ -69,5 +69,39 @@ class DisallowIncludingBuildSrcAsProjectIntegTest extends AbstractIntegrationSpe
         failure.assertHasDescription("'buildSrc' cannot be used as a project name as it is a reserved name (in build :i)")
     }
 
+    def "fails when trying to include a build with name buildSrc"() {
+        def b = file("b")
+         b.file("build.gradle") << ""
+        buildFile << """
+            task t
+        """
+        settingsFile << """
+            includeBuild 'b', { name = 'buildSrc' }
+        """
+
+        when:
+        fails "t"
+
+        then:
+        failure.assertHasDescription("Included build $b has build name 'buildSrc' which cannot be used as it is a reserved name.")
+    }
+
+    def "fails when trying to create a buildSrc build with GradleBuild task"() {
+        def b = file("b")
+        b.file("build.gradle") << ""
+        buildFile << """
+            task t(type: GradleBuild) {
+                dir = "b"
+                buildName = "buildSrc"
+            }
+        """
+
+        when:
+        fails "t"
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':t'.")
+        failure.assertHasCause("Included build $b has build name 'buildSrc' which cannot be used as it is a reserved name.")
+    }
 
 }

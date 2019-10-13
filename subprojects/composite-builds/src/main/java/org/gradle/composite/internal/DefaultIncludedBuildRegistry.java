@@ -165,9 +165,9 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
     }
 
     @Override
-    public StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, BuildState owner) {
-        if (buildDefinition.getName() == null) {
-            throw new UnsupportedOperationException("Not yet implemented."); // but should be
+    public StandAloneNestedBuild addBuildSrcNestedBuild(BuildDefinition buildDefinition, BuildState owner) {
+        if (!SettingsInternal.BUILD_SRC.equals(buildDefinition.getName())) {
+            throw new IllegalStateException("Expected buildSrc build, got: " + buildDefinition.getName());
         }
         Path identityPath = assignPath(owner, buildDefinition.getName(), buildDefinition.getBuildRootDir());
         BuildIdentifier buildIdentifier = idFor(buildDefinition.getName());
@@ -183,27 +183,39 @@ public class DefaultIncludedBuildRegistry implements BuildStateRegistry, Stoppab
         }
         File dir = buildDefinition.getStartParameter().getCurrentDir();
         String name = MoreObjects.firstNonNull(buildName, dir.getName());
+        validateNameIsNotBuildSrc(name, dir);
         Path identityPath = assignPath(owner, name, dir);
         BuildIdentifier buildIdentifier = idFor(name);
         return new RootOfNestedBuildTree(buildDefinition, buildIdentifier, identityPath, owner);
     }
 
+    private void validateNameIsNotBuildSrc(String name, File dir) {
+        if (SettingsInternal.BUILD_SRC.equals(name)) {
+            throw new GradleException("Included build " + dir + " has build name 'buildSrc' which cannot be used as it is a reserved name.");
+        }
+    }
+
     private IncludedBuildState registerBuild(BuildDefinition buildDefinition, boolean isImplicit) {
         // TODO: synchronization
-        if (buildDefinition.getBuildRootDir() == null) {
+        final File buildDir = buildDefinition.getBuildRootDir();
+        if (buildDir == null) {
             throw new IllegalArgumentException("Included build must have a root directory defined");
         }
         if (rootBuild == null) {
             throw new IllegalStateException("No root build attached yet.");
         }
-        IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDefinition.getBuildRootDir());
+        IncludedBuildState includedBuild = includedBuildsByRootDir.get(buildDir);
         if (includedBuild == null) {
             String buildName = buildDefinition.getName();
-            Path idPath = assignPath(rootBuild, buildDefinition.getName(), buildDefinition.getBuildRootDir());
+            if (buildName == null) {
+                throw new IllegalStateException("build name is required");
+            }
+            validateNameIsNotBuildSrc(buildName, buildDir);
+            Path idPath = assignPath(rootBuild, buildDefinition.getName(), buildDir);
             BuildIdentifier buildIdentifier = idFor(buildName);
 
             includedBuild = includedBuildFactory.createBuild(buildIdentifier, idPath, buildDefinition, isImplicit, rootBuild);
-            includedBuildsByRootDir.put(buildDefinition.getBuildRootDir(), includedBuild);
+            includedBuildsByRootDir.put(buildDir, includedBuild);
             pendingIncludedBuilds.add(includedBuild);
             addBuild(includedBuild);
         } else {

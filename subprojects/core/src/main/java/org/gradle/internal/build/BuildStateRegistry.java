@@ -85,7 +85,7 @@ public interface BuildStateRegistry {
     /**
      * Creates a standalone nested build.
      */
-    StandAloneNestedBuild addNestedBuild(BuildDefinition buildDefinition, BuildState owner);
+    StandAloneNestedBuild addBuildSrcNestedBuild(BuildDefinition buildDefinition, BuildState owner);
 
     /**
      * Creates a new standalone nested build tree.

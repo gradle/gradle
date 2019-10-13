@@ -180,7 +180,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
 
         expect:
-        def nestedBuild = registry.addNestedBuild(buildDefinition, owner)
+        def nestedBuild = registry.addBuildSrcNestedBuild(buildDefinition, owner)
         nestedBuild.implicitBuild
         nestedBuild.buildIdentifier == new DefaultBuildIdentifier("nested")
         nestedBuild.identityPath == Path.path(":nested")
@@ -196,8 +196,8 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
 
         when:
-        registry.addNestedBuild(buildDefinition, owner)
-        registry.addNestedBuild(buildDefinition, owner)
+        registry.addBuildSrcNestedBuild(buildDefinition, owner)
+        registry.addBuildSrcNestedBuild(buildDefinition, owner)
 
         then:
         thrown GradleException
@@ -210,23 +210,23 @@ class DefaultIncludedBuildRegistryTest extends Specification {
 
         def parent1Definition = Stub(BuildDefinition)
         parent1Definition.name >> "parent"
-        def parent1 = registry.addNestedBuild(parent1Definition, rootBuild)
+        def parent1 = registry.addBuildSrcNestedBuild(parent1Definition, rootBuild)
 
         def buildDefinition = Stub(BuildDefinition)
         buildDefinition.name >> "nested"
         buildDefinition.buildRootDir >> new File("d")
 
         expect:
-        def nestedBuild1 = registry.addNestedBuild(buildDefinition, rootBuild)
+        def nestedBuild1 = registry.addBuildSrcNestedBuild(buildDefinition, rootBuild)
         nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("nested")
         nestedBuild1.identityPath == Path.path(":nested")
 
-        def nestedBuild2 = registry.addNestedBuild(buildDefinition, parent1)
+        def nestedBuild2 = registry.addBuildSrcNestedBuild(buildDefinition, parent1)
         // Shows current behaviour, not necessarily desired behaviour
         nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
         nestedBuild2.identityPath == Path.path(":parent:nested")
 
-        def nestedBuild3 = registry.addNestedBuild(buildDefinition, nestedBuild1)
+        def nestedBuild3 = registry.addBuildSrcNestedBuild(buildDefinition, nestedBuild1)
         nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
         nestedBuild3.identityPath == Path.path(":nested:nested")
     }
