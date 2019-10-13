@@ -104,7 +104,7 @@ Tasks can be executed, tests can be run, and builds can be imported into the IDE
 [[composite_build_executing_tasks]]
 === Executing tasks
 
-Tasks from the composite build can be executed from the command line, or from you IDE.
+Tasks from the composite build can be executed from the command line, or from your IDE.
 Executing a task will result in direct task dependencies being executed, as well as those tasks required to build dependency artifacts from included builds.
 
 [NOTE]
