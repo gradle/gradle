@@ -263,7 +263,7 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
 
     @Override
     public File getBuildSrcDir() {
-        return new File(getRootDir(), BUILD_SRC);
+        return new File(getSettingsDir(), BUILD_SRC);
     }
 
     protected ServiceRegistry getServices() {
