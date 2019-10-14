@@ -65,8 +65,7 @@ public class Sample implements TestRule {
             public void evaluate() throws Throwable {
                 if (sampleName != null) {
                     IntegrationTestBuildContext context = IntegrationTestBuildContext.INSTANCE;
-                    String hintForMissingSample = String.format("If '%s' is a new sample, try running 'gradle %s:copySamples'.", sampleName, context.getCurrentSubprojectName());
-                    TestFile srcDir = context.getSamplesDir().file(sampleName).assertIsDir(hintForMissingSample);
+                    TestFile srcDir = context.getSamplesDir().file(sampleName);
                     logger.debug("Copying sample '{}' to test directory.", sampleName);
                     srcDir.copyTo(getDir());
                 } else {

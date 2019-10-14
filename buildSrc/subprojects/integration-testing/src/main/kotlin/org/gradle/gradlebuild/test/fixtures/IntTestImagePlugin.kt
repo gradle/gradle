@@ -104,16 +104,6 @@ open class IntTestImagePlugin : Plugin<Project> {
             isCanBeResolved = true
             isCanBeConsumed = false
         }
-        val gradleSamples by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "docs"))
-                attribute(Attribute.of("type", String::class.java), "samples")
-            }
-            extendsFrom(gradleDocumentation)
-            isVisible = false
-            isCanBeResolved = true
-            isCanBeConsumed = false
-        }
         val gradleScripts by configurations.creating {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "start-scripts"))
@@ -129,12 +119,6 @@ open class IntTestImagePlugin : Plugin<Project> {
             gradleRuntimeSource(project(":apiMetadata"))
             gradleDocumentation(project(":docs"))
             gradleScripts(project(":launcher"))
-        }
-
-        val copySamples = tasks.register("copySamples", Sync::class) {
-            group = "Verification"
-            from(gradleSamples)
-            into(file("$buildDir/integ test/samples"))
         }
 
         if (useAllDistribution) {
@@ -156,9 +140,6 @@ open class IntTestImagePlugin : Plugin<Project> {
                 from(unpackedPath.get().dir("gradle-$version"))
             }
         } else {
-            intTestImage.configure {
-                dependsOn(copySamples)
-            }
             afterEvaluate {
                 if (!project.configurations["default"].allArtifacts.isEmpty()) {
                     dependencies {
