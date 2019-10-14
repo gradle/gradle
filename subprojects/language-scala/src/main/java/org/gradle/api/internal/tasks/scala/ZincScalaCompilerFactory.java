@@ -23,7 +23,6 @@ import org.gradle.cache.internal.Cache;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.Factory;
 import sbt.internal.inc.ScalaInstance;
-import sbt.internal.inc.ZincUtil;
 import scala.Option;
 import xsbti.ArtifactInfo;
 import xsbti.compile.ClasspathOptionsUtil;
@@ -89,7 +88,7 @@ public class ZincScalaCompilerFactory {
             @Override
             public ZincScalaCompiler create() {
                 ScalaInstance scalaInstance = getScalaInstance(scalaClasspath);
-                File bridgeJar = findFile(ZincUtil.getDefaultBridgeModule(scalaInstance.version()).name(), scalaClasspath);
+                File bridgeJar = findFile("compiler-bridge_", scalaClasspath);
                 ScalaCompiler scalaCompiler = ZincCompilerUtil.scalaCompiler(scalaInstance, bridgeJar, ClasspathOptionsUtil.auto());
 
                 return new ZincScalaCompiler(scalaInstance, scalaCompiler, ANALYSIS_STORE_PROVIDER);
