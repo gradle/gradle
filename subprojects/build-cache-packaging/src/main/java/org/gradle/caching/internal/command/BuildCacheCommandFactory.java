@@ -16,6 +16,7 @@
 
 package org.gradle.caching.internal.command;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Interner;
 import org.gradle.caching.BuildCacheKey;
@@ -86,7 +87,12 @@ public class BuildCacheCommandFactory {
 
         @Override
         public BuildCacheLoadCommand.Result<LoadMetadata> load(InputStream input) throws IOException {
+            ImmutableList.Builder<String> roots = ImmutableList.builder();
+            entity.visitOutputTrees((name, type, root) -> roots.add(root.getAbsolutePath()));
+            // TODO: Actually unpack the roots inside of the action
+            virtualFileSystem.update(roots.build(), () -> {});
             BuildCacheEntryPacker.UnpackResult unpackResult = packer.unpack(entity, input, originMetadataFactory.createReader(entity));
+            // TODO: Update the snapshots from the action
             ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshots = snapshotUnpackedData(unpackResult.getSnapshots());
             return new Result<LoadMetadata>() {
                 @Override

@@ -78,6 +78,7 @@ class BuildCacheCommandFactoryTest extends Specification {
 
         then:
         1 * originFactory.createReader(entity) >> originReader
+        1 * virtualFileSystem.update([outputDir.absolutePath, outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
@@ -115,6 +116,7 @@ class BuildCacheCommandFactoryTest extends Specification {
 
         then:
         1 * originFactory.createReader(entity) >> originReader
+        1 * virtualFileSystem.update([outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, input, originReader) >> {

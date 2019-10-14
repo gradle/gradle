@@ -158,8 +158,8 @@ public class ExecutionGradleServices {
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
-            new BroadcastChangingOutputsStep<>(outputChangeListener,
             new CacheStep(buildCacheController, buildCacheCommandFactory, deleter,
+            new BroadcastChangingOutputsStep<>(outputChangeListener,
             new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(
             new CatchExceptionStep<>(

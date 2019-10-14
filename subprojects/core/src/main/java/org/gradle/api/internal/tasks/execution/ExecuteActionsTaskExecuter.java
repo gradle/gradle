@@ -325,7 +325,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 if (!(property instanceof CacheableOutputFilePropertySpec)) {
                     throw new IllegalStateException("Non-cacheable property: " + property);
                 }
-                File cacheRoot = ((CacheableOutputFilePropertySpec) property).getOutputFile();
+                File cacheRoot = property.getOutputFile();
                 if (cacheRoot == null) {
                     continue;
                 }
