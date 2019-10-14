@@ -125,7 +125,7 @@ public class BuildSourceBuilder {
     }
 
     private ClassPath buildBuildSrc(final BuildDefinition buildDefinition, ClassLoaderScope parentClassLoaderScope) {
-        StandAloneNestedBuild nestedBuild = buildRegistry.addNestedBuild(buildDefinition, currentBuild);
+        StandAloneNestedBuild nestedBuild = buildRegistry.addBuildSrcNestedBuild(buildDefinition, currentBuild);
         return nestedBuild.run(new Transformer<ClassPath, BuildController>() {
             @Override
             public ClassPath transform(BuildController buildController) {

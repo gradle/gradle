@@ -262,8 +262,8 @@ We can now select a `guice-no_aop` variant and will get the correct jar file *an
 
 .Applying and utilising rule for Guice metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=lwgj-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guice-dependencies]"]
+include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guice-dependencies]"]
 ====
 
 
