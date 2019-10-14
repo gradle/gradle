@@ -140,7 +140,7 @@ configurations {
     }
     gradleFullDocsElements {
         outgoing.artifact(docsDir) {
-            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes', 'publishSamplesToDocsZip'
         }
     }
     gradleGettingStartedElements {
