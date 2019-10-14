@@ -20,8 +20,6 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 
 import javax.annotation.Nonnull;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class MissingFileNode implements Node {
 
@@ -42,12 +40,12 @@ public class MissingFileNode implements Node {
     }
 
     @Override
-    public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+    public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
         return getChild(name);
     }
 
     @Override
-    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
+    public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
         return new MissingFileNode(this, getChildAbsolutePath(name), name);
     }
 

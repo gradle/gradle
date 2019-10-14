@@ -20,10 +20,8 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
-public class RootNode extends AbstractNodeWithMutableChildren {
+public class RootNode extends AbstractMutableNode {
 
     @Override
     public String getAbsolutePath() {
@@ -45,7 +43,7 @@ public class RootNode extends AbstractNodeWithMutableChildren {
     }
 
     @Override
-    public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+    public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
         if (name.isEmpty()) {
             return new EmptyPathRootNode(this);
         }
@@ -80,12 +78,12 @@ public class RootNode extends AbstractNodeWithMutableChildren {
         }
 
         @Override
-        public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+        public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
             return delegate.getOrCreateChild(name, nodeSupplier, this);
         }
 
         @Override
-        public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
+        public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
             return delegate.replaceChild(name, nodeSupplier, null, this);
         }
 

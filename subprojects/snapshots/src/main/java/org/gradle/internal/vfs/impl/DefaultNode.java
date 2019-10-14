@@ -18,7 +18,7 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-public class DefaultNode extends AbstractNodeWithMutableChildren {
+public class DefaultNode extends AbstractMutableNode {
     private final String absolutePath;
 
     public DefaultNode(String name, Node parent) {

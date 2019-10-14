@@ -89,7 +89,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
         return Optional.ofNullable(visitor.apply(mutateVirtualFileSystem(() -> {
             Node parent = findOrCreateParent(pathSegments);
-            Node node = parent.replaceChild(snapshot.getName(), it -> new FileNode(it, snapshot), existing -> existing.getType() == Node.Type.UNKNOWN);
+            Node node = parent.replaceChild(snapshot.getName(), it -> new RegularFileNode(it, snapshot), existing -> existing.getType() == Node.Type.UNKNOWN);
             return node.getSnapshot().getHash();
         })));
     }
@@ -117,7 +117,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     private Node createNode(FileSystemLocationSnapshot snapshot, Node parent) {
         switch (snapshot.getType()) {
             case RegularFile:
-                return new FileNode(parent, (RegularFileSnapshot) snapshot);
+                return new RegularFileNode(parent, (RegularFileSnapshot) snapshot);
             case Missing:
                 return new MissingFileNode(parent, snapshot.getAbsolutePath(), snapshot.getName());
             case Directory:

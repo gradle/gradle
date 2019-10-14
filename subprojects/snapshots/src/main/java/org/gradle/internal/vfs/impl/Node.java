@@ -20,14 +20,13 @@ import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface Node {
     @Nullable
     Node getChild(String name);
-    Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier);
-    Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting);
+    Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier);
+    Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting);
     void removeChild(String name);
     String getAbsolutePath();
     Type getType();
@@ -43,5 +42,14 @@ public interface Node {
         DIRECTORY,
         MISSING,
         UNKNOWN
+    }
+
+    interface ChildNodeSupplier {
+        Node create(Node parent);
+    }
+
+    interface ExistingChildPredicate extends Predicate<Node> {
+        @Override
+        boolean test(Node existingChild);
     }
 }

@@ -19,10 +19,8 @@ package org.gradle.internal.vfs.impl;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
-public abstract class AbstractNodeWithMutableChildren implements Node {
+public abstract class AbstractMutableNode implements Node {
     private final ConcurrentHashMap<String, Node> children = new ConcurrentHashMap<>();
 
     @Nullable
@@ -32,16 +30,16 @@ public abstract class AbstractNodeWithMutableChildren implements Node {
     }
 
     @Override
-    public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+    public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
         return getOrCreateChild(name, nodeSupplier, this);
     }
 
-    protected Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier, Node parent) {
-        return children.computeIfAbsent(name, key -> nodeSupplier.apply(parent));
+    protected Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier, Node parent) {
+        return children.computeIfAbsent(name, key -> nodeSupplier.create(parent));
     }
 
     @Override
-    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
+    public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
         return replaceChild(name, nodeSupplier, shouldReplaceExisting, this);
     }
 
@@ -50,11 +48,11 @@ public abstract class AbstractNodeWithMutableChildren implements Node {
         children.remove(name);
     }
 
-    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting, Node parent) {
+    public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting, Node parent) {
         return children.compute(
             name,
             (key, current) -> (current == null || shouldReplaceExisting.test(current))
-                ? nodeSupplier.apply(parent)
+                ? nodeSupplier.create(parent)
                 : current
         );
     }

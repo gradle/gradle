@@ -23,7 +23,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class CompleteDirectoryNode implements Node {
@@ -48,12 +47,12 @@ public class CompleteDirectoryNode implements Node {
     }
 
     @Override
-    public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+    public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
         return getChildOrMissing(name);
     }
 
     @Override
-    public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
+    public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
         FileSystemLocationSnapshot snapshot = childrenMap.get(name);
         if (snapshot == null) {
             return new MissingFileNode(this, getChildAbsolutePath(name), name);
@@ -62,7 +61,7 @@ public class CompleteDirectoryNode implements Node {
         if (!shouldReplaceExisting.test(currentChild)) {
             return currentChild;
         }
-        Node replacedChild = nodeSupplier.apply(currentChild);
+        Node replacedChild = nodeSupplier.create(currentChild);
         replaceByMutableNodeWithReplacedSnapshot(snapshot, replacedChild);
         return replacedChild;
     }
@@ -104,7 +103,7 @@ public class CompleteDirectoryNode implements Node {
     public static Node convertToNode(FileSystemLocationSnapshot snapshot, Node parent) {
         switch (snapshot.getType()) {
             case RegularFile:
-                return new FileNode(parent, (RegularFileSnapshot) snapshot);
+                return new RegularFileNode(parent, (RegularFileSnapshot) snapshot);
             case Directory:
                 return new CompleteDirectoryNode(parent, (DirectorySnapshot) snapshot);
             case Missing:
