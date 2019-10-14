@@ -75,8 +75,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
         List<String> pathSegments = getPathSegments(location);
         String name = pathSegments.get(pathSegments.size() - 1);
-        Node foundParent = findParent(pathSegments);
-        Node existingChild = foundParent.getChild(name);
+        Node foundParent = findParentNotCreating(pathSegments);
+        Node existingChild = foundParent != null ? foundParent.getChild(name) : null;
         if (existingChild != null && existingChild.getType() != Node.Type.UNKNOWN) {
             return mapRegularFileContentHash(visitor, existingChild);
         }
@@ -88,7 +88,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         HashCode hashCode = hasher.hash(file, stat.getLength(), stat.getLastModified());
         RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
         return Optional.ofNullable(visitor.apply(mutateVirtualFileSystem(() -> {
-            Node parent = findParent(pathSegments);
+            Node parent = findOrCreateParent(pathSegments);
             Node node = parent.replaceChild(snapshot.getName(), it -> new FileNode(it, snapshot), existing -> existing.getType() == Node.Type.UNKNOWN);
             return node.getSnapshot().getHash();
         })));
@@ -145,20 +145,20 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     private Node readLocation(String location) {
         List<String> pathSegments = getPathSegments(location);
-        Node foundParent = findParent(pathSegments);
+        Node foundParent = findParentNotCreating(pathSegments);
         String name = pathSegments.get(pathSegments.size() - 1);
-        Node existingChild = foundParent.getChild(name);
+        Node existingChild = foundParent != null ? foundParent.getChild(name) : null;
         if (existingChild != null && existingChild.getType() != Node.Type.UNKNOWN) {
             return existingChild;
         }
 
         FileSystemLocationSnapshot snapshot = snapshot(location);
         return mutateVirtualFileSystem(() -> {
-            Node parent = findParent(pathSegments);
+            Node parent = findOrCreateParent(pathSegments);
             return parent.replaceChild(
                 name,
                 it -> createNode(snapshot, it),
-            current -> current.getType() == Node.Type.UNKNOWN);
+                current -> current.getType() == Node.Type.UNKNOWN);
         });
     }
 
@@ -180,7 +180,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         }
     }
 
-    private Node findParent(List<String> pathSegments) {
+    private Node findOrCreateParent(List<String> pathSegments) {
         Node foundNode = root;
         for (int i = 0; i < pathSegments.size() - 1; i++) {
             String pathSegment = pathSegments.get(i);
@@ -194,11 +194,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         locations.forEach(location -> {
             List<String> pathSegments = getPathSegments(location);
             Node foundParent = findParentNotCreating(pathSegments);
-            if (foundParent != null) {
+            String name = pathSegments.get(pathSegments.size() - 1);
+            if (foundParent != null && foundParent.getChild(name) != null) {
                 mutateVirtualFileSystem(() -> {
                     Node parent = findParentNotCreating(pathSegments);
                     if (parent != null) {
-                        String name = pathSegments.get(pathSegments.size() - 1);
                         parent.removeChild(name);
                     }
                 });
@@ -219,7 +219,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     public void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot) {
         List<String> pathSegments = getPathSegments(location);
         mutateVirtualFileSystem(() -> {
-            Node parent = findParent(pathSegments);
+            Node parent = findOrCreateParent(pathSegments);
             parent.replaceChild(
                 pathSegments.get(pathSegments.size() - 1),
                 it -> CompleteDirectoryNode.convertToNode(snapshot, parent),
@@ -232,7 +232,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         Node foundNode = root;
         for (int i = 0; i < pathSegments.size() - 1; i++) {
             String pathSegment = pathSegments.get(i);
-            foundNode = foundNode.getOrCreateChild(pathSegment, parent -> null);
+            foundNode = foundNode.getChild(pathSegment);
             if (foundNode == null) {
                 return null;
             }

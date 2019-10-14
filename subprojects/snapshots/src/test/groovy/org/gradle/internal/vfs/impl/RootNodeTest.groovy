@@ -26,11 +26,15 @@ class RootNodeTest extends Specification {
         def directChild = node
             .getOrCreateChild("") { parent -> new DefaultNode("", parent) }
             .getOrCreateChild("var") { parent -> new DefaultNode("var", parent) }
+        def existingDirectChild = node.getChild("").getChild("var")
+        def childPath = "${File.separator}var"
         expect:
-        directChild.absolutePath == "${File.separator}var"
+        directChild.absolutePath == childPath
+        existingDirectChild.absolutePath == childPath
         directChild
             .getOrCreateChild("log") { parent -> new DefaultNode("log", parent) }
             .absolutePath == ["", "var", "log"].join(File.separator)
+        existingDirectChild.getChild("log").absolutePath == ["", "var", "log"].join(File.separator)
     }
 
     def "can add Windows style children"() {
@@ -38,10 +42,13 @@ class RootNodeTest extends Specification {
 
         def directChild = node
             .getOrCreateChild("C:") { parent -> new DefaultNode("C:", parent) }
+        def existingDirectChild = node.getChild("C:")
         expect:
         directChild.absolutePath == "C:"
+        existingDirectChild.absolutePath == "C:"
         directChild
             .getOrCreateChild("Users") { parent -> new DefaultNode("Users", parent) }
             .absolutePath == ["C:", "Users"].join(File.separator)
+        existingDirectChild.getChild("Users").absolutePath == ["C:", "Users"].join(File.separator)
     }
 }

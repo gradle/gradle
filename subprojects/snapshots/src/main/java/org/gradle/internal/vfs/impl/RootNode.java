@@ -35,52 +35,19 @@ public class RootNode extends AbstractNodeWithMutableChildren {
         return Type.DIRECTORY;
     }
 
+    @Nullable
+    @Override
+    public Node getChild(String name) {
+        if (name.isEmpty()) {
+            return new EmptyPathRootNode(this);
+        }
+        return super.getChild(name);
+    }
+
     @Override
     public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
         if (name.isEmpty()) {
-            return new Node() {
-                @Nullable
-                @Override
-                public Node getChild(String name) {
-                    return RootNode.super.getChild(name);
-                }
-
-                @Override
-                public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
-                    return RootNode.super.getOrCreateChild(name, nodeSupplier, this);
-                }
-
-                @Override
-                public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
-                    return RootNode.super.replaceChild(name, nodeSupplier, null, this);
-                }
-
-                @Override
-                public void removeChild(String name) {
-                    RootNode.super.removeChild(name);
-                }
-
-                @Override
-                public String getAbsolutePath() {
-                    return "/";
-                }
-
-                @Override
-                public String getChildAbsolutePath(String name) {
-                    return File.separatorChar + name;
-                }
-
-                @Override
-                public Type getType() {
-                    return RootNode.this.getType();
-                }
-
-                @Override
-                public FileSystemLocationSnapshot getSnapshot() {
-                    return RootNode.this.getSnapshot();
-                }
-
-            };
+            return new EmptyPathRootNode(this);
         }
         return super.getOrCreateChild(name, nodeSupplier);
     }
@@ -97,5 +64,55 @@ public class RootNode extends AbstractNodeWithMutableChildren {
 
     public void clear() {
         getChildren().clear();
+    }
+
+    private static class EmptyPathRootNode implements Node {
+        private final RootNode delegate;
+
+        public EmptyPathRootNode(RootNode delegate) {
+            this.delegate = delegate;
+        }
+
+        @Nullable
+        @Override
+        public Node getChild(String name) {
+            return delegate.getChild(name);
+        }
+
+        @Override
+        public Node getOrCreateChild(String name, Function<Node, Node> nodeSupplier) {
+            return delegate.getOrCreateChild(name, nodeSupplier, this);
+        }
+
+        @Override
+        public Node replaceChild(String name, Function<Node, Node> nodeSupplier, Predicate<Node> shouldReplaceExisting) {
+            return delegate.replaceChild(name, nodeSupplier, null, this);
+        }
+
+        @Override
+        public void removeChild(String name) {
+            delegate.removeChild(name);
+        }
+
+        @Override
+        public String getAbsolutePath() {
+            return "/";
+        }
+
+        @Override
+        public String getChildAbsolutePath(String name) {
+            return File.separatorChar + name;
+        }
+
+        @Override
+        public Type getType() {
+            return delegate.getType();
+        }
+
+        @Override
+        public FileSystemLocationSnapshot getSnapshot() {
+            return delegate.getSnapshot();
+        }
+
     }
 }
