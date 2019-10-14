@@ -215,4 +215,28 @@ task someTask
         executer.expectDeprecationWarning()
         succeeds("install")
     }
+
+    def "forcing an incompatible version of Scala does not interfere with Zinc compiler"() {
+        settingsFile << """
+            rootProject.name = "scala"
+        """
+        buildFile << """
+            apply plugin: 'scala'
+
+            repositories {
+                ${jcenterRepository()}
+            }
+            dependencies {
+                implementation("org.scala-lang:scala-library")
+            }
+            configurations.all {
+                resolutionStrategy.force "org.scala-lang:scala-library:2.10.7"
+            }
+        """
+        file("src/main/scala/Foo.scala") << """
+            class Foo
+        """
+        expect:
+        succeeds("assemble")
+    }
 }
