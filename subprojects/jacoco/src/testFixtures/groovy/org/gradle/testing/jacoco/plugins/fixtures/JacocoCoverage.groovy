@@ -23,7 +23,7 @@ final class JacocoCoverage {
 
     JacocoCoverage() {}
 
-    final static String[] ALL = ['0.6.0.201210061924', '0.6.2.201302030002', '0.6.3.201306030806', '0.7.1.201405082137', '0.7.6.201602180812', JacocoPlugin.DEFAULT_JACOCO_VERSION].asImmutable()
+    final static String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.6.0.201210061924', '0.6.2.201302030002', '0.6.3.201306030806', '0.7.1.201405082137', '0.7.6.201602180812', '0.8.3'].asImmutable()
 
     final static List<String> COVERAGE_CHECK_SUPPORTED = filter(JacocoVersion.CHECK_INTRODUCED)
 

@@ -37,6 +37,7 @@ We would like to thank the following community contributors to this release of G
 [Robin Verduijn](https://github.com/robinverduijn),
 [Pedro Tôrres](https://github.com/t0rr3sp3dr0),
 [Michael Berry](https://github.com/MikeBerryFR),
+[Evgeny Mandrikov](https://github.com/Godin),
 and [Robert Stupp](https://github.com/snazy).
 
 ## Upgrade Instructions
