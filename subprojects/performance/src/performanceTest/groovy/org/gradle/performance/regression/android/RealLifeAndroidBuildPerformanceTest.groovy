@@ -21,7 +21,6 @@ import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.regression.android.AndroidTestProject.K9_ANDROID
@@ -34,7 +33,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
     }
 
-    @Ignore("Re-enable after rebaselining")
     @Unroll
     def "#tasks on #testProject"() {
         given:
@@ -44,7 +42,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.minimumBaseVersion = "5.6.1" // AGP 3.6 requires 5.6.1+
-        runner.targetVersions = ["6.0-20190823180744+0000"]
+        runner.targetVersions = ["6.0-20190926235010+0000"]
         if (testProject == SANTA_TRACKER_KOTLIN) {
             runner.targetVersions = ["5.6.1"]
         }
