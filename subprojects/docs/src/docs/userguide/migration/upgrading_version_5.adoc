@@ -507,7 +507,6 @@ Gradle 5.6 introduced a new DSL element (`JavaForkOptions.debugOptions(Action<Ja
 === Scala 2.9 and Zinc compiler
 
 Gradle no longer supports building applications using Scala 2.9.
-The Zinc compiler has been upgraded to 1.2.5 and requires Scala 2.10.
 
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier

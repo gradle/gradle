@@ -168,11 +168,11 @@ Gradle now supports running with [Java 13](https://openjdk.java.net/projects/jdk
 <a name="zinc-compiler"></a>
 ## Update to newer Scala Zinc compiler
 
-The Zinc compiler has been upgraded to version 1.2.5. Gradle no longer supports building for Scala 2.9. 
+The Zinc compiler has been upgraded to version 1.3.0. Gradle no longer supports building for Scala 2.9. 
 
 This fixes some Scala incremental compilation bugs and improves performance. 
 
-The minimum Zinc compiler supported by Gradle is 1.2.0 and the maximum version is 1.2.5.
+The minimum Zinc compiler supported by Gradle is 1.2.0 and the maximum version is 1.3.0.
 
 To make it easier to select the version of the Zinc compiler that's compatible with Gradle, you can now configure a `zincVersion` property:
 ```
