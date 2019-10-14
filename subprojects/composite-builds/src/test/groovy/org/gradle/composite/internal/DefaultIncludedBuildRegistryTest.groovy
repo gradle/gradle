@@ -172,26 +172,26 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         registry.includedBuilds as List == [includedBuild]
     }
 
-    def "can add a nested build"() {
+    def "can add a buildSrc nested build"() {
         given:
         def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "nested"
+        buildDefinition.name >> "buildSrc"
         registry.attachRootBuild(rootBuild())
         def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
 
         expect:
         def nestedBuild = registry.addBuildSrcNestedBuild(buildDefinition, owner)
         nestedBuild.implicitBuild
-        nestedBuild.buildIdentifier == new DefaultBuildIdentifier("nested")
-        nestedBuild.identityPath == Path.path(":nested")
+        nestedBuild.buildIdentifier == new DefaultBuildIdentifier("buildSrc")
+        nestedBuild.identityPath == Path.path(":buildSrc")
 
         registry.getBuild(nestedBuild.buildIdentifier).is(nestedBuild)
     }
 
-    def "cannot add multiple nested builds with same name"() {
+    def "cannot add multiple buildSrc nested builds with same name"() {
         given:
         def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "nested"
+        buildDefinition.name >> "buildSrc"
         registry.attachRootBuild(rootBuild())
         def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
 
@@ -203,32 +203,32 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         thrown GradleException
     }
 
-    def "can add multiple nested builds with same name and different levels of nesting"() {
+    def "can add multiple buildSrc nested builds with same name and different levels of nesting"() {
         given:
         def rootBuild = rootBuild()
         registry.attachRootBuild(rootBuild)
 
         def parent1Definition = Stub(BuildDefinition)
         parent1Definition.name >> "parent"
-        def parent1 = registry.addBuildSrcNestedBuild(parent1Definition, rootBuild)
+        def parent1 = registry.addIncludedBuild(parent1Definition)
 
         def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "nested"
+        buildDefinition.name >> "buildSrc"
         buildDefinition.buildRootDir >> new File("d")
 
         expect:
         def nestedBuild1 = registry.addBuildSrcNestedBuild(buildDefinition, rootBuild)
-        nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("nested")
-        nestedBuild1.identityPath == Path.path(":nested")
+        nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("buildSrc")
+        nestedBuild1.identityPath == Path.path(":buildSrc")
 
         def nestedBuild2 = registry.addBuildSrcNestedBuild(buildDefinition, parent1)
         // Shows current behaviour, not necessarily desired behaviour
-        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
-        nestedBuild2.identityPath == Path.path(":parent:nested")
+        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("buildSrc:1")
+        nestedBuild2.identityPath == Path.path(":parent:buildSrc")
 
         def nestedBuild3 = registry.addBuildSrcNestedBuild(buildDefinition, nestedBuild1)
-        nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
-        nestedBuild3.identityPath == Path.path(":nested:nested")
+        nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("buildSrc:2")
+        nestedBuild3.identityPath == Path.path(":buildSrc:buildSrc")
     }
 
     def build(File rootDir, String name = rootDir.name) {
