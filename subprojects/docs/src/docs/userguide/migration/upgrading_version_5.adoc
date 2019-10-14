@@ -149,6 +149,7 @@ Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 - Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.24[Checkstyle 8.24].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-14---may-2019[CodeNarc 1.4].
 - PMD has been updated to https://pmd.github.io/latest/pmd_release_notes.html#28-july-2019---6170[PMD 6.17.0].
+- JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.5]. Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
 
 ==== Changes to Build Cache
 

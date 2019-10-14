@@ -43,8 +43,6 @@ class JacocoAgentJarTest extends Specification {
         '0.7.1.201405082137'  | true
         '0.7.6.201602180812'  | true
         '0.7.8'               | true
-        '0.8.3'               | true
-        '0.8.4'               | true
         '0.8.5'               | true
     }
 
@@ -65,8 +63,6 @@ class JacocoAgentJarTest extends Specification {
         '0.7.1.201405082137'  | false
         '0.7.6.201602180812'  | true
         '0.7.8'               | true
-        '0.8.3'               | true
-        '0.8.4'               | true
         '0.8.5'               | true
     }
 }
