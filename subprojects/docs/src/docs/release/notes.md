@@ -19,6 +19,7 @@ We would like to thank the following community contributors to this release of G
 
 [Nathan Strong](https://github.com/NathanStrong-Tripwire),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Daniel Santiago](https://github.com/danysantiago),
 [Tetsuya Ikenaga](https://github.com/ikngtty),
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Andrey Mischenko](https://github.com/gildor),
