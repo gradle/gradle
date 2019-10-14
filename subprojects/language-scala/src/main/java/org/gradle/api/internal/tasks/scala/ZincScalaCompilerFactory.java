@@ -23,7 +23,6 @@ import org.gradle.cache.internal.Cache;
 import org.gradle.cache.internal.MapBackedCache;
 import org.gradle.internal.Factory;
 import sbt.internal.inc.ScalaInstance;
-import sbt.internal.inc.ZincUtil;
 import scala.Option;
 import xsbti.ArtifactInfo;
 import xsbti.compile.ClasspathOptionsUtil;
@@ -89,12 +88,38 @@ public class ZincScalaCompilerFactory {
             @Override
             public ZincScalaCompiler create() {
                 ScalaInstance scalaInstance = getScalaInstance(scalaClasspath);
-                File bridgeJar = findFile(ZincUtil.getDefaultBridgeModule(scalaInstance.version()).name(), scalaClasspath);
+                String bridgeModule = getBridgeModule(scalaInstance.version());
+                File bridgeJar = findFile(bridgeModule, scalaClasspath);
                 ScalaCompiler scalaCompiler = ZincCompilerUtil.scalaCompiler(scalaInstance, bridgeJar, ClasspathOptionsUtil.auto());
 
                 return new ZincScalaCompiler(scalaInstance, scalaCompiler, ANALYSIS_STORE_PROVIDER);
             }
         });
+    }
+
+    private static String getBridgeModule(String version) {
+        if (version.startsWith("2.10.")) {
+            return "compiler-bridge_2.10";
+        }
+        if (version.startsWith("2.11.")) {
+            return "compiler-bridge_2.11";
+        }
+        if (version.startsWith("2.12.")) {
+            return "compiler-bridge_2.12";
+        }
+        if (version.equals("2.13.0-M1")) {
+            return "compiler-bridge_2.12";
+        }
+        if (version.startsWith("2.13.0-pre-")) {
+            return "compiler-bridge_2.13.0-M2";
+        }
+        if (version.startsWith("2.13.0-M")) {
+            return "compiler-bridge_2.13.0-M2";
+        }
+        if (version.startsWith("2.13.0-RC")) {
+            return "compiler-bridge_2.13.0-M2";
+        }
+        return "compiler-bridge_2.13";
     }
 
     private static File findFile(String prefix, Iterable<File> files) {
