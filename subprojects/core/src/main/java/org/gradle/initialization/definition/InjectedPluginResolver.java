@@ -17,7 +17,6 @@
 package org.gradle.initialization.definition;
 
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
-import org.gradle.plugin.management.internal.MultiPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
@@ -30,7 +29,7 @@ public class InjectedPluginResolver {
         if (requests.isEmpty()) {
             return PluginRequests.EMPTY;
         }
-        return new MultiPluginRequests(convert(requests));
+        return PluginRequests.of(convert(requests));
     }
 
     private List<PluginRequestInternal> convert(List<DefaultInjectedPluginDependency> requests) {
