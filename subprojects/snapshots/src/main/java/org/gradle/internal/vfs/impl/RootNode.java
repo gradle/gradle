@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
@@ -35,19 +36,31 @@ public class RootNode extends AbstractMutableNode {
 
     @Nullable
     @Override
-    public Node getChild(String name) {
-        if (name.isEmpty()) {
-            return new EmptyPathRootNode(this);
+    public Node getChild(ImmutableList<String> path) {
+        String childName = path.get(0);
+        if (childName.isEmpty()) {
+            return new EmptyPathRootNode(this).getChild(path.subList(1, path.size()));
         }
-        return super.getChild(name);
+        return super.getChild(path);
     }
 
     @Override
-    public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
-        if (name.isEmpty()) {
-            return new EmptyPathRootNode(this);
+    public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
+        String childName = path.get(0);
+        if (childName.isEmpty()) {
+            return new EmptyPathRootNode(this).replace(path.subList(1, path.size()), nodeSupplier, shouldReplaceExisting);
         }
-        return super.getOrCreateChild(name, nodeSupplier);
+        return super.replace(path, nodeSupplier, shouldReplaceExisting);
+    }
+
+    @Override
+    public void remove(ImmutableList<String> path) {
+        String childName = path.get(0);
+        if (childName.isEmpty()) {
+            new EmptyPathRootNode(this).remove(path.subList(1, path.size()));
+        } else {
+            super.remove(path);
+        }
     }
 
     @Override
@@ -73,23 +86,18 @@ public class RootNode extends AbstractMutableNode {
 
         @Nullable
         @Override
-        public Node getChild(String name) {
-            return delegate.getChild(name);
+        public Node getChild(ImmutableList<String> path) {
+            return delegate.getChild(path);
         }
 
         @Override
-        public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
-            return delegate.getOrCreateChild(name, nodeSupplier, this);
+        public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
+            return delegate.replace(path, nodeSupplier, shouldReplaceExisting, this);
         }
 
         @Override
-        public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
-            return delegate.replaceChild(name, nodeSupplier, null, this);
-        }
-
-        @Override
-        public void removeChild(String name) {
-            delegate.removeChild(name);
+        public void remove(ImmutableList<String> path) {
+            delegate.remove(path);
         }
 
         @Override

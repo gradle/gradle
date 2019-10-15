@@ -25,6 +25,10 @@ public class DefaultNode extends AbstractMutableNode {
         this.absolutePath = parent.getChildAbsolutePath(name);
     }
 
+    public void addChild(String name, Node child) {
+        getChildren().put(name, child);
+    }
+
     @Override
     public Type getType() {
         return Type.UNKNOWN;

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl
 
+import com.google.common.collect.ImmutableList
 import spock.lang.Specification
 
 class RootNodeTest extends Specification {
@@ -24,31 +25,31 @@ class RootNodeTest extends Specification {
         def node = new RootNode()
 
         def directChild = node
-            .getOrCreateChild("") { parent -> new DefaultNode("", parent) }
-            .getOrCreateChild("var") { parent -> new DefaultNode("var", parent) }
-        def existingDirectChild = node.getChild("").getChild("var")
+            .replace(ImmutableList.of("", "var"), { parent -> new DefaultNode("var", parent) }, { -> true})
+        def existingDirectChild = node.getChild(ImmutableList.of("", "var"))
         def childPath = "${File.separator}var"
         expect:
         directChild.absolutePath == childPath
         existingDirectChild.absolutePath == childPath
         directChild
-            .getOrCreateChild("log") { parent -> new DefaultNode("log", parent) }
+            .replace(ImmutableList.of("log"), { parent -> new DefaultNode("log", parent) }, { -> true })
             .absolutePath == ["", "var", "log"].join(File.separator)
-        existingDirectChild.getChild("log").absolutePath == ["", "var", "log"].join(File.separator)
+        existingDirectChild.getChild(ImmutableList.of("log")).absolutePath == ["", "var", "log"].join(File.separator)
+        node.getChild(ImmutableList.of("", "var", "log")).absolutePath == ["", "var", "log"].join(File.separator)
     }
 
     def "can add Windows style children"() {
         def node = new RootNode()
 
         def directChild = node
-            .getOrCreateChild("C:") { parent -> new DefaultNode("C:", parent) }
-        def existingDirectChild = node.getChild("C:")
+            .replace(ImmutableList.of("C:"), { parent -> new DefaultNode("C:", parent) }, { -> true })
+        def existingDirectChild = node.getChild(ImmutableList.of("C:"))
         expect:
         directChild.absolutePath == "C:"
         existingDirectChild.absolutePath == "C:"
         directChild
-            .getOrCreateChild("Users") { parent -> new DefaultNode("Users", parent) }
+            .replace(ImmutableList.of("Users"), { parent -> new DefaultNode("Users", parent) }, { -> true})
             .absolutePath == ["C:", "Users"].join(File.separator)
-        existingDirectChild.getChild("Users").absolutePath == ["C:", "Users"].join(File.separator)
+        existingDirectChild.getChild(ImmutableList.of("Users")).absolutePath == ["C:", "Users"].join(File.separator)
     }
 }

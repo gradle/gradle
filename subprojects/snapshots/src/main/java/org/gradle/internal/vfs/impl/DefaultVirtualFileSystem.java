@@ -18,6 +18,7 @@ package org.gradle.internal.vfs.impl;
 
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
@@ -35,11 +36,9 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -73,10 +72,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        List<String> pathSegments = getPathSegments(location);
-        String name = pathSegments.get(pathSegments.size() - 1);
-        Node foundParent = findParentNotCreating(pathSegments);
-        Node existingChild = foundParent != null ? foundParent.getChild(name) : null;
+        ImmutableList<String> pathSegments = getPathSegments(location);
+        Node existingChild = root.getChild(pathSegments);
         if (existingChild != null && existingChild.getType() != Node.Type.UNKNOWN) {
             return mapRegularFileContentHash(visitor, existingChild);
         }
@@ -87,11 +84,12 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         }
         HashCode hashCode = hasher.hash(file, stat.getLength(), stat.getLastModified());
         RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
-        return Optional.ofNullable(visitor.apply(mutateVirtualFileSystem(() -> {
-            Node parent = findOrCreateParent(pathSegments);
-            Node node = parent.replaceChild(snapshot.getName(), it -> new RegularFileNode(it, snapshot), existing -> existing.getType() == Node.Type.UNKNOWN);
-            return node.getSnapshot().getHash();
-        })));
+        mutateVirtualFileSystem(() -> root.replace(
+            pathSegments,
+            it -> new RegularFileNode(it, snapshot),
+            existing -> existing.getType() == Node.Type.UNKNOWN
+        ));
+        return Optional.ofNullable(visitor.apply(snapshot.getHash()));
     }
 
     private <T> Optional<T> mapRegularFileContentHash(Function<HashCode, T> visitor, Node existingChild) {
@@ -103,10 +101,10 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     @Override
     public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
+        FileSystemLocationSnapshot unfilteredSnapshot = readLocation(location).getSnapshot();
         if (filter.isEmpty()) {
-            visitor.accept(readLocation(location).getSnapshot());
+            visitor.accept(unfilteredSnapshot);
         } else {
-            FileSystemLocationSnapshot unfilteredSnapshot = readLocation(location).getSnapshot();
             FileSystemSnapshot filteredSnapshot = FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), unfilteredSnapshot);
             if (filteredSnapshot instanceof FileSystemLocationSnapshot) {
                 visitor.accept((FileSystemLocationSnapshot) filteredSnapshot);
@@ -144,22 +142,18 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     }
 
     private Node readLocation(String location) {
-        List<String> pathSegments = getPathSegments(location);
-        Node foundParent = findParentNotCreating(pathSegments);
-        String name = pathSegments.get(pathSegments.size() - 1);
-        Node existingChild = foundParent != null ? foundParent.getChild(name) : null;
+        ImmutableList<String> pathSegments = getPathSegments(location);
+        Node existingChild = root.getChild(pathSegments);
         if (existingChild != null && existingChild.getType() != Node.Type.UNKNOWN) {
             return existingChild;
         }
 
         FileSystemLocationSnapshot snapshot = snapshot(location);
-        return mutateVirtualFileSystem(() -> {
-            Node parent = findOrCreateParent(pathSegments);
-            return parent.replaceChild(
-                name,
-                it -> createNode(snapshot, it),
-                current -> current.getType() == Node.Type.UNKNOWN);
-        });
+        return mutateVirtualFileSystem(() -> root.replace(
+            pathSegments,
+            it -> createNode(snapshot, it),
+            current -> current.getType() == Node.Type.UNKNOWN
+        ));
     }
 
     private void mutateVirtualFileSystem(Runnable action) {
@@ -180,28 +174,12 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         }
     }
 
-    private Node findOrCreateParent(List<String> pathSegments) {
-        Node foundNode = root;
-        for (int i = 0; i < pathSegments.size() - 1; i++) {
-            String pathSegment = pathSegments.get(i);
-            foundNode = foundNode.getOrCreateChild(pathSegment, parent -> new DefaultNode(pathSegment, parent));
-        }
-        return foundNode;
-    }
-
     @Override
     public void update(Iterable<String> locations, Runnable action) {
         locations.forEach(location -> {
-            List<String> pathSegments = getPathSegments(location);
-            Node foundParent = findParentNotCreating(pathSegments);
-            String name = pathSegments.get(pathSegments.size() - 1);
-            if (foundParent != null && foundParent.getChild(name) != null) {
-                mutateVirtualFileSystem(() -> {
-                    Node parent = findParentNotCreating(pathSegments);
-                    if (parent != null) {
-                        parent.removeChild(name);
-                    }
-                });
+            ImmutableList<String> pathSegments = getPathSegments(location);
+            if (root.getChild(pathSegments) != null) {
+                mutateVirtualFileSystem(() -> root.remove(pathSegments));
             }
         });
         action.run();
@@ -217,31 +195,18 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     @Override
     public void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot) {
-        List<String> pathSegments = getPathSegments(location);
+        ImmutableList<String> pathSegments = getPathSegments(location);
         mutateVirtualFileSystem(() -> {
-            Node parent = findOrCreateParent(pathSegments);
-            parent.replaceChild(
-                pathSegments.get(pathSegments.size() - 1),
-                it -> CompleteDirectoryNode.convertToNode(snapshot, parent),
-                old -> true);
+            root.replace(
+                pathSegments,
+                parent -> AbstractSnapshotNode.convertToNode(snapshot, parent),
+                old -> true
+            );
         });
     }
 
-    @Nullable
-    private Node findParentNotCreating(List<String> pathSegments) {
-        Node foundNode = root;
-        for (int i = 0; i < pathSegments.size() - 1; i++) {
-            String pathSegment = pathSegments.get(i);
-            foundNode = foundNode.getChild(pathSegment);
-            if (foundNode == null) {
-                return null;
-            }
-        }
-        return foundNode;
-    }
-
-    private static List<String> getPathSegments(String path) {
-        return FILE_PATH_SPLITTER.splitToList(path);
+    private static ImmutableList<String> getPathSegments(String path) {
+        return ImmutableList.copyOf(FILE_PATH_SPLITTER.splitToList(path));
     }
 
     @Override

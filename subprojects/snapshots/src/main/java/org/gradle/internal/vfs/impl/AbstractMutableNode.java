@@ -16,6 +16,8 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.ImmutableList;
+
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,36 +27,52 @@ public abstract class AbstractMutableNode implements Node {
 
     @Nullable
     @Override
-    public Node getChild(String name) {
-        return children.get(name);
+    public Node getChild(ImmutableList<String> path) {
+        if (path.isEmpty()) {
+            return this;
+        }
+        String childName = path.get(0);
+        Node child = children.get(childName);
+        return child != null
+            ? child.getChild(path.subList(1, path.size()))
+            : null;
     }
 
     @Override
-    public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
-        return getOrCreateChild(name, nodeSupplier, this);
+    public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
+        return replace(path, nodeSupplier, shouldReplaceExisting, this);
     }
 
-    protected Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier, Node parent) {
-        return children.computeIfAbsent(name, key -> nodeSupplier.create(parent));
-    }
-
-    @Override
-    public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
-        return replaceChild(name, nodeSupplier, shouldReplaceExisting, this);
-    }
-
-    @Override
-    public void removeChild(String name) {
-        children.remove(name);
-    }
-
-    public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting, Node parent) {
-        return children.compute(
-            name,
-            (key, current) -> (current == null || shouldReplaceExisting.test(current))
+    protected Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting, Node parent) {
+        if (path.isEmpty()) {
+            throw new UnsupportedOperationException("Can't replace current node");
+        }
+        boolean directChild = path.size() == 1;
+        String childName = path.get(0);
+        if (directChild) {
+            return children.compute(childName, (key, current) -> (current == null || shouldReplaceExisting.test(current))
                 ? nodeSupplier.create(parent)
-                : current
-        );
+                : current);
+        }
+        return children.computeIfAbsent(childName, key -> new DefaultNode(childName, parent))
+            .replace(path.subList(1, path.size()), nodeSupplier, shouldReplaceExisting);
+    }
+
+    @Override
+    public void remove(ImmutableList<String> path) {
+        if (path.isEmpty()) {
+            throw new UnsupportedOperationException("Can't remove current node");
+        }
+        boolean directChild = path.size() == 1;
+        String childName = path.get(0);
+        if (directChild) {
+            children.remove(childName);
+        } else {
+            Node child = children.get(childName);
+            if (child != null) {
+                child.remove(path.subList(1, path.size()));
+            }
+        }
     }
 
     public Map<String, Node> getChildren() {

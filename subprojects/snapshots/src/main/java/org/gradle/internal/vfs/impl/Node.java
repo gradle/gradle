@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import javax.annotation.Nullable;
@@ -24,10 +25,10 @@ import java.util.function.Predicate;
 
 public interface Node {
     @Nullable
-    Node getChild(String name);
-    Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier);
-    Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting);
-    void removeChild(String name);
+    Node getChild(ImmutableList<String> path);
+    Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting);
+    void remove(ImmutableList<String> path);
+
     String getAbsolutePath();
     Type getType();
 

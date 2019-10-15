@@ -16,12 +16,13 @@
 
 package org.gradle.internal.vfs.impl;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 
 import javax.annotation.Nonnull;
 
-public class MissingFileNode implements Node {
+public class MissingFileNode extends AbstractSnapshotNode {
 
     private final Node parent;
     private final String absolutePath;
@@ -35,23 +36,18 @@ public class MissingFileNode implements Node {
 
     @Nonnull
     @Override
-    public Node getChild(String name) {
-        return new MissingFileNode(this, getChildAbsolutePath(name), name);
+    public Node getChild(ImmutableList<String> path) {
+        return getMissingChild(path);
     }
 
     @Override
-    public Node getOrCreateChild(String name, ChildNodeSupplier nodeSupplier) {
-        return getChild(name);
+    public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
+        return getMissingChild(path);
     }
 
     @Override
-    public Node replaceChild(String name, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
-        return new MissingFileNode(this, getChildAbsolutePath(name), name);
-    }
-
-    @Override
-    public void removeChild(String name) {
-        parent.removeChild(this.name);
+    public void remove(ImmutableList<String> path) {
+        parent.remove(ImmutableList.of(name));
     }
 
     @Override
