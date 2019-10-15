@@ -43,6 +43,12 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         def commitId = git.repository.findRef("HEAD").objectId.name()
         println "> Building commit $commitId"
 
+        def buildDir = file("checkout/santa-tracker")
+        def buildFile = buildDir.file("build.gradle")
+        buildFile.text -= "id 'com.gradle.build-scan' version '2.1'"
+        def settingsFile = buildDir.file("settings.gradle")
+        settingsFile.text = "plugins { id 'com.gradle.enterprise' version '3.0' }\n\n" + settingsFile.text
+
         expect:
         runner(
                 "check",
