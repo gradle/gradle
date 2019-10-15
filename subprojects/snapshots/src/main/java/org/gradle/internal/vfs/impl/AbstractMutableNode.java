@@ -27,39 +27,37 @@ public abstract class AbstractMutableNode implements Node {
 
     @Nullable
     @Override
-    public Node getChild(ImmutableList<String> path) {
+    public Node getDescendant(ImmutableList<String> path) {
         if (path.isEmpty()) {
             return this;
         }
         String childName = path.get(0);
         Node child = children.get(childName);
         return child != null
-            ? child.getChild(path.subList(1, path.size()))
+            ? child.getDescendant(path.subList(1, path.size()))
             : null;
     }
 
     @Override
-    public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
-        return replace(path, nodeSupplier, shouldReplaceExisting, this);
+    public Node replaceDescendant(ImmutableList<String> path, ChildNodeSupplier nodeSupplier) {
+        return replace(path, nodeSupplier, this);
     }
 
-    protected Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting, Node parent) {
+    protected Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, Node parent) {
         if (path.isEmpty()) {
             throw new UnsupportedOperationException("Can't replace current node");
         }
         boolean directChild = path.size() == 1;
         String childName = path.get(0);
         if (directChild) {
-            return children.compute(childName, (key, current) -> (current == null || shouldReplaceExisting.test(current))
-                ? nodeSupplier.create(parent)
-                : current);
+            return children.compute(childName, (key, current) -> nodeSupplier.create(parent));
         }
         return children.computeIfAbsent(childName, key -> new DefaultNode(childName, parent))
-            .replace(path.subList(1, path.size()), nodeSupplier, shouldReplaceExisting);
+            .replaceDescendant(path.subList(1, path.size()), nodeSupplier);
     }
 
     @Override
-    public void remove(ImmutableList<String> path) {
+    public void removeDescendant(ImmutableList<String> path) {
         if (path.isEmpty()) {
             throw new UnsupportedOperationException("Can't remove current node");
         }
@@ -70,7 +68,7 @@ public abstract class AbstractMutableNode implements Node {
         } else {
             Node child = children.get(childName);
             if (child != null) {
-                child.remove(path.subList(1, path.size()));
+                child.removeDescendant(path.subList(1, path.size()));
             }
         }
     }

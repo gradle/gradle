@@ -36,18 +36,18 @@ public class MissingFileNode extends AbstractSnapshotNode {
 
     @Nonnull
     @Override
-    public Node getChild(ImmutableList<String> path) {
-        return getMissingChild(path);
+    public Node getDescendant(ImmutableList<String> path) {
+        return getMissingDescendant(path);
     }
 
     @Override
-    public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
-        return getMissingChild(path);
+    public Node replaceDescendant(ImmutableList<String> path, ChildNodeSupplier nodeSupplier) {
+        return getMissingDescendant(path);
     }
 
     @Override
-    public void remove(ImmutableList<String> path) {
-        parent.remove(ImmutableList.of(name));
+    public void removeDescendant(ImmutableList<String> path) {
+        parent.removeDescendant(ImmutableList.of(name));
     }
 
     @Override

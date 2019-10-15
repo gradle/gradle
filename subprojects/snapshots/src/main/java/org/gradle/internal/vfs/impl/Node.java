@@ -25,9 +25,9 @@ import java.util.function.Predicate;
 
 public interface Node {
     @Nullable
-    Node getChild(ImmutableList<String> path);
-    Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting);
-    void remove(ImmutableList<String> path);
+    Node getDescendant(ImmutableList<String> path);
+    Node replaceDescendant(ImmutableList<String> path, ChildNodeSupplier nodeSupplier);
+    void removeDescendant(ImmutableList<String> path);
 
     String getAbsolutePath();
     Type getType();

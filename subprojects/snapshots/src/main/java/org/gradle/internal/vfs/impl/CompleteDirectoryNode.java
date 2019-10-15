@@ -43,7 +43,7 @@ public class CompleteDirectoryNode extends AbstractSnapshotNode {
 
     @Nonnull
     @Override
-    public Node getChild(ImmutableList<String> path) {
+    public Node getDescendant(ImmutableList<String> path) {
         return getChildOrMissing(path);
     }
 
@@ -55,13 +55,13 @@ public class CompleteDirectoryNode extends AbstractSnapshotNode {
         ImmutableList<String> remainingPath = path.subList(1, path.size());
         FileSystemLocationSnapshot fileSystemLocationSnapshot = childrenMap.get(childName);
         return fileSystemLocationSnapshot != null
-            ? convertToNode(fileSystemLocationSnapshot, this).getChild(remainingPath)
-            : new MissingFileNode(this, getChildAbsolutePath(childName), childName).getChild(remainingPath);
+            ? convertToNode(fileSystemLocationSnapshot, this).getDescendant(remainingPath)
+            : new MissingFileNode(this, getChildAbsolutePath(childName), childName).getDescendant(remainingPath);
     }
 
 
     @Override
-    public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
+    public Node replaceDescendant(ImmutableList<String> path, ChildNodeSupplier nodeSupplier) {
         if (path.isEmpty()) {
             throw new IllegalArgumentException("Cannot replace child with empty path");
         }
@@ -69,23 +69,23 @@ public class CompleteDirectoryNode extends AbstractSnapshotNode {
         String childName = path.get(0);
         FileSystemLocationSnapshot snapshot = childrenMap.get(childName);
         if (snapshot == null) {
-            return new MissingFileNode(this, getChildAbsolutePath(childName), childName).getChild(path.subList(1, path.size()));
+            return new MissingFileNode(this, getChildAbsolutePath(childName), childName).getDescendant(path.subList(1, path.size()));
         }
         Node currentChild = convertToNode(snapshot, this);
         if (directChild) {
-            if (!shouldReplaceExisting.test(currentChild)) {
+            Node replacedChild = nodeSupplier.create(currentChild);
+            if (replacedChild instanceof AbstractSnapshotNode && replacedChild.getSnapshot().getHash().equals(currentChild.getSnapshot().getHash())) {
                 return currentChild;
             }
-            Node replacedChild = nodeSupplier.create(currentChild);
             replaceByMutableNodeWithReplacedSnapshot(snapshot, replacedChild);
             return replacedChild;
         }
 
-        return currentChild.replace(path.subList(1, path.size()), nodeSupplier, shouldReplaceExisting);
+        return currentChild.replaceDescendant(path.subList(1, path.size()), nodeSupplier);
     }
 
     @Override
-    public void remove(ImmutableList<String> path) {
+    public void removeDescendant(ImmutableList<String> path) {
         if (path.isEmpty()) {
             throw new IllegalArgumentException("Cannot remove current node");
         }
@@ -95,7 +95,7 @@ public class CompleteDirectoryNode extends AbstractSnapshotNode {
         if (directChild || childSnapshot == null) {
             replaceByMutableNodeWithReplacedSnapshot(childSnapshot, null);
         } else {
-            convertToNode(childSnapshot, this).remove(path.subList(1, path.size()));
+            convertToNode(childSnapshot, this).removeDescendant(path.subList(1, path.size()));
         }
     }
 
@@ -114,10 +114,10 @@ public class CompleteDirectoryNode extends AbstractSnapshotNode {
                 );
             }
         });
-        parent.replace(
+        parent.replaceDescendant(
             ImmutableList.of(directorySnapshot.getName()),
-            parent -> replacementForCurrentNode,
-            old -> true);
+            parent -> replacementForCurrentNode
+        );
     }
 
     @Override

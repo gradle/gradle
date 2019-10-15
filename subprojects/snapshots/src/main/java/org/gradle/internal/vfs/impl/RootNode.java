@@ -36,30 +36,30 @@ public class RootNode extends AbstractMutableNode {
 
     @Nullable
     @Override
-    public Node getChild(ImmutableList<String> path) {
+    public Node getDescendant(ImmutableList<String> path) {
         String childName = path.get(0);
         if (childName.isEmpty()) {
-            return new EmptyPathRootNode(this).getChild(path.subList(1, path.size()));
+            return new EmptyPathRootNode(this).getDescendant(path.subList(1, path.size()));
         }
-        return super.getChild(path);
+        return super.getDescendant(path);
     }
 
     @Override
-    public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
+    public Node replaceDescendant(ImmutableList<String> path, ChildNodeSupplier nodeSupplier) {
         String childName = path.get(0);
         if (childName.isEmpty()) {
-            return new EmptyPathRootNode(this).replace(path.subList(1, path.size()), nodeSupplier, shouldReplaceExisting);
+            return new EmptyPathRootNode(this).replaceDescendant(path.subList(1, path.size()), nodeSupplier);
         }
-        return super.replace(path, nodeSupplier, shouldReplaceExisting);
+        return super.replaceDescendant(path, nodeSupplier);
     }
 
     @Override
-    public void remove(ImmutableList<String> path) {
+    public void removeDescendant(ImmutableList<String> path) {
         String childName = path.get(0);
         if (childName.isEmpty()) {
-            new EmptyPathRootNode(this).remove(path.subList(1, path.size()));
+            new EmptyPathRootNode(this).removeDescendant(path.subList(1, path.size()));
         } else {
-            super.remove(path);
+            super.removeDescendant(path);
         }
     }
 
@@ -86,18 +86,18 @@ public class RootNode extends AbstractMutableNode {
 
         @Nullable
         @Override
-        public Node getChild(ImmutableList<String> path) {
-            return delegate.getChild(path);
+        public Node getDescendant(ImmutableList<String> path) {
+            return delegate.getDescendant(path);
         }
 
         @Override
-        public Node replace(ImmutableList<String> path, ChildNodeSupplier nodeSupplier, ExistingChildPredicate shouldReplaceExisting) {
-            return delegate.replace(path, nodeSupplier, shouldReplaceExisting, this);
+        public Node replaceDescendant(ImmutableList<String> path, ChildNodeSupplier nodeSupplier) {
+            return delegate.replace(path, nodeSupplier, this);
         }
 
         @Override
-        public void remove(ImmutableList<String> path) {
-            delegate.remove(path);
+        public void removeDescendant(ImmutableList<String> path) {
+            delegate.removeDescendant(path);
         }
 
         @Override

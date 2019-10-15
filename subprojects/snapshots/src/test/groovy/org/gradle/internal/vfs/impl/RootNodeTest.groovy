@@ -25,31 +25,31 @@ class RootNodeTest extends Specification {
         def node = new RootNode()
 
         def directChild = node
-            .replace(ImmutableList.of("", "var"), { parent -> new DefaultNode("var", parent) }, { -> true})
-        def existingDirectChild = node.getChild(ImmutableList.of("", "var"))
+            .replaceDescendant(ImmutableList.of("", "var"), { parent -> new DefaultNode("var", parent) })
+        def existingDirectChild = node.getDescendant(ImmutableList.of("", "var"))
         def childPath = "${File.separator}var"
         expect:
         directChild.absolutePath == childPath
         existingDirectChild.absolutePath == childPath
         directChild
-            .replace(ImmutableList.of("log"), { parent -> new DefaultNode("log", parent) }, { -> true })
+            .replaceDescendant(ImmutableList.of("log")) { parent -> new DefaultNode("log", parent) }
             .absolutePath == ["", "var", "log"].join(File.separator)
-        existingDirectChild.getChild(ImmutableList.of("log")).absolutePath == ["", "var", "log"].join(File.separator)
-        node.getChild(ImmutableList.of("", "var", "log")).absolutePath == ["", "var", "log"].join(File.separator)
+        existingDirectChild.getDescendant(ImmutableList.of("log")).absolutePath == ["", "var", "log"].join(File.separator)
+        node.getDescendant(ImmutableList.of("", "var", "log")).absolutePath == ["", "var", "log"].join(File.separator)
     }
 
     def "can add Windows style children"() {
         def node = new RootNode()
 
         def directChild = node
-            .replace(ImmutableList.of("C:"), { parent -> new DefaultNode("C:", parent) }, { -> true })
-        def existingDirectChild = node.getChild(ImmutableList.of("C:"))
+            .replaceDescendant(ImmutableList.of("C:")) { parent -> new DefaultNode("C:", parent) }
+        def existingDirectChild = node.getDescendant(ImmutableList.of("C:"))
         expect:
         directChild.absolutePath == "C:"
         existingDirectChild.absolutePath == "C:"
         directChild
-            .replace(ImmutableList.of("Users"), { parent -> new DefaultNode("Users", parent) }, { -> true})
+            .replaceDescendant(ImmutableList.of("Users")) { parent -> new DefaultNode("Users", parent) }
             .absolutePath == ["C:", "Users"].join(File.separator)
-        existingDirectChild.getChild(ImmutableList.of("Users")).absolutePath == ["C:", "Users"].join(File.separator)
+        existingDirectChild.getDescendant(ImmutableList.of("Users")).absolutePath == ["C:", "Users"].join(File.separator)
     }
 }

@@ -27,14 +27,14 @@ public abstract class AbstractSnapshotNode implements Node {
 
     @Nonnull
     @Override
-    public abstract Node getChild(ImmutableList<String> path);
+    public abstract Node getDescendant(ImmutableList<String> path);
 
-    protected Node getMissingChild(ImmutableList<String> path) {
+    protected Node getMissingDescendant(ImmutableList<String> path) {
         if (path.isEmpty()) {
             return this;
         }
         String childName = path.get(0);
-        return new MissingFileNode(this, getChildAbsolutePath(childName), childName).getMissingChild(path.subList(1, path.size()));
+        return new MissingFileNode(this, getChildAbsolutePath(childName), childName).getMissingDescendant(path.subList(1, path.size()));
     }
 
     public static AbstractSnapshotNode convertToNode(FileSystemLocationSnapshot snapshot, Node parent) {
