@@ -34,6 +34,13 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
             dependencies {
                 implementation "org.scala-lang:scala-library:2.10.7"
             }
+            task assertZincVersion {
+                dependsOn configurations.zinc
+                doLast {
+                    def resolvedDependencies = configurations.zinc.getResolvedConfiguration().getFirstLevelModuleDependencies()
+                    assert resolvedDependencies.find { it.moduleGroup == "org.scala-sbt" && it.moduleName == "zinc_2.12" && it.moduleVersion == "${version}" }
+                }
+            }
         """
         args("--info")
     }
@@ -43,7 +50,7 @@ class ZincScalaCompilerMultiVersionIntegrationTest extends MultiVersionIntegrati
         withScalaSources()
 
         expect:
-        succeeds("compileScala")
+        succeeds("assertZincVersion", "compileScala")
         output.contains("Compiling with Zinc Scala compiler")
         scalaClassFile("compile/test").assertContainsDescendants(
             "Person.class",

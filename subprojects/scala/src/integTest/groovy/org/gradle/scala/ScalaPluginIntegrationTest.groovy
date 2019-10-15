@@ -239,4 +239,27 @@ task someTask
         expect:
         succeeds("assemble")
     }
+
+    def "trying to use an old version of Zinc switches to Gradle-supported version"() {
+        settingsFile << """
+            rootProject.name = "scala"
+        """
+        buildFile << """
+            apply plugin: 'scala'
+
+            repositories {
+                ${jcenterRepository()}
+            }
+            dependencies {
+                zinc("com.typesafe.zinc:zinc:0.3.6")
+                implementation("org.scala-lang:scala-library:2.12.6")
+            }
+        """
+        file("src/main/scala/Foo.scala") << """
+            class Foo
+        """
+        expect:
+        succeeds("assemble")
+        succeeds("dependencyInsight", "--configuration", "zinc", "--dependency", "zinc")
+    }
 }

@@ -25,7 +25,6 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -53,8 +52,8 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
-import org.gradle.internal.Cast;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -95,14 +94,20 @@ public class ScalaBasePlugin implements Plugin<Project> {
         DependencyHandler dependencyHandler = project.getDependencies();
 
         Configuration zinc = project.getConfigurations().create(ZINC_CONFIGURATION_NAME);
-        zinc.setVisible(false).setDescription("The Zinc incremental compiler to be used for this Scala project.");
-        zinc.defaultDependencies(dependencies -> {
-            // Clear forced modules
-            zinc.getResolutionStrategy().setForcedModules();
+        zinc.setVisible(false);
+        zinc.setDescription("The Zinc incremental compiler to be used for this Scala project.");
 
-            ExternalDependency zincRuntime = Cast.cast(ExternalDependency.class, dependencyHandler.create("org.scala-sbt:zinc_2.12"));
-            zincRuntime.version(version -> version.prefer(scalaPluginExtension.getZincVersion().get()));
-            dependencies.add(zincRuntime);
+        zinc.getResolutionStrategy().eachDependency(rule -> {
+            if (rule.getRequested().getGroup().equals("com.typesafe.zinc") && rule.getRequested().getName().equals("zinc")) {
+                rule.useTarget("org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                rule.because("Typesafe Zinc is no longer maintained.");
+            }
+        });
+
+        zinc.defaultDependencies(dependencies -> {
+            // Clear forced modules, so rules from configurations.all do not force an incompatible Scala library
+            zinc.getResolutionStrategy().setForcedModules();
+            dependencies.add(dependencyHandler.create("org.scala-sbt:zinc_2.12:" + scalaPluginExtension.getZincVersion().get()));
         });
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
