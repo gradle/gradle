@@ -722,8 +722,8 @@ Many popular annotation processors support incremental annotation processing (se
 | link:https://bugs.eclipse.org/bugs/show_bug.cgi?id=535985[Open issue]
 | N/A
 
-| PermissionsDispatcher
-| link:https://github.com/permissions-dispatcher/PermissionsDispatcher/issues/473[PR merged, waiting for release]
+| link:https://github.com/permissions-dispatcher/PermissionsDispatcher[PermissionsDispatcher]
+| link:https://github.com/permissions-dispatcher/PermissionsDispatcher/releases/tag/4.2.0[4.2.0]
 | N/A
 
 | Immutables
