@@ -45,7 +45,7 @@ gradlebuildJava {
 tasks.integTest {
     options {
         require(this is JUnitOptions)
-//        excludeCategories("org.gradle.soak.categories.SoakTest")
+        excludeCategories("org.gradle.soak.categories.SoakTest")
     }
 }
 
