@@ -1,9 +1,11 @@
-rootProject {
-    pluginManager.withPlugin("com.gradle.build-scan") {
-        extensions["buildScan"].withGroovyBuilder {
-            "publishAlways"()
-            setProperty("termsOfServiceUrl", "https://gradle.com/terms-of-service")
-            setProperty("termsOfServiceAgree", "yes")
+settingsEvaluated {
+    pluginManager.withPlugin("com.gradle.enterprise") {
+        extensions["gradleEnterprise"].withGroovyBuilder {
+            "buildScan" {
+                "publishAlways"()
+                setProperty("termsOfServiceUrl", "https://gradle.com/terms-of-service")
+                setProperty("termsOfServiceAgree", "yes")
+            }
         }
     }
 }
