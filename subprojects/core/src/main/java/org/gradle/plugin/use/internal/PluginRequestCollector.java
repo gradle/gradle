@@ -24,7 +24,7 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.internal.InvalidPluginIdException;
 import org.gradle.plugin.internal.InvalidPluginVersionException;
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
+import org.gradle.plugin.management.internal.MultiPluginRequests;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
@@ -65,7 +65,7 @@ public class PluginRequestCollector {
         if (specs.isEmpty()) {
             return PluginRequests.EMPTY;
         }
-        return new DefaultPluginRequests(listPluginRequests());
+        return new MultiPluginRequests(listPluginRequests());
     }
 
     @VisibleForTesting

@@ -17,38 +17,43 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
-import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.util.Requires
-import spock.lang.Ignore
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
+import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires([KOTLIN_SCRIPT])
-@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
-    private final BuildScanPluginFixture fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
+    private final GradleEnterprisePluginFixture fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
 
-    def "can automatically apply build scan plugin when --scan is provided on command-line"() {
+    def "can automatically apply plugin when --scan is provided on command-line"() {
         given:
         buildFile << """
             task("dummy")
         """
 
-        settingsFile.text = """
-            ${fixture.pluginManagement()}
-        """ + settingsFile.text
+        def initScript = file("init.gradle") << """
+            beforeSettings {
+                it.with { ${fixture.pluginManagement()} }
+            }
+        """
 
-        fixture.publishDummyBuildScanPlugin(executer)
+        file("settings.gradle.kts") << """
+            gradleEnterprise {}
+        """
+
+        fixture.publishDummyPlugin(executer)
 
         when:
-        args("--${BuildScanOption.LONG_OPTION}")
+        args("--${BuildScanOption.LONG_OPTION}", "-I", initScript.absolutePath)
         succeeds('dummy')
 
         then:
-        output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${AutoAppliedBuildScanPlugin.VERSION}")
+        output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${AutoAppliedGradleEnterprisePlugin.VERSION}")
     }
+
 }

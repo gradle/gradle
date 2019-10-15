@@ -17,26 +17,15 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.JavaVersion
-
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
-
 import org.gradle.kotlin.dsl.support.zipTo
-
-import org.hamcrest.CoreMatchers.allOf
-import org.hamcrest.CoreMatchers.containsString
-import org.hamcrest.CoreMatchers.not
-import org.hamcrest.Matcher
-
-import org.junit.Assert.assertThat
 import org.junit.Assume.assumeFalse
 import org.junit.Assume.assumeTrue
 import org.junit.Before
-
 import java.io.File
 
 
@@ -253,17 +242,4 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
             executer.requireGradleDistribution()
         }
     }
-
-    protected
-    fun canPublishBuildScan() {
-        assertThat(
-            build("tasks", "--scan").output,
-            containsBuildScanPluginOutput())
-    }
-
-    protected
-    fun containsBuildScanPluginOutput(): Matcher<String> = allOf(
-        containsString("Publishing build scan..."),
-        not(containsString("The build scan plugin was applied after other plugins."))
-    )
 }

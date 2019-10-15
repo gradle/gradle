@@ -19,22 +19,21 @@ package org.gradle.internal.scan.config.fixtures
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.scan.config.BuildScanConfig
+import org.gradle.internal.scan.config.BuildScanConfigManager
 import org.gradle.internal.scan.config.BuildScanPluginApplied
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
 @SuppressWarnings("GrMethodMayBeStatic")
-class BuildScanPluginFixture {
+class GradleEnterprisePluginFixture {
 
-    private static final String PLUGIN_NOT_APPLIED_MSG = """Build scan cannot be created because the build scan plugin was not applied.
-For more information on how to apply the build scan plugin, please visit https://gradle.com/scans/help/gradle-cli."""
-
-    public static final String BUILD_SCAN_PLUGIN_ID = AutoAppliedBuildScanPlugin.ID.id
+    public static final String PLUGIN_NOT_APPLIED_MSG = BuildScanConfigManager.NO_PLUGIN_MSG
+    public static final String GRADLE_ENTERPRISE_PLUGIN_ID = AutoAppliedGradleEnterprisePlugin.ID.id
     public static final String PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX = 'PUBLISHING BUILD SCAN v'
-    public static final String DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS = 'DummyBuildScanPlugin'
-    public static final String FULLY_QUALIFIED_DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS = "test.${DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS}"
+    public static final String DUMMY_PLUGIN_IMPL_CLASS = 'DummyPlugin'
+    public static final String FULLY_QUALIFIED_DUMMY_PLUGIN_IMPL_CLASS = "org.gradle.test.${DUMMY_PLUGIN_IMPL_CLASS}"
 
     private final TestFile projectDir
     private final MavenFileRepository mavenRepo
@@ -46,10 +45,10 @@ For more information on how to apply the build scan plugin, please visit https:/
 
     protected boolean added
 
-    String runtimeVersion = AutoAppliedBuildScanPlugin.VERSION
-    String artifactVersion = AutoAppliedBuildScanPlugin.VERSION
+    String runtimeVersion = AutoAppliedGradleEnterprisePlugin.VERSION
+    String artifactVersion = AutoAppliedGradleEnterprisePlugin.VERSION
 
-    BuildScanPluginFixture(TestFile projectDir, MavenFileRepository mavenRepo, GradleExecuter pluginBuildExecuter) {
+    GradleEnterprisePluginFixture(TestFile projectDir, MavenFileRepository mavenRepo, GradleExecuter pluginBuildExecuter) {
         this.projectDir = projectDir
         this.mavenRepo = mavenRepo
         this.pluginBuildExecuter = pluginBuildExecuter
@@ -65,13 +64,13 @@ For more information on how to apply the build scan plugin, please visit https:/
         """
     }
 
-    void publishDummyBuildScanPlugin(GradleExecuter executer) {
+    void publishDummyPlugin(GradleExecuter executer) {
         executer.beforeExecute {
-            publishDummyBuildScanPluginNow()
+            publishDummyPluginNow()
         }
     }
 
-    void publishDummyBuildScanPluginNow() {
+    void publishDummyPluginNow() {
         if (added) {
             return
         }
@@ -100,14 +99,14 @@ For more information on how to apply the build scan plugin, please visit https:/
             """
         }
 
-        def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedBuildScanPlugin.ID.id))
-        builder.addPlugin("""
-            project.gradle.buildFinished {
+        def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedGradleEnterprisePlugin.ID.id))
+        builder.addSettingsPlugin("""
+            settings.gradle.buildFinished {
                 println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${runtimeVersion}'
             }
-""", BUILD_SCAN_PLUGIN_ID, DUMMY_BUILD_SCAN_PLUGIN_IMPL_CLASS)
+""", GRADLE_ENTERPRISE_PLUGIN_ID, DUMMY_PLUGIN_IMPL_CLASS)
 
-        builder.publishAs("com.gradle:build-scan-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
+        builder.publishAs("com.gradle:gradle-enterprise-gradle-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }
 
     void assertDisabled(String output, boolean disabled) {
@@ -133,11 +132,6 @@ For more information on how to apply the build scan plugin, please visit https:/
         }.collect {
             def map = new JsonSlurper().parseText("{" + it + "}")
             new BuildScanConfig.Attributes() {
-                @Override
-                boolean isRootProjectHasVcsMappings() {
-                    return map.rootProjectHasVcsMappings
-                }
-
                 @Override
                 boolean isTaskExecutingBuild() {
                     return map.taskExecutingBuild

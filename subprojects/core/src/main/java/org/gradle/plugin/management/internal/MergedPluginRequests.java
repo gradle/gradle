@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,30 @@
 
 package org.gradle.plugin.management.internal;
 
+import com.google.common.collect.Iterators;
+
 import java.util.Iterator;
-import java.util.List;
 
-public class DefaultPluginRequests implements PluginRequests {
+public class MergedPluginRequests implements PluginRequests {
 
-    private final List<PluginRequestInternal> requests;
+    private final PluginRequests first;
+    private final PluginRequests second;
 
-    public DefaultPluginRequests(List<PluginRequestInternal> requests) {
-        this.requests = requests;
+    public MergedPluginRequests(PluginRequests first, PluginRequests second) {
+        if (first.isEmpty() || second.isEmpty()) {
+            throw new IllegalStateException("requests must not be empty");
+        }
+        this.first = first;
+        this.second = second;
     }
 
     @Override
     public boolean isEmpty() {
-        return requests.isEmpty();
-    }
-
-    @Override
-    public int size() {
-        return requests.size();
+        return false;
     }
 
     @Override
     public Iterator<PluginRequestInternal> iterator() {
-        return requests.iterator();
+        return Iterators.concat(first.iterator(), second.iterator());
     }
-
 }

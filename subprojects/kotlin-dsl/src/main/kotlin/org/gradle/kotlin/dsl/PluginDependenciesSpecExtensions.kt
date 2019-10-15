@@ -15,19 +15,34 @@
  */
 package org.gradle.kotlin.dsl
 
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import org.gradle.api.Incubating
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependencySpec
 
 
 /**
- * The `build-scan` plugin.
+ * The `gradle-enterprise` plugin.
  *
  * Visit the [Build Scan Plugin User Manual](https://docs.gradle.com/build-scan-plugin/) for additional information.
  *
  * By default, the applied plugin version will be the same as the one used by the `--scan` command line option.
  *
- * You can also use e.g. `` `build-scan` version "1.8" `` to request a different version.
+ * You can also use e.g. `` `gradle-enterprise` version "3.0" `` to request a different version.
+ *
+ * @since 6.0
  */
+@get:Incubating
+val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
+    get() = AutoAppliedGradleEnterprisePlugin.addTo(this)
+
+
+/**
+ * The `build-scan` plugin.
+ *
+ * Please use `gradle-enterprise` instead.
+ */
+@Suppress("unused")
+@Deprecated("replaced by `gradle-enterprise`", ReplaceWith("`gradle-enterprise`"))
 val PluginDependenciesSpec.`build-scan`: PluginDependencySpec
-    get() = AutoAppliedBuildScanPlugin.addBuildScanPluginDependencySpecTo(this)
+    get() = throw UnsupportedOperationException("The `build-scan` plugin is no longer supported. Please use `gradle-enterprise` instead.")

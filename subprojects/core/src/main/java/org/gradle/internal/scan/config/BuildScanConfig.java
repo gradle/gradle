@@ -62,8 +62,6 @@ public interface BuildScanConfig {
 
     interface Attributes {
 
-        boolean isRootProjectHasVcsMappings();
-
         /**
          * Whether the currently executing build is intended to execute tasks.
          *

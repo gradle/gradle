@@ -18,13 +18,14 @@ package org.gradle.internal.scan.config;
 
 import org.gradle.util.VersionNumber;
 
-class BuildScanPluginCompatibility {
+public class BuildScanPluginCompatibility {
 
-    public static final VersionNumber MIN_SUPPORTED_VERSION = VersionNumber.parse("2.0.2");
-    private static final String MIN_SUPPORTED_VERSION_DISPLAY = "2.0.2";
-    public static final String UNSUPPORTED_PLUGIN_VERSION_MESSAGE =
-        "This version of Gradle requires version " + MIN_SUPPORTED_VERSION_DISPLAY + " of the build scan plugin or later.\n"
-            + "Please see https://gradle.com/scans/help/gradle-incompatible-plugin-version for more information.";
+    public static final String FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY = "3.0";
+    public static final VersionNumber FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION = VersionNumber.parse(FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION_DISPLAY);
+
+    public static final String OLD_SCAN_PLUGIN_VERSION_MESSAGE =
+        "The build scan plugin is not compatible with this version of Gradle.\n"
+            + "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.";
 
     // Used just to test the mechanism
     public static final String UNSUPPORTED_TOGGLE = "org.gradle.internal.unsupported-scan-plugin";
@@ -35,10 +36,6 @@ class BuildScanPluginCompatibility {
             return UNSUPPORTED_TOGGLE_MESSAGE;
         }
         return null;
-    }
-
-    static boolean isNotSupported(VersionNumber pluginVersion) {
-        return pluginVersion.compareTo(BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION) < 0;
     }
 
 }

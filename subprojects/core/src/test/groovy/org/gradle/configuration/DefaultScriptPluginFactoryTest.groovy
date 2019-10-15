@@ -51,7 +51,7 @@ import org.gradle.internal.resource.TextFileResourceLoader
 import org.gradle.internal.resource.TextUriResourceLoader
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
-import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import org.gradle.process.internal.ExecFactory
@@ -115,14 +115,14 @@ class DefaultScriptPluginFactoryTest extends Specification {
         def configurations = Mock(ConfigurationContainer)
         scriptHandler.configurations >> configurations
         scriptHandler.scriptClassPath >> Mock(ClassPath)
-        classPathScriptRunner.data >> new DefaultPluginRequests(Lists.newArrayList())
+        classPathScriptRunner.data >> new MultiPluginRequests(Lists.newArrayList())
         def configuration = Mock(Configuration)
         configurations.getByName(ScriptHandler.CLASSPATH_CONFIGURATION) >> configuration
         configuration.getFiles() >> Collections.emptySet()
         baseScope.getExportClassLoader() >> baseChildClassLoader
         classpathHasher.hash(_ as ClassPath) >> HashCode.fromInt(123)
 
-        1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> new DefaultPluginRequests(Lists.newArrayList())
+        1 * autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(_, _) >> new MultiPluginRequests(Lists.newArrayList())
     }
 
     void "configures a target object using script"() {
