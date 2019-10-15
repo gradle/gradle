@@ -46,8 +46,7 @@ object PropertyNames {
     const val baselines = "org.gradle.performance.baselines"
     const val buildTypeId = "org.gradle.performance.buildTypeId"
 
-    const val teamCityUsername = "teamCityUsername"
-    const val teamCityPassword = "teamCityPassword"
+    const val teamCityToken = "teamCityToken"
 }
 
 
@@ -317,8 +316,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
             branchName = determineCurrentBranch()
             teamCityUrl = Config.teamCityUrl
-            teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
-            teamCityPassword = stringPropertyOrNull(PropertyNames.teamCityPassword)
+            teamCityToken = stringPropertyOrNull(PropertyNames.teamCityToken)
         }
 
         createAndWireCommitDistributionTasks(performanceTest, true)

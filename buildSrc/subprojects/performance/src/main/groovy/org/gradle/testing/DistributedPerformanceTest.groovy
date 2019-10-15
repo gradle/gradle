@@ -68,10 +68,7 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     String teamCityUrl
 
     @Input
-    String teamCityUsername
-
-    @Internal
-    String teamCityPassword
+    String teamCityToken
 
     /**
      * In FlakinessDetectionPerformanceTest, we simply repeat all scenarios several times.
@@ -425,8 +422,8 @@ class DistributedPerformanceTest extends ReportGenerationPerformanceTest {
     }
 
     private RESTClient createClient() {
-        client = new RESTClient("$teamCityUrl/httpAuth/app/rest/9.1")
-        client.auth.basic(teamCityUsername, teamCityPassword)
+        client = new RESTClient("$teamCityUrl/app/rest/9.1")
+        client.headers.putAt('Authorization', "Bearer $teamCityToken")
         client.headers.putAt('Origin', teamCityUrl)
         client.headers.putAt('Accept', ContentType.JSON.toString())
         client

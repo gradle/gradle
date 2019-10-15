@@ -66,7 +66,7 @@ fun BuildSteps.tagBuild(tagBuild: Boolean = true, daemon: Boolean = true) {
             name = "TAG_BUILD"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "tagBuild"
-            gradleParams = "${buildToolParametersString(daemon)} -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+            gradleParams = "${buildToolParametersString(daemon)} -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
         }
     }
 }
@@ -87,8 +87,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
                 buildToolGradleParameters(daemon) +
                     this@gradleRunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
-                    "-PteamCityUsername=%teamcity.username.restbot%" +
-                    "-PteamCityPassword=%teamcity.password.restbot%" +
+                    "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) }
                 ).joinToString(separator = " ")
@@ -109,8 +108,7 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
                 buildToolGradleParameters(daemon) +
                     this@gradleRerunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
-                    "-PteamCityUsername=%teamcity.username.restbot%" +
-                    "-PteamCityPassword=%teamcity.password.restbot%" +
+                    "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) } +
                     "-PonlyPreviousFailedTestClasses=true" +
