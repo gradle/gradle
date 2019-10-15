@@ -133,6 +133,11 @@ class GradleEnterprisePluginFixture {
             def map = new JsonSlurper().parseText("{" + it + "}")
             new BuildScanConfig.Attributes() {
                 @Override
+                boolean isRootProjectHasVcsMappings() {
+                    return false
+                }
+
+                @Override
                 boolean isTaskExecutingBuild() {
                     return map.taskExecutingBuild
                 }

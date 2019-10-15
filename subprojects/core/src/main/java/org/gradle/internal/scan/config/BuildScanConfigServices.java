@@ -49,6 +49,11 @@ public class BuildScanConfigServices {
             public BuildScanConfig.Attributes create() {
                 return new BuildScanConfig.Attributes() {
                     @Override
+                    public boolean isRootProjectHasVcsMappings() {
+                        return false;
+                    }
+
+                    @Override
                     public boolean isTaskExecutingBuild() {
                         return gradle.getBuildType() == GradleInternal.BuildType.TASKS;
                     }
