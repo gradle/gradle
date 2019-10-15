@@ -73,7 +73,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerf
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
-        runner.targetVersions = ["6.1-20191001220032+0000"]
+        runner.targetVersions = ["6.0-20191014230037+0000"]
         runner.addBuildExperimentListener(new BuildExperimentListenerAdapter() {
             @Override
             void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
@@ -104,7 +104,7 @@ class JavaFirstUsePerformanceTest extends AbstractCrossVersionGradleInternalPerf
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['tasks']
         runner.useDaemon = false
-        runner.targetVersions = ["6.1-20191001220032+0000"]
+        runner.targetVersions = ["6.0-20191014230037+0000"]
 
         when:
         def result = runner.run()
