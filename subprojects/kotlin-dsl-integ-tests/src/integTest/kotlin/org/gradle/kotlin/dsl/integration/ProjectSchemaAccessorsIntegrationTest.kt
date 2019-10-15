@@ -720,11 +720,11 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     gradlePluginPortal()
                 }
                 dependencies {
-                    classpath "com.gradle:build-scan-plugin:${AutoAppliedGradleEnterprisePlugin.VERSION}"
+                    classpath "${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${AutoAppliedGradleEnterprisePlugin.VERSION}"
                 }
             }
             beforeSettings {
-                it.apply plugin: initscript.classLoader.loadClass("com.gradle.scan.plugin.BuildScanPlugin")
+                it.apply plugin: initscript.classLoader.loadClass("com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin")
                 it.gradleEnterprise.buildScan {
                     
                 }
