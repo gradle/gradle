@@ -72,10 +72,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     String teamCityUrl
 
     @Input
-    String teamCityUsername
-
-    @Internal
-    String teamCityPassword
+    String teamCityToken
 
     @OutputFile
     File scenarioList
@@ -472,8 +469,8 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     private RESTClient createClient() {
-        client = new RESTClient("$teamCityUrl/httpAuth/app/rest/9.1")
-        client.auth.basic(teamCityUsername, teamCityPassword)
+        client = new RESTClient("$teamCityUrl/app/rest/9.1")
+        client.headers.putAt('Authorization', "Bearer $teamCityToken")
         client.headers.putAt('Origin', teamCityUrl)
         client.headers.putAt('Accept', ContentType.JSON.toString())
         client
