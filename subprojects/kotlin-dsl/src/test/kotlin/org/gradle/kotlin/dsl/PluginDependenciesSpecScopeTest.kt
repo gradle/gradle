@@ -47,15 +47,15 @@ class PluginDependenciesSpecScopeTest {
     }
 
     @Test
-    fun `given build-scan plugin accessor, it should create a single request matching the auto-applied plugin version`() {
-        expecting(plugin(id = "com.gradle.build-scan", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
+    fun `given gradle-enterprise plugin accessor, it should create a single request matching the auto-applied plugin version`() {
+        expecting(plugin(id = "com.gradle.enterprise", version = AutoAppliedGradleEnterprisePlugin.VERSION)) {
             `gradle-enterprise`
         }
     }
 
     @Test
-    fun `given build-scan plugin accessor with version, it should create a single request with given version`() {
-        expecting(plugin(id = "com.gradle.build-scan", version = "1.7.1")) {
+    fun `given gradle-enterprise plugin accessor with version, it should create a single request with given version`() {
+        expecting(plugin(id = "com.gradle.enterprise", version = "1.7.1")) {
             `gradle-enterprise` version "1.7.1"
         }
     }
