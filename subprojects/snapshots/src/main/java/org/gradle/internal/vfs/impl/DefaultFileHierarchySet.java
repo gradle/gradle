@@ -28,6 +28,7 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultFileHierarchySet {
     private static final EmptyFileHierarchySet EMPTY = new EmptyFileHierarchySet();
@@ -52,7 +53,7 @@ public class DefaultFileHierarchySet {
     public static FileHierarchySet of(Iterable<FileSystemLocationSnapshot> snapshots) {
         FileHierarchySet set = EMPTY;
         for (FileSystemLocationSnapshot snapshot : snapshots) {
-            set = set.plus(snapshot);
+            set = set.update(snapshot);
         }
         return set;
     }
@@ -66,8 +67,13 @@ public class DefaultFileHierarchySet {
         }
 
         @Override
-        public FileHierarchySet plus(FileSystemLocationSnapshot snapshot) {
+        public FileHierarchySet update(FileSystemLocationSnapshot snapshot) {
             return new PrefixFileSet(snapshot.getAbsolutePath(), snapshot);
+        }
+
+        @Override
+        public FileHierarchySet invalidate(String path) {
+            return this;
         }
     }
 
@@ -97,8 +103,15 @@ public class DefaultFileHierarchySet {
         }
 
         @Override
-        public FileHierarchySet plus(FileSystemLocationSnapshot snapshot) {
-            return new PrefixFileSet(rootNode.plus(snapshot.getAbsolutePath(), snapshot));
+        public FileHierarchySet update(FileSystemLocationSnapshot snapshot) {
+            return new PrefixFileSet(rootNode.update(snapshot.getAbsolutePath(), snapshot));
+        }
+
+        @Override
+        public FileHierarchySet invalidate(String path) {
+            return rootNode.invalidate(path)
+                .<FileHierarchySet>map(PrefixFileSet::new)
+                .orElse(EMPTY);
         }
 
         private String toPath(String absolutePath) {
@@ -113,7 +126,9 @@ public class DefaultFileHierarchySet {
 
     private interface Node {
 
-        Node plus(String path, FileSystemLocationSnapshot snapshot);
+        Node update(String path, FileSystemLocationSnapshot snapshot);
+
+        Optional<Node> invalidate(String path);
 
         int sizeOfCommonPrefix(String path, int offset);
 
@@ -189,7 +204,36 @@ public class DefaultFileHierarchySet {
         }
 
         @Override
-        public Node plus(String path, FileSystemLocationSnapshot snapshot) {
+        public Optional<Node> invalidate(String path) {
+            int maxPos = Math.min(prefix.length(), path.length());
+            int prefixLen = sizeOfCommonPrefix(path, 0);
+            if (prefixLen == maxPos) {
+                if (prefix.length() >= path.length()) {
+                    return Optional.empty();
+                }
+                int startNextSegment = prefix.length() + 1;
+                List<Node> merged = new ArrayList<>(children.size() + 1);
+                boolean matched = false;
+                for (Node child : children) {
+                    if (!matched && child.sizeOfCommonPrefix(path, startNextSegment) > 0) {
+                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
+                        child.invalidate(path.substring(startNextSegment)).ifPresent(merged::add);
+                        matched = true;
+                    } else {
+                        merged.add(child);
+                    }
+                }
+                if (!matched) {
+                    return Optional.of(this);
+                }
+                return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(prefix, merged));
+
+            }
+            return Optional.of(this);
+        }
+
+        @Override
+        public Node update(String path, FileSystemLocationSnapshot snapshot) {
             int maxPos = Math.min(prefix.length(), path.length());
             int prefixLen = sizeOfCommonPrefix(path, 0);
             if (prefixLen == maxPos) {
@@ -203,9 +247,9 @@ public class DefaultFileHierarchySet {
                     List<Node> merged = new ArrayList<>(children.size() + 1);
                     boolean matched = false;
                     for (Node child : children) {
-                        if (child.sizeOfCommonPrefix(path, startNextSegment) > 0) {
+                        if (!matched && child.sizeOfCommonPrefix(path, startNextSegment) > 0) {
                             // TODO - we've already calculated the common prefix and calling plus() will calculate it again
-                            merged.add(child.plus(path.substring(startNextSegment), snapshot));
+                            merged.add(child.update(path.substring(startNextSegment), snapshot));
                             matched = true;
                         } else {
                             merged.add(child);
@@ -270,7 +314,39 @@ public class DefaultFileHierarchySet {
         }
 
         @Override
-        public Node plus(String path, FileSystemLocationSnapshot snapshot) {
+        public Optional<Node> invalidate(String path) {
+            int maxPos = Math.min(prefix.length(), path.length());
+            int prefixLen = sizeOfCommonPrefix(path, 0);
+            if (prefixLen == maxPos) {
+                if (prefix.length() >= path.length()) {
+                    return Optional.empty();
+                }
+                if (this.snapshot.getType() != FileType.Directory) {
+                    return Optional.empty();
+                }
+                DirectorySnapshot directorySnapshot = (DirectorySnapshot) snapshot;
+                int startNextSegment = prefix.length() + 1;
+                List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size());
+                boolean matched = false;
+                for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
+                    SnapshotNode childNode = new SnapshotNode(child.getName(), child);
+                    if (!matched && Node.sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
+                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
+                        childNode.invalidate(path.substring(startNextSegment))
+                            .ifPresent(merged::add);
+                        matched = true;
+                    } else {
+                        merged.add(childNode);
+                    }
+                }
+                return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(prefix, merged));
+
+            }
+            return Optional.of(this);
+        }
+
+        @Override
+        public Node update(String path, FileSystemLocationSnapshot snapshot) {
             int maxPos = Math.min(prefix.length(), path.length());
             int prefixLen = sizeOfCommonPrefix(path, 0);
             if (prefixLen == maxPos) {
@@ -288,12 +364,13 @@ public class DefaultFileHierarchySet {
                     List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size() + 1);
                     boolean matched = false;
                     for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
+                        SnapshotNode childNode = new SnapshotNode(child.getName(), child);
                         if (Node.sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
                             // TODO - we've already calculated the common prefix and calling plus() will calculate it again
-                            merged.add(new SnapshotNode(child.getName(), child).plus(path.substring(startNextSegment), snapshot));
+                            merged.add(childNode.update(path.substring(startNextSegment), snapshot));
                             matched = true;
                         } else {
-                            merged.add(new SnapshotNode(child.getName(), child));
+                            merged.add(childNode);
                         }
                     }
                     if (!matched) {

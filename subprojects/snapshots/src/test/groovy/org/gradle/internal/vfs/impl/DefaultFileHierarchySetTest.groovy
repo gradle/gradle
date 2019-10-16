@@ -107,11 +107,11 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir1Snapshot = snapshotDir(dir1)
         def dir2Snapshot = snapshotDir(dir2)
         expect:
-        def s1 = empty.plus(dir1Snapshot)
+        def s1 = empty.update(dir1Snapshot)
         s1.getSnapshot(dir1) == dir1Snapshot
         !s1.getSnapshot(dir2)
 
-        def s2 = empty.plus(dir2Snapshot)
+        def s2 = empty.update(dir2Snapshot)
         !s2.getSnapshot(dir1)
         s2.getSnapshot(dir2) == dir2Snapshot
     }
@@ -127,7 +127,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def single = DefaultFileHierarchySet.of(snapshotDir(dir1))
 
         expect:
-        def s1 = single.plus(snapshotDir(dir2))
+        def s1 = single.update(snapshotDir(dir2))
         s1.getSnapshot(dir1)
         s1.getSnapshot(child)
         s1.getSnapshot(dir2)
@@ -137,7 +137,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !s1.getSnapshot(parent)
         s1.flatten() == [parent.path, "1:dir1", "1:dir2"]
 
-        def s2 = single.plus(snapshotDir(dir1))
+        def s2 = single.update(snapshotDir(dir1))
         s2.getSnapshot(dir1)
         s2.getSnapshot(child)
         !s2.getSnapshot(dir2)
@@ -147,7 +147,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !s2.getSnapshot(parent)
         s2.flatten() == [dir1.path]
 
-        def s3 = single.plus(snapshotDir(child))
+        def s3 = single.update(snapshotDir(child))
         // The parent directory snapshot was removed
         !s3.getSnapshot(dir1)
         s3.getSnapshot(child)
@@ -158,7 +158,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !s3.getSnapshot(parent)
         s3.flatten() == [dir1.path, "1:child1"]
 
-        def s4 = single.plus(snapshotDir(parent))
+        def s4 = single.update(snapshotDir(parent))
         s4.getSnapshot(dir1)
         s4.getSnapshot(child)
         s4.getSnapshot(dir2)
@@ -166,7 +166,7 @@ class DefaultFileHierarchySetTest extends Specification {
         s4.getSnapshot(parent)
         s4.flatten() == [parent.path]
 
-        def s5 = single.plus(snapshotDir(tooFew))
+        def s5 = single.update(snapshotDir(tooFew))
         s5.getSnapshot(dir1)
         s5.getSnapshot(child)
         s5.getSnapshot(tooFew)
@@ -175,7 +175,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !s5.getSnapshot(parent)
         s5.flatten() == [parent.path, "1:dir1", "1:dir"]
 
-        def s6 = single.plus(snapshotDir(tooMany))
+        def s6 = single.update(snapshotDir(tooMany))
         s6.getSnapshot(dir1)
         s6.getSnapshot(child)
         s6.getSnapshot(tooMany)
@@ -196,7 +196,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def multi = DefaultFileHierarchySet.of([snapshotDir(dir1), snapshotDir(dir2)])
 
         expect:
-        def s1 = multi.plus(snapshotDir(dir3))
+        def s1 = multi.update(snapshotDir(dir3))
         s1.getSnapshot(dir1)
         s1.getSnapshot(child)
         s1.getSnapshot(dir2)
@@ -205,7 +205,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !s1.getSnapshot(parent)
         s1.flatten() == [parent.path, "1:dir1", "1:dir2", "1:dir3"]
 
-        def s2 = multi.plus(snapshotDir(dir2))
+        def s2 = multi.update(snapshotDir(dir2))
         s2.getSnapshot(dir1)
         s2.getSnapshot(child)
         s2.getSnapshot(dir2)
@@ -214,7 +214,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !s2.getSnapshot(parent)
         s2.flatten() == [parent.path, "1:dir1", "1:dir2"]
 
-        def s3 = multi.plus(snapshotDir(child))
+        def s3 = multi.update(snapshotDir(child))
         // The parent directory snapshot was removed
         !s3.getSnapshot(dir1)
         s3.getSnapshot(child)
@@ -224,7 +224,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !s3.getSnapshot(parent)
         s3.flatten() == [parent.path, "1:dir1", "2:child1", "1:dir2"]
 
-        def s4 = multi.plus(snapshotDir(parent))
+        def s4 = multi.update(snapshotDir(parent))
         s4.getSnapshot(dir1)
         s4.getSnapshot(child)
         s4.getSnapshot(dir2)
@@ -246,22 +246,22 @@ class DefaultFileHierarchySetTest extends Specification {
         def s1 = DefaultFileHierarchySet.of([dir1dir2dir3, dir1dir5].collect { snapshotDir(it) })
         s1.flatten() == [dir1.path, "1:dir2/dir3", "1:dir5/and/more"]
 
-        def s2 = s1.plus(snapshotDir(dir1dir2dir4))
+        def s2 = s1.update(snapshotDir(dir1dir2dir4))
         s2.flatten() == [dir1.path, "1:dir2", "2:dir3", "2:dir4", "1:dir5/and/more"]
 
-        def s3 = s2.plus(snapshotDir(dir6))
+        def s3 = s2.update(snapshotDir(dir6))
         s3.flatten() == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
 
-        def s4 = s3.plus(snapshotDir(dir1dir2))
+        def s4 = s3.update(snapshotDir(dir1dir2))
         s4.flatten() == [parent.path, "1:dir1", "2:dir2", "2:dir5/and/more", "1:dir6"]
 
-        def s5 = s4.plus(snapshotDir(dir1))
+        def s5 = s4.update(snapshotDir(dir1))
         s5.flatten() == [parent.path, "1:dir1", "1:dir6"]
 
-        def s6 = s3.plus(snapshotDir(dir1))
+        def s6 = s3.update(snapshotDir(dir1))
         s6.flatten() == [parent.path, "1:dir1", "1:dir6"]
 
-        def s7 = s3.plus(snapshotDir(parent))
+        def s7 = s3.update(snapshotDir(parent))
         s7.flatten() == [parent.path]
     }
 
@@ -300,11 +300,34 @@ class DefaultFileHierarchySetTest extends Specification {
 
         when:
         def subDir = dir1.file("sub").createDir()
-        def set = setWithDir1.plus(snapshotDir(subDir))
+        def set = setWithDir1.update(snapshotDir(subDir))
         then:
         set.getSnapshot(subDir)
         set.getSnapshot(fileInDir)
         !set.getSnapshot(dir1)
+    }
+
+    def "can remove paths"() {
+        def parent = tmpDir.createDir()
+        def dir1 = parent.createDir("dir1")
+        def dir2 = parent.createDir("sub/dir2")
+        def dir3 = parent.createDir("sub/dir3")
+        def fullSet = DefaultFileHierarchySet.of([dir1, dir2, dir3].collect(this.&snapshotDir))
+
+        when:
+        def set = fullSet.invalidate(dir2)
+        then:
+        set.getSnapshot(dir1)
+        set.getSnapshot(dir3)
+        !set.getSnapshot(dir2)
+
+        when:
+        set = fullSet.invalidate(dir2.parentFile)
+        then:
+        set.getSnapshot(dir1)
+        !set.getSnapshot(dir2)
+        !set.getSnapshot(dir3)
+
     }
 
     private FileSystemLocationSnapshot snapshotDir(TestFile dir) {

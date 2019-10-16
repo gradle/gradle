@@ -18,22 +18,33 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 import java.io.File;
 
 /**
  * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
  */
-public interface FileHierarchySet {
-    @Nullable
+public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
+    @Nullable // TODO: return Optional
     FileSystemLocationSnapshot getSnapshot(String path);
-    @Nullable
-    default FileSystemLocationSnapshot getSnapshot(File file) {
-        return getSnapshot(file.getAbsolutePath());
-    }
+
 
     /**
      * Returns a set that contains the union of this set and the given directory. The set contains the directory itself, plus all its descendants.
      */
-    FileHierarchySet plus(FileSystemLocationSnapshot snapshot);
+    @CheckReturnValue
+    FileHierarchySet update(FileSystemLocationSnapshot snapshot);
+
+    @CheckReturnValue
+    FileHierarchySet invalidate(String path);
+
+
+    @Nullable // TODO: return Optional/move to test
+    default FileSystemLocationSnapshot getSnapshot(File file) {
+        return getSnapshot(file.getAbsolutePath());
+    }
+    default FileHierarchySet invalidate(File file) { // TODO: Move to test
+        return invalidate(file.getAbsolutePath());
+    }
 }
