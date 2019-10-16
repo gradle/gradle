@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
+import org.gradle.instantexecution.westline.DefaultWestlineServiceFactory
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
@@ -32,6 +33,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
+            add(DefaultWestlineServiceFactory::class.java)
         }
     }
 
