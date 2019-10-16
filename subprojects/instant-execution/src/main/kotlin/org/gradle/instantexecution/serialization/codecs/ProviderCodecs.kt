@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.SystemPropertyProvider
 import org.gradle.api.provider.Provider
 import org.gradle.api.westline.WestlineService
 import org.gradle.api.westline.WestlineServiceParameters
@@ -54,6 +55,10 @@ ProviderCodec(
 ) : Codec<ProviderInternal<*>> {
     suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
         when {
+            value is SystemPropertyProvider -> {
+                writeByte(4)
+                writeString(value.propertyName)
+            }
             value is WestlineServiceProvider<*, *> -> {
                 writeByte(1)
                 encodePreservingIdentityOf(sharedIdentities, value) {
@@ -95,6 +100,9 @@ ProviderCodec(
                     is BrokenValue -> DefaultProvider<Any> { value.rethrow() }.uncheckedCast()
                     else -> Providers.ofNullable(value)
                 }
+            }
+            4.toByte() -> {
+                SystemPropertyProvider(readString()).uncheckedCast()
             }
             else -> TODO("fail")
         }

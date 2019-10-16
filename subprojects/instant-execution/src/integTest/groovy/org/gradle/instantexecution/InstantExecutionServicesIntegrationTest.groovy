@@ -30,9 +30,7 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
 
             val serviceFactory = project.serviceOf<WestlineServiceFactory>()
 
-            val sysPropProvider = providers.provider {
-                Integer.getInteger("thread.pool.size")
-            } 
+            val sysPropProvider = providers.systemProperty("thread.pool.size").map(Integer::valueOf)
 
             val threadPoolProvider = serviceFactory.createProviderOf(ThreadPoolService::class) {
                 println("Configuring thread pool parameters...")
@@ -122,6 +120,19 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
         result.assertNotOutput("Configuring thread pool parameters")
         output.count("Creating thread pool with size 4") == 1
 
+        output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")
+
+        outputContains("Closing thread pool after executing [a, b].")
+
+        when:
+        instantRun("a", "b", "-Dthread.pool.size=3")
+
+        then:
+        result.assertNotOutput("Configuring thread pool parameters")
+        // TODO should be 3
+        output.count("Creating thread pool with size 4") == 1
+
+        // TODO should be 3
         output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")
 
         outputContains("Closing thread pool after executing [a, b].")

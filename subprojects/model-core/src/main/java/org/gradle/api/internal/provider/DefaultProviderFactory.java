@@ -30,4 +30,9 @@ public class DefaultProviderFactory implements ProviderFactory {
         }
         return new DefaultProvider<T>(value);
     }
+
+    @Override
+    public Provider<String> systemProperty(String propertyName) {
+        return new SystemPropertyProvider(propertyName);
+    }
 }
