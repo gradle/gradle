@@ -27,7 +27,7 @@ plugins {
     id("com.gradle.enterprise").version("3.0")
 }
 
-apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
+apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 include("instantExecution")
