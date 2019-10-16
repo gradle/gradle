@@ -160,6 +160,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     }
 }
 """
+                    println "after update: \n$buildFile.text"
                 }
             }
         }
