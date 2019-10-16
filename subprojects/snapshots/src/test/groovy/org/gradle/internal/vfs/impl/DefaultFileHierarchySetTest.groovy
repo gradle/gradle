@@ -311,6 +311,8 @@ class DefaultFileHierarchySetTest extends Specification {
         def parent = tmpDir.createDir()
         def dir1 = parent.createDir("dir1")
         def dir2 = parent.createDir("sub/dir2")
+        def dir2File = dir2.file("existing").createFile()
+        def dir2FileSibling = dir2.file("sibling").createFile()
         def dir3 = parent.createDir("sub/dir3")
         def fullSet = DefaultFileHierarchySet.of([dir1, dir2, dir3].collect(this.&snapshotDir))
 
@@ -328,6 +330,23 @@ class DefaultFileHierarchySetTest extends Specification {
         !set.getSnapshot(dir2)
         !set.getSnapshot(dir3)
 
+        when:
+        set = fullSet.invalidate(dir2.file("non-exisiting"))
+        then:
+        set.getSnapshot(dir1)
+        set.getSnapshot(dir3)
+        set.getSnapshot(dir2File)
+        set.getSnapshot(dir2FileSibling)
+        !set.getSnapshot(dir2)
+
+        when:
+        set = fullSet.invalidate(dir2File)
+        then:
+        set.getSnapshot(dir1)
+        set.getSnapshot(dir3)
+        set.getSnapshot(dir2FileSibling)
+        !set.getSnapshot(dir2)
+        !set.getSnapshot(dir2File)
     }
 
     private FileSystemLocationSnapshot snapshotDir(TestFile dir) {
