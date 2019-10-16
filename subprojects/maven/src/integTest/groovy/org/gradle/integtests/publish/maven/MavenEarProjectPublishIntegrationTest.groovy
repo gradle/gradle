@@ -58,7 +58,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9").withoutExtraChecksums()
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.ear")
     }
 }

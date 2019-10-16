@@ -22,4 +22,8 @@ public interface RemoteArtifact extends RemoteResource, ModuleArtifact {
     RemoteResource getMd5();
 
     RemoteResource getSha1();
+
+    RemoteResource getSha256();
+
+    RemoteResource getSha512();
 }

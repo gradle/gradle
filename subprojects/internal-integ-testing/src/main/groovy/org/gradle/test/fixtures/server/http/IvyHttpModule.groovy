@@ -105,6 +105,16 @@ class IvyHttpModule extends DelegatingIvyModule<IvyHttpModule> implements Remote
         }
 
         @Override
+        protected TestFile getSha256File() {
+            backingModule.getSha256File(file)
+        }
+
+        @Override
+        protected TestFile getSha512File() {
+            backingModule.getSha512File(file)
+        }
+
+        @Override
         void verifyChecksums() {
             // MD5 not published for ivy modules
             def sha1File = getSha1File()

@@ -65,7 +65,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = mavenRepo.module('group', 'root', '1.0')
+        def module = mavenRepo.module('group', 'root', '1.0').withoutExtraChecksums()
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
     }
 
@@ -102,7 +102,7 @@ uploadArchives {
     @Issue("GRADLE-2456")
     public void generatesSHA1FileWithLeadingZeros() {
         given:
-        def module = mavenRepo.module("org.gradle", "publish", "2")
+        def module = mavenRepo.module("org.gradle", "publish", "2").withoutExtraChecksums()
         byte[] jarBytes = [0, 0, 0, 5]
         def artifactFile = file("testfile.bin")
         artifactFile << jarBytes
@@ -162,7 +162,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = mavenRepo.module('group', 'root', '1.0')
+        def module = mavenRepo.module('group', 'root', '1.0').withoutExtraChecksums()
         module.assertPublished()
         module.assertArtifactsPublished('root-1.0.pom', 'root-1.0-source.jar')
     }
@@ -202,7 +202,7 @@ uploadArchives {
         def replacements = file("build/replacements")
         replacements.assertHasDescendants('root-1.0.jar')
 
-        def module = mavenRepo.module('group', 'root', '1.0')
+        def module = mavenRepo.module('group', 'root', '1.0').withoutExtraChecksums()
         module.assertPublished()
         module.assertArtifactsPublished('root-1.0.pom', 'root-1.0.jar')
 
@@ -257,7 +257,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = mavenRepo.module('group', 'root', '1.0')
+        def module = mavenRepo.module('group', 'root', '1.0').withoutExtraChecksums()
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
     }
 
@@ -283,7 +283,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = mavenRepo.module('org.gradle', 'test', '1.0-SNAPSHOT')
+        def module = mavenRepo.module('org.gradle', 'test', '1.0-SNAPSHOT').withoutExtraChecksums()
         module.assertArtifactsPublished("maven-metadata.xml", "test-${module.publishArtifactVersion}.jar", "test-${module.publishArtifactVersion}.pom")
 
         and:
@@ -351,7 +351,7 @@ uploadArchives {
 }
 """
         when:
-        def module = mavenRepo.module('org.test', 'someCoolProject')
+        def module = mavenRepo.module('org.test', 'someCoolProject').withoutExtraChecksums()
         def moduleDir = module.moduleDir
         moduleDir.mkdirs()
 
@@ -390,7 +390,7 @@ uploadArchives {
 }
 """
         when:
-        def module = mavenRepo.module('org.test', 'root')
+        def module = mavenRepo.module('org.test', 'root').withoutExtraChecksums()
         def moduleDir = module.moduleDir
         moduleDir.mkdirs()
         expectPublishArtifact(moduleDir, "/repo/org/test/root/1.0", "root-1.0.pom")
@@ -771,11 +771,11 @@ uploadArchives {
         """.stripIndent()
 
         and:
-        def module1 = mavenRemoteRepo.module(group, name, '1')
-        module1.artifact.expectPublish()
+        def module1 = mavenRemoteRepo.module(group, name, '1').withoutExtraChecksums()
+        module1.artifact.expectPublish(false)
         module1.rootMetaData.expectGetMissing()
-        module1.rootMetaData.expectPublish()
-        module1.pom.expectPublish()
+        module1.rootMetaData.expectPublish(false)
+        module1.pom.expectPublish(false)
 
         when:
         succeeds 'uploadArchives', '-Pversion=1'
@@ -787,14 +787,14 @@ uploadArchives {
         module1.rootMetaData.versions == ["1"]
 
         and:
-        def module2 = mavenRemoteRepo.module(group, name, '2')
-        module2.artifact.expectPublish()
-        module2.pom.expectPublish()
+        def module2 = mavenRemoteRepo.module(group, name, '2').withoutExtraChecksums()
+        module2.artifact.expectPublish(false)
+        module2.pom.expectPublish(false)
 
         and:
         module2.rootMetaData.expectGet()
         module2.rootMetaData.sha1.expectGet()
-        module2.rootMetaData.expectPublish()
+        module2.rootMetaData.expectPublish(false)
 
         when:
         succeeds 'uploadArchives', '-Pversion=2'

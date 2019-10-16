@@ -151,6 +151,7 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         List<String>  initialArtifacts = ["snapshotPublish-${module.publishArtifactVersion}.jar", "snapshotPublish-${module.publishArtifactVersion}.pom"]
+        module.withoutExtraChecksums()
         module.assertArtifactsPublished(["maven-metadata.xml"] + initialArtifacts)
 
         and:
@@ -164,6 +165,8 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         then:
         def secondVersion = module.publishArtifactVersion
         List<String> secondArtifacts = ["snapshotPublish-${secondVersion}.module", "snapshotPublish-${secondVersion}.jar", "snapshotPublish-${secondVersion}.pom"]
+        module.withExtraChecksums()
+        module.missingExtraChecksums.addAll(initialArtifacts*.toString())
         module.assertArtifactsPublished(["maven-metadata.xml"] + initialArtifacts + secondArtifacts)
 
         and:

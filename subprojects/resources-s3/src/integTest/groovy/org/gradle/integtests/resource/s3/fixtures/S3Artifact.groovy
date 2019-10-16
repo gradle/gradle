@@ -33,4 +33,14 @@ public class S3Artifact extends S3Resource implements RemoteArtifact {
     S3Resource getSha1() {
         return new S3Resource(server, file.parentFile.file(file.name + ".sha1"), repositoryPath, bucket)
     }
+
+    @Override
+    S3Resource getSha256() {
+        return new S3Resource(server, file.parentFile.file(file.name + ".sha256"), repositoryPath, bucket)
+    }
+
+    @Override
+    S3Resource getSha512() {
+        return new S3Resource(server, file.parentFile.file(file.name + ".sha512"), repositoryPath, bucket)
+    }
 }

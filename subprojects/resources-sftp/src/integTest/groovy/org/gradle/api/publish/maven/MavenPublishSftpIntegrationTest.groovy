@@ -93,6 +93,10 @@ class MavenPublishSftpIntegrationTest extends AbstractMavenPublishIntegTest {
         pom.expectFileUpload()
         pom.sha1.expectParentCheckdir()
         pom.sha1.expectFileUpload()
+        pom.sha256.expectParentCheckdir()
+        pom.sha256.expectFileUpload()
+        pom.sha512.expectParentCheckdir()
+        pom.sha512.expectFileUpload()
         pom.md5.expectParentCheckdir()
         pom.md5.expectFileUpload()
     }
