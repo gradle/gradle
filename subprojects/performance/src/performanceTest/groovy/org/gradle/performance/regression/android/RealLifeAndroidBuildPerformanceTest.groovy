@@ -159,8 +159,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     }
 }
 """
-                    def settingsFile = buildDir.file("settings.gradle")
-                    settingsFile.text = "plugins { id 'com.gradle.enterprise' version '3.0' }\n\n" + settingsFile.text
                 }
             }
         }
