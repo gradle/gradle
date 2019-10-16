@@ -31,9 +31,15 @@ class GradleEnterprisePluginFixture {
 
     public static final String PLUGIN_NOT_APPLIED_MSG = BuildScanConfigManager.NO_PLUGIN_MSG
     public static final String GRADLE_ENTERPRISE_PLUGIN_ID = AutoAppliedGradleEnterprisePlugin.ID.id
+    public static final String BUILD_SCAN_PLUGIN_ID = "com.gradle.build-scan"
     public static final String PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX = 'PUBLISHING BUILD SCAN v'
-    public static final String DUMMY_PLUGIN_IMPL_CLASS = 'DummyPlugin'
-    public static final String FULLY_QUALIFIED_DUMMY_PLUGIN_IMPL_CLASS = "org.gradle.test.${DUMMY_PLUGIN_IMPL_CLASS}"
+    public static final String BUILD_SCAN_PLUGIN_APPLIED_MESSAGE = 'APPLIED OLD BUILD SCAN PLUGIN'
+
+    public static final String GRADLE_ENTERPRISE_PLUGIN_CLASS_SIMPLE_NAME = 'GradleEnterprisePlugin'
+    public static final String GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME = "org.gradle.test.${GRADLE_ENTERPRISE_PLUGIN_CLASS_SIMPLE_NAME}"
+
+    public static final String BUILD_SCAN_PLUGIN_CLASS_SIMPLE_NAME = 'BuildScanPlugin'
+    public static final String BUILD_SCAN_PLUGIN_CLASS_NAME = "org.gradle.test.${BUILD_SCAN_PLUGIN_CLASS_SIMPLE_NAME}"
 
     private final TestFile projectDir
     private final MavenFileRepository mavenRepo
@@ -104,7 +110,11 @@ class GradleEnterprisePluginFixture {
             settings.gradle.buildFinished {
                 println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${runtimeVersion}'
             }
-""", GRADLE_ENTERPRISE_PLUGIN_ID, DUMMY_PLUGIN_IMPL_CLASS)
+""", GRADLE_ENTERPRISE_PLUGIN_ID, GRADLE_ENTERPRISE_PLUGIN_CLASS_SIMPLE_NAME)
+
+        builder.addPlugin("""
+            println '$BUILD_SCAN_PLUGIN_APPLIED_MESSAGE'
+        """, BUILD_SCAN_PLUGIN_ID, BUILD_SCAN_PLUGIN_CLASS_SIMPLE_NAME)
 
         builder.publishAs("com.gradle:gradle-enterprise-gradle-plugin:${artifactVersion}", mavenRepo, pluginBuildExecuter)
     }

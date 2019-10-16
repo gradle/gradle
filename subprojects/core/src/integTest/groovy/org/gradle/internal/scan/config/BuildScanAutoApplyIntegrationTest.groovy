@@ -24,7 +24,7 @@ import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
-import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.FULLY_QUALIFIED_DUMMY_PLUGIN_IMPL_CLASS
+import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
 import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.GRADLE_ENTERPRISE_PLUGIN_ID
 import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
 
@@ -49,6 +49,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         then:
         pluginApplied(PLUGIN_AUTO_APPLY_VERSION)
     }
+
 
     def "does not automatically apply plugin when --scan is not provided on command-line"() {
         when:
@@ -165,7 +166,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
             }
             
             beforeSettings {
-                it.apply plugin: $FULLY_QUALIFIED_DUMMY_PLUGIN_IMPL_CLASS
+                it.apply plugin: $GRADLE_ENTERPRISE_PLUGIN_CLASS_NAME
             }
         """
 
@@ -212,6 +213,25 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         pluginApplied(PLUGIN_AUTO_APPLY_VERSION)
+    }
+
+    def "fails well when trying to use old plugin"() {
+        given:
+        buildFile.text = """
+            plugins {
+                id "com.gradle.build-scan" version "$PLUGIN_AUTO_APPLY_VERSION"
+            }
+        """ + buildFile.text
+
+        when:
+        fails("--scan", "dummy")
+
+        then:
+        failure.assertHasDescription("Error resolving plugin [id: 'com.gradle.build-scan', version: '$PLUGIN_AUTO_APPLY_VERSION']")
+        failure.assertHasCause(
+            "The build scan plugin is not compatible with this version of Gradle.\n" +
+            "Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information."
+        )
     }
 
     private void runBuildWithScanRequest(String... additionalArgs) {
