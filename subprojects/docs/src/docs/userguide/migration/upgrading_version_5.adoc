@@ -43,7 +43,7 @@ Some plugins will break with this new version of Gradle, for example because the
 The usage of the `compile` and `runtime` configurations in the Java ecosystem plugins has been discouraged since https://docs.gradle.org/3.4/release-notes.html#the-java-library-plugin[Gradle 3.4].
 
 These configurations are used for compiling and running code from the `main` source set. Other sources sets create similar configurations (e.g. `testCompile` and `testRuntime` for the `test` source set), should not be used either.
-The `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations should be used to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.  See <<java_library_plugin.adoc#sec:java_library_configurations_graph, the relationship of these configurations>>. 
+The `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations should be used to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.  See <<java_library_plugin.adoc#sec:java_library_configurations_graph, the relationship of these configurations>>.
 
 ==== Problems with tasks emit deprecation warnings
 
@@ -137,6 +137,12 @@ Some of these plugins may have replacements on the https://plugins.gradle.org/[P
 ==== Android Gradle Plugin 3.3 and earlier is no longer supported
 
 Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
+
+==== Build scan plugin 2.x is no longer supported
+
+For Gradle 6, usage of the build scan plugin must be replaced with Gradle Enterprise plugin.
+This also requires changing how the plugin is applied.
+Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.
 
 ==== Updates to bundled Gradle dependencies
 
@@ -269,7 +275,7 @@ repositories {
 With Kotlin IntelliJ plugin versions prior to 1.3.50, Kotlin DSL scripts will be wrongly highlighted when the _Gradle JVM_ is set to a version different from the one in _Project SDK_.
 Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kotlin DSL script highlighting behavior.
 
-==== Miscellaneous 
+==== Miscellaneous
 
 ==== Javadoc and Groovydoc don't include timestamps by default
 
