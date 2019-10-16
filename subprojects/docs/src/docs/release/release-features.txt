@@ -7,3 +7,4 @@
  - Faster incremental Java and Groovy compilation
  - New Zinc compiler for Scala
  - VS2019 support
+ - Support for Gradle Enterprise plugin 3.0
