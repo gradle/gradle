@@ -100,7 +100,11 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
 
         """
 
-        expect:
+        when:
         succeeds("a", "b", "-Dthread.pool.size=4")
+
+        then:
+        output.count("Configuring thread pool parameters...") == 1
+        output.count("Creating thread pool with size 4") == 1
     }
 }
