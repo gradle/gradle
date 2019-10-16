@@ -134,7 +134,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             publishing {
                 publications {
                     custom(MavenPublication) {
-                        artifact customJar 
+                        artifact customJar
                     }
                 }
             }
@@ -253,6 +253,35 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
         then:
         failure.assertHasCause("Signing Gradle Module Metadata is not supported for snapshot dependencies.")
+    }
+
+    def "with signing not required, does not fail on Gradle metadata if version is a snapshot"() {
+        given:
+        buildFile << """
+            apply plugin: 'maven-publish'
+
+            version = '1.0-SNAPSHOT'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+            signing {
+                required { false }
+                sign publishing.publications.maven
+            }
+
+        """
+
+        when:
+        succeeds "signMavenPublication"
+
+        then:
+        notExecuted "signMavenPublication"
+
     }
 
     def "publishes signature files for Maven publication"() {
@@ -386,7 +415,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
                 sign publishing.publications.mavenJava
             }
 
-            publishing.publications.mavenJava.artifacts = [] 
+            publishing.publications.mavenJava.artifacts = []
             publishing.publications.mavenJava.artifact(sourceJar)
             generateMetadataFileForMavenJavaPublication.enabled = false
         """
@@ -432,7 +461,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             signMavenJavaPublication.signatures.all { signature ->
                 if (signature.toSign.name.endsWith('.jar')) {
                     signMavenJavaPublication.signatures.remove signature
-                }    
+                }
             }
         """
 

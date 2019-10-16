@@ -23,7 +23,6 @@ final class JacocoViolationRulesLimit {
     static class Sufficient {
         static final String LINE_METRIC_COVERED_RATIO = JacocoViolationRulesLimit.create('LINE', 'COVEREDRATIO', 0.0, 1.0)
         static final String CLASS_METRIC_MISSED_COUNT = JacocoViolationRulesLimit.create('CLASS', 'MISSEDCOUNT', null, 0)
-        static final String LINE_METRIC_COVERED_RATIO_OUT_OF_BOUNDS = JacocoViolationRulesLimit.create('LINE', 'COVEREDRATIO', -1.0, 2.0)
     }
 
     static class Insufficient {

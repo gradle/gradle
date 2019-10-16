@@ -75,6 +75,10 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
             snapshotVersions == ["1.0-${snapshotTimestamp}-${snapshotBuildNumber}"]
         }
 
+        with (module.parsedModuleMetadata) {
+            variants[0].files[0].url == "snapshotPublish-${initialVersion}.jar"
+        }
+
         when: // Publish a second time
         succeeds 'publish'
 
@@ -88,6 +92,10 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         module.snapshotMetaData.snapshotBuildNumber == '2'
 
         module.snapshotMetaData.snapshotVersions == [secondVersion]
+
+        with (module.parsedModuleMetadata) {
+            variants[0].files[0].url == "snapshotPublish-${secondVersion}.jar"
+        }
 
         and:
         resolveArtifacts(module) { expectFiles "snapshotPublish-${secondVersion}.jar" }
