@@ -27,6 +27,7 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
             import javax.inject.Inject
             import kotlin.reflect.KClass
             import org.gradle.kotlin.dsl.support.*
+            import ${Closeable.name}
 
             val serviceFactory = project.serviceOf<WestlineServiceFactory>()
 
@@ -78,7 +79,7 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
                 val threadPoolSize: Property<Int>
             }
 
-            abstract class ThreadPoolService : WestlineService<ThreadPoolParameters>, AutoCloseable {
+            abstract class ThreadPoolService : WestlineService<ThreadPoolParameters>, Closeable {
             
                 private
                 val actions = CopyOnWriteArrayList<String>()
@@ -108,5 +109,7 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
         output.count("Creating thread pool with size 4") == 1
 
         output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")
+
+        result.output.count("Closing thread pool after executing [a, b].") == 1
     }
 }

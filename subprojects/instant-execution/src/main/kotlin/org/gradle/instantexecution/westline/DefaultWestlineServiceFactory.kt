@@ -26,19 +26,28 @@ import org.gradle.api.westline.WestlineServiceFactory
 import org.gradle.api.westline.WestlineServiceParameters
 import org.gradle.api.westline.WestlineServiceSpec
 import org.gradle.internal.Cast
+import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.workers.WorkParameters.None
+import java.io.Closeable
 import java.lang.reflect.ParameterizedType
+import java.util.concurrent.CopyOnWriteArrayList
 
 
 class DefaultWestlineServiceFactory(
     private val objects: ObjectFactory,
     private val providers: ProviderFactory,
     private val instantiatorFactory: InstantiatorFactory
-) : WestlineServiceFactory {
+) : WestlineServiceFactory, Closeable {
+    private
+    val serviceInstances = CopyOnWriteArrayList<Any>()
+
+    override fun close() {
+        CompositeStoppable.stoppable(serviceInstances).stop()
+    }
 
     override fun <T : WestlineService<P>, P : WestlineServiceParameters> createProviderOf(
         serviceType: Class<T>,
@@ -49,12 +58,13 @@ class DefaultWestlineServiceFactory(
         val parameters = objects.newInstance(parameterType)
         configuration.execute(DefaultWestlineServiceSpec(parameters))
 
-        val serviceRegistry = DefaultServiceRegistry().apply {
-            add(parameterType, parameters)
+        val service by lazy {
+            val serviceRegistry = DefaultServiceRegistry().apply {
+                add(parameterType, parameters)
+            }
+            val instantiator = instantiatorFactory.inject(serviceRegistry)
+            instantiator.newInstance(serviceType).also { serviceInstances.add(it) }
         }
-        val instantiator = instantiatorFactory.inject(serviceRegistry)
-
-        val service by lazy { instantiator.newInstance(serviceType) }
         return providers.provider {
             service
         }
