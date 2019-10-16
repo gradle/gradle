@@ -32,6 +32,7 @@ import org.gradle.initialization.BuildOperatingFiringSettingsPreparer
 import org.gradle.initialization.BuildOperatingFiringTaskExecutionPreparer
 import org.gradle.initialization.BuildOperationSettingsProcessor
 import org.gradle.initialization.ClassLoaderScopeRegistry
+import org.gradle.initialization.DefaultGradlePropertiesLoader
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.NotifyingBuildLoader
@@ -39,6 +40,7 @@ import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
@@ -112,8 +114,9 @@ class InstantExecutionHost internal constructor(
                 // Fire build operation required by build scan to determine startup duration and settings evaluated duration
                 val settingsPreparer = BuildOperatingFiringSettingsPreparer(
                     SettingsPreparer {
-                        // Nothing to do
                         // TODO:instant-execution - instead, create and attach the settings object
+                        DefaultGradlePropertiesLoader(gradle.startParameter.uncheckedCast())
+                            .loadProperties(settings.settingsDir)
                     },
                     service<BuildOperationExecutor>(),
                     service<BuildDefinition>().fromBuild
