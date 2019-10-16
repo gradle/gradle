@@ -6,7 +6,7 @@ settingsEvaluated {
         }
     }
 }
-// Gradle 5
+// Gradle 5 and earlier
 rootProject {
     pluginManager.withPlugin("com.gradle.build-scan") {
         configureExtension(extensions.getByName("buildScan"))
