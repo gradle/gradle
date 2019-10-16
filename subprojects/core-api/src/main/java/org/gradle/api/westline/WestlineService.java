@@ -16,11 +16,26 @@
 
 package org.gradle.api.westline;
 
+import org.gradle.api.Incubating;
+
 import javax.inject.Inject;
 
 
-public interface WestlineService<T extends WestlineServiceParameters> {
-
+/**
+ * A service whose lifecycle is managed by Gradle.
+ *
+ * <p>A service implementation can also implement {@link AutoCloseable}.</p>
+ *
+ * <p>A service instance is created using {@link WestlineServiceFactory}</p>
+ *
+ * @param <P> the parameter type for this service.
+ * @since 6.1
+ */
+@Incubating
+public interface WestlineService<P extends WestlineServiceParameters> {
+    /**
+     * Returns the parameters of this service.
+     */
     @Inject
-    T getParameters();
+    P getParameters();
 }

@@ -17,10 +17,23 @@
 package org.gradle.api.westline;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
+/**
+ * A definition for a {@link WestlineService}.
+ *
+ * @param <P> the parameter type for the service.
+ * @since 6.1
+ */
+@Incubating
 public interface WestlineServiceSpec<P extends WestlineServiceParameters> {
-
+    /**
+     * Returns the parameters to be used to create the service instance.
+     */
     P getParameters();
 
+    /**
+     * Runs the given action against the parameters, to configure the parameters.
+     */
     void parameters(Action<? super P> action);
 }

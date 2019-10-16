@@ -280,6 +280,7 @@ class UserTypesCodecTest {
         filePropertyFactory = mock(),
         fileResolver = mock(),
         instantiator = mock(),
+        instantiatorFactory = mock(),
         listenerManager = mock(),
         projectStateRegistry = mock(),
         taskNodeFactory = mock(),

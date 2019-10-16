@@ -16,6 +16,13 @@
 
 package org.gradle.api.westline;
 
+import org.gradle.api.Incubating;
 
+/**
+ * A marker interface for the parameters of a {@link WestlineService} implementation.
+ *
+ * @since 6.1
+ */
+@Incubating
 public interface WestlineServiceParameters {
 }

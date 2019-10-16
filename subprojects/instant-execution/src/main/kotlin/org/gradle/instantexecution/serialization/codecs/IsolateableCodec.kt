@@ -21,9 +21,11 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.workers.internal.IsolatableSerializerRegistry
 
+
 suspend fun WriteContext.encodeIsolatable(value: Isolatable<*>, isolatableSerializerRegistry: IsolatableSerializerRegistry) {
     isolatableSerializerRegistry.writeIsolatable(this, value)
 }
+
 
 suspend fun <T> ReadContext.decodeIsolatable(implementationClass: Class<*>, isolatableSerializerRegistry: IsolatableSerializerRegistry): Isolatable<T> {
     // TODO - should not need to do anything with the context classloader

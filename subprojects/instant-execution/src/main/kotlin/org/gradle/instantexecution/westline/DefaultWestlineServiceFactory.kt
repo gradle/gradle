@@ -69,17 +69,19 @@ class DefaultWestlineServiceFactory(
     }
 }
 
+
 class WestlineServiceProvider<T : WestlineService<P>, P : WestlineServiceParameters>(
     val serviceType: Class<T>,
     val parametersType: Class<P>,
     val parameters: Isolatable<P>,
     private val instantiatorFactory: InstantiatorFactory,
     private val listenerManager: ListenerManager
-): AbstractReadOnlyProvider<T>() {
+) : AbstractReadOnlyProvider<T>() {
     private
     var service: T? = null
 
-    private fun createService(): T {
+    private
+    fun createService(): T {
         val serviceRegistry = DefaultServiceRegistry().apply {
             add(parametersType, parameters.isolate())
         }
@@ -89,9 +91,10 @@ class WestlineServiceProvider<T : WestlineService<P>, P : WestlineServiceParamet
         }
     }
 
-    private fun registerForClosing(service: T) {
+    private
+    fun registerForClosing(service: T) {
         if (service is AutoCloseable) {
-            listenerManager.addListener(object: BuildAdapter() {
+            listenerManager.addListener(object : BuildAdapter() {
                 override fun buildFinished(result: BuildResult) {
                     service.close()
                 }
@@ -109,6 +112,7 @@ class WestlineServiceProvider<T : WestlineService<P>, P : WestlineServiceParamet
         service ?: createService().also { service = it }
     }
 }
+
 
 private
 class DefaultWestlineServiceSpec<P : WestlineServiceParameters>(

@@ -109,7 +109,7 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
 
         output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")
 
-        result.assertOutputContains("Closing thread pool after executing [a, b].")
+        outputContains("Closing thread pool after executing [a, b].")
 
         when:
         instantRun("a", "b", "-Dthread.pool.size=4")
@@ -120,6 +120,6 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
 
         output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")
 
-        result.assertOutputContains("Closing thread pool after executing [a, b].")
+        outputContains("Closing thread pool after executing [a, b].")
     }
 }

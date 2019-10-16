@@ -18,10 +18,19 @@ package org.gradle.api.westline;
 
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
+/**
+ * A factory that can create providers of {@link WestlineService} instances.
+ *
+ * @since 6.1
+ */
+@Incubating
 public interface WestlineServiceFactory {
-
+    /**
+     * Creates a provider whose value is an instance of the given service type.
+     */
     <T extends WestlineService<P>, P extends WestlineServiceParameters>
     Provider<T> createProviderOf(
         Class<T> serviceType,
