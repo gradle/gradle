@@ -27,7 +27,6 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
             import javax.inject.Inject
             import kotlin.reflect.KClass
             import org.gradle.kotlin.dsl.support.*
-            import ${Closeable.name}
 
             val serviceFactory = project.serviceOf<WestlineServiceFactory>()
 
@@ -79,7 +78,7 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
                 val threadPoolSize: Property<Int>
             }
 
-            abstract class ThreadPoolService : WestlineService<ThreadPoolParameters>, Closeable {
+            abstract class ThreadPoolService : WestlineService<ThreadPoolParameters>, AutoCloseable {
             
                 private
                 val actions = CopyOnWriteArrayList<String>()

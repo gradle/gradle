@@ -46,7 +46,13 @@ class DefaultWestlineServiceFactory(
     val serviceInstances = CopyOnWriteArrayList<Any>()
 
     override fun close() {
-        CompositeStoppable.stoppable(serviceInstances).stop()
+        CompositeStoppable.stoppable(serviceInstances.map {
+            // CompositeStoppable does not stop AutoCloseable instances, only Closeable
+            when {
+                it is AutoCloseable && it !is Closeable -> Closeable { it.close() }
+                else -> it
+            }
+        }).stop()
     }
 
     override fun <T : WestlineService<P>, P : WestlineServiceParameters> createProviderOf(
