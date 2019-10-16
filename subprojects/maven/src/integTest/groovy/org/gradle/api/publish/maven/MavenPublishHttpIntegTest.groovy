@@ -76,6 +76,41 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.moduleMetadata.verifyChecksums()
     }
 
+    def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
+        given:
+        buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
+        maxUploadAttempts = 1
+
+        when:
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.sha256.expectPutBroken()
+        module.artifact.sha512.expectPutBroken()
+        module.artifact.md5.expectPut()
+        module.rootMetaData.expectGetMissing()
+        module.rootMetaData.expectPut()
+        module.rootMetaData.sha1.expectPut()
+        module.rootMetaData.sha256.expectPutBroken()
+        module.rootMetaData.sha512.expectPutBroken()
+        module.rootMetaData.md5.expectPut()
+        module.pom.expectPut()
+        module.pom.sha1.expectPut()
+        module.pom.sha256.expectPutBroken()
+        module.pom.sha512.expectPutBroken()
+        module.pom.md5.expectPut()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPutBroken()
+        module.moduleMetadata.sha512.expectPutBroken()
+        module.moduleMetadata.md5.expectPut()
+
+        then:
+        succeeds 'publish'
+        outputContains("Remote repository doesn't support sha-256")
+        outputContains("Remote repository doesn't support sha-512")
+    }
+
+
     @Unroll
     def "can publish to authenticated repository using #authScheme auth"() {
         given:

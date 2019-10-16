@@ -105,6 +105,52 @@ credentials {
         progressLogging.uploadProgressLogged(module.jar.uri)
     }
 
+    def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
+        given:
+        server.start()
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.gradle'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyHttpRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        and:
+        maxUploadAttempts = 1
+
+        when:
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.sha256.expectPutBroken()
+        module.artifact.sha512.expectPutBroken()
+        module.ivy.expectPut()
+        module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPutBroken()
+        module.ivy.sha512.expectPutBroken()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPutBroken()
+        module.moduleMetadata.sha512.expectPutBroken()
+
+        then:
+        succeeds 'publish'
+        outputContains("Remote repository doesn't support sha-256")
+        outputContains("Remote repository doesn't support sha-512")
+    }
+
     @Unroll
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
