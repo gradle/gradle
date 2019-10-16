@@ -228,7 +228,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
                 try (PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(timestamped), StandardCharsets.UTF_8)))) {
                     try (Stream<String> lines = Files.lines(content.toPath(), StandardCharsets.UTF_8)) {
                         lines.forEach(line -> {
-                            if (line.contains("\"url\"") || line.contains("\"name\"")) {
+                            if (line.contains("\"url\"")) {
                                 // We cannot replace versions that appear as path elements, and so there should only be one version to replace at most
                                 writer.println(line.replaceFirst(moduleVersion + "([^/])", artifactVersion + "$1"));
                             } else {
