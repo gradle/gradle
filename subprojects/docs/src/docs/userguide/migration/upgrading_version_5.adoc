@@ -177,6 +177,11 @@ While this behavior was intended to make a build successful, this had the advers
 
 In Gradle 6.0, both pack and unpack errors will cause the build to fail, so that these problems will be surfaced more easily.
 
+==== buildSrc projects automatically use build cache configuration
+
+Previously, in order to to use the build cache for the buildSrc build you needed to duplicate your build cache config in the buildSrc build.
+Now, it automatically uses the build cache configuration defined by the top level settings script.
+
 ==== Changes to Dependency Management
 
 ==== Gradle Module Metadata is always published
