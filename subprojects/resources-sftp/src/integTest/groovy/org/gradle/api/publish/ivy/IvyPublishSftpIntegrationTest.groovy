@@ -104,14 +104,26 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         // TODO - should not check on each upload to a particular directory
         module.jar.sha1.expectParentCheckdir()
         module.jar.sha1.expectFileUpload()
+        module.jar.sha256.expectParentCheckdir()
+        module.jar.sha256.expectFileUpload()
+        module.jar.sha512.expectParentCheckdir()
+        module.jar.sha512.expectFileUpload()
         module.ivy.expectParentCheckdir()
         module.ivy.expectFileUpload()
         module.ivy.sha1.expectParentCheckdir()
         module.ivy.sha1.expectFileUpload()
+        module.ivy.sha256.expectParentCheckdir()
+        module.ivy.sha256.expectFileUpload()
+        module.ivy.sha512.expectParentCheckdir()
+        module.ivy.sha512.expectFileUpload()
         module.moduleMetadata.expectParentCheckdir()
         module.moduleMetadata.expectFileUpload()
         module.moduleMetadata.sha1.expectParentCheckdir()
         module.moduleMetadata.sha1.expectFileUpload()
+        module.moduleMetadata.sha256.expectParentCheckdir()
+        module.moduleMetadata.sha256.expectFileUpload()
+        module.moduleMetadata.sha512.expectParentCheckdir()
+        module.moduleMetadata.sha512.expectFileUpload()
 
         then:
         succeeds 'publish'
@@ -167,14 +179,26 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         // TODO - should not check on each upload to a particular directory
         module.jar.sha1.expectParentCheckdir()
         module.jar.sha1.expectFileUpload()
+        module.jar.sha256.expectParentCheckdir()
+        module.jar.sha256.expectFileUpload()
+        module.jar.sha512.expectParentCheckdir()
+        module.jar.sha512.expectFileUpload()
         module.ivy.expectParentCheckdir()
         module.ivy.expectFileUpload()
         module.ivy.sha1.expectParentCheckdir()
         module.ivy.sha1.expectFileUpload()
+        module.ivy.sha256.expectParentCheckdir()
+        module.ivy.sha256.expectFileUpload()
+        module.ivy.sha512.expectParentCheckdir()
+        module.ivy.sha512.expectFileUpload()
         module.moduleMetadata.expectParentCheckdir()
         module.moduleMetadata.expectFileUpload()
         module.moduleMetadata.sha1.expectParentCheckdir()
         module.moduleMetadata.sha1.expectFileUpload()
+        module.moduleMetadata.sha256.expectParentCheckdir()
+        module.moduleMetadata.sha256.expectFileUpload()
+        module.moduleMetadata.sha512.expectParentCheckdir()
+        module.moduleMetadata.sha512.expectFileUpload()
 
         then:
         succeeds 'publish'
