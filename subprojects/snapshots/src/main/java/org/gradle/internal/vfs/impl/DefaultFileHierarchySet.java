@@ -58,10 +58,6 @@ public class DefaultFileHierarchySet {
     }
 
     private static class EmptyFileHierarchySet implements FileHierarchySet {
-        @Override
-        public boolean contains(String path) {
-            return false;
-        }
 
         @Nullable
         @Override
@@ -89,14 +85,9 @@ public class DefaultFileHierarchySet {
 
         @VisibleForTesting
         List<String> flatten() {
-            List<String> prefixes = new ArrayList<String>();
+            List<String> prefixes = new ArrayList<>();
             rootNode.collect(0, prefixes);
             return prefixes;
-        }
-
-        @Override
-        public boolean contains(String path) {
-            return rootNode.contains(path, 0);
         }
 
         @Nullable
@@ -125,8 +116,6 @@ public class DefaultFileHierarchySet {
         Node plus(String path, FileSystemLocationSnapshot snapshot);
 
         int sizeOfCommonPrefix(String path, int offset);
-
-        boolean contains(String filePath, int offset);
 
         @Nullable
         FileSystemLocationSnapshot getSnapshot(String filePath, int offset);
@@ -168,6 +157,25 @@ public class DefaultFileHierarchySet {
             }
             return lastSeparator;
         }
+
+        /**
+         * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
+         * which does not check for negative indices or integer overflow.
+         */
+        static boolean isChildOfOrThis(String filePath, int offset, String prefix) {
+            int pathLength = filePath.length();
+            int prefixLength = prefix.length();
+            int endOfThisSegment = prefixLength + offset;
+            if (pathLength < endOfThisSegment) {
+                return false;
+            }
+            for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
+                if (prefix.charAt(i) != filePath.charAt(j)) {
+                    return false;
+                }
+            }
+            return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == File.separatorChar;
+        }
     }
 
     private static class NodeWithChildren implements Node {
@@ -180,6 +188,7 @@ public class DefaultFileHierarchySet {
             this.children = children;
         }
 
+        @Override
         public Node plus(String path, FileSystemLocationSnapshot snapshot) {
             int maxPos = Math.min(prefix.length(), path.length());
             int prefixLen = sizeOfCommonPrefix(path, 0);
@@ -222,46 +231,10 @@ public class DefaultFileHierarchySet {
             return Node.sizeOfCommonPrefix(prefix, path, offset);
         }
 
-
-        /**
-         * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
-         * which does not check for negative indices or integer overflow.
-         */
-        boolean isChildOfOrThis(String filePath, int offset) {
-            int pathLength = filePath.length();
-            int prefixLength = prefix.length();
-            int endOfThisSegment = prefixLength + offset;
-            if (pathLength < endOfThisSegment) {
-                return false;
-            }
-            for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-                if (prefix.charAt(i) != filePath.charAt(j)) {
-                    return false;
-                }
-            }
-            return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == File.separatorChar;
-        }
-
-        public boolean contains(String filePath, int offset) {
-            if (!isChildOfOrThis(filePath, offset)) {
-                return false;
-            }
-
-            int startNextSegment = offset + prefix.length() + 1;
-            for (Node child : children) {
-                if (child.contains(filePath, startNextSegment)) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
+        @Nullable
         @Override
         public FileSystemLocationSnapshot getSnapshot(String filePath, int offset) {
-            if (!isChildOfOrThis(filePath, offset)) {
-                return null;
-            }
-            if (children.isEmpty()) {
+            if (!Node.isChildOfOrThis(filePath, offset, prefix)) {
                 return null;
             }
             int startNextSegment = offset + prefix.length() + 1;
@@ -286,6 +259,7 @@ public class DefaultFileHierarchySet {
             }
         }
     }
+
     private static class SnapshotNode implements Node {
         private final String prefix;
         private final FileSystemLocationSnapshot snapshot;
@@ -305,33 +279,35 @@ public class DefaultFileHierarchySet {
                         ? this
                         : new SnapshotNode(path, snapshot);
                 }
-                if (prefix.length() > path.length()) {
+                if (prefix.length() < path.length()) {
+                    int startNextSegment = prefix.length() + 1;
+                    if (this.snapshot.getType() != FileType.Directory) {
+                        return new SnapshotNode(path.substring(startNextSegment), snapshot);
+                    }
+                    DirectorySnapshot directorySnapshot = (DirectorySnapshot) this.snapshot;
+                    List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size() + 1);
+                    boolean matched = false;
+                    for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
+                        if (Node.sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
+                            // TODO - we've already calculated the common prefix and calling plus() will calculate it again
+                            merged.add(new SnapshotNode(child.getName(), child).plus(path.substring(startNextSegment), snapshot));
+                            matched = true;
+                        } else {
+                            merged.add(new SnapshotNode(child.getName(), child));
+                        }
+                    }
+                    if (!matched) {
+                        merged.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
+                    }
+                    return new NodeWithChildren(prefix, merged);
+                } else {
+                    // Path is an ancestor of this
                     return new SnapshotNode(path, snapshot);
                 }
-                int startNextSegment = prefix.length() + 1;
-                if (this.snapshot.getType() != FileType.Directory) {
-                    return new SnapshotNode(path.substring(startNextSegment), snapshot);
-                }
-                DirectorySnapshot directorySnapshot = (DirectorySnapshot) this.snapshot;
-                List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size() + 1);
-                boolean matched = false;
-                for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
-                    if (Node.sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
-                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
-                        merged.add(new SnapshotNode(child.getName(), child).plus(path.substring(startNextSegment), snapshot));
-                        matched = true;
-                    } else {
-                        merged.add(new SnapshotNode(child.getName(), child));
-                    }
-                }
-                if (!matched) {
-                    merged.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
-                }
-                return new NodeWithChildren(prefix, merged);
             }
             String commonPrefix = prefix.substring(0, prefixLen);
-            SnapshotNode newThis = new SnapshotNode(prefix.substring(prefixLen + 1), this.snapshot);
-            SnapshotNode sibling = new SnapshotNode(path.substring(prefixLen + 1), snapshot);
+            Node newThis = new SnapshotNode(prefix.substring(prefixLen + 1), this.snapshot);
+            Node sibling = new SnapshotNode(path.substring(prefixLen + 1), snapshot);
             return new NodeWithChildren(commonPrefix, ImmutableList.of(newThis, sibling));
         }
 
@@ -340,43 +316,10 @@ public class DefaultFileHierarchySet {
             return Node.sizeOfCommonPrefix(prefix, path, offset);
         }
 
-
-        /**
-         * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
-         * which does not check for negative indices or integer overflow.
-         */
-        boolean isChildOfOrThis(String filePath, int offset) {
-            return isChildOfOrThis(filePath, offset, prefix);
-        }
-
-        /**
-         * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
-         * which does not check for negative indices or integer overflow.
-         */
-        static boolean isChildOfOrThis(String filePath, int offset, String prefix) {
-            int pathLength = filePath.length();
-            int prefixLength = prefix.length();
-            int endOfThisSegment = prefixLength + offset;
-            if (pathLength < endOfThisSegment) {
-                return false;
-            }
-            for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-                if (prefix.charAt(i) != filePath.charAt(j)) {
-                    return false;
-                }
-            }
-            return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == File.separatorChar;
-        }
-
-        @Override
-        public boolean contains(String filePath, int offset) {
-            return isChildOfOrThis(filePath, offset);
-        }
-
         @Nullable
         @Override
         public FileSystemLocationSnapshot getSnapshot(String filePath, int offset) {
-            if (!isChildOfOrThis(filePath, offset)) {
+            if (!Node.isChildOfOrThis(filePath, offset, prefix)) {
                 return null;
             }
             int endOfThisSegment = prefix.length() + offset;
@@ -400,7 +343,7 @@ public class DefaultFileHierarchySet {
 
         private FileSystemLocationSnapshot findPathInDirectorySnapshot(DirectorySnapshot snapshot, String filePath, int offset) {
             for (FileSystemLocationSnapshot child : snapshot.getChildren()) {
-                if (isChildOfOrThis(filePath, offset, child.getName())) {
+                if (Node.isChildOfOrThis(filePath, offset, child.getName())) {
                     int endOfThisSegment = child.getName().length() + offset;
                     if (endOfThisSegment == filePath.length()) {
                         return child;

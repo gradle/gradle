@@ -25,10 +25,6 @@ import java.io.File;
  * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
  */
 public interface FileHierarchySet {
-    boolean contains(String path);
-    default boolean contains(File file) {
-        return contains(file.getAbsolutePath());
-    }
     @Nullable
     FileSystemLocationSnapshot getSnapshot(String path);
     @Nullable
