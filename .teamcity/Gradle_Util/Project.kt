@@ -15,6 +15,10 @@ object Project : Project({
     buildType(Gradle_Util_AdHocFunctionalTestWindows)
     buildType(Gradle_Util_AdHocFunctionalTestLinux)
 
+    params {
+        password("teamcity.user.bot-gradle.token", "credentialsJSON:3c4f2642-d985-4d9d-bb10-f1bd1214a0a7", display = ParameterDisplay.HIDDEN)
+    }
+
     features {
         versionedSettings {
             id = "PROJECT_EXT_16"
