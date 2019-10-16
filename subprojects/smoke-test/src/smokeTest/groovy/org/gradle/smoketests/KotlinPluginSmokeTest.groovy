@@ -67,9 +67,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         if (kotlinPluginVersion == TestedVersions.kotlin.latest()
             && androidPluginVersion == TestedVersions.androidGradle.latest()) {
-            expectDeprecationWarnings(result,
-                "BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.",
-            )
+            expectNoDeprecationWarnings(result)
         }
 
         where:
