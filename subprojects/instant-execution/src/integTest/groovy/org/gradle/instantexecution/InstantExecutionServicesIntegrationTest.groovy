@@ -18,7 +18,7 @@ package org.gradle.instantexecution
 
 class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "foo"() {
+    def "westline services"() {
 
         given:
         buildKotlinFile.text = """
@@ -30,9 +30,13 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
 
             val serviceFactory = project.serviceOf<WestlineServiceFactory>()
 
+            val sysPropProvider = providers.provider {
+                Integer.getInteger("thread.pool.size")
+            } 
+
             val threadPoolProvider = serviceFactory.createProviderOf(ThreadPoolService::class) {
                 println("Configuring thread pool parameters...")
-                parameters.threadPoolSize.set(Integer.getInteger("thread.pool.size"))
+                parameters.threadPoolSize.set(sysPropProvider)
             }
     
             tasks {
