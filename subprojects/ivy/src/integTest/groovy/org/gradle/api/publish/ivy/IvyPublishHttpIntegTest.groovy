@@ -81,10 +81,16 @@ credentials {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
         module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
         module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
 
         when:
         succeeds 'publish'
@@ -134,10 +140,16 @@ credentials {
         server.authenticationScheme = authScheme
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
         module.moduleMetadata.expectPut('testuser', 'password')
         module.moduleMetadata.sha1.expectPut('testuser', 'password')
+        module.moduleMetadata.sha256.expectPut('testuser', 'password')
+        module.moduleMetadata.sha512.expectPut('testuser', 'password')
 
         when:
         run 'publish'
@@ -282,10 +294,16 @@ credentials {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPut()
+        module.ivy.sha512.expectPut()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
 
         when:
         run 'publish'
@@ -336,8 +354,12 @@ credentials {
         and:
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
         run 'publish'
@@ -413,14 +435,20 @@ credentials {
         module.jar.expectPutBroken()
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
 
         module.ivy.expectPutBroken()
         module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
         module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
 
         module.moduleMetadata.expectPutBroken()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
 
         when:
         succeeds 'publish'

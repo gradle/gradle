@@ -266,7 +266,10 @@ This was contributed by [Vladimir Sitnikov](https://github.com/vlsi).
 
 ### Publication of SHA256 and SHA512 checksums
 
-If you use the `maven-publish` plugin, Gradle will now automatically upload SHA256 and SHA512 signatures, in addition to the traditional but unsecure MD5 and SHA1 signatures.
+If you use the `maven-publish` or `ivy-publish` plugins, Gradle will now automatically upload SHA256 and SHA512 signatures, in addition to the traditional but unsecure MD5 and SHA1 signatures.
+
+Publication of SHA256 and SHA512 files is _not_ supported by the deprecated `maven` plugin but works with the legacy `uploadArchives` task for Ivy repositories.
+
 In addition, the Gradle Module Metadata file also includes SHA256 and SHA512 signatures on referenced artifacts.
 
 ### Support for in-memory signing with subkeys

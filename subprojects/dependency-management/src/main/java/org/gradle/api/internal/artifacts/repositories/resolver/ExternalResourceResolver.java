@@ -313,13 +313,28 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     private void put(File src, ExternalResourceName destination) {
         repository.withProgressLogging().resource(destination).put(new FileReadableContent(src));
-        putChecksum(src, destination);
+        publishChecksums(destination, src);
     }
 
-    private void putChecksum(File source, ExternalResourceName destination) {
-        byte[] checksumFile = createChecksumFile(source, "SHA1", 40);
-        ExternalResourceName checksumDestination = destination.append(".sha1");
-        repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksumFile));
+    private void publishChecksums(ExternalResourceName destination, File content) {
+        publishChecksum(destination, content, "sha1", 40);
+
+        publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
+        publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+    }
+
+    private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
+        try {
+            publishChecksum(destination, content, algorithm, length);
+        } catch (Exception ex) {
+            LOGGER.warn("Cannot upload checksum for " + content.getName() + ". Remote repository doesn't support " + algorithm + ". Error: " + ex.getMessage());
+        }
+    }
+
+    private void publishChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
+        byte[] checksum = createChecksumFile(content, algorithm.toUpperCase(), length);
+        ExternalResourceName checksumDestination = destination.append("." + algorithm.replaceAll("-", ""));
+        repository.resource(checksumDestination).put(new ByteArrayReadableContent(checksum));
     }
 
     private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {

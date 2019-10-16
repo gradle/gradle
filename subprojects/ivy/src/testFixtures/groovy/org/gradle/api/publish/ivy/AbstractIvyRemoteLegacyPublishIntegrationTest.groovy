@@ -88,10 +88,18 @@ uploadArchives {
         // TODO - should not check on each upload to a particular directory
         module.jar.sha1.expectParentCheckdir()
         module.jar.sha1.expectUpload()
+        module.jar.sha256.expectParentCheckdir()
+        module.jar.sha256.expectUpload()
+        module.jar.sha512.expectParentCheckdir()
+        module.jar.sha512.expectUpload()
         module.ivy.expectParentCheckdir()
         module.ivy.expectUpload()
         module.ivy.sha1.expectParentCheckdir()
         module.ivy.sha1.expectUpload()
+        module.ivy.sha256.expectParentCheckdir()
+        module.ivy.sha256.expectUpload()
+        module.ivy.sha512.expectParentCheckdir()
+        module.ivy.sha512.expectUpload()
 
         when:
         run 'uploadArchives'
