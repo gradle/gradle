@@ -140,7 +140,7 @@ Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
 ==== Build scan plugin 2.x is no longer supported
 
-For Gradle 6, usage of the build scan plugin must be replaced with Gradle Enterprise plugin.
+For Gradle 6, usage of the build scan plugin must be replaced with the Gradle Enterprise plugin.
 This also requires changing how the plugin is applied.
 Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.
 
