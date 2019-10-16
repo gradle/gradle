@@ -20,53 +20,30 @@ import com.google.common.reflect.TypeToken
 import org.gradle.BuildAdapter
 import org.gradle.BuildResult
 import org.gradle.api.Action
+import org.gradle.api.internal.provider.AbstractReadOnlyProvider
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.westline.WestlineService
 import org.gradle.api.westline.WestlineServiceFactory
 import org.gradle.api.westline.WestlineServiceParameters
 import org.gradle.api.westline.WestlineServiceSpec
 import org.gradle.internal.Cast
-import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.isolation.Isolatable
+import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.workers.WorkParameters.None
-import java.io.Closeable
 import java.lang.reflect.ParameterizedType
-import java.util.concurrent.CopyOnWriteArrayList
 
 
 class DefaultWestlineServiceFactory(
     private val objects: ObjectFactory,
-    private val providers: ProviderFactory,
     private val instantiatorFactory: InstantiatorFactory,
-    listenerManager: ListenerManager
+    private val listenerManager: ListenerManager,
+    private val isolatableFactory: IsolatableFactory
 ) : WestlineServiceFactory {
-    private
-    val serviceInstances = CopyOnWriteArrayList<Any>()
-
-    init {
-        listenerManager.addListener(object: BuildAdapter() {
-            override fun buildFinished(result: BuildResult) {
-                closeServices()
-            }
-        })
-    }
-
-    private fun closeServices() {
-        CompositeStoppable.stoppable(serviceInstances.mapNotNull {
-            // CompositeStoppable does not stop AutoCloseable instances, only Closeable
-            // Also, do not support (internal) Stoppable in the public contract
-            when {
-                it is Closeable -> it
-                it is AutoCloseable -> Closeable { it.close() }
-                else -> null
-            }
-        }).stop()
-    }
 
     override fun <T : WestlineService<P>, P : WestlineServiceParameters> createProviderOf(
         serviceType: Class<T>,
@@ -76,17 +53,9 @@ class DefaultWestlineServiceFactory(
         val parameterType = extractParametersType(serviceType)
         val parameters = objects.newInstance(parameterType)
         configuration.execute(DefaultWestlineServiceSpec(parameters))
+        val isolatedParameters = isolatableFactory.isolate(parameters)
 
-        val service by lazy {
-            val serviceRegistry = DefaultServiceRegistry().apply {
-                add(parameterType, parameters)
-            }
-            val instantiator = instantiatorFactory.inject(serviceRegistry)
-            instantiator.newInstance(serviceType).also { serviceInstances.add(it) }
-        }
-        return providers.provider {
-            service
-        }
+        return WestlineServiceProvider(serviceType, parameterType, isolatedParameters, instantiatorFactory, listenerManager)
     }
 
     private
@@ -100,6 +69,46 @@ class DefaultWestlineServiceFactory(
     }
 }
 
+class WestlineServiceProvider<T : WestlineService<P>, P : WestlineServiceParameters>(
+    val serviceType: Class<T>,
+    val parametersType: Class<P>,
+    val parameters: Isolatable<P>,
+    private val instantiatorFactory: InstantiatorFactory,
+    private val listenerManager: ListenerManager
+): AbstractReadOnlyProvider<T>() {
+    private
+    var service: T? = null
+
+    private fun createService(): T {
+        val serviceRegistry = DefaultServiceRegistry().apply {
+            add(parametersType, parameters.isolate())
+        }
+        val instantiator = instantiatorFactory.inject(serviceRegistry)
+        return instantiator.newInstance(serviceType).also {
+            registerForClosing(it)
+        }
+    }
+
+    private fun registerForClosing(service: T) {
+        if (service is AutoCloseable) {
+            listenerManager.addListener(object: BuildAdapter() {
+                override fun buildFinished(result: BuildResult) {
+                    service.close()
+                }
+            })
+        }
+    }
+
+    override fun getType() = serviceType
+
+    override fun isPresent(): Boolean {
+        return true
+    }
+
+    override fun getOrNull() = synchronized(this) {
+        service ?: createService().also { service = it }
+    }
+}
 
 private
 class DefaultWestlineServiceSpec<P : WestlineServiceParameters>(

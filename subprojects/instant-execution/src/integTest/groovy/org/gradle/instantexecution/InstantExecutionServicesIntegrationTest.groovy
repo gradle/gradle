@@ -101,10 +101,21 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
         """
 
         when:
-        succeeds("a", "b", "-Dthread.pool.size=4")
+        instantRun("a", "b", "-Dthread.pool.size=4")
 
         then:
         output.count("Configuring thread pool parameters...") == 1
+        output.count("Creating thread pool with size 4") == 1
+
+        output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")
+
+        result.assertOutputContains("Closing thread pool after executing [a, b].")
+
+        when:
+        instantRun("a", "b", "-Dthread.pool.size=4")
+
+        then:
+        result.assertNotOutput("Configuring thread pool parameters")
         output.count("Creating thread pool with size 4") == 1
 
         output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")

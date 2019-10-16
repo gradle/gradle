@@ -218,6 +218,7 @@ class DefaultInstantExecution internal constructor(
             filePropertyFactory = service(),
             fileResolver = service(),
             instantiator = service(),
+            instantiatorFactory = service(),
             listenerManager = service(),
             projectStateRegistry = service(),
             taskNodeFactory = service(),

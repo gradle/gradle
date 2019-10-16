@@ -44,6 +44,7 @@ import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -75,6 +76,7 @@ class Codecs(
     filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
+    instantiatorFactory: InstantiatorFactory,
     listenerManager: ListenerManager,
     projectStateRegistry: ProjectStateRegistry,
     taskNodeFactory: TaskNodeFactory,
@@ -138,13 +140,14 @@ class Codecs(
         bind(arrayCodec)
         bind(BrokenValueCodec)
 
-        bind(ListPropertyCodec)
-        bind(SetPropertyCodec)
-        bind(MapPropertyCodec)
-        bind(DirectoryPropertyCodec(filePropertyFactory))
-        bind(RegularFilePropertyCodec(filePropertyFactory))
-        bind(PropertyCodec)
-        bind(ProviderCodec)
+        val providerCodec = ProviderCodec(isolatableSerializerRegistry, instantiatorFactory, listenerManager)
+        bind(ListPropertyCodec(providerCodec))
+        bind(SetPropertyCodec(providerCodec))
+        bind(MapPropertyCodec(providerCodec))
+        bind(DirectoryPropertyCodec(filePropertyFactory, providerCodec))
+        bind(RegularFilePropertyCodec(filePropertyFactory, providerCodec))
+        bind(PropertyCodec(providerCodec))
+        bind(providerCodec)
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
@@ -181,6 +184,7 @@ class Codecs(
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<WorkerExecutor>())
         bind(ownerService<ListenerManager>())
+        bind(ownerService<InstantiatorFactory>())
 
         bind(EnumCodec)
         bind(ProxyCodec)
