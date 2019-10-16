@@ -51,6 +51,5 @@ class DefaultVirtualFileSystemConcurrencyTest extends AbstractVirtualFileSystemT
 
         cleanup:
         executorService.shutdown()
-
     }
 }

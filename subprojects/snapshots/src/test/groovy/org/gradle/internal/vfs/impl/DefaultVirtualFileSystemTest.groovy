@@ -142,7 +142,7 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
         assertIsFileSnapshot(snapshot, someFile)
     }
 
-    def "invalidated non-existing file in known directory"() {
+    def "can invalidate non-existing file in known directory"() {
         def dir = temporaryFolder.createDir("some/dir")
         def existingFileInDir = dir.file("someFile.txt").createFile()
         def nonExistingFileInDir = dir.file("subdir/nonExisting.txt")

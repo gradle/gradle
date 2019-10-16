@@ -16,16 +16,12 @@
 
 package org.gradle.internal.vfs.impl;
 
-import com.google.common.base.CharMatcher;
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -40,7 +36,6 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -49,10 +44,7 @@ import java.util.function.Function;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     // On Windows, / and \ are separators, on Unix only / is a separator.
-    private static final Splitter FILE_PATH_SPLITTER = File.separatorChar != '/'
-        ? Splitter.on(CharMatcher.anyOf("/" + File.separator))
-        : Splitter.on('/');
-    private final RootNode root = new RootNode();
+    private FileHierarchySet root = DefaultFileHierarchySet.of();
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
@@ -67,14 +59,13 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     @Override
     public <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor) {
-        return visitor.apply(readLocation(location).getSnapshot());
+        return visitor.apply(readLocation(location));
     }
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        ImmutableList<String> pathSegments = getPathSegments(location);
-        Node existingChild = root.getDescendant(pathSegments);
-        if (existingChild != null && existingChild.getType() != Node.Type.UNKNOWN) {
+        FileSystemLocationSnapshot existingChild = root.getSnapshot(location);
+        if (existingChild != null) {
             return mapRegularFileContentHash(visitor, existingChild);
         }
         File file = new File(location);
@@ -85,15 +76,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         }
         HashCode hashCode = hasher.hash(file, stat.getLength(), stat.getLastModified());
         RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
-        mutateVirtualFileSystem(() -> root.replaceDescendant(
-            pathSegments,
-            it -> new RegularFileNode(it, snapshot)
-        ));
+        mutateVirtualFileSystem(root -> root.update(snapshot));
         return Optional.ofNullable(visitor.apply(snapshot.getHash()));
     }
 
-    private <T> Optional<T> mapRegularFileContentHash(Function<HashCode, T> visitor, Node existingChild) {
-        FileSystemLocationSnapshot snapshot = existingChild.getSnapshot();
+    private static <T> Optional<T> mapRegularFileContentHash(Function<HashCode, T> visitor, FileSystemLocationSnapshot snapshot) {
         return snapshot.getType() == FileType.RegularFile
             ? Optional.ofNullable(visitor.apply(snapshot.getHash()))
             : Optional.empty();
@@ -101,7 +88,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     @Override
     public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
-        FileSystemLocationSnapshot unfilteredSnapshot = readLocation(location).getSnapshot();
+        FileSystemLocationSnapshot unfilteredSnapshot = readLocation(location);
         if (filter.isEmpty()) {
             visitor.accept(unfilteredSnapshot);
         } else {
@@ -128,43 +115,22 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         }
     }
 
-    private Node createNode(FileSystemLocationSnapshot snapshot, Node parent) {
-        switch (snapshot.getType()) {
-            case RegularFile:
-                return new RegularFileNode(parent, (RegularFileSnapshot) snapshot);
-            case Missing:
-                return new MissingFileNode(parent, snapshot.getAbsolutePath(), snapshot.getName());
-            case Directory:
-                return new CompleteDirectoryNode(parent, (DirectorySnapshot) snapshot);
-            default:
-                throw new UnsupportedOperationException();
-        }
-    }
-
-    private Node readLocation(String location) {
-        ImmutableList<String> pathSegments = getPathSegments(location);
-        Node existingChild = root.getDescendant(pathSegments);
-        if (existingChild != null && existingChild.getType() != Node.Type.UNKNOWN) {
-            return existingChild;
+    private FileSystemLocationSnapshot readLocation(String location) {
+        FileSystemLocationSnapshot existingSnapshot = root.getSnapshot(location);
+        if (existingSnapshot != null) {
+            return existingSnapshot;
         }
 
         FileSystemLocationSnapshot snapshot = snapshot(location);
-        return mutateVirtualFileSystem(() -> root.replaceDescendant(
-            pathSegments,
-            it -> createNode(snapshot, it)
-        ));
+        mutateVirtualFileSystem(root -> root.update(snapshot));
+        return snapshot;
     }
 
-    private void mutateVirtualFileSystem(Runnable action) {
-        mutateVirtualFileSystem(() -> {
-            action.run();
-            return null;
-        });
-    }
-
-    private <T> T mutateVirtualFileSystem(Callable<T> action) {
+    private void mutateVirtualFileSystem(Function<FileHierarchySet, FileHierarchySet> mutator) {
         try {
-            return executorService.submit(action).get();
+            executorService.submit(() -> {
+                root = mutator.apply(root);
+            }).get();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
@@ -175,12 +141,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
-        locations.forEach(location -> {
-            ImmutableList<String> pathSegments = getPathSegments(location);
-            if (root.getDescendant(pathSegments) != null) {
-                mutateVirtualFileSystem(() -> root.removeDescendant(pathSegments));
-            }
-        });
+        locations.forEach(location -> mutateVirtualFileSystem(root -> root.invalidate(location)));
         action.run();
     }
 
@@ -189,22 +150,12 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         if (executorService.isShutdown()) {
             return;
         }
-        mutateVirtualFileSystem(root::clear);
+        mutateVirtualFileSystem(root -> DefaultFileHierarchySet.of());
     }
 
     @Override
     public void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot) {
-        ImmutableList<String> pathSegments = getPathSegments(location);
-        mutateVirtualFileSystem(() -> {
-            root.replaceDescendant(
-                pathSegments,
-                parent -> AbstractSnapshotNode.convertToNode(snapshot, parent)
-            );
-        });
-    }
-
-    private static ImmutableList<String> getPathSegments(String path) {
-        return ImmutableList.copyOf(FILE_PATH_SPLITTER.splitToList(path));
+        mutateVirtualFileSystem(root -> root.update(snapshot));
     }
 
     @Override
