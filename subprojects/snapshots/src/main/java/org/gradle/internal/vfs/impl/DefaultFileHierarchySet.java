@@ -19,10 +19,10 @@ package org.gradle.internal.vfs.impl;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DefaultFileHierarchySet implements FileHierarchySet {
     private final Node rootNode;
@@ -43,9 +43,8 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         return prefixes;
     }
 
-    @Nullable
     @Override
-    public FileSystemLocationSnapshot getSnapshot(String path) {
+    public Optional<FileSystemLocationSnapshot> getSnapshot(String path) {
         return rootNode.getSnapshot(path, 0);
     }
 

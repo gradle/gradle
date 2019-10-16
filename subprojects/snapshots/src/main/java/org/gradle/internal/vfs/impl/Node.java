@@ -18,21 +18,19 @@ package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
 interface Node {
 
+    Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset);
+
     Node update(String path, FileSystemLocationSnapshot snapshot);
 
     Optional<Node> invalidate(String path);
 
     int sizeOfCommonPrefix(String path, int offset);
-
-    @Nullable
-    FileSystemLocationSnapshot getSnapshot(String filePath, int offset);
 
     void collect(int depth, List<String> prefixes);
 

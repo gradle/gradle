@@ -19,7 +19,6 @@ package org.gradle.internal.vfs.impl;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -107,20 +106,19 @@ class NodeWithChildren implements Node {
         return Node.sizeOfCommonPrefix(prefix, path, offset);
     }
 
-    @Nullable
     @Override
-    public FileSystemLocationSnapshot getSnapshot(String filePath, int offset) {
+    public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
         if (!Node.isChildOfOrThis(filePath, offset, prefix)) {
-            return null;
+            return Optional.empty();
         }
         int startNextSegment = offset + prefix.length() + 1;
         for (Node child : children) {
-            FileSystemLocationSnapshot childSnapshot = child.getSnapshot(filePath, startNextSegment);
-            if (childSnapshot != null) {
+            Optional<FileSystemLocationSnapshot> childSnapshot = child.getSnapshot(filePath, startNextSegment);
+            if (childSnapshot.isPresent()) {
                 return childSnapshot;
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override

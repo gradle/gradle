@@ -22,7 +22,6 @@ import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -118,24 +117,23 @@ class SnapshotNode implements Node {
         return Node.sizeOfCommonPrefix(prefix, path, offset);
     }
 
-    @Nullable
     @Override
-    public FileSystemLocationSnapshot getSnapshot(String filePath, int offset) {
+    public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
         if (!Node.isChildOfOrThis(filePath, offset, prefix)) {
-            return null;
+            return Optional.empty();
         }
         int endOfThisSegment = prefix.length() + offset;
         if (filePath.length() == endOfThisSegment) {
-            return snapshot;
+            return Optional.of(snapshot);
         }
         return findSnapshot(snapshot, filePath, endOfThisSegment + 1);
     }
 
-    private FileSystemLocationSnapshot findSnapshot(FileSystemLocationSnapshot snapshot, String filePath, int offset) {
+    private Optional<FileSystemLocationSnapshot> findSnapshot(FileSystemLocationSnapshot snapshot, String filePath, int offset) {
         switch (snapshot.getType()) {
             case RegularFile:
             case Missing:
-                return new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath));
+                return Optional.of(new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath)));
             case Directory:
                 return findPathInDirectorySnapshot((DirectorySnapshot) snapshot, filePath, offset);
             default:
@@ -143,17 +141,17 @@ class SnapshotNode implements Node {
         }
     }
 
-    private FileSystemLocationSnapshot findPathInDirectorySnapshot(DirectorySnapshot snapshot, String filePath, int offset) {
+    private Optional<FileSystemLocationSnapshot> findPathInDirectorySnapshot(DirectorySnapshot snapshot, String filePath, int offset) {
         for (FileSystemLocationSnapshot child : snapshot.getChildren()) {
             if (Node.isChildOfOrThis(filePath, offset, child.getName())) {
                 int endOfThisSegment = child.getName().length() + offset;
                 if (endOfThisSegment == filePath.length()) {
-                    return child;
+                    return Optional.of(child);
                 }
                 return findSnapshot(child, filePath, endOfThisSegment + 1);
             }
         }
-        return new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath));
+        return Optional.of(new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath)));
     }
 
     private static String getFileNameForAbsolutePath(String filePath) {

@@ -64,20 +64,20 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     @Override
     public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        FileSystemLocationSnapshot existingChild = root.getSnapshot(location);
-        if (existingChild != null) {
-            return mapRegularFileContentHash(visitor, existingChild);
-        }
-        File file = new File(location);
-        FileMetadataSnapshot stat = this.stat.stat(file);
-        // TODO: We used to cache the stat here
-        if (stat.getType() != FileType.RegularFile) {
-            return Optional.empty();
-        }
-        HashCode hashCode = hasher.hash(file, stat.getLength(), stat.getLastModified());
-        RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
-        mutateVirtualFileSystem(root -> root.update(snapshot));
-        return Optional.ofNullable(visitor.apply(snapshot.getHash()));
+        return root.getSnapshot(location)
+            .map(snapshot -> mapRegularFileContentHash(visitor, snapshot))
+            .orElseGet(() -> {
+                File file = new File(location);
+                FileMetadataSnapshot stat = this.stat.stat(file);
+                // TODO: We used to cache the stat here
+                if (stat.getType() != FileType.RegularFile) {
+                    return Optional.empty();
+                }
+                HashCode hashCode = hasher.hash(file, stat.getLength(), stat.getLastModified());
+                RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
+                mutateVirtualFileSystem(root -> root.update(snapshot));
+                return Optional.ofNullable(visitor.apply(snapshot.getHash()));
+            });
     }
 
     private static <T> Optional<T> mapRegularFileContentHash(Function<HashCode, T> visitor, FileSystemLocationSnapshot snapshot) {
@@ -116,14 +116,12 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     }
 
     private FileSystemLocationSnapshot readLocation(String location) {
-        FileSystemLocationSnapshot existingSnapshot = root.getSnapshot(location);
-        if (existingSnapshot != null) {
-            return existingSnapshot;
-        }
-
-        FileSystemLocationSnapshot snapshot = snapshot(location);
-        mutateVirtualFileSystem(root -> root.update(snapshot));
-        return snapshot;
+        return root.getSnapshot(location)
+            .orElseGet(() -> {
+                FileSystemLocationSnapshot snapshot = snapshot(location);
+                mutateVirtualFileSystem(root -> root.update(snapshot));
+                return snapshot;
+            });
     }
 
     private void mutateVirtualFileSystem(Function<FileHierarchySet, FileHierarchySet> mutator) {

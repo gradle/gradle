@@ -40,9 +40,9 @@ class DefaultFileHierarchySetTest extends Specification {
         def set = fileHierarchySet(dir)
         assertDirectorySnapshot(set, dir)
         assertFileSnapshot(set, child)
-        !set.getSnapshot(dir.parentFile)
-        !set.getSnapshot(tmpDir.file("dir2"))
-        !set.getSnapshot(tmpDir.file("d"))
+        !snapshotPresent(set, dir.parentFile)
+        !snapshotPresent(set, tmpDir.file("dir2"))
+        !snapshotPresent(set, tmpDir.file("d"))
     }
 
     def "creates from multiple files"() {
@@ -63,11 +63,11 @@ class DefaultFileHierarchySetTest extends Specification {
             assertFileSnapshot(set, it)
         }
         assertMissingFileSnapshot(set, dir2.file("some/non-existing/file"))
-        !set.getSnapshot(parent)
-        !set.getSnapshot(dir2.parentFile)
-        !set.getSnapshot(tmpDir.file("dir"))
-        !set.getSnapshot(tmpDir.file("dir12"))
-        !set.getSnapshot(tmpDir.file("common/dir21"))
+        !snapshotPresent(set, parent)
+        !snapshotPresent(set, dir2.parentFile)
+        !snapshotPresent(set, tmpDir.file("dir"))
+        !snapshotPresent(set, tmpDir.file("dir12"))
+        !snapshotPresent(set, tmpDir.file("common/dir21"))
         set.flatten() == [parent.path, "1:dir1", "1:common", "2:dir2", "2:dir3"]
     }
 
@@ -83,10 +83,10 @@ class DefaultFileHierarchySetTest extends Specification {
         assertDirectorySnapshot(set, dir2)
         assertFileSnapshot(set, dir1Child)
         assertFileSnapshot(set, dir2Child)
-        !set.getSnapshot(dir1.parentFile)
-        !set.getSnapshot(tmpDir.file("dir"))
-        !set.getSnapshot(tmpDir.file("dir12"))
-        !set.getSnapshot(tmpDir.file("dir21"))
+        !snapshotPresent(set, dir1.parentFile)
+        !snapshotPresent(set, tmpDir.file("dir"))
+        !snapshotPresent(set, tmpDir.file("dir12"))
+        !snapshotPresent(set, tmpDir.file("dir21"))
         set.flatten() == [dir1.path]
     }
 
@@ -99,12 +99,12 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir2Snapshot = snapshotDir(dir2)
         expect:
         def s1 = empty.update(dir1Snapshot)
-        s1.getSnapshot(dir1) == dir1Snapshot
-        !s1.getSnapshot(dir2)
+        snapshotPresent(s1, dir1)
+        !snapshotPresent(s1, dir2)
 
         def s2 = empty.update(dir2Snapshot)
-        !s2.getSnapshot(dir1)
-        s2.getSnapshot(dir2) == dir2Snapshot
+        !snapshotPresent(s2, dir1)
+        s2.getSnapshot(dir2.absolutePath).get() == dir2Snapshot
     }
 
     def "can add dir to singleton set"() {
@@ -119,60 +119,60 @@ class DefaultFileHierarchySetTest extends Specification {
 
         expect:
         def s1 = single.update(snapshotDir(dir2))
-        s1.getSnapshot(dir1)
-        s1.getSnapshot(child)
-        s1.getSnapshot(dir2)
-        !s1.getSnapshot(dir3)
-        !s1.getSnapshot(tooFew)
-        !s1.getSnapshot(tooMany)
-        !s1.getSnapshot(parent)
+        snapshotPresent(s1, dir1)
+        snapshotPresent(s1, child)
+        snapshotPresent(s1, dir2)
+        !snapshotPresent(s1, dir3)
+        !snapshotPresent(s1, tooFew)
+        !snapshotPresent(s1, tooMany)
+        !snapshotPresent(s1, parent)
         s1.flatten() == [parent.path, "1:dir1", "1:dir2"]
 
         def s2 = single.update(snapshotDir(dir1))
-        s2.getSnapshot(dir1)
-        s2.getSnapshot(child)
-        !s2.getSnapshot(dir2)
-        !s2.getSnapshot(dir3)
-        !s2.getSnapshot(tooFew)
-        !s2.getSnapshot(tooMany)
-        !s2.getSnapshot(parent)
+        snapshotPresent(s2, dir1)
+        snapshotPresent(s2, child)
+        !snapshotPresent(s2, dir2)
+        !snapshotPresent(s2, dir3)
+        !snapshotPresent(s2, tooFew)
+        !snapshotPresent(s2, tooMany)
+        !snapshotPresent(s2, parent)
         s2.flatten() == [dir1.path]
 
         def s3 = single.update(snapshotDir(child))
         // The parent directory snapshot was removed
-        !s3.getSnapshot(dir1)
-        s3.getSnapshot(child)
-        !s3.getSnapshot(dir2)
-        !s3.getSnapshot(dir3)
-        !s3.getSnapshot(tooFew)
-        !s3.getSnapshot(tooMany)
-        !s3.getSnapshot(parent)
+        !snapshotPresent(s3, dir1)
+        snapshotPresent(s3, child)
+        !snapshotPresent(s3, dir2)
+        !snapshotPresent(s3, dir3)
+        !snapshotPresent(s3, tooFew)
+        !snapshotPresent(s3, tooMany)
+        !snapshotPresent(s3, parent)
         s3.flatten() == [dir1.path, "1:child1"]
 
         def s4 = single.update(snapshotDir(parent))
-        s4.getSnapshot(dir1)
-        s4.getSnapshot(child)
-        s4.getSnapshot(dir2)
-        s4.getSnapshot(dir3)
-        s4.getSnapshot(parent)
+        snapshotPresent(s4, dir1)
+        snapshotPresent(s4, child)
+        snapshotPresent(s4, dir2)
+        snapshotPresent(s4, dir3)
+        snapshotPresent(s4, parent)
         s4.flatten() == [parent.path]
 
         def s5 = single.update(snapshotDir(tooFew))
-        s5.getSnapshot(dir1)
-        s5.getSnapshot(child)
-        s5.getSnapshot(tooFew)
-        !s5.getSnapshot(dir2)
-        !s5.getSnapshot(tooMany)
-        !s5.getSnapshot(parent)
+        snapshotPresent(s5, dir1)
+        snapshotPresent(s5, child)
+        snapshotPresent(s5, tooFew)
+        !snapshotPresent(s5, dir2)
+        !snapshotPresent(s5, tooMany)
+        !snapshotPresent(s5, parent)
         s5.flatten() == [parent.path, "1:dir1", "1:dir"]
 
         def s6 = single.update(snapshotDir(tooMany))
-        s6.getSnapshot(dir1)
-        s6.getSnapshot(child)
-        s6.getSnapshot(tooMany)
-        !s6.getSnapshot(dir2)
-        !s6.getSnapshot(tooFew)
-        !s6.getSnapshot(parent)
+        snapshotPresent(s6, dir1)
+        snapshotPresent(s6, child)
+        snapshotPresent(s6, tooMany)
+        !snapshotPresent(s6, dir2)
+        !snapshotPresent(s6, tooFew)
+        !snapshotPresent(s6, parent)
         s6.flatten() == [parent.path, "1:dir1", "1:dir12"]
     }
 
@@ -188,39 +188,39 @@ class DefaultFileHierarchySetTest extends Specification {
 
         expect:
         def s1 = multi.update(snapshotDir(dir3))
-        s1.getSnapshot(dir1)
-        s1.getSnapshot(child)
-        s1.getSnapshot(dir2)
-        s1.getSnapshot(dir3)
-        !s1.getSnapshot(other)
-        !s1.getSnapshot(parent)
+        snapshotPresent(s1, dir1)
+        snapshotPresent(s1, child)
+        snapshotPresent(s1, dir2)
+        snapshotPresent(s1, dir3)
+        !snapshotPresent(s1, other)
+        !snapshotPresent(s1, parent)
         s1.flatten() == [parent.path, "1:dir1", "1:dir2", "1:dir3"]
 
         def s2 = multi.update(snapshotDir(dir2))
-        s2.getSnapshot(dir1)
-        s2.getSnapshot(child)
-        s2.getSnapshot(dir2)
-        !s2.getSnapshot(dir3)
-        !s2.getSnapshot(other)
-        !s2.getSnapshot(parent)
+        snapshotPresent(s2, dir1)
+        snapshotPresent(s2, child)
+        snapshotPresent(s2, dir2)
+        !snapshotPresent(s2, dir3)
+        !snapshotPresent(s2, other)
+        !snapshotPresent(s2, parent)
         s2.flatten() == [parent.path, "1:dir1", "1:dir2"]
 
         def s3 = multi.update(snapshotDir(child))
         // The parent directory snapshot was removed
-        !s3.getSnapshot(dir1)
-        s3.getSnapshot(child)
-        s3.getSnapshot(dir2)
-        !s3.getSnapshot(dir3)
-        !s3.getSnapshot(other)
-        !s3.getSnapshot(parent)
+        !snapshotPresent(s3, dir1)
+        snapshotPresent(s3, child)
+        snapshotPresent(s3, dir2)
+        !snapshotPresent(s3, dir3)
+        !snapshotPresent(s3, other)
+        !snapshotPresent(s3, parent)
         s3.flatten() == [parent.path, "1:dir1", "2:child1", "1:dir2"]
 
         def s4 = multi.update(snapshotDir(parent))
-        s4.getSnapshot(dir1)
-        s4.getSnapshot(child)
-        s4.getSnapshot(dir2)
-        s4.getSnapshot(other)
-        s4.getSnapshot(parent)
+        snapshotPresent(s4, dir1)
+        snapshotPresent(s4, child)
+        snapshotPresent(s4, dir2)
+        snapshotPresent(s4, other)
+        snapshotPresent(s4, parent)
         s4.flatten() == [parent.path]
     }
 
@@ -265,9 +265,9 @@ class DefaultFileHierarchySetTest extends Specification {
         when:
         def set = fileHierarchySet([dir1, dir2, dir3])
         then:
-        set.getSnapshot(dir1)
-        set.getSnapshot(dir2)
-        set.getSnapshot(dir3)
+        snapshotPresent(set, dir1)
+        snapshotPresent(set, dir2)
+        snapshotPresent(set, dir3)
     }
 
     def "can add new parent"() {
@@ -278,9 +278,9 @@ class DefaultFileHierarchySetTest extends Specification {
         when:
         def set = fileHierarchySet([dir1, dir2, parent])
         then:
-        set.getSnapshot(parent)
-        set.getSnapshot(dir1)
-        set.getSnapshot(dir2)
+        snapshotPresent(set, parent)
+        snapshotPresent(set, dir1)
+        snapshotPresent(set, dir2)
     }
 
     def "adding a snapshot in a known directory invalidates the directory"() {
@@ -293,9 +293,9 @@ class DefaultFileHierarchySetTest extends Specification {
         def subDir = dir1.file("sub").createDir()
         def set = setWithDir1.update(snapshotDir(subDir))
         then:
-        set.getSnapshot(subDir)
-        set.getSnapshot(fileInDir)
-        !set.getSnapshot(dir1)
+        snapshotPresent(set, subDir)
+        snapshotPresent(set, fileInDir)
+        !snapshotPresent(set, dir1)
     }
 
     def "can remove paths"() {
@@ -308,36 +308,36 @@ class DefaultFileHierarchySetTest extends Specification {
         def fullSet = fileHierarchySet([dir1, dir2, dir3])
 
         when:
-        def set = fullSet.invalidate(dir2)
+        def set = invalidate(fullSet, dir2)
         then:
-        set.getSnapshot(dir1)
-        set.getSnapshot(dir3)
-        !set.getSnapshot(dir2)
+        snapshotPresent(set, dir1)
+        snapshotPresent(set, dir3)
+        !snapshotPresent(set, dir2)
 
         when:
-        set = fullSet.invalidate(dir2.parentFile)
+        set = invalidate(fullSet, dir2.parentFile)
         then:
-        set.getSnapshot(dir1)
-        !set.getSnapshot(dir2)
-        !set.getSnapshot(dir3)
+        snapshotPresent(set, dir1)
+        !snapshotPresent(set, dir2)
+        !snapshotPresent(set, dir3)
 
         when:
-        set = fullSet.invalidate(dir2.file("non-exisiting"))
+        set = invalidate(fullSet, dir2.file("non-exisiting"))
         then:
-        set.getSnapshot(dir1)
-        set.getSnapshot(dir3)
-        set.getSnapshot(dir2File)
-        set.getSnapshot(dir2FileSibling)
-        !set.getSnapshot(dir2)
+        snapshotPresent(set, dir1)
+        snapshotPresent(set, dir3)
+        snapshotPresent(set, dir2File)
+        snapshotPresent(set, dir2FileSibling)
+        !snapshotPresent(set, dir2)
 
         when:
-        set = fullSet.invalidate(dir2File)
+        set = invalidate(fullSet, dir2File)
         then:
-        set.getSnapshot(dir1)
-        set.getSnapshot(dir3)
-        set.getSnapshot(dir2FileSibling)
-        !set.getSnapshot(dir2)
-        !set.getSnapshot(dir2File)
+        snapshotPresent(set, dir1)
+        snapshotPresent(set, dir3)
+        snapshotPresent(set, dir2FileSibling)
+        !snapshotPresent(set, dir2)
+        !snapshotPresent(set, dir2File)
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
@@ -348,7 +348,7 @@ class DefaultFileHierarchySetTest extends Specification {
         TestFiles.fileHasher().hash(file)
     }
     private static void assertFileSnapshot(FileHierarchySet set, File location) {
-        def snapshot = set.getSnapshot(location)
+        def snapshot = set.getSnapshot(location.absolutePath).get()
         assert snapshot.absolutePath == location.absolutePath
         assert snapshot.name == location.name
         assert snapshot.type == FileType.RegularFile
@@ -356,7 +356,7 @@ class DefaultFileHierarchySetTest extends Specification {
     }
 
     private void assertDirectorySnapshot(FileHierarchySet set, File location) {
-        def snapshot = set.getSnapshot(location)
+        def snapshot = set.getSnapshot(location.absolutePath).get()
         assert snapshot.absolutePath == location.absolutePath
         assert snapshot.name == location.name
         assert snapshot.type == FileType.Directory
@@ -364,10 +364,18 @@ class DefaultFileHierarchySetTest extends Specification {
     }
 
     private static void assertMissingFileSnapshot(FileHierarchySet set, File location) {
-        def snapshot = set.getSnapshot(location)
+        def snapshot = set.getSnapshot(location.absolutePath).get()
         assert snapshot.absolutePath == location.absolutePath
         assert snapshot.name == location.name
         assert snapshot.type == FileType.Missing
+    }
+
+    private static boolean snapshotPresent(FileHierarchySet set, File location) {
+        set.getSnapshot(location.absolutePath).present
+    }
+
+    private static FileHierarchySet invalidate(FileHierarchySet set, File location) {
+        set.invalidate(location.absolutePath)
     }
 
     private FileHierarchySet fileHierarchySet(File dir) {
