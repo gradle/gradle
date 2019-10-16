@@ -17,6 +17,8 @@
 package org.gradle.instantexecution.westline
 
 import com.google.common.reflect.TypeToken
+import org.gradle.BuildAdapter
+import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
@@ -27,8 +29,8 @@ import org.gradle.api.westline.WestlineServiceParameters
 import org.gradle.api.westline.WestlineServiceSpec
 import org.gradle.internal.Cast
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.model.internal.type.ModelType
 import org.gradle.workers.WorkParameters.None
@@ -40,17 +42,28 @@ import java.util.concurrent.CopyOnWriteArrayList
 class DefaultWestlineServiceFactory(
     private val objects: ObjectFactory,
     private val providers: ProviderFactory,
-    private val instantiatorFactory: InstantiatorFactory
-) : WestlineServiceFactory, Closeable {
+    private val instantiatorFactory: InstantiatorFactory,
+    listenerManager: ListenerManager
+) : WestlineServiceFactory {
     private
     val serviceInstances = CopyOnWriteArrayList<Any>()
 
-    override fun close() {
-        CompositeStoppable.stoppable(serviceInstances.map {
+    init {
+        listenerManager.addListener(object: BuildAdapter() {
+            override fun buildFinished(result: BuildResult) {
+                closeServices()
+            }
+        })
+    }
+
+    private fun closeServices() {
+        CompositeStoppable.stoppable(serviceInstances.mapNotNull {
             // CompositeStoppable does not stop AutoCloseable instances, only Closeable
+            // Also, do not support (internal) Stoppable in the public contract
             when {
-                it is AutoCloseable && it !is Closeable -> Closeable { it.close() }
-                else -> it
+                it is Closeable -> it
+                it is AutoCloseable -> Closeable { it.close() }
+                else -> null
             }
         }).stop()
     }

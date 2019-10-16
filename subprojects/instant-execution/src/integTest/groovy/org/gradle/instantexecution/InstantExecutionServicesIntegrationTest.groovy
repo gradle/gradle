@@ -109,6 +109,6 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
 
         output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")
 
-        result.output.count("Closing thread pool after executing [a, b].") == 1
+        result.assertOutputContains("Closing thread pool after executing [a, b].")
     }
 }
