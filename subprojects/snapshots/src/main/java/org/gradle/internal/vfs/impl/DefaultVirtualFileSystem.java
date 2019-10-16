@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.collect.Interner;
+import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
@@ -39,8 +40,10 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     // On Windows, / and \ are separators, on Unix only / is a separator.
@@ -49,6 +52,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final ExecutorService executorService;
+    private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
+
 
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, ExecutorService executorService, String... defaultExcludes) {
         this.stat = stat;
@@ -105,11 +110,21 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         switch (stat.getType()) {
             case RegularFile:
                 HashCode hash = hasher.hash(file, stat.getLength(), stat.getLastModified());
-                return new RegularFileSnapshot(location, file.getName(), hash, FileMetadata.from(stat));
+                RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, FileMetadata.from(stat));
+                mutateVirtualFileSystem(root -> root.update(regularFileSnapshot));
+                return regularFileSnapshot;
             case Missing:
-                return new MissingFileSnapshot(location, file.getName());
+                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, file.getName());
+                mutateVirtualFileSystem(root -> root.update(missingFileSnapshot));
+                return missingFileSnapshot;
             case Directory:
-                return directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
+                return producingSnapshots.guardByKey(location,
+                    () -> root.getSnapshot(location)
+                        .orElseGet(() -> {
+                            FileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
+                            mutateVirtualFileSystem(root -> root.update(directorySnapshot));
+                            return directorySnapshot;
+                        }));
             default:
                 throw new UnsupportedOperationException();
         }
@@ -117,11 +132,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     private FileSystemLocationSnapshot readLocation(String location) {
         return root.getSnapshot(location)
-            .orElseGet(() -> {
-                FileSystemLocationSnapshot snapshot = snapshot(location);
-                mutateVirtualFileSystem(root -> root.update(snapshot));
-                return snapshot;
-            });
+            .orElseGet(() -> snapshot(location));
     }
 
     private void mutateVirtualFileSystem(Function<FileHierarchySet, FileHierarchySet> mutator) {
@@ -159,5 +170,19 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     @Override
     public void close() throws IOException {
         executorService.shutdown();
+    }
+
+    private static class StripedProducerGuard<T> {
+        private final Striped<Lock> locks = Striped.lock(Runtime.getRuntime().availableProcessors() * 4);
+
+        public <V> V guardByKey(T key, Supplier<V> supplier) {
+            Lock lock = locks.get(key);
+            try {
+                lock.lock();
+                return supplier.get();
+            } finally {
+                lock.unlock();
+            }
+        }
     }
 }
