@@ -22,7 +22,6 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,11 +36,9 @@ class DefaultFileHierarchySetTest extends Specification {
     def "creates from a single file"() {
         def dir = tmpDir.createDir("dir")
         def child = dir.file("child").createFile()
-
-        def dirSnapshot = snapshotDir(dir)
         expect:
-        def set = DefaultFileHierarchySet.of(dirSnapshot)
-        set.getSnapshot(dir) == dirSnapshot
+        def set = fileHierarchySet(dir)
+        assertDirectorySnapshot(set, dir)
         assertFileSnapshot(set, child)
         !set.getSnapshot(dir.parentFile)
         !set.getSnapshot(tmpDir.file("dir2"))
@@ -56,14 +53,11 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir2Child = dir2.file("child").createFile()
         def dir3 = parent.createDir("common/dir3")
         def dir3Child = dir3.file("child").createFile()
-        def dir1Snapshot = snapshotDir(dir1)
-        def dir2Snapshot = snapshotDir(dir2)
-        def dir3Snapshot = snapshotDir(dir3)
 
         expect:
-        def set = DefaultFileHierarchySet.of([dir1Snapshot, dir2Snapshot, dir3Snapshot])
-        [dir1Snapshot, dir2Snapshot, dir3Snapshot].each { FileSystemLocationSnapshot snapshot ->
-            assert set.getSnapshot(snapshot.absolutePath) == snapshot
+        def set = fileHierarchySet([dir1, dir2, dir3])
+        [dir1, dir2, dir3].each { File location ->
+            assertDirectorySnapshot(set, location)
         }
         [dir1Child, dir2Child, dir3Child].each {
             assertFileSnapshot(set, it)
@@ -83,13 +77,10 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir1Child = dir1.file("child")
         dir1Child.createFile()
         def dir2Child = dir2.file("child/some/nested/structure").createFile()
-
-        def dir1Snapshot = snapshotDir(dir1)
-        def dir2Snapshot = snapshotDir(dir2)
         expect:
-        def set = DefaultFileHierarchySet.of([dir2Snapshot, dir1Snapshot])
-        set.getSnapshot(dir1) == dir1Snapshot
-        equalSnapshots(set.getSnapshot(dir2), dir2Snapshot)
+        def set = fileHierarchySet([dir2, dir1])
+        assertDirectorySnapshot(set, dir1)
+        assertDirectorySnapshot(set, dir2)
         assertFileSnapshot(set, dir1Child)
         assertFileSnapshot(set, dir2Child)
         !set.getSnapshot(dir1.parentFile)
@@ -100,7 +91,7 @@ class DefaultFileHierarchySetTest extends Specification {
     }
 
     def "can add dir to empty set"() {
-        def empty = DefaultFileHierarchySet.of()
+        def empty = FileHierarchySet.EMPTY
         def dir1 = tmpDir.createDir("dir1")
         def dir2 = tmpDir.createDir("dir2")
 
@@ -124,7 +115,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def tooMany = parent.createDir("dir12")
         def tooFew = parent.createDir("dir")
         def child = dir1.createDir("child1")
-        def single = DefaultFileHierarchySet.of(snapshotDir(dir1))
+        def single = fileHierarchySet(dir1)
 
         expect:
         def s1 = single.update(snapshotDir(dir2))
@@ -193,7 +184,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir3 = parent.createDir("dir3")
         def other = parent.createDir("dir4")
         def child = dir1.createDir("child1")
-        def multi = DefaultFileHierarchySet.of([snapshotDir(dir1), snapshotDir(dir2)])
+        def multi = fileHierarchySet([dir1, dir2])
 
         expect:
         def s1 = multi.update(snapshotDir(dir3))
@@ -243,7 +234,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir6 = parent.createDir("dir6")
 
         expect:
-        def s1 = DefaultFileHierarchySet.of([dir1dir2dir3, dir1dir5].collect { snapshotDir(it) })
+        def s1 = fileHierarchySet([dir1dir2dir3, dir1dir5])
         s1.flatten() == [dir1.path, "1:dir2/dir3", "1:dir5/and/more"]
 
         def s2 = s1.update(snapshotDir(dir1dir2dir4))
@@ -272,7 +263,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir3 = parent.createDir("dir3")
 
         when:
-        def set = DefaultFileHierarchySet.of([dir1, dir2, dir3].collect { snapshotDir(it) })
+        def set = fileHierarchySet([dir1, dir2, dir3])
         then:
         set.getSnapshot(dir1)
         set.getSnapshot(dir2)
@@ -285,7 +276,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir2 = parent.createDir("sub/dir2")
 
         when:
-        def set = DefaultFileHierarchySet.of([dir1, dir2, parent].collect { snapshotDir(it) })
+        def set = fileHierarchySet([dir1, dir2, parent])
         then:
         set.getSnapshot(parent)
         set.getSnapshot(dir1)
@@ -296,7 +287,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def parent = tmpDir.createDir()
         def dir1 = parent.createDir("dir1")
         def fileInDir = dir1.createFile("file1")
-        def setWithDir1 = DefaultFileHierarchySet.of(snapshotDir(dir1))
+        def setWithDir1 = fileHierarchySet(dir1)
 
         when:
         def subDir = dir1.file("sub").createDir()
@@ -314,7 +305,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def dir2File = dir2.file("existing").createFile()
         def dir2FileSibling = dir2.file("sibling").createFile()
         def dir3 = parent.createDir("sub/dir3")
-        def fullSet = DefaultFileHierarchySet.of([dir1, dir2, dir3].collect(this.&snapshotDir))
+        def fullSet = fileHierarchySet([dir1, dir2, dir3])
 
         when:
         def set = fullSet.invalidate(dir2)
@@ -349,17 +340,13 @@ class DefaultFileHierarchySetTest extends Specification {
         !set.getSnapshot(dir2File)
     }
 
-    private FileSystemLocationSnapshot snapshotDir(TestFile dir) {
+    private FileSystemLocationSnapshot snapshotDir(File dir) {
         directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false))
     }
 
     static HashCode hashFile(File file) {
         TestFiles.fileHasher().hash(file)
     }
-    private static boolean equalSnapshots(FileSystemLocationSnapshot snapshot1, FileSystemLocationSnapshot snapshot2) {
-        return snapshot1.absolutePath == snapshot2.absolutePath && snapshot1.hash == snapshot2.hash
-    }
-
     private static void assertFileSnapshot(FileHierarchySet set, File location) {
         def snapshot = set.getSnapshot(location)
         assert snapshot.absolutePath == location.absolutePath
@@ -368,10 +355,30 @@ class DefaultFileHierarchySetTest extends Specification {
         assert snapshot.hash == hashFile(location)
     }
 
+    private void assertDirectorySnapshot(FileHierarchySet set, File location) {
+        def snapshot = set.getSnapshot(location)
+        assert snapshot.absolutePath == location.absolutePath
+        assert snapshot.name == location.name
+        assert snapshot.type == FileType.Directory
+        assert snapshot.hash == snapshotDir(location).hash
+    }
+
     private static void assertMissingFileSnapshot(FileHierarchySet set, File location) {
         def snapshot = set.getSnapshot(location)
         assert snapshot.absolutePath == location.absolutePath
         assert snapshot.name == location.name
         assert snapshot.type == FileType.Missing
+    }
+
+    private FileHierarchySet fileHierarchySet(File dir) {
+        FileHierarchySet.EMPTY.update(snapshotDir(dir))
+    }
+
+    private FileHierarchySet fileHierarchySet(Iterable<? extends File> dirs) {
+        FileHierarchySet set = FileHierarchySet.EMPTY
+        for (File dir : dirs) {
+            set = set.update(snapshotDir(dir))
+        }
+        return set
     }
 }

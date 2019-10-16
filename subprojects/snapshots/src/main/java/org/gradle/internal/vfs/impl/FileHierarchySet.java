@@ -26,6 +26,27 @@ import java.io.File;
  * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
  */
 public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
+    /**
+     * The empty hierarchy.
+     */
+    FileHierarchySet EMPTY = new FileHierarchySet() {
+        @Nullable
+        @Override
+        public FileSystemLocationSnapshot getSnapshot(String path) {
+            return null;
+        }
+
+        @Override
+        public FileHierarchySet update(FileSystemLocationSnapshot snapshot) {
+            return new DefaultFileHierarchySet(snapshot.getAbsolutePath(), snapshot);
+        }
+
+        @Override
+        public FileHierarchySet invalidate(String path) {
+            return this;
+        }
+    };
+
     @Nullable // TODO: return Optional
     FileSystemLocationSnapshot getSnapshot(String path);
 

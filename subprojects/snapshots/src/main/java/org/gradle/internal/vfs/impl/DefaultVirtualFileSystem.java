@@ -44,7 +44,7 @@ import java.util.function.Function;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
     // On Windows, / and \ are separators, on Unix only / is a separator.
-    private FileHierarchySet root = DefaultFileHierarchySet.of();
+    private FileHierarchySet root = FileHierarchySet.EMPTY;
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
@@ -150,7 +150,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
         if (executorService.isShutdown()) {
             return;
         }
-        mutateVirtualFileSystem(root -> DefaultFileHierarchySet.of());
+        mutateVirtualFileSystem(root -> FileHierarchySet.EMPTY);
     }
 
     @Override
