@@ -54,7 +54,7 @@ class DefaultWestlineServiceFactory(
         }
         val instantiator = instantiatorFactory.inject(serviceRegistry)
 
-        val service = instantiator.newInstance(serviceType)
+        val service by lazy { instantiator.newInstance(serviceType) }
         return providers.provider {
             service
         }
