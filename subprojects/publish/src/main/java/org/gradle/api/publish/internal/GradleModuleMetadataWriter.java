@@ -380,6 +380,10 @@ public class GradleModuleMetadataWriter {
 
         jsonWriter.name("size");
         jsonWriter.value(artifact.getFile().length());
+        jsonWriter.name("sha512");
+        jsonWriter.value(HashUtil.sha512(artifact.getFile()).asHexString());
+        jsonWriter.name("sha256");
+        jsonWriter.value(HashUtil.sha256(artifact.getFile()).asHexString());
         jsonWriter.name("sha1");
         jsonWriter.value(HashUtil.sha1(artifact.getFile()).asHexString());
         jsonWriter.name("md5");

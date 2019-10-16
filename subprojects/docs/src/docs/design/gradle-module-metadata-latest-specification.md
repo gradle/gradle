@@ -167,6 +167,8 @@ This value, nested in `variants`, must contain an array with zero or more elemen
 - `url`: The location of the file. A string. In version 1.0, this must be a path relative to the module.
 - `size`: The size of the file in bytes. A number.
 - `sha1`: The SHA1 hash of the file content. A hex string.
+- `sha256`: The SHA-256 hash of the file content. A hex string.
+- `sha512`: The SHA-512 hash of the file content. A hex string.
 - `md5`: The MD5 hash of the file content. A hex string.
 
 ### `thirdPartyCompatibility` value
