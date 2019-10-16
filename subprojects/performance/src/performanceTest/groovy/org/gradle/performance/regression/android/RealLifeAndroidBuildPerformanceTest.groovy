@@ -146,7 +146,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
                 void beforeScenario() {
                     def buildDir = new TestFile(invocationSettings.projectDir)
                     def buildFile = buildDir.file("build.gradle")
-                    println "Updating: $buildFile.absolutePath"
                     buildFile.text -= """plugins {
     id 'com.gradle.build-scan' version '2.1' apply false
 }
@@ -160,7 +159,6 @@ if (!hasProperty("disableBuildScan")) {
     }
 }
 """
-                    println "after update: \n$buildFile.text"
                 }
             }
         }
