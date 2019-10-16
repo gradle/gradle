@@ -151,7 +151,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     id 'com.gradle.build-scan' version '2.1' apply false
 }
 
- if (!hasProperty("disableBuildScan")) {
+if (!hasProperty("disableBuildScan")) {
     apply plugin: "com.gradle.build-scan"
     buildScan {
         termsOfServiceUrl = 'https://gradle.com/terms-of-service'
