@@ -26,7 +26,12 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public interface MutableComponentVariant {
+
+    List<? extends ComponentVariant.File> getFiles();
+
     void addFile(String name, String uri);
+
+    boolean removeFile(ComponentVariant.File file);
 
     void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact);
 

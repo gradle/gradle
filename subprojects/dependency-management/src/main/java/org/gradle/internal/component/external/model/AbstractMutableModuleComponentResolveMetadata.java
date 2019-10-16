@@ -294,6 +294,16 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
+        public List<? extends ComponentVariant.File> getFiles() {
+            return files;
+        }
+
+        @Override
+        public boolean removeFile(ComponentVariant.File file) {
+            return files.remove(file);
+        }
+
+        @Override
         public void addFile(String name, String uri) {
             files.add(new FileImpl(name, uri));
         }
