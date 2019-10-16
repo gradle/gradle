@@ -23,6 +23,7 @@ We would like to thank the following community contributors to this release of G
 [Tetsuya Ikenaga](https://github.com/ikngtty),
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Andrey Mischenko](https://github.com/gildor),
+[Shintaro Katafuchi](https://github.com/hotchemi),
 [Alex Saveau](https://github.com/SUPERCILEX),
 [Mike Kobit](https://github.com/mkobit),
 [Tom Eyckmans](https://github.com/teyckmans),
