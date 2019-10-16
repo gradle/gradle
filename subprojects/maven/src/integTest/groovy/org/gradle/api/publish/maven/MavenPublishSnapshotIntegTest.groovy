@@ -98,7 +98,16 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         }
 
         and:
-        resolveArtifacts(module) { expectFiles "snapshotPublish-${secondVersion}.jar" }
+        resolveArtifacts(module) {
+            withModuleMetadata {
+                expectFiles "snapshotPublish-1.0-SNAPSHOT.jar"
+            }
+            withoutModuleMetadata {
+                // This is not ideal but also does not reflect reality, will need some work to fix
+                // This is only possible because Gradle manages to return a path to the supposedly remote file
+                expectFiles "snapshotPublish-${secondVersion}.jar"
+            }
+        }
     }
 
     def "can publish a snapshot version that was previously published with uploadArchives"() {
@@ -163,7 +172,16 @@ class MavenPublishSnapshotIntegTest extends AbstractMavenPublishIntegTest {
         module.snapshotMetaData.snapshotVersions == [secondVersion]
 
         and:
-        resolveArtifacts(module) { expectFiles "snapshotPublish-${secondVersion}.jar" }
+        resolveArtifacts(module) {
+            withModuleMetadata {
+                expectFiles "snapshotPublish-1.0-SNAPSHOT.jar"
+            }
+            withoutModuleMetadata {
+                // This is not ideal but also does not reflect reality, will need some work to fix
+                // This is only possible because Gradle manages to return a path to the supposedly remote file
+                expectFiles "snapshotPublish-${secondVersion}.jar"
+            }
+        }
     }
 
     def "can install snapshot versions"() {
