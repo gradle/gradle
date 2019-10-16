@@ -148,14 +148,15 @@ class DefaultFileHierarchySetTest extends Specification {
         s2.flatten() == [dir1.path]
 
         def s3 = single.plus(snapshotDir(child))
-        s3.getSnapshot(dir1)
+        // The parent directory snapshot was removed
+        !s3.getSnapshot(dir1)
         s3.getSnapshot(child)
         !s3.getSnapshot(dir2)
         !s3.getSnapshot(dir3)
         !s3.getSnapshot(tooFew)
         !s3.getSnapshot(tooMany)
         !s3.getSnapshot(parent)
-        s3.flatten() == [dir1.path]
+        s3.flatten() == [dir1.path, "1:child1"]
 
         def s4 = single.plus(snapshotDir(parent))
         s4.getSnapshot(dir1)
@@ -214,13 +215,14 @@ class DefaultFileHierarchySetTest extends Specification {
         s2.flatten() == [parent.path, "1:dir1", "1:dir2"]
 
         def s3 = multi.plus(snapshotDir(child))
-        s3.getSnapshot(dir1)
+        // The parent directory snapshot was removed
+        !s3.getSnapshot(dir1)
         s3.getSnapshot(child)
         s3.getSnapshot(dir2)
         !s3.getSnapshot(dir3)
         !s3.getSnapshot(other)
         !s3.getSnapshot(parent)
-        s3.flatten() == [parent.path, "1:dir1", "1:dir2"]
+        s3.flatten() == [parent.path, "1:dir1", "2:child1", "1:dir2"]
 
         def s4 = multi.plus(snapshotDir(parent))
         s4.getSnapshot(dir1)
@@ -288,6 +290,21 @@ class DefaultFileHierarchySetTest extends Specification {
         set.getSnapshot(parent)
         set.getSnapshot(dir1)
         set.getSnapshot(dir2)
+    }
+
+    def "adding a snapshot in a known directory invalidates the directory"() {
+        def parent = tmpDir.createDir()
+        def dir1 = parent.createDir("dir1")
+        def fileInDir = dir1.createFile("file1")
+        def setWithDir1 = DefaultFileHierarchySet.of(snapshotDir(dir1))
+
+        when:
+        def subDir = dir1.file("sub").createDir()
+        def set = setWithDir1.plus(snapshotDir(subDir))
+        then:
+        set.getSnapshot(subDir)
+        set.getSnapshot(fileInDir)
+        !set.getSnapshot(dir1)
     }
 
     private FileSystemLocationSnapshot snapshotDir(TestFile dir) {

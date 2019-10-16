@@ -18,6 +18,7 @@ package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.DirectorySnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
@@ -299,7 +300,34 @@ public class DefaultFileHierarchySet {
             int maxPos = Math.min(prefix.length(), path.length());
             int prefixLen = sizeOfCommonPrefix(path, 0);
             if (prefixLen == maxPos) {
-                return prefix.length() < path.length() ? this : new SnapshotNode(path, snapshot);
+                if (prefix.length() == path.length()) {
+                    return this.snapshot.getHash().equals(snapshot.getHash())
+                        ? this
+                        : new SnapshotNode(path, snapshot);
+                }
+                if (prefix.length() > path.length()) {
+                    return new SnapshotNode(path, snapshot);
+                }
+                int startNextSegment = prefix.length() + 1;
+                if (this.snapshot.getType() != FileType.Directory) {
+                    return new SnapshotNode(path.substring(startNextSegment), snapshot);
+                }
+                DirectorySnapshot directorySnapshot = (DirectorySnapshot) this.snapshot;
+                List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size() + 1);
+                boolean matched = false;
+                for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
+                    if (Node.sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
+                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
+                        merged.add(new SnapshotNode(child.getName(), child).plus(path.substring(startNextSegment), snapshot));
+                        matched = true;
+                    } else {
+                        merged.add(new SnapshotNode(child.getName(), child));
+                    }
+                }
+                if (!matched) {
+                    merged.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
+                }
+                return new NodeWithChildren(prefix, merged);
             }
             String commonPrefix = prefix.substring(0, prefixLen);
             SnapshotNode newThis = new SnapshotNode(prefix.substring(prefixLen + 1), this.snapshot);
