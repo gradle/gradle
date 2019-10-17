@@ -77,6 +77,7 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
             gradleEnterprise {
                 buildScan {
                     server = "https://e.grdev.net/"
+                    captureTaskInputFiles = true
                 }
             }
         """ + settingsFile.text
