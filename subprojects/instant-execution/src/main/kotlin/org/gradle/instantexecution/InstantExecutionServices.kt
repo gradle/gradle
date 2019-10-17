@@ -32,6 +32,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
             add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
+            add(InstantExecutionProvidersListener::class.java)
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
             add(DefaultWestlineServiceFactory::class.java)
         }

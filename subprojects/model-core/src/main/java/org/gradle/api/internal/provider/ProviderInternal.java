@@ -46,6 +46,10 @@ public interface ProviderInternal<T> extends Provider<T>, TaskDependencyContaine
      */
     boolean isContentProducedByTask();
 
+    default boolean isPresentInternal() {
+        return isPresent();
+    }
+
     /**
      * Visits the build dependencies of this provider, if possible.
      *

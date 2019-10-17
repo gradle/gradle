@@ -23,13 +23,16 @@ import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
 internal
 class InstantExecutionBuildScopeListenerManagerAction(
-    val buildDefinition: BuildDefinition,
-    val listener: InstantExecutionClassLoaderScopeRegistryListener
+    private val buildDefinition: BuildDefinition,
+    private val classLoaderScopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
+    private val instantExecutionProvidersListener: InstantExecutionProvidersListener
 ) : BuildScopeListenerManagerAction {
 
     override fun execute(manager: ListenerManager) {
         if (SystemProperties.isEnabled in buildDefinition.startParameter.systemPropertiesArgs) {
-            listener.attach(manager)
+            // TODO move this to DefaultInstantExecution for symmetry with dispose()
+            classLoaderScopeRegistryListener.attach(manager)
+            instantExecutionProvidersListener.attach(manager)
         }
     }
 }

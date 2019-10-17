@@ -23,10 +23,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
-import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -113,10 +111,6 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
 
     Deleter createDeleter(Clock clock, FileSystem fileSystem, OperatingSystem os) {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
-    }
-
-    ProviderFactory createProviderFactory() {
-        return new DefaultProviderFactory();
     }
 
     ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory) {

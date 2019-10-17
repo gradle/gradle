@@ -174,6 +174,11 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     }
 
     @Override
+    public boolean isPresentInternal() {
+        return ((ProviderInternal) value).isPresentInternal();
+    }
+
+    @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
         return String.format("property(%s, %s)", type, value);

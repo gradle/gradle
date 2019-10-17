@@ -51,6 +51,11 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
     }
 
     @Override
+    public boolean isPresentInternal() {
+        return provider.isPresentInternal();
+    }
+
+    @Override
     public boolean isPresent() {
         return provider.isPresent();
     }

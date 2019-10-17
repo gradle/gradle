@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
@@ -91,7 +92,8 @@ class Codecs(
     parameterScheme: ArtifactTransformParameterScheme,
     actionScheme: ArtifactTransformActionScheme,
     attributesFactory: ImmutableAttributesFactory,
-    transformListener: ArtifactTransformListener
+    transformListener: ArtifactTransformListener,
+    providerFactory: ProviderFactory
 ) {
 
     private
@@ -140,7 +142,12 @@ class Codecs(
         bind(arrayCodec)
         bind(BrokenValueCodec)
 
-        val providerCodec = ProviderCodec(isolatableSerializerRegistry, instantiatorFactory, listenerManager)
+        val providerCodec = ProviderCodec(
+            isolatableSerializerRegistry,
+            instantiatorFactory,
+            listenerManager,
+            providerFactory
+        )
         bind(ListPropertyCodec(providerCodec))
         bind(SetPropertyCodec(providerCodec))
         bind(MapPropertyCodec(providerCodec))

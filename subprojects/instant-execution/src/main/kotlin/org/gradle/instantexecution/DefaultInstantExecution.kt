@@ -20,6 +20,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logging
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -53,6 +54,7 @@ import kotlin.coroutines.startCoroutine
 class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
+    private val providersListener: InstantExecutionProvidersListener,
     private val beanConstructors: BeanConstructors
 ) : InstantExecution {
 
@@ -81,22 +83,54 @@ class DefaultInstantExecution internal constructor(
             logger.lifecycle("Calculating task graph as instant execution cache cannot be reused due to ${host.skipLoadingStateReason}")
             false
         }
-        !instantExecutionStateFile.isFile -> {
+        !instantExecutionFingerprintFile.isFile -> {
             logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
             false
         }
         else -> {
-            logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
-            true
+            val fingerprintChangedReason = checkFingerprint()
+            when {
+                fingerprintChangedReason != null -> {
+                    logger.lifecycle("Calculating task graph as instant execution cache cannot be reused due to $fingerprintChangedReason")
+                    false
+                }
+                else -> {
+                    logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
+                    true
+                }
+            }
         }
     }
+
+    private
+    fun checkFingerprint(): String? {
+        val fingerprint: Map<String, String?> = readFingerprint()
+        val changedProperties = fingerprint.filterNot { (key, value) -> systemProperty(key) == value }.keys
+        return changedProperties
+            .takeIf { it.isNotEmpty() }
+            ?.joinToString(prefix = "the following system properties changing value: ")
+    }
+
+    private
+    suspend fun DefaultWriteContext.encodeFingerprint() {
+        write(providersListener.systemProperties)
+    }
+
+    private
+    fun readFingerprint(): Map<String, String?> =
+        KryoBackedDecoder(instantExecutionFingerprintFile.inputStream()).use { decoder ->
+            readContextFor(decoder).run {
+                runToCompletion {
+                    read()
+                }
+            }
+        }!!.uncheckedCast()
 
     override fun saveScheduledWork() {
 
         if (!isInstantExecutionEnabled) {
-            // No need to hold onto the `ClassLoaderScope` tree
-            // if we are not writing it.
-            scopeRegistryListener.dispose()
+            // No need to hold onto the listeners if we are not capturing the state
+            disposeListeners()
             return
         }
 
@@ -108,6 +142,13 @@ class DefaultInstantExecution internal constructor(
                     writeContextFor(encoder, report).run {
                         runToCompletion {
                             encodeScheduledWork()
+                        }
+                    }
+                }
+                KryoBackedEncoder(instantExecutionFingerprintFile.outputStream()).use { encoder ->
+                    writeContextFor(encoder, report).run {
+                        runToCompletion {
+                            encodeFingerprint()
                         }
                     }
                 }
@@ -125,9 +166,8 @@ class DefaultInstantExecution internal constructor(
 
         require(isInstantExecutionEnabled)
 
-        // No need to record the `ClassLoaderScope` tree
-        // when loading the task graph.
-        scopeRegistryListener.dispose()
+        // No need to hold onto the listeners when loading the task graph.
+        disposeListeners()
 
         buildOperationExecutor.withLoadOperation {
             KryoBackedDecoder(stateFileInputStream()).use { decoder ->
@@ -138,6 +178,12 @@ class DefaultInstantExecution internal constructor(
                 }
             }
         }
+    }
+
+    private
+    fun disposeListeners() {
+        scopeRegistryListener.dispose()
+        providersListener.dispose()
     }
 
     private
@@ -233,7 +279,8 @@ class DefaultInstantExecution internal constructor(
             parameterScheme = service(),
             classLoaderHierarchyHasher = service(),
             attributesFactory = service(),
-            transformListener = service()
+            transformListener = service(),
+            providerFactory = service()
         )
     }
 
@@ -303,6 +350,13 @@ class DefaultInstantExecution internal constructor(
     private
     fun File.createParentDirectories() {
         Files.createDirectories(parentFile.toPath())
+    }
+
+    private
+    val instantExecutionFingerprintFile by lazy {
+        instantExecutionStateFile.run {
+            resolveSibling("$name.fingerprint")
+        }
     }
 
     private

@@ -23,6 +23,12 @@ import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
 
+    private final ProvidersListener broadcaster;
+
+    public DefaultProviderFactory(ProvidersListener broadcaster) {
+        this.broadcaster = broadcaster;
+    }
+
     @Override
     public <T> Provider<T> provider(final Callable<? extends T> value) {
         if (value == null) {
@@ -33,6 +39,6 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<String> systemProperty(String propertyName) {
-        return new SystemPropertyProvider(propertyName);
+        return new SystemPropertyProvider(propertyName, broadcaster);
     }
 }

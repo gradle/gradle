@@ -1031,7 +1031,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void addsSetterMethodsForPropertyWhoseTypeIsProperty() throws Exception {
-        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory(null);
         BeanWithProperty bean = newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
@@ -1052,7 +1052,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void addsSetterMethodsForPropertyWhoseTypeIsPropertyAndCapitalizedProperly() throws Exception {
-        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory(null);
         BeanWithProperty bean = newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();
@@ -1073,7 +1073,7 @@ public class AsmBackedClassGeneratorTest {
 
     @Test
     public void doesNotAddSetterMethodsForPropertyWhoseTypeIsPropertyWhenTheSetterMethodsAlreadyExist() throws Exception {
-        DefaultProviderFactory providerFactory = new DefaultProviderFactory();
+        DefaultProviderFactory providerFactory = new DefaultProviderFactory(null);
         BeanWithProperty bean = newInstance(BeanWithProperty.class, TestUtil.objectFactory());
 
         DynamicObject dynamicObject = ((DynamicObjectAware) bean).getAsDynamicObject();

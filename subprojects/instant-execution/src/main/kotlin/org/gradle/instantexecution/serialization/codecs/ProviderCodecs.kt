@@ -31,6 +31,7 @@ import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.provider.SystemPropertyProvider
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.westline.WestlineService
 import org.gradle.api.westline.WestlineServiceParameters
 import org.gradle.instantexecution.extensions.uncheckedCast
@@ -51,7 +52,8 @@ class
 ProviderCodec(
     private val isolatableSerializerRegistry: IsolatableSerializerRegistry,
     private val instantiatorFactory: InstantiatorFactory,
-    private val listenerManager: ListenerManager
+    private val listenerManager: ListenerManager,
+    private val providers: ProviderFactory
 ) : Codec<ProviderInternal<*>> {
     suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
         when {
@@ -102,7 +104,7 @@ ProviderCodec(
                 }
             }
             4.toByte() -> {
-                SystemPropertyProvider(readString()).uncheckedCast()
+                providers.systemProperty(readString()).uncheckedCast()
             }
             else -> TODO("fail")
         }

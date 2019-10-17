@@ -21,9 +21,11 @@ import javax.annotation.Nullable;
 public class SystemPropertyProvider extends AbstractReadOnlyProvider<String> {
 
     private final String propertyName;
+    private final ProvidersListener broadcaster;
 
-    public SystemPropertyProvider(String propertyName) {
+    public SystemPropertyProvider(String propertyName, ProvidersListener broadcaster) {
         this.propertyName = propertyName;
+        this.broadcaster = broadcaster;
     }
 
     public String getPropertyName() {
@@ -36,9 +38,21 @@ public class SystemPropertyProvider extends AbstractReadOnlyProvider<String> {
         return String.class;
     }
 
+    @Override
+    public boolean isPresentInternal() {
+        return propertyValue() != null;
+    }
+
     @Nullable
     @Override
     public String getOrNull() {
+        String propertyValue = propertyValue();
+        broadcaster.systemPropertyObserved(propertyName, propertyValue);
+        return propertyValue;
+    }
+
+    @Nullable
+    private String propertyValue() {
         return System.getProperty(propertyName);
     }
 

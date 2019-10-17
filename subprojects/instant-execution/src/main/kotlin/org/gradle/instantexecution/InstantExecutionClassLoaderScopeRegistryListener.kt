@@ -23,33 +23,23 @@ import org.gradle.initialization.ClassLoaderScopeRegistryListener
 import org.gradle.instantexecution.serialization.ClassLoaderRole
 import org.gradle.instantexecution.serialization.ScopeLookup
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.event.ListenerManager
 
 
 internal
-class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistryListener, ScopeLookup {
+class InstantExecutionClassLoaderScopeRegistryListener : AbstractInstantExecutionBuildScopeListener(), ClassLoaderScopeRegistryListener, ScopeLookup {
     private
     val scopeSpecs = LinkedHashMap<ClassLoaderScopeId, ClassLoaderScopeSpec>()
 
     private
     val loaders = mutableMapOf<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
-    private
-    var manager: ListenerManager? = null
-
     val scopes: Collection<ClassLoaderScopeSpec>
         get() = scopeSpecs.values
-
-    fun attach(manager: ListenerManager) {
-        require(this.manager == null)
-        this.manager = manager
-        manager.addListener(this)
-    }
 
     /**
      * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
      */
-    fun dispose() {
+    override fun dispose() {
         // TODO:instant-execution find a way to make `dispose` unnecessary;
         //  maybe by extracting an `InstantExecutionBuildDefinition` service
         //  from DefaultInstantExecutionHost so a decision based on the configured
@@ -57,13 +47,7 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
         //  The listener only needs to be attached in the `store` state.
         scopeSpecs.clear()
         loaders.clear()
-        detach()
-    }
-
-    private
-    fun detach() {
-        manager?.removeListener(this)
-        manager = null
+        super.dispose()
     }
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
