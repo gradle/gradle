@@ -92,6 +92,7 @@ public abstract class AbstractNode implements Node {
             if (pos < path2.length() - offset && path2.charAt(pos + offset) == separatorChar) {
                 return function.apply(pos, true);
             }
+            path1Smaller = path1.length() < path2.length();
         }
         return function.apply(lastSeparator, path1Smaller);
     }

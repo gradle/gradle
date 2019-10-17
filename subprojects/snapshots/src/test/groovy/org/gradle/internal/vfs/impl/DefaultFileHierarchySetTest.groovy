@@ -434,6 +434,18 @@ class DefaultFileHierarchySetTest extends Specification {
         set.getSnapshot("/base.txt").get().type == FileType.RegularFile
     }
 
+    def "updates are inserted sorted"() {
+        def parent = tmpDir.createDir()
+        def childA = parent.file("a")
+        def childB = parent.file("b")
+        def childB1 = parent.file("b1")
+
+        when:
+        def set = fileHierarchySet([childA, childB, childB1])
+        then:
+        set.flatten() == [parent.absolutePath, "1:a", "1:b", "1:b1"]
+    }
+
     private FileSystemLocationSnapshot snapshotDir(File dir) {
         directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false))
     }
