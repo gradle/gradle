@@ -61,6 +61,7 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         def git = Git.cloneRepository()
             .setURI(sourceUri)
             .setDirectory(targetDir)
+            .setNoCheckout(true)
             .call()
 
         println "> Checking out ${targetRef}"
