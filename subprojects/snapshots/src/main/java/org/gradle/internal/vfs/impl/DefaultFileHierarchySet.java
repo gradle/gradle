@@ -19,7 +19,6 @@ package org.gradle.internal.vfs.impl;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -27,9 +26,8 @@ import java.util.Optional;
 public class DefaultFileHierarchySet implements FileHierarchySet {
     private final Node rootNode;
 
-    DefaultFileHierarchySet(String rootDir, FileSystemLocationSnapshot snapshot) {
-        String path = toPath(rootDir);
-        this.rootNode = new SnapshotNode(path, snapshot);
+    DefaultFileHierarchySet(String path, FileSystemLocationSnapshot snapshot) {
+        this.rootNode = new SnapshotNode(normalizeFileSystemRoot(path), snapshot);
     }
 
     DefaultFileHierarchySet(Node rootNode) {
@@ -45,27 +43,22 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
 
     @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String path) {
-        return rootNode.getSnapshot(path, 0);
+        return rootNode.getSnapshot(normalizeFileSystemRoot(path), 0);
     }
 
     @Override
     public FileHierarchySet update(FileSystemLocationSnapshot snapshot) {
-        return new DefaultFileHierarchySet(rootNode.update(snapshot.getAbsolutePath(), snapshot));
+        return new DefaultFileHierarchySet(rootNode.update(normalizeFileSystemRoot(snapshot.getAbsolutePath()), snapshot));
     }
 
     @Override
     public FileHierarchySet invalidate(String path) {
-        return rootNode.invalidate(path)
+        return rootNode.invalidate(normalizeFileSystemRoot(path))
             .<FileHierarchySet>map(DefaultFileHierarchySet::new)
             .orElse(FileHierarchySet.EMPTY);
     }
 
-    private String toPath(String absolutePath) {
-        if (absolutePath.equals("/")) {
-            absolutePath = "";
-        } else if (absolutePath.endsWith(File.separator)) {
-            absolutePath = absolutePath.substring(0, absolutePath.length() - 1);
-        }
-        return absolutePath;
+    private String normalizeFileSystemRoot(String absolutePath) {
+        return absolutePath.equals("/") ? "" : absolutePath;
     }
 }

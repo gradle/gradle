@@ -36,7 +36,7 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
         @Override
         public FileHierarchySet update(FileSystemLocationSnapshot snapshot) {
-            return new DefaultFileHierarchySet(snapshot.getAbsolutePath(), snapshot);
+            return new DefaultFileHierarchySet(snapshot.getAbsolutePath().equals("/") ? "" : snapshot.getAbsolutePath(), snapshot);
         }
 
         @Override

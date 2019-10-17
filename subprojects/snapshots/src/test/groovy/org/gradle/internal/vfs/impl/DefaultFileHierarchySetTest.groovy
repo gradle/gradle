@@ -20,6 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
@@ -419,6 +420,18 @@ class DefaultFileHierarchySetTest extends Specification {
         then:
         snapshotPresent(set, file)
         !snapshotPresent(set, invalidatedLocation)
+    }
+
+    def "root is handled correctly"() {
+        when:
+        def set = FileHierarchySet.EMPTY.update(new DirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
+        then:
+        set.getSnapshot("/root.txt").get().type == FileType.RegularFile
+
+        when:
+        set = set.update(new DirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(2222)))
+        then:
+        set.getSnapshot("/base.txt").get().type == FileType.RegularFile
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
