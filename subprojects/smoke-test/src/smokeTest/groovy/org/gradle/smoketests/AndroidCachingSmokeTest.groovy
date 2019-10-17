@@ -45,9 +45,19 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
         def buildDir = file("checkout/santa-tracker")
         def buildFile = buildDir.file("build.gradle")
-        buildFile.text -= "id 'com.gradle.build-scan' version '2.1'"
-        def settingsFile = buildDir.file("settings.gradle")
-        settingsFile.text = "plugins { id 'com.gradle.enterprise' version '3.0' }\n\n" + settingsFile.text
+        buildFile.text -= """plugins {
+    id 'com.gradle.build-scan' version '2.1' apply false
+}
+
+if (!hasProperty("disableBuildScan")) {
+    apply plugin: "com.gradle.build-scan"
+    buildScan {
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+        captureTaskInputFiles = true
+    }
+}
+"""
 
         expect:
         runner(
