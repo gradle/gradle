@@ -175,16 +175,17 @@ The Zinc compiler has been upgraded to version 1.3.0. Gradle no longer supports 
 
 This fixes some Scala incremental compilation bugs and improves performance. 
 
-The minimum Zinc compiler supported by Gradle is 1.2.0 and the maximum version is 1.3.0.
+The minimum Zinc compiler supported by Gradle is 1.2.0 and the maximum tested version is 1.3.0.
 
-To make it easier to select the version of the Zinc compiler that's compatible with Gradle, you can now configure a `zincVersion` property:
+To make it easier to select the version of the Zinc compiler, you can now configure a `zincVersion` property:
 ```
 scala {
     zincVersion = "1.2.1"
 }
 ```
 
-Please note that the coordinates for the supported version of Zinc has changed since Zinc 1.0. You may no longer use a `com.typesafe.zinc:zinc` dependency.
+Please note that the coordinates for the supported version of Zinc has changed since Zinc 1.0. 
+If you try to use the `com.typesafe.zinc:zinc` compiler, Gradle will switch to the new Zinc implementation with a default version (1.3.0).
 
 <a name="task-problems"></a>
 ## Problems with tasks called out during build
