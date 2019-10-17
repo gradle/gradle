@@ -56,7 +56,7 @@ public class ResultsStoreHelper {
     }
 
     public static boolean isHistoricalChannel() {
-        return "historical".equals(determineChannel());
+        return determineChannel().startsWith("historical-");
     }
 
     public static String determineTeamCityBuildId() {
