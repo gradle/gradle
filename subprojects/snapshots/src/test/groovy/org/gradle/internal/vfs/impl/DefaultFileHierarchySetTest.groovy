@@ -72,7 +72,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(set, tmpDir.file("dir"))
         !snapshotPresent(set, tmpDir.file("dir12"))
         !snapshotPresent(set, tmpDir.file("common/dir21"))
-        set.flatten() == [parent.path, "1:dir1", "1:common", "2:dir2", "2:dir3"]
+        set.flatten() == [parent.path, "1:common", "2:dir2", "2:dir3", "1:dir1"]
     }
 
     def "creates from files where one file is ancestor of the others"() {
@@ -168,7 +168,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s5, dir2)
         !snapshotPresent(s5, tooMany)
         !snapshotPresent(s5, parent)
-        s5.flatten() == [parent.path, "1:dir1", "1:dir"]
+        s5.flatten() == [parent.path, "1:dir", "1:dir1"]
 
         def s6 = single.update(snapshotDir(tooMany))
         snapshotPresent(s6, dir1)

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,24 +37,75 @@ class NodeWithChildren extends AbstractNode {
         return handlePrefix(getPrefix(), path, new InvalidateHandler() {
             @Override
             public Optional<Node> handleDescendant() {
-                int startNextSegment = getPrefix().length() + 1;
-                List<Node> merged = new ArrayList<>(children.size() + 1);
-                boolean matched = false;
-                for (Node child : children) {
-                    if (!matched && sizeOfCommonPrefix(child.getPrefix(), path, startNextSegment) > 0) {
-                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
-                        child.invalidate(path.substring(startNextSegment)).ifPresent(merged::add);
-                        matched = true;
-                    } else {
-                        merged.add(child);
+                return handleChildren(getPrefix(), path, new ChildHandler<Optional<Node>>() {
+                    @Override
+                    public Optional<Node> handleNewChild(int startNextSegment, int insertBefore) {
+                        return Optional.of(NodeWithChildren.this);
                     }
-                }
-                if (!matched) {
-                    return Optional.of(NodeWithChildren.this);
-                }
-                return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(getPrefix(), merged));
+
+                    @Override
+                    public Optional<Node> handleChildOfExisting(int startNextSegment, int childIndex) {
+                        Node child = children.get(childIndex);
+                        Optional<Node> invalidatedChild = child.invalidate(path.substring(startNextSegment));
+                        if (children.size() == 1) {
+                            return invalidatedChild.map(it -> new NodeWithChildren(getPrefix(), ImmutableList.of(it)));
+                        }
+                        ImmutableList.Builder<Node> merged = ImmutableList.builderWithExpectedSize(
+                            invalidatedChild.isPresent()
+                                ? children.size()
+                                : children.size() - 1
+                        );
+                        if (childIndex > 0) {
+                            merged.addAll(children.subList(0, childIndex));
+                        }
+                        invalidatedChild.ifPresent(merged::add);
+                        if (childIndex + 1 < children.size()) {
+                            merged.addAll(children.subList(childIndex + 1, children.size()));
+                        }
+                        return Optional.of(new NodeWithChildren(getPrefix(), merged.build()));
+                    }
+                });
             }
         });
+    }
+
+    interface ChildHandler<T> {
+        T handleNewChild(int startNextSegment, int insertBefore);
+        T handleChildOfExisting(int startNextSegment, int childIndex);
+    }
+
+    private <T> T handleChildren(String prefix, String path, ChildHandler<T> childHandler) {
+        int startNextSegment = prefix.length() + 1;
+
+        int childIndex = binarySearchChildren(path, startNextSegment);
+        if (childIndex >= 0) {
+            return childHandler.handleChildOfExisting(startNextSegment, childIndex);
+        }
+        return childHandler.handleNewChild(startNextSegment, -childIndex - 1);
+    }
+
+    private int binarySearchChildren(String path, int startNextSegment) {
+        int low = 0;
+        int high = children.size() - 1;
+
+        while (low <= high) {
+            int mid = (low + high) >>> 1;
+            Node midVal = children.get(mid);
+            int cmp = sizeOfCommonPrefix(midVal.getPrefix(), path, startNextSegment, File.separatorChar, (commonPrefix, childSmaller) -> {
+                if (commonPrefix > 0) {
+                    return 0;
+                }
+                return childSmaller ? -1 : 1;
+            });
+
+            if (cmp < 0)
+                low = mid + 1;
+            else if (cmp > 0)
+                high = mid - 1;
+            else
+                return mid; // key found
+        }
+        return -(low + 1);  // key not found
     }
 
     @Override
@@ -63,22 +113,35 @@ class NodeWithChildren extends AbstractNode {
         return handlePrefix(getPrefix(), path, new DescendantHandler<Node>() {
             @Override
             public Node handleDescendant() {
-                int startNextSegment = getPrefix().length() + 1;
-                List<Node> merged = new ArrayList<>(children.size() + 1);
-                boolean matched = false;
-                for (Node child : children) {
-                    if (!matched && sizeOfCommonPrefix(child.getPrefix(), path, startNextSegment) > 0) {
-                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
-                        merged.add(child.update(path.substring(startNextSegment), snapshot));
-                        matched = true;
-                    } else {
-                        merged.add(child);
+                return handleChildren(getPrefix(), path, new ChildHandler<Node>() {
+                    @Override
+                    public Node handleNewChild(int startNextSegment, int insertBefore) {
+                        ImmutableList.Builder<Node> newChildren = ImmutableList.builder();
+                        if (insertBefore > 0) {
+                            newChildren.addAll(children.subList(0, insertBefore));
+                        }
+                        newChildren.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
+                        if (insertBefore < children.size()) {
+                            newChildren.addAll(children.subList(insertBefore, children.size()));
+                        }
+
+                        return new NodeWithChildren(getPrefix(), newChildren.build());
                     }
-                }
-                if (!matched) {
-                    merged.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
-                }
-                return new NodeWithChildren(getPrefix(), merged);
+
+                    @Override
+                    public Node handleChildOfExisting(int startNextSegment, int childIndex) {
+                        ImmutableList.Builder<Node> newChildren = ImmutableList.builder();
+                        if (childIndex > 0) {
+                            newChildren.addAll(children.subList(0, childIndex));
+                        }
+                        newChildren.add(children.get(childIndex).update(path.substring(startNextSegment), snapshot));
+                        if (childIndex + 1 < children.size()) {
+                            newChildren.addAll(children.subList(childIndex + 1, children.size()));
+                        }
+
+                        return new NodeWithChildren(getPrefix(), newChildren.build());
+                    }
+                });
             }
 
             @Override
@@ -96,7 +159,10 @@ class NodeWithChildren extends AbstractNode {
                 String commonPrefix = getPrefix().substring(0, commonPrefixLength);
                 Node newThis = new NodeWithChildren(getPrefix().substring(commonPrefixLength + 1), children);
                 Node sibling = new SnapshotNode(path.substring(commonPrefixLength + 1), snapshot);
-                return new NodeWithChildren(commonPrefix, ImmutableList.of(newThis, sibling));
+                ImmutableList<Node> newChildren = newThis.getPrefix().compareTo(sibling.getPrefix()) < 0
+                    ? ImmutableList.of(newThis, sibling)
+                    : ImmutableList.of(sibling, newThis);
+                return new NodeWithChildren(commonPrefix, newChildren);
             }
         });
     }

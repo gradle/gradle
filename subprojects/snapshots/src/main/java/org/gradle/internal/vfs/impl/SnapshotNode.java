@@ -25,6 +25,7 @@ import org.gradle.internal.snapshot.MissingFileSnapshot;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -89,6 +90,7 @@ class SnapshotNode extends AbstractNode {
                 if (!matched) {
                     merged.add(new SnapshotNode(path.substring(startNextSegment), newSnapshot));
                 }
+                merged.sort(Comparator.comparing(Node::getPrefix));
                 return new NodeWithChildren(getPrefix(), merged);
             }
 
@@ -109,7 +111,10 @@ class SnapshotNode extends AbstractNode {
                 String commonPrefix = getPrefix().substring(0, commonPrefixLength);
                 Node newThis = new SnapshotNode(getPrefix().substring(commonPrefixLength + 1), snapshot);
                 Node sibling = new SnapshotNode(path.substring(commonPrefixLength + 1), newSnapshot);
-                return new NodeWithChildren(commonPrefix, ImmutableList.of(newThis, sibling));
+                ImmutableList<Node> newChildren = newThis.getPrefix().compareTo(sibling.getPrefix()) < 0
+                    ? ImmutableList.of(newThis, sibling)
+                    : ImmutableList.of(sibling, newThis);
+                return new NodeWithChildren(commonPrefix, newChildren);
             }
         });
     }

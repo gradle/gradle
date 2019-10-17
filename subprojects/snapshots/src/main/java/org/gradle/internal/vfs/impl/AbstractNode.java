@@ -18,6 +18,7 @@ package org.gradle.internal.vfs.impl;
 
 import java.io.File;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 public abstract class AbstractNode implements Node {
     private final String prefix;
@@ -60,6 +61,39 @@ public abstract class AbstractNode implements Node {
             }
         }
         return lastSeparator;
+    }
+
+    /**
+     * Does not include the separator char.
+     */
+    public static <T> T sizeOfCommonPrefix(String path1, String path2, int offset, char separatorChar, BiFunction<Integer, Boolean, T> function) {
+        int pos = 0;
+        int lastSeparator = 0;
+        int maxPos = Math.min(path1.length(), path2.length() - offset);
+        boolean path1Smaller = false;
+        for (; pos < maxPos; pos++) {
+            char charInPath1 = path1.charAt(pos);
+            char charInPath2 = path2.charAt(pos + offset);
+            if (charInPath1 != charInPath2) {
+                path1Smaller = charInPath1 < charInPath2;
+                break;
+            }
+            if (path1.charAt(pos) == separatorChar) {
+                lastSeparator = pos;
+            }
+        }
+        if (pos == maxPos) {
+            if (path1.length() == path2.length() - offset) {
+                return function.apply(pos, false);
+            }
+            if (pos < path1.length() && path1.charAt(pos) == separatorChar) {
+                return function.apply(pos, false);
+            }
+            if (pos < path2.length() - offset && path2.charAt(pos + offset) == separatorChar) {
+                return function.apply(pos, true);
+            }
+        }
+        return function.apply(lastSeparator, path1Smaller);
     }
 
     /**
