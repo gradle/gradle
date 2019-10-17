@@ -59,7 +59,6 @@ class CrossVersionPerformanceTestRunnerTest extends Specification {
         thrown(AssumptionViolatedException)
     }
 
-
     def 'lastest release is added if no versions specified'() {
         expect:
         toBaselineVersions(distributions, [], null) == ['6.1'] as LinkedHashSet

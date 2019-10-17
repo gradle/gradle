@@ -138,11 +138,8 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         version.replace('+', '')
     }
 
-    static Object resolveVersion(String version, ReleasedVersionDistributions releases) {
+    static String resolveVersion(String version, ReleasedVersionDistributions releases) {
         switch (version) {
-            case GradleVersion.current().getBaseVersion().version:
-                // current version is run by default, skip adding it to baseline
-                return []
             case 'last':
                 return releases.mostRecentRelease.version.version
             case 'nightly':
@@ -177,7 +174,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             return []
         }
 
-        LinkedHashSet<String> resolvedVersions = versions.collect { resolveVersion(it, releases) }.flatten() as LinkedHashSet<String>
+        LinkedHashSet<String> resolvedVersions = versions.collect { resolveVersion(it, releases) } as LinkedHashSet<String>
 
         if (resolvedVersions.isEmpty() || addMostRecentRelease(overrideBaselinesProperty, versions)) {
             // Always include the most recent final release if we're not testing against a nightly or a snapshot
@@ -187,7 +184,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         resolvedVersions.removeAll { !versionMeetsLowerBaseVersionRequirement(it, minimumBaseVersion) }
 
         if (resolvedVersions.isEmpty()) {
-            Assume.assumeFalse(isHistoricalPerformanceTest(versions))
+            Assume.assumeFalse("Ignore the test if all baseline versions are filtered out in Historical Performance Test", ResultsStoreHelper.isHistoricalChannel())
         }
 
         assert !resolvedVersions.isEmpty(): "No versions selected: ${versions}"
@@ -204,11 +201,6 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     static boolean versionMeetsLowerBaseVersionRequirement(String targetVersion, String minimumBaseVersion) {
         return minimumBaseVersion == null || GradleVersion.version(targetVersion).baseVersion >= GradleVersion.version(minimumBaseVersion)
-    }
-
-    static boolean isHistoricalPerformanceTest(List<String> versions) {
-        // Currently only historical performance test has more than 3 baseline versions
-        return versions.size() > 3
     }
 
     private static boolean isRcVersionOrSnapshot(String version) {
