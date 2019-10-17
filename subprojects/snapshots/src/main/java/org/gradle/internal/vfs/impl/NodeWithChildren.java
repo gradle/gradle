@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +31,11 @@ class NodeWithChildren extends AbstractNode {
     public NodeWithChildren(String prefix, List<Node> children) {
         super(prefix);
         assert !children.isEmpty();
+        ArrayList<Node> copy = new ArrayList<>(children);
+        copy.sort(Comparator.comparing(Node::getPrefix));
+        if (!copy.equals(children)) {
+            throw new RuntimeException("Arrrrgghhh");
+        }
         this.children = children;
     }
 
