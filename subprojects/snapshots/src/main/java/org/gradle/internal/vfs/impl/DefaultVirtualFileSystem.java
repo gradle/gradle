@@ -74,14 +74,22 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
             .orElseGet(() -> {
                 File file = new File(location);
                 FileMetadataSnapshot stat = this.stat.stat(file);
+                if (stat.getType() == FileType.Missing) {
+                    mutateVirtualFileSystem(root -> root.update(new MissingFileSnapshot(location, file.getName())));
+                }
                 // TODO: We used to cache the stat here
                 if (stat.getType() != FileType.RegularFile) {
                     return Optional.empty();
                 }
-                HashCode hashCode = hasher.hash(file, stat.getLength(), stat.getLastModified());
-                RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
-                mutateVirtualFileSystem(root -> root.update(snapshot));
-                return Optional.ofNullable(visitor.apply(snapshot.getHash()));
+                HashCode hash = producingSnapshots.guardByKey(location,
+                    () -> root.getSnapshot(location)
+                        .orElseGet(() -> {
+                            HashCode hashCode = hasher.hash(file, stat.getLength(), stat.getLastModified());
+                            RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
+                            mutateVirtualFileSystem(root -> root.update(snapshot));
+                            return snapshot;
+                        }).getHash());
+                return Optional.ofNullable(visitor.apply(hash));
             });
     }
 
@@ -118,13 +126,9 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
                 mutateVirtualFileSystem(root -> root.update(missingFileSnapshot));
                 return missingFileSnapshot;
             case Directory:
-                return producingSnapshots.guardByKey(location,
-                    () -> root.getSnapshot(location)
-                        .orElseGet(() -> {
-                            FileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
-                            mutateVirtualFileSystem(root -> root.update(directorySnapshot));
-                            return directorySnapshot;
-                        }));
+                FileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
+                mutateVirtualFileSystem(root -> root.update(directorySnapshot));
+                return directorySnapshot;
             default:
                 throw new UnsupportedOperationException();
         }
@@ -132,7 +136,9 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     private FileSystemLocationSnapshot readLocation(String location) {
         return root.getSnapshot(location)
-            .orElseGet(() -> snapshot(location));
+            .orElseGet(() -> producingSnapshots.guardByKey(location,
+                () -> root.getSnapshot(location).orElseGet(() -> snapshot(location)))
+            );
     }
 
     private void mutateVirtualFileSystem(Function<FileHierarchySet, FileHierarchySet> mutator) {
