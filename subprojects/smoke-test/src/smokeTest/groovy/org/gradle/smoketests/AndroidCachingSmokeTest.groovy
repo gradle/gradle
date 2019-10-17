@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.apache.commons.io.FileUtils
 import org.eclipse.jgit.api.Git
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
@@ -38,7 +39,9 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         def relocatedDir = root.createDir("relocated")
 
         setupRepo(testRepoUri, originalDir, testRepoTarget)
-        setupRepo(testRepoUri, relocatedDir, testRepoTarget)
+
+        println "> Copying original to relocated"
+        FileUtils.copyDirectory(originalDir, relocatedDir)
 
         runner("assembleDebug", "--scan")
             .withProjectDir(originalDir)
@@ -68,9 +71,6 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         git.checkout()
             .setName(targetRef)
             .call()
-
-        def commitId = git.repository.findRef("HEAD").objectId.name()
-        println "> Checked out commit $commitId"
 
         def settingsFile = targetDir.file("settings.gradle")
         settingsFile.text = """
