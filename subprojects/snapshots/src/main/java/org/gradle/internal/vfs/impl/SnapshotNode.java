@@ -81,7 +81,7 @@ class SnapshotNode extends AbstractNode {
             if (getPrefix().length() < path.length()) {
                 int startNextSegment = getPrefix().length() + 1;
                 if (this.snapshot.getType() != FileType.Directory) {
-                    return new SnapshotNode(path.substring(startNextSegment), snapshot);
+                    return new SnapshotNode(path, snapshot);
                 }
                 DirectorySnapshot directorySnapshot = (DirectorySnapshot) this.snapshot;
                 List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size() + 1);

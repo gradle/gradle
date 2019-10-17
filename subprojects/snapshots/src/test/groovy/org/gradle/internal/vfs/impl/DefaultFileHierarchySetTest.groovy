@@ -20,7 +20,10 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -270,6 +273,33 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(set, dir3)
     }
 
+    def "can update existing snapshots"() {
+        def dir = tmpDir.createDir("dir")
+        def child = dir.createFile("child")
+        def set = fileHierarchySet(dir)
+
+        when:
+        child.text = "updated"
+        set = set.update(snapshotDir(dir))
+        then:
+        assertDirectorySnapshot(set, dir)
+        assertFileSnapshot(set, child)
+    }
+
+    def "can update file snapshot with sub-dir snapshot"() {
+        def dir = tmpDir.createFile("dir")
+        def child = dir.file("sub/child")
+        def set = fileHierarchySet(dir)
+
+        when:
+        dir.delete()
+        child.text = "created"
+        set = set.update(snapshotDir(dir.file("sub")))
+        then:
+        assertDirectorySnapshot(set, dir.file("sub"))
+        assertFileSnapshot(set, child)
+    }
+
     def "can add new parent"() {
         def parent = tmpDir.createDir()
         def dir1 = parent.createDir("sub/dir1")
@@ -298,13 +328,26 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(set, dir1)
     }
 
-    def "can remove paths"() {
+    def "returns missing snapshots for children of files"() {
+        def existing = tmpDir.createFile("existing")
+        def missing = tmpDir.file("missing")
+
+        when:
+        def set = fileHierarchySet([existing, missing])
+        then:
+        assertFileSnapshot(set, existing)
+        assertMissingFileSnapshot(set, missing)
+        assertMissingFileSnapshot(set, existing.file("some/sub/path"))
+        assertMissingFileSnapshot(set, missing.file("some/sub/path"))
+    }
+
+    def "can invalidate paths"() {
         def parent = tmpDir.createDir()
         def dir1 = parent.createDir("dir1")
-        def dir2 = parent.createDir("sub/dir2")
+        def dir2 = parent.createDir("sub/more/dir2")
         def dir2File = dir2.file("existing").createFile()
         def dir2FileSibling = dir2.file("sibling").createFile()
-        def dir3 = parent.createDir("sub/dir3")
+        def dir3 = parent.createDir("sub/more/dir3")
         def fullSet = fileHierarchySet([dir1, dir2, dir3])
 
         when:
@@ -338,10 +381,55 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(set, dir2FileSibling)
         !snapshotPresent(set, dir2)
         !snapshotPresent(set, dir2File)
+
+        when:
+        set = invalidate(fullSet, parent.file("sub/more/dir4"))
+        then:
+        snapshotPresent(set, dir1)
+        snapshotPresent(set, dir2)
+        snapshotPresent(set, dir3)
+        !snapshotPresent(set, parent.file("sub/more/dir4"))
+
+        when:
+        set = invalidate(fullSet, parent.file("sub/else"))
+        then:
+        snapshotPresent(set, dir1)
+        snapshotPresent(set, dir2)
+        snapshotPresent(set, dir3)
+        !snapshotPresent(set, parent.file("sub/else"))
+    }
+
+    def "can invalidate child of file"() {
+        def file = tmpDir.createFile("some/dir/file.txt")
+        def set = fileHierarchySet(file)
+
+        when:
+        set = invalidate(set, file.file("child"))
+        then:
+        !snapshotPresent(set, file)
+    }
+
+    def "can invalidate branching off of snapshot"() {
+        def file = tmpDir.createDir("some/sub/dir")
+        def invalidatedLocation = tmpDir.file("some/other/file")
+        def set = fileHierarchySet(file)
+
+        when:
+        set = invalidate(set, invalidatedLocation)
+        then:
+        snapshotPresent(set, file)
+        !snapshotPresent(set, invalidatedLocation)
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
         directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false))
+    }
+
+    private static FileSystemLocationSnapshot snapshotFile(File file) {
+        if (!file.exists()) {
+            return new MissingFileSnapshot(file.absolutePath, file.name)
+        }
+        return new RegularFileSnapshot(file.absolutePath, file.name, TestFiles.fileHasher().hash(file), FileMetadata.from(TestFiles.fileSystem().stat(file)))
     }
 
     static HashCode hashFile(File file) {
@@ -378,14 +466,14 @@ class DefaultFileHierarchySetTest extends Specification {
         set.invalidate(location.absolutePath)
     }
 
-    private FileHierarchySet fileHierarchySet(File dir) {
-        FileHierarchySet.EMPTY.update(snapshotDir(dir))
+    private FileHierarchySet fileHierarchySet(File location) {
+        FileHierarchySet.EMPTY.update(location.directory ? snapshotDir(location) : snapshotFile(location))
     }
 
-    private FileHierarchySet fileHierarchySet(Iterable<? extends File> dirs) {
+    private FileHierarchySet fileHierarchySet(Iterable<? extends File> locations) {
         FileHierarchySet set = FileHierarchySet.EMPTY
-        for (File dir : dirs) {
-            set = set.update(snapshotDir(dir))
+        for (File location : locations) {
+            set = set.update(location.directory ? snapshotDir(location) : snapshotFile(location))
         }
         return set
     }
