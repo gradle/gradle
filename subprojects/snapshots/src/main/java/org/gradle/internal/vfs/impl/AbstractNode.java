@@ -84,4 +84,28 @@ public abstract class AbstractNode implements Node {
     public String getPrefix() {
         return prefix;
     }
+
+    public static <T> T handlePrefix(String prefix, String path, DescendantHandler<T> descendantHandler) {
+        int prefixLength = prefix.length();
+        int pathLength = path.length();
+        int maxPos = Math.min(prefixLength, pathLength);
+        int commonPrefixLength = sizeOfCommonPrefix(prefix, path, 0);
+        if (commonPrefixLength == maxPos) {
+            if (prefixLength > pathLength) {
+                return descendantHandler.handleParent();
+            }
+            if (prefixLength == pathLength) {
+                return descendantHandler.handleSame();
+            }
+            return descendantHandler.handleDescendant();
+        }
+        return descendantHandler.handleDifferent(commonPrefixLength);
+    }
+
+    interface DescendantHandler<T> {
+        T handleDescendant();
+        T handleParent();
+        T handleSame();
+        T handleDifferent(int commonPrefixLength);
+    }
 }

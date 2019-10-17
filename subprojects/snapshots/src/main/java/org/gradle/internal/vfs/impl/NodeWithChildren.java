@@ -35,44 +35,49 @@ class NodeWithChildren extends AbstractNode {
 
     @Override
     public Optional<Node> invalidate(String path) {
-        int maxPos = Math.min(getPrefix().length(), path.length());
-        int prefixLen = sizeOfCommonPrefix(getPrefix(), path, 0);
-        if (prefixLen == maxPos) {
-            if (getPrefix().length() >= path.length()) {
+        return handlePrefix(getPrefix(), path, new DescendantHandler<Optional<Node>>() {
+            @Override
+            public Optional<Node> handleDescendant() {
+                int startNextSegment = getPrefix().length() + 1;
+                List<Node> merged = new ArrayList<>(children.size() + 1);
+                boolean matched = false;
+                for (Node child : children) {
+                    if (!matched && sizeOfCommonPrefix(child.getPrefix(), path, startNextSegment) > 0) {
+                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
+                        child.invalidate(path.substring(startNextSegment)).ifPresent(merged::add);
+                        matched = true;
+                    } else {
+                        merged.add(child);
+                    }
+                }
+                if (!matched) {
+                    return Optional.of(NodeWithChildren.this);
+                }
+                return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(getPrefix(), merged));
+            }
+
+            @Override
+            public Optional<Node> handleParent() {
                 return Optional.empty();
             }
-            int startNextSegment = getPrefix().length() + 1;
-            List<Node> merged = new ArrayList<>(children.size() + 1);
-            boolean matched = false;
-            for (Node child : children) {
-                if (!matched && sizeOfCommonPrefix(child.getPrefix(), path, startNextSegment) > 0) {
-                    // TODO - we've already calculated the common prefix and calling plus() will calculate it again
-                    child.invalidate(path.substring(startNextSegment)).ifPresent(merged::add);
-                    matched = true;
-                } else {
-                    merged.add(child);
-                }
-            }
-            if (!matched) {
-                return Optional.of(this);
-            }
-            return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(getPrefix(), merged));
 
-        }
-        return Optional.of(this);
+            @Override
+            public Optional<Node> handleSame() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<Node> handleDifferent(int commonPrefixLength) {
+                return Optional.of(NodeWithChildren.this);
+            }
+        });
     }
 
     @Override
     public Node update(String path, FileSystemLocationSnapshot snapshot) {
-        int maxPos = Math.min(getPrefix().length(), path.length());
-        int prefixLen = sizeOfCommonPrefix(getPrefix(), path, 0);
-        if (prefixLen == maxPos) {
-            if (getPrefix().length() == path.length()) {
-                // Path == prefix
-                return new SnapshotNode(path, snapshot);
-            }
-            if (getPrefix().length() < path.length()) {
-                // Path is a descendant of this
+        return handlePrefix(getPrefix(), path, new DescendantHandler<Node>() {
+            @Override
+            public Node handleDescendant() {
                 int startNextSegment = getPrefix().length() + 1;
                 List<Node> merged = new ArrayList<>(children.size() + 1);
                 boolean matched = false;
@@ -89,15 +94,26 @@ class NodeWithChildren extends AbstractNode {
                     merged.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
                 }
                 return new NodeWithChildren(getPrefix(), merged);
-            } else {
-                // Path is an ancestor of this
+            }
+
+            @Override
+            public Node handleParent() {
                 return new SnapshotNode(path, snapshot);
             }
-        }
-        String commonPrefix = getPrefix().substring(0, prefixLen);
-        Node newThis = new NodeWithChildren(getPrefix().substring(prefixLen + 1), children);
-        Node sibling = new SnapshotNode(path.substring(prefixLen + 1), snapshot);
-        return new NodeWithChildren(commonPrefix, ImmutableList.of(newThis, sibling));
+
+            @Override
+            public Node handleSame() {
+                return new SnapshotNode(path, snapshot);
+            }
+
+            @Override
+            public Node handleDifferent(int commonPrefixLength) {
+                String commonPrefix = getPrefix().substring(0, commonPrefixLength);
+                Node newThis = new NodeWithChildren(getPrefix().substring(commonPrefixLength + 1), children);
+                Node sibling = new SnapshotNode(path.substring(commonPrefixLength + 1), snapshot);
+                return new NodeWithChildren(commonPrefix, ImmutableList.of(newThis, sibling));
+            }
+        });
     }
 
     @Override
