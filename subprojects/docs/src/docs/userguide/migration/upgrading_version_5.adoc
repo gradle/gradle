@@ -43,7 +43,7 @@ Some plugins will break with this new version of Gradle, for example because the
 The usage of the `compile` and `runtime` configurations in the Java ecosystem plugins has been discouraged since https://docs.gradle.org/3.4/release-notes.html#the-java-library-plugin[Gradle 3.4].
 
 These configurations are used for compiling and running code from the `main` source set. Other sources sets create similar configurations (e.g. `testCompile` and `testRuntime` for the `test` source set), should not be used either.
-The `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations should be used to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.  See <<java_library_plugin.adoc#sec:java_library_configurations_graph, the relationship of these configurations>>. 
+The `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations should be used to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.  See <<java_library_plugin.adoc#sec:java_library_configurations_graph, the relationship of these configurations>>.
 
 ==== Problems with tasks emit deprecation warnings
 
@@ -150,6 +150,29 @@ Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-14---may-2019[CodeNarc 1.4].
 - PMD has been updated to https://pmd.github.io/latest/pmd_release_notes.html#28-july-2019---6170[PMD 6.17.0].
 - JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.5]. Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
+
+==== Changes to build and task names in composite builds
+
+Previously, Gradle used the name of the root project as the build name for an included build.
+Now, the name of the build's root directory is used and the root project name is not considered if different.
+A different name for the build can be specified if the build is being included via a settings file.
+
+```kotlin
+includeBuild("some-other-build") {
+    name = "another-name"
+}
+```
+
+The previous behavior was problematic as it caused different names to be used at different times during the build.
+
+==== buildSrc is now reserved as a project and subproject build name
+
+Previously, Gradle did not prevent using the name “buildSrc” for a subproject of a multi-project build or as the name of an included build.
+Now, this is not allowed.
+The name “buildSrc” is now reserved for the conventional buildSrc project that builds extra build logic.
+
+Typical use of buildSrc is unaffected by this change.
+You will only be affected if your settings file specifies `include("buildSrc")` or `includeBuild("buildSrc")`.
 
 ==== Changes to Build Cache
 
@@ -269,7 +292,7 @@ repositories {
 With Kotlin IntelliJ plugin versions prior to 1.3.50, Kotlin DSL scripts will be wrongly highlighted when the _Gradle JVM_ is set to a version different from the one in _Project SDK_.
 Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kotlin DSL script highlighting behavior.
 
-==== Miscellaneous 
+==== Miscellaneous
 
 ==== Javadoc and Groovydoc don't include timestamps by default
 
