@@ -33,6 +33,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def workingDir = new File("some-dir")
     def options = Stub(DaemonForkOptions)
+    def requirement = new ForkedWorkerRequirement(workingDir, options)
     def spec = Stub(ActionExecutionSpec)
 
     def setup() {
@@ -41,7 +42,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "getting a worker daemon does not assume client use"() {
         when:
-        factory.getWorker(options);
+        factory.getWorker(requirement);
 
         then:
         0 * clientsManager._
@@ -49,7 +50,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "new client is created when daemon is executed and no idle clients found"() {
         when:
-        factory.getWorker(options).execute(spec)
+        factory.getWorker(requirement).execute(spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> null
@@ -67,7 +68,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "idle client is reused when daemon is executed"() {
         when:
-        factory.getWorker(options).execute(spec)
+        factory.getWorker(requirement).execute(spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
@@ -82,7 +83,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "client is released even if execution fails"() {
         when:
-        factory.getWorker(options).execute(spec)
+        factory.getWorker(requirement).execute(spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
@@ -98,7 +99,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "build operation is started and finished when client is executed"() {
         when:
-        factory.getWorker(options).execute(spec)
+        factory.getWorker(requirement).execute(spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client
@@ -107,7 +108,7 @@ class WorkerDaemonFactoryTest extends Specification {
 
     def "build worker operation is finished even if worker fails"() {
         when:
-        factory.getWorker(options).execute(spec)
+        factory.getWorker(requirement).execute(spec)
 
         then:
         1 * clientsManager.reserveIdleClient(options) >> client

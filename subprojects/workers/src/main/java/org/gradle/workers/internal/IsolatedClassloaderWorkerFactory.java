@@ -42,19 +42,17 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
+    public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         return new AbstractWorker(buildOperationExecutor) {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
-                return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
-                    @Override
-                    public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                        ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(spec.isInternalServicesRequired()).build();
-                        ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
-                        ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(forkOptions.getClassLoaderStructure(), workerInfrastructureClassloader, legacyTypesSupport);
-                        Worker worker = new IsolatedClassloaderWorker(workerClassLoader, workServices, actionExecutionSpecFactory, instantiatorFactory);
-                        return worker.execute(spec);
-                    }
+                return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
+                    ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(workSpec.isInternalServicesRequired()).build();
+                    ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
+                    ClassLoaderStructure classLoaderStructure = ((IsolatedClassLoaderWorkerRequirement)workerRequirement).getClassLoaderStructure();
+                    ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(classLoaderStructure, workerInfrastructureClassloader, legacyTypesSupport);
+                    Worker worker = new IsolatedClassloaderWorker(workerClassLoader, workServices, actionExecutionSpecFactory, instantiatorFactory);
+                    return worker.execute(workSpec);
                 });
             }
         };

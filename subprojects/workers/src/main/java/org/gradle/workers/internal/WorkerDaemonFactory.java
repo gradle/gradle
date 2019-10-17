@@ -35,24 +35,20 @@ public class WorkerDaemonFactory implements WorkerFactory {
     }
 
     @Override
-    public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
+    public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         return new AbstractWorker(buildOperationExecutor) {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
                 final WorkerDaemonClient client = reserveClient();
                 try {
-                    return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
-                        @Override
-                        public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                            return client.execute(spec);
-                        }
-                    });
+                    return executeWrappedInBuildOperation(spec, parentBuildOperation, client::execute);
                 } finally {
                     clientsManager.release(client);
                 }
             }
 
             private WorkerDaemonClient reserveClient() {
+                DaemonForkOptions forkOptions = ((ForkedWorkerRequirement)workerRequirement).getForkOptions();
                 WorkerDaemonClient client = clientsManager.reserveIdleClient(forkOptions);
                 if (client == null) {
                     client = clientsManager.reserveNewClient(WorkerDaemonServer.class, forkOptions);
