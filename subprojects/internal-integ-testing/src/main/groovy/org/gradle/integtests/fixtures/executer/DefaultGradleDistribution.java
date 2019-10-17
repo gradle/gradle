@@ -106,6 +106,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_10) <= 0;
         }
 
+        // 5.x only supports up to Java 12, 5.6 was the last release
+        if (isSameOrOlder("5.7")) {
+            return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_12) <= 0;
+        }
+
         return javaVersion.compareTo(JavaVersion.VERSION_1_8) >= 0;
     }
 
