@@ -74,9 +74,6 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
             .orElseGet(() -> {
                 File file = new File(location);
                 FileMetadataSnapshot stat = this.stat.stat(file);
-                if (stat.getType() == FileType.Missing) {
-                    mutateVirtualFileSystem(root -> root.update(new MissingFileSnapshot(location, file.getName())));
-                }
                 // TODO: We used to cache the stat here
                 if (stat.getType() != FileType.RegularFile) {
                     return Optional.empty();
