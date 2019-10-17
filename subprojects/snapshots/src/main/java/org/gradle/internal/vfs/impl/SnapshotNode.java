@@ -28,33 +28,32 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-class SnapshotNode implements Node {
-    private final String prefix;
+class SnapshotNode extends AbstractNode {
     private final FileSystemLocationSnapshot snapshot;
 
     SnapshotNode(String prefix, FileSystemLocationSnapshot snapshot) {
-        this.prefix = prefix;
+        super(prefix);
         this.snapshot = snapshot;
     }
 
     @Override
     public Optional<Node> invalidate(String path) {
-        int maxPos = Math.min(prefix.length(), path.length());
-        int prefixLen = sizeOfCommonPrefix(path, 0);
+        int maxPos = Math.min(getPrefix().length(), path.length());
+        int prefixLen = sizeOfCommonPrefix(getPrefix(), path, 0);
         if (prefixLen == maxPos) {
-            if (prefix.length() >= path.length()) {
+            if (getPrefix().length() >= path.length()) {
                 return Optional.empty();
             }
             if (this.snapshot.getType() != FileType.Directory) {
                 return Optional.empty();
             }
             DirectorySnapshot directorySnapshot = (DirectorySnapshot) snapshot;
-            int startNextSegment = prefix.length() + 1;
+            int startNextSegment = getPrefix().length() + 1;
             List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size());
             boolean matched = false;
             for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
                 SnapshotNode childNode = new SnapshotNode(child.getName(), child);
-                if (!matched && Node.sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
+                if (!matched && sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
                     // TODO - we've already calculated the common prefix and calling plus() will calculate it again
                     childNode.invalidate(path.substring(startNextSegment))
                         .ifPresent(merged::add);
@@ -63,7 +62,7 @@ class SnapshotNode implements Node {
                     merged.add(childNode);
                 }
             }
-            return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(prefix, merged));
+            return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(getPrefix(), merged));
 
         }
         return Optional.of(this);
@@ -71,16 +70,16 @@ class SnapshotNode implements Node {
 
     @Override
     public Node update(String path, FileSystemLocationSnapshot snapshot) {
-        int maxPos = Math.min(prefix.length(), path.length());
-        int prefixLen = sizeOfCommonPrefix(path, 0);
+        int maxPos = Math.min(getPrefix().length(), path.length());
+        int prefixLen = sizeOfCommonPrefix(getPrefix(), path, 0);
         if (prefixLen == maxPos) {
-            if (prefix.length() == path.length()) {
+            if (getPrefix().length() == path.length()) {
                 return this.snapshot.getHash().equals(snapshot.getHash())
                     ? this
                     : new SnapshotNode(path, snapshot);
             }
-            if (prefix.length() < path.length()) {
-                int startNextSegment = prefix.length() + 1;
+            if (getPrefix().length() < path.length()) {
+                int startNextSegment = getPrefix().length() + 1;
                 if (this.snapshot.getType() != FileType.Directory) {
                     return new SnapshotNode(path.substring(startNextSegment), snapshot);
                 }
@@ -89,7 +88,7 @@ class SnapshotNode implements Node {
                 boolean matched = false;
                 for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
                     SnapshotNode childNode = new SnapshotNode(child.getName(), child);
-                    if (Node.sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
+                    if (sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
                         // TODO - we've already calculated the common prefix and calling plus() will calculate it again
                         merged.add(childNode.update(path.substring(startNextSegment), snapshot));
                         matched = true;
@@ -100,29 +99,24 @@ class SnapshotNode implements Node {
                 if (!matched) {
                     merged.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
                 }
-                return new NodeWithChildren(prefix, merged);
+                return new NodeWithChildren(getPrefix(), merged);
             } else {
                 // Path is an ancestor of this
                 return new SnapshotNode(path, snapshot);
             }
         }
-        String commonPrefix = prefix.substring(0, prefixLen);
-        Node newThis = new SnapshotNode(prefix.substring(prefixLen + 1), this.snapshot);
+        String commonPrefix = getPrefix().substring(0, prefixLen);
+        Node newThis = new SnapshotNode(getPrefix().substring(prefixLen + 1), this.snapshot);
         Node sibling = new SnapshotNode(path.substring(prefixLen + 1), snapshot);
         return new NodeWithChildren(commonPrefix, ImmutableList.of(newThis, sibling));
     }
 
     @Override
-    public int sizeOfCommonPrefix(String path, int offset) {
-        return Node.sizeOfCommonPrefix(prefix, path, offset);
-    }
-
-    @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
-        if (!Node.isChildOfOrThis(filePath, offset, prefix)) {
+        if (!isChildOfOrThis(filePath, offset, getPrefix())) {
             return Optional.empty();
         }
-        int endOfThisSegment = prefix.length() + offset;
+        int endOfThisSegment = getPrefix().length() + offset;
         if (filePath.length() == endOfThisSegment) {
             return Optional.of(snapshot);
         }
@@ -143,7 +137,7 @@ class SnapshotNode implements Node {
 
     private Optional<FileSystemLocationSnapshot> findPathInDirectorySnapshot(DirectorySnapshot snapshot, String filePath, int offset) {
         for (FileSystemLocationSnapshot child : snapshot.getChildren()) {
-            if (Node.isChildOfOrThis(filePath, offset, child.getName())) {
+            if (isChildOfOrThis(filePath, offset, child.getName())) {
                 int endOfThisSegment = child.getName().length() + offset;
                 if (endOfThisSegment == filePath.length()) {
                     return Optional.of(child);
@@ -161,9 +155,9 @@ class SnapshotNode implements Node {
     @Override
     public void collect(int depth, List<String> prefixes) {
         if (depth == 0) {
-            prefixes.add(prefix);
+            prefixes.add(getPrefix());
         } else {
-            prefixes.add(depth + ":" + prefix.replace(File.separatorChar, '/'));
+            prefixes.add(depth + ":" + getPrefix().replace(File.separatorChar, '/'));
         }
     }
 }

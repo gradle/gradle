@@ -24,29 +24,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-class NodeWithChildren implements Node {
-    private final String prefix;
+class NodeWithChildren extends AbstractNode {
     private final List<Node> children;
 
     public NodeWithChildren(String prefix, List<Node> children) {
+        super(prefix);
         assert !children.isEmpty();
-        this.prefix = prefix;
         this.children = children;
     }
 
     @Override
     public Optional<Node> invalidate(String path) {
-        int maxPos = Math.min(prefix.length(), path.length());
-        int prefixLen = sizeOfCommonPrefix(path, 0);
+        int maxPos = Math.min(getPrefix().length(), path.length());
+        int prefixLen = sizeOfCommonPrefix(getPrefix(), path, 0);
         if (prefixLen == maxPos) {
-            if (prefix.length() >= path.length()) {
+            if (getPrefix().length() >= path.length()) {
                 return Optional.empty();
             }
-            int startNextSegment = prefix.length() + 1;
+            int startNextSegment = getPrefix().length() + 1;
             List<Node> merged = new ArrayList<>(children.size() + 1);
             boolean matched = false;
             for (Node child : children) {
-                if (!matched && child.sizeOfCommonPrefix(path, startNextSegment) > 0) {
+                if (!matched && sizeOfCommonPrefix(child.getPrefix(), path, startNextSegment) > 0) {
                     // TODO - we've already calculated the common prefix and calling plus() will calculate it again
                     child.invalidate(path.substring(startNextSegment)).ifPresent(merged::add);
                     matched = true;
@@ -57,7 +56,7 @@ class NodeWithChildren implements Node {
             if (!matched) {
                 return Optional.of(this);
             }
-            return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(prefix, merged));
+            return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(getPrefix(), merged));
 
         }
         return Optional.of(this);
@@ -65,20 +64,20 @@ class NodeWithChildren implements Node {
 
     @Override
     public Node update(String path, FileSystemLocationSnapshot snapshot) {
-        int maxPos = Math.min(prefix.length(), path.length());
-        int prefixLen = sizeOfCommonPrefix(path, 0);
+        int maxPos = Math.min(getPrefix().length(), path.length());
+        int prefixLen = sizeOfCommonPrefix(getPrefix(), path, 0);
         if (prefixLen == maxPos) {
-            if (prefix.length() == path.length()) {
+            if (getPrefix().length() == path.length()) {
                 // Path == prefix
                 return new SnapshotNode(path, snapshot);
             }
-            if (prefix.length() < path.length()) {
+            if (getPrefix().length() < path.length()) {
                 // Path is a descendant of this
-                int startNextSegment = prefix.length() + 1;
+                int startNextSegment = getPrefix().length() + 1;
                 List<Node> merged = new ArrayList<>(children.size() + 1);
                 boolean matched = false;
                 for (Node child : children) {
-                    if (!matched && child.sizeOfCommonPrefix(path, startNextSegment) > 0) {
+                    if (!matched && sizeOfCommonPrefix(child.getPrefix(), path, startNextSegment) > 0) {
                         // TODO - we've already calculated the common prefix and calling plus() will calculate it again
                         merged.add(child.update(path.substring(startNextSegment), snapshot));
                         matched = true;
@@ -89,29 +88,24 @@ class NodeWithChildren implements Node {
                 if (!matched) {
                     merged.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
                 }
-                return new NodeWithChildren(prefix, merged);
+                return new NodeWithChildren(getPrefix(), merged);
             } else {
                 // Path is an ancestor of this
                 return new SnapshotNode(path, snapshot);
             }
         }
-        String commonPrefix = prefix.substring(0, prefixLen);
-        Node newThis = new NodeWithChildren(prefix.substring(prefixLen + 1), children);
+        String commonPrefix = getPrefix().substring(0, prefixLen);
+        Node newThis = new NodeWithChildren(getPrefix().substring(prefixLen + 1), children);
         Node sibling = new SnapshotNode(path.substring(prefixLen + 1), snapshot);
         return new NodeWithChildren(commonPrefix, ImmutableList.of(newThis, sibling));
     }
 
     @Override
-    public int sizeOfCommonPrefix(String path, int offset) {
-        return Node.sizeOfCommonPrefix(prefix, path, offset);
-    }
-
-    @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
-        if (!Node.isChildOfOrThis(filePath, offset, prefix)) {
+        if (!isChildOfOrThis(filePath, offset, getPrefix())) {
             return Optional.empty();
         }
-        int startNextSegment = offset + prefix.length() + 1;
+        int startNextSegment = offset + getPrefix().length() + 1;
         for (Node child : children) {
             Optional<FileSystemLocationSnapshot> childSnapshot = child.getSnapshot(filePath, startNextSegment);
             if (childSnapshot.isPresent()) {
@@ -124,9 +118,9 @@ class NodeWithChildren implements Node {
     @Override
     public void collect(int depth, List<String> prefixes) {
         if (depth == 0) {
-            prefixes.add(prefix);
+            prefixes.add(getPrefix());
         } else {
-            prefixes.add(depth + ":" + prefix.replace(File.separatorChar, '/'));
+            prefixes.add(depth + ":" + getPrefix().replace(File.separatorChar, '/'));
         }
         for (Node child : children) {
             child.collect(depth + 1, prefixes);
