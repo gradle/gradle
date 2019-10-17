@@ -244,14 +244,14 @@ The new APIs:
 
 ### Deprecation of HTTP services
 
-On January 13th, 2020 through January 15th, 2020, some of the most widely used artifact servers in the JVM ecosystem
+On January 13th through January 15th, 2020, some of the most widely used artifact servers in the JVM ecosystem
 will drop support for HTTP and will only support HTTPS. Their announcements can be found below:
 
  - [Sonatype: Maven Central](https://central.sonatype.org/articles/2019/Apr/30/http-access-to-repo1mavenorg-and-repomavenapacheorg-is-being-deprecated/)
  - [JFrog: JCenter](https://jfrog.com/blog/secure-jcenter-with-https/)
  - [Pivotal: Spring](https://spring.io/blog/2019/09/16/goodbye-http-repo-spring-use-https)
 
-The Gradle team will be making an announcement soon about the use of HTTP with [wrapper downloads](https://services.gradle.org) and [plugin portal](https://plugins.gradle.org).
+We will be [decommissioning the use of HTTP](https://blog.gradle.org/decommissioning-http) with Gradle provided services.
 
 ### Signing Plugin now uses SHA512 instead of SHA1
 
