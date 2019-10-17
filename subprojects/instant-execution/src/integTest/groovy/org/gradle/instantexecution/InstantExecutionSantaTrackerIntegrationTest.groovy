@@ -38,6 +38,8 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         copyRemoteProject(remoteProject)
         withAgpNightly()
 
+
+
         when:
         instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
 

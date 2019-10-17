@@ -17,13 +17,13 @@
 package org.gradle.internal.scan.config
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 import spock.lang.Unroll
 
 @Unroll
 class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
 
-    def scanPlugin = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
+    def scanPlugin = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << scanPlugin.pluginManagement()
@@ -31,7 +31,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         scanPlugin.with {
             logConfig = true
             logApplied = true
-            publishDummyBuildScanPlugin(executer)
+            publishDummyPlugin(executer)
         }
 
         buildFile << """
@@ -180,7 +180,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
         output.contains("buildScan plugin applied: ${applied}")
         if (applied) {
             with(scanPlugin.attributes(output)) {
-                !isRootProjectHasVcsMappings()
+                isTaskExecutingBuild()
             }
         }
 
@@ -214,7 +214,7 @@ class BuildScanConfigIntegrationTest extends AbstractIntegrationSpec {
     }
 
     void assertFailedVersionCheck() {
-        failureCauseContains(BuildScanPluginCompatibility.UNSUPPORTED_PLUGIN_VERSION_MESSAGE)
+        failureCauseContains(BuildScanPluginCompatibility.OLD_SCAN_PLUGIN_VERSION_MESSAGE)
     }
 
 

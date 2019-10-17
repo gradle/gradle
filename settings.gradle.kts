@@ -16,7 +16,18 @@ import org.gradle.api.internal.FeaturePreviews
  * limitations under the License.
  */
 
-apply(from = "gradle/shared-with-buildSrc/build-cache-configuration.settings.gradle.kts")
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+    }
+}
+
+plugins {
+    id("com.gradle.enterprise").version("3.0")
+}
+
+apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 include("instantExecution")
@@ -150,13 +161,6 @@ for (project in rootProject.children) {
     }
     require(project.buildFile.isFile) {
         "Build file ${project.buildFile} for project ${project.name} does not exist."
-    }
-}
-
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
     }
 }
 

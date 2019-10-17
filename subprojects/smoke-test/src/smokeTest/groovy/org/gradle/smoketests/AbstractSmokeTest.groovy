@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -147,8 +148,8 @@ abstract class AbstractSmokeTest extends Specification {
         buildFile = new File(testProjectDir.root, "${getDefaultBuildFileName()}.kts")
     }
 
-    File file(String filename) {
-        def file = new File(testProjectDir.root, filename)
+    TestFile file(String filename) {
+        def file = new TestFile(testProjectDir.root, filename)
         def parentDir = file.getParentFile()
         assert parentDir.isDirectory() || parentDir.mkdirs()
 

@@ -60,7 +60,6 @@ open class BuildScanPlugin : Plugin<Project> {
     val cacheMissTagged = AtomicBoolean(false)
 
     override fun apply(project: Project): Unit = project.run {
-        apply(plugin = "com.gradle.build-scan")
         buildScan = the()
 
         extractCiOrLocalData()

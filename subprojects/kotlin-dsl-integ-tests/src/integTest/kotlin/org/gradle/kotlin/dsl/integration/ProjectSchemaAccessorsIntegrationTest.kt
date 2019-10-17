@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -720,14 +720,13 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
                     gradlePluginPortal()
                 }
                 dependencies {
-                    classpath "com.gradle:build-scan-plugin:${AutoAppliedBuildScanPlugin.VERSION}"
+                    classpath "${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${AutoAppliedGradleEnterprisePlugin.VERSION}"
                 }
             }
-            rootProject {
-                apply plugin: "base"
-                apply plugin: initscript.classLoader.loadClass("com.gradle.scan.plugin.BuildScanPlugin")
-                buildScan {
-                    publishAlways()
+            beforeSettings {
+                it.apply plugin: initscript.classLoader.loadClass("com.gradle.enterprise.gradleplugin.GradleEnterprisePlugin")
+                it.gradleEnterprise.buildScan {
+                    
                 }
             }
         """)

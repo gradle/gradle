@@ -1560,6 +1560,12 @@
             "changes": [
                 "Class has been removed"
             ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt",
+            "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.build-scan$annotations(org.gradle.plugin.use.PluginDependenciesSpec)",
+            "acceptation": "Kotlin goop that no one actually uses",
+            "changes": []
         }
     ]
 }

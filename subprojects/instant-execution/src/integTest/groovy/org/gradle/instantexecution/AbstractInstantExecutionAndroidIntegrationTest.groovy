@@ -86,5 +86,13 @@ abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractIn
 
     void copyRemoteProject(String remoteProject) {
         new TestFile(new File("build/$remoteProject")).copyTo(testDirectory)
+        updateScanPlugin()
+    }
+
+    private void updateScanPlugin() {
+        // Plugin is no longer compatible
+        buildFile.text -= 'apply plugin: "com.gradle.build-scan"'
+        buildFile.text -= "id 'com.gradle.build-scan' version '2.1' apply false"
+        settingsFile.text = "plugins { id 'com.gradle.enterprise' version '3.0' }\n\n" + settingsFile.text
     }
 }
