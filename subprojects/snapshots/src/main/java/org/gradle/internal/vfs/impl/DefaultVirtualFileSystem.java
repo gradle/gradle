@@ -101,11 +101,24 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem, Closeable {
 
     @Override
     public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
-        FileSystemLocationSnapshot unfilteredSnapshot = readLocation(location);
         if (filter.isEmpty()) {
-            visitor.accept(unfilteredSnapshot);
+            visitor.accept(readLocation(location));
         } else {
-            FileSystemSnapshot filteredSnapshot = FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), unfilteredSnapshot);
+            FileSystemSnapshot filteredSnapshot = root.getSnapshot(location)
+                .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
+                .orElseGet(() -> producingSnapshots.guardByKey(location,
+                    () -> root.getSnapshot(location)
+                        .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
+                        .orElseGet(() -> {
+                            AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
+                            FileSystemLocationSnapshot snapshot = directorySnapshotter.snapshot(location, filter.getAsDirectoryWalkerPredicate(), hasBeenFiltered);
+                            if (!hasBeenFiltered.get()) {
+                                mutateVirtualFileSystem(root -> root.update(snapshot));
+                            }
+                            return snapshot;
+                        })
+                ));
+
             if (filteredSnapshot instanceof FileSystemLocationSnapshot) {
                 visitor.accept((FileSystemLocationSnapshot) filteredSnapshot);
             }

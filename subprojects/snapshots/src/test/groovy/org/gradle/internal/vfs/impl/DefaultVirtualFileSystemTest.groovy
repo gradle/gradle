@@ -185,15 +185,13 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
         visitor.relativePaths == ["d1", "d1/f1", "f1"]
 
         when:
-        allowFileSystemAccess(false)
+        // filtered snapshots are currently not stored in the VFS
+        allowFileSystemAccess(true)
         snapshot = readFromVfs(includedFile)
         then:
         assertIsFileSnapshot(snapshot, includedFile)
 
         when:
-        // Currently, we snapshot everything not respecting any filters.
-        // When this changes, a FS access will be necessary here.
-        // allowFileSystemAccess(true)
         snapshot = readFromVfs(excludedFile)
         then:
         assertIsFileSnapshot(snapshot, excludedFile)
