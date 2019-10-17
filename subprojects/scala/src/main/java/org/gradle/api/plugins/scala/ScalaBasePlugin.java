@@ -54,6 +54,7 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.jvm.tasks.Jar;
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -63,14 +64,13 @@ import java.util.concurrent.Callable;
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
  */
 public class ScalaBasePlugin implements Plugin<Project> {
-
-    public static final String DEFAULT_ZINC_VERSION = "1.3.0";
+    private static final String DEFAULT_ZINC_VERSION = DefaultScalaToolProvider.DEFAULT_ZINC_VERSION;
+    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.12";
 
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
 
-    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.12";
 
     private final ObjectFactory objectFactory;
 
