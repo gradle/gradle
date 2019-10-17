@@ -54,7 +54,6 @@ import org.gradle.api.tasks.scala.IncrementalCompileOptions;
 import org.gradle.api.tasks.scala.ScalaCompile;
 import org.gradle.api.tasks.scala.ScalaDoc;
 import org.gradle.jvm.tasks.Jar;
-import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -65,9 +64,14 @@ import java.util.concurrent.Callable;
  */
 public class ScalaBasePlugin implements Plugin<Project> {
 
+    public static final String DEFAULT_ZINC_VERSION = "1.3.0";
+
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
+
+    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.12";
+
     private final ObjectFactory objectFactory;
 
     @Inject
@@ -100,20 +104,20 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
         zinc.getResolutionStrategy().eachDependency(rule -> {
             if (rule.getRequested().getGroup().equals("com.typesafe.zinc") && rule.getRequested().getName().equals("zinc")) {
-                rule.useTarget("org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                rule.useTarget("org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + DEFAULT_ZINC_VERSION);
                 rule.because("Typesafe Zinc is no longer maintained.");
             }
         });
 
         zinc.defaultDependencies(dependencies -> {
-            dependencies.add(dependencyHandler.create("org.scala-sbt:zinc_2.12:" + scalaPluginExtension.getZincVersion().get()));
+            dependencies.add(dependencyHandler.create("org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + scalaPluginExtension.getZincVersion().get()));
             // Add safeguard and clear error if the user changed the scala version when using default zinc
             zinc.getIncoming().afterResolve(resolvableDependencies -> {
                 resolvableDependencies.getResolutionResult().allComponents(component -> {
                     if (component.getModuleVersion() != null && component.getModuleVersion().getName().equals("scala-library")) {
-                        if (!component.getModuleVersion().getVersion().startsWith("2.12")) {
+                        if (!component.getModuleVersion().getVersion().startsWith(DEFAULT_SCALA_ZINC_VERSION)) {
                             throw new InvalidUserCodeException("The version of 'scala-library' was changed while using the default Zinc version. " +
-                                "Version " + component.getModuleVersion().getVersion() + " is not compatible with org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                                "Version " + component.getModuleVersion().getVersion() + " is not compatible with org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + DEFAULT_ZINC_VERSION);
                         }
                     }
                 });
