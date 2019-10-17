@@ -128,12 +128,10 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
         instantRun("a", "b", "-Dthread.pool.size=3")
 
         then:
-        result.assertNotOutput("Configuring thread pool parameters")
-        // TODO should be 3
-        output.count("Creating thread pool with size 4") == 1
+        output.count("Configuring thread pool parameters...") == 1
+        output.count("Creating thread pool with size 3") == 1
 
-        // TODO should be 3
-        output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 4")
+        output.indexOf("About to use threadPool: ") < output.indexOf("Creating thread pool with size 3")
 
         outputContains("Closing thread pool after executing [a, b].")
     }
