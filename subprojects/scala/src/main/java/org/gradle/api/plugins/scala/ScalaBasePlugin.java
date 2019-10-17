@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -105,9 +106,18 @@ public class ScalaBasePlugin implements Plugin<Project> {
         });
 
         zinc.defaultDependencies(dependencies -> {
-            // Clear forced modules, so rules from configurations.all do not force an incompatible Scala library
-            zinc.getResolutionStrategy().setForcedModules();
             dependencies.add(dependencyHandler.create("org.scala-sbt:zinc_2.12:" + scalaPluginExtension.getZincVersion().get()));
+            // Add safeguard and clear error if the user changed the scala version when using default zinc
+            zinc.getIncoming().afterResolve(resolvableDependencies -> {
+                resolvableDependencies.getResolutionResult().allComponents(component -> {
+                    if (component.getModuleVersion() != null && component.getModuleVersion().getName().equals("scala-library")) {
+                        if (!component.getModuleVersion().getVersion().startsWith("2.12")) {
+                            throw new InvalidUserCodeException("The version of 'scala-library' was changed while using the default Zinc version. " +
+                                "Version " + component.getModuleVersion().getVersion() + " is not compatible with org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                        }
+                    }
+                });
+            });
         });
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
