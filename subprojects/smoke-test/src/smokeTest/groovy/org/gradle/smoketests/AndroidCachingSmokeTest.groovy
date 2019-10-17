@@ -20,7 +20,6 @@ import org.eclipse.jgit.api.Git
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import spock.lang.Ignore
 
-@Ignore("Unexpectedly failing - 17-10-19 - LD")
 class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
     def "can cache Santa Tracker Android application"() {
@@ -47,19 +46,18 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
         def buildDir = file("checkout/santa-tracker")
         def buildFile = buildDir.file("build.gradle")
-        buildFile.text -= """plugins {
-    id 'com.gradle.build-scan' version '2.1' apply false
-}
 
-if (!hasProperty("disableBuildScan")) {
-    apply plugin: "com.gradle.build-scan"
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-        captureTaskInputFiles = true
-    }
+        // TODO This should be done in https://github.com/gradle/android-relocation-test directly
+        buildFile.text -= """plugins {
+    id 'com.gradle.build-scan' version '2.1'
 }
 """
+        buildFile.text -= """
+buildScan {
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+    captureTaskInputFiles = true
+}"""
 
         expect:
         runner(
