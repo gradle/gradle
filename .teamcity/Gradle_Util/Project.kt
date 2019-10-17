@@ -16,7 +16,7 @@ object Project : Project({
     buildType(Gradle_Util_AdHocFunctionalTestLinux)
 
     params {
-        password("teamcity.user.bot-gradle.token", "credentialsJSON:3c4f2642-d985-4d9d-bb10-f1bd1214a0a7", display = ParameterDisplay.HIDDEN)
+        password("teamcity.user.bot-gradle.token", "credentialsJSON:6c130acc-332a-4dd3-98e0-7b699377dc7c", display = ParameterDisplay.HIDDEN)
     }
 
     features {
