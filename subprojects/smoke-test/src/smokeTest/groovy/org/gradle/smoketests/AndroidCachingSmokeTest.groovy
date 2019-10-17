@@ -18,7 +18,6 @@ package org.gradle.smoketests
 
 import org.eclipse.jgit.api.Git
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import spock.lang.Ignore
 
 class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
