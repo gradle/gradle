@@ -31,7 +31,7 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
     def "can cache Santa Tracker Android application"() {
         def testRepoUri = "https://github.com/gradle/santa-tracker-android.git"
-        def testRepoTarget = "206c3bebf9f2abb767ce0d82df5396d0223f4af1"
+        def testRepoTarget = "036aad22af993d2f564a6a15d6a7b9706ba37d8e"
 
         def root = new TestFile(testProjectDir.root)
         def homeDir = root.createDir ("home")
