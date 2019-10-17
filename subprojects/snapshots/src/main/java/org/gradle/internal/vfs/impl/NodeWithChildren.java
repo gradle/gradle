@@ -35,7 +35,7 @@ class NodeWithChildren extends AbstractNode {
 
     @Override
     public Optional<Node> invalidate(String path) {
-        return handlePrefix(getPrefix(), path, new DescendantHandler<Optional<Node>>() {
+        return handlePrefix(getPrefix(), path, new InvalidateHandler() {
             @Override
             public Optional<Node> handleDescendant() {
                 int startNextSegment = getPrefix().length() + 1;
@@ -54,21 +54,6 @@ class NodeWithChildren extends AbstractNode {
                     return Optional.of(NodeWithChildren.this);
                 }
                 return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(getPrefix(), merged));
-            }
-
-            @Override
-            public Optional<Node> handleParent() {
-                return Optional.empty();
-            }
-
-            @Override
-            public Optional<Node> handleSame() {
-                return Optional.empty();
-            }
-
-            @Override
-            public Optional<Node> handleDifferent(int commonPrefixLength) {
-                return Optional.of(NodeWithChildren.this);
             }
         });
     }

@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs.impl;
 
 import java.io.File;
+import java.util.Optional;
 
 public abstract class AbstractNode implements Node {
     private final String prefix;
@@ -107,5 +108,22 @@ public abstract class AbstractNode implements Node {
         T handleParent();
         T handleSame();
         T handleDifferent(int commonPrefixLength);
+    }
+
+    protected abstract class InvalidateHandler implements DescendantHandler<Optional<Node>> {
+        @Override
+        public Optional<Node> handleParent() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<Node> handleSame() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<Node> handleDifferent(int commonPrefixLength) {
+            return Optional.of(AbstractNode.this);
+        }
     }
 }
