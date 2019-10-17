@@ -40,13 +40,13 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         setupRepo(testRepoUri, originalDir, testRepoTarget)
         setupRepo(testRepoUri, relocatedDir, testRepoTarget)
 
-        runner("assembleDebug")
+        runner("assembleDebug", "--scan")
             .withProjectDir(originalDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
             .build()
 
-        def relocatedResult = runner("assembleDebug")
+        def relocatedResult = runner("assembleDebug", "--scan")
             .withProjectDir(relocatedDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
@@ -73,14 +73,9 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
 
         def settingsFile = targetDir.file("settings.gradle")
         settingsFile.text = """
-            plugins {
-                id "com.gradle.enterprise" version "3.0"
-            }
-            
             gradleEnterprise {
                 buildScan {
                     server = "https://e.grdev.net/"
-                    publishAlways()
                 }
             }
         """ + settingsFile.text
