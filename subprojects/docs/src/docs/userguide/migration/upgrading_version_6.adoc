@@ -54,7 +54,27 @@ No potential breaking changes were introduced.
 
 === Deprecations
 
-Nothing was deprecated.
+==== Query a mapped task output property before the task has completed
+
+It is now deprecated to query the value of a mapped task output property before the task has completed. Here is an example of this case, where a task's output file is parsed to produce an `Integer` and
+the result used as input to another task:
+
+```
+class TaskA: DefaultTask {
+    @Input
+    final Property<Integer> threadPoolSize = ...
+}
+
+class TaskB: DefaultTask {
+    @OutputFile
+    final RegularFileProperty outputFile = ...
+}
+
+taskA.threadPoolSize = taskB.outputFile.map { it.text.toInteger() }
+```
+
+In this case, calling `get()`, or any other query method, on `taskA.threadPoolSize` will produce a deprecation warning if done prior to `taskB` completing, as the file has not yet been generated.
+This will become an error in Gradle 7.0
 
 === Potential breaking changes
 
