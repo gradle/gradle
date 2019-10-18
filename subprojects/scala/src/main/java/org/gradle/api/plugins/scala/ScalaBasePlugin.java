@@ -64,7 +64,13 @@ import java.util.concurrent.Callable;
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
  */
 public class ScalaBasePlugin implements Plugin<Project> {
-    private static final String DEFAULT_ZINC_VERSION = DefaultScalaToolProvider.DEFAULT_ZINC_VERSION;
+
+    /**
+     * Default Scala Zinc compiler version
+     *
+     * @since 6.0
+     */
+    public static final String DEFAULT_ZINC_VERSION = DefaultScalaToolProvider.DEFAULT_ZINC_VERSION;
     private static final String DEFAULT_SCALA_ZINC_VERSION = "2.12";
 
     @VisibleForTesting

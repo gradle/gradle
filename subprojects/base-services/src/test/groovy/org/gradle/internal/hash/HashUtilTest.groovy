@@ -25,6 +25,7 @@ class HashUtilTest extends Specification {
     String md5HashString = "b1a4cf30d3f4095f0a7d2a6676bcae77"
     String sha1HashString = "2da75da5c85478df42df0f917700241ed282f599"
     String sha256HashString = "b830543dc5d1466110538736d35c37cc61d32076a69de65c42913dfbb1961f46"
+    String sha512HashString = "fd308aadbf52384412c4ba3e2dfe3551e0faa2e7455898dae04fda4f238569e3889c56cbd4d120cf69f81a5f06456f327c19100eaed2e590888342f1ce3e0261"
 
     def "createHash from String returns MD5 hash" () {
         expect:
@@ -125,6 +126,23 @@ class HashUtilTest extends Specification {
 
         expect:
         HashUtil.sha256(file).asHexString() == sha256HashString
+
+        cleanup:
+        file?.delete()
+    }
+
+    def "sha512 from InputStream returns SHA-512 hash" () {
+        expect:
+        HashUtil.sha512(new ByteArrayInputStream(stringToHash.bytes)).asHexString() == sha512HashString
+    }
+
+    def "sha512 from File returns SHA-512 hash" () {
+        setup:
+        File file = File.createTempFile("HashUtilTest", null)
+        file << stringToHash
+
+        expect:
+        HashUtil.sha512(file).asHexString() == sha512HashString
 
         cleanup:
         file?.delete()

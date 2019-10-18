@@ -20,5 +20,5 @@ class ScalaCoverage {
     static final String NEWEST = "2.12.10"
 
     // "2.13.0" doesn't work yet
-    static final String[] DEFAULT = ["2.10.7", "2.11.12", NEWEST]
+    static final String[] DEFAULT = ["2.13.0", "2.10.7", "2.11.12", NEWEST]
 }

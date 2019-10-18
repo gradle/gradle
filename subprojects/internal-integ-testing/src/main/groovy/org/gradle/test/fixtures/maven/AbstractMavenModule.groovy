@@ -52,6 +52,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                                         new VariantMetadataSpec("runtime", [(Usage.USAGE_ATTRIBUTE.name): Usage.JAVA_RUNTIME, (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.name): LibraryElements.JAR, (Category.CATEGORY_ATTRIBUTE.name): Category.LIBRARY])]
     private final List dependencies = []
     private final List artifacts = []
+    private boolean extraChecksums = true
+
+    final Set<String> missingExtraChecksums = []
     final updateFormat = new SimpleDateFormat("yyyyMMddHHmmss")
     final timestampFormat = new SimpleDateFormat("yyyyMMdd.HHmmss")
 
@@ -175,7 +178,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     }
 
     @Override
-    MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value= VariantMetadataSpec, strategy=Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
+    MavenModule variant(String variant, Map<String, String> attributes, @DelegatesTo(value = VariantMetadataSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> variantConfiguration) {
         def v = createVariant(variant, attributes)
         variantConfiguration.delegate = v
         variantConfiguration.resolveStrategy = Closure.DELEGATE_FIRST
@@ -238,6 +241,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         assert parsedPom.groupId == groupId
         assert parsedPom.artifactId == artifactId
         assert parsedPom.version == version
+        def checkExtraChecksums = extraChecksums
+        Set<String> missingExtra = missingExtraChecksums
         if (getModuleMetadata().file.exists()) {
             def metadata = parsedModuleMetadata
             if (metadata.component) {
@@ -269,6 +274,10 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                     assert artifact.file.file
                     assert artifact.file.length() == file.size
                     assert HashUtil.createHash(artifact.file, "sha1") == file.sha1
+                    if (checkExtraChecksums && (!artifact.file.name in missingExtra)) {
+                        assert HashUtil.createHash(artifact.file, "sha-256") == file.sha256
+                        assert HashUtil.createHash(artifact.file, "sha-512") == file.sha512
+                    }
                     assert HashUtil.createHash(artifact.file, "md5") == file.md5
                 }
             }
@@ -307,13 +316,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     /**
      * Asserts that exactly the given artifacts have been deployed, along with their checksum files
      */
-    void assertArtifactsPublished(String... names) {
-        Set allFileNames = []
+    void assertArtifactsPublished(String[] names) {
+        TreeSet allFileNames = []
         for (name in names) {
-            allFileNames.addAll([name, "${name}.sha1", "${name}.md5"])
+            allFileNames.addAll([name, "${name}.sha1", "${name}.md5"]*.toString())
+            if (extraChecksums && !(name in missingExtraChecksums)) {
+                allFileNames.addAll(["${name}.sha256", "${name}.sha512"]*.toString())
+            }
         }
-
-        assert moduleDir.list() as Set == allFileNames
+        def actualModuleDirFiles = moduleDir.list() as TreeSet
+        assert actualModuleDirFiles == allFileNames
         for (name in names) {
             assertChecksumsPublishedFor(moduleDir.file(name))
         }
@@ -330,6 +342,14 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         def sha1File = sha1File(testFile)
         sha1File.assertIsFile()
         assert new BigInteger(sha1File.text, 16) == getHash(testFile, "SHA1")
+        if (extraChecksums && !(testFile.name in missingExtraChecksums)) {
+            def sha256File = sha256File(testFile)
+            sha256File.assertIsFile()
+            assert new BigInteger(sha256File.text, 16) == getHash(testFile, "SHA-256")
+            def sha512File = sha512File(testFile)
+            sha512File.assertIsFile()
+            assert new BigInteger(sha512File.text, 16) == getHash(testFile, "SHA-512")
+        }
         def md5File = md5File(testFile)
         md5File.assertIsFile()
         assert new BigInteger(md5File.text, 16) == getHash(testFile, "MD5")
@@ -593,14 +613,16 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                 }
                             }
                         }
-                        def compileDependencies = variants.find{ it.name == 'api' }?.dependencies
-                        def runtimeDependencies = variants.find{ it.name == 'runtime' }?.dependencies
+                        def compileDependencies = variants.find { it.name == 'api' }?.dependencies
+                        def runtimeDependencies = variants.find { it.name == 'runtime' }?.dependencies
                         if (compileDependencies) {
                             compileDependencies.each { dep ->
                                 dependency {
                                     groupId(dep.group)
                                     artifactId(dep.module)
-                                    if (dep.version) { version(dep.version) }
+                                    if (dep.version) {
+                                        version(dep.version)
+                                    }
                                     scope('compile')
                                 }
                             }
@@ -610,7 +632,9 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                                 dependency {
                                     groupId(dep.group)
                                     artifactId(dep.module)
-                                    if (dep.version) { version(dep.version) }
+                                    if (dep.version) {
+                                        version(dep.version)
+                                    }
                                     scope('runtime')
                                 }
                             }
@@ -669,7 +693,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         variants.each {
             it.artifacts.findAll { it.name }.each {
                 def variantArtifact = moduleDir.file(it.name)
-                publish (variantArtifact) { Writer writer ->
+                publish(variantArtifact) { Writer writer ->
                     writer << "${it.name} : Variant artifact $it.name"
                 }
             }
@@ -704,6 +728,18 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     @Override
     MavenModule withoutGradleMetadataRedirection() {
         gradleMetadataRedirect = false
+        return this
+    }
+
+    @Override
+    MavenModule withoutExtraChecksums() {
+        extraChecksums = false
+        return this
+    }
+
+    @Override
+    MavenModule withExtraChecksums() {
+        extraChecksums = true
         return this
     }
 

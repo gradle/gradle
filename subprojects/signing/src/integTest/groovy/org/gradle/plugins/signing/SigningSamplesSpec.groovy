@@ -49,6 +49,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         then:
         repoFor(dsl)
             .module('gradle', 'maven', '1.0')
+            .withoutExtraChecksums()
             .assertArtifactsPublished('maven-1.0.pom', 'maven-1.0.pom.asc', 'maven-1.0.jar', 'maven-1.0.jar.asc')
 
         where:
@@ -69,7 +70,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         skipped(":signArchives")
 
         and:
-        def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT')
+        def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT').withoutExtraChecksums()
         module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
 
         where:

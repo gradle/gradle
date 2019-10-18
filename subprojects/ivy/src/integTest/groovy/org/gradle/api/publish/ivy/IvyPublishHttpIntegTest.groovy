@@ -81,10 +81,16 @@ credentials {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
         module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
         module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
 
         when:
         succeeds 'publish'
@@ -97,6 +103,52 @@ credentials {
         progressLogging.uploadProgressLogged(module.moduleMetadata.uri)
         progressLogging.uploadProgressLogged(module.ivy.uri)
         progressLogging.uploadProgressLogged(module.jar.uri)
+    }
+
+    def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
+        given:
+        server.start()
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.gradle'
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyHttpRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        and:
+        maxUploadAttempts = 1
+
+        when:
+        module.artifact.expectPut()
+        module.artifact.sha1.expectPut()
+        module.artifact.sha256.expectPutBroken()
+        module.artifact.sha512.expectPutBroken()
+        module.ivy.expectPut()
+        module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPutBroken()
+        module.ivy.sha512.expectPutBroken()
+        module.moduleMetadata.expectPut()
+        module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPutBroken()
+        module.moduleMetadata.sha512.expectPutBroken()
+
+        then:
+        succeeds 'publish'
+        outputContains("Remote repository doesn't support sha-256")
+        outputContains("Remote repository doesn't support sha-512")
     }
 
     @Unroll
@@ -134,10 +186,16 @@ credentials {
         server.authenticationScheme = authScheme
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
         module.moduleMetadata.expectPut('testuser', 'password')
         module.moduleMetadata.sha1.expectPut('testuser', 'password')
+        module.moduleMetadata.sha256.expectPut('testuser', 'password')
+        module.moduleMetadata.sha512.expectPut('testuser', 'password')
 
         when:
         run 'publish'
@@ -282,10 +340,16 @@ credentials {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPut()
+        module.ivy.sha512.expectPut()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
 
         when:
         run 'publish'
@@ -336,8 +400,12 @@ credentials {
         and:
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
         run 'publish'
@@ -413,14 +481,20 @@ credentials {
         module.jar.expectPutBroken()
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
 
         module.ivy.expectPutBroken()
         module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
         module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
+        module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
 
         module.moduleMetadata.expectPutBroken()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
 
         when:
         succeeds 'publish'

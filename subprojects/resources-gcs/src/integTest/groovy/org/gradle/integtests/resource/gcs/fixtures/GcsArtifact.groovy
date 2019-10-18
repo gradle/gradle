@@ -34,4 +34,14 @@ class GcsArtifact extends GcsResource implements RemoteArtifact {
     GcsResource getSha1() {
         return new GcsResource(server, file.parentFile.file(file.name + ".sha1"), repositoryPath, bucket)
     }
+
+    @Override
+    GcsResource getSha256() {
+        return new GcsResource(server, file.parentFile.file(file.name + ".sha256"), repositoryPath, bucket)
+    }
+
+    @Override
+    GcsResource getSha512() {
+        return new GcsResource(server, file.parentFile.file(file.name + ".sha512"), repositoryPath, bucket)
+    }
 }

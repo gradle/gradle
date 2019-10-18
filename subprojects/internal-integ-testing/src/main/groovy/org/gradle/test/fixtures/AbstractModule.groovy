@@ -93,12 +93,28 @@ abstract class AbstractModule implements Module {
         hashFile(file, "sha1", 40)
     }
 
+    TestFile sha256File(TestFile file) {
+        hashFile(file, "sha-256", 64)
+    }
+
+    TestFile sha512File(TestFile file) {
+        hashFile(file, "sha-512", 128)
+    }
+
     TestFile getMd5File(TestFile file) {
         getHashFile(file, "md5")
     }
 
     TestFile md5File(TestFile file) {
         hashFile(file, "md5", 32)
+    }
+
+    TestFile getSha256File(TestFile file) {
+        getHashFile(file, "sha-256")
+    }
+
+    TestFile getSha512File(TestFile file) {
+        getHashFile(file, "sha-512")
     }
 
     private TestFile hashFile(TestFile file, String algorithm, int len) {
@@ -109,7 +125,7 @@ abstract class AbstractModule implements Module {
     }
 
     private TestFile getHashFile(TestFile file, String algorithm) {
-        file.parentFile.file("${file.name}.${algorithm}")
+        file.parentFile.file("${file.name}.${algorithm.replaceAll('-', '')}")
     }
 
     protected BigInteger getHash(TestFile file, String algorithm) {

@@ -66,18 +66,19 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.requireIsolatedUserHome()
 
         def module = mavenHttpRepo.module('group', 'publish', '1')
+        module.withoutExtraChecksums()
 
         // module is published
         module.publish()
 
         // module will be published a second time via 'maven-publish'
-        module.artifact.expectPublish()
-        module.pom.expectPublish()
+        module.artifact.expectPublish(false)
+        module.pom.expectPublish(false)
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
         module.rootMetaData.expectGet()
         module.rootMetaData.sha1.expectGet()
-        module.rootMetaData.expectPublish()
+        module.rootMetaData.expectPublish(false)
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """

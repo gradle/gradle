@@ -231,8 +231,6 @@ apply plugin: "scala"
 
 repositories {
     ${mavenCentralRepositoryDefinition()}
-    // temporary measure for the next few hours, until Zinc 0.2-M2 has landed in Central
-    maven { url "https://oss.sonatype.org/content/repositories/releases" }
 }
 
 dependencies {
@@ -246,13 +244,8 @@ dependencies {
 """
 package compile.test
 
-import scala.collection.JavaConverters._
-
 class Person(val name: String, val age: Int) {
-    def hello() {
-        val x: java.util.List[Int] = List(3, 1, 2).asJava
-        java.util.Collections.reverse(x)
-    }
+    def hello(): List[Int] = List(3, 1, 2)
 }
 """
         file("src/main/scala/compile/test/Person2.scala") <<
@@ -270,7 +263,7 @@ class Person2(name: String, age: Int) extends Person(name, age) {
 import java.io.{FileOutputStream, File, OutputStreamWriter}
 
 object Main {
-    def main(args: Array[String]) {
+    def main(args: Array[String]): Unit = {
         // Some lowercase greek letters
         val content = "\u03b1\u03b2\u03b3"
         val writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8")

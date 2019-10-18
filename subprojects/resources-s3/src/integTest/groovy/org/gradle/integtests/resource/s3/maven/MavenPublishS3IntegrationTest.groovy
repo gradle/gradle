@@ -127,6 +127,8 @@ publishing {
     private static void expectPublish(S3Artifact artifact) {
         artifact.expectUpload()
         artifact.sha1.expectUpload()
+        artifact.sha256.expectUpload()
+        artifact.sha512.expectUpload()
         artifact.md5.expectUpload()
     }
 }
