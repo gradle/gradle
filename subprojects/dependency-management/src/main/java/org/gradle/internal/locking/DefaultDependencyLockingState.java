@@ -17,6 +17,7 @@
 package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
 import java.util.Set;
@@ -29,14 +30,17 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
 
     private final boolean strictlyValidate;
     private final Set<ModuleComponentIdentifier> constraints;
+    private final DependencyLockingHandler.LockMode lockMode;
 
     private DefaultDependencyLockingState() {
         strictlyValidate = false;
         constraints = emptySet();
+        lockMode = DependencyLockingHandler.LockMode.DEFAULT;
     }
-    public DefaultDependencyLockingState(boolean partialUpdate, Set<ModuleComponentIdentifier> constraints) {
+    public DefaultDependencyLockingState(boolean partialUpdate, Set<ModuleComponentIdentifier> constraints, DependencyLockingHandler.LockMode lockMode) {
         strictlyValidate = !partialUpdate;
         this.constraints = constraints;
+        this.lockMode = lockMode;
     }
 
     @Override

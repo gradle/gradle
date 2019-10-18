@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 
 import java.util.Set;
 
@@ -25,4 +26,8 @@ public interface DependencyLockingProvider {
     DependencyLockingState loadLockState(String configurationName);
 
     void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolutionResult, Set<ModuleComponentIdentifier> changingResolvedModules);
+
+    DependencyLockingHandler.LockMode getLockMode();
+
+    void setLockMode(DependencyLockingHandler.LockMode mode);
 }

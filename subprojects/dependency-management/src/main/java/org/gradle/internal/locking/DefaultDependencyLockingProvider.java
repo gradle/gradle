@@ -22,6 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
@@ -61,6 +62,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final LockEntryFilter lockEntryFilter;
     private final DomainObjectContext context;
     private DependencySubstitutionRules dependencySubstitutionRules;
+    private DependencyLockingHandler.LockMode lockMode;
 
     public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules) {
         this.context = context;
@@ -92,7 +94,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 } else {
                     LOGGER.info("Loaded lock state for configuration '{}'", context.identityPath(configurationName));
                 }
-                return new DefaultDependencyLockingState(partialUpdate, results);
+                return new DefaultDependencyLockingState(partialUpdate, results, lockMode);
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
@@ -141,6 +143,17 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         }
         Collections.sort(modules);
         return modules;
+    }
+
+    @Override
+    public DependencyLockingHandler.LockMode getLockMode() {
+        return lockMode;
+    }
+
+    @Override
+    public void setLockMode(DependencyLockingHandler.LockMode mode) {
+        // TODO Changing lockMode once it has been used needs to be illegal
+        this.lockMode = mode;
     }
 
     private static class LockingDependencySubstitution implements DependencySubstitutionInternal {
