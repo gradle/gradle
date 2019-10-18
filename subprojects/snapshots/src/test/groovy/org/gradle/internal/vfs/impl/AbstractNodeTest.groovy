@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl
 
+
 import spock.lang.Specification
 
 class AbstractNodeTest extends Specification {
@@ -39,5 +40,14 @@ class AbstractNodeTest extends Specification {
         "bbc/some"          | "/var/abc/other"        | 5      | 1
         "/hello/world/some" | "/var/hello/other"      | 0      | -1
         "/hello/world/some" | "/var/hello/other"      | 4      | 0
+    }
+
+    def "separator is smaller than every other character"() {
+        expect:
+        Integer.signum(AbstractNode.compareWithCommonPrefix(prefix, path, offset, '/' as char)) == result
+
+        where:
+        prefix              | path                    | offset | result
+        "hello/world"       | "/var/hello-other"      | 5      | -1
     }
 }

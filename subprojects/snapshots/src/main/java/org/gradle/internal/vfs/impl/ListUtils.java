@@ -45,12 +45,13 @@ public abstract class ListUtils {
             T midVal = sortedElements.get(mid);
             int cmp = searchForComparator.compare(midVal);
 
-            if (cmp < 0)
+            if (cmp < 0) {
                 low = mid + 1;
-            else if (cmp > 0)
+            } else if (cmp > 0) {
                 high = mid - 1;
-            else
+            } else {
                 return mid; // key found
+            }
         }
         return -(low + 1);  // key not found
     }

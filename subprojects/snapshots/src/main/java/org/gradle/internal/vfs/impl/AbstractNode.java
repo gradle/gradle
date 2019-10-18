@@ -17,9 +17,21 @@
 package org.gradle.internal.vfs.impl;
 
 import java.io.File;
+import java.util.Comparator;
 import java.util.Optional;
 
 public abstract class AbstractNode implements Node {
+    private static final Comparator<String> PATH_COMPARATOR = (path1, path2) -> {
+        int maxPos = Math.min(path1.length(), path2.length());
+        for (int pos = 0; pos < maxPos; pos++) {
+            char charInPath1 = path1.charAt(pos);
+            char charInPath2 = path2.charAt(pos);
+            if (charInPath1 != charInPath2) {
+                return compareChars(charInPath1, charInPath2, File.separatorChar);
+            }
+        }
+        return Integer.compare(path1.length(), path2.length());
+    };
     private final String prefix;
 
     public AbstractNode(String prefix) {
@@ -68,7 +80,7 @@ public abstract class AbstractNode implements Node {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
             if (charInPath1 != charInPath2) {
-                return Character.compare(charInPath1, charInPath2);
+                return compareChars(charInPath1, charInPath2, separatorChar);
             }
             if (path1.charAt(pos) == separatorChar) {
                 if (pos > 0) {
@@ -83,6 +95,16 @@ public abstract class AbstractNode implements Node {
             return path1.charAt(maxPos) == File.separatorChar ? 0 : 1;
         }
         return path2.charAt(maxPos + offset) == File.separatorChar ? 0 : -1;
+    }
+
+    protected static int compareChars(char char1, char char2, char separatorChar) {
+        return char1 == separatorChar ? -1
+            : char2 == separatorChar ? 1
+            : Character.compare(char1, char2);
+    }
+
+    protected static Comparator<String> pathComparator() {
+        return PATH_COMPARATOR;
     }
 
     /**

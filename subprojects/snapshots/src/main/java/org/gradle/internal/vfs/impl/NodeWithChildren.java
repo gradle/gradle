@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 class NodeWithChildren extends AbstractNode {
     private final List<Node> children;
@@ -32,9 +33,9 @@ class NodeWithChildren extends AbstractNode {
         super(prefix);
         assert !children.isEmpty();
         ArrayList<Node> copy = new ArrayList<>(children);
-        copy.sort(Comparator.comparing(Node::getPrefix));
+        copy.sort(Comparator.comparing(Node::getPrefix, pathComparator()));
         if (!copy.equals(children)) {
-            throw new RuntimeException("Arrrrgghhh");
+            throw new RuntimeException("Arrrrgghhh, this is not sorted: " + children.stream().map(Node::getPrefix).collect(Collectors.joining(", ")));
         }
         this.children = children;
     }
@@ -129,7 +130,7 @@ class NodeWithChildren extends AbstractNode {
                 String commonPrefix = getPrefix().substring(0, commonPrefixLength);
                 Node newThis = new NodeWithChildren(getPrefix().substring(commonPrefixLength + 1), children);
                 Node sibling = new SnapshotNode(path.substring(commonPrefixLength + 1), snapshot);
-                ImmutableList<Node> newChildren = newThis.getPrefix().compareTo(sibling.getPrefix()) < 0
+                ImmutableList<Node> newChildren = pathComparator().compare(newThis.getPrefix(), sibling.getPrefix()) < 0
                     ? ImmutableList.of(newThis, sibling)
                     : ImmutableList.of(sibling, newThis);
                 return new NodeWithChildren(commonPrefix, newChildren);

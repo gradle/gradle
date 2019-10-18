@@ -90,7 +90,7 @@ class SnapshotNode extends AbstractNode {
                 if (!matched) {
                     merged.add(new SnapshotNode(path.substring(startNextSegment), newSnapshot));
                 }
-                merged.sort(Comparator.comparing(Node::getPrefix));
+                merged.sort(Comparator.comparing(Node::getPrefix, pathComparator()));
                 return new NodeWithChildren(getPrefix(), merged);
             }
 
@@ -111,7 +111,7 @@ class SnapshotNode extends AbstractNode {
                 String commonPrefix = getPrefix().substring(0, commonPrefixLength);
                 Node newThis = new SnapshotNode(getPrefix().substring(commonPrefixLength + 1), snapshot);
                 Node sibling = new SnapshotNode(path.substring(commonPrefixLength + 1), newSnapshot);
-                ImmutableList<Node> newChildren = newThis.getPrefix().compareTo(sibling.getPrefix()) < 0
+                ImmutableList<Node> newChildren = pathComparator().compare(newThis.getPrefix(), sibling.getPrefix()) < 0
                     ? ImmutableList.of(newThis, sibling)
                     : ImmutableList.of(sibling, newThis);
                 return new NodeWithChildren(commonPrefix, newChildren);
