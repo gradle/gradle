@@ -50,8 +50,14 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
     public void configure(BuildExecutionContext context) {
         final Set<Test> allTestTasksToRun = new LinkedHashSet<Test>();
         final GradleInternal gradleInternal = context.getGradle();
-        allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
-        allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
+        List<String> testTasks = testExecutionRequest.getTestTasks();
+        if (testTasks.isEmpty()) {
+            // TODO we probably only want to filter the selected tests and not disable it
+            allTestTasksToRun.addAll(configureBuildForTestDescriptors(gradleInternal, testExecutionRequest));
+            allTestTasksToRun.addAll(configureBuildForInternalJvmTestRequest(gradleInternal, testExecutionRequest));
+        } else {
+            allTestTasksToRun.addAll(configureBuildForTestTasks(gradleInternal, testExecutionRequest, testTasks));
+        }
         configureTestTasks(allTestTasksToRun);
         gradle.getTaskGraph().addEntryTasks(allTestTasksToRun);
     }
@@ -115,6 +121,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
     }
 
     private List<Test> configureBuildForInternalJvmTestRequest(GradleInternal gradle, TestExecutionRequestAction testExecutionRequest) {
+        // TODO do what happens if test tasks is specified?
         final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
         if(internalJvmTestRequests.isEmpty()){
             return Collections.emptyList();
@@ -132,6 +139,24 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
                 }
             }
             tasksToExecute.addAll(testTasks);
+        }
+        return tasksToExecute;
+    }
+
+    private List<Test> configureBuildForTestTasks(GradleInternal gradle, TestExecutionRequestAction testExecutionRequest, List<String> testTasks) {
+        List<Test> tasksToExecute = new ArrayList<Test>();
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests();
+
+        for (Project project : gradle.getRootProject().getAllprojects()) {
+            for (Test task : project.getTasks().withType(Test.class)) {
+                if (testTasks.contains(task.getPath())) {
+                    for (InternalJvmTestRequest jvmTestRequest : internalJvmTestRequests) {
+                        final TestFilter filter = task.getFilter();
+                        filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
+                    }
+                    tasksToExecute.add(task);
+                }
+            }
         }
         return tasksToExecute;
     }

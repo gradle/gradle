@@ -28,6 +28,19 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
 
     /**
+     * Specifies the test tasks to be executed.
+     * - When specified by default all tests are executed in the tasks
+     * - TODO how TestOperations overwrites this
+     * - TODO how withJVMTesttasks and methods overrides this
+     *
+     * @param testTasks
+     * @return this
+     * @since 6.1
+     */
+    @Incubating
+    TestLauncher withTests(String... testTasks);
+
+    /**
      * Adds tests to be executed by passing test descriptors received from a previous Gradle Run.
      *
      * @param descriptors The OperationDescriptor defining one or more tests.

@@ -39,14 +39,16 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final Set<String> classNames;
     private final Set<InternalJvmTestRequest> internalJvmTestRequests;
     private final InternalDebugOptions debugOptions;
+    private final List<String> testTasks;
 
-    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions) {
+    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, List<String> testTasks) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
         this.classNames = providerClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
         this.debugOptions = debugOptions;
+        this.testTasks = testTasks;
     }
 
     // Unpacks the request to serialize across to the daemon and creates instance of
@@ -59,7 +61,8 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
                                                 ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
                                                 ImmutableSet.copyOf(testClassNames),
                                                 providerInternalJvmTestRequests,
-                                                getDebugOptions(testExecutionRequest));
+                                                getDebugOptions(testExecutionRequest),
+                                                getTestTasks(testExecutionRequest));
     }
 
     private static InternalDebugOptions getDebugOptions(ProviderInternalTestExecutionRequest testExecutionRequest) {
@@ -68,6 +71,15 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         } catch (UnsupportedMethodException e) {
             // default value for older Gradle clients
             return new DefaultDebugOptions();
+        }
+    }
+
+    private static List<String> getTestTasks(ProviderInternalTestExecutionRequest testExecutionRequest) {
+        try {
+            return testExecutionRequest.getTestTasks();
+        } catch (UnsupportedMethodException e) {
+            // default value for older Gradle clients
+            return Collections.emptyList();
         }
     }
 
@@ -109,5 +121,9 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
 
     public InternalDebugOptions getDebugOptions() {
         return debugOptions;
+    }
+
+    public List<String> getTestTasks() {
+        return testTasks;
     }
 }
