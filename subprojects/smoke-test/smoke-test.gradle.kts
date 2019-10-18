@@ -49,6 +49,7 @@ dependencies {
     smokeTestImplementation(project(":coreApi"))
     smokeTestImplementation(project(":testKit"))
     smokeTestImplementation(project(":internalIntegTesting"))
+    smokeTestImplementation(project(":launcher"))
     smokeTestImplementation(library("commons_io"))
     smokeTestImplementation(library("jgit"))
     smokeTestImplementation(testLibrary("spock"))

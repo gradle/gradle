@@ -16,12 +16,14 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 
@@ -694,4 +696,8 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         ':wearable:stripDebugDebugSymbols': FROM_CACHE,
         ':wearable:validateSigningDebug': FROM_CACHE,
     ]
+
+    def cleanup() {
+        DaemonLogsAnalyzer.newAnalyzer(homeDir.file(ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
+    }
 }
