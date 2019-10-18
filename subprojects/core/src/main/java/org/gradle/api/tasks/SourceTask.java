@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.NonNullApi;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
@@ -27,9 +28,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,7 +35,7 @@ import java.util.Set;
  */
 @NonNullApi
 public class SourceTask extends ConventionTask implements PatternFilterable {
-    private final List<Object> source = new ArrayList<Object>();
+    private final ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
     private final PatternFilterable patternSet;
 
     public SourceTask() {
@@ -63,9 +61,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.ABSOLUTE)
     public FileTree getSource() {
-        ArrayList<Object> copy = new ArrayList<Object>(this.source);
-        FileTree src = getProject().files(copy).getAsFileTree();
-        return src.matching(patternSet);
+        return sourceFiles.getAsFileTree().matching(patternSet);
     }
 
     /**
@@ -84,8 +80,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      * @param source The source.
      */
     public void setSource(Object source) {
-        this.source.clear();
-        this.source.add(source);
+        sourceFiles.setFrom(source);
     }
 
     /**
@@ -95,7 +90,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      * @return this
      */
     public SourceTask source(Object... sources) {
-        Collections.addAll(this.source, sources);
+        sourceFiles.from(sources);
         return this;
     }
 
