@@ -50,7 +50,7 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
                 conf("org:databind") {
                     version { strictly '2.7.9' }
                 }
-                conf("org:kotlin:2.9.4.1")        
+                conf("org:kotlin:2.9.4.1")
             }
         """
 
@@ -140,9 +140,9 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         buildFile << """
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.9.4")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind") {
@@ -159,7 +159,7 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:databind:{strictly 2.7.9}'
    Constraint path ':test:unspecified' --> 'org:platform:2.9.4' --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
     }
@@ -187,7 +187,7 @@ include 'other'
                     version { strictly '2.7.9' }
                 }
             }
-            
+
             project(':other') {
                 configurations {
                     conf
@@ -209,7 +209,7 @@ include 'other'
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:databind:{strictly 2.7.9}'
    Constraint path ':test:unspecified' --> 'test:other:unspecified' --> 'org:core:2.9.4' --> 'org:platform:2.9.4' --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
     }
@@ -260,9 +260,9 @@ include 'other'
         buildFile << """
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.7.9")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind") {

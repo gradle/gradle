@@ -108,7 +108,7 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':depLock:unspecified' --> 'org:foo:1.+'
    Dependency path ':depLock:unspecified' --> 'org:foo:{strictly 1.1}'
    Constraint path ':depLock:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'"""
@@ -145,7 +145,7 @@ dependencies {
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':depLock:unspecified' --> 'org:foo:1.+'
    Dependency path ':depLock:unspecified' --> 'org:foo:1.1'
    Constraint path ':depLock:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'"""
@@ -492,13 +492,13 @@ configurations {
 dependencies {
     conf 'org:foo:[1.0,)'
     conf 'org:foo:1.1'
-    
+
     conf 'org:foz:latest.integration'
     conf 'org:foz:1.1'
-    
+
     conf 'org:bar:1.+'
     conf 'org:bar:1.1'
-    
+
     conf 'org:baz:+'
     conf 'org:baz:1.1'
 }
@@ -546,13 +546,13 @@ configurations {
 dependencies {
     conf 'org:foo:[1.0,)'
     conf 'org:foo:1.1'
-    
+
     conf 'org:foz:latest.integration'
     conf 'org:foz:1.1'
-    
+
     conf 'org:bar:1.+'
     conf 'org:bar:1.1'
-    
+
     conf 'org:baz:+'
     conf 'org:baz:1.1'
 }

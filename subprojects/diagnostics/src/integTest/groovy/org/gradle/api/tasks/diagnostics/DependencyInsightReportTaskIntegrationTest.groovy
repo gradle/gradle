@@ -396,7 +396,7 @@ org:leaf2:1.5 -> 2.5
                     resolutionStrategy.failOnVersionConflict()
                     incoming.afterResolve {
                         // If executed, the below will cause the resolution failure on version conflict to be thrown, breaking dependency insight
-                        it.artifacts.artifacts 
+                        it.artifacts.artifacts
                     }
                 }
             }
@@ -460,7 +460,7 @@ configurations {
     lockedConf
 }
 
-dependencies {    
+dependencies {
     lockedConf 'org:foo:1.+'
 }
 """
@@ -506,7 +506,7 @@ configurations {
     lockedConf
 }
 
-dependencies {    
+dependencies {
     constraints {
         lockedConf('org:foo:1.1')
     }
@@ -526,7 +526,7 @@ org:foo:1.0 FAILED
       - By constraint : dependency was locked to version '1.0'
    Failures:
       - Could not resolve org:foo:{strictly 1.0}.
-          - Cannot find a version of 'org:foo' that satisfies the version constraints: 
+          - Cannot find a version of 'org:foo' that satisfies the version constraints:
                Dependency path ':insight-test:unspecified' --> 'org:foo:1.+'
                Constraint path ':insight-test:unspecified' --> 'org:foo:1.1'
                Constraint path ':insight-test:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'
@@ -1617,7 +1617,7 @@ org:leaf:[1.5,2.0] FAILED
               conf project(':A')
               conf project(':B')
             }
-            
+
             project(':B') {
                 configurations.create('default')
                 dependencies.add("default", project(':C'))
@@ -2191,11 +2191,11 @@ foo:foo:1.0
 
         file("build.gradle") << """
             apply plugin: 'java-library'
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 implementation 'org:foo' // no version
                 constraints {
@@ -2494,11 +2494,11 @@ org:foo:{require [1.0,); reject 1.2} -> 1.1
                    }
                 }
             }
-            
+
             configurations.compileClasspath.resolutionStrategy.componentSelection.all { ComponentSelection selection ->
                if (selection.candidate.module == 'bar' && selection.candidate.version in ['1.2', '1.1']) {
                   selection.reject("version \${selection.candidate.version} is bad")
-               } 
+               }
             }
         """
 
@@ -2757,7 +2757,7 @@ org:bar:[1.0,) FAILED
 org:foo: (by constraint) FAILED
    Failures:
       - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.
-          - Cannot find a version of 'org:foo' that satisfies the version constraints: 
+          - Cannot find a version of 'org:foo' that satisfies the version constraints:
                Dependency path ':insight-test:unspecified' --> 'org:foo:[1.0,)'
                Constraint path ':insight-test:unspecified' --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
@@ -2915,7 +2915,7 @@ org.test:leaf:1.0
 
             dependencies {
                 implementation('org:foo:[1.0,)') ${type=='dependency'?attributes:''}
-                
+
                 components.all { details ->
                    attributes {
                       def colors = ['1.0' : 'blue', '1.1': 'green', '1.2': 'red']
