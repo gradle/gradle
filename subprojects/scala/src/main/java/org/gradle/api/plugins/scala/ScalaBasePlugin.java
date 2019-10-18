@@ -19,6 +19,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -63,10 +64,14 @@ import java.util.concurrent.Callable;
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>
  */
 public class ScalaBasePlugin implements Plugin<Project> {
+    private static final String DEFAULT_ZINC_VERSION = DefaultScalaToolProvider.DEFAULT_ZINC_VERSION;
+    private static final String DEFAULT_SCALA_ZINC_VERSION = "2.12";
 
     @VisibleForTesting
     public static final String ZINC_CONFIGURATION_NAME = "zinc";
     public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
+
+
     private final ObjectFactory objectFactory;
 
     @Inject
@@ -99,15 +104,24 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
         zinc.getResolutionStrategy().eachDependency(rule -> {
             if (rule.getRequested().getGroup().equals("com.typesafe.zinc") && rule.getRequested().getName().equals("zinc")) {
-                rule.useTarget("org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                rule.useTarget("org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + DEFAULT_ZINC_VERSION);
                 rule.because("Typesafe Zinc is no longer maintained.");
             }
         });
 
         zinc.defaultDependencies(dependencies -> {
-            // Clear forced modules, so rules from configurations.all do not force an incompatible Scala library
-            zinc.getResolutionStrategy().setForcedModules();
-            dependencies.add(dependencyHandler.create("org.scala-sbt:zinc_2.12:" + scalaPluginExtension.getZincVersion().get()));
+            dependencies.add(dependencyHandler.create("org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + scalaPluginExtension.getZincVersion().get()));
+            // Add safeguard and clear error if the user changed the scala version when using default zinc
+            zinc.getIncoming().afterResolve(resolvableDependencies -> {
+                resolvableDependencies.getResolutionResult().allComponents(component -> {
+                    if (component.getModuleVersion() != null && component.getModuleVersion().getName().equals("scala-library")) {
+                        if (!component.getModuleVersion().getVersion().startsWith(DEFAULT_SCALA_ZINC_VERSION)) {
+                            throw new InvalidUserCodeException("The version of 'scala-library' was changed while using the default Zinc version. " +
+                                "Version " + component.getModuleVersion().getVersion() + " is not compatible with org.scala-sbt:zinc_" + DEFAULT_SCALA_ZINC_VERSION + ":" + DEFAULT_ZINC_VERSION);
+                        }
+                    }
+                });
+            });
         });
 
         final Configuration incrementalAnalysisElements = project.getConfigurations().create("incrementalScalaAnalysisElements");
