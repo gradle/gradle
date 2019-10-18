@@ -57,23 +57,26 @@ private
 const val productionJdkName = "AdoptOpenJDK 11"
 
 
-open class AvailableJavaInstallations(private val project: Project, private val javaInstallationProbe: JavaInstallationProbe, private val jvmVersionDetector: JvmVersionDetector) {
+open class AvailableJavaInstallations(
+    project: Project,
+    private val javaInstallationProbe: JavaInstallationProbe,
+    private val jvmVersionDetector: JvmVersionDetector
+) {
     val currentJavaInstallation: JavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
     val javaInstallationForTest: JavaInstallation
     val javaInstallationForCompilation: JavaInstallation
 
     init {
-        javaInstallationForTest = determineJavaInstallation(testJavaHomePropertyName)
-        javaInstallationForCompilation = determineJavaInstallationForCompilation()
+        javaInstallationForTest = determineJavaInstallation(project, testJavaHomePropertyName)
+        javaInstallationForCompilation = determineJavaInstallationForCompilation(project)
     }
 
     private
-    fun determineJavaInstallationForCompilation() = if (JavaVersion.current().isJava9Compatible) currentJavaInstallation else determineJavaInstallation(java9HomePropertyName)
+    fun determineJavaInstallationForCompilation(project: Project) = if (JavaVersion.current().isJava9Compatible) currentJavaInstallation else determineJavaInstallation(project, java9HomePropertyName)
 
     private
-    fun determineJavaInstallation(propertyName: String): JavaInstallation {
-        val resolvedJavaHome = resolveJavaHomePath(propertyName)
-        return when (resolvedJavaHome) {
+    fun determineJavaInstallation(project: Project, propertyName: String): JavaInstallation {
+        return when (val resolvedJavaHome = resolveJavaHomePath(project, propertyName)) {
             null -> currentJavaInstallation
             else -> detectJavaInstallation(resolvedJavaHome)
         }
@@ -124,10 +127,10 @@ open class AvailableJavaInstallations(private val project: Project, private val 
         }
 
     private
-    fun resolveJavaHomePath(propertyName: String): String? = when {
-        project.hasProperty(propertyName) -> project.property(propertyName) as String
-        System.getProperty(propertyName) != null -> System.getProperty(propertyName)
-        System.getenv(propertyName) != null -> System.getenv(propertyName)
+    fun resolveJavaHomePath(project: Project, propertyNam: String): String? = when {
+        project.hasProperty(propertyNam) -> project.property(propertyNam) as String
+        System.getProperty(propertyNam) != null -> System.getProperty(propertyNam)
+        System.getenv(propertyNam) != null -> System.getenv(propertyNam)
         else -> null
     }
 }

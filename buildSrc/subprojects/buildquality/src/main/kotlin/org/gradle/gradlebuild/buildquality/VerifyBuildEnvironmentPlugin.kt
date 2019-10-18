@@ -28,9 +28,10 @@ open class VerifyBuildEnvironmentPlugin : Plugin<Project> {
 
     private
     fun validateForAllCompileTasks(rootProject: Project) {
+        val availableJavaInstallations = rootProject.availableJavaInstallations
         val verifyBuildEnvironment = rootProject.tasks.register("verifyBuildEnvironment") {
             doLast {
-                rootProject.availableJavaInstallations.validateForCompilation()
+                availableJavaInstallations.validateForCompilation()
             }
         }
 
