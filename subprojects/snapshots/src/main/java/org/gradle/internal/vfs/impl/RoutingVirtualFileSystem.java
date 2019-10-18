@@ -23,13 +23,11 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
-import java.io.Closeable;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class RoutingVirtualFileSystem implements VirtualFileSystem, Closeable {
+public class RoutingVirtualFileSystem implements VirtualFileSystem {
     private final WellKnownFileLocations gradleUserHomeFileLocations;
     private final VirtualFileSystem gradleUserHomeVirtualFileSystem;
     private final VirtualFileSystem buildScopedVirtualFileSystem;
@@ -92,16 +90,5 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem, Closeable {
         return gradleUserHomeFileLocations.isImmutable(location)
             ? gradleUserHomeVirtualFileSystem
             : buildScopedVirtualFileSystem;
-    }
-
-    @Override
-    public void close() throws IOException {
-        closeIfPossible(buildScopedVirtualFileSystem);
-    }
-
-    private void closeIfPossible(VirtualFileSystem virtualFileSystem) throws IOException {
-        if (virtualFileSystem instanceof Closeable) {
-            ((Closeable) virtualFileSystem).close();
-        }
     }
 }

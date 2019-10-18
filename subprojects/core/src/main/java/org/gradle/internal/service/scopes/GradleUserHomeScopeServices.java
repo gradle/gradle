@@ -162,8 +162,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultWellKnownFileLocations(fileStores);
     }
 
-    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ExecutorFactory executorFactory, ListenerManager listenerManager) {
-        VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, executorFactory.create("Gradle user home virtual file system", 1), DirectoryScanner.getDefaultExcludes());
+    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager) {
+        VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
         listenerManager.addListener(new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
