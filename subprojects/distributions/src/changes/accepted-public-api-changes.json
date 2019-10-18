@@ -1566,6 +1566,12 @@
             "member": "Method org.gradle.kotlin.dsl.PluginDependenciesSpecExtensionsKt.build-scan$annotations(org.gradle.plugin.use.PluginDependenciesSpec)",
             "acceptation": "Kotlin goop that no one actually uses",
             "changes": []
+        },
+        {
+            "type": "org.gradle.api.plugins.scala.ScalaBasePlugin",
+            "member": "Field DEFAULT_ZINC_VERSION",
+            "acceptation": "Expose constant for default Scala Zinc compile version in Scala plugin",
+            "changes": []
         }
     ]
 }
