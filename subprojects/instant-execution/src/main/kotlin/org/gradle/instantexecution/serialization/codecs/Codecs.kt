@@ -148,6 +148,7 @@ class Codecs(
         bind(FileTreeCodec(directoryFileTreeFactory))
         bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
         bind(FileCollectionCodec(fileCollectionFactory))
+        bind(PatternSetCodec)
 
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)
