@@ -29,6 +29,8 @@ dependencies {
     implementation(project(":persistentCache"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
+    implementation(project(":platformJvm"))
+    implementation(project(":jvmServices"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

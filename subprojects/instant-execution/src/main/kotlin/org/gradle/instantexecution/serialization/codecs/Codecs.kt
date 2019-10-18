@@ -45,6 +45,7 @@ import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
@@ -60,6 +61,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.snapshot.ValueSnapshotter
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -178,6 +180,8 @@ class Codecs(
         bind(ownerService<BuildRequestMetaData>())
         bind(ownerService<WorkerExecutor>())
         bind(ownerService<ListenerManager>())
+        bind(ownerService<JavaInstallationProbe>())
+        bind(ownerService<JvmVersionDetector>())
 
         bind(EnumCodec)
         bind(ProxyCodec)
