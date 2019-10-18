@@ -17,6 +17,7 @@ package org.gradle.scala
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -216,7 +217,7 @@ task someTask
         succeeds("install")
     }
 
-    def "forcing an incompatible version of Scala does not interfere with Zinc compiler"() {
+    def "forcing an incompatible version of Scala fails with a clear error message"() {
         settingsFile << """
             rootProject.name = "scala"
         """
@@ -236,8 +237,12 @@ task someTask
         file("src/main/scala/Foo.scala") << """
             class Foo
         """
-        expect:
-        succeeds("assemble")
+        when:
+        fails("assemble")
+
+        then:
+        failureHasCause("The version of 'scala-library' was changed while using the default Zinc version." +
+            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION)
     }
 
     def "trying to use an old version of Zinc switches to Gradle-supported version"() {
