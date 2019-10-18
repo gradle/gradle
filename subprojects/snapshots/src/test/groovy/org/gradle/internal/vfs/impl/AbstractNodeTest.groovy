@@ -37,6 +37,7 @@ class AbstractNodeTest extends Specification {
         "hello/world"       | "/var/hello1/other"     | 5      | -1
         "hello1/world"      | "/var/hello/other"      | 5      | 1
         "hello/world/some"  | "/var/hello/other"      | 5      | 0
+        "hello/world"       | "/var/hello1/other"     | 5      | -1
         "bbc/some"          | "/var/abc/other"        | 5      | 1
         "/hello/world/some" | "/var/hello/other"      | 0      | -1
         "/hello/world/some" | "/var/hello/other"      | 4      | 0
@@ -49,5 +50,27 @@ class AbstractNodeTest extends Specification {
         where:
         prefix              | path                    | offset | result
         "hello/world"       | "/var/hello-other"      | 5      | -1
+    }
+
+    def "can compare to child of this"() {
+        expect:
+        Integer.signum(AbstractNode.compareToChildOfOrThis(prefix, path, offset, '/' as char)) == result
+        if (result) {
+            assert Integer.signum(prefix <=> path.substring(offset)) == result
+        }
+
+        where:
+        prefix              | path                    | offset | result
+        "hello/world"       | "hello/other"           | 0      | 1
+        "hello/world"       | "/var/hello/other"      | 5      | 1
+        "hello/world"       | "/var/hello/world"      | 5      | 0
+        "hello/world"       | "/var/hello/world/next" | 5      | 0
+        "hello/world"       | "/var/hello1/other"     | 5      | -1
+        "hello1/world"      | "/var/hello/other"      | 5      | 1
+        "hello/world/some"  | "/var/hello/other"      | 5      | 1
+        "hello/world"       | "/var/hello/world1"     | 5      | -1
+        "bbc/some"          | "/var/abc/other"        | 5      | 1
+        "/hello/world/some" | "/var/hello/other"      | 0      | -1
+        "/hello/world/some" | "/var/hello/other"      | 4      | 1
     }
 }

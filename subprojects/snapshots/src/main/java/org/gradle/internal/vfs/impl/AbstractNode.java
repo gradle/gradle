@@ -21,17 +21,8 @@ import java.util.Comparator;
 import java.util.Optional;
 
 public abstract class AbstractNode implements Node {
-    private static final Comparator<String> PATH_COMPARATOR = (path1, path2) -> {
-        int maxPos = Math.min(path1.length(), path2.length());
-        for (int pos = 0; pos < maxPos; pos++) {
-            char charInPath1 = path1.charAt(pos);
-            char charInPath2 = path2.charAt(pos);
-            if (charInPath1 != charInPath2) {
-                return compareChars(charInPath1, charInPath2, File.separatorChar);
-            }
-        }
-        return Integer.compare(path1.length(), path2.length());
-    };
+    private static final Comparator<String> PATH_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0);
+
     private final String prefix;
 
     public AbstractNode(String prefix) {
@@ -97,6 +88,18 @@ public abstract class AbstractNode implements Node {
         return path2.charAt(maxPos + offset) == File.separatorChar ? 0 : -1;
     }
 
+    private static int comparePaths(String prefix, String path, int offset) {
+        int maxPos = Math.min(prefix.length(), path.length() - offset);
+        for (int pos = 0; pos < maxPos; pos++) {
+            char charInPath1 = prefix.charAt(pos);
+            char charInPath2 = path.charAt(pos + offset);
+            if (charInPath1 != charInPath2) {
+                return compareChars(charInPath1, charInPath2, File.separatorChar);
+            }
+        }
+        return Integer.compare(prefix.length(), path.length());
+    }
+
     protected static int compareChars(char char1, char char2, char separatorChar) {
         return char1 == separatorChar ? -1
             : char2 == separatorChar ? 1
@@ -124,6 +127,27 @@ public abstract class AbstractNode implements Node {
             }
         }
         return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == File.separatorChar;
+    }
+
+    /**
+     * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
+     * which does not check for negative indices or integer overflow.
+     */
+    public static int compareToChildOfOrThis(String prefix, String filePath, int offset, char separatorChar) {
+        int pathLength = filePath.length();
+        int prefixLength = prefix.length();
+        int endOfThisSegment = prefixLength + offset;
+        if (pathLength < endOfThisSegment) {
+            return comparePaths(prefix, filePath, offset);
+        }
+        for (int i = 0; i < prefixLength; i++) {
+            char prefixChar = prefix.charAt(i);
+            char pathChar = filePath.charAt(i + offset);
+            if (prefixChar != pathChar) {
+                return compareChars(prefixChar, pathChar, separatorChar);
+            }
+        }
+        return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == separatorChar ? 0 : -1;
     }
 
     @Override

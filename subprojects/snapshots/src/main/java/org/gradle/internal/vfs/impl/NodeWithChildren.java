@@ -133,17 +133,11 @@ class NodeWithChildren extends AbstractNode {
 
     @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
-        if (!isChildOfOrThis(filePath, offset, getPrefix())) {
-            return Optional.empty();
-        }
         int startNextSegment = offset + getPrefix().length() + 1;
-        for (Node child : children) {
-            Optional<FileSystemLocationSnapshot> childSnapshot = child.getSnapshot(filePath, startNextSegment);
-            if (childSnapshot.isPresent()) {
-                return childSnapshot;
-            }
-        }
-        return Optional.empty();
+        int foundChild = ListUtils.binarySearch(children, child -> compareToChildOfOrThis(child.getPrefix(), filePath, startNextSegment, File.separatorChar));
+        return foundChild >= 0
+            ? children.get(foundChild).getSnapshot(filePath, startNextSegment)
+            : Optional.empty();
     }
 
     @Override

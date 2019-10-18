@@ -43,6 +43,9 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
 
     @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String path) {
+        if (!AbstractNode.isChildOfOrThis(path, 0, rootNode.getPrefix())) {
+            return Optional.empty();
+        }
         return rootNode.getSnapshot(normalizeFileSystemRoot(path), 0);
     }
 

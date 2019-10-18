@@ -121,9 +121,6 @@ class SnapshotNode extends AbstractNode {
 
     @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
-        if (!isChildOfOrThis(filePath, offset, getPrefix())) {
-            return Optional.empty();
-        }
         int endOfThisSegment = offset + getPrefix().length();
         if (filePath.length() == endOfThisSegment) {
             return Optional.of(snapshot);
