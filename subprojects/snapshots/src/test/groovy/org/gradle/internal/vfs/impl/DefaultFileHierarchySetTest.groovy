@@ -459,6 +459,22 @@ class DefaultFileHierarchySetTest extends Specification {
         set.flatten() == [childA.absolutePath, "1:b", "2:c", "3:a", "3:b", "2:d", "1:b-c/c"]
     }
 
+    def "can add to completely different paths"() {
+        def firstPath = File.separator == "/"
+            ? "/var/log"
+            : "C:\\Windows\\log"
+        def secondPath = File.separator == "/"
+            ? "/usr/bin"
+            : "D:\\Users\\bin"
+
+        def set = FileHierarchySet.EMPTY.update(new DirectorySnapshot(firstPath, "log", [new RegularFileSnapshot("${firstPath}${File.separator}root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
+        .update(new DirectorySnapshot(secondPath, "bin", [new RegularFileSnapshot("${secondPath}${File.separator}root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
+
+        expect:
+        set.getSnapshot(firstPath).present
+        set.getSnapshot(secondPath).present
+    }
+
     private FileSystemLocationSnapshot snapshotDir(File dir) {
         directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false))
     }
