@@ -35,7 +35,7 @@ import java.util.Set;
  */
 @NonNullApi
 public class SourceTask extends ConventionTask implements PatternFilterable {
-    private final ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
+    private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
     private final PatternFilterable patternSet;
 
     public SourceTask() {
@@ -80,7 +80,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
      * @param source The source.
      */
     public void setSource(Object source) {
-        sourceFiles.setFrom(source);
+        sourceFiles = getProject().getObjects().fileCollection().from(source);
     }
 
     /**
