@@ -33,11 +33,6 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder
-    TestFile homeDir
-
-    def setup() {
-        homeDir = temporaryFolder.createDir("test-kit-home")
-    }
 
     def "check deprecation warnings produced by building Santa Tracker"() {
         def checkoutDir = temporaryFolder.createDir ("checkout")
@@ -106,7 +101,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     private BuildResult buildLocation(File projectDir) {
         runner("assembleDebug", "--scan")
             .withProjectDir(projectDir)
-            .withTestKitDir(homeDir)
             .forwardOutput()
             .build()
     }

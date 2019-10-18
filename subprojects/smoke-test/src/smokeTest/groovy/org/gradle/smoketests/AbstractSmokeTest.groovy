@@ -157,7 +157,7 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     GradleRunner runner(String... tasks) {
-        DefaultGradleRunner gradleRunner = GradleRunner.create()
+        GradleRunner gradleRunner = GradleRunner.create()
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
