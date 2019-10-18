@@ -117,7 +117,7 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
 
     @Override
     public MavenModule withoutExtraChecksums() {
-        backingModule.withoutGradleMetadataRedirection();
+        backingModule.withoutExtraChecksums();
         return t();
     }
 
