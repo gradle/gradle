@@ -444,6 +444,16 @@ class DefaultFileHierarchySetTest extends Specification {
         def set = fileHierarchySet([childA, childB, childB1])
         then:
         set.flatten() == [parent.absolutePath, "1:a", "1:b", "1:b1"]
+
+        when:
+        set = fileHierarchySet([parent.file("a/b/c"), parent.file("a/b-c/c"), parent.file("a/b/d")])
+        then:
+        set.flatten() == [childA.absolutePath, "1:b", "2:c", "2:d", "1:b-c/c"]
+
+        when:
+        set = fileHierarchySet([parent.file("a/b/c/a"), parent.file("a/b/c/b"), parent.file("a/b-c/c"), parent.file("a/b/d")])
+        then:
+        set.flatten() == [childA.absolutePath, "1:b", "2:c", "3:a", "3:b", "2:d", "1:b-c/c"]
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
