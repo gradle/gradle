@@ -84,35 +84,14 @@ class NodeWithChildren extends AbstractNode {
     private <T> T handleChildren(String prefix, String path, ChildHandler<T> childHandler) {
         int startNextSegment = prefix.length() + 1;
 
-        int childIndex = binarySearchChildren(path, startNextSegment);
+        int childIndex = ListUtils.binarySearch(
+            children,
+            candidate -> compareWithCommonPrefix(candidate.getPrefix(), path, startNextSegment, File.separatorChar)
+        );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(startNextSegment, childIndex);
         }
         return childHandler.handleNewChild(startNextSegment, -childIndex - 1);
-    }
-
-    private int binarySearchChildren(String path, int startNextSegment) {
-        int low = 0;
-        int high = children.size() - 1;
-
-        while (low <= high) {
-            int mid = (low + high) >>> 1;
-            Node midVal = children.get(mid);
-            int cmp = sizeOfCommonPrefix(midVal.getPrefix(), path, startNextSegment, File.separatorChar, (commonPrefix, childSmaller) -> {
-                if (commonPrefix > 0) {
-                    return 0;
-                }
-                return childSmaller ? -1 : 1;
-            });
-
-            if (cmp < 0)
-                low = mid + 1;
-            else if (cmp > 0)
-                high = mid - 1;
-            else
-                return mid; // key found
-        }
-        return -(low + 1);  // key not found
     }
 
     @Override
