@@ -27,6 +27,7 @@ import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Assume
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -423,6 +424,8 @@ class DefaultFileHierarchySetTest extends Specification {
     }
 
     def "root is handled correctly"() {
+        Assume.assumeTrue("Root is only defined for the file separator '/'", File.separator == '/')
+
         when:
         def set = FileHierarchySet.EMPTY.update(new DirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
         then:
