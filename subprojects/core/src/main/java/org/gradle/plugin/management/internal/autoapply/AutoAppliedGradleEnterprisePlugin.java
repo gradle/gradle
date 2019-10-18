@@ -22,16 +22,18 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 /**
- * Auto-applied build-scan plugin information.
+ * Auto-applied Gradle Enterprise plugin information.
  *
  * Required by the {@code kotlin-dsl} module.
  */
-public final class AutoAppliedBuildScanPlugin {
+public final class AutoAppliedGradleEnterprisePlugin {
 
-    public static final PluginId ID = new DefaultPluginId("com.gradle.build-scan");
+    public static final PluginId ID = new DefaultPluginId("com.gradle.enterprise");
     public static final String GROUP = "com.gradle";
-    public static final String NAME = "build-scan-plugin";
-    public static final String VERSION = "2.4.2";
+    public static final String NAME = "gradle-enterprise-gradle-plugin";
+    public static final String VERSION = "3.0";
+
+    public static final PluginId BUILD_SCAN_PLUGIN_ID = new DefaultPluginId("com.gradle.build-scan");
 
     /**
      * Adds the {@code build-scan} plugin spec to the given {@link PluginDependenciesSpec} and returns the
@@ -39,7 +41,7 @@ public final class AutoAppliedBuildScanPlugin {
      *
      * @see PluginDependenciesSpec#id(String)
      */
-    public static PluginDependencySpec addBuildScanPluginDependencySpecTo(PluginDependenciesSpec plugins) {
+    public static PluginDependencySpec addTo(PluginDependenciesSpec plugins) {
         return plugins.id(ID.getId()).version(VERSION);
     }
 }

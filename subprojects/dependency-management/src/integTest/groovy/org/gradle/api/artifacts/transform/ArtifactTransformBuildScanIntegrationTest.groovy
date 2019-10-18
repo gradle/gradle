@@ -17,12 +17,10 @@
 package org.gradle.api.artifacts.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.fixtures.BuildScanPluginFixture
-import spock.lang.Ignore
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 
-@Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
 class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec {
-    def fixture = new BuildScanPluginFixture(testDirectory, mavenRepo, createExecuter())
+    def fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
 
     def setup() {
         settingsFile << fixture.pluginManagement() << """
@@ -30,7 +28,7 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
             include 'util'
         """
         fixture.logConfig = true
-        fixture.publishDummyBuildScanPluginNow()
+        fixture.publishDummyPluginNow()
     }
 
     def "transform works with build scan"() {

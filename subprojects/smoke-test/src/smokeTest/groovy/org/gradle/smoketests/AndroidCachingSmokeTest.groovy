@@ -43,6 +43,21 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         def commitId = git.repository.findRef("HEAD").objectId.name()
         println "> Building commit $commitId"
 
+        def buildDir = file("checkout/santa-tracker")
+        def buildFile = buildDir.file("build.gradle")
+
+        // TODO This should be done in https://github.com/gradle/android-relocation-test directly
+        buildFile.text -= """plugins {
+    id 'com.gradle.build-scan' version '2.1'
+}
+"""
+        buildFile.text -= """
+buildScan {
+    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+    termsOfServiceAgree = 'yes'
+    captureTaskInputFiles = true
+}"""
+
         expect:
         runner(
                 "check",

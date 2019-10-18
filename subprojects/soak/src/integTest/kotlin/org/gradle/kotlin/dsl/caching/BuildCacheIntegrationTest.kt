@@ -43,19 +43,20 @@ class BuildCacheIntegrationTest : AbstractScriptCachingIntegrationTest() {
 
         withLocalBuildCacheSettings(buildCacheDir)
 
-        withBuildScript("""
+        val settingsFile = existing("settings.gradle.kts")
+        settingsFile.writeText("""
             plugins {
-                `build-scan`
+                `gradle-enterprise`
             }
 
-            buildScan {
+            gradleEnterprise.buildScan {
                 termsOfServiceUrl = "https://gradle.com/terms-of-service"
                 termsOfServiceAgree = "yes"
             }
-        """)
+        """ + settingsFile.readText())
 
-        build("--scan", "--build-cache").apply {
-            assertThat(output, containsBuildScanPluginOutput())
+        build("--scan", "--build-cache", "-Dscan.dump").apply {
+            assertThat(output, containsString("Build scan written to"))
         }
     }
 

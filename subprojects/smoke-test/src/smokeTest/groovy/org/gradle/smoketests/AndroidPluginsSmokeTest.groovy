@@ -99,11 +99,9 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         if (pluginVersion == TestedVersions.androidGradle.latest()) {
             expectDeprecationWarnings(result,
                 "Property 'outputScope' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'tmpDir' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
                 "Property 'lintOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
                 "Property 'deviceProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
                 "Property 'testData' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.",
             )
         }
 
@@ -200,7 +198,6 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                 "Property 'excludeListProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
                 "Property 'packageNameSupplier' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
                 "Property 'lintOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.",
             )
         }
 

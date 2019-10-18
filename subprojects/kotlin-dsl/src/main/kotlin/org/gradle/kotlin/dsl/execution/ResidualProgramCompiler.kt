@@ -66,7 +66,7 @@ import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 
-import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.MultiPluginRequests
 
 import org.gradle.plugin.use.internal.PluginRequestCollector
 
@@ -310,7 +310,7 @@ class ResidualProgramCompiler(
         ALOAD(Vars.ProgramHost)
         ALOAD(Vars.ScriptHost)
         GETSTATIC(
-            DefaultPluginRequests::class.internalName,
+            MultiPluginRequests::class.internalName,
             "EMPTY",
             "Lorg/gradle/plugin/management/internal/PluginRequests;")
         invokeApplyPluginsTo()

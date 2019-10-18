@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.DefaultGradleRunner
@@ -78,7 +79,7 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of("3.4.2", "3.5.0", "3.6.0-alpha12")
+        static androidGradle = Versions.of("3.4.2", "3.5.1", "3.6.0-beta01")
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
         static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50')
@@ -147,8 +148,8 @@ abstract class AbstractSmokeTest extends Specification {
         buildFile = new File(testProjectDir.root, "${getDefaultBuildFileName()}.kts")
     }
 
-    File file(String filename) {
-        def file = new File(testProjectDir.root, filename)
+    TestFile file(String filename) {
+        def file = new TestFile(testProjectDir.root, filename)
         def parentDir = file.getParentFile()
         assert parentDir.isDirectory() || parentDir.mkdirs()
 

@@ -19,8 +19,36 @@ details of 1
 
 details of 2
 
+<<<<<<< HEAD
 ## n
 -->
+=======
+We would like to thank the following community contributors to this release of Gradle:
+
+[Nathan Strong](https://github.com/NathanStrong-Tripwire),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Daniel Santiago](https://github.com/danysantiago),
+[Tetsuya Ikenaga](https://github.com/ikngtty),
+[Sebastian Schuberth](https://github.com/sschuberth),
+[Andrey Mischenko](https://github.com/gildor),
+[Shintaro Katafuchi](https://github.com/hotchemi),
+[Alex Saveau](https://github.com/SUPERCILEX),
+[Mike Kobit](https://github.com/mkobit),
+[Tom Eyckmans](https://github.com/teyckmans),
+[Artur Dryomov](https://github.com/ming13),
+[szhem](https://github.com/szhem),
+[Nigel Banks](https://github.com/nigelgbanks),
+[Sergey Shatunov](https://github.com/Prototik),
+[Dan Sănduleac](https://github.com/dansanduleac),
+[Vladimir Sitnikov](https://github.com/vlsi),
+[Ross Goldberg](https://github.com/rgoldberg),
+[jutoft](https://github.com/jutoft),
+[Robin Verduijn](https://github.com/robinverduijn),
+[Pedro Tôrres](https://github.com/t0rr3sp3dr0),
+[Michael Berry](https://github.com/MikeBerryFR),
+[Evgeny Mandrikov](https://github.com/Godin),
+and [Robert Stupp](https://github.com/snazy).
+>>>>>>> release
 
 ## Upgrade Instructions
 
