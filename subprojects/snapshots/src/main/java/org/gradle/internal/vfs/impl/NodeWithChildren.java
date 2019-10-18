@@ -57,19 +57,12 @@ class NodeWithChildren extends AbstractNode {
                         if (children.size() == 1) {
                             return invalidatedChild.map(it -> new NodeWithChildren(getPrefix(), ImmutableList.of(it)));
                         }
-                        ImmutableList.Builder<Node> merged = ImmutableList.builderWithExpectedSize(
-                            invalidatedChild.isPresent()
-                                ? children.size()
-                                : children.size() - 1
-                        );
-                        if (childIndex > 0) {
-                            merged.addAll(children.subList(0, childIndex));
+                        List<Node> merged = new ArrayList<>(children);
+                        invalidatedChild.ifPresent(newChild -> merged.set(childIndex, newChild));
+                        if (!invalidatedChild.isPresent()) {
+                            merged.remove(childIndex);
                         }
-                        invalidatedChild.ifPresent(merged::add);
-                        if (childIndex + 1 < children.size()) {
-                            merged.addAll(children.subList(childIndex + 1, children.size()));
-                        }
-                        return Optional.of(new NodeWithChildren(getPrefix(), merged.build()));
+                        return Optional.of(new NodeWithChildren(getPrefix(), merged));
                     }
                 });
             }
@@ -102,30 +95,21 @@ class NodeWithChildren extends AbstractNode {
                 return handleChildren(getPrefix(), path, new ChildHandler<Node>() {
                     @Override
                     public Node handleNewChild(int startNextSegment, int insertBefore) {
-                        ImmutableList.Builder<Node> newChildren = ImmutableList.builder();
-                        if (insertBefore > 0) {
-                            newChildren.addAll(children.subList(0, insertBefore));
-                        }
-                        newChildren.add(new SnapshotNode(path.substring(startNextSegment), snapshot));
-                        if (insertBefore < children.size()) {
-                            newChildren.addAll(children.subList(insertBefore, children.size()));
-                        }
-
-                        return new NodeWithChildren(getPrefix(), newChildren.build());
+                        List<Node> newChildren = new ArrayList<>(children);
+                        newChildren.add(insertBefore, new SnapshotNode(path.substring(startNextSegment), snapshot));
+                        return new NodeWithChildren(getPrefix(), newChildren);
                     }
 
                     @Override
                     public Node handleChildOfExisting(int startNextSegment, int childIndex) {
-                        ImmutableList.Builder<Node> newChildren = ImmutableList.builder();
-                        if (childIndex > 0) {
-                            newChildren.addAll(children.subList(0, childIndex));
+                        Node child = children.get(childIndex);
+                        Node newChild = child.update(path.substring(startNextSegment), snapshot);
+                        if (children.size() == 1) {
+                            return new NodeWithChildren(getPrefix(), ImmutableList.of(newChild));
                         }
-                        newChildren.add(children.get(childIndex).update(path.substring(startNextSegment), snapshot));
-                        if (childIndex + 1 < children.size()) {
-                            newChildren.addAll(children.subList(childIndex + 1, children.size()));
-                        }
-
-                        return new NodeWithChildren(getPrefix(), newChildren.build());
+                        List<Node> merged = new ArrayList<>(children);
+                        merged.set(childIndex, newChild);
+                        return new NodeWithChildren(getPrefix(), merged);
                     }
                 });
             }
