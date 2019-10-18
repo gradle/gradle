@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -33,6 +34,11 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder
+    TestFile homeDir
+
+    def setup() {
+        homeDir = temporaryFolder.createDir("test-kit-home")
+    }
 
     def "check deprecation warnings produced by building Santa Tracker"() {
         def checkoutDir = temporaryFolder.createDir ("checkout")
@@ -99,8 +105,9 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult buildLocation(File projectDir) {
-        runner("assembleDebug", "--scan")
+        runner("assembleDebug", "--scan", "-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false")
             .withProjectDir(projectDir)
+            .withTestKitDir(homeDir)
             .forwardOutput()
             .build()
     }
