@@ -16,7 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
@@ -29,7 +29,7 @@ import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
-@CleanupTestDirectory
+@LeaksFileHandles("TestKit locks stay in place")
 class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder
