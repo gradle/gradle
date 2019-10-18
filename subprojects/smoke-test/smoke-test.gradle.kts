@@ -100,6 +100,7 @@ plugins.withType<EclipsePlugin>().configureEach { // lazy as plugin not applied 
 tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri.set("https://github.com/gradle/santa-tracker-android.git")
+        // From branch agp-3.6.0
         ref.set("036aad22af993d2f564a6a15d6a7b9706ba37d8e")
     }
 

@@ -73,17 +73,16 @@ tasks {
      */
     val gitUri = "https://github.com/gradle/santa-tracker-android.git"
 
-    val javaBranch = "agp-3.6.0-java"
-    val kotlinBranch = "agp-3.6.0"
-
     val santaTrackerJava by registering(RemoteProject::class) {
         remoteUri.set(gitUri)
-        branch.set(javaBranch)
+        // From agp-3.6.0-java branch
+        ref.set("b71104d9f644a21f8056deea4d3703fac58c3a72")
     }
 
     val santaTrackerKotlin by registering(RemoteProject::class) {
         remoteUri.set(gitUri)
-        branch.set(kotlinBranch)
+        // From agp-3.6.0 branch
+        ref.set("036aad22af993d2f564a6a15d6a7b9706ba37d8e")
     }
 
     if (BuildEnvironment.isCiServer) {
