@@ -55,7 +55,13 @@ class DefaultWestlineServiceFactory(
         configuration.execute(DefaultWestlineServiceSpec(parameters))
         val isolatedParameters = isolatableFactory.isolate(parameters)
 
-        return WestlineServiceProvider(serviceType, parameterType, isolatedParameters, instantiatorFactory, listenerManager)
+        return WestlineServiceProvider(
+            serviceType,
+            parameterType,
+            isolatedParameters,
+            instantiatorFactory,
+            listenerManager
+        )
     }
 
     private
