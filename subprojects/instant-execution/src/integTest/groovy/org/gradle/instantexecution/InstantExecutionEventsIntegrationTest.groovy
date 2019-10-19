@@ -17,13 +17,103 @@
 package org.gradle.instantexecution
 
 
-class InstantExecutionEventsIntegrationTest extends AbstractInstantExecutionIntegrationTest  {
+// TODO experiment with event types instead of event functions
+// TODO then play with reifying event types
+class InstantExecutionEventsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    // TODO: logging from beforeTask and afterTask
     // TODO: failing from beforeTask
     // TODO: failing from afterTask
-    // TODO: sharing state between beforeTask and afterTask using a WestlineService
     // TODO: afterAllTasks: set lava lamp color when tasks complete (red / green)
+    // TODO how to annotate task instances and gather that in event handlers?
+
+    def "gathering profiling data"() {
+
+        // TODO add build option to conditionally enable profiling data gathering
+        given:
+        buildKotlinFile """
+       
+            import org.gradle.api.westline.*
+            import org.gradle.api.westline.events.*
+            import org.gradle.kotlin.dsl.support.*
+             
+            abstract class ProfilerService : WestlineService<ProfilerParameters>, AutoCloseable {
+            
+                fun taskStarted(signal: TaskStarted) {
+                    println(signal)
+                }
+                
+                fun taskEnded(signal: TaskEnded) {
+                    println(signal)
+                }
+                
+                override fun close() {
+                    println("Saving profiling data to " + parameters.outputFile.get().asFile)
+                }
+            }
+            
+            data class TaskStarted(val path: String, val timestamp: Long)
+            data class TaskEnded(val path: String, val timestamp: Long, val outcome: String)
+            
+            interface ProfilerParameters : WestlineServiceParameters {
+                val outputFile: RegularFileProperty
+            }
+            
+            val serviceFactory = project.serviceOf<WestlineServiceFactory>()
+            val profilerProvider = serviceFactory.createProviderOf(ProfilerService::class) {
+                parameters.outputFile.set(layout.buildDirectory.file("profiler-output.json"))
+            }
+  
+            interface TaskProfilerParameters : WestlineListenerParameters {
+                val profiler: Property<ProfilerService>
+            }
+            abstract class ProfilerBeforeTaskListener : WestlineBeforeTaskListener<TaskProfilerParameters> {
+                override fun beforeTask(taskInfo: WestlineTaskInfo) {
+                    parameters.profiler.get().taskStarted(
+                        TaskStarted(taskInfo.path, 1L)
+                    )
+                }
+            }
+            abstract class ProfilerAfterTaskListener : WestlineAfterTaskListener<TaskProfilerParameters> {
+                override fun afterTask(taskInfo: WestlineTaskInfo, taskResult: WestlineTaskExecutionResult) {
+                    parameters.profiler.get().taskEnded(
+                        TaskEnded(taskInfo.path, 2L, taskResult.outcome)
+                    )
+                }
+            }
+            
+            project.serviceOf<WestlineEvents>().apply {
+                beforeTask(ProfilerBeforeTaskListener::class) {
+                    parameters.profiler.set(profilerProvider)
+                }
+                afterTask(ProfilerAfterTaskListener::class) {
+                    parameters.profiler.set(profilerProvider)
+                }
+            } 
+            
+            tasks.register("task") {
+                doLast { println("Action!") }
+            }
+        """
+
+        when:
+        instantRun "task"
+
+        then:
+        def started = "TaskStarted(path=:task, timestamp=1)"
+        def action = "Action!"
+        def ended = "TaskEnded(path=:task, timestamp=2, outcome=SUCCESS)"
+        def saved = "Saving profiling data to"
+        output.count(started) == 1
+        output.count(action) == 1
+        output.count(ended) == 1
+        output.count(saved) == 1
+
+        and:
+        output.indexOf(started) < output.indexOf(action)
+        output.indexOf(action) < output.indexOf(ended)
+        output.indexOf(ended) < output.indexOf(saved)
+    }
+
     def "logging from beforeTask and afterTask"() {
         given:
         buildKotlinFile """
