@@ -16,7 +16,93 @@
 
 package org.gradle.instantexecution
 
+import spock.lang.Ignore
+
 class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+
+    // TODO: logging from beforeTask and afterTask
+    // TODO: failing from beforeTask
+    // TODO: failing from afterTask
+    // TODO: sharing state between beforeTask and afterTask using a WestlineService
+    // TODO: afterAllTasks: set lava lamp color when tasks complete (red / green)
+    @Ignore
+    def "logging from beforeTask and afterTask"() {
+        given:
+        buildKotlinFile """
+
+            import org.gradle.kotlin.dsl.support.*
+            import kotlin.reflect.KClass
+            import javax.inject.Inject
+            
+            interface WestlineEvents {
+                fun <L : WestlineBeforeTaskListener<P>, P : WestlineListenerParameters> beforeTask(
+                    listenerType: KClass<L>,
+                    configuration: WestlineListenerSpec<P>.() -> Unit
+                )
+                fun <L : WestlineAfterTaskListener<P>, P : WestlineListenerParameters> afterTask(
+                    listenerType: KClass<L>,
+                    configuration: WestlineListenerSpec<P>.() -> Unit
+                )
+            }
+            
+            interface WestlineTaskInfo { val path: String }
+            interface WestlineTaskExecutionResult { val outcome: String }
+            interface WestlineListener<P : WestlineListenerParameters> {
+                @get:Inject
+                val parameters: P
+            }
+            interface WestlineListenerParameters
+            interface WestlineListenerSpec<P : WestlineListenerParameters> {
+                @get:Inject
+                val parameters: P
+            }
+            interface WestlineBeforeTaskListener<P : WestlineListenerParameters> : WestlineListener<P> {
+               fun beforeTask(taskInfo: WestlineTaskInfo) 
+            }
+            interface WestlineAfterTaskListener<P : WestlineListenerParameters> : WestlineListener<P> {
+                fun afterTask(taskInfo: WestlineTaskInfo, taskExecutionResult: WestlineTaskExecutionResult)
+            }
+            
+            interface MyBeforeTaskParameters : WestlineListenerParameters { val prompt: Property<String> }
+            abstract class MyBeforeTaskListener : WestlineBeforeTaskListener<MyBeforeTaskParameters> {
+                override fun beforeTask(taskInfo: WestlineTaskInfo) {
+                    println(parameters.prompt.get() + " beforeTask " + taskInfo.path)
+                }
+            }
+            
+            interface MyAfterTaskParameters : WestlineListenerParameters { val prompt: Property<String> }
+            abstract class MyAfterTaskListener : WestlineAfterTaskListener<MyAfterTaskParameters> {
+                override fun afterTask(taskInfo: WestlineTaskInfo, taskExecutionResult: WestlineTaskExecutionResult) {
+                    println(parameters.prompt.get() + " afterTask " + taskInfo.path + " " + taskExecutionResult.outcome)
+                }
+            }
+            
+            project.serviceOf<WestlineEvents>().apply {
+                beforeTask(MyBeforeTaskListener::class) {
+                    parameters.prompt.set("> ")
+                }
+                afterTask(MyAfterTaskListener::class) {
+                    parameters.prompt.set("< ")
+                }
+            } 
+            
+            tasks.register("task") {
+                doLast { println("Action!") }
+            }
+        """
+
+        when:
+        instantRun "task"
+
+        then:
+        output.count("> beforeTask :task") == 1
+        output.count("Action!") == 1
+        output.count("< afterTask :task SUCCESS") == 1
+
+        and:
+        output.indexOf("Action!") > output.indexOf("> beforeTask :task")
+        output.indexOf("Action!") < output.indexOf("< afterTask :task")
+    }
 
     def "westline services"() {
 
