@@ -18,9 +18,14 @@ package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.intellij.lang.annotations.Language
 
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
+
+    void buildKotlinFile(@Language("kotlin") String script) {
+        buildKotlinFile << script
+    }
 
     void instantRun(String... args) {
         run(INSTANT_EXECUTION_PROPERTY, *args)

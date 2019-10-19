@@ -21,11 +21,9 @@ class InstantExecutionServicesIntegrationTest extends AbstractInstantExecutionIn
     def "westline services"() {
 
         given:
-        buildKotlinFile.text = """
+        buildKotlinFile """
             import java.util.concurrent.*
             import org.gradle.api.westline.*
-            import javax.inject.Inject
-            import kotlin.reflect.KClass
             import org.gradle.kotlin.dsl.support.*
 
             val serviceFactory = project.serviceOf<WestlineServiceFactory>()

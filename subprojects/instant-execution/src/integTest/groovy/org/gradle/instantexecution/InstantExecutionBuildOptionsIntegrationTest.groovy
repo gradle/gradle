@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.intellij.lang.annotations.Language
 import spock.lang.Unroll
 
 class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -103,9 +102,5 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         expression                                     | usage
         "isCi.map(String::toBoolean).getOrElse(false)" | "value"
         "isCi.isPresent"                               | "presence"
-    }
-
-    void buildKotlinFile(@Language("kotlin") String script) {
-        buildKotlinFile << script
     }
 }
