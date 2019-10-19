@@ -16,6 +16,8 @@
 import accessors.groovy
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.versioning.DetermineCommitId
+import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 plugins {
     `java-library`
@@ -51,16 +53,10 @@ dependencies {
     smokeTestImplementation(library("jgit"))
     smokeTestImplementation(testLibrary("spock"))
 
-    smokeTestRuntimeOnly(project(":kotlinDsl"))
-    smokeTestRuntimeOnly(project(":codeQuality"))
-    smokeTestRuntimeOnly(project(":ide"))
-    smokeTestRuntimeOnly(project(":ivy"))
-    smokeTestRuntimeOnly(project(":jacoco"))
-    smokeTestRuntimeOnly(project(":maven"))
-    smokeTestRuntimeOnly(project(":plugins"))
-    smokeTestRuntimeOnly(project(":pluginDevelopment"))
-    smokeTestRuntimeOnly(project(":toolingApiBuilders"))
-    smokeTestRuntimeOnly(project(":testingJunitPlatform"))
+    val allTestRuntimeDependencies: DependencySet by rootProject.extra
+    allTestRuntimeDependencies.forEach {
+        smokeTestRuntimeOnly(it)
+    }
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":versionControl")))
@@ -92,4 +88,12 @@ plugins.withType<EclipsePlugin>().configureEach { // lazy as plugin not applied 
         plusConfigurations.add(smokeTestCompileClasspath)
         plusConfigurations.add(smokeTestRuntimeClasspath)
     }
+}
+
+val gradleBuildCurrent by tasks.registering(RemoteProject::class) {
+    remoteUri.set(rootDir.absolutePath)
+    ref.set(rootProject.tasks.named<DetermineCommitId>("determineCommitId").flatMap { it.determinedCommitId })
+}
+tasks.named("smokeTest") {
+    dependsOn(gradleBuildCurrent)
 }
