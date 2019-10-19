@@ -16,6 +16,16 @@
 
 package org.gradle.api.westline.events;
 
+import org.gradle.api.Incubating;
+
+
+/**
+ * A definition for a {@link WestlineListener}.
+ *
+ * @param <P> the parameter type for the listener
+ * @since 6.1
+ */
+@Incubating
 public interface WestlineListenerSpec<P extends WestlineListenerParameters> {
     P getParameters();
 }

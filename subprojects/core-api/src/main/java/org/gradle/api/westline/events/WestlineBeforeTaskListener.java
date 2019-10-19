@@ -16,6 +16,16 @@
 
 package org.gradle.api.westline.events;
 
+import org.gradle.api.Incubating;
+
+
+/**
+ * Before task listener.
+ *
+ * @param <P> the parameter type for this listener
+ * @since 6.1
+ */
+@Incubating
 public interface WestlineBeforeTaskListener<P extends WestlineListenerParameters> extends WestlineListener<P> {
     void beforeTask(WestlineTaskInfo taskInfo);
 }

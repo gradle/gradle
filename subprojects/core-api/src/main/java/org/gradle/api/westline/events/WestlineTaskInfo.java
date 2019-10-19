@@ -16,6 +16,15 @@
 
 package org.gradle.api.westline.events;
 
+import org.gradle.api.Incubating;
+
+
+/**
+ * Task information.
+ *
+ * @since 6.1
+ */
+@Incubating
 public class WestlineTaskInfo {
     private final String path;
 

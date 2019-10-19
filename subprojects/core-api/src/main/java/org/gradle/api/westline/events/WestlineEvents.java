@@ -17,7 +17,15 @@
 package org.gradle.api.westline.events;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
+
+/**
+ * Register event listeners.
+ *
+ * @since 6.1
+ */
+@Incubating
 public interface WestlineEvents {
 
     <L extends WestlineBeforeTaskListener<P>, P extends WestlineListenerParameters>

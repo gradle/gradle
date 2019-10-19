@@ -16,5 +16,14 @@
 
 package org.gradle.api.westline.events;
 
+import org.gradle.api.Incubating;
+
+
+/**
+ * Marker interface for the parameters of a {@link WestlineListener} implementation.
+ *
+ * @since 6.1
+ */
+@Incubating
 public interface WestlineListenerParameters {
 }

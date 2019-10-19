@@ -16,8 +16,18 @@
 
 package org.gradle.api.westline.events;
 
+import org.gradle.api.Incubating;
+
 import javax.inject.Inject;
 
+
+/**
+ * A listener.
+ *
+ * @param <P> the parameter type for this listener
+ * @since 6.1
+ */
+@Incubating
 public interface WestlineListener<P extends WestlineListenerParameters> {
 
     @Inject

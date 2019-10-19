@@ -16,6 +16,15 @@
 
 package org.gradle.api.westline.events;
 
+import org.gradle.api.Incubating;
+
+
+/**
+ * Task execution result.
+ *
+ * @since 6.1
+ */
+@Incubating
 public class WestlineTaskExecutionResult {
     private final String outcome;
 
