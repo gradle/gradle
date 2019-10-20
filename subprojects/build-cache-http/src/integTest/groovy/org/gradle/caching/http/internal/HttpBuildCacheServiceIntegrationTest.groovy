@@ -17,6 +17,7 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
@@ -66,6 +67,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":compileJava"
     }
 
+    @FailsWithInstantExecution
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
@@ -77,6 +79,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().run "run"
     }
 
+    @FailsWithInstantExecution
     def "tasks get cached when source code changes back to previous state"() {
         expect:
         withBuildCache().run "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
@@ -103,6 +106,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executedAndNotSkipped ":clean"
     }
 
+    @FailsWithInstantExecution
     def "cacheable task with cache disabled doesn't get cached"() {
         buildFile << """
             compileJava.outputs.cacheIf { false }
@@ -118,6 +122,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executedAndNotSkipped ":compileJava"
     }
 
+    @FailsWithInstantExecution
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """
@@ -239,6 +244,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped(":compileJava")
     }
 
+    @FailsWithInstantExecution
     def "produces deprecation warning when using plain HTTP"() {
         httpBuildCacheServer.useHostname()
         settingsFile.text = useHttpBuildCache(httpBuildCacheServer.uri)
