@@ -40,7 +40,7 @@ class PerformanceTestBuildTypeTest {
                 specificBuilds = listOf(
                         SpecificBuild.BuildDistributions,
                         SpecificBuild.Gradleception,
-                        SpecificBuild.SmokeTests),
+                        SpecificBuild.SmokeTestsMinJavaVersion),
                 functionalTests = listOf(
                         TestCoverage(1, TestType.platform, Os.linux, JvmVersion.java8),
                         TestCoverage(2, TestType.platform, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
