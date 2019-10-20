@@ -20,6 +20,7 @@ import org.gradle.cache.internal.DefaultPersistentDirectoryStore
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import spock.lang.Ignore
@@ -69,6 +70,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         """
     }
 
+    @FailsWithInstantExecution
     def "cleans up entries"() {
         executer.requireIsolatedDaemons() // needs to stop daemon
         requireOwnGradleUserHomeDir() // needs its own journal
@@ -113,6 +115,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         days << [-1, 0]
     }
 
+    @FailsWithInstantExecution
     def "build cache cleanup is triggered after max number of hours expires"() {
         run()
         def originalCheckTime = gcFile().lastModified()
@@ -149,6 +152,7 @@ class DirectoryBuildCacheCleanupIntegrationTest extends AbstractIntegrationSpec 
         assertCacheWasCleanedUpSince(lastCleanupCheck)
     }
 
+    @FailsWithInstantExecution
     def "buildSrc does not try to clean build cache"() {
         // Copy cache configuration
         file("buildSrc/settings.gradle").text = settingsFile.text
