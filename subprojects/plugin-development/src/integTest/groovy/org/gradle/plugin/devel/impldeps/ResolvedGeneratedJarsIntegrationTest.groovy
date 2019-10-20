@@ -16,12 +16,11 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 import java.util.zip.ZipFile
 
-class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegrationTest {
+class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeIntegrationTest {
 
     def setup() {
         executer.requireOwnGradleUserHomeDir()
@@ -92,37 +91,4 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsIntegration
             }
         } == []
     }
-
-    private TestFile productionCode() {
-        file("src/main/java/org/acme/TestPlugin.java") << """
-        package org.acme;
-        import org.gradle.api.Project;
-        import org.gradle.api.Plugin;
-
-        public class TestPlugin implements Plugin<Project> {
-            public void apply(Project p) {}
-        }
-        """
-    }
-
-    private TestFile testCode() {
-        file("src/test/java/org/acme/BaseTestPluginTest.java") << """
-        package org.acme;
-        import org.gradle.testkit.runner.GradleRunner;
-        import org.junit.Test;
-        import static org.junit.Assert.assertTrue;
-        
-        public abstract class BaseTestPluginTest {
-            GradleRunner runner() {
-                return GradleRunner.create();
-            }
-
-            @Test 
-            void commonTest() {
-                assertTrue(true);
-            }         
-        }
-        """
-    }
-
 }
