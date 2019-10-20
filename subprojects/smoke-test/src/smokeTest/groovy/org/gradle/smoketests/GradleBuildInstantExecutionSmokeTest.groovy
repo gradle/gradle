@@ -31,7 +31,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         new TestFile("build/gradleBuildCurrent").copyTo(testProjectDir.root)
 
         and:
-        def supportedTasks = ["help"]
+        def supportedTasks = [":baseServices:test"]
 
         when:
         def result = instantRun(*supportedTasks)
