@@ -17,6 +17,7 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -259,6 +260,7 @@ The following types/formats are supported:
     }
 
     @Unroll
+    @FailsWithInstantExecution
     void 'non-primitive types can accept null values'() {
         when:
         buildFile << CLASSES
@@ -320,6 +322,7 @@ The following types/formats are supported:
     }
 
     @Unroll
+    @FailsWithInstantExecution
     void 'boolean types are only true for the literal string "true"'() {
         when:
         buildFile << CLASSES
@@ -344,6 +347,7 @@ The following types/formats are supported:
         'false' | false
     }
 
+    @FailsWithInstantExecution
     void 'can convert CharSequence to any scalar type'() {
         when:
         buildFile << CLASSES
@@ -402,6 +406,7 @@ The following types/formats are supported:
         output.contains 'prop theThing     : NOT_A_TOASTER'
     }
 
+    @FailsWithInstantExecution
     void 'scalar conversion works from a Groovy RuleSource'() {
         when:
         buildFile << CLASSES
@@ -428,6 +433,7 @@ The following types/formats are supported:
         output.contains 'prop theThing     : null'
     }
 
+    @FailsWithInstantExecution
     void 'can convert CharSequence to File'() {
         when:
         buildFile << '''
@@ -508,6 +514,7 @@ The following types/formats are supported:
         output.contains '4: true'
     }
 
+    @FailsWithInstantExecution
     void 'CharSequence to File error cases'() {
         given:
         String model = '''
@@ -559,6 +566,7 @@ The following types/formats are supported:
   - A File'''))
     }
 
+    @FailsWithInstantExecution
     void 'can convert CharSequence to File for multi-project build'() {
 
         given:

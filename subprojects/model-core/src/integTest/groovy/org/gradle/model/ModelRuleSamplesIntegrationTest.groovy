@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
@@ -26,6 +27,7 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
     @Rule Sample sample = new Sample(testDirectoryProvider)
 
     @UsesSample("modelRules/modelDsl")
+    @FailsWithInstantExecution
     def "dsl creation example works"() {
         when:
         sample sample

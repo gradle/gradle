@@ -17,9 +17,11 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
+    @FailsWithInstantExecution
     def "can use property as task input"() {
         given:
         taskTypeWritesPropertyValueToFile()
@@ -273,6 +275,7 @@ task thing {
         output.contains("prop = null")
     }
 
+    @FailsWithInstantExecution
     def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
@@ -292,6 +295,7 @@ task thing(type: SomeTask) {
         failure.assertHasCause("broken")
     }
 
+    @FailsWithInstantExecution
     def "task @Input property calculation is called once only when task executes"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
@@ -326,6 +330,7 @@ task thing(type: SomeTask) {
         output.count("calculating value") == 0
     }
 
+    @FailsWithInstantExecution
     def "does not calculate task @Input property value when task is skipped due to @SkipWhenEmpty on another property"() {
         buildFile << """
 

@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 class ScalarCollectionIntegrationTest extends AbstractIntegrationSpec {
@@ -53,6 +54,7 @@ apply plugin: Rules
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can view #{type.name} as ModelElement"() {
         given:
         buildFile << """
