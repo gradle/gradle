@@ -64,7 +64,7 @@ import java.util.Set;
  * Represents a node in the dependency graph.
  */
 public class NodeState implements DependencyGraphNode {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeState.class);
     private final Long resultId;
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = Lists.newArrayList();
