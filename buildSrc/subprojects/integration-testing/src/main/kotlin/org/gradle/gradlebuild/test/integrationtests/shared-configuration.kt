@@ -15,7 +15,7 @@ import java.io.File
 
 
 enum class TestType(val prefix: String, val executers: List<String>, val libRepoRequired: Boolean) {
-    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel"), false),
+    INTEGRATION("integ", listOf("embedded", "forking", "noDaemon", "parallel", "instant"), false),
     CROSSVERSION("crossVersion", listOf("embedded", "forking"), true)
 }
 
