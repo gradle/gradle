@@ -17,6 +17,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.hamcrest.Matcher
 import spock.lang.Unroll
@@ -28,6 +29,7 @@ import static org.hamcrest.CoreMatchers.not
 
 class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
+    @FailsWithInstantExecution
     def "init shows up on tasks overview "() {
         given:
         targetDir.file("settings.gradle").touch()
@@ -40,6 +42,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "creates a simple project with #scriptDsl build scripts when no pom file present and no type specified"() {
         given:
         def dslFixture = dslFixtureFor(scriptDsl)
