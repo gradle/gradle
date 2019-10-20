@@ -19,7 +19,6 @@ package org.gradle.api.internal.runtimeshaded;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
@@ -67,6 +66,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import static java.util.Arrays.asList;
 
 class RuntimeShadedJarCreator {
 
@@ -254,7 +254,7 @@ class RuntimeShadedJarCreator {
 
     private void processServiceDescriptor(InputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
         String descriptorName = zipEntry.getName().substring(SERVICES_DIR_PREFIX.length());
-        String descriptorApiClass = periodsToSlashes(descriptorName);
+        String descriptorApiClass = periodsToSlashes(descriptorName)[0];
         String relocatedApiClassName = remapper.maybeRelocateResource(descriptorApiClass);
         if (relocatedApiClassName == null) {
             relocatedApiClassName = descriptorApiClass;
@@ -262,29 +262,34 @@ class RuntimeShadedJarCreator {
 
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         String entry = new String(bytes, Charsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
-        String descriptorImplClass = periodsToSlashes(entry);
-        String relocatedImplClassName = remapper.maybeRelocateResource(descriptorImplClass);
-        if (relocatedImplClassName == null) {
-            relocatedImplClassName = descriptorImplClass;
+
+        String[] descriptorImplClasses = periodsToSlashes( separateLines( entry ) );
+        String[] relocatedImplClassNames = maybeRelocateResource(descriptorImplClasses);
+        if (relocatedImplClassNames == null || relocatedImplClassNames.length == 0) {
+            relocatedImplClassNames = descriptorImplClasses;
         }
 
-        String serviceType = slashesToPeriods(relocatedApiClassName);
-        String serviceProvider = slashesToPeriods(relocatedImplClassName).trim();
+        String serviceType = slashesToPeriods(relocatedApiClassName)[0];
+        String[] serviceProviders = slashesToPeriods(relocatedImplClassNames);
 
         if (!services.containsKey(serviceType)) {
-            services.put(serviceType, Lists.newArrayList(serviceProvider));
+            services.put(serviceType, asList( serviceProviders ));
         } else {
             List<String> providers = services.get(serviceType);
-            providers.add(serviceProvider);
+            providers.addAll( asList( serviceProviders ) );
         }
     }
 
-    private String slashesToPeriods(String slashClassName) {
-        return slashClassName.replace('/', '.');
+    private String[] slashesToPeriods(String... slashClassNames) {
+        return asList( slashClassNames ).stream().filter(clsName -> clsName != null)
+            .map(clsName ->  clsName.replace('/', '.')).map(String::trim)
+            .toArray(String[]::new);
     }
 
-    private String periodsToSlashes(String periodClassName) {
-        return periodClassName.replace('.', '/');
+    private String[] periodsToSlashes(String... periodClassNames) {
+        return asList(periodClassNames).stream().filter(clsName -> clsName != null)
+            .map(clsName ->  clsName.replace('.', '/'))
+            .toArray( String[]::new );
     }
 
     private void copyEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
@@ -447,5 +452,15 @@ class RuntimeShadedJarCreator {
                 }
             };
         }
+    }
+
+    private String[] maybeRelocateResource(String... resources) {
+        return asList( resources ).stream( ).filter( resource -> resource != null )
+            .map( resource ->  remapper.maybeRelocateResource( resource ) )
+            .toArray( String[]::new );
+    }
+
+    private String[] separateLines( String entry ){
+        return entry.split( "\\n");
     }
 }
