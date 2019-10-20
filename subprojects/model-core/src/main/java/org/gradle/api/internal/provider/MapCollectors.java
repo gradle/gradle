@@ -18,6 +18,8 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 
@@ -62,8 +64,7 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -120,8 +121,7 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -208,8 +208,8 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return providerOfValue.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            providerOfValue.visitProducerTasks(visitor);
         }
 
         @Override
@@ -264,8 +264,7 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -330,8 +329,8 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return providerOfEntries.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            providerOfEntries.visitProducerTasks(visitor);
         }
 
         @Override
@@ -377,8 +376,7 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override

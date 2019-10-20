@@ -60,9 +60,4 @@ public class SystemPropertyProvider extends AbstractReadOnlyProvider<String> {
     public boolean isValueProducedByTask() {
         return true;
     }
-
-    @Override
-    public boolean isContentProducedByTask() {
-        return true;
-    }
 }

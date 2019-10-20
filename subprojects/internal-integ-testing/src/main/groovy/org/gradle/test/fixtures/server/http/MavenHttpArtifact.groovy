@@ -41,6 +41,16 @@ class MavenHttpArtifact extends HttpArtifact {
     }
 
     @Override
+    protected TestFile getSha256File() {
+        backingModule.getSha256File(file)
+    }
+
+    @Override
+    protected TestFile getSha512File() {
+        backingModule.getSha512File(file)
+    }
+
+    @Override
     String getPath() {
         return "${modulePath}/${backingArtifact.path}"
     }

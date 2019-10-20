@@ -28,6 +28,8 @@ import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
+import org.gradle.internal.Factory
+import org.gradle.util.DeprecationLogger
 import java.io.IOException
 import java.util.concurrent.Callable
 import java.util.function.Supplier
@@ -59,7 +61,8 @@ class BeanPropertyWriter(
     private
     fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
         is Property<*> -> {
-            if (!fieldValue.uncheckedCast<ProviderInternal<*>>().isPresentInternal) {
+            val present = DeprecationLogger.whileDisabled(Factory { fieldValue.uncheckedCast<ProviderInternal<*>>().isPresentInternal })!!
+            if (!present) {
                 // TODO - disallow using convention mapping + property types
                 val convention = conventionalValueOf(bean, fieldName)
                 if (convention != null) {

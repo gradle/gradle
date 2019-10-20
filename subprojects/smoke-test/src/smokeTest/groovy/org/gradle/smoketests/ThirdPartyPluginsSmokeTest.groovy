@@ -16,6 +16,8 @@
 
 package org.gradle.smoketests
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
@@ -353,6 +355,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.github.spotbugs')
+    @Requires(TestPrecondition.JDK11_OR_EARLIER)
     def 'spotbugs plugin'() {
         given:
         buildFile << """

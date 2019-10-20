@@ -76,11 +76,15 @@ class AbstractIntegrationSpec extends Specification {
     private IvyFileRepository ivyRepo
 
     protected int maxHttpRetries = 1
+    protected Integer maxUploadAttempts
 
     def setup() {
         m2.isolateMavenLocalRepo(executer)
         executer.beforeExecute {
             executer.withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
+            if (maxUploadAttempts != null) {
+                executer.withArgument("-Dorg.gradle.internal.network.retry.max.attempts=$maxUploadAttempts")
+            }
         }
     }
 

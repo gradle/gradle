@@ -107,4 +107,12 @@ public class HashUtil {
         return createHash(file, "SHA-256");
     }
 
+    public static HashValue sha512(InputStream inputStream) {
+        return createHash(inputStream, "SHA-512");
+    }
+
+    public static HashValue sha512(File file) {
+        return createHash(file, "SHA-512");
+    }
+
 }

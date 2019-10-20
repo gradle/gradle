@@ -82,8 +82,12 @@ uploadArchives {
         server.authenticationScheme = authScheme
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
         executer.expectDeprecationWarning()
@@ -210,8 +214,12 @@ uploadArchives {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPut()
+        module.ivy.sha512.expectPut()
 
         when:
         executer.expectDeprecationWarning()
@@ -260,8 +268,12 @@ uploadTools {
         and:
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
         run 'uploadTools'

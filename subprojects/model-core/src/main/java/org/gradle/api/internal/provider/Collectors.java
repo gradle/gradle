@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.DisplayName;
@@ -57,8 +59,7 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -106,8 +107,7 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -182,8 +182,8 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return providerOfElement.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            providerOfElement.visitProducerTasks(visitor);
         }
 
         @Override
@@ -248,8 +248,7 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -319,8 +318,8 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return provider.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            provider.visitProducerTasks(visitor);
         }
 
         @Override
@@ -353,7 +352,7 @@ public class Collectors {
         @Override
         public int size() {
             if (provider instanceof CollectionProviderInternal) {
-                return ((CollectionProviderInternal)provider).size();
+                return ((CollectionProviderInternal) provider).size();
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -386,8 +385,7 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -437,8 +435,7 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -489,7 +486,7 @@ public class Collectors {
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>)delegate).isProvidedBy(provider);
+            return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>) delegate).isProvidedBy(provider);
         }
 
         @Override
@@ -503,8 +500,8 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return delegate.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            delegate.visitProducerTasks(visitor);
         }
 
         @Override

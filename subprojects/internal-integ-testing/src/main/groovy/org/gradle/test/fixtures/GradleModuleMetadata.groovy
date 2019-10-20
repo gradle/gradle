@@ -188,7 +188,7 @@ class GradleModuleMetadata {
         }
 
         List<File> getFiles() {
-            return (values.files ?: []).collect { new File(it.name, it.url, it.size, new HashValue(it.sha1), new HashValue(it.md5)) }
+            return (values.files ?: []).collect { new File(it.name, it.url, it.size, new HashValue(it.sha1), new HashValue(it.md5), new HashValue(it.sha256), new HashValue(it.sha512)) }
         }
 
         DependencyView dependency(String group, String module, String version, @DelegatesTo(value=DependencyView, strategy= Closure.DELEGATE_FIRST) Closure<Void> action = { exists() }) {
@@ -499,18 +499,22 @@ class GradleModuleMetadata {
         final String url
         final long size
         final HashValue sha1
+        final HashValue sha256
+        final HashValue sha512
         final HashValue md5
 
-        File(String name, String url, long size, HashValue sha1, HashValue md5) {
+        File(String name, String url, long size, HashValue sha1, HashValue md5, HashValue sha256, HashValue sha512) {
             this.name = name
             this.url = url
             this.size = size
             this.sha1 = sha1
             this.md5 = md5
+            this.sha256 = sha256
+            this.sha512 = sha512
         }
 
         String toString() {
-            "name($name) URL($url) size($size) sha1($sha1) md5($md5)"
+            "name($name) URL($url) size($size) sha1($sha1) sha256($sha256) sha512($sha512) md5($md5)"
         }
     }
 
