@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ResultsStoreHelper {
-    private static final String SYSPROP_PERFORMANCE_TEST_CHANNEL = "org.gradle.performance.execution.channel";
+    public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL = "org.gradle.performance.execution.channel";
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultsStoreHelper.class);
 
     public static List<String> split(String string) {

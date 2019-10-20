@@ -200,23 +200,6 @@ class GradleInternalCrossVersionPerformanceTestRunnerTest extends ResultSpecific
         }
     }
 
-    def "ignores baseline version if it has the same base as the version under test"() {
-        given:
-        def runner = runner()
-        runner.targetVersions = ['1.0', currentBaseVersion, MOST_RECENT_RELEASE, 'last']
-
-        when:
-        def results = runner.run()
-
-        then:
-        results.baselineVersions*.version == ['1.0', MOST_RECENT_RELEASE]
-
-        and:
-        3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
-            result.add(operation(totalTime: Duration.seconds(10)))
-        }
-    }
-
     def "uses RC when requested baseline version has not been released"() {
         given:
         def runner = runner()

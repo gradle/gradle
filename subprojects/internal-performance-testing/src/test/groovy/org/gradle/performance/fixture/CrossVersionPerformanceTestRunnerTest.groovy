@@ -19,13 +19,17 @@ package org.gradle.performance.fixture
 import org.gradle.integtests.fixtures.executer.DefaultGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
+import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.util.GradleVersion
-import org.junit.AssumptionViolatedException
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.performance.fixture.AbstractCrossVersionPerformanceTestRunner.toBaselineVersions
 
 class CrossVersionPerformanceTestRunnerTest extends Specification {
+    @Rule
+    SetSystemProperties properties = new SetSystemProperties([(ResultsStoreHelper.SYSPROP_PERFORMANCE_TEST_CHANNEL): 'historical-master'])
     private ReleasedVersionDistributions distributions = Mock()
 
     def setup() {
@@ -43,20 +47,15 @@ class CrossVersionPerformanceTestRunnerTest extends Specification {
     }
 
     def 'throw exception if all versions are filtered out by minimumBaseVersion'() {
+        setup:
+        System.setProperty(ResultsStoreHelper.SYSPROP_PERFORMANCE_TEST_CHANNEL, '')
+
         when:
         toBaselineVersions(distributions, ['6.0-20190823180744+0000'], '6.1')
 
         then:
         def e = thrown(AssertionError)
         e.message.contains('No versions selected: [6.0-20190823180744+0000]')
-    }
-
-    def 'Ignore test if all versions are filtered out by minimumBaseVersion in historical performance test'() {
-        when:
-        toBaselineVersions(distributions, ['2.14.1', '3.5.1', '4.10.2', 'last'], '6.2')
-
-        then:
-        thrown(AssumptionViolatedException)
     }
 
     def 'lastest release is added if no versions specified'() {
