@@ -55,6 +55,10 @@ public class ResultsStoreHelper {
         return System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL, "commits");
     }
 
+    public static boolean isHistoricalChannel() {
+        return determineChannel().startsWith("historical-");
+    }
+
     public static String determineTeamCityBuildId() {
         return System.getenv("BUILD_ID");
     }
