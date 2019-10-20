@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.westline.events
 
-import com.google.common.reflect.TypeToken
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.execution.TaskExecutionListener
@@ -30,17 +29,15 @@ import org.gradle.api.westline.events.WestlineListenerParameters
 import org.gradle.api.westline.events.WestlineListenerSpec
 import org.gradle.api.westline.events.WestlineTaskExecutionResult
 import org.gradle.api.westline.events.WestlineTaskInfo
-import org.gradle.internal.Cast
+import org.gradle.instantexecution.westline.extractParametersType
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.service.DefaultServiceRegistry
-import org.gradle.model.internal.type.ModelType
-import org.gradle.workers.WorkParameters
-import java.lang.reflect.ParameterizedType
 
 
+internal
 class DefaultWestlineEvents(
     private val objects: ObjectFactory,
     private val instantiatorFactory: InstantiatorFactory,
@@ -52,24 +49,20 @@ class DefaultWestlineEvents(
         listenerType: Class<L>,
         configuration: Action<in WestlineListenerSpec<P>>
     ) {
-        val parametersType = extractParametersType(listenerType)
-        val isolatedParameters = prepareParameters<P>(parametersType, configuration)
-
-        listenerManager.addListener(object : TaskExecutionListener {
-
-            override fun beforeExecute(task: Task) {}
-
+        val withNewListener = prepareListenerOf(listenerType, configuration)
+        listenerManager.addListener(object : TaskExecutionListenerAdapter() {
             override fun afterExecute(task: Task, state: TaskState) {
-                val listener = createListener(listenerType, parametersType, isolatedParameters)
-                listener.afterTask(
-                    WestlineTaskInfo(task.path),
-                    WestlineTaskExecutionResult(when {
-                        state.skipped -> "SKIPPED"
-                        state.upToDate -> "UP-TO-DATE"
-                        state.executed -> "SUCCESS"
-                        else -> TODO()
-                    })
-                )
+                withNewListener {
+                    afterTask(
+                        WestlineTaskInfo(task.path),
+                        WestlineTaskExecutionResult(when {
+                            state.skipped -> "SKIPPED"
+                            state.upToDate -> "UP-TO-DATE"
+                            state.executed -> "SUCCESS"
+                            else -> TODO()
+                        })
+                    )
+                }
             }
         })
     }
@@ -78,20 +71,32 @@ class DefaultWestlineEvents(
         listenerType: Class<L>,
         configuration: Action<in WestlineListenerSpec<P>>
     ) {
-        val parametersType = extractParametersType(listenerType)
-        val isolatedParameters = prepareParameters<P>(parametersType, configuration)
-
-        listenerManager.addListener(object : TaskExecutionListener {
-
+        val withNewListener = prepareListenerOf(listenerType, configuration)
+        listenerManager.addListener(object : TaskExecutionListenerAdapter() {
             override fun beforeExecute(task: Task) {
-                val listener = createListener(listenerType, parametersType, isolatedParameters)
-                listener.beforeTask(WestlineTaskInfo(task.path))
+                withNewListener {
+                    beforeTask(WestlineTaskInfo(task.path))
+                }
             }
-
-            override fun afterExecute(task: Task, state: TaskState) {}
         })
     }
 
+    /**
+     * Returns a function that can be used to execute an action against a new [listenerType] instance.
+     */
+    private
+    fun <L : WestlineListener<P>, P : WestlineListenerParameters> prepareListenerOf(
+        listenerType: Class<L>,
+        configuration: Action<in WestlineListenerSpec<P>>
+    ): (L.() -> Unit) -> Unit {
+        val parametersType = extractParametersType<P, WestlineListener<P>, WestlineListenerParameters>(listenerType)
+        val isolatedParameters = prepareParameters(parametersType, configuration)
+        return { listenerAction ->
+            listenerAction(
+                createListener(listenerType, parametersType, isolatedParameters)
+            )
+        }
+    }
 
     private
     fun <L : WestlineListener<P>, P : WestlineListenerParameters> createListener(
@@ -102,9 +107,7 @@ class DefaultWestlineEvents(
         val serviceRegistry = DefaultServiceRegistry().apply {
             add(parametersType, isolatedParameters.isolate())
         }
-        val instantiator = instantiatorFactory.inject(serviceRegistry)
-        val listener = instantiator.newInstance(listenerType)
-        return listener
+        return instantiatorFactory.inject(serviceRegistry).newInstance(listenerType)
     }
 
     private
@@ -114,27 +117,21 @@ class DefaultWestlineEvents(
     ): Isolatable<P> {
         val parameters = objects.newInstance(parametersType)
         configuration.execute(DefaultWestlineListenerSpec(parameters))
-        val isolatedParameters = isolatableFactory.isolate(parameters)
-        return isolatedParameters
-    }
-
-
-    private
-    fun <T : WestlineListener<P>, P : WestlineListenerParameters> extractParametersType(
-        implementationClass: Class<T>
-    ): Class<P> {
-        val superType = TypeToken.of(implementationClass).getSupertype(WestlineListener::class.java).type as ParameterizedType
-        val parameterType: Class<P> = Cast.uncheckedNonnullCast(TypeToken.of(superType.actualTypeArguments[0]).rawType)
-        if (parameterType == WestlineListenerParameters::class.java) {
-            throw IllegalArgumentException(String.format("Could not create listener parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WestlineListenerParameters::class.java).displayName, ModelType.of(WorkParameters.None::class.java).displayName))
-        }
-        return parameterType
+        return isolatableFactory.isolate(parameters)
     }
 }
 
 
+internal
 class DefaultWestlineListenerSpec<P : WestlineListenerParameters>(
     private val parameters: P
 ) : WestlineListenerSpec<P> {
     override fun getParameters() = parameters
+}
+
+
+internal
+open class TaskExecutionListenerAdapter : TaskExecutionListener {
+    override fun beforeExecute(task: Task) = Unit
+    override fun afterExecute(task: Task, state: TaskState) = Unit
 }

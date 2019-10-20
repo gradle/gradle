@@ -27,14 +27,13 @@ import org.gradle.api.westline.WestlineService
 import org.gradle.api.westline.WestlineServiceFactory
 import org.gradle.api.westline.WestlineServiceParameters
 import org.gradle.api.westline.WestlineServiceSpec
-import org.gradle.internal.Cast
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.model.internal.type.ModelType
-import org.gradle.workers.WorkParameters.None
 import java.lang.reflect.ParameterizedType
 
 
@@ -50,28 +49,18 @@ class DefaultWestlineServiceFactory(
         configuration: Action<in WestlineServiceSpec<P>>
     ): Provider<T> {
 
-        val parameterType = extractParametersType(serviceType)
-        val parameters = objects.newInstance(parameterType)
+        val parametersType = extractParametersType<P, WestlineService<P>, WestlineServiceParameters>(serviceType)
+        val parameters = objects.newInstance(parametersType)
         configuration.execute(DefaultWestlineServiceSpec(parameters))
         val isolatedParameters = isolatableFactory.isolate(parameters)
 
         return WestlineServiceProvider(
             serviceType,
-            parameterType,
+            parametersType,
             isolatedParameters,
             instantiatorFactory,
             listenerManager
         )
-    }
-
-    private
-    fun <T : WestlineService<P>, P : WestlineServiceParameters> extractParametersType(implementationClass: Class<T>): Class<P> {
-        val superType = TypeToken.of(implementationClass).getSupertype(WestlineService::class.java).type as ParameterizedType
-        val parameterType: Class<P> = Cast.uncheckedNonnullCast(TypeToken.of(superType.actualTypeArguments[0]).rawType)
-        if (parameterType == WestlineServiceParameters::class.java) {
-            throw IllegalArgumentException(String.format("Could not create service parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WestlineServiceParameters::class.java).displayName, ModelType.of(None::class.java).displayName))
-        }
-        return parameterType
     }
 }
 
@@ -130,4 +119,25 @@ class DefaultWestlineServiceSpec<P : WestlineServiceParameters>(
     override fun parameters(action: Action<in P>) {
         action.execute(params)
     }
+}
+
+
+/**
+ * @param P the expected parameters type
+ * @param S the service interface
+ * @param PI the parameters interface
+ */
+internal
+inline fun <P : PI, reified S : Any, reified PI : Any> extractParametersType(
+    implementationClass: Class<*>
+): Class<P> {
+    val superType = TypeToken.of(implementationClass).getSupertype(S::class.java.uncheckedCast()).type as ParameterizedType
+    val parametersType: Class<P> = TypeToken.of(superType.actualTypeArguments[0]).rawType.uncheckedCast()
+    if (parametersType == PI::class.java) {
+        val parametersInterfaceName = ModelType.of(PI::class.java).displayName
+        throw IllegalArgumentException(
+            "Could not create ${implementationClass.name} parameters: must use a sub-type of $parametersInterfaceName as parameter type. Use $parametersInterfaceName.None for executions without parameters."
+        )
+    }
+    return parametersType
 }
