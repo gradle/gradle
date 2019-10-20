@@ -48,6 +48,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         succeeds mainTask
     }
 
+    @FailsWithInstantExecution
     def "plugin does not force creation of build dir during configuration"() {
         given:
         applyPlugin()
