@@ -122,6 +122,31 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         expectedNumberOfProblems = maxProblems + 1
     }
 
+    def "can request to fail on problems"() {
+        given:
+        buildFile << """
+            class Bean { Project p1 }
+
+            class FooTask extends DefaultTask {
+                private final bean = new Bean()
+                FooTask() { bean.p1 = project }
+                @TaskAction void run() {}
+            }
+
+            task foo(type: FooTask)
+        """
+
+        when:
+        instantFails "foo", "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=true"
+
+        then:
+        def reportDir = stateDirForTasks("foo")
+        def jsFile = reportDir.file("instant-execution-report-data.js")
+        numberOfProblemsIn(jsFile) == 1
+        outputContains "1 instant execution problems found:"
+        failureDescriptionStartsWith "Problems found while caching instant execution state"
+    }
+
     private static int numberOfProblemsIn(File jsFile) {
         newJavaScriptEngine().with {
             eval(jsFile.text)
