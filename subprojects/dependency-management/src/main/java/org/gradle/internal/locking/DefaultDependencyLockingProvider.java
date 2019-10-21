@@ -22,7 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
+import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
@@ -62,7 +62,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final LockEntryFilter lockEntryFilter;
     private final DomainObjectContext context;
     private DependencySubstitutionRules dependencySubstitutionRules;
-    private DependencyLockingHandler.LockMode lockMode;
+    private LockMode lockMode;
 
     public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules) {
         this.context = context;
@@ -75,12 +75,16 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
+        lockMode = LockMode.DEFAULT;
     }
 
     @Override
     public DependencyLockingState loadLockState(String configurationName) {
         if (!writeLocks || partialUpdate) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
+            if (lockedModules == null && lockMode == LockMode.STRICT) {
+                throw new MissingLockStateException(context.identityPath(configurationName).toString());
+            }
             if (lockedModules != null) {
                 Set<ModuleComponentIdentifier> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
@@ -146,12 +150,12 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public DependencyLockingHandler.LockMode getLockMode() {
+    public LockMode getLockMode() {
         return lockMode;
     }
 
     @Override
-    public void setLockMode(DependencyLockingHandler.LockMode mode) {
+    public void setLockMode(LockMode mode) {
         // TODO Changing lockMode once it has been used needs to be illegal
         this.lockMode = mode;
     }

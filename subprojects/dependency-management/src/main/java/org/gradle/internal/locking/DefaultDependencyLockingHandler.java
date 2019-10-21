@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
+import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 
 public class DefaultDependencyLockingHandler implements DependencyLockingHandler {

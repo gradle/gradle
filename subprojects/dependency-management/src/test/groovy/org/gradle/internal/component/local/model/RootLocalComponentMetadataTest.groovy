@@ -18,6 +18,7 @@ package org.gradle.internal.component.local.model
 
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.artifacts.ModuleIdentifier
+import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.attributes.AttributesSchemaInternal
@@ -35,7 +36,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def 'locking constraints are attached to a configuration and not its children'() {
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
-        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(false, [constraint] as Set)
+        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(false, [constraint] as Set, LockMode.DEFAULT)
         dependencyLockingHandler.loadLockState("child") >> DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT
         addConfiguration('conf').enableLocking()
         addConfiguration('child', ['conf']).enableLocking()
@@ -52,7 +53,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def 'locking constraints are not transitive'() {
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
-        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(false, [constraint] as Set)
+        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(false, [constraint] as Set, LockMode.DEFAULT)
         addConfiguration('conf').enableLocking()
 
         when:
@@ -68,7 +69,7 @@ class RootLocalComponentMetadataTest extends DefaultLocalComponentMetadataTest {
     def 'provides useful reason for locking constraints'() {
         given:
         def constraint = DefaultModuleComponentIdentifier.newId(mid, '1.1')
-        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(partial, [constraint] as Set)
+        dependencyLockingHandler.loadLockState("conf") >> new DefaultDependencyLockingState(partial, [constraint] as Set, LockMode.DEFAULT)
         addConfiguration('conf').enableLocking()
 
         when:

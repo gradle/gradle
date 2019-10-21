@@ -26,23 +26,6 @@ import org.gradle.api.Incubating;
 public interface DependencyLockingHandler {
 
     /**
-     * The supported lock modes:
-     * <ul>
-     *     <li>DEFAULT will load the lock state and verify resolution matches it</li>
-     *     <li>STRICT will fail resolution if a locked configuration does not have a lock state</li>
-     *     <li>LENIENT will load the lock state but not perform verification after resolution</li>
-     * </ul>
-     *
-     * @since 6.1
-     */
-    @Incubating
-    enum LockMode {
-        STRICT,
-        DEFAULT,
-        LENIENT
-    }
-
-    /**
      * Convenience method for doing:
      *
      * configurations.all {
