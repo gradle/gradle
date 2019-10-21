@@ -43,7 +43,6 @@ open class GradleDistribution(project: Project, gradleHomeDir: DirectoryProperty
     @get:PathSensitive(PathSensitivity.RELATIVE)
     val staticContent: ConfigurableFileTree = project.fileTree(gradleHomeDir).apply {
         exclude("lib/**")
-        exclude("samples/**")
         exclude("src/**")
         exclude("docs/**")
         exclude("getting-started.html")

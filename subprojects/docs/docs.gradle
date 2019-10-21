@@ -58,13 +58,6 @@ configurations {
         canBeConsumed = true
     }
 
-    gradleSamplesElements {
-        visible = false
-        canBeResolved = false
-        canBeConsumed = true
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
-        attributes.attribute(Attribute.of("type", String), "samples")
-    }
     gradleFullDocsElements {
         visible = false
         canBeResolved = false
@@ -127,20 +120,14 @@ ext {
     docsDir = file("$buildDir/docs")
     userguideDir = new File(docsDir, 'userguide')
     distDocsDir = new File(buildDir, 'distDocs')
-    samplesDir = file("$buildDir/samples")
     docbookSrc = new File(project.buildDir, 'src')
     samplesSrcDir = file('src/samples')
 }
 
 configurations {
-    gradleSamplesElements {
-        outgoing.artifact(samplesDir) {
-            builtBy 'samples'
-        }
-    }
     gradleFullDocsElements {
         outgoing.artifact(docsDir) {
-            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes', 'publishSamplesToDocsZip'
+            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
         }
     }
     gradleGettingStartedElements {
@@ -196,15 +183,6 @@ def imageFiles = fileTree(userguideSrcDir) {
 def resourceFiles = imageFiles + cssFiles
 
 
-
-def samples = tasks.register("samples", Sync) {
-    from samplesSrcDir
-    into samplesDir
-
-    exclude '**/readme.xml'
-    exclude '**/build/**'
-    exclude '**/.gradle/**'
-}
 
 tasks.register("userguideStyleSheets", Sync) {
     File stylesheetsDir = new File(srcDocsDir, 'stylesheets')
@@ -285,7 +263,7 @@ def dslHtml = tasks.register("dslHtml", Docbook2Xhtml) {
 }
 
 def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
-    dependsOn css, samples, defaultImports
+    dependsOn css, defaultImports
     finalizedBy("checkDeadInternalLinks")
 
     duplicatesStrategy = DuplicatesStrategy.FAIL
@@ -436,7 +414,7 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
         samplesPath         : "samples",
-        'samples-dir'       : 'src/samples'
+        'samples-dir'       : 'src/samples'  // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
 }
 
 def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
@@ -573,7 +551,7 @@ tasks.named("check") {
     dependsOn(checkDeadInternalLinks)
 }
 
-extensions.getByName('samples').configureEach { sample ->
+samples.configureEach { sample ->
     sample.asciidoctorTask.configure {
         options doctype: 'book'
 
@@ -602,7 +580,7 @@ extensions.getByName('samples').configureEach { sample ->
     }
 }
 
-extensions.getByName('samples').create('javaGradlePlugin') {
+samples.create('javaGradlePlugin') {
     sampleDirectory = file("src/samples/javaGradlePlugin")
     description = "Demonstrate how to use the `java-gradle-plugin` core plugin to develop a Gradle plugin."
     gradleVersion = project.provider { project.version.toString() }

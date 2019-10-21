@@ -104,6 +104,9 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     @Internal
     val toolingApiShadedJarDir = project.objects.directoryProperty()
 
+    @Internal
+    val gradleSamplesDir = project.objects.directoryProperty()
+
     /**
      * The user home dir is not wiped out by clean.
      * Move the daemon working space underneath the build dir so they don't pile up on CI.
@@ -117,6 +120,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
     override fun asArguments() =
         mapOf(
             "integTest.gradleHomeDir" to absolutePathOf(gradleHomeDir),
+            "integTest.samplesdir" to absolutePathOf(gradleSamplesDir),
             "integTest.gradleUserHomeDir" to absolutePathOf(gradleUserHomeDir),
             "integTest.gradleGeneratedApiJarCacheDir" to absolutePathOf(gradleGeneratedApiJarCacheDir),
             "org.gradle.integtest.daemon.registry" to absolutePathOf(daemonRegistry),
