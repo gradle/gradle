@@ -332,7 +332,7 @@ Previously, it was only possible to create a `ConfigurableFileTree` or a fixed `
 
 The `ObjectFactory` service now has a [fileTree()](javadoc/org/gradle/api/model/ObjectFactory.html#fileTree--) method for creating `ConfigurableFileTree` instances.
 
-The `Directory` and `DirectoryProperty` types both have a new `files(Object...)` method to create fixed `FileCollection` instances resolving files relativel to the referenced directory.
+The `Directory` and `DirectoryProperty` types both have a new `files(Object...)` method to create fixed `FileCollection` instances resolving files relative to the referenced directory.
 - [`Directory.files(Object...)`](javadoc/org/gradle/api/file/Directory.html#files-java.lang.Object++...++-)
 - [`DirectoryProperty.files(Object...)`](javadoc/org/gradle/api/file/DirectoryProperty.html#files-java.lang.Object++...++-)
 
