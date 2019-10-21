@@ -44,34 +44,31 @@ public class NoIsolationWorkerFactory implements WorkerFactory {
     }
 
     @Override
-    public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
+    public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         final WorkerExecutor workerExecutor = this.workerExecutor;
-        final ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        final ClassLoader contextClassLoader = ((FixedClassLoaderWorkerRequirement)workerRequirement).getContextClassLoader();
         return new AbstractWorker(buildOperationExecutor) {
             @Override
             public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
-                return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
-                    @Override
-                    public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                        DefaultWorkResult result;
-                        try {
-                            DefaultServiceRegistry serviceRegistry = new WorkerPublicServicesBuilder(parent).withInternalServicesVisible(spec.isInternalServicesRequired()).build();
-                            serviceRegistry.add(WorkerExecutor.class, workerExecutor);
-                            WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry, parent.get(InstantiatorFactory.class));
-                            result = ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<DefaultWorkResult>() {
-                                @Nullable
-                                @Override
-                                public DefaultWorkResult create() {
-                                    return workerServer.execute(spec);
-                                }
-                            });
-                        } finally {
-                            //TODO the async work tracker should wait for children of an operation to finish first.
-                            //It should not be necessary to call it here.
-                            workerExecutor.await();
-                        }
-                        return result;
+                return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
+                    DefaultWorkResult result;
+                    try {
+                        DefaultServiceRegistry serviceRegistry = new WorkerPublicServicesBuilder(parent).withInternalServicesVisible(workSpec.isInternalServicesRequired()).build();
+                        serviceRegistry.add(WorkerExecutor.class, workerExecutor);
+                        WorkerProtocol workerServer = new DefaultWorkerServer(serviceRegistry, parent.get(InstantiatorFactory.class));
+                        result = ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<DefaultWorkResult>() {
+                            @Nullable
+                            @Override
+                            public DefaultWorkResult create() {
+                                return workerServer.execute(workSpec);
+                            }
+                        });
+                    } finally {
+                        //TODO the async work tracker should wait for children of an operation to finish first.
+                        //It should not be necessary to call it here.
+                        workerExecutor.await();
                     }
+                    return result;
                 });
             }
         };

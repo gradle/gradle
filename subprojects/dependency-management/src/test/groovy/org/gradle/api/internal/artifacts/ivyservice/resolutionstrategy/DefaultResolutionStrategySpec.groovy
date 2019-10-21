@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
@@ -165,6 +166,8 @@ class DefaultResolutionStrategySpec extends Specification {
         dependencySubstitutions.copy() >> newDependencySubstitutions
 
         strategy.failOnVersionConflict()
+        strategy.failOnDynamicVersions()
+        strategy.failOnChangingVersions()
         strategy.force("org:foo:1.0")
         strategy.componentSelection.addRule(new NoInputsRuleAction<ComponentSelection>({}))
 
@@ -181,6 +184,9 @@ class DefaultResolutionStrategySpec extends Specification {
 
         strategy.dependencySubstitution == dependencySubstitutions
         copy.dependencySubstitution == newDependencySubstitutions
+
+        ((ResolutionStrategyInternal)copy).isFailingOnDynamicVersions() == ((ResolutionStrategyInternal)strategy).isFailingOnDynamicVersions()
+        ((ResolutionStrategyInternal)copy).isFailingOnChangingVersions() == ((ResolutionStrategyInternal)strategy).isFailingOnChangingVersions()
     }
 
     def "configures changing modules cache with jdk5+ units"() {
@@ -221,6 +227,15 @@ class DefaultResolutionStrategySpec extends Specification {
 
         when: strategy.failOnVersionConflict()
         then: 1 * validator.validateMutation(STRATEGY)
+
+        when: strategy.failOnDynamicVersions()
+        then: 1 * validator.validateMutation(STRATEGY)
+
+        when: strategy.failOnChangingVersions()
+        then: 1 * validator.validateMutation(STRATEGY)
+
+        when: strategy.failOnNonReproducibleResolution()
+        then: 2 * validator.validateMutation(STRATEGY)
 
         when: strategy.force("org.utils:api:1.3")
         then: 1 * validator.validateMutation(STRATEGY)

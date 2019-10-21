@@ -28,16 +28,17 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.impl.DefaultDeleter;
+import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.resource.local.FileResourceConnector;
 import org.gradle.internal.resource.local.FileResourceRepository;
-import org.gradle.internal.snapshot.FileSystemMirror;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.time.Time;
+import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecFactory;
@@ -148,21 +149,16 @@ public class TestFiles {
         return new DefaultFileHasher(streamHasher());
     }
 
+    public static GenericFileTreeSnapshotter genericFileTreeSnapshotter() {
+        return new DefaultGenericFileTreeSnapshotter(fileHasher(), new StringInterner());
+    }
+
     public static DefaultFileCollectionSnapshotter fileCollectionSnapshotter() {
-        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter(), fileSystem());
+        return new DefaultFileCollectionSnapshotter(virtualFileSystem(), genericFileTreeSnapshotter(), fileSystem());
     }
 
-    public static DefaultFileSystemSnapshotter fileSystemSnapshotter() {
-        return fileSystemSnapshotter(new DefaultFileSystemMirror(file -> false), new StringInterner());
-    }
-
-    public static DefaultFileSystemSnapshotter fileSystemSnapshotter(FileSystemMirror fileSystemMirror, StringInterner stringInterner) {
-        return new DefaultFileSystemSnapshotter(
-            fileHasher(),
-            stringInterner,
-            fileSystem(),
-            fileSystemMirror
-        );
+    public static VirtualFileSystem virtualFileSystem() {
+        return new DefaultVirtualFileSystem(fileHasher(), new StringInterner(), fileSystem());
     }
 
     public static FileCollectionFactory fileCollectionFactory() {

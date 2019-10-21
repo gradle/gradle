@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 public interface ValueSupplier {
@@ -25,9 +27,9 @@ public interface ValueSupplier {
     boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
 
     /**
-     * See {@link ProviderInternal#isContentProducedByTask()}.
+     * See {@link ProviderInternal#visitProducerTasks(Action)}.
      */
-    boolean isContentProducedByTask();
+    void visitProducerTasks(Action<? super Task> visitor);
 
     /**
      * See {@link ProviderInternal#isValueProducedByTask()}.

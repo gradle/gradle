@@ -21,13 +21,10 @@ import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotBuilder
 import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
-
-import java.util.function.Consumer
 
 class TestFileSnapshotter implements FileSystemSnapshotter {
 
@@ -49,11 +46,6 @@ class TestFileSnapshotter implements FileSystemSnapshotter {
 
     @Override
     FileSystemSnapshot snapshotDirectoryTree(File root, SnapshottingFilter filter) {
-        throw new UnsupportedOperationException()
-    }
-
-    @Override
-    FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
         throw new UnsupportedOperationException()
     }
 }

@@ -232,6 +232,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                 expectGetMetadata()
             }
         }
+        executer.expectDeprecationWarning()
         fails ':checkDeps'
 
         then:

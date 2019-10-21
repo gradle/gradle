@@ -32,4 +32,8 @@ public interface ResolvedVersionConstraint {
     boolean isRejectAll();
     boolean isDynamic();
     boolean isStrict();
+
+    boolean accepts(String version);
+
+    boolean canBeStable();
 }

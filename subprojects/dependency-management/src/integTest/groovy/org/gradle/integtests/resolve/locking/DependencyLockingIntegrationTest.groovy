@@ -943,4 +943,37 @@ configurations {
         then:
         lockfileFixture.verifyLockfile('lockedConf', [])
     }
+
+    @Unroll
+    def "fails if trying to resolve a locked configuration with #flag"() {
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+configurations {
+    lockedConf {
+        resolutionStrategy {
+            $flag()
+        }
+    }
+}
+
+dependencies {
+    lockedConf 'org:foo:1.0'
+}
+"""
+
+        when:
+        fails 'dependencies'
+
+        then:
+        failure.assertHasCause "Resolution strategy has both dependency locking and fail on $desc versions enabled. You must choose between the two modes."
+
+        where:
+        flag                              | desc
+        'failOnDynamicVersions'           | 'dynamic'
+        'failOnChangingVersions'          | 'changing'
+        'failOnNonReproducibleResolution' | 'dynamic'
+    }
 }

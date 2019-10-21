@@ -17,8 +17,8 @@
 package org.gradle.internal.execution.impl
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
@@ -27,8 +27,6 @@ import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.WellKnownFileLocations
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -43,8 +41,7 @@ class OutputFilterUtilTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def snapshotter = TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner())
+    def virtualFileSystem = TestFiles.virtualFileSystem()
 
     def "pre-existing directories are filtered"() {
         def outputDir = temporaryFolder.file("outputDir").createDir()
@@ -58,7 +55,7 @@ class OutputFilterUtilTest extends Specification {
 
         when:
         def outputDirFile = outputDir.file("in-output-dir").createFile()
-        fileSystemMirror.beforeBuildFinished()
+        virtualFileSystem.invalidateAll()
         def afterExecution = snapshotOutput(outputDir)
         filteredOutputs = filterOutputSnapshotAfterExecution(EMPTY_OUTPUT_FINGERPRINT, beforeExecution, afterExecution)
         then:
@@ -167,8 +164,10 @@ class OutputFilterUtilTest extends Specification {
     }
 
     private FileSystemSnapshot snapshotOutput(File output) {
-        fileSystemMirror.beforeBuildFinished()
-        snapshotter.snapshot(output)
+        virtualFileSystem.invalidateAll()
+        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        virtualFileSystem.read(output.getAbsolutePath(), result.&set)
+        return result.get()
     }
 
     private CurrentFileCollectionFingerprint fingerprintOutput(File outputDir) {

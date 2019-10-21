@@ -69,9 +69,11 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -86,13 +88,12 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemMirror;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror;
-import org.gradle.internal.snapshot.impl.DefaultFileSystemSnapshotter;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
+import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
+import org.gradle.internal.vfs.impl.FileSystemSnapshotterVirtualFileSystem;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -107,6 +108,8 @@ import java.util.List;
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
  */
 public class GradleUserHomeScopeServices {
+    public static final String ENABLE_VFS_SYSTEM_PROPERTY_NAME = "org.gradle.experimental.enable.vfs";
+    public static final boolean VFS_ENABLED = false;
     private final ServiceRegistry globalServices;
 
     public GradleUserHomeScopeServices(ServiceRegistry globalServices) {
@@ -162,17 +165,19 @@ public class GradleUserHomeScopeServices {
         return new DefaultWellKnownFileLocations(fileStores);
     }
 
-    FileSystemMirror createFileSystemMirror(ListenerManager listenerManager, WellKnownFileLocations wellKnownFileLocations) {
-        final DefaultFileSystemMirror fileSystemMirror = new DefaultFileSystemMirror(wellKnownFileLocations);
+    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager) {
+        String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
+        VirtualFileSystem virtualFileSystem = VFS_ENABLED
+            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes)
+            : new FileSystemSnapshotterVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes);
         listenerManager.addListener(new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
-                fileSystemMirror.beforeOutputChange();
             }
 
             @Override
             public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                fileSystemMirror.beforeOutputChange(affectedOutputPaths);
+                virtualFileSystem.update(affectedOutputPaths, () -> {});
             }
         });
         listenerManager.addListener(new RootBuildLifecycleListener() {
@@ -182,18 +187,18 @@ public class GradleUserHomeScopeServices {
 
             @Override
             public void beforeComplete() {
-                fileSystemMirror.beforeBuildFinished();
+                virtualFileSystem.invalidateAll();
             }
         });
-        return fileSystemMirror;
+        return virtualFileSystem;
     }
 
-    FileSystemSnapshotter createFileSystemSnapshotter(FileHasher hasher, StringInterner stringInterner, Stat stat, FileSystemMirror fileSystemMirror) {
-        return new DefaultFileSystemSnapshotter(hasher, stringInterner, stat, fileSystemMirror, DirectoryScanner.getDefaultExcludes());
+    GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
+        return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
     }
 
-    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSystemSnapshotter fileSystemSnapshotter, Stat stat) {
-        return new DefaultFileCollectionSnapshotter(fileSystemSnapshotter, stat);
+    FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
+        return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
     }
 
     ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
@@ -260,8 +265,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion);
     }
 
-    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new DefaultFileContentCacheFactory(listenerManager, fileSystemSnapshotter, cacheRepository, inMemoryCacheDecoratorFactory, null);
+    FileContentCacheFactory createFileContentCacheFactory(ListenerManager listenerManager, VirtualFileSystem virtualFileSystem, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
+        return new DefaultFileContentCacheFactory(listenerManager, virtualFileSystem, cacheRepository, inMemoryCacheDecoratorFactory, null);
     }
 
     FileAccessTimeJournal createFileAccessTimeJournal(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory cacheDecoratorFactory) {

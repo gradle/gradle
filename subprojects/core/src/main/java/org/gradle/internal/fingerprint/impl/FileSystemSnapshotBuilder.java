@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.FileMetadata;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
+import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
+import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import java.io.File;
 import java.util.HashMap;

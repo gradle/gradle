@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot.impl;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
 
 import javax.annotation.Nullable;
 import java.util.Map;
@@ -31,76 +30,43 @@ import java.util.concurrent.ConcurrentHashMap;
 public class DefaultFileSystemMirror implements FileSystemMirror {
     // Maps from interned absolute path for a file to metadata for the file.
     private final Map<String, FileMetadataSnapshot> metadata = new ConcurrentHashMap<>();
-    private final Map<String, FileMetadataSnapshot> cacheMetadata = new ConcurrentHashMap<>();
     // Maps from interned absolute path for a file to snapshot for the file.
     private final Map<String, FileSystemLocationSnapshot> files = new ConcurrentHashMap<>();
-    private final Map<String, FileSystemLocationSnapshot> cacheFiles = new ConcurrentHashMap<>();
-
-    private final WellKnownFileLocations wellKnownFileLocations;
-
-    public DefaultFileSystemMirror(WellKnownFileLocations wellKnownFileLocations) {
-        this.wellKnownFileLocations = wellKnownFileLocations;
-    }
 
     @Nullable
     @Override
     public FileSystemLocationSnapshot getSnapshot(String absolutePath) {
         // Could potentially also look whether we have the details for an ancestor directory tree
         // Could possibly infer that the path refers to a directory, if we have details for a descendant path (and it's not a missing file)
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            return cacheFiles.get(absolutePath);
-        }
         return files.get(absolutePath);
     }
 
     @Override
     public void putSnapshot(FileSystemLocationSnapshot snapshot) {
-        String absolutePath = snapshot.getAbsolutePath();
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            cacheFiles.put(absolutePath, snapshot);
-        } else {
-            files.put(absolutePath, snapshot);
-        }
+        files.put(snapshot.getAbsolutePath(), snapshot);
     }
 
     @Override
     public FileMetadataSnapshot getMetadata(String absolutePath) {
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            return cacheMetadata.get(absolutePath);
-        }
         return metadata.get(absolutePath);
     }
 
     @Override
     public void putMetadata(String absolutePath, FileMetadataSnapshot metadata) {
-        if (wellKnownFileLocations.isImmutable(absolutePath)) {
-            cacheMetadata.put(absolutePath, metadata);
-        } else {
-            this.metadata.put(absolutePath, metadata);
-        }
+        this.metadata.put(absolutePath, metadata);
     }
 
-    public void beforeOutputChange() {
-        // When the outputs are generated, throw away all state for files that do not live in an append-only cache.
+    public void invalidateAll() {
+        // When the outputs are generated, throw away all state.
         // This is intentionally very simple, to be improved later
         metadata.clear();
         files.clear();
     }
 
-    public void beforeBuildFinished() {
-        // We throw away all state between builds
-        metadata.clear();
-        cacheMetadata.clear();
-        files.clear();
-        cacheFiles.clear();
-    }
-
-    public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
+    public void invalidate(Iterable<String> affectedOutputPaths) {
         for (String affectedOutputPath : affectedOutputPaths) {
             metadata.remove(affectedOutputPath);
             files.remove(affectedOutputPath);
-            cacheMetadata.remove(affectedOutputPath);
-            cacheFiles.remove(affectedOutputPath);
         }
     }
 }

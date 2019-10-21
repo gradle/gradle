@@ -27,7 +27,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
-import org.gradle.internal.snapshot.WellKnownFileLocations
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -41,7 +40,7 @@ class DefaultFileSystemSnapshotterTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def fileHasher = new TestFileHasher()
-    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
+    def fileSystemMirror = new DefaultFileSystemMirror()
     def snapshotter = new DefaultFileSystemSnapshotter(fileHasher, new StringInterner(), TestFiles.fileSystem(), fileSystemMirror)
 
     def "fetches details of a file and caches the result"() {
@@ -210,7 +209,9 @@ class DefaultFileSystemSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshotDirectoryTree(d, SnapshottingFilter.EMPTY)
 
         then:
-        getSnapshotInfo(snapshot) == [null, 0]
+        snapshot instanceof FileSystemLocationSnapshot
+        snapshot.absolutePath == d.absolutePath
+        snapshot.type == FileType.Missing
     }
 
     def "snapshots file as directory tree"() {

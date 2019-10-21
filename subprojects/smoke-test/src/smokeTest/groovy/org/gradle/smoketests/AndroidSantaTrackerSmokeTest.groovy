@@ -25,6 +25,8 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
@@ -33,6 +35,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 @LeaksFileHandles("TestKit locks stay in place")
+@Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     @Rule
     TestNameTestDirectoryProvider temporaryFolder

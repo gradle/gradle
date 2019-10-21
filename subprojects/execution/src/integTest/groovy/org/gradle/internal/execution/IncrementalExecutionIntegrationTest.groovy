@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSortedMap
 import com.google.common.collect.Iterables
 import com.google.common.collect.Maps
-import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.caching.internal.CacheableEntity
@@ -61,8 +60,6 @@ import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
-import org.gradle.internal.snapshot.WellKnownFileLocations
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.test.fixtures.file.TestFile
@@ -84,21 +81,20 @@ class IncrementalExecutionIntegrationTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def fsSnapshotter = TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner())
-    def snapshotter = new DefaultFileCollectionSnapshotter(fsSnapshotter, TestFiles.fileSystem())
+    def virtualFileSystem = TestFiles.virtualFileSystem()
+    def snapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(snapshotter)
     def outputFingerprinter = new OutputFileCollectionFingerprinter(snapshotter)
     def executionHistoryStore = new TestExecutionHistoryStore()
     def outputChangeListener = new OutputChangeListener() {
         @Override
         void beforeOutputChange() {
-            fileSystemMirror.beforeOutputChange()
+            virtualFileSystem.invalidateAll()
         }
 
         @Override
         void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-            fileSystemMirror.beforeOutputChange(affectedOutputPaths)
+            virtualFileSystem.update(affectedOutputPaths) {}
         }
     }
     def buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate())
@@ -633,7 +629,7 @@ class IncrementalExecutionIntegrationTest extends Specification {
     }
 
     UpToDateResult execute(UnitOfWork unitOfWork) {
-        fileSystemMirror.beforeBuildFinished()
+        virtualFileSystem.invalidateAll()
 
         executor.execute(new ExecutionRequestContext() {
             @Override

@@ -24,7 +24,9 @@ function refreshCards(selectedTags) {
         if (currentTags === undefined) {
             currentTags = ''
         }
-        currentTags = currentTags.split(',');
+        // tag="FAILURE-THRESHOLD(4.16%),FLAKY(9.30%)"
+        // tag="UNTAGGED"
+        currentTags = currentTags.split(',').map(tag => tag.split('(')[0])
         if (selectedTags.some(tag => currentTags.indexOf(tag) != -1)) {
             $(row).show()
         } else {

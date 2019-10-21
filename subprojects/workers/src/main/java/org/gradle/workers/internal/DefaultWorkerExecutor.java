@@ -19,11 +19,8 @@ package org.gradle.workers.internal;
 import com.google.common.collect.Lists;
 import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Factory;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -54,7 +51,6 @@ import org.gradle.workers.WorkerExecutor;
 import org.gradle.workers.WorkParameters;
 import org.gradle.workers.WorkerSpec;
 
-import javax.annotation.Nullable;
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.File;
 import java.lang.reflect.ParameterizedType;
@@ -145,13 +141,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         DefaultWorkerConfiguration configuration = new DefaultWorkerConfiguration(forkOptionsFactory.newDecoratedJavaForkOptions());
         configAction.execute(configuration);
 
-        Action<AdapterWorkParameters> parametersAction = new Action<AdapterWorkParameters>() {
-            @Override
-            public void execute(AdapterWorkParameters parameters) {
-                parameters.setImplementationClassName(actionClass.getName());
-                parameters.setParams(configuration.getParams());
-                parameters.setDisplayName(configuration.getDisplayName());
-            }
+        Action<AdapterWorkParameters> parametersAction = parameters -> {
+            parameters.setImplementationClassName(actionClass.getName());
+            parameters.setParams(configuration.getParams());
+            parameters.setDisplayName(configuration.getDisplayName());
         };
 
         WorkQueue workQueue;
@@ -173,12 +166,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     }
 
     <T extends WorkerSpec> Action<T> getWorkerSpecAdapterAction(DefaultWorkerConfiguration configuration) {
-        return new Action<T>() {
-            @Override
-            public void execute(T spec) {
-                configuration.adaptTo(spec);
-            }
-        };
+        return spec -> configuration.adaptTo(spec);
     }
 
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, WorkerSpecInternal workerSpec, Action<T> parameterAction) {
@@ -194,30 +182,27 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
         ActionExecutionSpec spec;
         String description = getWorkerDisplayName(workActionClass, parameters);
-        DaemonForkOptions forkOptions = getDaemonForkOptions(workActionClass, workerSpec, parameters);
+        WorkerRequirement workerRequirement = getWorkerRequirement(workActionClass, workerSpec, parameters);
         try {
             // Isolate parameters in this thread prior to starting work in a separate thread
-            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, forkOptions.getClassLoaderStructure(), baseDir, false);
+            spec = actionExecutionSpecFactory.newIsolatedSpec(description, workActionClass, parameters, workerRequirement, false);
         } catch (Throwable t) {
             throw new WorkExecutionException(description, t);
         }
 
-        return submitWork(spec, workerSpec.getIsolationMode(), forkOptions);
+        return submitWork(spec, workerSpec.getIsolationMode(), workerRequirement);
     }
 
-    private AsyncWorkCompletion submitWork(final ActionExecutionSpec spec, final IsolationMode isolationMode, final DaemonForkOptions daemonForkOptions) {
+    private AsyncWorkCompletion submitWork(final ActionExecutionSpec spec, final IsolationMode isolationMode, WorkerRequirement workerRequirement) {
         final WorkerLease currentWorkerWorkerLease = getCurrentWorkerLease();
         final BuildOperationRef currentBuildOperation = buildOperationExecutor.getCurrentOperation();
         WorkerFactory workerFactory = getWorkerFactory(isolationMode);
-        WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), currentWorkerWorkerLease, new Callable<DefaultWorkResult>() {
-            @Override
-            public DefaultWorkResult call() throws Exception {
-                try {
-                    BuildOperationAwareWorker worker = workerFactory.getWorker(daemonForkOptions);
-                    return worker.execute(spec, currentBuildOperation);
-                } catch (Throwable t) {
-                    throw new WorkExecutionException(spec.getDisplayName(), t);
-                }
+        WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), currentWorkerWorkerLease, () -> {
+            try {
+                BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
+                return worker.execute(spec, currentBuildOperation);
+            } catch (Throwable t) {
+                throw new WorkExecutionException(spec.getDisplayName(), t);
             }
         });
         executionQueue.submit(execution);
@@ -252,7 +237,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             case CLASSLOADER:
                 return isolatedClassloaderWorkerFactory;
             case NONE:
-                return new ContextClassLoaderWorkerFactory(noIsolationWorkerFactory);
+                return noIsolationWorkerFactory;
             case PROCESS:
                 return daemonWorkerFactory;
             default:
@@ -282,12 +267,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private void await(List<AsyncWorkCompletion> workItems) throws WorkExecutionException {
         BuildOperationRef currentOperation = buildOperationExecutor.getCurrentOperation();
         try {
-            if (CollectionUtils.any(workItems, new Spec<AsyncWorkCompletion>() {
-                @Override
-                public boolean isSatisfiedBy(AsyncWorkCompletion workItem) {
-                    return !workItem.isComplete();
-                }
-            })) {
+            if (CollectionUtils.any(workItems, workItem -> !workItem.isComplete())) {
                 executionQueue.expand();
             }
             asyncWorkTracker.waitForCompletion(currentOperation, workItems, RETAIN_PROJECT_LOCKS);
@@ -304,25 +284,25 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         }
     }
 
-    DaemonForkOptions getDaemonForkOptions(Class<?> executionClass, WorkerSpec configuration, WorkParameters parameters) {
-        DaemonForkOptionsBuilder builder = new DaemonForkOptionsBuilder(forkOptionsFactory)
-                .keepAliveMode(KeepAliveMode.DAEMON);
-
+    WorkerRequirement getWorkerRequirement(Class<?> executionClass, WorkerSpec configuration, WorkParameters parameters) {
         if (configuration instanceof ProcessWorkerSpec) {
+            DaemonForkOptionsBuilder builder = new DaemonForkOptionsBuilder(forkOptionsFactory)
+                .keepAliveMode(KeepAliveMode.DAEMON);
             ProcessWorkerSpec processConfiguration = (ProcessWorkerSpec) configuration;
             JavaForkOptions forkOptions = forkOptionsFactory.newJavaForkOptions();
             processConfiguration.getForkOptions().copyTo(forkOptions);
             forkOptions.setWorkingDir(workerDirectoryProvider.getWorkingDirectory());
 
             builder.javaForkOptions(forkOptions)
-                    .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(processConfiguration.getClasspath(), getParamClasses(executionClass, parameters)));
+                .withClassLoaderStructure(classLoaderStructureProvider.getWorkerProcessClassLoaderStructure(processConfiguration.getClasspath(), getParamClasses(executionClass, parameters)));
 
+            return new ForkedWorkerRequirement(baseDir, builder.build());
         } else if (configuration instanceof ClassLoaderWorkerSpec) {
             ClassLoaderWorkerSpec classLoaderConfiguration = (ClassLoaderWorkerSpec) configuration;
-            builder.withClassLoaderStructure(classLoaderStructureProvider.getInProcessClassLoaderStructure(classLoaderConfiguration.getClasspath(), getParamClasses(executionClass, parameters)));
+            return new IsolatedClassLoaderWorkerRequirement(baseDir, classLoaderStructureProvider.getInProcessClassLoaderStructure(classLoaderConfiguration.getClasspath(), getParamClasses(executionClass, parameters)));
+        } else {
+            return new FixedClassLoaderWorkerRequirement(baseDir, Thread.currentThread().getContextClassLoader());
         }
-
-        return builder.build();
     }
 
     private Class<?>[] getParamClasses(Class<?> actionClass, WorkParameters parameters) {
@@ -446,36 +426,5 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         public void await() throws WorkerExecutionException {
             workerExecutor.await(workItems);
          }
-    }
-
-    /**
-     * This is a delegating WorkerFactory that captures the context classloader at the moment it is created
-     * and then ensures that the worker is created with the same context classloader when
-     * getWorker() is called later.
-     */
-    private static class ContextClassLoaderWorkerFactory implements WorkerFactory {
-        private final ClassLoader contextClassLoader;
-        private final WorkerFactory delegate;
-
-        public ContextClassLoaderWorkerFactory(WorkerFactory delegate) {
-            this.delegate = delegate;
-            this.contextClassLoader = Thread.currentThread().getContextClassLoader();
-        }
-
-        @Override
-        public BuildOperationAwareWorker getWorker(DaemonForkOptions forkOptions) {
-            return ClassLoaderUtils.executeInClassloader(contextClassLoader, new Factory<BuildOperationAwareWorker>() {
-                @Nullable
-                @Override
-                public BuildOperationAwareWorker create() {
-                    return delegate.getWorker(forkOptions);
-                }
-            });
-        }
-
-        @Override
-        public IsolationMode getIsolationMode() {
-            return delegate.getIsolationMode();
-        }
     }
 }

@@ -36,9 +36,8 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning("BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
         run "help"
-        outputContains("BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
 
         where:
         fromScript       | scriptFile
@@ -61,9 +60,8 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning("BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
         run "help"
-        outputContains("BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
 
         where:
         fromScript       | scriptFile
@@ -87,10 +85,9 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDeprecationWarnings(2)
+        executer.expectDeprecationWarning("Gradle#buildStarted(Action) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning("Gradle#buildStarted(Closure) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
         run "help"
-        outputContains("Gradle#buildStarted(Action) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-        outputContains("Gradle#buildStarted(Closure) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
 
         where:
         fromScript       | scriptFile

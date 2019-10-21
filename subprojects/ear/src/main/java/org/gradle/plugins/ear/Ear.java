@@ -67,41 +67,10 @@ public class Ear extends Jar {
         lib = getRootSpec().addChildBeforeSpec(getMainSpec()).into(
             (Callable<String>) () -> GUtil.elvis(getLibDirName(), DEFAULT_LIB_DIR_NAME)
         );
-        getMainSpec().appendCachingSafeCopyAction(
-            new Action<FileCopyDetails>() {
-                @Override
-                public void execute(FileCopyDetails details) {
-                    if(generateDeploymentDescriptor.get()) {
-                        checkIfShouldGenerateDeploymentDescriptor(details);
-                        recordTopLevelModules(details);
-                    }
-                }
-
-                private void recordTopLevelModules(FileCopyDetails details) {
-                    DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
-                    // since we might generate the deployment descriptor, record each top-level module
-                    if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
-                        EarModule module;
-                        if (details.getPath().toLowerCase().endsWith(".war")) {
-                            module = new DefaultEarWebModule(details.getPath(), details.getPath().substring(0, details.getPath().lastIndexOf(".")));
-                        } else {
-                            module = new DefaultEarModule(details.getPath());
-                        }
-
-                        if (!deploymentDescriptor.getModules().contains(module)) {
-                            deploymentDescriptor.getModules().add(module);
-                        }
-                    }
-                }
-
-                private void checkIfShouldGenerateDeploymentDescriptor(FileCopyDetails details) {
-                    DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
-                    String descriptorPath = deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
-                    if (details.getPath().equalsIgnoreCase(descriptorPath)) {
-                        // the deployment descriptor already exists; no need to generate it
-                        setDeploymentDescriptor(null);
-                        details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
-                    }
+        getMainSpec().appendCachingSafeCopyAction(details -> {
+                if(generateDeploymentDescriptor.get()) {
+                    checkIfShouldGenerateDeploymentDescriptor(details);
+                    recordTopLevelModules(details);
                 }
             }
         );
@@ -134,6 +103,31 @@ public class Ear extends Jar {
 
                 return null;
         });
+    }
+
+    private void recordTopLevelModules(FileCopyDetails details) {
+        DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
+        // since we might generate the deployment descriptor, record each top-level module
+        if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
+            EarModule module;
+            if (details.getPath().toLowerCase().endsWith(".war")) {
+                module = new DefaultEarWebModule(details.getPath(), details.getPath().substring(0, details.getPath().lastIndexOf(".")));
+            } else {
+                module = new DefaultEarModule(details.getPath());
+            }
+
+            deploymentDescriptor.getModules().add(module);
+        }
+    }
+
+    private void checkIfShouldGenerateDeploymentDescriptor(FileCopyDetails details) {
+        DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
+        String descriptorPath = deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
+        if (details.getPath().equalsIgnoreCase(descriptorPath)) {
+            // the deployment descriptor already exists; no need to generate it
+            setDeploymentDescriptor(null);
+            details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
+        }
     }
 
     @Inject

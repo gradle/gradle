@@ -36,8 +36,7 @@ public class IntegrationTestBuildContext {
     }
 
     public TestFile getSamplesDir() {
-        String hintForMissingSamples = String.format("Run 'gradle %s:copySamples'.", getCurrentSubprojectName());
-        return file("integTest.samplesdir", String.format("%s/samples", getGradleHomeDir())).assertIsDir(hintForMissingSamples);
+        return file("integTest.samplesdir", null);
     }
 
     public TestFile getDistributionsDir() {

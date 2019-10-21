@@ -59,4 +59,8 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
         }
         visitor.postVisitDirectory(this);
     }
+
+    public List<FileSystemLocationSnapshot> getChildren() {
+        return children;
+    }
 }

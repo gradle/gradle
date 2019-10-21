@@ -6,7 +6,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.6.0-alpha6'
+        // This version is a placeholder replaced by the integration test
+        // It denotes the Android Studio version used to generate that build
+        classpath 'com.android.tools.build:gradle:3.6.0-alpha06'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files

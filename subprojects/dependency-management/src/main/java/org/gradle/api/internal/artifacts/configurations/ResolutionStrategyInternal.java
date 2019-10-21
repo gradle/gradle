@@ -92,4 +92,8 @@ public interface ResolutionStrategyInternal extends ResolutionStrategy {
     boolean isDependencyLockingEnabled();
 
     CapabilitiesResolutionInternal getCapabilitiesResolutionRules();
+
+    boolean isFailingOnDynamicVersions();
+
+    boolean isFailingOnChangingVersions();
 }

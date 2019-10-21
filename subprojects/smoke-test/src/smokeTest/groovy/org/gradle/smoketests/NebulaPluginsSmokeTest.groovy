@@ -16,6 +16,8 @@
 
 package org.gradle.smoketests
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -190,6 +192,7 @@ testCompile('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.resolution-rules')
+    @Requires(TestPrecondition.JDK11_OR_EARLIER)
     def 'nebula resolution rules plugin'() {
         when:
         file('rules.json') << """

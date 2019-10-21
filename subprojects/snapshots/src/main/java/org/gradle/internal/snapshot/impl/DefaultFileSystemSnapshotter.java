@@ -27,7 +27,6 @@ import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemMirror;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotBuilder;
 import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -37,7 +36,6 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 /**
@@ -89,7 +87,7 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 if (metadata.getType() != FileType.RegularFile) {
                     return null;
                 }
-                FileSystemLocationSnapshot snapshot = snapshotAndCache(internableAbsolutePath, file, metadata, null);
+                FileSystemLocationSnapshot snapshot = snapshotAndCache(internableAbsolutePath, file, metadata, SnapshottingFilter.EMPTY);
                 return snapshot.getHash();
             }
         });
@@ -100,53 +98,9 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
         final String absolutePath = file.getAbsolutePath();
         FileSystemLocationSnapshot result = fileSystemMirror.getSnapshot(absolutePath);
         if (result == null) {
-            result = producingSnapshots.guardByKey(absolutePath, () -> snapshotAndCache(file, null));
+            result = producingSnapshots.guardByKey(absolutePath, () -> snapshotAndCache(file, SnapshottingFilter.EMPTY));
         }
         return result;
-    }
-
-    private FileSystemLocationSnapshot snapshotAndCache(File file, @Nullable SnapshottingFilter filter) {
-        InternableString absolutePath = new InternableString(file.getAbsolutePath());
-        FileMetadataSnapshot metadata = statAndCache(absolutePath, file);
-        return snapshotAndCache(absolutePath, file, metadata, filter);
-    }
-
-    private FileMetadataSnapshot statAndCache(InternableString absolutePath, File file) {
-        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath.asNonInterned());
-        if (metadata == null) {
-            metadata = stat.stat(file);
-            fileSystemMirror.putMetadata(absolutePath.asInterned(), metadata);
-        }
-        return metadata;
-    }
-
-    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, @Nullable SnapshottingFilter filter) {
-        FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(absolutePath.asNonInterned());
-        if (fileSystemLocationSnapshot == null) {
-            AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-            fileSystemLocationSnapshot = snapshot(absolutePath.asInterned(), filter, file, metadata, hasBeenFiltered);
-            if (!hasBeenFiltered.get()) {
-                fileSystemMirror.putSnapshot(fileSystemLocationSnapshot);
-            }
-        }
-        return fileSystemLocationSnapshot;
-    }
-
-    private FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter filter, File file, FileMetadataSnapshot metadata, AtomicBoolean hasBeenFiltered) {
-        String internedName = stringInterner.intern(file.getName());
-        switch (metadata.getType()) {
-            case Missing:
-                return new MissingFileSnapshot(absolutePath, internedName);
-            case RegularFile:
-                return new RegularFileSnapshot(absolutePath, internedName, hasher.hash(file, metadata.getLength(), metadata.getLastModified()), FileMetadata.from(metadata));
-            case Directory:
-                SnapshottingFilter.DirectoryWalkerPredicate predicate = filter == null || filter.isEmpty()
-                    ? null
-                    : filter.getAsDirectoryWalkerPredicate();
-                return directorySnapshotter.snapshot(absolutePath, predicate, hasBeenFiltered);
-            default:
-                throw new IllegalArgumentException("Unrecognized file type: " + metadata.getType());
-        }
     }
 
     @Override
@@ -164,24 +118,58 @@ public class DefaultFileSystemSnapshotter implements FileSystemSnapshotter {
                 snapshot = snapshotAndCache(root, filter);
                 return snapshot.getType() != FileType.Directory
                     ? filterSnapshot(snapshot, filter)
-                    : filterSnapshot(snapshot, SnapshottingFilter.EMPTY);
+                    : snapshot;
             } else {
                 return filterSnapshot(snapshot, filter);
             }
         });
     }
 
-    @Override
-    public FileSystemSnapshot snapshotWithBuilder(Consumer<FileSystemSnapshotBuilder> buildAction) {
-        FileSystemSnapshotBuilder builder = new FileSystemSnapshotBuilder(stringInterner, hasher);
-        buildAction.accept(builder);
-        return builder.build();
+    private FileSystemLocationSnapshot snapshotAndCache(File file, SnapshottingFilter filter) {
+        InternableString absolutePath = new InternableString(file.getAbsolutePath());
+        FileMetadataSnapshot metadata = statAndCache(absolutePath, file);
+        return snapshotAndCache(absolutePath, file, metadata, filter);
+    }
+
+    private FileMetadataSnapshot statAndCache(InternableString absolutePath, File file) {
+        FileMetadataSnapshot metadata = fileSystemMirror.getMetadata(absolutePath.asNonInterned());
+        if (metadata == null) {
+            metadata = stat.stat(file);
+            fileSystemMirror.putMetadata(absolutePath.asInterned(), metadata);
+        }
+        return metadata;
+    }
+
+    private FileSystemLocationSnapshot snapshotAndCache(InternableString absolutePath, File file, FileMetadataSnapshot metadata, SnapshottingFilter filter) {
+        FileSystemLocationSnapshot fileSystemLocationSnapshot = fileSystemMirror.getSnapshot(absolutePath.asNonInterned());
+        if (fileSystemLocationSnapshot == null) {
+            AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
+            fileSystemLocationSnapshot = snapshot(absolutePath.asInterned(), filter, file, metadata, hasBeenFiltered);
+            if (!hasBeenFiltered.get()) {
+                fileSystemMirror.putSnapshot(fileSystemLocationSnapshot);
+            }
+        }
+        return fileSystemLocationSnapshot;
+    }
+
+    private FileSystemLocationSnapshot snapshot(String absolutePath, SnapshottingFilter filter, File file, FileMetadataSnapshot metadata, AtomicBoolean hasBeenFiltered) {
+        String internedName = stringInterner.intern(file.getName());
+        switch (metadata.getType()) {
+            case Missing:
+                return new MissingFileSnapshot(absolutePath, internedName);
+            case RegularFile:
+                return new RegularFileSnapshot(absolutePath, internedName, hasher.hash(file, metadata.getLength(), metadata.getLastModified()), FileMetadata.from(metadata));
+            case Directory:
+                SnapshottingFilter.DirectoryWalkerPredicate predicate = filter.isEmpty()
+                    ? null
+                    : filter.getAsDirectoryWalkerPredicate();
+                return directorySnapshotter.snapshot(absolutePath, predicate, hasBeenFiltered);
+            default:
+                throw new IllegalArgumentException("Unrecognized file type: " + metadata.getType());
+        }
     }
 
     private FileSystemSnapshot filterSnapshot(FileSystemLocationSnapshot snapshot, SnapshottingFilter filter) {
-        if (snapshot.getType() == FileType.Missing) {
-            return FileSystemSnapshot.EMPTY;
-        }
         if (filter.isEmpty()) {
             return snapshot;
         }

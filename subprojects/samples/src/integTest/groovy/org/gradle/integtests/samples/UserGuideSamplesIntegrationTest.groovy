@@ -58,17 +58,17 @@ class UserGuideSamplesIntegrationTest {
     Important info: This test uses Exemplar (https://github.com/gradle/exemplar/) to discover and check samples.
 
     In order to add a new sample:
-        * Create your new sample project in a subdirectory under subprojects/docs/samples/
+        * Create your new sample project in a subdirectory under subprojects/docs/src/samples/
         * Write a *.sample.conf HOCON file in the root of your sample project dir
         * Exemplar will automatically discover your sample. See instructions below for running it
 
     To update a sample test, change the *.sample.conf file
 
      You can run all samples tests with
-        ./gradlew :integtest:integTest --tests "org.gradle.integtests.samples.UserGuideSamplesIntegrationTest"
+        ./gradlew :samples:integTest --tests "org.gradle.integtests.samples.UserGuideSamplesIntegrationTest"
 
      To run a subset of samples, use a more fine-grained test filter like
-        ./gradlew :integtest:integTest --tests "org.gradle.integtests.samples.UserGuideSamplesIntegrationTest.*native*"
+        ./gradlew :samples:integTest --tests "org.gradle.integtests.samples.UserGuideSamplesIntegrationTest.*native*"
     */
 
     // NOTE: This weirdness is here because GradleSamplesRunner does not support JUnit @Rule, @After or @Before.

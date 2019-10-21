@@ -1,0 +1,81 @@
+// Copyright 2019 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_version_5]]
+= Upgrading your build from Gradle 6.x to the latest
+
+This chapter provides the information you need to migrate your Gradle 6.x builds to the latest Gradle release. For migrating from Gradle 4.x or 5.x, see the <<upgrading_version_5.adoc#upgrading_version_5, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
++
+image::deprecations.png[Deprecations View of a Gradle Build Scan]
++
+This is so that you can see any deprecation warnings that apply to your build.
++
+Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
++
+. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+////
+
+Template for new sections
+
+[[changes_6.???]]
+== Upgrading from 6.??? and earlier
+
+=== Deprecations
+
+Nothing was deprecated.
+
+=== Potential breaking changes
+
+No potential breaking changes were introduced.
+////
+
+[[changes_6.1]]
+== Upgrading from 6.0 and earlier
+
+=== Deprecations
+
+==== Query a mapped task output property before the task has completed
+
+It is now deprecated to query the value of a mapped task output property before the task has completed. Here is an example of this case, where a task's output file is parsed to produce an `Integer` and
+the result used as input to another task:
+
+```
+class TaskA: DefaultTask {
+    @Input
+    final Property<Integer> threadPoolSize = ...
+}
+
+class TaskB: DefaultTask {
+    @OutputFile
+    final RegularFileProperty outputFile = ...
+}
+
+taskA.threadPoolSize = taskB.outputFile.map { it.text.toInteger() }
+```
+
+In this case, calling `get()`, or any other query method, on `taskA.threadPoolSize` will produce a deprecation warning if done prior to `taskB` completing, as the file has not yet been generated.
+This will become an error in Gradle 7.0
+
+=== Potential breaking changes
+
+No potential breaking changes were introduced.

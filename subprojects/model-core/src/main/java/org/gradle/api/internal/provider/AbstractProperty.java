@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
@@ -69,7 +70,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
      */
     protected abstract String describeContents();
 
-    // Final - implement describeContents() instead
+    // This method is final - implement describeContents() instead
     @Override
     public final String toString() {
         if (displayName != null) {
@@ -80,8 +81,12 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     @Override
-    public boolean isContentProducedByTask() {
-        return producer != null || getSupplier().isContentProducedByTask();
+    public void visitProducerTasks(Action<? super Task> visitor) {
+        if (producer != null) {
+            visitor.execute(producer);
+        } else {
+            getSupplier().visitProducerTasks(visitor);
+        }
     }
 
     @Override

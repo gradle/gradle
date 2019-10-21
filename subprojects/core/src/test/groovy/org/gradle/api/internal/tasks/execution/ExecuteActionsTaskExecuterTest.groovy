@@ -21,7 +21,6 @@ import org.gradle.api.execution.TaskActionListener
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
-import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.TaskExecutionMode
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
@@ -70,8 +69,6 @@ import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.operations.TestBuildOperationExecutor
-import org.gradle.internal.snapshot.WellKnownFileLocations
-import org.gradle.internal.snapshot.impl.DefaultFileSystemMirror
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot
 import org.gradle.internal.work.AsyncWorkTracker
@@ -113,9 +110,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def buildOperationExecutor = new TestBuildOperationExecutor()
     def asyncWorkTracker = Mock(AsyncWorkTracker)
 
-    def fileSystemMirror = new DefaultFileSystemMirror(Stub(WellKnownFileLocations))
-    def fileSystemSnapshotter = TestFiles.fileSystemSnapshotter(fileSystemMirror, new StringInterner())
-    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSystemSnapshotter, TestFiles.fileSystem())
+    def virtualFileSystem = TestFiles.virtualFileSystem()
+    def fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())
     def fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
     def fingerprinterRegistry = Stub(FileCollectionFingerprinterRegistry) {
         getFingerprinter(_) >> fingerprinter

@@ -28,12 +28,11 @@ import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.internal.file.TreeType
-import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
-import org.gradle.internal.snapshot.FileSystemMirror
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -46,9 +45,9 @@ import static org.gradle.internal.file.TreeType.FILE
 class BuildCacheCommandFactoryTest extends Specification {
     def packer = Mock(BuildCacheEntryPacker)
     def originFactory = Mock(OriginMetadataFactory)
-    def fileSystemMirror = Mock(FileSystemMirror)
+    def virtualFileSystem = Mock(VirtualFileSystem)
     def stringInterner = new StringInterner()
-    def commandFactory = new BuildCacheCommandFactory(packer, originFactory, fileSystemMirror, stringInterner)
+    def commandFactory = new BuildCacheCommandFactory(packer, originFactory, virtualFileSystem, stringInterner)
 
     def key = Mock(BuildCacheKey)
 
@@ -84,14 +83,13 @@ class BuildCacheCommandFactoryTest extends Specification {
         1 * packer.unpack(entity, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
-        1 * fileSystemMirror.putMetadata(outputDir.absolutePath, DefaultFileMetadata.directory())
-        1 * fileSystemMirror.putSnapshot(_ as DirectorySnapshot) >> { args ->
-            DirectorySnapshot snapshot = args[0]
+        1 * virtualFileSystem.updateWithKnownSnapshot(outputDir.absolutePath, _ as DirectorySnapshot) >> { args ->
+            DirectorySnapshot snapshot = args[1]
             assert snapshot.absolutePath == outputDir.absolutePath
             assert snapshot.name == outputDir.name
         }
-        1 * fileSystemMirror.putSnapshot(_ as RegularFileSnapshot) >> { args ->
-            RegularFileSnapshot snapshot = args[0]
+        1 * virtualFileSystem.updateWithKnownSnapshot(outputFileSnapshot.absolutePath, _ as RegularFileSnapshot) >> { args ->
+            RegularFileSnapshot snapshot = args[1]
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash

@@ -83,6 +83,47 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnVersionConflict();
 
     /**
+     * If this method is called, Gradle will make sure that no dynamic version was used in the resulting dependency graph.
+     * In practice, it means that if the resolved dependency graph contains a module and that the versions participating
+     * in the selection of that module contain at least one dynamic version, then resolution will fail if the resolution
+     * result can change because of this version selector.
+     *
+     * This can be used in cases you want to make sure your build is reproducible, <i>without</i> relying on
+     * dependency locking.
+     *
+     * @return this resolution strategy
+     * @since 6.1
+     */
+    @Incubating
+    ResolutionStrategy failOnDynamicVersions();
+
+    /**
+     * If this method is called, Gradle will make sure that no changing version participates in resolution.
+     *
+     * This can be used in cases you want to make sure your build is reproducible, <i>without</i> relying on
+     * dependency locking.
+     *
+     * @return this resolution strategy
+     * @since 6.1
+     */
+    @Incubating
+    ResolutionStrategy failOnChangingVersions();
+
+    /**
+     * Configures Gradle to fail the build is the resolution result is expected to be unstable, that is to say that
+     * it includes dynamic versions or changing versions and therefore the result may change depending
+     * on when the build is executed.
+     *
+     * This method is equivalent to calling both {@link #failOnDynamicVersions()} and
+     * {@link #failOnChangingVersions()}.
+     *
+     * @return this resolution strategy
+     * @since 6.1
+     */
+    @Incubating
+    ResolutionStrategy failOnNonReproducibleResolution();
+
+    /**
      * Gradle can resolve conflicts purely by version number or prioritize project dependencies over binary.
      * The default is <b>by version number</b>.<p>
      * This applies to both first level and transitive dependencies. See example below:

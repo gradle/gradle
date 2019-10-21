@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.testing;
 
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -32,6 +33,15 @@ public interface TestDescriptor {
      * @return The test name
      */
     String getName();
+
+    /**
+     * Returns the display name of the test. It may be the same as or different from {@link #getName()}
+     *
+     * @return the name for display.
+     * @since 6.1
+     */
+    @Incubating
+    String getDisplayName();
 
     /**
      * Returns the test class name for this test, if any.

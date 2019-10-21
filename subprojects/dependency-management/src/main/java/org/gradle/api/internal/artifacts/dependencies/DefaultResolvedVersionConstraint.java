@@ -104,6 +104,34 @@ public class DefaultResolvedVersionConstraint implements ResolvedVersionConstrai
         return isStrict;
     }
 
+    @Override
+    public boolean accepts(String candidate) {
+        boolean accepted = true;
+        if (requiredVersionSelector != null) {
+            accepted = requiredVersionSelector.accept(candidate);
+        } else if (preferredVersionSelector != null) {
+            accepted = preferredVersionSelector.accept(candidate);
+        }
+        if (accepted && rejectedVersionsSelector != null) {
+            accepted = !rejectedVersionsSelector.accept(candidate);
+        }
+        return accepted;
+    }
+
+    @Override
+    public boolean canBeStable() {
+        return canBeStable(preferredVersionSelector)
+            && canBeStable(requiredVersionSelector)
+            && canBeStable(rejectedVersionsSelector);
+    }
+
+    private static boolean canBeStable(VersionSelector vs) {
+        if (vs == null) {
+            return true;
+        }
+        return vs.canShortCircuitWhenVersionAlreadyPreselected();
+    }
+
     private boolean doComputeIsDynamic() {
         if (requiredVersionSelector != null) {
             return requiredVersionSelector.isDynamic();

@@ -698,7 +698,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
     }
 
-    private class DefaultCopySpecAddress implements CopySpecAddress {
+    private static class DefaultCopySpecAddress implements CopySpecAddress {
         private final DefaultCopySpecAddress parent;
         private final CopySpecInternal spec;
         private final int additionIndex;

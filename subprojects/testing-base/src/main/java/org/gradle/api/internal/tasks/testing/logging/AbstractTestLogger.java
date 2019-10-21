@@ -72,7 +72,7 @@ public abstract class AbstractTestLogger {
                 // level. This matters when configuring granularity.
                 names.add(current.getClassName() + "." + current.getName());
             } else {
-                names.add(current.getName());
+                names.add(current.getDisplayName());
             }
             current = current.getParent();
         }

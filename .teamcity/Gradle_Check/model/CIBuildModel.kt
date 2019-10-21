@@ -52,7 +52,9 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
-                SpecificBuild.SmokeTests),
+                SpecificBuild.SmokeTestsMinJavaVersion,
+                SpecificBuild.SmokeTestsMaxJavaVersion
+            ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(4, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)),
@@ -411,7 +413,7 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
     slow("SlowPerformanceTest", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
     experiment("PerformanceExperiment", "Performance Experiment", 420, "defaults", uuid = "PerformanceExperimentOnlyCoordinator"),
     flakinessDetection("FlakinessDetection", "Performance Test Flakiness Detection", 600, "flakiness-detection-commit"),
-    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "2.14.1,3.5.1,4.0,last", "--checks none");
+    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "3.5.1,4.10.2,5.6.2,last", "--checks none");
 
     fun asId(model: CIBuildModel): String =
         "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
@@ -445,9 +447,14 @@ enum class SpecificBuild {
             return Gradleception(model, stage)
         }
     },
-    SmokeTests {
+    SmokeTestsMinJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage)
+            return SmokeTests(model, stage, JvmCategory.MIN_VERSION)
+        }
+    },
+    SmokeTestsMaxJavaVersion {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SmokeTests(model, stage, JvmCategory.MAX_VERSION)
         }
     },
     DependenciesCheck {

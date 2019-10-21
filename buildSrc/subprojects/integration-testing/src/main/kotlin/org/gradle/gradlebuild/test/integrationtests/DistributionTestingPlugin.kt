@@ -96,6 +96,7 @@ class DistributionTestingPlugin : Plugin<Project> {
             })
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
             gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
+            gradleSamplesDir.set(layout.projectDirectory.dir("subprojects/docs/src/samples"))
             toolingApiShadedJarDir.set(dirWorkaround {
                 // TODO Refactor to not reach into tasks of another project
                 val toolingApiShadedJar: ShadedJar by project.rootProject.project(":toolingApi").tasks

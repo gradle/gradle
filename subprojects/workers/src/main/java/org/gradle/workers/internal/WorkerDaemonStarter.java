@@ -17,7 +17,6 @@
 package org.gradle.workers.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -34,7 +33,6 @@ import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.net.URISyntaxException;
-import java.net.URL;
 
 public class WorkerDaemonStarter {
     private final static Logger LOG = Logging.getLogger(WorkerDaemonStarter.class);
@@ -80,14 +78,11 @@ public class WorkerDaemonStarter {
     }
 
     private static Iterable<File> toFiles(VisitableURLClassLoader.Spec spec) {
-        return CollectionUtils.collect(spec.getClasspath(), new Transformer<File, URL>() {
-            @Override
-            public File transform(URL url) {
-                try {
-                    return new File(url.toURI());
-                } catch (URISyntaxException e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+        return CollectionUtils.collect(spec.getClasspath(), url -> {
+            try {
+                return new File(url.toURI());
+            } catch (URISyntaxException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         });
     }

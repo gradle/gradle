@@ -26,7 +26,6 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -281,7 +280,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
-                        return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
+                        return fingerprint(output, fingerprintingStrategy)
                     }
                 }
             case DIRECTORY:
@@ -291,7 +290,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
-                        return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
+                        return fingerprint(output, fingerprintingStrategy)
                     }
                 }
             default:

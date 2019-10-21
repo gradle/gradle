@@ -16,9 +16,9 @@
 
 package org.gradle.internal.snapshot.impl
 
-
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
@@ -27,9 +27,9 @@ import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
-import org.gradle.internal.snapshot.FileSystemSnapshotter
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
+import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -40,7 +40,7 @@ class FileSystemSnapshotFilterTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
 
-    FileSystemSnapshotter snapshotter = TestFiles.fileSystemSnapshotter()
+    VirtualFileSystem virtualFileSystem = TestFiles.virtualFileSystem()
     FileSystem fileSystem = TestFiles.fileSystem()
 
     def "filters correctly"() {
@@ -54,7 +54,9 @@ class FileSystemSnapshotFilterTest extends Specification {
         def subdir = dir1.createDir("subdir")
         def subdirFile1 = subdir.createFile("subdirFile1")
 
-        def unfiltered = snapshotter.snapshotDirectoryTree(root, snapshottingFilter(new PatternSet()))
+        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        virtualFileSystem.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
+        def unfiltered = result.get()
 
         expect:
         filteredPaths(unfiltered, include("**/*2")) == [root, dir1, dirFile2, subdir, rootFile2] as Set
@@ -91,7 +93,9 @@ class FileSystemSnapshotFilterTest extends Specification {
         dir1.createFile("dirFile1")
         dir1.createFile("dirFile2")
 
-        def unfiltered = snapshotter.snapshotDirectoryTree(root, snapshottingFilter(new PatternSet()))
+        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        virtualFileSystem.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
+        def unfiltered = result.get()
 
         expect:
         FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(include("**/*File*")).asSnapshotPredicate, unfiltered).is(unfiltered)

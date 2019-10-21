@@ -385,6 +385,7 @@ include ':b1:b11'
 """
 
         when:
+        executer.expectDeprecationWarning()
         checkDependencies()
 
         then:
