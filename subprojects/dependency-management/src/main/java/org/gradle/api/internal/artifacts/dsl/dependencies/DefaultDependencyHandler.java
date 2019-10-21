@@ -21,7 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ExternalModuleDependency;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
@@ -37,6 +37,7 @@ import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.HasConfigurableAttributes;
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.VariantTransformRegistry;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -46,9 +47,9 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORMAT;
@@ -260,12 +261,18 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     @Override
     public Dependency enforcedPlatform(Object notation) {
-        Dependency platformDependency = create(notation);
-        if (platformDependency instanceof ExternalModuleDependency) {
-            ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) platformDependency;
-            DeprecationLogger.whileDisabled(() -> externalModuleDependency.setForce(true));
-            platformSupport.addPlatformAttribute(externalModuleDependency, toCategory(Category.ENFORCED_PLATFORM));
-        } else if (platformDependency instanceof HasConfigurableAttributes) {
+        Dependency platformDependency = platform(notation);
+        componentMetadataHandler.withModule(DefaultModuleIdentifier.newId(platformDependency.getGroup(), platformDependency.getName()), EnforcedPlatformComponentMetadataRule.class);
+        if (platformDependency instanceof ExternalDependency) {
+            ExternalDependency externalDependency = (ExternalDependency) platformDependency;
+            externalDependency.version(v -> {
+                List<String> rejectedVersions = v.getRejectedVersions();
+                v.strictly(v.getRequiredVersion());
+                if (!rejectedVersions.isEmpty()) {
+                    v.reject(rejectedVersions.toArray(new String[0]));
+                }
+            });
+        } else if (platformDependency instanceof ProjectDependency) {
             platformSupport.addPlatformAttribute((HasConfigurableAttributes<?>) platformDependency, toCategory(Category.ENFORCED_PLATFORM));
         }
         return platformDependency;

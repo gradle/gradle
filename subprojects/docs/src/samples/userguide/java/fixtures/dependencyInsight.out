@@ -8,8 +8,6 @@ com.google.code.gson:gson:2.8.5 FAILED
                - Variant runtime provides com.google.code.gson:gson:2.8.5
                - Variant platform-compile provides com.google.code.gson:gson-derived-platform:2.8.5
                - Variant platform-runtime provides com.google.code.gson:gson-derived-platform:2.8.5
-               - Variant enforced-platform-compile provides com.google.code.gson:gson-derived-platform:2.8.5
-               - Variant enforced-platform-runtime provides com.google.code.gson:gson-derived-platform:2.8.5
 
 com.google.code.gson:gson:2.8.5 FAILED
 \--- functionalTestClasspath

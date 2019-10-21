@@ -24,15 +24,12 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.ExcludeRuleConverter;
-import org.gradle.api.internal.artifacts.repositories.metadata.MavenImmutableAttributesFactory;
-import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -60,7 +57,6 @@ import static com.google.gson.stream.JsonToken.END_ARRAY;
 import static com.google.gson.stream.JsonToken.END_OBJECT;
 import static com.google.gson.stream.JsonToken.NUMBER;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.lang.StringUtils.capitalize;
 
 public class GradleModuleMetadataParser {
     private final static Logger LOGGER = Logging.getLogger(GradleModuleMetadataParser.class);
@@ -207,13 +203,6 @@ public class GradleModuleMetadataParser {
 
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
-        AttributeValue<String> entry = attributes.findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
-        if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get())) {
-            // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
-            ImmutableAttributes enforcedAttributes = attributesFactory.concat(attributes, MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
-            MutableComponentVariant syntheticEnforcedVariant = metadata.addVariant("enforced" + capitalize(variantName), enforcedAttributes);
-            populateVariant(files, dependencies, dependencyConstraints, capabilities, syntheticEnforcedVariant);
-        }
     }
 
     private void populateVariant(List<ModuleFile> files, List<ModuleDependency> dependencies, List<ModuleDependencyConstraint> dependencyConstraints, List<VariantCapability> capabilities, MutableComponentVariant variant) {

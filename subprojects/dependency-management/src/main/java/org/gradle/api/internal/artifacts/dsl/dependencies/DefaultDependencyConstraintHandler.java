@@ -91,6 +91,8 @@ public class DefaultDependencyConstraintHandler implements DependencyConstraintH
     public DependencyConstraint enforcedPlatform(Object notation) {
         DependencyConstraintInternal platformDependency = (DependencyConstraintInternal) create(notation);
         platformDependency.setForce(true);
+        // This might no longer have an effect as published components usually won't carry the attribute anymore
+        // This is therefore deprecated and only dependencies (and not constraints) should be declared as 'enforcedPlatform'
         platformSupport.addPlatformAttribute(platformDependency, enforcedPlatform);
         return platformDependency;
     }

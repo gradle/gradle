@@ -329,9 +329,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 
                 conf("org:kotlin:2.9.4.1")
 
-                conf("org:databind:2.7.9") {
-                    force = true
-                }
+                conf("org:databind:2.7.9!!")
             }
         """
 
@@ -343,46 +341,10 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
-    }
-
-    def "fails if forcing a virtual platform version and forcing a leaf with different version through resolutionStrategy"() {
-        repository {
-            ['2.7.9', '2.9.4', '2.9.4.1'].each {
-                path "databind:$it -> core:$it"
-                path "databind:$it -> annotations:$it"
-                path "kotlin:$it -> core:$it"
-                path "kotlin:$it -> annotations:$it"
-            }
-        }
-
-        given:
-        buildFile << """
-            configurations {
-                conf.resolutionStrategy {
-                    force('org:databind:2.7.9')
-                }
-            }
-            dependencies {
-                conf("org:core:2.9.4")
-                
-                conf enforcedPlatform("org:platform:2.9.4")
-                
-                conf("org:kotlin:2.9.4.1")
-
-                conf("org:databind:2.9.4")
-            }
-        """
-
-        and:
-        "a rule which infers module set from group and version"()
-
-        when:
-        allowAllRepositoryInteractions()
-        fails ':checkDeps'
-
-        then:
-        failureCauseContains("Multiple forces on different versions for virtual platform org:platform")
+        failure.assertHasCause(
+        """Cannot find a version of 'org:databind' that satisfies the version constraints: 
+   Dependency path ':test:unspecified' --> 'org:databind:{strictly 2.7.9}'
+   Constraint path ':test:unspecified' --> 'org:core:2.9.4' --> 'org:platform:2.9.4' --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4""")
     }
 
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions, including transitively"() {
@@ -518,9 +480,7 @@ include 'other'
                 
                 conf("org:kotlin:2.9.4.1")
 
-                conf("org:databind:2.7.9") {
-                    force = true
-                }
+                conf("org:databind:2.7.9!!")
             }
         """
 
@@ -836,24 +796,41 @@ include 'other'
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                edge("org:core:2.9.4", "org:core:2.7.9") {
-                    forced()
-                }
+                edge("org:core:2.9.4", "org:core:2.7.9")
                 module("org:databind:2.7.9") {
                     module('org:annotations:2.7.9')
                     module('org:core:2.7.9')
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
-                    forced()
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
                 }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedPlatform' : 'enforced-platform-runtime'
-                module("org:platform:2.7.9:$expectedVariant") {
-                    constraint('org:core:2.7.9')
-                    constraint('org:databind:2.7.9')
-                    constraint('org:annotations:2.7.9')
-                    constraint('org:kotlin:2.7.9')
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'platform' : 'platform-runtime'
+                edge("org:platform:{strictly 2.7.9}", "org:platform:2.7.9:$expectedVariant") {
+                    constraint('org:core:{strictly 2.7.9}', 'org:core:2.7.9') {
+                        byConstraint()
+                        if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
+                            byAncestor()
+                        }
+                    }
+                    constraint('org:kotlin:{strictly 2.7.9}', 'org:kotlin:2.7.9') {
+                        byConstraint()
+                        if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
+                            byAncestor()
+                        }
+                    }
+                    constraint('org:databind:{strictly 2.7.9}', 'org:databind:2.7.9') {
+                        byConstraint()
+                        if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
+                            byAncestor()
+                        }
+                    }
+                    constraint('org:annotations:{strictly 2.7.9}', 'org:annotations:2.7.9') {
+                        byConstraint()
+                        if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
+                            byAncestor()
+                        }
+                    }
                     noArtifacts()
                 }
             }

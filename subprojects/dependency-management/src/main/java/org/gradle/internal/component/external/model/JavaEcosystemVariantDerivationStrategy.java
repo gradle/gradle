@@ -50,10 +50,8 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
                     // component we cannot mix precise usages with more generic ones)
                 libraryWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API),
                 libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
-                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false, shadowedPlatformCapability),
-                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false, shadowedPlatformCapability),
-                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true, shadowedPlatformCapability),
-                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true, shadowedPlatformCapability));
+                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, shadowedPlatformCapability),
+                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, shadowedPlatformCapability));
         }
         return null;
     }
@@ -77,17 +75,14 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
                 .build();
     }
 
-    private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, boolean enforcedPlatform, ImmutableCapabilities shadowedPlatformCapability) {
-        ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, enforcedPlatform);
-        String prefix = enforcedPlatform ? "enforced-platform-" : "platform-";
+    private static ConfigurationMetadata platformWithUsageAttribute(DefaultConfigurationMetadata conf, ImmutableAttributes originAttributes, MavenImmutableAttributesFactory attributesFactory, String usage, ImmutableCapabilities shadowedPlatformCapability) {
+        ImmutableAttributes attributes = attributesFactory.platformWithUsage(originAttributes, usage, false);
+        String prefix = "platform-";
         DefaultConfigurationMetadata.Builder builder = conf.mutate()
                 .withName(prefix + conf.getName())
                 .withAttributes(attributes)
                 .withConstraintsOnly()
                 .withCapabilities(shadowedPlatformCapability);
-        if (enforcedPlatform) {
-            builder = builder.withForcedDependencies();
-        }
         return builder.build();
     }
 

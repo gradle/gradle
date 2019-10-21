@@ -349,8 +349,6 @@ All dependencies of those scopes are considered _runtime dependencies_.
 * 4 "platform" variants derived from the `<dependencyManagement>` block (attribute `org.gradle.category` = `platform`):
 ** the `platform-compile` variant maps the  `<scope>compile</scope>` dependency management dependencies as _dependency constraints_.
 ** the `platform-runtime` variant maps both the `<scope>compile</scope>` and `<scope>runtime</scope>` dependency management dependencies as _dependency constraints_.
-** the `enforced-platform-compile` is similar to `platform-compile` but all the constraints are _forced_
-** the `enforced-platform-runtime` is similar to `platform-runtime` but all the constraints are _forced_
 
 You can understand more about the use of platform and enforced platforms variants by looking at the <<platforms.adoc#sub:bom_import, importing BOMs>> section of the manual.
 By default, whenever you declare a dependency on a Maven module, Gradle is going to look for the `library` variants.

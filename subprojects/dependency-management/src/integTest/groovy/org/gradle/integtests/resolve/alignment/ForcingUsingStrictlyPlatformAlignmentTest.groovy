@@ -161,7 +161,7 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         then:
         failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:databind:{strictly 2.7.9}'
-   Constraint path ':test:unspecified' --> 'org:platform:2.9.4' --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
+   Constraint path ':test:unspecified' --> 'org:core:2.9.4' --> 'org:platform:2.9.4' --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
     }
 
     def "fails if forcing a virtual platform version by forcing multiple leaves with different versions, including transitively"() {

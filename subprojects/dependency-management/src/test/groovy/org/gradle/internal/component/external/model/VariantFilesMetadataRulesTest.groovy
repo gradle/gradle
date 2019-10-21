@@ -165,7 +165,7 @@ class VariantFilesMetadataRulesTest extends Specification {
 
         where:
         metadataType | metadata                       | initialVariantCount
-        "maven"      | mavenComponentMetadata('dep')  | 6 // default derivation strategy for maven
+        "maven"      | mavenComponentMetadata('dep')  | 4 // default derivation strategy for maven
         "ivy"        | ivyComponentMetadata('dep')    | 0 // there is no derivation strategy for ivy
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }
@@ -187,7 +187,7 @@ class VariantFilesMetadataRulesTest extends Specification {
 
         where:
         metadataType | metadata                       | initialVariantCount
-        "maven"      | mavenComponentMetadata('dep')  | 6 // default derivation strategy for maven
+        "maven"      | mavenComponentMetadata('dep')  | 4 // default derivation strategy for maven
         "ivy"        | ivyComponentMetadata('dep')    | 0 // there is no derivation strategy for ivy
         "gradle"     | gradleComponentMetadata('dep') | 1 // 'runtime' added in test setup
     }

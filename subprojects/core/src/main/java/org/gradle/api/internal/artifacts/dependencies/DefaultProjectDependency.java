@@ -44,6 +44,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private final ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
     private final ProjectAccessListener projectAccessListener;
+    private DependencyConstraint associatedConstraint;
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
         this(dependencyProject, null, projectAccessListener, buildProjectDependencies);

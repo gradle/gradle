@@ -138,17 +138,19 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
     }
 
     static private String expectStrictVersion(platformType, String requiredVersion, String rejectedVersions = '') {
-        boolean strictVersion = platformType != ENFORCED_PLATFORM
-        if (strictVersion && rejectedVersions.isEmpty()) {
+        if (rejectedVersions.isEmpty()) {
             return "{strictly $requiredVersion}"
-        }
-        if (!strictVersion && !rejectedVersions.isEmpty()) {
-            return "{require $requiredVersion; reject $rejectedVersions}"
-        }
-        if (strictVersion && !rejectedVersions.isEmpty()) {
+        } else {
             return "{strictly $requiredVersion; reject $rejectedVersions}"
         }
-        requiredVersion
+    }
+
+    static private String expectPlatformVersion(platformType, String platformVersion) {
+        if (platformType == ENFORCED_PLATFORM) {
+            return "{strictly $platformVersion}"
+        } else {
+            return platformVersion
+        }
     }
 
     @Unroll
@@ -181,10 +183,10 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:platform:1.+', 'org:platform:1.0') {
+                edge("org:platform:${expectPlatformVersion(platformType, '1.+')}", 'org:platform:1.0') {
                     byRequest()
                     if (platformType != MODULE) {
-                        configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
+                        configuration('apiElements')
                         noArtifacts()
                     }
                     constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
@@ -193,16 +195,9 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                 edge('org:bar', 'org:bar:2.0') {
                     byRequest()
                     edge('org:foo:3.1', 'org:foo:3.0') {
-                        if (platformType != ENFORCED_PLATFORM) {
-                            byAncestor()
-                        } else {
-                            byRequest()
-                        }
+                        byAncestor()
                     }
                 }
-            }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
             }
         }
 
@@ -240,10 +235,10 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                edge('org:platform:1.+', 'org:platform:1.1') {
+                edge("org:platform:${expectPlatformVersion(platformType, '1.+')}", 'org:platform:1.1') {
                     byRequest()
                     if (platformType != MODULE) {
-                        configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
+                        configuration('apiElements')
                         noArtifacts()
                     }
                     constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
@@ -251,17 +246,8 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                 }
                 edge('org:bar', 'org:bar:2.0') {
                     byRequest()
-                    edge('org:foo:3.1', 'org:foo:3.1.1') {
-                        if (platformType != ENFORCED_PLATFORM) {
-                            byAncestor()
-                        } else {
-                            byRequest()
-                        }
-                    }
+                    edge('org:foo:3.1', 'org:foo:3.1.1').byAncestor()
                 }
-            }
-            if (platformType == ENFORCED_PLATFORM) {
-                nodesWithoutRoot.each { it.forced() }
             }
         }
 
@@ -291,30 +277,18 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             }
             'org:bar:2.0' {
                 expectGetMetadata()
-                if (platformType == ENFORCED_PLATFORM) {
-                    expectGetArtifact()
-                }
             }
             'org:foo:3.1.1' {
                 expectGetMetadata()
-                if (platformType == ENFORCED_PLATFORM) {
-                    expectGetArtifact()
-                }
             }
             'org:foo:3.2' {
-                if (platformType != ENFORCED_PLATFORM) {
-                    expectGetMetadata()
-                }
+                expectGetMetadata()
             }
         }
-        if (platformType == ENFORCED_PLATFORM) {
-            // issue with enforced platform: the forced version is always used and the conflict is 'hidden'
-            succeeds ':checkDeps'
-        } else {
-            fails ':checkDeps'
-        }
+        fails ':checkDeps'
+
         then:
-        (platformType == ENFORCED_PLATFORM && !failure) || failure.assertHasCause(
+        failure.assertHasCause(
             """Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
    Constraint path ':test:unspecified' --> 'org:platform:1.1' --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
@@ -326,9 +300,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
 
     @Unroll
     void "(4) library developer has issues with org:foo:3.1.1 and forces an override of the platform decision with strictly [#platformType]"() {
-        // issue with enforced platform: consumer can not override platform decision via constraint
-        //                               (an override via an own forced dependency is possible)
-        def expectedFooVersion = platformType == ENFORCED_PLATFORM ? '3.1.1' : '3.2'
+        def expectedFooVersion = '3.2'
 
         updatedRepository(platformType)
         singleLibraryBuildFile(platformType)
@@ -356,49 +328,31 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
             }
             'org:bar:2.0' {
                 expectGetMetadata()
-                if (platformType != ENFORCED_PLATFORM) {
-                    expectGetArtifact()
-                }
+                expectGetArtifact()
             }
             "org:foo:$expectedFooVersion" {
                 expectGetMetadata()
-                if (platformType != ENFORCED_PLATFORM) {
-                    expectGetArtifact()
-                }
+                expectGetArtifact()
             }
         }
-        if (platformType != ENFORCED_PLATFORM) {
-            run ':checkDeps'
-        } else {
-            fails ':checkDeps'
-        }
+        run ':checkDeps'
 
         then:
-        if (platformType == ENFORCED_PLATFORM) {
-            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'org:platform:1.1' --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
-   Constraint path ':test:unspecified' --> 'org:foo:{strictly 3.2}'"""
-        } else {
-            resolve.expectGraph {
-                root(':', ':test:') {
-                    constraint('org:foo:{strictly 3.2}', "org:foo:$expectedFooVersion").byConstraint()
-                    edge('org:platform:1.+', 'org:platform:1.1') {
-                        byRequest()
-                        if (platformType != MODULE) {
-                            configuration(platformType == ENFORCED_PLATFORM ? 'enforcedApiElements' : 'apiElements')
-                            noArtifacts()
-                        }
-                        constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
-                        constraint("org:foo:${expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
+        resolve.expectGraph {
+            root(':', ':test:') {
+                constraint('org:foo:{strictly 3.2}', "org:foo:$expectedFooVersion").byConstraint()
+                edge("org:platform:${expectPlatformVersion(platformType, '1.+')}", 'org:platform:1.1') {
+                    byRequest()
+                    if (platformType != MODULE) {
+                        configuration('apiElements')
+                        noArtifacts()
                     }
-                    edge('org:bar', 'org:bar:2.0') {
-                        edge('org:foo:3.1', "org:foo:$expectedFooVersion").byAncestor()
-                    }.byRequest()
+                    constraint("org:bar:${expectStrictVersion(platformType, '2.0')}", 'org:bar:2.0').byConstraint()
+                    constraint("org:foo:${expectStrictVersion(platformType, '3.1.1', '3.1 & 3.2')}", "org:foo:$expectedFooVersion").byConstraint()
                 }
-                if (platformType == ENFORCED_PLATFORM) {
-                    nodesWithoutRoot.each { it.forced() }
-                }
+                edge('org:bar', 'org:bar:2.0') {
+                    edge('org:foo:3.1', "org:foo:$expectedFooVersion").byAncestor()
+                }.byRequest()
             }
         }
 
@@ -451,27 +405,20 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                 expectGetMetadata()
             }
             'org:foo:3.2' {
-                if (platformType != ENFORCED_PLATFORM) {
-                    expectGetMetadata()
-                }
+                expectGetMetadata()
             }
         }
 
         fails ':checkDeps'
 
         then:
-        if (platformType == ENFORCED_PLATFORM) {
-            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        // In the ENFORCED_PLATFORM case, the resolving project does not apply the EnforcedPlatformComponentMetadataRule because it does not call `enforcedPlatform()` itself
+        def platformToFooDependencyType = platformType == ENFORCED_PLATFORM ? "require" : "strictly"
+        failure.assertHasCause(
+            """Cannot find a version of 'org:foo' that satisfies the version constraints: 
    Dependency path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:platform:1.1' --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:foo:{strictly 3.2}'"""
-        } else {
-            failure.assertHasCause(
-                """Cannot find a version of 'org:foo' that satisfies the version constraints: 
-   Dependency path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
-   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:platform:1.1' --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
+   Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:platform:1.1' --> 'org:foo:{$platformToFooDependencyType 3.1.1; reject 3.1 & 3.2}'
    Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:foo:{strictly 3.2}'""")
-        }
 
         where:
         platformType << PlatformType.values()

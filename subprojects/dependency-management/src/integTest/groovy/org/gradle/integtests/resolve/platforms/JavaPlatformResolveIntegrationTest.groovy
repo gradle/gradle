@@ -226,13 +226,14 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 }
                 .dependsOn("org", "foo", "1.0")
                 .publish()
+        def bar11 = mavenHttpRepo.module("org", "bar", "1.1").withModuleMetadata().dependsOn("org", "foo", "1.1").publish()
         def foo10 = mavenHttpRepo.module("org", "foo", "1.0").withModuleMetadata().publish()
         def foo11 = mavenHttpRepo.module("org", "foo", "1.1").withModuleMetadata().publish()
 
         buildFile << """
             dependencies {
-                api enforcedPlatform("org:platform:1.0")
-                api "org:foo:1.1"
+                api enforcedPlatform("org:platform:1.0") // depends on foo 1.0
+                api "org:bar:1.1" // depends on foo 1.1
             }
         """
         checkConfiguration("compileClasspath")
@@ -240,30 +241,34 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         when:
         platform.pom.expectGet()
         platform.moduleMetadata.expectGet()
-        foo11.pom.expectGet()
-        foo11.moduleMetadata.expectGet()
+        bar11.pom.expectGet()
+        bar11.moduleMetadata.expectGet()
+        bar11.artifact.expectGet()
         foo10.pom.expectGet()
         foo10.moduleMetadata.expectGet()
         foo10.artifact.expectGet()
 
-        run ":checkDeps"
+        run ":dependencies", ":checkDeps"
 
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                module("org:platform:1.0") {
-                    configuration = "enforcedApiElements"
-                    variant("enforcedApiElements", [
+                edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
+                    configuration = "apiElements"
+                    variant("apiElements", [
                             'org.gradle.usage': 'java-api',
-                            'org.gradle.category': 'enforced-platform',
+                            'org.gradle.category': 'platform',
                             'org.gradle.status': 'release',
                     ])
-                    module("org:foo:1.0")
+                    edge("org:foo:{strictly 1.0}", "org:foo:1.0")
                     noArtifacts()
                 }
-                edge('org:foo:1.1', 'org:foo:1.0') {
+                module("org:bar:1.1") {
                     configuration = 'api'
-                    forced()
+                    edge('org:foo:1.1', 'org:foo:1.0') {
+                        configuration = 'api'
+                        byAncestor()
+                    }
                 }
             }
         }
@@ -396,9 +401,9 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         then:
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
-                module("org:top:1.0") {
-                    variant("enforced-platform-compile", [
-                            'org.gradle.category': 'enforced-platform',
+                edge("org:top:{strictly 1.0}", "org:top:1.0") {
+                    variant("platform-compile", [
+                            'org.gradle.category': 'platform',
                             'org.gradle.status': 'release',
                             'org.gradle.usage': 'java-api'])
                     noArtifacts()

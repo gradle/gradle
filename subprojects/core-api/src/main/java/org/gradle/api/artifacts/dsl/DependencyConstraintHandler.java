@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.DependencyConstraint;
 
 /**
@@ -87,7 +88,11 @@ public interface DependencyConstraintHandler {
      * @param notation the coordinates of the platform
      *
      * @since 5.0
+     *
+     * @deprecated Please use {@link DependencyHandler#enforcedPlatform(Object)}
      */
+    @Incubating
+    @Deprecated
     DependencyConstraint enforcedPlatform(Object notation);
 
     /**
@@ -100,6 +105,10 @@ public interface DependencyConstraintHandler {
      * @param configureAction the dependency configuration block
      *
      * @since 5.0
+     *
+     * @deprecated Please use {@link DependencyHandler#enforcedPlatform(Object, Action)} )}
      */
+    @Incubating
+    @Deprecated
     DependencyConstraint enforcedPlatform(Object notation, Action<? super DependencyConstraint> configureAction);
 }

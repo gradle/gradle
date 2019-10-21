@@ -50,7 +50,10 @@ public interface Category extends Named {
 
     /**
      * The enforced platform, usually a synthetic variant derived from the {@code platform}
+     *
+     * Deprecated: enforced platforms are no longer represented as derive variants, but define them through strict versions and component metadata rules
      */
+    @Deprecated
     String ENFORCED_PLATFORM = "enforced-platform";
 
     /**

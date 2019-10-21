@@ -4,21 +4,10 @@ Execution failed for task ':failRuntimeClasspathResolve'.
      Required by:
          project :
       > Cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
-          - enforced-platform-runtime
           - natives-windows-runtime
           - natives-windows-x86-runtime
           - platform-runtime
         All of them match the consumer attributes:
-          - Variant 'enforced-platform-runtime' capability org.lwjgl:lwjgl-derived-platform:3.2.3:
-              - Unmatched attributes:
-                  - Found org.gradle.category 'enforced-platform' but wasn't required.
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' but no value provided.
-                  - Required org.gradle.native.operatingSystem 'windows' but no value provided.
-                  - Found org.gradle.status 'release' but wasn't required.
-              - Compatible attribute:
-                  - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime'.
           - Variant 'natives-windows-runtime' capability org.lwjgl:lwjgl:3.2.3:
               - Unmatched attributes:
                   - Found org.gradle.category 'library' but wasn't required.
