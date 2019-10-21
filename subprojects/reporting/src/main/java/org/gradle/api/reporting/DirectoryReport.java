@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting;
 
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 
@@ -41,7 +42,7 @@ public interface DirectoryReport extends ConfigurableReport {
 
     @OutputDirectory
     @Override
-    File getDestination();
+    DirectoryProperty getOutputLocation();
 
     /**
      * Always returns {@link Report.OutputType#DIRECTORY}

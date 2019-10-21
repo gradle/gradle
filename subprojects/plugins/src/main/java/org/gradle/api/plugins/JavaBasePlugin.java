@@ -43,6 +43,7 @@ import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.ReportingExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -50,6 +51,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
+import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -422,36 +424,17 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention convention) {
-        project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
-            @Override
-            public void execute(final Test test) {
-                configureTestDefaults(test, project, convention);
-            }
-        });
+        project.getTasks().withType(Test.class).configureEach(test -> configureTestDefaults(test, project, convention));
     }
 
     private void configureTestDefaults(final Test test, Project project, final JavaPluginConvention convention) {
-        DslObject htmlReport = new DslObject(test.getReports().getHtml());
-        DslObject xmlReport = new DslObject(test.getReports().getJunitXml());
+        DirectoryReport htmlReport = test.getReports().getHtml();
+        JUnitXmlReport xmlReport = test.getReports().getJunitXml();
 
-        xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(convention.getTestResultsDir(), test.getName());
-            }
-        });
-        htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(convention.getTestReportDir(), test.getName());
-            }
-        });
-        test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(new Callable<String>() {
-            @Override
-            public String call() {
-                return new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath();
-            }
-        })));
+        // TODO - should replace `testResultsDir` and `testReportDir` with `Property` types and map their values
+        xmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName()).getAbsolutePath())));
+        htmlReport.getOutputLocation().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestReportDir(), test.getName()).getAbsolutePath())));
+        test.getBinaryResultsDirectory().convention(project.getLayout().getProjectDirectory().dir(project.provider(() -> new File(convention.getTestResultsDir(), test.getName() + "/binary").getAbsolutePath())));
         test.workingDir(project.getProjectDir());
     }
 }

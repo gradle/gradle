@@ -17,17 +17,52 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.DirectoryReport;
 
+import javax.inject.Inject;
 import java.io.File;
 
 public class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport implements DirectoryReport {
 
     private final String relativeEntryPath;
+    // TODO - make these managed properties, once instant execution can deserialize abstract beans
+    private final DirectoryProperty outputLocation;
+    private final Property<Boolean> activated;
 
+    @Inject
     public TaskGeneratedSingleDirectoryReport(String name, Task task, String relativeEntryPath) {
         super(name, OutputType.DIRECTORY, task);
         this.relativeEntryPath = relativeEntryPath;
+        this.outputLocation = getObjectFactory().directoryProperty().convention(getProjectLayout().dir(new DefaultProvider<>(() -> {
+            return (File) ((IConventionAware) TaskGeneratedSingleDirectoryReport.this).getConventionMapping().getConventionValue(null, "destination", false);
+        })));
+        this.activated = getObjectFactory().property(Boolean.class).convention(false);
+    }
+
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Property<Boolean> getActivated() {
+        return activated;
+    }
+
+    @Override
+    public DirectoryProperty getOutputLocation() {
+        return outputLocation;
     }
 
     @Override

@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.testing.AbstractTestTask",
+            "member": "Method org.gradle.api.tasks.testing.AbstractTestTask.getCallbackActionDecorator()",
+            "acceptation": "Inject method no longer required",
+            "changes": [
+                "Method has been removed"
+            ]
+        }
+    ]
 }
