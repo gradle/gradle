@@ -248,7 +248,7 @@ class DefaultProjectLayoutTest extends Specification {
         file != layout.projectDirectory.dir("child")
     }
 
-    def "can wrap File provider"() {
+    def "can map File provider to regular file provider"() {
         def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
@@ -264,7 +264,23 @@ class DefaultProjectLayoutTest extends Specification {
         provider.get().getAsFile() == file2
     }
 
-    def "resolves relative files given by File provider"() {
+    def "can map File provider to directory provider"() {
+        def fileProvider = Stub(ProviderInternal)
+        def file1 = projectDir.file("file1")
+        def file2 = projectDir.file("file2")
+
+        _ * fileProvider.present >> true
+        _ * fileProvider.get() >>> [file1, file2]
+
+        expect:
+        def provider = layout.dir(fileProvider)
+        provider.present
+
+        provider.get().getAsFile() == file1
+        provider.get().getAsFile() == file2
+    }
+
+    def "resolves relative file given by File provider"() {
         def fileProvider = Stub(ProviderInternal)
         def file1 = projectDir.file("file1")
         def file2 = projectDir.file("file2")
@@ -289,7 +305,7 @@ class DefaultProjectLayoutTest extends Specification {
         _ * dirProvider.get() >>> [new File("dir1"), new File("dir2")]
 
         expect:
-        def provider = layout.file(dirProvider)
+        def provider = layout.dir(dirProvider)
         provider.present
 
         provider.get().getAsFile() == dir1

@@ -127,20 +127,11 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
         task.getReports().all(new Action<SingleFileReport>() {
             @Override
             public void execute(final SingleFileReport report) {
-                ConventionMapping reportMapping = AbstractCodeQualityPlugin.conventionMappingOf(report);
-                reportMapping.map("enabled", new Callable<Boolean>() {
-                    @Override
-                    public Boolean call() {
-                        return report.getName().equals(extension.getReportFormat());
-                    }
-                });
-                reportMapping.map("destination", new Callable<File>() {
-                    @Override
-                    public File call() {
-                        String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
-                        return new File(extension.getReportsDir(), baseName + "." + fileSuffix);
-                    }
-                });
+                report.getActivated().convention(project.getProviders().provider(() -> report.getName().equals(extension.getReportFormat())));
+                report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> {
+                    String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
+                    return new File(extension.getReportsDir(), baseName + "." + fileSuffix).getAbsolutePath();
+                })));
             }
         });
     }

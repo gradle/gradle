@@ -26,8 +26,11 @@ import org.gradle.api.reporting.internal.TaskReportContainer;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.TestTaskReports;
 
+import javax.inject.Inject;
+
 public class DefaultTestTaskReports extends TaskReportContainer<Report> implements TestTaskReports {
 
+    @Inject
     public DefaultTestTaskReports(Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
         super(ConfigurableReport.class, task, callbackActionDecorator);
 

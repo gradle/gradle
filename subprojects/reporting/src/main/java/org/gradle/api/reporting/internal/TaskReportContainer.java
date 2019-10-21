@@ -22,14 +22,21 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.tasks.Internal;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.service.ServiceRegistry;
 
 public abstract class TaskReportContainer<T extends Report> extends DefaultReportContainer<T> {
     private final TaskInternal task;
 
     public TaskReportContainer(Class<? extends T> type, final Task task, CollectionCallbackActionDecorator callbackActionDecorator) {
-        super(type, ((ProjectInternal) task.getProject()).getServices().get(Instantiator.class), callbackActionDecorator);
+        super(type, locateInstantiator(task), callbackActionDecorator);
         this.task = (TaskInternal) task;
+    }
+
+    private static InstanceGenerator locateInstantiator(Task task) {
+        ServiceRegistry projectServices = ((ProjectInternal) task.getProject()).getServices();
+        return projectServices.get(InstantiatorFactory.class).injectAndDecorateLenient(projectServices);
     }
 
     @Internal

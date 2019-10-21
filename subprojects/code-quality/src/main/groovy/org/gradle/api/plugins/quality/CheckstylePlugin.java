@@ -125,14 +125,8 @@ public class CheckstylePlugin extends AbstractCodeQualityPlugin<Checkstyle> {
         task.getReports().all(new Action<SingleFileReport>() {
             @Override
             public void execute(final SingleFileReport report) {
-                ConventionMapping reportMapping = conventionMappingOf(report);
-                reportMapping.map("enabled", Callables.returning(true));
-                reportMapping.map("destination", new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return new File(extension.getReportsDir(), baseName + "." + report.getName());
-                    }
-                });
+                report.getActivated().convention(true);
+                report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> new File(extension.getReportsDir(), baseName + "." + report.getName()).getAbsolutePath())));
             }
         });
     }

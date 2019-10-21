@@ -876,7 +876,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         boolean claimPropertyImplementation(PropertyMetadata property) {
             // Skip properties with non-abstract getter or setter implementations
             for (MethodMetadata getter : property.getters) {
-                if (!getter.isAbstract()) {
+                if (getter.shouldImplement() && !getter.isAbstract()) {
                     return false;
                 }
             }

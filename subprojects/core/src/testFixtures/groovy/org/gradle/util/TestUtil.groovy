@@ -16,12 +16,15 @@
 package org.gradle.util
 
 import org.gradle.api.Task
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.MutationGuards
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
+import org.gradle.api.internal.file.DefaultProjectLayout
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
@@ -29,11 +32,12 @@ import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
@@ -78,18 +82,23 @@ class TestUtil {
     }
 
     static ObjectFactory objectFactory() {
-        return objFactory(TestFiles.resolver())
+        return objFactory(TestFiles.resolver().newResolver(new File(".").absoluteFile), TestFiles.fileCollectionFactory())
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
         def fileResolver = TestFiles.resolver(baseDir)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
+        return objFactory(fileResolver, fileCollectionFactory)
     }
 
-    private static ObjectFactory objFactory(FileResolver fileResolver) {
-        def fileCollectionFactory = TestFiles.fileCollectionFactory()
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
+    private static ObjectFactory objFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        def services = new DefaultServiceRegistry(services())
+        def factory = new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
+        services.register {
+            it.add(ObjectFactory, factory)
+            it.add(ProjectLayout, new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), fileCollectionFactory))
+        }
+        return factory
     }
 
     static ServiceRegistry services() {
