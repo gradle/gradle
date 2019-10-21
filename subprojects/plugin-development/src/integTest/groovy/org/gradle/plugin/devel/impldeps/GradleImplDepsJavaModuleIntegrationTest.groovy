@@ -16,11 +16,8 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import static java.util.concurrent.TimeUnit.SECONDS
-
 import static java.io.File.separator
 import org.gradle.internal.jvm.Jvm
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue

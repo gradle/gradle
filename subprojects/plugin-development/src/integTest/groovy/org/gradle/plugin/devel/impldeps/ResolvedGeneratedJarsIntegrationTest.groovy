@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
 import java.util.zip.ZipFile

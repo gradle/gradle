@@ -263,7 +263,7 @@ class RuntimeShadedJarCreator {
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         String entry = new String(bytes, Charsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
 
-        String[] descriptorImplClasses = periodsToSlashes( separateLines( entry ) );
+        String[] descriptorImplClasses = periodsToSlashes(separateLines(entry));
         String[] relocatedImplClassNames = maybeRelocateResource(descriptorImplClasses);
         if (relocatedImplClassNames == null || relocatedImplClassNames.length == 0) {
             relocatedImplClassNames = descriptorImplClasses;
@@ -273,15 +273,15 @@ class RuntimeShadedJarCreator {
         String[] serviceProviders = slashesToPeriods(relocatedImplClassNames);
 
         if (!services.containsKey(serviceType)) {
-            services.put(serviceType, asList( serviceProviders ));
+            services.put(serviceType, asList(serviceProviders));
         } else {
             List<String> providers = services.get(serviceType);
-            providers.addAll( asList( serviceProviders ) );
+            providers.addAll(asList(serviceProviders));
         }
     }
 
     private String[] slashesToPeriods(String... slashClassNames) {
-        return asList( slashClassNames ).stream().filter(clsName -> clsName != null)
+        return asList(slashClassNames).stream().filter(clsName -> clsName != null)
             .map(clsName ->  clsName.replace('/', '.')).map(String::trim)
             .toArray(String[]::new);
     }
@@ -289,7 +289,7 @@ class RuntimeShadedJarCreator {
     private String[] periodsToSlashes(String... periodClassNames) {
         return asList(periodClassNames).stream().filter(clsName -> clsName != null)
             .map(clsName ->  clsName.replace('.', '/'))
-            .toArray( String[]::new );
+            .toArray(String[]::new);
     }
 
     private void copyEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
@@ -455,12 +455,12 @@ class RuntimeShadedJarCreator {
     }
 
     private String[] maybeRelocateResource(String... resources) {
-        return asList( resources ).stream( ).filter( resource -> resource != null )
-            .map( resource ->  remapper.maybeRelocateResource( resource ) )
-            .toArray( String[]::new );
+        return asList(resources).stream().filter(resource -> resource != null)
+            .map(resource ->  remapper.maybeRelocateResource(resource))
+            .toArray(String[]::new);
     }
 
-    private String[] separateLines( String entry ){
-        return entry.split( "\\n");
+    private String[] separateLines(String entry){
+        return entry.split("\\n");
     }
 }
