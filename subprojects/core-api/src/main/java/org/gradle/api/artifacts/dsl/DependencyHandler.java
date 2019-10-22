@@ -520,6 +520,7 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 5.0
      */
+    @Incubating
     Dependency enforcedPlatform(Object notation);
 
     /**
@@ -533,6 +534,7 @@ public interface DependencyHandler extends ExtensionAware {
      *
      * @since 5.0
      */
+    @Incubating
     Dependency enforcedPlatform(Object notation, Action<? super Dependency> configureAction);
 
     /**
