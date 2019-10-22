@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
+import org.gradle.api.internal.artifacts.repositories.resolver.MavenUniqueSnapshotComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -45,6 +46,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     public DefaultMutableMavenModuleResolveMetadata(ModuleVersionIdentifier id, ModuleComponentIdentifier componentIdentifier, Collection<MavenDependencyDescriptor> dependencies,
                                                     ImmutableAttributesFactory attributesFactory, NamedObjectInstantiator objectInstantiator, AttributesSchemaInternal schema) {
         super(attributesFactory, id, componentIdentifier, schema);
+        setTimestampIfNeeded(componentIdentifier);
         this.dependencies = ImmutableList.copyOf(dependencies);
         this.objectInstantiator = objectInstantiator;
     }
@@ -57,6 +59,18 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.snapshotTimestamp = metadata.getSnapshotTimestamp();
         this.dependencies = metadata.getDependencies();
         this.objectInstantiator = objectInstantiator;
+    }
+
+    private void setTimestampIfNeeded(ModuleComponentIdentifier componentIdentifier) {
+        if (componentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
+            snapshotTimestamp = ((MavenUniqueSnapshotComponentIdentifier) componentIdentifier).getTimestamp();
+        }
+    }
+
+    @Override
+    public void setId(ModuleComponentIdentifier componentId) {
+        super.setId(componentId);
+        setTimestampIfNeeded(componentId);
     }
 
     @Override

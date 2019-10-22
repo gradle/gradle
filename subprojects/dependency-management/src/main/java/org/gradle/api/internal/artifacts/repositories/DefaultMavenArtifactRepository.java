@@ -23,12 +23,15 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
+import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenRepositoryContentDescriptor;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
@@ -46,6 +49,8 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.RedirectingGradleMetadataModuleMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
+import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.api.internal.artifacts.repositories.resolver.VersionLister;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -54,10 +59,16 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
+import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -272,13 +283,16 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         ImmutableList.Builder<MetadataSource<?>> sources = ImmutableList.builder();
         // Don't list versions for gradleMetadata if maven-metadata.xml will be checked.
         boolean listVersionsForGradleMetadata = !metadataSources.mavenPom;
-        DefaultGradleModuleMetadataSource gradleModuleMetadataSource = new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory, listVersionsForGradleMetadata);
+        MetadataSource<MutableModuleComponentResolveMetadata> gradleModuleMetadataSource =
+            new MavenSnapshotDecoratingSource(
+                new DefaultGradleModuleMetadataSource(getMetadataParser(), metadataFactory, listVersionsForGradleMetadata)
+            );
         if (metadataSources.gradleMetadata) {
             sources.add(gradleModuleMetadataSource);
         }
         if (metadataSources.mavenPom) {
             DefaultMavenPomMetadataSource pomMetadataSource = new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader);
-            if(metadataSources.ignoreGradleMetadataRedirection) {
+            if (metadataSources.ignoreGradleMetadataRedirection) {
                 sources.add(pomMetadataSource);
             } else {
                 sources.add(new RedirectingGradleMetadataModuleMetadataSource(pomMetadataSource, gradleModuleMetadataSource));
@@ -406,4 +420,33 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         }
     }
 
+    private static class MavenSnapshotDecoratingSource implements MetadataSource<MutableModuleComponentResolveMetadata> {
+        private static final int HASH_ID = 30155977;
+
+        private final MetadataSource<MutableModuleComponentResolveMetadata> delegate;
+
+        private MavenSnapshotDecoratingSource(MetadataSource<MutableModuleComponentResolveMetadata> delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult result) {
+            MutableModuleComponentResolveMetadata metadata = delegate.create(repositoryName, componentResolvers, moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);
+            if (metadata != null) {
+                return MavenResolver.processMetaData((MutableMavenModuleResolveMetadata) metadata);
+            }
+            return null;
+        }
+
+        @Override
+        public void listModuleVersions(ModuleDependencyMetadata dependency, ModuleIdentifier module, List<ResourcePattern> ivyPatterns, List<ResourcePattern> artifactPatterns, VersionLister versionLister, BuildableModuleVersionListingResolveResult result) {
+            delegate.listModuleVersions(dependency, module, ivyPatterns, artifactPatterns, versionLister, result);
+        }
+
+        @Override
+        public void appendId(Hasher hasher) {
+            hasher.putInt(HASH_ID);
+            delegate.appendId(hasher);
+        }
+    }
 }
