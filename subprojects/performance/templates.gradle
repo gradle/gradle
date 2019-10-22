@@ -303,6 +303,7 @@ tasks.register("bigCppMulti", CppMultiProjectGeneratorTask) {
 // Build-builder projects
 tasks.register("buildBuilder", RemoteProject) {
     remoteUri = 'https://github.com/adammurdoch/build-builder.git'
+    // From master branch
     ref = 'ef909790b6d4311609af0cb53373b1c8a9180718'
 }
 
@@ -345,12 +346,14 @@ tasks.register("bigSwiftApp", BuildBuilderGenerator) {
 // === Android ===
 tasks.register("k9AndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-k-9.git'
-    branch = 'android-31'
+    // From android-31 branch
+    ref = "d9776762e7da63cd9b2925efa2b7d8bcdc373600"
 }
 
 tasks.register("largeAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
-    branch = 'android-35'
+    // From android-35 branch
+    ref = "36143205842725fb1bd33f5ffc4667ccd0336641"
 }
 
 tasks.register("santaTrackerAndroidBuild", RemoteProject) {
@@ -451,19 +454,22 @@ private void addGoogleServicesJson(File outputDirectory) {
 
 tasks.register("excludeRuleMergingBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
-    branch = 'master'
+    // From master branch
+    ref = "13739fa299e485c079335b0cd5b30da1cff92234"
     subdirectory = 'exclude-merging'
 }
 
 tasks.register("springBootApp", RemoteProject) {
     remoteUri = 'https://github.com/gradle/performance-comparisons.git'
-    branch = 'master'
+    // From master branch
+    ref = "13739fa299e485c079335b0cd5b30da1cff92234"
     subdirectory = 'parallel-downloads'
 }
 
 tasks.register("largeNativeBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-native-large'
-    branch = 'master'
+    // From master branch
+    ref = "71c9ea2616677a09515aef34365993dd368ca19e"
     finalizedBy 'largeNativeBuildPrebuilt'
 }
 

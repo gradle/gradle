@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import accessors.groovy
+import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.versioning.DetermineCommitId
@@ -49,6 +50,7 @@ dependencies {
     smokeTestImplementation(project(":coreApi"))
     smokeTestImplementation(project(":testKit"))
     smokeTestImplementation(project(":internalIntegTesting"))
+    smokeTestImplementation(project(":launcher"))
     smokeTestImplementation(library("commons_io"))
     smokeTestImplementation(library("jgit"))
     smokeTestImplementation(testLibrary("spock"))
@@ -90,10 +92,34 @@ plugins.withType<EclipsePlugin>().configureEach { // lazy as plugin not applied 
     }
 }
 
-val gradleBuildCurrent by tasks.registering(RemoteProject::class) {
-    remoteUri.set(rootDir.absolutePath)
-    ref.set(rootProject.tasks.named<DetermineCommitId>("determineCommitId").flatMap { it.determinedCommitId })
-}
-tasks.named("smokeTest") {
-    dependsOn(gradleBuildCurrent)
+// TODO Copied from instant-execution.gradle.kts, we should have one place to clone this thing and clone it from there locally when needed
+tasks {
+    val santaTracker by registering(RemoteProject::class) {
+        remoteUri.set("https://github.com/gradle/santa-tracker-android.git")
+        // From branch agp-3.6.0
+        ref.set("036aad22af993d2f564a6a15d6a7b9706ba37d8e")
+    }
+
+    if (BuildEnvironment.isCiServer) {
+        withType<RemoteProject>().configureEach {
+            outputs.upToDateWhen { false }
+        }
+    }
+
+    withType<SmokeTest>().configureEach {
+        dependsOn(santaTracker)
+        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
+    }
+
+    register<Delete>("cleanRemoteProjects") {
+        delete(santaTracker.get().outputDirectory)
+    }
+
+    val gradleBuildCurrent by registering(RemoteProject::class) {
+        remoteUri.set(rootDir.absolutePath)
+        ref.set(rootProject.tasks.named<DetermineCommitId>("determineCommitId").flatMap { it.determinedCommitId })
+    }
+    named("smokeTest") {
+        dependsOn(gradleBuildCurrent)
+    }
 }
