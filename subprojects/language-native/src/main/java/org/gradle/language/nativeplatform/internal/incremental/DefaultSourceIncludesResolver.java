@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -38,6 +39,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -349,9 +351,11 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 key -> {
                     virtualFileSystem.read(searchDir.getAbsolutePath(), Function.identity());
                     File candidate = new File(searchDir, includePath);
-                    return virtualFileSystem.readRegularFileContentHash(candidate.getAbsolutePath(),
-                        contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash))
-                        .orElse(MISSING_INCLUDE_FILE);
+                    String normalizedAbsolutePath = FilenameUtils.normalizeNoEndSeparator(candidate.getAbsolutePath());
+                    return Optional.ofNullable(normalizedAbsolutePath)
+                        .flatMap(absolutePath -> virtualFileSystem.readRegularFileContentHash(absolutePath,
+                            contentHash -> (CachedIncludeFile) new SystemIncludeFile(new File(absolutePath), key, contentHash))
+                        ).orElse(MISSING_INCLUDE_FILE);
                 });
         }
     }
