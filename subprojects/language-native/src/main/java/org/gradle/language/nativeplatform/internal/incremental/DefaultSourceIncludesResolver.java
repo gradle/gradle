@@ -40,7 +40,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 
 public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
     private static final MissingIncludeFile MISSING_INCLUDE_FILE = new MissingIncludeFile();
@@ -348,7 +347,6 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         CachedIncludeFile get(String includePath) {
             return contents.computeIfAbsent(includePath,
                 key -> {
-                    virtualFileSystem.read(searchDir.getAbsolutePath(), Function.identity());
                     File candidate = normalizeIncludePath(searchDir, includePath);
                     return virtualFileSystem.readRegularFileContentHash(candidate.getAbsolutePath(),
                             contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash)
