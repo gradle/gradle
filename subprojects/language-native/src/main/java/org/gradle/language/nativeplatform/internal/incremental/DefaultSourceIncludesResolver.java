@@ -344,16 +344,13 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         CachedIncludeFile get(String includePath) {
-            CachedIncludeFile includeFile = contents.get(includePath);
-            if (includeFile != null) {
-                return includeFile;
-            }
-
-            File candidate = new File(searchDir, includePath);
             return contents.computeIfAbsent(includePath,
-                key -> virtualFileSystem.readRegularFileContentHash(candidate.getAbsolutePath(),
-                    contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash))
-                    .orElse(MISSING_INCLUDE_FILE));
+                key -> {
+                    File candidate = new File(searchDir, includePath);
+                    return virtualFileSystem.readRegularFileContentHash(candidate.getAbsolutePath(),
+                        contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash))
+                        .orElse(MISSING_INCLUDE_FILE);
+                });
         }
     }
 
