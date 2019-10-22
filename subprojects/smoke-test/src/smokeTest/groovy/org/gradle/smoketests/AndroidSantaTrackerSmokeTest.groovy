@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
-import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -110,7 +109,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult buildLocation(File projectDir) {
-        runner("assembleDebug", "--scan", "-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false")
+        runner("assembleDebug", "--scan")
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
@@ -701,6 +700,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     ]
 
     def cleanup() {
+        // The daemons started by test kit need to be killed, so no locked files are left behind.
         DaemonLogsAnalyzer.newAnalyzer(homeDir.file(ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
     }
 }
