@@ -19,6 +19,7 @@ package org.gradle.api.internal.runtimeshaded;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileVisitDetails;
@@ -264,8 +265,8 @@ class RuntimeShadedJarCreator {
         String entry = new String(bytes, Charsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
 
         String[] descriptorImplClasses = periodsToSlashes(separateLines(entry));
-        String[] relocatedImplClassNames = maybeRelocateResource(descriptorImplClasses);
-        if (relocatedImplClassNames == null || relocatedImplClassNames.length == 0) {
+        String[] relocatedImplClassNames = maybeRelocateResources(descriptorImplClasses);
+        if (relocatedImplClassNames.length == 0) {
             relocatedImplClassNames = descriptorImplClasses;
         }
 
@@ -273,7 +274,7 @@ class RuntimeShadedJarCreator {
         String[] serviceProviders = slashesToPeriods(relocatedImplClassNames);
 
         if (!services.containsKey(serviceType)) {
-            services.put(serviceType, asList(serviceProviders));
+            services.put(serviceType, Lists.newArrayList(serviceProviders));
         } else {
             List<String> providers = services.get(serviceType);
             providers.addAll(asList(serviceProviders));
@@ -454,9 +455,9 @@ class RuntimeShadedJarCreator {
         }
     }
 
-    private String[] maybeRelocateResource(String... resources) {
+    private String[] maybeRelocateResources(String... resources) {
         return asList(resources).stream().filter(resource -> resource != null)
-            .map(resource ->  remapper.maybeRelocateResource(resource))
+            .map(resource ->  remapper.maybeRelocateResource(resource)).filter(resource -> resource != null)
             .toArray(String[]::new);
     }
 
