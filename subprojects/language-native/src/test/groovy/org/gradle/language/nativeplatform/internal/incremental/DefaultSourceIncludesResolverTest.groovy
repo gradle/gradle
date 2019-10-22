@@ -87,7 +87,7 @@ class DefaultSourceIncludesResolverTest extends Specification {
         expect:
         def result = resolve(include("\"${path}\""))
         result.complete
-        result.files.file as List == [new File(sourceDirectory, path)] // not canonicalized
+        result.files.file as List == [new File(sourceDirectory, path).getCanonicalFile()]
 
         where:
         path << ["nested/test.h", "../sibling/test.h", "./test.h"]
