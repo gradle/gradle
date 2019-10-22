@@ -55,6 +55,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
     DescriptorParseContext parseContext = Mock()
     MutableIvyModuleResolveMetadata metadata
+    boolean hasGradleMetadataRedirectionMarker
 
     def "parses minimal Ivy descriptor"() {
         when:
@@ -74,6 +75,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
         metadata.contentHash == HashUtil.createHash(file, "MD5")
+        !hasGradleMetadataRedirectionMarker
 
         artifact()
     }
@@ -690,8 +692,45 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         metadata.extraAttributes[new NamespaceId("namespace-c", "a")] == "info 2"
     }
 
+    def 'parses old gradle module metadata marker'() {
+        when:
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <!-- do-not-remove: published-with-gradle-metadata -->
+    <info organisation="myorg"
+          module="mymodule"
+          revision="myrev"
+    />
+</ivy-module>
+"""
+        parse(parseContext, file)
+
+        then:
+        hasGradleMetadataRedirectionMarker
+    }
+
+    def 'parses gradle module metadata marker'() {
+        when:
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <!-- do_not_remove: published-with-gradle-metadata -->
+    <info organisation="myorg"
+          module="mymodule"
+          revision="myrev"
+    />
+</ivy-module>
+"""
+        parse(parseContext, file)
+
+        then:
+        hasGradleMetadataRedirectionMarker
+    }
+
     private void parse(DescriptorParseContext parseContext, TestFile file) {
-        metadata = parser.parseMetaData(parseContext, file).result
+        def parseResult = parser.parseMetaData(parseContext, file)
+        metadata = parseResult.result
+        hasGradleMetadataRedirectionMarker = parseResult.hasGradleMetadataRedirectionMarker()
+
     }
 
     private Artifact artifact() {

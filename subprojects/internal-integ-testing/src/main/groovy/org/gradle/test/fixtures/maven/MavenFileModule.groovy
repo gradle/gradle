@@ -92,13 +92,13 @@ class MavenFileModule extends AbstractMavenModule {
     }
 
     MavenFileModule removeGradleMetadataRedirection() {
-        if (pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
-            pomFile.replace(MetaDataParser.GRADLE_METADATA_MARKER, '')
+        if (pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)) {
+            pomFile.replace(MetaDataParser.GRADLE_6_METADATA_MARKER, '')
         }
         this
     }
 
     boolean hasGradleMetadataRedirectionMarker() {
-        pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)
+        pomFile.exists() && pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 }
