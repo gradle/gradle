@@ -30,7 +30,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     def "build succeeds if test class is only available in one test task"() {
         when:
         launchTests { TestLauncher launcher ->
-            launcher.withJvmTestClasses("example.MyTest").withTests(":secondTest")
+            launcher.withTaskAndTestClasses(':secondTest',"example.MyTest")
         }
         then:
         assertTaskNotExecuted(":test")

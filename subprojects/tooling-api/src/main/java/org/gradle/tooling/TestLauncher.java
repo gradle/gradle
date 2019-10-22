@@ -28,19 +28,6 @@ import org.gradle.tooling.events.test.TestOperationDescriptor;
 public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
 
     /**
-     * Specifies the test tasks to be executed.
-     * - When specified by default all tests are executed in the tasks
-     * - TODO how TestOperations overwrites this
-     * - TODO how withJVMTesttasks and methods overrides this
-     *
-     * @param testTasks
-     * @return this
-     * @since 6.1
-     */
-    @Incubating
-    TestLauncher withTests(String... testTasks);
-
-    /**
      * Adds tests to be executed by passing test descriptors received from a previous Gradle Run.
      *
      * @param descriptors The OperationDescriptor defining one or more tests.
@@ -67,6 +54,8 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      */
     TestLauncher withJvmTestClasses(String... testClasses);
 
+    TestLauncher withTaskAndTestClasses(String task, String... testClasses);
+
     /**
      * Adds tests to be executed declared by class name.
      *
@@ -75,6 +64,8 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 2.6
      */
     TestLauncher withJvmTestClasses(Iterable<String> testClasses);
+
+    TestLauncher withTaskAndTestClasses(String task, Iterable<String> testClasses);
 
     /**
      * Adds tests to be executed declared by class and method name.
@@ -86,6 +77,8 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      */
     TestLauncher withJvmTestMethods(String testClass, String... methods);
 
+    TestLauncher withTaskAndTestMethods(String task, String testClass, String... methods);
+
     /**
      * Adds tests to be executed declared by class and methods name.
      *
@@ -95,6 +88,8 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 2.7
      */
     TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods);
+
+    TestLauncher withTaskAndTestMethods(String task, String testClass, Iterable<String> methods);
 
     /**
      * Configures test JVM to run in debug mode.

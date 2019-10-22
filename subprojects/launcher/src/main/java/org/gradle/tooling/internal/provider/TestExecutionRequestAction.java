@@ -31,6 +31,7 @@ import org.gradle.util.CollectionUtils;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class TestExecutionRequestAction extends SubscribableBuildAction {
@@ -39,16 +40,16 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final Set<String> classNames;
     private final Set<InternalJvmTestRequest> internalJvmTestRequests;
     private final InternalDebugOptions debugOptions;
-    private final List<String> testTasks;
+    private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
 
-    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, List<String> testTasks) {
+    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
         this.classNames = providerClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
         this.debugOptions = debugOptions;
-        this.testTasks = testTasks;
+        this.taskAndTests = taskAndTests;
     }
 
     // Unpacks the request to serialize across to the daemon and creates instance of
@@ -62,7 +63,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
                                                 ImmutableSet.copyOf(testClassNames),
                                                 providerInternalJvmTestRequests,
                                                 getDebugOptions(testExecutionRequest),
-                                                getTestTasks(testExecutionRequest));
+                                                getTaskAndTests(testExecutionRequest));
     }
 
     private static InternalDebugOptions getDebugOptions(ProviderInternalTestExecutionRequest testExecutionRequest) {
@@ -74,12 +75,12 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         }
     }
 
-    private static List<String> getTestTasks(ProviderInternalTestExecutionRequest testExecutionRequest) {
+    private static Map<String, List<InternalJvmTestRequest>> getTaskAndTests(ProviderInternalTestExecutionRequest testExecutionRequest) {
         try {
-            return testExecutionRequest.getTestTasks();
+            return testExecutionRequest.getTaskAndTests();
         } catch (UnsupportedMethodException e) {
             // default value for older Gradle clients
-            return Collections.emptyList();
+            return Collections.emptyMap();
         }
     }
 
@@ -123,7 +124,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
         return debugOptions;
     }
 
-    public List<String> getTestTasks() {
-        return testTasks;
+    public Map<String, List<InternalJvmTestRequest>> getTaskAndTests() {
+        return taskAndTests;
     }
 }

@@ -22,6 +22,7 @@ import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @since 2.7-rc-1
@@ -31,5 +32,5 @@ public interface ProviderInternalTestExecutionRequest {
     Collection<String> getTestClassNames();
     Collection<InternalJvmTestRequest> getInternalJvmTestRequests(Collection<InternalJvmTestRequest> defaults);
     InternalDebugOptions getDebugOptions();
-    List<String> getTestTasks();
+    Map<String, List<InternalJvmTestRequest>> getTaskAndTests();
 }
