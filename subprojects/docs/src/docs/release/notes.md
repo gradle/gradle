@@ -39,6 +39,7 @@ We would like to thank the following community contributors to this release of G
 [Pedro Tôrres](https://github.com/t0rr3sp3dr0),
 [Michael Berry](https://github.com/MikeBerryFR),
 [Evgeny Mandrikov](https://github.com/Godin),
+[lingocoder](https://github.com/lingocoder),
 and [Robert Stupp](https://github.com/snazy).
 
 ## Upgrade Instructions
