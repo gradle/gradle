@@ -40,7 +40,8 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
             DefaultConfigurationMetadata compileConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("compile");
             DefaultConfigurationMetadata runtimeConfiguration = (DefaultConfigurationMetadata) md.getConfiguration("runtime");
             ModuleComponentIdentifier componentId = md.getId();
-            ImmutableCapabilities shadowedPlatformCapability = buildShadowPlatformCapability(componentId);
+            ImmutableCapabilities shadowedPlatformCapability = buildShadowPlatformCapability(componentId, false);
+            ImmutableCapabilities shadowedEnforcedPlatformCapability = buildShadowPlatformCapability(componentId, true);
             return ImmutableList.of(
                     // When deriving variants for the Java ecosystem, we actually have 2 components "mixed together": the library and the platform
                     // and there's no way to figure out what was the intent when it was published. So we derive variants, but we also need
@@ -52,19 +53,19 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
                 libraryWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME),
                 platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, false, shadowedPlatformCapability),
                 platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, false, shadowedPlatformCapability),
-                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true, shadowedPlatformCapability),
-                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true, shadowedPlatformCapability));
+                platformWithUsageAttribute(compileConfiguration, attributes, attributesFactory, Usage.JAVA_API, true, shadowedEnforcedPlatformCapability),
+                platformWithUsageAttribute(runtimeConfiguration, attributes, attributesFactory, Usage.JAVA_RUNTIME, true, shadowedEnforcedPlatformCapability));
         }
         return null;
     }
 
-    private ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId) {
+    private ImmutableCapabilities buildShadowPlatformCapability(ModuleComponentIdentifier componentId, boolean enforced) {
         return ImmutableCapabilities.of(Collections.singletonList(
                 new DefaultShadowedCapability(new ImmutableCapability(
                         componentId.getGroup(),
                         componentId.getModule(),
                         componentId.getVersion()
-                ), "-derived-platform")
+                ), enforced ? "-enforced-platform" : "-derived-platform")
             )
         );
     }

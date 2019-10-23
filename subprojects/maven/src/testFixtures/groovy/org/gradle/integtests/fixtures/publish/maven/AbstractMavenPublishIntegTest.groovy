@@ -126,7 +126,6 @@ abstract class AbstractMavenPublishIntegTest extends AbstractIntegrationSpec imp
             }
 
             dependencies {
-               services.get(PlatformSupport).addDisambiguationRule(attributesSchema)
                resolve($dependencyNotation) $extraArtifacts
                $optional
             }

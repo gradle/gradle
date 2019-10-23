@@ -15,11 +15,11 @@
  */
 package org.gradle.internal.component.external.model;
 
-class DefaultShadowedCapability implements ShadowedCapability {
+public class DefaultShadowedCapability implements ShadowedCapability {
     private final CapabilityInternal shadowed;
     private final String appendix;
 
-    DefaultShadowedCapability(CapabilityInternal shadowed, String appendix) {
+    public DefaultShadowedCapability(CapabilityInternal shadowed, String appendix) {
         this.shadowed = shadowed;
         this.appendix = appendix;
     }
