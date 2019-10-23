@@ -155,23 +155,6 @@ open class IdePlugin : Plugin<Project> {
     private
     fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
         runConfigurations {
-            val gradleRunners = mapOf(
-                "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
-            )
-            gradleRunners.forEach { (name, tasks) ->
-                create<Application>(name) {
-                    mainClass = "org.gradle.testing.internal.util.GradlewRunner"
-                    programParameters = tasks
-                    workingDirectory = rootProject.projectDir.absolutePath
-                    moduleName = "org.gradle.internalTesting.main"
-                    envs = mapOf("TERM" to "xterm")
-                    beforeRun {
-                        create<Make>("make") {
-                            enabled = false
-                        }
-                    }
-                }
-            }
             create<Application>("Run Gradle") {
                 mainClass = "org.gradle.debug.GradleRunConfiguration"
                 programParameters = "help"
