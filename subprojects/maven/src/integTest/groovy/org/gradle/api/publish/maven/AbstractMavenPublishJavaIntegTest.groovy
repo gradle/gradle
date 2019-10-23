@@ -344,7 +344,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                     }
                 }
                 implementation("commons-collections:commons-collections:[3.2, 4)") {
-                    version { 
+                    version {
                         reject '3.2.1', '[3.2.2,)'
                     }
                 }
@@ -554,7 +554,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
                     }
                 }
             }
-            
+
             dependencies {
                 $gradleConfiguration project(':b')
             }
@@ -565,10 +565,10 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
         file('b/build.gradle') << """
             apply plugin: 'java'
-            
+
             group = 'org.gradle.test'
             version = '1.2'
-            
+
         """
 
         when:
@@ -860,13 +860,13 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                         attribute(attr1, 'hello')
                     }
                 }
-                
+
                 api(project(':utils')) {
                     attributes {
                         attribute(attr1, 'bazinga')
                     }
                 }
-                
+
                 constraints {
                     implementation("org.test:bar:1.1") {
                         attributes {
@@ -876,7 +876,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                     }
                 }
             }
-            
+
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -1008,7 +1008,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 api platform("org.test:platform:1.0")
                 components.withModule('org.test:bar', VirtualPlatform)
             }
-            
+
             class VirtualPlatform implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -1060,7 +1060,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
                 api platform("org.test:platform:1.0")
                 components.withModule('org.test:bar', VirtualPlatform)
             }
-            
+
             class VirtualPlatform implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -1183,7 +1183,7 @@ include(':platform')
                     }
                 }
             }
-            
+
             generateMetadataFileForMavenPublication.enabled = $enabled
         """)
         settingsFile.text = "rootProject.name = 'publishTest' "
@@ -1221,12 +1221,12 @@ include(':platform')
             publishing {
                 publications {
                     maven(MavenPublication) {
-                        from components.java                        
+                        from components.java
                     }
                 }
-            }            
-                
-            
+            }
+
+
             ${features().collect { """
                 components.java.withVariantsFromConfiguration(configurations.${MavenJavaModule.variantName(it, 'apiElements')}) { skip() }
                 components.java.withVariantsFromConfiguration(configurations.${MavenJavaModule.variantName(it, 'runtimeElements')}) { skip() }
@@ -1268,7 +1268,7 @@ include(':platform')
             }
             group = 'org.gradle.test'
             version = '1.9'
-            
+
             $append
         """
     }
