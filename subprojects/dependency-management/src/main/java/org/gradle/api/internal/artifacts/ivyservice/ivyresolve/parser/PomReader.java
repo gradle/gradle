@@ -354,7 +354,7 @@ public class PomReader implements PomParent {
             Node node = childNodes.item(i);
             if (node instanceof Comment) {
                 String comment = node.getNodeValue();
-                if (comment.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
+                if (comment.contains(MetaDataParser.GRADLE_6_METADATA_MARKER) || comment.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
                     return true;
                 }
             }

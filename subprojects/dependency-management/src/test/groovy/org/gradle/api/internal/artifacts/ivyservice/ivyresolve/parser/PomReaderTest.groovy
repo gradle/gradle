@@ -100,6 +100,7 @@ class PomReaderTest extends AbstractPomReaderTest {
         pomReader.properties['project.parent.groupId'] == 'group-one'
         pomReader.properties['project.parent.artifactId'] == 'artifact-one'
         pomReader.relocation == null
+        !pomReader.hasGradleMetadataMarker()
     }
 
     def "use custom properties in POM project coordinates"() {
@@ -1016,4 +1017,39 @@ class PomReaderTest extends AbstractPomReaderTest {
         then:
         def excluded = pomReader.dependencies[keyGroupTwo].excludedModules
         excluded == [DefaultModuleIdentifier.newId('*', '*')]
-    }}
+    }
+
+    def 'parses old gradle module metadata marker'() {
+        when:
+        pomFile << """
+<project>
+    <!-- do-not-remove: published-with-gradle-metadata -->
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group</groupId>
+    <artifactId>artifact</artifactId>
+    <version>version</version>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
+
+        then:
+        pomReader.hasGradleMetadataMarker()
+    }
+
+    def 'parses gradle module metadata marker'() {
+        when:
+        pomFile << """
+<project>
+    <!-- do_not_remove: published-with-gradle-metadata -->
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group</groupId>
+    <artifactId>artifact</artifactId>
+    <version>version</version>
+</project>
+"""
+        pomReader = new PomReader(locallyAvailableExternalResource, moduleIdentifierFactory)
+
+        then:
+        pomReader.hasGradleMetadataMarker()
+    }
+}

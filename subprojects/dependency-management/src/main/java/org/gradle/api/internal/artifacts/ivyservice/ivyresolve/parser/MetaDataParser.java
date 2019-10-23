@@ -21,7 +21,21 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import java.io.File;
 
 public interface MetaDataParser<T extends MutableModuleComponentResolveMetadata> {
+    /**
+     * If the following marker is found in a `pom` file, Gradle (version 5.3 or higher)
+     * will look for a `module` file to use it instead of the `pom` file.
+     */
     String GRADLE_METADATA_MARKER = "do-not-remove: published-with-gradle-metadata";
+    /**
+     * If the following marker is found in a `pom` file, Gradle (version 6.0 or higher)
+     * will look for a `module` file to use it instead of the `pom` file.
+     * This marker was introduced to allow library authors to publish Gradle Module Metadata
+     * for Gradle 6+ consumers only. Wider adoption of the format only starts with Gradle 6.
+     * There were some semantic changes and fixes with 6.0 in `module` metadata interpretation.
+     * These can break certain 5.x users in unexpected ways when consuming a library that
+     * moved from publishing `pom` only to also publish `module` files.
+     */
+    String GRADLE_6_METADATA_MARKER = "do_not_remove: published-with-gradle-metadata";
     String[] GRADLE_METADATA_MARKER_COMMENT_LINES = {
             "This module was also published with a richer model, Gradle metadata, ",
             "which should be used instead. Do not delete the following line which ",
