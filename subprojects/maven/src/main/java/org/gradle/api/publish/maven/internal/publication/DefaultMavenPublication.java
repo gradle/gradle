@@ -289,7 +289,7 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
                         // We skip all self referencing dependency declarations, unless they have custom artifact information
                         continue;
                     }
-                    if (platformSupport.isTargettingPlatform(dependency)) {
+                    if (platformSupport.isTargetingPlatform(dependency)) {
                         if (dependency instanceof ProjectDependency) {
                             addImportDependencyConstraint((ProjectDependency) dependency);
                         } else {

@@ -28,7 +28,6 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
@@ -86,12 +85,10 @@ public class JavaPlatformPlugin implements Plugin<Project> {
             "Found dependencies in the '%s' configuration.";
 
     private final SoftwareComponentFactory softwareComponentFactory;
-    private final PlatformSupport platformSupport;
 
     @Inject
-    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory, PlatformSupport platformSupport) {
+    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory) {
         this.softwareComponentFactory = softwareComponentFactory;
-        this.platformSupport = platformSupport;
     }
 
     @Override
@@ -104,12 +101,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         project.getPluginManager().apply(BasePlugin.class);
         createConfigurations(project);
         configureExtension(project);
-        addPlatformDisambiguationRule(project);
         JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
-    }
-
-    private void addPlatformDisambiguationRule(Project project) {
-        platformSupport.addDisambiguationRule(project.getDependencies().getAttributesSchema());
     }
 
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {

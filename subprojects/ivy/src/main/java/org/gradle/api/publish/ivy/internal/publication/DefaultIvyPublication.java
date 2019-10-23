@@ -323,7 +323,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
                     addProjectDependency((ProjectDependency) dependency, confMapping);
                 } else {
                     ExternalDependency externalDependency = (ExternalDependency) dependency;
-                    if (platformSupport.isTargettingPlatform(dependency)) {
+                    if (platformSupport.isTargetingPlatform(dependency)) {
                         publicationWarningsCollector.addUnsupported(String.format("%s:%s:%s declared as platform", dependency.getGroup(), dependency.getName(), dependency.getVersion()));
                     }
                     if (!versionMappingInUse && externalDependency.getVersion() == null) {
