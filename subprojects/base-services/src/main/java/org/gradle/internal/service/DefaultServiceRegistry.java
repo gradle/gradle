@@ -208,7 +208,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private void assertMutable() {
         if (state.get() != State.INIT) {
-            throw new IllegalStateException("Cannot add provide to service registry " + this + " as it is no longer mutable");
+            throw new IllegalStateException("Cannot add services to service registry " + this + " as it is no longer mutable");
         }
     }
 
