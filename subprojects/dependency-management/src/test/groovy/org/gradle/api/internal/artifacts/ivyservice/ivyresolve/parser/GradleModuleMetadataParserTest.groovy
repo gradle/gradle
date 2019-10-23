@@ -163,6 +163,7 @@ class GradleModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -180,6 +181,7 @@ class GradleModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -198,6 +200,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.setAttributes(attributes(foo: 'bar', 'org.gradle.status': 'release'))
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -225,6 +228,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant.addFile("a.zip", "a.zop")
         1 * variant.addDependency("g1", "m1", prefers("v1"), [], null, ImmutableAttributes.EMPTY, [], false, null)
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -254,6 +258,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -295,6 +300,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant2.addFile("api.zip", "api.zop")
         1 * variant2.addFile("runtime.zip", "runtime.zop")
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -352,6 +358,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [], null, ImmutableAttributes.EMPTY, [], false, null)
         1 * variant2.addDependency("g6", "m6", strictly("v6"), [], "v5 is buggy", ImmutableAttributes.EMPTY, [], false, null)
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -403,6 +410,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant2.addDependencyConstraint("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), null, ImmutableAttributes.EMPTY)
         1 * variant2.addDependencyConstraint("g6", "m6", prefers("v6"), "v5 is buggy", ImmutableAttributes.EMPTY)
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -444,6 +452,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant2.addDependencyConstraint("g1", "m1", prefers("v1"), null, attributes(custom: 'foo'))
         1 * variant2.addDependencyConstraint("g2", "m2", requires("v2"), null, attributes(custom: 'foo', other: 'bar'))
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -485,6 +494,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant2.addCapability("g3", "m3", "3")
         1 * variant2.addCapability("g4", "m4", "4")
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -509,6 +519,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false)) >> variant
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -539,6 +550,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("api", attributes([:])) >> variant1
         1 * metadata.addVariant("runtime", attributes([:])) >> variant2
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -582,6 +594,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependency("g2", "m2", version("v2"), [], null, ImmutableAttributes.EMPTY, [], false, null)
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -622,6 +635,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("api", attributes([:])) >> variant1
         1 * variant1.addDependency("g1", "m1", version("v1"), [], null, ImmutableAttributes.EMPTY, [], false, new DefaultIvyArtifactName("foo", "bar", "baz", "claz"))
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -644,6 +658,7 @@ class GradleModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -656,6 +671,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes([:]))
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -669,6 +685,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -683,6 +700,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("api", attributes([:])) >> variant
         1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"), null, ImmutableAttributes.EMPTY, [], false, null)
         1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 

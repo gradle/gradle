@@ -72,7 +72,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     private final VariantMetadataRules variantMetadataRules;
 
-    private List<MutableVariantImpl> newVariants;
+    private List<MutableComponentVariant> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
     private Set<ComponentIdentifier> owners;
 
@@ -212,9 +212,13 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     @Override
     public MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes) {
-        MutableVariantImpl variant = new MutableVariantImpl(variantName, attributes);
+        return addVariant(new MutableVariantImpl(variantName, attributes));
+    }
+
+    @Override
+    public MutableComponentVariant addVariant(MutableComponentVariant variant) {
         if (newVariants == null) {
-            newVariants = new ArrayList<MutableVariantImpl>();
+            newVariants = new ArrayList<>();
         }
         newVariants.add(variant);
         return variant;
@@ -231,8 +235,8 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         if (variants != null) {
             builder.addAll(variants);
         }
-        for (MutableVariantImpl variant : newVariants) {
-            builder.add(new ImmutableVariantImpl(getId(), variant.name, variant.attributes, ImmutableList.copyOf(variant.dependencies), ImmutableList.copyOf(variant.dependencyConstraints), ImmutableList.copyOf(variant.files), ImmutableCapabilities.of(variant.capabilities)));
+        for (MutableComponentVariant variant : newVariants) {
+            builder.add(new ImmutableVariantImpl(getId(), variant.getName(), variant.getAttributes(), ImmutableList.copyOf(variant.getDependencies()), ImmutableList.copyOf(variant.getDependencyConstraints()), ImmutableList.copyOf(variant.getFiles()), ImmutableCapabilities.of(variant.getCapabilities())));
         }
         return builder.build();
     }
@@ -266,16 +270,31 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     protected static class MutableVariantImpl implements MutableComponentVariant {
         private final String name;
-        private final List<DependencyImpl> dependencies = Lists.newArrayList();
-        private final List<DependencyConstraintImpl> dependencyConstraints = Lists.newArrayList();
+        private final List<ComponentVariant.Dependency> dependencies = Lists.newArrayList();
+        private final List<ComponentVariant.DependencyConstraint> dependencyConstraints = Lists.newArrayList();
         private final List<FileImpl> files = Lists.newArrayList();
-        private final List<ImmutableCapability> capabilities = Lists.newArrayList();
+        private final List<Capability> capabilities = Lists.newArrayList();
 
         private ImmutableAttributes attributes;
 
         MutableVariantImpl(String name, ImmutableAttributes attributes) {
             this.name = name;
             this.attributes = attributes;
+        }
+
+        @Override
+        public List<ComponentVariant.Dependency> getDependencies() {
+            return dependencies;
+        }
+
+        @Override
+        public List<ComponentVariant.DependencyConstraint> getDependencyConstraints() {
+            return dependencyConstraints;
+        }
+
+        @Override
+        public List<Capability> getCapabilities() {
+            return capabilities;
         }
 
         @Override
@@ -308,6 +327,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
             files.add(new FileImpl(name, uri));
         }
 
+        @Override
         public String getName() {
             return name;
         }
@@ -320,6 +340,16 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         @Override
         public void setAttributes(ImmutableAttributes updatedAttributes) {
             this.attributes = updatedAttributes;
+        }
+
+        @Override
+        public MutableComponentVariant copy(String variantName, ImmutableAttributes attributes, Capability capability) {
+            MutableVariantImpl copy = new MutableVariantImpl(variantName, attributes);
+            copy.dependencies.addAll(this.dependencies);
+            copy.dependencyConstraints.addAll(this.dependencyConstraints);
+            copy.files.addAll(this.files);
+            copy.capabilities.add(capability);
+            return copy;
         }
     }
 
