@@ -1572,6 +1572,15 @@
             "member": "Field DEFAULT_ZINC_VERSION",
             "acceptation": "Expose constant for default Scala Zinc compile version in Scala plugin",
             "changes": []
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.DependencyConstraintHandlerScope",
+            "member": "Class org.gradle.kotlin.dsl.DependencyConstraintHandlerScope",
+            "acceptation": "Incubating API that is removed in 6.0",
+            "changes": [
+                "org.gradle.kotlin.dsl.support.delegates.DependencyConstraintHandlerDelegate.platform(java.lang.Object)",
+                "org.gradle.kotlin.dsl.support.delegates.DependencyConstraintHandlerDelegate.platform(java.lang.Object,org.gradle.api.Action)"
+            ]
         }
     ]
 }

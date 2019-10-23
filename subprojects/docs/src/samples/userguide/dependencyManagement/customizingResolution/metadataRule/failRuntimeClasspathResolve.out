@@ -9,7 +9,7 @@ Execution failed for task ':failRuntimeClasspathResolve'.
           - natives-windows-x86-runtime
           - platform-runtime
         All of them match the consumer attributes:
-          - Variant 'enforced-platform-runtime' capability org.lwjgl:lwjgl-derived-platform:3.2.3:
+          - Variant 'enforced-platform-runtime' capability org.lwjgl:lwjgl-enforced-platform:3.2.3:
               - Unmatched attributes:
                   - Found org.gradle.category 'enforced-platform' but wasn't required.
                   - Required org.gradle.dependency.bundling 'external' but no value provided.

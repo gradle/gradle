@@ -327,14 +327,14 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         when:
         buildFile << """
             dependencies {
-                api "org:platform" // no version, will select the "platform" component
+                api platform("org:platform") // no version, will select the "platform" component
                 api project(":sub")
             }
             project(":sub") {
                 apply plugin: 'java-library'
                 dependencies {
                     constraints {
-                       api platform("org:platform:1.0")
+                       api "org:platform:1.0"
                     }
                 }
             }
