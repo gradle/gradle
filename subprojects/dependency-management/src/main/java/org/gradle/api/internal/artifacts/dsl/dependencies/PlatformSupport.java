@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import com.google.common.base.Objects;
-import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
@@ -57,17 +55,11 @@ public class PlatformSupport {
         categorySchema.getDisambiguationRules().add(ComponentCategoryDisambiguationRule.class, actionConfiguration -> {
             actionConfiguration.params(library);
             actionConfiguration.params(regularPlatform);
-            actionConfiguration.params(enforcedPlatform);
         });
     }
 
     public <T> void addPlatformAttribute(HasConfigurableAttributes<T> dependency, final Category category) {
-        dependency.attributes(new Action<AttributeContainer>() {
-            @Override
-            public void execute(AttributeContainer attributeContainer) {
-                attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category);
-            }
-        });
+        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category));
     }
 
     /**
@@ -85,13 +77,11 @@ public class PlatformSupport {
     public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<Category>, ReusableAction {
         final Category library;
         final Category platform;
-        final Category enforcedPlatform;
 
         @Inject
-        ComponentCategoryDisambiguationRule(Category library, Category regularPlatform, Category enforcedPlatform) {
+        ComponentCategoryDisambiguationRule(Category library, Category regularPlatform) {
             this.library = library;
             this.platform = regularPlatform;
-            this.enforcedPlatform = enforcedPlatform;
         }
 
         @Override
@@ -108,6 +98,5 @@ public class PlatformSupport {
                 }
             }
         }
-
     }
 }
