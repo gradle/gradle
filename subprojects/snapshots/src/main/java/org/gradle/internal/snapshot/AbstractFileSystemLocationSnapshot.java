@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot;
 
+import java.nio.file.Paths;
+import java.util.List;
+
 public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
     private final String absolutePath;
     private final String name;
@@ -33,5 +36,22 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String getPrefix() {
+        return getName();
+    }
+
+    protected static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
+        return new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath));
+    }
+
+    protected static String getFileNameForAbsolutePath(String filePath) {
+        return Paths.get(filePath).getFileName().toString();
+    }
+
+    @Override
+    public void collect(int depth, List<String> prefixes) {
     }
 }

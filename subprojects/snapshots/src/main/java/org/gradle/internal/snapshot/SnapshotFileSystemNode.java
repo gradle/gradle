@@ -14,43 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
+package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.MissingFileSnapshot;
+import org.gradle.internal.vfs.impl.AbstractFileSystemNode;
 
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-class SnapshotNode extends AbstractNode {
+public class SnapshotFileSystemNode extends AbstractFileSystemNode {
     private final FileSystemLocationSnapshot snapshot;
 
-    SnapshotNode(String prefix, FileSystemLocationSnapshot snapshot) {
+    public SnapshotFileSystemNode(String prefix, FileSystemLocationSnapshot snapshot) {
         super(prefix);
         this.snapshot = snapshot;
     }
 
     @Override
-    public Optional<Node> invalidate(String path) {
+    public Optional<FileSystemNode> invalidate(String path) {
         return handlePrefix(getPrefix(), path, new InvalidateHandler() {
             @Override
-            public Optional<Node> handleDescendant() {
+            public Optional<FileSystemNode> handleDescendant() {
                 if (snapshot.getType() != FileType.Directory) {
                     return Optional.empty();
                 }
                 DirectorySnapshot directorySnapshot = (DirectorySnapshot) snapshot;
                 int startNextSegment = getPrefix().length() + 1;
-                List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size());
+                List<FileSystemNode> merged = new ArrayList<>(directorySnapshot.getChildren().size());
                 boolean matched = false;
                 for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
-                    SnapshotNode childNode = new SnapshotNode(child.getName(), child);
+                    SnapshotFileSystemNode childNode = new SnapshotFileSystemNode(child.getName(), child);
                     if (!matched && sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
                         // TODO - we've already calculated the common prefix and calling plus() will calculate it again
                         childNode.invalidate(path.substring(startNextSegment))
@@ -60,61 +57,38 @@ class SnapshotNode extends AbstractNode {
                         merged.add(childNode);
                     }
                 }
-                return merged.isEmpty() ? Optional.empty() : Optional.of(new NodeWithChildren(getPrefix(), merged));
+                return merged.isEmpty() ? Optional.empty() : Optional.of(new FileSystemNodeWithChildren(getPrefix(), merged));
             }
         });
     }
 
     @Override
-    public Node update(String path, FileSystemLocationSnapshot newSnapshot) {
-        return handlePrefix(getPrefix(), path, new DescendantHandler<Node>() {
+    public FileSystemNode update(String path, FileSystemLocationSnapshot newSnapshot) {
+        return handlePrefix(getPrefix(), path, new DescendantHandler<FileSystemNode>() {
             @Override
-            public Node handleDescendant() {
-                int startNextSegment = getPrefix().length() + 1;
-                if (snapshot.getType() != FileType.Directory) {
-                    return new SnapshotNode(path, newSnapshot);
-                }
-                DirectorySnapshot directorySnapshot = (DirectorySnapshot) snapshot;
-                List<Node> merged = new ArrayList<>(directorySnapshot.getChildren().size() + 1);
-                boolean matched = false;
-                for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
-                    SnapshotNode childNode = new SnapshotNode(child.getName(), child);
-                    if (sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
-                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
-                        merged.add(childNode.update(path.substring(startNextSegment), newSnapshot));
-                        matched = true;
-                    } else {
-                        merged.add(childNode);
-                    }
-                }
-                if (!matched) {
-                    merged.add(new SnapshotNode(path.substring(startNextSegment), newSnapshot));
-                }
-                merged.sort(Comparator.comparing(Node::getPrefix, pathComparator()));
-                return new NodeWithChildren(getPrefix(), merged);
+            public FileSystemNode handleDescendant() {
+                return SnapshotFileSystemNode.this;
             }
 
             @Override
-            public Node handleParent() {
-                return new SnapshotNode(path, newSnapshot);
+            public FileSystemNode handleParent() {
+                return new SnapshotFileSystemNode(path, newSnapshot);
             }
 
             @Override
-            public Node handleSame() {
-                return snapshot.getHash().equals(newSnapshot.getHash())
-                    ? SnapshotNode.this
-                    : new SnapshotNode(path, newSnapshot);
+            public FileSystemNode handleSame() {
+                return SnapshotFileSystemNode.this;
             }
 
             @Override
-            public Node handleDifferent(int commonPrefixLength) {
+            public FileSystemNode handleDifferent(int commonPrefixLength) {
                 String commonPrefix = getPrefix().substring(0, commonPrefixLength);
-                Node newThis = new SnapshotNode(getPrefix().substring(commonPrefixLength + 1), snapshot);
-                Node sibling = new SnapshotNode(path.substring(commonPrefixLength + 1), newSnapshot);
-                ImmutableList<Node> newChildren = pathComparator().compare(newThis.getPrefix(), sibling.getPrefix()) < 0
+                FileSystemNode newThis = new SnapshotFileSystemNode(getPrefix().substring(commonPrefixLength + 1), snapshot);
+                FileSystemNode sibling = new SnapshotFileSystemNode(path.substring(commonPrefixLength + 1), newSnapshot);
+                ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newThis.getPrefix(), sibling.getPrefix()) < 0
                     ? ImmutableList.of(newThis, sibling)
                     : ImmutableList.of(sibling, newThis);
-                return new NodeWithChildren(commonPrefix, newChildren);
+                return new FileSystemNodeWithChildren(commonPrefix, newChildren);
             }
         });
     }

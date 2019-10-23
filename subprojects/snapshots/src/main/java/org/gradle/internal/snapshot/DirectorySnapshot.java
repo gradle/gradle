@@ -18,8 +18,10 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.vfs.impl.AbstractFileSystemNode;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A file snapshot which can have children (i.e. a directory).
@@ -62,5 +64,29 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
 
     public List<FileSystemLocationSnapshot> getChildren() {
         return children;
+    }
+
+    @Override
+    public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
+        for (FileSystemLocationSnapshot child : getChildren()) {
+            if (AbstractFileSystemNode.isChildOfOrThis(filePath, offset, child.getName())) {
+                int endOfThisSegment = child.getName().length() + offset;
+                if (endOfThisSegment == filePath.length()) {
+                    return Optional.of(child);
+                }
+                return child.getSnapshot(filePath, endOfThisSegment + 1);
+            }
+        }
+        return Optional.of(missingSnapshotForAbsolutePath(filePath));
+    }
+
+    @Override
+    public FileSystemNode update(String path, FileSystemLocationSnapshot snapshot) {
+        return this;
+    }
+
+    @Override
+    public Optional<FileSystemNode> invalidate(String path) {
+        return Optional.empty();
     }
 }

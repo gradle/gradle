@@ -20,6 +20,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
+import java.util.Optional;
+
 /**
  * A snapshot of a missing file or a broken symbolic link or a named pipe.
  */
@@ -48,5 +50,20 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
         visitor.visitFile(this);
+    }
+
+    @Override
+    public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
+        return Optional.of(missingSnapshotForAbsolutePath(filePath));
+    }
+
+    @Override
+    public FileSystemNode update(String path, FileSystemLocationSnapshot snapshot) {
+        return this;
+    }
+
+    @Override
+    public Optional<FileSystemNode> invalidate(String path) {
+        return Optional.empty();
     }
 }

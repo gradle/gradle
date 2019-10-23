@@ -56,7 +56,7 @@ public abstract class ListUtils {
         return -(low + 1);  // key not found
     }
 
-    interface SearchForComparator<T> {
+    public interface SearchForComparator<T> {
         /**
          * Compares what is searched for to a candidate.
          *

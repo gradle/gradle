@@ -18,19 +18,21 @@ package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemNode;
+import org.gradle.internal.snapshot.SnapshotFileSystemNode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class DefaultFileHierarchySet implements FileHierarchySet {
-    private final Node rootNode;
+    private final FileSystemNode rootNode;
 
     DefaultFileHierarchySet(String path, FileSystemLocationSnapshot snapshot) {
-        this.rootNode = new SnapshotNode(normalizeFileSystemRoot(path), snapshot);
+        this.rootNode = new SnapshotFileSystemNode(normalizeFileSystemRoot(path), snapshot);
     }
 
-    DefaultFileHierarchySet(Node rootNode) {
+    DefaultFileHierarchySet(FileSystemNode rootNode) {
         this.rootNode = rootNode;
     }
 
@@ -43,7 +45,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
 
     @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String path) {
-        if (!AbstractNode.isChildOfOrThis(path, 0, rootNode.getPrefix())) {
+        if (!AbstractFileSystemNode.isChildOfOrThis(path, 0, rootNode.getPrefix())) {
             return Optional.empty();
         }
         return rootNode.getSnapshot(normalizeFileSystemRoot(path), 0);

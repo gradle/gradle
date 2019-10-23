@@ -16,16 +16,18 @@
 
 package org.gradle.internal.vfs.impl;
 
+import org.gradle.internal.snapshot.FileSystemNode;
+
 import java.io.File;
 import java.util.Comparator;
 import java.util.Optional;
 
-public abstract class AbstractNode implements Node {
+public abstract class AbstractFileSystemNode implements FileSystemNode {
     private static final Comparator<String> PATH_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0);
 
     private final String prefix;
 
-    public AbstractNode(String prefix) {
+    public AbstractFileSystemNode(String prefix) {
         this.prefix = prefix;
     }
 
@@ -172,27 +174,27 @@ public abstract class AbstractNode implements Node {
         return descendantHandler.handleDifferent(commonPrefixLength);
     }
 
-    interface DescendantHandler<T> {
+    public interface DescendantHandler<T> {
         T handleDescendant();
         T handleParent();
         T handleSame();
         T handleDifferent(int commonPrefixLength);
     }
 
-    protected abstract class InvalidateHandler implements DescendantHandler<Optional<Node>> {
+    protected abstract class InvalidateHandler implements DescendantHandler<Optional<FileSystemNode>> {
         @Override
-        public Optional<Node> handleParent() {
+        public Optional<FileSystemNode> handleParent() {
             return Optional.empty();
         }
 
         @Override
-        public Optional<Node> handleSame() {
+        public Optional<FileSystemNode> handleSame() {
             return Optional.empty();
         }
 
         @Override
-        public Optional<Node> handleDifferent(int commonPrefixLength) {
-            return Optional.of(AbstractNode.this);
+        public Optional<FileSystemNode> handleDifferent(int commonPrefixLength) {
+            return Optional.of(AbstractFileSystemNode.this);
         }
     }
 }

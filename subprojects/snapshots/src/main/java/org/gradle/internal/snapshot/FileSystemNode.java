@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
-
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+package org.gradle.internal.snapshot;
 
 import java.util.List;
 import java.util.Optional;
 
-interface Node {
+public interface FileSystemNode {
 
     Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset);
 
-    Node update(String path, FileSystemLocationSnapshot snapshot);
+    FileSystemNode update(String path, FileSystemLocationSnapshot snapshot);
 
-    Optional<Node> invalidate(String path);
+    Optional<FileSystemNode> invalidate(String path);
 
     String getPrefix();
 
+    /**
+     * Only used for testing, should maybe removed
+     */
     void collect(int depth, List<String> prefixes);
 }

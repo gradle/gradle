@@ -145,15 +145,14 @@ class DefaultFileHierarchySetTest extends Specification {
         s2.flatten() == [dir1.path]
 
         def s3 = single.update(snapshotDir(child))
-        // The parent directory snapshot was removed
-        !snapshotPresent(s3, dir1)
+        snapshotPresent(s3, dir1)
         snapshotPresent(s3, child)
         !snapshotPresent(s3, dir2)
         !snapshotPresent(s3, dir3)
         !snapshotPresent(s3, tooFew)
         !snapshotPresent(s3, tooMany)
         !snapshotPresent(s3, parent)
-        s3.flatten() == [dir1.path, "1:child1"]
+        s3.flatten() == [dir1.path]
 
         def s4 = single.update(snapshotDir(parent))
         snapshotPresent(s4, dir1)
@@ -212,14 +211,13 @@ class DefaultFileHierarchySetTest extends Specification {
         s2.flatten() == [parent.path, "1:dir1", "1:dir2"]
 
         def s3 = multi.update(snapshotDir(child))
-        // The parent directory snapshot was removed
-        !snapshotPresent(s3, dir1)
+        snapshotPresent(s3, dir1)
         snapshotPresent(s3, child)
         snapshotPresent(s3, dir2)
         !snapshotPresent(s3, dir3)
         !snapshotPresent(s3, other)
         !snapshotPresent(s3, parent)
-        s3.flatten() == [parent.path, "1:dir1", "2:child1", "1:dir2"]
+        s3.flatten() == [parent.path, "1:dir1", "1:dir2"]
 
         def s4 = multi.update(snapshotDir(parent))
         snapshotPresent(s4, dir1)
@@ -297,7 +295,7 @@ class DefaultFileHierarchySetTest extends Specification {
         when:
         dir.delete()
         child.text = "created"
-        set = set.update(snapshotDir(dir.file("sub")))
+        set = invalidate(set, child).update(snapshotDir(dir.file("sub")))
         then:
         assertDirectorySnapshot(set, dir.file("sub"))
         assertFileSnapshot(set, child)
@@ -316,7 +314,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(set, dir2)
     }
 
-    def "adding a snapshot in a known directory invalidates the directory"() {
+    def "adding a snapshot in a known directory is ignored"() {
         def parent = tmpDir.createDir()
         def dir1 = parent.createDir("dir1")
         def fileInDir = dir1.createFile("file1")
@@ -328,7 +326,7 @@ class DefaultFileHierarchySetTest extends Specification {
         then:
         snapshotPresent(set, subDir)
         snapshotPresent(set, fileInDir)
-        !snapshotPresent(set, dir1)
+        snapshotPresent(set, dir1)
     }
 
     def "returns missing snapshots for children of files"() {

@@ -27,7 +27,7 @@ import java.util.Comparator;
  * The snapshot can be a snapshot of a regular file or of a whole directory tree.
  * The file at the location is not required to exist (see {@link MissingFileSnapshot}.
  */
-public interface FileSystemLocationSnapshot extends FileSystemSnapshot {
+public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode {
 
     Comparator<FileSystemLocationSnapshot> BY_NAME = Comparator.comparing(FileSystemLocationSnapshot::getName);
 

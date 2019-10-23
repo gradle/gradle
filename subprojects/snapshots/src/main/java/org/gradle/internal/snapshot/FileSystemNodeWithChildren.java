@@ -14,49 +14,50 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
+package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.vfs.impl.AbstractFileSystemNode;
+import org.gradle.internal.vfs.impl.ListUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-class NodeWithChildren extends AbstractNode {
-    private final List<Node> children;
+public class FileSystemNodeWithChildren extends AbstractFileSystemNode {
+    private final List<FileSystemNode> children;
 
-    public NodeWithChildren(String prefix, List<Node> children) {
+    public FileSystemNodeWithChildren(String prefix, List<FileSystemNode> children) {
         super(prefix);
         assert !children.isEmpty();
         this.children = children;
     }
 
     @Override
-    public Optional<Node> invalidate(String path) {
+    public Optional<FileSystemNode> invalidate(String path) {
         return handlePrefix(getPrefix(), path, new InvalidateHandler() {
             @Override
-            public Optional<Node> handleDescendant() {
-                return handleChildren(getPrefix(), path, new ChildHandler<Optional<Node>>() {
+            public Optional<FileSystemNode> handleDescendant() {
+                return handleChildren(getPrefix(), path, new ChildHandler<Optional<FileSystemNode>>() {
                     @Override
-                    public Optional<Node> handleNewChild(int startNextSegment, int insertBefore) {
-                        return Optional.of(NodeWithChildren.this);
+                    public Optional<FileSystemNode> handleNewChild(int startNextSegment, int insertBefore) {
+                        return Optional.of(FileSystemNodeWithChildren.this);
                     }
 
                     @Override
-                    public Optional<Node> handleChildOfExisting(int startNextSegment, int childIndex) {
-                        Node child = children.get(childIndex);
-                        Optional<Node> invalidatedChild = child.invalidate(path.substring(startNextSegment));
+                    public Optional<FileSystemNode> handleChildOfExisting(int startNextSegment, int childIndex) {
+                        FileSystemNode child = children.get(childIndex);
+                        Optional<FileSystemNode> invalidatedChild = child.invalidate(path.substring(startNextSegment));
                         if (children.size() == 1) {
-                            return invalidatedChild.map(it -> new NodeWithChildren(getPrefix(), ImmutableList.of(it)));
+                            return invalidatedChild.map(it -> new FileSystemNodeWithChildren(getPrefix(), ImmutableList.of(it)));
                         }
-                        List<Node> merged = new ArrayList<>(children);
+                        List<FileSystemNode> merged = new ArrayList<>(children);
                         invalidatedChild.ifPresent(newChild -> merged.set(childIndex, newChild));
                         if (!invalidatedChild.isPresent()) {
                             merged.remove(childIndex);
                         }
-                        return Optional.of(new NodeWithChildren(getPrefix(), merged));
+                        return Optional.of(new FileSystemNodeWithChildren(getPrefix(), merged));
                     }
                 });
             }
@@ -82,51 +83,51 @@ class NodeWithChildren extends AbstractNode {
     }
 
     @Override
-    public Node update(String path, FileSystemLocationSnapshot snapshot) {
-        return handlePrefix(getPrefix(), path, new DescendantHandler<Node>() {
+    public FileSystemNode update(String path, FileSystemLocationSnapshot snapshot) {
+        return handlePrefix(getPrefix(), path, new DescendantHandler<FileSystemNode>() {
             @Override
-            public Node handleDescendant() {
-                return handleChildren(getPrefix(), path, new ChildHandler<Node>() {
+            public FileSystemNode handleDescendant() {
+                return handleChildren(getPrefix(), path, new ChildHandler<FileSystemNode>() {
                     @Override
-                    public Node handleNewChild(int startNextSegment, int insertBefore) {
-                        List<Node> newChildren = new ArrayList<>(children);
-                        newChildren.add(insertBefore, new SnapshotNode(path.substring(startNextSegment), snapshot));
-                        return new NodeWithChildren(getPrefix(), newChildren);
+                    public FileSystemNode handleNewChild(int startNextSegment, int insertBefore) {
+                        List<FileSystemNode> newChildren = new ArrayList<>(children);
+                        newChildren.add(insertBefore, new SnapshotFileSystemNode(path.substring(startNextSegment), snapshot));
+                        return new FileSystemNodeWithChildren(getPrefix(), newChildren);
                     }
 
                     @Override
-                    public Node handleChildOfExisting(int startNextSegment, int childIndex) {
-                        Node child = children.get(childIndex);
-                        Node newChild = child.update(path.substring(startNextSegment), snapshot);
+                    public FileSystemNode handleChildOfExisting(int startNextSegment, int childIndex) {
+                        FileSystemNode child = children.get(childIndex);
+                        FileSystemNode newChild = child.update(path.substring(startNextSegment), snapshot);
                         if (children.size() == 1) {
-                            return new NodeWithChildren(getPrefix(), ImmutableList.of(newChild));
+                            return new FileSystemNodeWithChildren(getPrefix(), ImmutableList.of(newChild));
                         }
-                        List<Node> merged = new ArrayList<>(children);
+                        List<FileSystemNode> merged = new ArrayList<>(children);
                         merged.set(childIndex, newChild);
-                        return new NodeWithChildren(getPrefix(), merged);
+                        return new FileSystemNodeWithChildren(getPrefix(), merged);
                     }
                 });
             }
 
             @Override
-            public Node handleParent() {
-                return new SnapshotNode(path, snapshot);
+            public FileSystemNode handleParent() {
+                return new SnapshotFileSystemNode(path, snapshot);
             }
 
             @Override
-            public Node handleSame() {
-                return new SnapshotNode(path, snapshot);
+            public FileSystemNode handleSame() {
+                return new SnapshotFileSystemNode(path, snapshot);
             }
 
             @Override
-            public Node handleDifferent(int commonPrefixLength) {
+            public FileSystemNode handleDifferent(int commonPrefixLength) {
                 String commonPrefix = getPrefix().substring(0, commonPrefixLength);
-                Node newThis = new NodeWithChildren(getPrefix().substring(commonPrefixLength + 1), children);
-                Node sibling = new SnapshotNode(path.substring(commonPrefixLength + 1), snapshot);
-                ImmutableList<Node> newChildren = pathComparator().compare(newThis.getPrefix(), sibling.getPrefix()) < 0
+                FileSystemNode newThis = new FileSystemNodeWithChildren(getPrefix().substring(commonPrefixLength + 1), children);
+                FileSystemNode sibling = new SnapshotFileSystemNode(path.substring(commonPrefixLength + 1), snapshot);
+                ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newThis.getPrefix(), sibling.getPrefix()) < 0
                     ? ImmutableList.of(newThis, sibling)
                     : ImmutableList.of(sibling, newThis);
-                return new NodeWithChildren(commonPrefix, newChildren);
+                return new FileSystemNodeWithChildren(commonPrefix, newChildren);
             }
         });
     }
@@ -136,13 +137,13 @@ class NodeWithChildren extends AbstractNode {
         int startNextSegment = offset + getPrefix().length() + 1;
         switch (children.size()) {
             case 1:
-                Node onlyChild = children.get(0);
+                FileSystemNode onlyChild = children.get(0);
                 return isChildOfOrThis(filePath, startNextSegment, onlyChild.getPrefix())
                     ? onlyChild.getSnapshot(filePath, startNextSegment)
                     : Optional.empty();
             case 2:
-                Node firstChild = children.get(0);
-                Node secondChild = children.get(1);
+                FileSystemNode firstChild = children.get(0);
+                FileSystemNode secondChild = children.get(1);
                 if (isChildOfOrThis(filePath, startNextSegment, firstChild.getPrefix())) {
                     return firstChild.getSnapshot(filePath, startNextSegment);
                 }
@@ -165,7 +166,7 @@ class NodeWithChildren extends AbstractNode {
         } else {
             prefixes.add(depth + ":" + getPrefix().replace(File.separatorChar, '/'));
         }
-        for (Node child : children) {
+        for (FileSystemNode child : children) {
             child.collect(depth + 1, prefixes);
         }
     }

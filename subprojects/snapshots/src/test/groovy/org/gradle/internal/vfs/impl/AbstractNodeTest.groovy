@@ -23,7 +23,7 @@ class AbstractNodeTest extends Specification {
 
     def "can compare size of common prefix"() {
         expect:
-        Integer.signum(AbstractNode.compareWithCommonPrefix(prefix, path, offset, '/' as char)) == result
+        Integer.signum(AbstractFileSystemNode.compareWithCommonPrefix(prefix, path, offset, '/' as char)) == result
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
         }
@@ -45,7 +45,7 @@ class AbstractNodeTest extends Specification {
 
     def "separator is smaller than every other character"() {
         expect:
-        Integer.signum(AbstractNode.compareWithCommonPrefix(prefix, path, offset, '/' as char)) == result
+        Integer.signum(AbstractFileSystemNode.compareWithCommonPrefix(prefix, path, offset, '/' as char)) == result
 
         where:
         prefix              | path                    | offset | result
@@ -54,7 +54,7 @@ class AbstractNodeTest extends Specification {
 
     def "can compare to child of this"() {
         expect:
-        Integer.signum(AbstractNode.compareToChildOfOrThis(prefix, path, offset, '/' as char)) == result
+        Integer.signum(AbstractFileSystemNode.compareToChildOfOrThis(prefix, path, offset, '/' as char)) == result
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
         }
