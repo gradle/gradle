@@ -65,7 +65,7 @@ public class JavaEcosystemVariantDerivationStrategy implements VariantDerivation
                         componentId.getGroup(),
                         componentId.getModule(),
                         componentId.getVersion()
-                ), enforced ? "-enforced-platform" : "-derived-platform")
+                ), enforced ? "-derived-enforced-platform" : "-derived-platform")
             )
         );
     }

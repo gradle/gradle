@@ -116,7 +116,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     private void createConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        Capability enforcedCapability = new DefaultShadowedCapability(new ProjectDerivedCapability(project), "-enforced-platform");
+        Capability enforcedCapability = new DefaultShadowedCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
 
         Configuration api = configurations.create(API_CONFIGURATION_NAME, AS_BUCKET);
         Configuration apiElements = createConsumableApi(project, configurations, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);

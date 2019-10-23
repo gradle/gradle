@@ -146,7 +146,7 @@ public class GradleModuleMetadataParser {
                 componentId.getGroup(),
                 componentId.getModule(),
                 componentId.getVersion()
-            ), "-enforced-platform");
+            ), "-derived-enforced-platform");
     }
 
     private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
