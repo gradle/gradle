@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.impl
 
-
+import org.gradle.internal.snapshot.AbstractFileSystemNode
 import spock.lang.Specification
 
 class AbstractNodeTest extends Specification {

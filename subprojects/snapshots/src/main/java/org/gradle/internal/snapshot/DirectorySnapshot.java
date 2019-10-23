@@ -16,10 +16,11 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.vfs.impl.AbstractFileSystemNode;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -68,16 +69,17 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
 
     @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
-        for (FileSystemLocationSnapshot child : getChildren()) {
-            if (AbstractFileSystemNode.isChildOfOrThis(filePath, offset, child.getName())) {
-                int endOfThisSegment = child.getName().length() + offset;
-                if (endOfThisSegment == filePath.length()) {
-                    return Optional.of(child);
+        return FileSystemNode.thisOrGet(
+            this, filePath, offset,
+            () -> {
+                for (FileSystemLocationSnapshot child : getChildren()) {
+                    if (AbstractFileSystemNode.isChildOfOrThis(filePath, offset, child.getName())) {
+                        int endOfThisSegment = child.getName().length() + offset;
+                        return child.getSnapshot(filePath, endOfThisSegment + 1);
+                    }
                 }
-                return child.getSnapshot(filePath, endOfThisSegment + 1);
-            }
-        }
-        return Optional.of(missingSnapshotForAbsolutePath(filePath));
+                return Optional.of(missingSnapshotForAbsolutePath(filePath));
+            });
     }
 
     @Override
@@ -87,6 +89,40 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
 
     @Override
     public Optional<FileSystemNode> invalidate(String path) {
-        return Optional.empty();
+        return AbstractFileSystemNode.handleChildren(children, path, 0, new AbstractFileSystemNode.ChildHandler<Optional<FileSystemNode>>() {
+            @Override
+            public Optional<FileSystemNode> handleNewChild(int startNextSegment, int insertBefore) {
+                return children.isEmpty()
+                    ? Optional.empty()
+                    : Optional.of(new FileSystemNodeWithChildren(getPrefix(), children));
+            }
+
+            @Override
+            public Optional<FileSystemNode> handleChildOfExisting(int startNextSegment, int childIndex) {
+                FileSystemLocationSnapshot foundChild = children.get(childIndex);
+                int indexForSubSegment = foundChild.getPrefix().length();
+                Optional<FileSystemNode> invalidated = indexForSubSegment == path.length()
+                    ? Optional.empty()
+                    : foundChild.invalidate(path.substring(indexForSubSegment + 1));
+                if (children.size() == 1) {
+                    return invalidated.map(it -> new FileSystemNodeWithChildren(getPrefix(), ImmutableList.of(it)));
+                }
+
+                return invalidated
+                    .map(invalidatedChild -> {
+                        ArrayList<FileSystemNode> newChildren = new ArrayList<>(children);
+                        newChildren.set(childIndex, invalidatedChild);
+                        return Optional.<FileSystemNode>of(new FileSystemNodeWithChildren(getPrefix(), newChildren));
+                    }).orElseGet(() -> {
+                        if (children.size() == 2) {
+                            FileSystemLocationSnapshot singleChild = childIndex == 0 ? children.get(1) : children.get(0);
+                            return Optional.of(new FileSystemNodeWithChildren(getPrefix(), ImmutableList.of(singleChild)));
+                        }
+                        ArrayList<FileSystemLocationSnapshot> newChildren = new ArrayList<>(children);
+                        newChildren.remove(childIndex);
+                        return Optional.of(new FileSystemNodeWithChildren(getPrefix(), newChildren));
+                    });
+            }
+        });
     }
 }

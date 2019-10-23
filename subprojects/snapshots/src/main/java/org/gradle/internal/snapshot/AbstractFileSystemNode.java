@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
+package org.gradle.internal.snapshot;
 
-import org.gradle.internal.snapshot.FileSystemNode;
+import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractFileSystemNode implements FileSystemNode {
@@ -29,6 +30,11 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
 
     public AbstractFileSystemNode(String prefix) {
         this.prefix = prefix;
+    }
+
+    @Override
+    public String getPrefix() {
+        return prefix;
     }
 
     /**
@@ -108,7 +114,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             : Character.compare(char1, char2);
     }
 
-    protected static Comparator<String> pathComparator() {
+    public static Comparator<String> pathComparator() {
         return PATH_COMPARATOR;
     }
 
@@ -152,9 +158,71 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == separatorChar ? 0 : -1;
     }
 
-    @Override
-    public String getPrefix() {
-        return prefix;
+    public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, ChildHandler<T> childHandler) {
+        int childIndex = ListUtils.binarySearch(
+            children,
+            candidate -> compareWithCommonPrefix(candidate.getPrefix(), path, offset, File.separatorChar)
+        );
+        if (childIndex >= 0) {
+            return childHandler.handleChildOfExisting(offset, childIndex);
+        }
+        return childHandler.handleNewChild(offset, -childIndex - 1);
+    }
+
+    public static FileSystemNode updateSingleChild(FileSystemNode child, String path, FileSystemLocationSnapshot snapshot) {
+        return handlePrefix(child.getPrefix(), path, new DescendantHandler<FileSystemNode>() {
+            @Override
+            public FileSystemNode handleDescendant() {
+                return child.update(path.substring(child.getPrefix().length() + 1), snapshot);
+            }
+
+            @Override
+            public FileSystemNode handleParent() {
+                return new SnapshotFileSystemNode(path, snapshot);
+            }
+
+            @Override
+            public FileSystemNode handleSame() {
+                return new SnapshotFileSystemNode(path, snapshot);
+            }
+
+            @Override
+            public FileSystemNode handleDifferent(int commonPrefixLength) {
+                String prefix = child.getPrefix();
+                String commonPrefix = prefix.substring(0, commonPrefixLength);
+                FileSystemNode newChild = child.withPrefix(prefix.substring(commonPrefixLength + 1));
+                FileSystemNode sibling = new SnapshotFileSystemNode(path.substring(commonPrefixLength + 1), snapshot);
+                ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newChild.getPrefix(), sibling.getPrefix()) < 0
+                    ? ImmutableList.of(newChild, sibling)
+                    : ImmutableList.of(sibling, newChild);
+                return new FileSystemNodeWithChildren(commonPrefix, newChildren);
+            }
+        });
+    }
+
+    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, String path) {
+        return handlePrefix(child.getPrefix(), path, new DescendantHandler<Optional<FileSystemNode>>() {
+            @Override
+            public Optional<FileSystemNode> handleDescendant() {
+                return child.invalidate(path.substring(child.getPrefix().length() + 1));
+            }
+
+            @Override
+            public Optional<FileSystemNode> handleParent() {
+                return Optional.empty();
+            }
+
+
+            @Override
+            public Optional<FileSystemNode> handleSame() {
+                return Optional.empty();
+            }
+
+            @Override
+            public Optional<FileSystemNode> handleDifferent(int commonPrefixLength) {
+                return Optional.of(child);
+            }
+        });
     }
 
     public static <T> T handlePrefix(String prefix, String path, DescendantHandler<T> descendantHandler) {
@@ -181,20 +249,8 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         T handleDifferent(int commonPrefixLength);
     }
 
-    protected abstract class InvalidateHandler implements DescendantHandler<Optional<FileSystemNode>> {
-        @Override
-        public Optional<FileSystemNode> handleParent() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<FileSystemNode> handleSame() {
-            return Optional.empty();
-        }
-
-        @Override
-        public Optional<FileSystemNode> handleDifferent(int commonPrefixLength) {
-            return Optional.of(AbstractFileSystemNode.this);
-        }
+    public interface ChildHandler<T> {
+        T handleNewChild(int startNextSegment, int insertBefore);
+        T handleChildOfExisting(int startNextSegment, int childIndex);
     }
 }

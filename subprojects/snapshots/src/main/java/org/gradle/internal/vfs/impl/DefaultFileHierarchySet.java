@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.snapshot.AbstractFileSystemNode;
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotFileSystemNode;
@@ -24,6 +25,9 @@ import org.gradle.internal.snapshot.SnapshotFileSystemNode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.gradle.internal.snapshot.AbstractFileSystemNode.invalidateSingleChild;
+import static org.gradle.internal.snapshot.AbstractFileSystemNode.updateSingleChild;
 
 public class DefaultFileHierarchySet implements FileHierarchySet {
     private final FileSystemNode rootNode;
@@ -48,17 +52,19 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         if (!AbstractFileSystemNode.isChildOfOrThis(path, 0, rootNode.getPrefix())) {
             return Optional.empty();
         }
-        return rootNode.getSnapshot(normalizeFileSystemRoot(path), 0);
+        return rootNode.getSnapshot(normalizeFileSystemRoot(path), rootNode.getPrefix().length() + 1);
     }
 
     @Override
     public FileHierarchySet update(FileSystemLocationSnapshot snapshot) {
-        return new DefaultFileHierarchySet(rootNode.update(normalizeFileSystemRoot(snapshot.getAbsolutePath()), snapshot));
+        String normalizedPath = normalizeFileSystemRoot(snapshot.getAbsolutePath());
+        return new DefaultFileHierarchySet(updateSingleChild(rootNode, normalizedPath, snapshot));
     }
 
     @Override
     public FileHierarchySet invalidate(String path) {
-        return rootNode.invalidate(normalizeFileSystemRoot(path))
+        String normalizedPath = normalizeFileSystemRoot(path);
+        return invalidateSingleChild(rootNode, normalizedPath)
             .<FileHierarchySet>map(DefaultFileHierarchySet::new)
             .orElse(FileHierarchySet.EMPTY);
     }

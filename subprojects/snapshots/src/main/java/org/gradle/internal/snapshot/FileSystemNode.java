@@ -18,13 +18,32 @@ package org.gradle.internal.snapshot;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 
 public interface FileSystemNode {
 
+    /**
+     * Gets a snapshot from the current node with relative path filePath.substring(offset).
+     *
+     * When calling this method, the caller needs to make sure the the snapshot is a child of this node or this node.
+     * That means that filePath.substring(offset) does not include the {@link #getPrefix()}.
+     * Therefore, when filePath.length < offset, then this node will be returned.
+     */
     Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset);
 
+    /**
+     * Adds more information to the file system node.
+     *
+     * Complete information, like {@link FileSystemLocationSnapshot}s, are not touched nor replaced.
+     * @param path the path to update. Must not include the {@link #getPrefix()}.
+     */
     FileSystemNode update(String path, FileSystemLocationSnapshot snapshot);
 
+    /**
+     * Invalidates part of the node.
+     *
+     * @param path the path to invalidate. Must not include the {@link #getPrefix()}.
+     */
     Optional<FileSystemNode> invalidate(String path);
 
     String getPrefix();
@@ -33,4 +52,16 @@ public interface FileSystemNode {
      * Only used for testing, should maybe removed
      */
     void collect(int depth, List<String> prefixes);
+
+    /**
+     * Creates a new node with the same children, but a different prefix.
+     */
+    FileSystemNode withPrefix(String newPrefix);
+
+    static Optional<FileSystemLocationSnapshot> thisOrGet(FileSystemLocationSnapshot current, String filePath, int offset, Supplier<Optional<FileSystemLocationSnapshot>> supplier) {
+        if (filePath.length() + 1 == offset) {
+            return Optional.of(current);
+        }
+        return supplier.get();
+    }
 }

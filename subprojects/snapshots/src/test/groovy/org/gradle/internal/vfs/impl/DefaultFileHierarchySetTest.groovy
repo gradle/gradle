@@ -281,7 +281,7 @@ class DefaultFileHierarchySetTest extends Specification {
 
         when:
         child.text = "updated"
-        set = set.update(snapshotDir(dir))
+        set = invalidate(set, child).update(snapshotDir(dir))
         then:
         assertDirectorySnapshot(set, dir)
         assertFileSnapshot(set, child)
@@ -431,7 +431,7 @@ class DefaultFileHierarchySetTest extends Specification {
         set.getSnapshot("/root.txt").get().type == FileType.RegularFile
 
         when:
-        set = set.update(new DirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(2222)))
+        set = set.invalidate("/root.txt").update(new DirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(2222)))
         then:
         set.getSnapshot("/base.txt").get().type == FileType.RegularFile
     }

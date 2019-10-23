@@ -52,6 +52,11 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
+    public FileSystemNode withPrefix(String newPrefix) {
+        return new SnapshotFileSystemNode(newPrefix, this);
+    }
+
+    @Override
     public void collect(int depth, List<String> prefixes) {
     }
 }

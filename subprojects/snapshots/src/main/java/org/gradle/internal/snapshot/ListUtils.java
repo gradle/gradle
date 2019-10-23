@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
+package org.gradle.internal.snapshot;
 
 import java.util.Comparator;
 import java.util.List;

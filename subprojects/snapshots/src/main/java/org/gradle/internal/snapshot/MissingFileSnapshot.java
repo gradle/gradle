@@ -54,7 +54,9 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
 
     @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
-        return Optional.of(missingSnapshotForAbsolutePath(filePath));
+        return FileSystemNode.thisOrGet(
+            this, filePath, offset,
+            () -> Optional.of(missingSnapshotForAbsolutePath(filePath)));
     }
 
     @Override

@@ -16,13 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.vfs.impl.AbstractFileSystemNode;
-
 import java.io.File;
-import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,99 +30,20 @@ public class SnapshotFileSystemNode extends AbstractFileSystemNode {
 
     @Override
     public Optional<FileSystemNode> invalidate(String path) {
-        return handlePrefix(getPrefix(), path, new InvalidateHandler() {
-            @Override
-            public Optional<FileSystemNode> handleDescendant() {
-                if (snapshot.getType() != FileType.Directory) {
-                    return Optional.empty();
-                }
-                DirectorySnapshot directorySnapshot = (DirectorySnapshot) snapshot;
-                int startNextSegment = getPrefix().length() + 1;
-                List<FileSystemNode> merged = new ArrayList<>(directorySnapshot.getChildren().size());
-                boolean matched = false;
-                for (FileSystemLocationSnapshot child : directorySnapshot.getChildren()) {
-                    SnapshotFileSystemNode childNode = new SnapshotFileSystemNode(child.getName(), child);
-                    if (!matched && sizeOfCommonPrefix(child.getName(), path, startNextSegment) > 0) {
-                        // TODO - we've already calculated the common prefix and calling plus() will calculate it again
-                        childNode.invalidate(path.substring(startNextSegment))
-                            .ifPresent(merged::add);
-                        matched = true;
-                    } else {
-                        merged.add(childNode);
-                    }
-                }
-                return merged.isEmpty() ? Optional.empty() : Optional.of(new FileSystemNodeWithChildren(getPrefix(), merged));
-            }
-        });
+        return snapshot.invalidate(path).map(splitSnapshot -> splitSnapshot.withPrefix(getPrefix()));
     }
 
     @Override
     public FileSystemNode update(String path, FileSystemLocationSnapshot newSnapshot) {
-        return handlePrefix(getPrefix(), path, new DescendantHandler<FileSystemNode>() {
-            @Override
-            public FileSystemNode handleDescendant() {
-                return SnapshotFileSystemNode.this;
-            }
-
-            @Override
-            public FileSystemNode handleParent() {
-                return new SnapshotFileSystemNode(path, newSnapshot);
-            }
-
-            @Override
-            public FileSystemNode handleSame() {
-                return SnapshotFileSystemNode.this;
-            }
-
-            @Override
-            public FileSystemNode handleDifferent(int commonPrefixLength) {
-                String commonPrefix = getPrefix().substring(0, commonPrefixLength);
-                FileSystemNode newThis = new SnapshotFileSystemNode(getPrefix().substring(commonPrefixLength + 1), snapshot);
-                FileSystemNode sibling = new SnapshotFileSystemNode(path.substring(commonPrefixLength + 1), newSnapshot);
-                ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newThis.getPrefix(), sibling.getPrefix()) < 0
-                    ? ImmutableList.of(newThis, sibling)
-                    : ImmutableList.of(sibling, newThis);
-                return new FileSystemNodeWithChildren(commonPrefix, newChildren);
-            }
-        });
+        return this;
     }
 
     @Override
     public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
-        int endOfThisSegment = offset + getPrefix().length();
-        if (filePath.length() == endOfThisSegment) {
-            return Optional.of(snapshot);
-        }
-        return findSnapshot(snapshot, filePath, endOfThisSegment + 1);
-    }
-
-    private Optional<FileSystemLocationSnapshot> findSnapshot(FileSystemLocationSnapshot snapshot, String filePath, int offset) {
-        switch (snapshot.getType()) {
-            case RegularFile:
-            case Missing:
-                return Optional.of(new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath)));
-            case Directory:
-                return findPathInDirectorySnapshot((DirectorySnapshot) snapshot, filePath, offset);
-            default:
-                throw new AssertionError("Unknown file type: " + snapshot.getType());
-        }
-    }
-
-    private Optional<FileSystemLocationSnapshot> findPathInDirectorySnapshot(DirectorySnapshot snapshot, String filePath, int offset) {
-        for (FileSystemLocationSnapshot child : snapshot.getChildren()) {
-            if (isChildOfOrThis(filePath, offset, child.getName())) {
-                int endOfThisSegment = child.getName().length() + offset;
-                if (endOfThisSegment == filePath.length()) {
-                    return Optional.of(child);
-                }
-                return findSnapshot(child, filePath, endOfThisSegment + 1);
-            }
-        }
-        return Optional.of(new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath)));
-    }
-
-    private static String getFileNameForAbsolutePath(String filePath) {
-        return Paths.get(filePath).getFileName().toString();
+        return FileSystemNode.thisOrGet(
+            snapshot, filePath, offset,
+            () -> snapshot.getSnapshot(filePath, offset)
+        );
     }
 
     @Override
@@ -138,5 +53,10 @@ public class SnapshotFileSystemNode extends AbstractFileSystemNode {
         } else {
             prefixes.add(depth + ":" + getPrefix().replace(File.separatorChar, '/'));
         }
+    }
+
+    @Override
+    public FileSystemNode withPrefix(String newPrefix) {
+        return new SnapshotFileSystemNode(newPrefix, snapshot);
     }
 }
