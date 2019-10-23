@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 public class CachingPatternSpecFactory extends PatternSpecFactory {
-    private static final int RESULTS_CACHE_MAX_SIZE = 100000;
+    private static final int RESULTS_CACHE_MAX_SIZE = 10000;
     private static final int INSTANCES_MAX_SIZE = 30000;
     private final HeapProportionalCacheSizer cacheSizer;
     private final Cache<SpecKey, Spec<FileTreeElement>> specInstanceCache;
