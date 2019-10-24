@@ -70,9 +70,8 @@ public interface MutableModuleComponentResolveMetadata {
     ModuleSource getSource();
     void setSource(ModuleSource source);
 
-    /**
-     * Adds a variant to this module.
-     */
+    MutableComponentVariant addVariant(MutableComponentVariant variant);
+
     MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes);
 
     AttributeContainer getAttributes();

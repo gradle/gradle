@@ -27,19 +27,29 @@ import java.util.List;
 
 public interface MutableComponentVariant {
 
+    String getName();
+
     List<? extends ComponentVariant.File> getFiles();
 
     void addFile(String name, String uri);
 
     boolean removeFile(ComponentVariant.File file);
 
+    List<ComponentVariant.Dependency> getDependencies();
+
     void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<? extends Capability> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact);
 
+    List<ComponentVariant.DependencyConstraint> getDependencyConstraints();
+
     void addDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes);
+
+    List<Capability> getCapabilities();
 
     void addCapability(String group, String name, String version);
 
     ImmutableAttributes getAttributes();
 
     void setAttributes(ImmutableAttributes updatedAttributes);
+
+    MutableComponentVariant copy(String variantName, ImmutableAttributes attributes, Capability capability);
 }

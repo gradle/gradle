@@ -327,14 +327,14 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         when:
         buildFile << """
             dependencies {
-                api "org:platform" // no version, will select the "platform" component
+                api platform("org:platform") // no version, will select the "platform" component
                 api project(":sub")
             }
             project(":sub") {
                 apply plugin: 'java-library'
                 dependencies {
                     constraints {
-                       api platform("org:platform:1.0")
+                       api "org:platform:1.0"
                     }
                 }
             }
@@ -401,6 +401,95 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                             'org.gradle.category': 'enforced-platform',
                             'org.gradle.status': 'release',
                             'org.gradle.usage': 'java-api'])
+                    noArtifacts()
+                }
+            }
+        }
+    }
+
+    @Issue("gradle/gradle#11091")
+    def "resolves to runtime platform variant of a platform with gradle metadata if no attributes are requested"() {
+        def platform = mavenHttpRepo.module("org", "platform", "1.0").withModuleMetadata().withoutDefaultVariants()
+            .withVariant('api') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+            .withVariant('runtime') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }.publish()
+
+        when:
+        buildFile << """
+            configurations { conf }
+            dependencies {
+                conf "org:platform:1.0"
+            }
+        """
+        checkConfiguration("conf")
+
+        platform.pom.expectGet()
+        platform.moduleMetadata.expectGet()
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                module("org:platform:1.0") {
+                    variant("runtime", [
+                        'org.gradle.category': 'platform',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-runtime'])
+                    noArtifacts()
+                }
+            }
+        }
+    }
+
+    @Issue("gradle/gradle#11091")
+    def "can enforce a platform that is already on the dependency graph"() {
+        def platform = mavenHttpRepo.module("org", "platform", "1.0").withModuleMetadata().withoutDefaultVariants()
+            .withVariant('api') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+            .withVariant('runtime') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }.publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                api platform("org:platform:1.0")
+                api enforcedPlatform("org:platform:1.0")
+            }
+        """
+        checkConfiguration("compileClasspath")
+
+        platform.pom.expectGet()
+        platform.moduleMetadata.expectGet()
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                module("org:platform:1.0") {
+                    variant("api", [
+                        'org.gradle.category': 'platform',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api'])
+                    noArtifacts()
+                }
+                module("org:platform:1.0") {
+                    variant("enforcedApi", [
+                        'org.gradle.category': 'enforced-platform',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-api'])
                     noArtifacts()
                 }
             }

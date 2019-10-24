@@ -118,11 +118,6 @@ abstract class AbstractIvyPublishIntegTest extends AbstractIntegrationSpec imple
             }
 
             dependencies {
-               attributesSchema { 
-                getMatchingStrategy(Category.CATEGORY_ATTRIBUTE)
-                   .disambiguationRules
-                   .add(PlatformSupport.PreferRegularPlatform)
-               }
                resolve($dependencyNotation) $extraArtifacts
                $optional
             }

@@ -57,8 +57,8 @@ class VariantFilesMetadataRulesTest extends Specification {
 
     private DefaultAttributesSchema createSchema() {
         def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
-        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
+        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         schema
     }
 

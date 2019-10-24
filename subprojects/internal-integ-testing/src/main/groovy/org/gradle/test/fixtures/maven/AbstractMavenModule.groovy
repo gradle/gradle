@@ -529,7 +529,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             new MarkupBuilder(writer).project {
                 mkp.comment(artifactContent)
                 if (writeRedirect) {
-                    mkp.comment(MetaDataParser.GRADLE_METADATA_MARKER)
+                    mkp.comment(MetaDataParser.GRADLE_6_METADATA_MARKER)
                 }
                 modelVersion("4.0.0")
                 groupId(groupId)

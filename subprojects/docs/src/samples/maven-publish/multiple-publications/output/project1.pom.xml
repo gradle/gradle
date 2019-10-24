@@ -6,7 +6,7 @@
   <!-- which should be used instead. Do not delete the following line which  -->
   <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
   <!-- that they should prefer consuming it instead. -->
-  <!-- do-not-remove: published-with-gradle-metadata -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.gradle.sample</groupId>
   <artifactId>project1-sample</artifactId>

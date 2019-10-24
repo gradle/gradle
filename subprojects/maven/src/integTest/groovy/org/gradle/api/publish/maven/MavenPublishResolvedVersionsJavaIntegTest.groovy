@@ -457,7 +457,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         createBuildScripts("""
             dependencies {
                 constraints {
-                    api platform("org.test:bar:1.0")
+                    api "org.test:bar:1.0"
                 }
                 api "org.test:foo:1.0"
                 runtimeOnly(platform("org.test:bar:1.1"))

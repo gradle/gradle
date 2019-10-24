@@ -5,7 +5,7 @@
   <!-- which should be used instead. Do not delete the following line which  -->
   <!-- is to indicate to Gradle or any Gradle module metadata file consumer  -->
   <!-- that they should prefer consuming it instead. -->
-  <!-- do-not-remove: published-with-gradle-metadata -->
+  <!-- do_not_remove: published-with-gradle-metadata -->
   <info organisation="org.gradle.sample" module="project1" revision="1.0" status="integration" publication="«PUBLICATION-TIME-STAMP»">
     <description>The first project</description>
   </info>

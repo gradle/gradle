@@ -74,7 +74,7 @@ class MavenPomFileGeneratorTest extends Specification {
         generator = new MavenPomFileGenerator(projectIdentity, rangeMapper, strategy, ImmutableAttributes.EMPTY, ImmutableAttributes.EMPTY, markerPresent)
 
         expect:
-        pomFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER) == markerPresent
+        pomFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER) == markerPresent
 
         where:
         markerPresent << [true, false]

@@ -56,13 +56,13 @@ public class PublicationWarningsCollector {
     public void complete(String header, Set<String> silencedVariants) {
         saveVariantWarnings();
 
+        variantToWarnings.keySet().removeAll(silencedVariants);
         if (!variantToWarnings.isEmpty()) {
             TreeFormatter treeFormatter = new TreeFormatter();
             treeFormatter.node(header + " warnings (silence with '" + disableMethod + "(variant)')");
             treeFormatter.startChildren();
-            variantToWarnings.entrySet().stream().filter(entry -> !silencedVariants.contains(entry.getKey())).forEach(entry -> {
-                CollectedWarnings warnings = entry.getValue();
-                treeFormatter.node("Variant " + entry.getKey() + ":");
+            variantToWarnings.forEach((key, warnings) -> {
+                treeFormatter.node("Variant " + key + ":");
                 treeFormatter.startChildren();
                 if (warnings.getVariantUnsupported() != null) {
                     warnings.getVariantUnsupported().forEach(treeFormatter::node);

@@ -21,11 +21,17 @@ import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.util.TextUtil;
 
-public class ProjectDerivedCapability implements Capability {
+import javax.annotation.Nullable;
+
+public class ProjectDerivedCapability implements CapabilityInternal {
     private final Project project;
     private final String featureName;
 
-    public ProjectDerivedCapability(Project project, String featureName) {
+    public ProjectDerivedCapability(Project project) {
+        this(project, null);
+    }
+
+    public ProjectDerivedCapability(Project project, @Nullable String featureName) {
         this.project = project;
         this.featureName = featureName;
     }
@@ -37,7 +43,8 @@ public class ProjectDerivedCapability implements Capability {
 
     @Override
     public String getName() {
-        return notNull("name", project.getName()) + "-" + TextUtil.camelToKebabCase(featureName);
+        String name = notNull("name", project.getName());
+        return featureName == null ? name : name + "-" + TextUtil.camelToKebabCase(featureName);
     }
 
     @Override
@@ -71,5 +78,10 @@ public class ProjectDerivedCapability implements Capability {
             throw new InvalidUserDataException(id + " must not be null");
         }
         return o.toString();
+    }
+
+    @Override
+    public String getCapabilityId() {
+        return getGroup() + ":" + getName();
     }
 }
