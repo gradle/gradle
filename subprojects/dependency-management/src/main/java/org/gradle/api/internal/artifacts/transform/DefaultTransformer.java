@@ -329,7 +329,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction> {
 
     public IsolatedParameters getIsolatedParameters() {
         if (isolatedParameters == null) {
-            throw new IllegalStateException("The parameters of " + getDisplayName() + "need to be isolated first!");
+            throw new IllegalStateException("The parameters of " + getDisplayName() + " need to be isolated first!");
         }
         return isolatedParameters;
     }
