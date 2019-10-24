@@ -580,6 +580,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             } else if (mainGetter.getReturnType().equals(Boolean.TYPE) && !metadata.getReturnType().equals(Boolean.TYPE)) {
                 // Prefer non-boolean over boolean
                 mainGetter = metadata;
+            } else if (mainGetter.getReturnType().isAssignableFrom(metadata.getReturnType())) {
+                // Prefer the most specialized type
+                mainGetter = metadata;
             }
         }
 
