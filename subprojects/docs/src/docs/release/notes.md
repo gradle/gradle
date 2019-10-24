@@ -40,7 +40,8 @@ We would like to thank the following community contributors to this release of G
 [Michael Berry](https://github.com/MikeBerryFR),
 [Evgeny Mandrikov](https://github.com/Godin),
 [lingocoder](https://github.com/lingocoder),
-and [Robert Stupp](https://github.com/snazy).
+[Robert Stupp](https://github.com/snazy),
+and [Predrag Knežević](https://github.com/pedjak).
 
 ## Upgrade Instructions
 
