@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import javax.annotation.CheckReturnValue;
 import java.util.Optional;
@@ -30,13 +31,13 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
      */
     FileHierarchySet EMPTY = new FileHierarchySet() {
         @Override
-        public Optional<FileSystemLocationSnapshot> getSnapshot(String path) {
+        public Optional<MetadataSnapshot> getMetadata(String path) {
             return Optional.empty();
         }
 
         @Override
-        public FileHierarchySet update(FileSystemLocationSnapshot snapshot) {
-            return new DefaultFileHierarchySet(snapshot.getAbsolutePath(), snapshot);
+        public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
+            return new DefaultFileHierarchySet(absolutePath, snapshot);
         }
 
         @Override
@@ -45,13 +46,21 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
         }
     };
 
-    Optional<FileSystemLocationSnapshot> getSnapshot(String path);
+    Optional<MetadataSnapshot> getMetadata(String path);
+
+    default Optional<FileSystemLocationSnapshot> getSnapshot(String path) {
+        return getMetadata(path)
+            .filter(FileSystemLocationSnapshot.class::isInstance)
+            .map(FileSystemLocationSnapshot.class::cast);
+    }
 
     /**
      * Returns a set that contains the union of this set and the given directory. The set contains the directory itself, plus all its descendants.
+     * @param absolutePath
+     * @param snapshot
      */
     @CheckReturnValue
-    FileHierarchySet update(FileSystemLocationSnapshot snapshot);
+    FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot);
 
     @CheckReturnValue
     FileHierarchySet invalidate(String path);

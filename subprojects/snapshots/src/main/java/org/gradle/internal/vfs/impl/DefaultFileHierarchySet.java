@@ -18,8 +18,8 @@ package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.AbstractFileSystemNode;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
+import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotFileSystemNode;
 
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ import static org.gradle.internal.snapshot.AbstractFileSystemNode.updateSingleCh
 public class DefaultFileHierarchySet implements FileHierarchySet {
     private final FileSystemNode rootNode;
 
-    DefaultFileHierarchySet(String path, FileSystemLocationSnapshot snapshot) {
+    DefaultFileHierarchySet(String path, MetadataSnapshot snapshot) {
         this.rootNode = new SnapshotFileSystemNode(normalizeFileSystemRoot(path), snapshot);
     }
 
@@ -48,18 +48,16 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     }
 
     @Override
-    public Optional<FileSystemLocationSnapshot> getSnapshot(String path) {
+    public Optional<MetadataSnapshot> getMetadata(String path) {
         if (!AbstractFileSystemNode.isChildOfOrThis(path, 0, rootNode.getPrefix())) {
             return Optional.empty();
         }
-        return rootNode.getSnapshot(normalizeFileSystemRoot(path), rootNode.getPrefix().length() + 1)
-            .filter(FileSystemLocationSnapshot.class::isInstance)
-            .map(FileSystemLocationSnapshot.class::cast);
+        return rootNode.getSnapshot(normalizeFileSystemRoot(path),rootNode.getPrefix().length() + 1);
     }
 
     @Override
-    public FileHierarchySet update(FileSystemLocationSnapshot snapshot) {
-        String normalizedPath = normalizeFileSystemRoot(snapshot.getAbsolutePath());
+    public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
+        String normalizedPath = normalizeFileSystemRoot(absolutePath);
         return new DefaultFileHierarchySet(updateSingleChild(rootNode, normalizedPath, snapshot));
     }
 
