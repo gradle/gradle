@@ -42,6 +42,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
@@ -1845,6 +1846,23 @@ public class AsmBackedClassGeneratorTest {
 
     public interface InterfaceMapPropertyBean {
         MapProperty<String, Number> getProp();
+    }
+
+    public interface InterfaceProviderBean {
+        Provider<? extends Number> getProp();
+    }
+
+    public abstract static class AbstractProviderBean implements InterfaceProviderBean {
+        // Covariant return type
+        @Override
+        public abstract Provider<Long> getProp();
+    }
+
+    public interface InterfaceCovariantReadOnlyPropertyBean extends InterfaceProviderBean {
+        Property<Long> getProp();
+    }
+
+    public abstract static class AbstractCovariantReadOnlyPropertyBean extends AbstractProviderBean implements InterfaceCovariantReadOnlyPropertyBean {
     }
 
     public static abstract class NamedBean {
