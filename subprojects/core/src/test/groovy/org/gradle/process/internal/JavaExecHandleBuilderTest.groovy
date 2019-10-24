@@ -60,14 +60,14 @@ class JavaExecHandleBuilderTest extends Specification {
         List jvmArgs = builder.getAllJvmArgs()
 
         then:
-        jvmArgs == ['-Dprop=value', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), 'jvm1', 'jvm2', '-cp', "$jar1$File.pathSeparator$jar2", "mainClass"]
+        jvmArgs == ['-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", "mainClass"]
 
         when:
         List commandLine = builder.getCommandLine()
 
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
-        commandLine == [executable,  '-Dprop=value', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), 'jvm1', 'jvm2', '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
+        commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
 
         where:
         inputEncoding | expectedEncoding

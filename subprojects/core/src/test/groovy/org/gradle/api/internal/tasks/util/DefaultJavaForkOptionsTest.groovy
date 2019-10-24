@@ -80,22 +80,22 @@ class DefaultJavaForkOptionsTest extends Specification {
         when:
         options.jvmArgumentProviders << jvmArgumentProvider
         then:
-        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), 'argFromProvider']
+        options.allJvmArgs == ['argFromProvider', fileEncodingProperty(), *localeProperties()]
 
         when:
         options.allJvmArgs = ['arg1']
         then:
-        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), 'arg1']
+        options.allJvmArgs == ['arg1', fileEncodingProperty(), *localeProperties()]
 
         when:
         options.jvmArgumentProviders << jvmArgumentProvider
         then:
-        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), 'arg1', 'argFromProvider']
+        options.allJvmArgs == ['arg1', 'argFromProvider', fileEncodingProperty(), *localeProperties()]
 
         when:
         options.setAllJvmArgs(ImmutableSet.of("arg2"))
         then:
-        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), 'arg2']
+        options.allJvmArgs == ['arg2', fileEncodingProperty(), *localeProperties()]
     }
 
     def "can add jvmArgs"() {
@@ -130,7 +130,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.jvmArgs('arg1')
 
         then:
-        options.allJvmArgs == ['-Dkey=12', '-Dkey2', '-Dkey3=value', fileEncodingProperty(), *localeProperties(), 'arg1']
+        options.allJvmArgs == ['-Dkey=12', '-Dkey2', '-Dkey3=value', 'arg1', fileEncodingProperty(), *localeProperties()]
     }
 
     def "system properties are updated when added using jvmArgs"() {
@@ -160,7 +160,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.jvmArgs('arg1')
 
         then:
-        options.allJvmArgs == ['-Xms64m', fileEncodingProperty(), *localeProperties(), 'arg1']
+        options.allJvmArgs == ['arg1', '-Xms64m', fileEncodingProperty(), *localeProperties()]
     }
 
     def "allJvmArgs includes maxHeapSize"() {
@@ -169,7 +169,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.jvmArgs('arg1')
 
         then:
-        options.allJvmArgs == ['-Xmx1g', fileEncodingProperty(), *localeProperties(), 'arg1']
+        options.allJvmArgs == ['arg1', '-Xmx1g', fileEncodingProperty(), *localeProperties()]
     }
 
     def "allJvmArgs include jvmArgumentProviders"() {
@@ -189,7 +189,7 @@ class DefaultJavaForkOptionsTest extends Specification {
         options.jvmArgs('arg1')
 
         then:
-        options.allJvmArgs == [fileEncodingProperty(), *localeProperties(), 'arg1', 'argFromProvider1', 'argFromProvider2', 'argFromProvider3']
+        options.allJvmArgs == ['arg1', 'argFromProvider1', 'argFromProvider2', 'argFromProvider3', fileEncodingProperty(), *localeProperties()]
     }
 
     def "minHeapSize is updated when set using jvmArgs"() {
