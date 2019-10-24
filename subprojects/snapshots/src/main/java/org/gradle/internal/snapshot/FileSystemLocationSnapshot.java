@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Comparator;
@@ -27,14 +26,9 @@ import java.util.Comparator;
  * The snapshot can be a snapshot of a regular file or of a whole directory tree.
  * The file at the location is not required to exist (see {@link MissingFileSnapshot}.
  */
-public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode {
+public interface FileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode, MetadataSnapshot {
 
     Comparator<FileSystemLocationSnapshot> BY_NAME = Comparator.comparing(FileSystemLocationSnapshot::getName);
-
-    /**
-     * The type of the file.
-     */
-    FileType getType();
 
     /**
      * The file name.

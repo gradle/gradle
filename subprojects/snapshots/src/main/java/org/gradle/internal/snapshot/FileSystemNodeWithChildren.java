@@ -59,7 +59,7 @@ public class FileSystemNodeWithChildren extends AbstractFileSystemNode {
     }
 
     @Override
-    public FileSystemNode update(String path, FileSystemLocationSnapshot snapshot) {
+    public FileSystemNode update(String path, MetadataSnapshot snapshot) {
         return handleChildren(children, path, 0, new ChildHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleNewChild(int startNextSegment, int insertBefore) {
@@ -89,7 +89,7 @@ public class FileSystemNodeWithChildren extends AbstractFileSystemNode {
     }
 
     @Override
-    public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
+    public Optional<MetadataSnapshot> getSnapshot(String filePath, int offset) {
         switch (children.size()) {
             case 1:
                 FileSystemNode onlyChild = children.get(0);
@@ -114,7 +114,7 @@ public class FileSystemNodeWithChildren extends AbstractFileSystemNode {
         }
     }
 
-    private Optional<FileSystemLocationSnapshot> getChildSnapshot(String filePath, int offset, FileSystemNode child) {
+    private Optional<MetadataSnapshot> getChildSnapshot(String filePath, int offset, FileSystemNode child) {
         return child.getSnapshot(filePath, offset + child.getPrefix().length() + 1);
     }
 

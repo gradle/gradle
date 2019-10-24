@@ -169,7 +169,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return childHandler.handleNewChild(offset, -childIndex - 1);
     }
 
-    public static FileSystemNode updateSingleChild(FileSystemNode child, String path, FileSystemLocationSnapshot snapshot) {
+    public static FileSystemNode updateSingleChild(FileSystemNode child, String path, MetadataSnapshot snapshot) {
         return handlePrefix(child.getPrefix(), path, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {

@@ -21,9 +21,9 @@ import java.util.List;
 import java.util.Optional;
 
 public class SnapshotFileSystemNode extends AbstractFileSystemNode {
-    private final FileSystemLocationSnapshot snapshot;
+    private final MetadataSnapshot snapshot;
 
-    public SnapshotFileSystemNode(String prefix, FileSystemLocationSnapshot snapshot) {
+    public SnapshotFileSystemNode(String prefix, MetadataSnapshot snapshot) {
         super(prefix);
         this.snapshot = snapshot;
     }
@@ -34,12 +34,12 @@ public class SnapshotFileSystemNode extends AbstractFileSystemNode {
     }
 
     @Override
-    public FileSystemNode update(String path, FileSystemLocationSnapshot newSnapshot) {
+    public FileSystemNode update(String path, MetadataSnapshot newSnapshot) {
         return this;
     }
 
     @Override
-    public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
+    public Optional<MetadataSnapshot> getSnapshot(String filePath, int offset) {
         return FileSystemNode.thisOrGet(
             snapshot, filePath, offset,
             () -> snapshot.getSnapshot(filePath, offset)

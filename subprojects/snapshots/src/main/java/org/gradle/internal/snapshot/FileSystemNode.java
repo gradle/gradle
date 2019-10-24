@@ -29,7 +29,7 @@ public interface FileSystemNode {
      * That means that filePath.substring(offset) does not include the {@link #getPrefix()}.
      * Therefore, when filePath.length < offset, then this node will be returned.
      */
-    Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset);
+    Optional<MetadataSnapshot> getSnapshot(String filePath, int offset);
 
     /**
      * Adds more information to the file system node.
@@ -37,7 +37,7 @@ public interface FileSystemNode {
      * Complete information, like {@link FileSystemLocationSnapshot}s, are not touched nor replaced.
      * @param path the path to update. Must not include the {@link #getPrefix()}.
      */
-    FileSystemNode update(String path, FileSystemLocationSnapshot snapshot);
+    FileSystemNode update(String path, MetadataSnapshot snapshot);
 
     /**
      * Invalidates part of the node.
@@ -58,7 +58,7 @@ public interface FileSystemNode {
      */
     FileSystemNode withPrefix(String newPrefix);
 
-    static Optional<FileSystemLocationSnapshot> thisOrGet(FileSystemLocationSnapshot current, String filePath, int offset, Supplier<Optional<FileSystemLocationSnapshot>> supplier) {
+    static Optional<MetadataSnapshot> thisOrGet(MetadataSnapshot current, String filePath, int offset, Supplier<Optional<MetadataSnapshot>> supplier) {
         if (filePath.length() + 1 == offset) {
             return Optional.of(current);
         }

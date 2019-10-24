@@ -43,6 +43,11 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
         return getName();
     }
 
+    @Override
+    public FileSystemNode update(String path, MetadataSnapshot snapshot) {
+        return this;
+    }
+
     protected static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
         return new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath));
     }

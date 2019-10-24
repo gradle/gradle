@@ -68,7 +68,7 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
     }
 
     @Override
-    public Optional<FileSystemLocationSnapshot> getSnapshot(String filePath, int offset) {
+    public Optional<MetadataSnapshot> getSnapshot(String filePath, int offset) {
         return FileSystemNode.thisOrGet(
             this, filePath, offset,
             () -> {
@@ -80,11 +80,6 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
                 }
                 return Optional.of(missingSnapshotForAbsolutePath(filePath));
             });
-    }
-
-    @Override
-    public FileSystemNode update(String path, FileSystemLocationSnapshot snapshot) {
-        return this;
     }
 
     @Override
