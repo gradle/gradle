@@ -44,11 +44,11 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public FileSystemNode update(String path, MetadataSnapshot snapshot) {
+    public FileSystemLocationSnapshot update(String path, MetadataSnapshot snapshot) {
         return this;
     }
 
-    protected static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
+    public static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
         return new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath));
     }
 

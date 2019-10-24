@@ -16,34 +16,38 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.file.FileType;
+
 import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-public class SnapshotFileSystemNode extends AbstractFileSystemNode {
-    private final MetadataSnapshot snapshot;
+public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implements MetadataSnapshot {
 
-    public SnapshotFileSystemNode(String prefix, MetadataSnapshot snapshot) {
+    public RegularFileMetadataSnapshot(String prefix) {
         super(prefix);
-        this.snapshot = snapshot;
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String path) {
-        return snapshot.invalidate(path).map(splitSnapshot -> splitSnapshot.withPrefix(getPrefix()));
-    }
-
-    @Override
-    public FileSystemNode update(String path, MetadataSnapshot newSnapshot) {
-        return snapshot.update(path, newSnapshot).withPrefix(getPrefix());
+    public FileType getType() {
+        return FileType.RegularFile;
     }
 
     @Override
     public Optional<MetadataSnapshot> getSnapshot(String filePath, int offset) {
         return FileSystemNode.thisOrGet(
-            snapshot, filePath, offset,
-            () -> snapshot.getSnapshot(filePath, offset)
-        );
+            this, filePath, offset,
+            () -> Optional.of(AbstractFileSystemLocationSnapshot.missingSnapshotForAbsolutePath(filePath)));
+    }
+
+    @Override
+    public FileSystemNode update(String path, MetadataSnapshot snapshot) {
+        return this;
+    }
+
+    @Override
+    public Optional<FileSystemNode> invalidate(String path) {
+        return Optional.empty();
     }
 
     @Override
@@ -57,6 +61,6 @@ public class SnapshotFileSystemNode extends AbstractFileSystemNode {
 
     @Override
     public FileSystemNode withPrefix(String newPrefix) {
-        return new SnapshotFileSystemNode(newPrefix, snapshot);
+        return new RegularFileMetadataSnapshot(newPrefix);
     }
 }

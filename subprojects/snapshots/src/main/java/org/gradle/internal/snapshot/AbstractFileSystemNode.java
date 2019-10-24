@@ -158,15 +158,15 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == separatorChar ? 0 : -1;
     }
 
-    public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, ChildHandler<T> childHandler) {
+    public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, ChildHandler<T> childHandler) {
         int childIndex = ListUtils.binarySearch(
             children,
-            candidate -> compareWithCommonPrefix(candidate.getPrefix(), path, offset, File.separatorChar)
+            candidate -> compareWithCommonPrefix(candidate.getPrefix(), path, 0, File.separatorChar)
         );
         if (childIndex >= 0) {
-            return childHandler.handleChildOfExisting(offset, childIndex);
+            return childHandler.handleChildOfExisting(childIndex);
         }
-        return childHandler.handleNewChild(offset, -childIndex - 1);
+        return childHandler.handleNewChild(-childIndex - 1);
     }
 
     public static FileSystemNode updateSingleChild(FileSystemNode child, String path, MetadataSnapshot snapshot) {
@@ -183,7 +183,12 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
 
             @Override
             public FileSystemNode handleSame() {
-                return new SnapshotFileSystemNode(path, snapshot);
+                return snapshot instanceof FileSystemLocationSnapshot
+                    ? new SnapshotFileSystemNode(path, snapshot)
+                    : child.getSnapshot(path, path.length() + 1)
+                        .filter(oldSnapshot -> oldSnapshot instanceof FileSystemLocationSnapshot)
+                        .map(FileSystemNode.class::cast)
+                        .orElse(new SnapshotFileSystemNode(path, snapshot));
             }
 
             @Override
@@ -250,7 +255,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
     }
 
     public interface ChildHandler<T> {
-        T handleNewChild(int startNextSegment, int insertBefore);
-        T handleChildOfExisting(int startNextSegment, int childIndex);
+        T handleNewChild(int insertBefore);
+        T handleChildOfExisting(int childIndex);
     }
 }
