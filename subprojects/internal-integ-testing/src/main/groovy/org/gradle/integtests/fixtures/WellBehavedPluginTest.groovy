@@ -40,6 +40,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         return "assemble"
     }
 
+    @IgnoreWithInstantExecution
     def "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
@@ -60,6 +61,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         !file("build").exists()
     }
 
+    @IgnoreWithInstantExecution
     def "plugin can build with empty project"() {
         given:
         applyPlugin()
