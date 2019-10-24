@@ -54,7 +54,6 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      */
     TestLauncher withJvmTestClasses(String... testClasses);
 
-    TestLauncher withTaskAndTestClasses(String task, String... testClasses);
 
     /**
      * Adds tests to be executed declared by class name.
@@ -64,8 +63,6 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      * @since 2.6
      */
     TestLauncher withJvmTestClasses(Iterable<String> testClasses);
-
-    TestLauncher withTaskAndTestClasses(String task, Iterable<String> testClasses);
 
     /**
      * Adds tests to be executed declared by class and method name.
@@ -77,8 +74,6 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      */
     TestLauncher withJvmTestMethods(String testClass, String... methods);
 
-    TestLauncher withTaskAndTestMethods(String task, String testClass, String... methods);
-
     /**
      * Adds tests to be executed declared by class and methods name.
      *
@@ -89,6 +84,51 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
      */
     TestLauncher withJvmTestMethods(String testClass, Iterable<String> methods);
 
+    /**
+     * Adds tests to be executed declared by the container task and the class name.
+     *
+     * @param task The path of the target task.
+     * @param testClasses The class names of the tests to be executed.
+     * @return this
+     * @since 6.1
+     */
+    @Incubating
+    TestLauncher withTaskAndTestClasses(String task, String... testClasses);
+
+
+    /**
+     * Adds tests to be executed declared by the container task and the class name.
+     *
+     * @param task The path of the target task.
+     * @param testClasses The class names of the tests to be executed.
+     * @return this
+     * @since 6.1
+     */
+    @Incubating
+    TestLauncher withTaskAndTestClasses(String task, Iterable<String> testClasses);
+
+    /**
+     * Adds tests to be executed declared by the container task, class and method name.
+     *
+     * @param task The path of the target task.
+     * @param testClass The name of the class containing the methods to execute.
+     * @param methods The names of the test methods to be executed.
+     * @return this
+     * @since 6.1
+     */
+    @Incubating
+    TestLauncher withTaskAndTestMethods(String task, String testClass, String... methods);
+
+    /**
+     * Adds tests to be executed declared by the container task, class and method name.
+     *
+     * @param task The path of the target task.
+     * @param testClass The name of the class containing the methods to execute.
+     * @param methods The names of the test methods to be executed.
+     * @return this
+     * @since 6.1
+     */
+    @Incubating
     TestLauncher withTaskAndTestMethods(String task, String testClass, Iterable<String> methods);
 
     /**
