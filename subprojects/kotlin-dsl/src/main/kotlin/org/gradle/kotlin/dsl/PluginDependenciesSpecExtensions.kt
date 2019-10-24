@@ -34,7 +34,7 @@ import org.gradle.plugin.use.PluginDependencySpec
  */
 @get:Incubating
 val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
-    get() = AutoAppliedGradleEnterprisePlugin.addTo(this)
+    get() = this.id(AutoAppliedGradleEnterprisePlugin.ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
 
 
 /**
@@ -45,4 +45,4 @@ val PluginDependenciesSpec.`gradle-enterprise`: PluginDependencySpec
 @Suppress("unused")
 @Deprecated("replaced by `gradle-enterprise`", ReplaceWith("`gradle-enterprise`"))
 val PluginDependenciesSpec.`build-scan`: PluginDependencySpec
-    get() = throw UnsupportedOperationException("The `build-scan` plugin is no longer supported. Please use `gradle-enterprise` instead.")
+    get() = this.id(AutoAppliedGradleEnterprisePlugin.BUILD_SCAN_PLUGIN_ID.id).version(AutoAppliedGradleEnterprisePlugin.VERSION)
