@@ -24,6 +24,7 @@ import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.SerializerCodec
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.logPropertyInfo
 
 import org.gradle.internal.serialize.Serializer
 
@@ -50,6 +51,7 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
         null -> writeByte(NULL_VALUE)
         else -> taggedEncodingFor(value.javaClass).run {
+            logPropertyInfo("selecte", "codec ${encoding.javaClass.simpleName} for ${value::class.java}")
             writeByte(tag)
             encoding.run { encode(value) }
         }
