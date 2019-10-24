@@ -22,6 +22,7 @@ import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.util.Path;
 
 /**
@@ -41,11 +42,11 @@ public class DefaultSettingsLoader implements SettingsLoader {
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
-        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter);
+        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter, gradle.getClassLoaderScope());
 
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
         if (useEmptySettings(spec, settings, startParameter)) {
-            settings = createEmptySettings(gradle, startParameter);
+            settings = createEmptySettings(gradle, startParameter, settings.getClassLoaderScope());
         }
 
         setDefaultProject(spec, settings);
@@ -70,10 +71,10 @@ public class DefaultSettingsLoader implements SettingsLoader {
         return false;
     }
 
-    private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter) {
+    private SettingsInternal createEmptySettings(GradleInternal gradle, StartParameter startParameter, ClassLoaderScope classLoaderScope) {
         StartParameter noSearchParameter = startParameter.newInstance();
         ((StartParameterInternal) noSearchParameter).useEmptySettingsWithoutDeprecationWarning();
-        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter);
+        SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, classLoaderScope);
 
         // Set explicit build file, if required
         if (noSearchParameter.getBuildFile() != null) {
@@ -92,10 +93,13 @@ public class DefaultSettingsLoader implements SettingsLoader {
      * startParameter, or if the startParameter explicitly specifies a settings script.  If the settings file is not
      * loaded (executed), then a null is returned.
      */
-    private SettingsInternal findSettingsAndLoadIfAppropriate(GradleInternal gradle,
-                                                              StartParameter startParameter) {
+    private SettingsInternal findSettingsAndLoadIfAppropriate(
+        GradleInternal gradle,
+        StartParameter startParameter,
+        ClassLoaderScope classLoaderScope
+    ) {
         SettingsLocation settingsLocation = findSettings(startParameter);
-        SettingsInternal settings = settingsProcessor.process(gradle, settingsLocation, gradle.getClassLoaderScope(), startParameter);
+        SettingsInternal settings = settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter);
         validate(settings);
         return settings;
     }
