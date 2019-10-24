@@ -30,7 +30,7 @@ testLibraries.sshd = [
     'org.apache.sshd:sshd-sftp:2.0.0'
 ]
 testLibraries.cglib = 'cglib:cglib:3.2.6'
-testLibraries.sampleCheck = 'org.gradle:sample-check:0.6.1'
+testLibraries.sampleCheck = 'org.gradle:sample-check:0.9.0'
 testLibraries.littleproxy = 'org.gradle.org.littleshoot:littleproxy:1.1.3' // because("latest officially released version is incompatible with Guava >= 20")
 testLibraries.mockito_kotlin = 'com.nhaarman:mockito-kotlin:1.6.0'
 testLibraries.mockito_kotlin2 = 'com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0'
