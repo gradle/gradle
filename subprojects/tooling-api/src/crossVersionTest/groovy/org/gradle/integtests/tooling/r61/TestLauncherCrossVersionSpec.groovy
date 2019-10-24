@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r61
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.internal.io.NullOutputStream
 import org.gradle.tooling.TestLauncher
 import spock.lang.Timeout
 
