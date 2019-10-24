@@ -31,7 +31,6 @@ import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.util.CollectionUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
