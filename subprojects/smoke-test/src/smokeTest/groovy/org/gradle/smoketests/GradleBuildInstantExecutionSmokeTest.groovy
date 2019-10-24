@@ -34,6 +34,10 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         def supportedTasks = [":baseServices:test"]
 
         when:
+        // TODO remove this once instant execution works from a clean workspace
+        run(":baseServices:testClasses")
+
+        and:
         def result = instantRun(*supportedTasks)
 
         then:
@@ -47,10 +51,13 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult instantRun(String... tasks) {
-        def testArgs = [
-            "-Dorg.gradle.unsafe.instant-execution=true",
-            "-PbuildSrcCheck=false"
-        ]
-        return runner(*(tasks + testArgs)).build()
+        def testArgs = ["-Dorg.gradle.unsafe.instant-execution=true"]
+        return runner(*(tasks + testArgs + GRADLE_BUILD_TEST_ARGS)).build()
     }
+
+    private BuildResult run(String... tasks) {
+        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS)).build()
+    }
+
+    private static final GRADLE_BUILD_TEST_ARGS = ["-PbuildSrcCheck=false"]
 }
