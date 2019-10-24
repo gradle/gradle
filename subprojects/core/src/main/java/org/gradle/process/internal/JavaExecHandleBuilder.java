@@ -80,7 +80,9 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
             if (realClasspath != null && realClasspath.getFiles().size() == 1) {
                 allArgs.add("-jar");
                 allArgs.add(realClasspath.getSingleFile().getAbsolutePath());
-            } else {
+            } else if (!allArgs.contains("--module")) {
+                // `java --module <module>/<main-class>` is enough, no main class needed
+                // https://github.com/gradle/gradle/issues/11124
                 throw new IllegalStateException("No main class specified and classpath is not an executable jar.");
             }
         } else {

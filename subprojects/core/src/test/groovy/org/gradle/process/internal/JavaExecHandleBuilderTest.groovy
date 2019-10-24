@@ -67,7 +67,7 @@ class JavaExecHandleBuilderTest extends Specification {
 
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
-        commandLine == [executable,  '-Dprop=value', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), 'jvm1', 'jvm2', '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
+        commandLine == [executable, '-Dprop=value', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), 'jvm1', 'jvm2', '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
 
         where:
         inputEncoding | expectedEncoding
@@ -122,9 +122,22 @@ class JavaExecHandleBuilderTest extends Specification {
 
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/11124')
+    def 'allow null main class if --module is present'() {
+        when:
+        builder.main = null
+        builder.jvmArgs('--module', 'someModule/MainClass')
+        builder.jvmArgs('myParameter')
+
+        then:
+        builder.commandLine[-3..-1] == ['--module', 'someModule/MainClass', 'myParameter']
+    }
+
     def "detects null entries early"() {
-        when: builder.args(1, null)
-        then: thrown(IllegalArgumentException)
+        when:
+        builder.args(1, null)
+        then:
+        thrown(IllegalArgumentException)
     }
 
     private String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {

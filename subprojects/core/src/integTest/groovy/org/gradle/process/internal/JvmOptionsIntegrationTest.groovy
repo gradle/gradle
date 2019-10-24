@@ -76,6 +76,7 @@ class JvmOptionsIntegrationTest extends AbstractPluginIntegrationTest {
             public class HelloWorld {
                 private final static String hello = "Hello %s World!%n";
                 static public void main(String... args){
+                    assert args.length == 1 : "Should have one parameter!";
                     assert hasOnlyAppArgs(args) : "When executing a JPMS module's Main-Class, JVM options located after the application's entry point are illegal";
 
                     for(String world : args ){
@@ -96,16 +97,13 @@ class JvmOptionsIntegrationTest extends AbstractPluginIntegrationTest {
                 id 'application'
             }
 
-            mainClassName = "my.module/io.greeting.HelloWorld"
-
             run {
                 doFirst {
                     args = ['Gradle']
-                    main = ''
                     jvmArgs = [
                         '-ea',
                         '--module-path', classpath.asPath,
-                        '--module', mainClassName
+                        '--module', 'my.module/io.greeting.HelloWorld'
                     ]
                     classpath = files()
                     println ":run Task's command line: $commandLine"
