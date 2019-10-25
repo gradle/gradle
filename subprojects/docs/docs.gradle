@@ -596,6 +596,10 @@ samples {
         sampleDirectory = file("src/samples/next-gen/groovy/transitive-dependencies")
         description = "Demonstrate how transitive dependencies work with Groovy projects."
     }
+    groovyComponentsWithSpockTests {
+        sampleDirectory = file("src/samples/next-gen/groovy/components-with-spock-tests")
+        description = "Demonstrate how to test Groovy components using Spock framework"
+    }
 
     javaBasicApplication {
         sampleDirectory = file("src/samples/next-gen/java/basic-application")
@@ -608,6 +612,10 @@ samples {
     javaTransitiveDependencies {
         sampleDirectory = file("src/samples/next-gen/java/transitive-dependencies")
         description = "Demonstrate how transitive dependencies work with Java projects."
+    }
+    javaComponentsWithSpockTests {
+        sampleDirectory = file("src/samples/next-gen/java/components-with-spock-tests")
+        description = "Demonstrate how to test Java components using Spock framework"
     }
 }
 

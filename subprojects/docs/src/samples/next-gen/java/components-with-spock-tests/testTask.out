@@ -1,0 +1,35 @@
+> Task :library:compileJava
+> Task :library:compileGroovy NO-SOURCE
+> Task :library:processResources NO-SOURCE
+> Task :library:classes
+> Task :library:jar
+> Task :application:compileJava
+> Task :application:compileGroovy NO-SOURCE
+> Task :application:processResources NO-SOURCE
+> Task :application:classes
+> Task :application:compileTestJava NO-SOURCE
+> Task :application:compileTestGroovy
+> Task :application:processTestResources NO-SOURCE
+> Task :application:testClasses
+
+> Task :application:test
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by org.codehaus.groovy.vmplugin.v7.Java7$1 (file:/private/var/folders/rg/y7myh0qj1sd58f02v_tgypvh0000gn/T/.gradle-test-kit-daniel/caches/modules-2/files-2.1/org.codehaus.groovy/groovy/2.5.7/99907efe4b69f800c42584386f5d668e4d952bd5/groovy-2.5.7.jar) to constructor java.lang.invoke.MethodHandles$Lookup(java.lang.Class,int)
+WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.vmplugin.v7.Java7$1
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+
+> Task :library:compileTestJava NO-SOURCE
+> Task :library:compileTestGroovy
+> Task :library:processTestResources NO-SOURCE
+> Task :library:testClasses
+
+> Task :library:test
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by org.codehaus.groovy.vmplugin.v7.Java7$1 (file:/private/var/folders/rg/y7myh0qj1sd58f02v_tgypvh0000gn/T/.gradle-test-kit-daniel/caches/modules-2/files-2.1/org.codehaus.groovy/groovy/2.5.7/99907efe4b69f800c42584386f5d668e4d952bd5/groovy-2.5.7.jar) to constructor java.lang.invoke.MethodHandles$Lookup(java.lang.Class,int)
+WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.vmplugin.v7.Java7$1
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+
+BUILD SUCCESSFUL in 0s
+7 actionable tasks: 7 executed
