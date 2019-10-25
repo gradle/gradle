@@ -600,6 +600,10 @@ samples {
         sampleDirectory = file("src/samples/next-gen/groovy/components-with-spock-tests")
         description = "Demonstrate how to test Groovy components using Spock framework"
     }
+    groovyLibraryPublishing {
+        sampleDirectory = file("src/samples/next-gen/groovy/library-publishing")
+        description = "Demonstrate how to publish a Groovy library to a binary repository"
+    }
 
     javaBasicApplication {
         sampleDirectory = file("src/samples/next-gen/java/basic-application")
@@ -620,6 +624,10 @@ samples {
     javaComponentsWithJUnit4Tests {
         sampleDirectory = file("src/samples/next-gen/java/components-with-junit-4-tests")
         description = "Demonstrate how to test Java components using JUnit 4"
+    }
+    javaLibraryPublishing {
+        sampleDirectory = file("src/samples/next-gen/java/library-publishing")
+        description = "Demonstrate how to publish a Java library to a binary repository"
     }
 }
 
