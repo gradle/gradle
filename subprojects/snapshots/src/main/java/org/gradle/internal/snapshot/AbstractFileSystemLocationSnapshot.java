@@ -43,7 +43,7 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public FileSystemLocationSnapshot update(String path, MetadataSnapshot snapshot) {
+    public FileSystemLocationSnapshot update(String path, int offset, MetadataSnapshot snapshot) {
         return this;
     }
 

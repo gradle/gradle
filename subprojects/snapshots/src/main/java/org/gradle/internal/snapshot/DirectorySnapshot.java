@@ -83,8 +83,8 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String path) {
-        return AbstractFileSystemNode.handleChildren(children, path, new AbstractFileSystemNode.ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(String path, int offset) {
+        return AbstractFileSystemNode.handleChildren(children, path, offset, new AbstractFileSystemNode.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return children.isEmpty()
@@ -96,9 +96,9 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
                 FileSystemLocationSnapshot foundChild = children.get(childIndex);
                 int indexForSubSegment = foundChild.getPrefix().length();
-                Optional<FileSystemNode> invalidated = indexForSubSegment == path.length()
+                Optional<FileSystemNode> invalidated = indexForSubSegment == path.length() - offset
                     ? Optional.empty()
-                    : foundChild.invalidate(path.substring(indexForSubSegment + 1));
+                    : foundChild.invalidate(path, offset + indexForSubSegment + 1);
                 if (children.size() == 1) {
                     return invalidated.map(it -> new FileSystemNodeWithChildren(getPrefix(), ImmutableList.of(it)));
                 }

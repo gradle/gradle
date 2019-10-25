@@ -64,7 +64,7 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String path) {
+    public Optional<FileSystemNode> invalidate(String path, int offset) {
         return Optional.empty();
     }
 }

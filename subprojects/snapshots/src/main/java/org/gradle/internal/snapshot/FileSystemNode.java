@@ -36,16 +36,16 @@ public interface FileSystemNode {
      * Adds more information to the file system node.
      *
      * Complete information, like {@link FileSystemLocationSnapshot}s, are not touched nor replaced.
-     * @param path the path to update. Must not include the {@link #getPrefix()}.
+     * @param path the path to update, starting from offset. Must not include the {@link #getPrefix()}.
      */
-    FileSystemNode update(String path, MetadataSnapshot snapshot);
+    FileSystemNode update(String path, int offset, MetadataSnapshot snapshot);
 
     /**
      * Invalidates part of the node.
      *
-     * @param path the path to invalidate. Must not include the {@link #getPrefix()}.
+     * @param path the path to invalidate, starting from the offset. Must not include the {@link #getPrefix()}.
      */
-    Optional<FileSystemNode> invalidate(String path);
+    Optional<FileSystemNode> invalidate(String path, int offset);
 
     String getPrefix();
 

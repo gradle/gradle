@@ -38,8 +38,8 @@ public abstract class AbstractFileSystemNodeWithChildren extends AbstractFileSys
     protected abstract FileSystemNode withUnkownChildInvalidated();
 
     @Override
-    public Optional<FileSystemNode> invalidate(String path) {
-        return handleChildren(children, path, new ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(String path, int offset) {
+        return handleChildren(children, path, offset, new ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return Optional.of(withUnkownChildInvalidated());
@@ -48,7 +48,7 @@ public abstract class AbstractFileSystemNodeWithChildren extends AbstractFileSys
             @Override
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
                 FileSystemNode child = children.get(childIndex);
-                return invalidateSingleChild(child, path)
+                return invalidateSingleChild(child, path, offset)
                     .map(invalidatedChild -> withReplacedChild(childIndex, child, invalidatedChild))
                     .map(Optional::of)
                     .orElseGet(() -> {
@@ -64,19 +64,19 @@ public abstract class AbstractFileSystemNodeWithChildren extends AbstractFileSys
     }
 
     @Override
-    public FileSystemNode update(String path, MetadataSnapshot snapshot) {
-        return handleChildren(children, path, new ChildHandler<FileSystemNode>() {
+    public FileSystemNode update(String path, int offset, MetadataSnapshot snapshot) {
+        return handleChildren(children, path, offset, new ChildHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleNewChild(int insertBefore) {
                 List<FileSystemNode> newChildren = new ArrayList<>(children);
-                newChildren.add(insertBefore, snapshot.withPrefix(path));
+                newChildren.add(insertBefore, snapshot.withPrefix(path.substring(offset)));
                 return createCopy(getPrefix(), newChildren);
             }
 
             @Override
             public FileSystemNode handleChildOfExisting(int childIndex) {
                 FileSystemNode child = children.get(childIndex);
-                return withReplacedChild(childIndex, child, updateSingleChild(child, path, snapshot));
+                return withReplacedChild(childIndex, child, updateSingleChild(child, path, offset, snapshot));
             }
         });
     }

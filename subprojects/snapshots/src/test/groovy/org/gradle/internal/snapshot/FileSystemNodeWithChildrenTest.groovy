@@ -75,7 +75,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
         def relativePath = "first/outside"
 
         when:
-        def result = node.invalidate(relativePath)
+        def result = node.invalidate(relativePath, 0)
         then:
         0 * _.invalidate(_)
         result.get() == node
@@ -92,7 +92,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
         def relativePath = childToInvalidate.prefix
 
         when:
-        def result = node.invalidate(relativePath)
+        def result = node.invalidate(relativePath, 0)
         then:
         0 * _.invalidate(_)
         !result.present
@@ -108,7 +108,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
         def remainingChildren = children.findAll { it != childToInvalidate }
 
         when:
-        def result = node.invalidate(relativePath).get()
+        def result = node.invalidate(relativePath, 0).get()
         remainingChildren.each {
             assert result.getSnapshot(it.prefix, 0).get() == snapshot
         }
@@ -138,10 +138,10 @@ class FileSystemNodeWithChildrenTest extends Specification {
         def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPrefix(childWithChildToInvalidate.prefix))
 
         when:
-        def result = node.invalidate("${childWithChildToInvalidate.prefix}/deeper").get()
+        def result = node.invalidate("${childWithChildToInvalidate.prefix}/deeper", 0).get()
 
         then:
-        1 * childWithChildToInvalidate.invalidate("deeper") >> Optional.of(invalidatedChild)
+        1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.prefix}/deeper", childWithChildToInvalidate.prefix.length() + 1) >> Optional.of(invalidatedChild)
         0 * _.invalidate(_)
         !result.getSnapshot(invalidatedChild.prefix, 0).present
 

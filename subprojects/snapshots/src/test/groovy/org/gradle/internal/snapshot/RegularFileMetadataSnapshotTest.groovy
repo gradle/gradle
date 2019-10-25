@@ -33,7 +33,7 @@ class RegularFileMetadataSnapshotTest extends Specification {
     def "on invalidating all information is lost"() {
         def metadataSnapshot = new RegularFileMetadataSnapshot("some/prefix")
         expect:
-        !metadataSnapshot.invalidate("whatever").present
+        !metadataSnapshot.invalidate("whatever", 0).present
     }
 
     void assertMissingFileSnapshot(MetadataSnapshot metadataSnapshot, String absolutePath, int offset) {

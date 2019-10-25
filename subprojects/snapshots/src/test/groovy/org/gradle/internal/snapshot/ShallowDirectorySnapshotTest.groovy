@@ -32,7 +32,7 @@ class ShallowDirectorySnapshotTest extends Specification {
     def "invalidating something in a directory retains the directory information"() {
         def metadataSnapshot = new ShallowDirectorySnapshot("some/prefix", ImmutableList.of(new RegularFileSnapshot("/absolute/some/prefix/whatever", "whatever", HashCode.fromInt(1234), new FileMetadata(2, 3))))
 
-        def invalidated = metadataSnapshot.invalidate("whatever").get()
+        def invalidated = metadataSnapshot.invalidate("whatever", 0).get()
 
         expect:
         invalidated.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1).get().type == FileType.Directory
