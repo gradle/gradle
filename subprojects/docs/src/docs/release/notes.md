@@ -122,8 +122,8 @@ You can now activate Javadoc and sources publishing for a Java Library or Java p
 
 ```
 java {
-    publishJavadoc()
-    publishSources()
+    withJavadocJar()
+    withSourcesJar()
 }
 ```
 

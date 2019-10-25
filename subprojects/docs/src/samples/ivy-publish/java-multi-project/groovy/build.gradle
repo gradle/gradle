@@ -10,8 +10,8 @@ subprojects {
         mavenCentral()
     }
     java {
-        publishJavadoc()
-        publishSources()
+        withJavadocJar()
+        withSourcesJar()
     }
 }
 

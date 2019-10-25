@@ -24,67 +24,67 @@ import org.junit.Test
 class JavaProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     void compilationFailureBreaksBuild() {
-        TestFile buildFile = testFile("build.gradle") 
-        buildFile.writelns("apply plugin: 'java'") 
-        testFile("src/main/java/org/gradle/broken.java") << "broken" 
+        TestFile buildFile = testFile("build.gradle")
+        buildFile.writelns("apply plugin: 'java'")
+        testFile("src/main/java/org/gradle/broken.java") << "broken"
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure() 
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure()
 
-        failure.assertHasDescription("Execution failed for task ':compileJava'.") 
+        failure.assertHasDescription("Execution failed for task ':compileJava'.")
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
     }
 
     @Test
     void testCompilationFailureBreaksBuild() {
-        TestFile buildFile = testFile("build.gradle") 
-        buildFile.writelns("apply plugin: 'java'") 
+        TestFile buildFile = testFile("build.gradle")
+        buildFile.writelns("apply plugin: 'java'")
         testFile("src/main/java/org/gradle/ok.java") << "package org.gradle; class ok { }"
         testFile("src/test/java/org/gradle/broken.java") << "broken"
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure() 
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("build").runWithFailure()
 
-        failure.assertHasDescription("Execution failed for task ':compileTestJava'.") 
+        failure.assertHasDescription("Execution failed for task ':compileTestJava'.")
         failure.assertHasCause("Compilation failed; see the compiler error output for details.")
     }
 
     @Test
     void handlesTestSrcWhichDoesNotContainAnyTestCases() {
-        TestFile buildFile = testFile("build.gradle") 
-        buildFile.writelns("apply plugin: 'java'") 
+        TestFile buildFile = testFile("build.gradle")
+        buildFile.writelns("apply plugin: 'java'")
         testFile("src/test/java/org/gradle/NotATest.java") << """
 package org.gradle;
 public class NotATest {}"""
 
-        usingBuildFile(buildFile).withTasks("build").run() 
+        usingBuildFile(buildFile).withTasks("build").run()
     }
 
     @Test
     void javadocGenerationFailureBreaksBuild() throws IOException {
-        TestFile buildFile = testFile("javadocs.gradle") 
-        buildFile.write("apply plugin: 'java'") 
+        TestFile buildFile = testFile("javadocs.gradle")
+        buildFile.write("apply plugin: 'java'")
         testFile("src/main/java/org/gradle/broken.java") << "class Broken { }"
 
-        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("javadoc").runWithFailure() 
+        ExecutionFailure failure = usingBuildFile(buildFile).withTasks("javadoc").runWithFailure()
 
-        failure.assertHasDescription("Execution failed for task ':javadoc'.") 
-        failure.assertHasCause("Javadoc generation failed.") 
+        failure.assertHasDescription("Execution failed for task ':javadoc'.")
+        failure.assertHasCause("Javadoc generation failed.")
     }
 
     @Test
     void handlesResourceOnlyProject() throws IOException {
-        TestFile buildFile = testFile("resources.gradle") 
-        buildFile.write("apply plugin: 'java'") 
+        TestFile buildFile = testFile("resources.gradle")
+        buildFile.write("apply plugin: 'java'")
         testFile("src/main/resources/org/gradle/resource.file") << "test resource"
 
-        usingBuildFile(buildFile).withTasks("build").run() 
-        testFile("build/resources/main/org/gradle/resource.file").assertExists() 
+        usingBuildFile(buildFile).withTasks("build").run()
+        testFile("build/resources/main/org/gradle/resource.file").assertExists()
     }
 
     @Test
     void separatesOutputResourcesFromCompiledClasses() throws IOException {
         //given
-        TestFile buildFile = testFile("build.gradle") 
-        buildFile.write("apply plugin: 'java'") 
+        TestFile buildFile = testFile("build.gradle")
+        buildFile.write("apply plugin: 'java'")
 
         testFile("src/main/resources/prod.resource") << ""
         testFile("src/main/java/Main.java") << "class Main {}"
@@ -92,23 +92,23 @@ public class NotATest {}"""
         testFile("src/test/java/TestFoo.java") << "class TestFoo {}"
 
         //when
-        usingBuildFile(buildFile).withTasks("build").run() 
+        usingBuildFile(buildFile).withTasks("build").run()
 
         //then
-        testFile("build/resources/main/prod.resource").assertExists() 
-        testFile("build/classes/java/main/prod.resource").assertDoesNotExist() 
+        testFile("build/resources/main/prod.resource").assertExists()
+        testFile("build/classes/java/main/prod.resource").assertDoesNotExist()
 
-        testFile("build/resources/test/test.resource").assertExists() 
-        testFile("build/classes/java/test/test.resource").assertDoesNotExist() 
+        testFile("build/resources/test/test.resource").assertExists()
+        testFile("build/classes/java/test/test.resource").assertDoesNotExist()
 
-        testFile("build/classes/java/main/Main.class").assertExists() 
-        testFile("build/classes/java/test/TestFoo.class").assertExists() 
+        testFile("build/classes/java/main/Main.class").assertExists()
+        testFile("build/classes/java/test/TestFoo.class").assertExists()
     }
 
     @Test
     void generatesArtifactsWhenVersionIsEmpty() {
         testFile("settings.gradle") << "rootProject.name = 'empty'"
-        def buildFile = testFile("build.gradle") 
+        def buildFile = testFile("build.gradle")
         buildFile << """
 apply plugin: 'java'
 version = ''
@@ -116,13 +116,13 @@ version = ''
 
         testFile("src/main/resources/org/gradle/resource.file") << "some resource"
 
-        usingBuildFile(buildFile).withTasks("jar").run() 
-        testFile("build/libs/empty.jar").assertIsFile() 
+        usingBuildFile(buildFile).withTasks("jar").run()
+        testFile("build/libs/empty.jar").assertIsFile()
     }
 
     @Test
     void "task registered as a builder of resources is executed"() {
-        TestFile buildFile = testFile("build.gradle") 
+        TestFile buildFile = testFile("build.gradle")
         buildFile << '''
 apply plugin: 'java'
 
@@ -137,12 +137,12 @@ sourceSets.test.output.dir "$buildDir/generatedTestResources", builtBy: 'generat
 '''
 
         //when
-        def result = usingBuildFile(buildFile).withTasks("classes").run() 
+        def result = usingBuildFile(buildFile).withTasks("classes").run()
         //then
         result.assertTasksExecuted(":compileJava", ":generateResource", ":processResources", ":classes")
 
         //when
-        result = usingBuildFile(buildFile).withTasks("testClasses").run() 
+        result = usingBuildFile(buildFile).withTasks("testClasses").run()
         //then
         result.output.contains(":generateTestResource")
     }
@@ -228,7 +228,7 @@ allprojects {
     apply plugin: 'java'
 
     java {
-        publishSources()
+        withSourcesJar()
     }
 
     artifacts {

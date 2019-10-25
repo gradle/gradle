@@ -10,8 +10,8 @@ subprojects {
         mavenCentral()
     }
     val java = extensions.getByType<JavaPluginExtension>()
-    java.publishJavadoc()
-    java.publishSources()
+    java.withJavadocJar()
+    java.withSourcesJar()
 }
 
 project(":project1") {

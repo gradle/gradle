@@ -48,20 +48,20 @@ public interface FeatureSpec {
     void capability(String group, String name, String version);
 
     /**
-     * Automatically package Javadoc during publishing and publish a variant with '-javadoc.jar'.
-     * See also {@link JavaPluginExtension#publishJavadoc()}.
+     * Automatically package Javadoc and register the produced JAR as a variant.
+     * See also {@link JavaPluginExtension#withJavadocJar()}.
      *
      * @since 6.0
      */
     @Incubating
-    void publishJavadoc();
+    void withJavadocJar();
 
     /**
-     * Automatically package Javadoc during publishing and publish a variant with '-javadoc.jar'.
-     * See also {@link JavaPluginExtension#publishSources()} ()}.
+     * Automatically package sources from the linked {@link #usingSourceSet(SourceSet) SourceSet} and register the produced JAR as a variant.
+     * See also {@link JavaPluginExtension#withSourcesJar()} ()}.
      *
      * @since 6.0
      */
     @Incubating
-    void publishSources();
+    void withSourcesJar();
 }

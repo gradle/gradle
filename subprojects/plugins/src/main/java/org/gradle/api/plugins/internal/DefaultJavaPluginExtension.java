@@ -105,7 +105,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public void publishJavadoc() {
+    public void withJavadocJar() {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -113,7 +113,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public void publishSources() {
+    public void withSourcesJar() {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
