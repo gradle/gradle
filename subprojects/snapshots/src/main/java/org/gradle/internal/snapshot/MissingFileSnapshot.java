@@ -32,6 +32,10 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
         super(absolutePath, name);
     }
 
+    public MissingFileSnapshot(String absolutePath) {
+        super(absolutePath, AbstractFileSystemNode.getFileName(absolutePath));
+    }
+
     @Override
     public FileType getType() {
         return FileType.Missing;

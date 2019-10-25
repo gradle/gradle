@@ -115,7 +115,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             String parentLocation = parentFile.getAbsolutePath();
             FileMetadataSnapshot parentStat = this.stat.stat(parentFile);
             if (parentStat.getType() == FileType.Missing) {
-                root.updateAndGet(root -> root.update(parentLocation, new MissingFileSnapshot(parentLocation, file.getName())));
+                root.updateAndGet(root -> root.update(parentLocation, new MissingFileSnapshot(parentLocation)));
             } else if (parentStat.getType() == FileType.RegularFile) {
                 root.updateAndGet(root -> root.update(parentLocation, new RegularFileMetadataSnapshot(parentFile.getName())));
             } else {
@@ -185,7 +185,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 root.updateAndGet(root -> root.update(regularFileSnapshot.getAbsolutePath(), regularFileSnapshot));
                 return regularFileSnapshot;
             case Missing:
-                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, file.getName());
+                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location);
                 root.updateAndGet(root -> root.update(missingFileSnapshot.getAbsolutePath(), missingFileSnapshot));
                 return missingFileSnapshot;
             case Directory:

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import java.nio.file.Paths;
 import java.util.List;
 
 public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
@@ -49,11 +48,7 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     public static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
-        return new MissingFileSnapshot(filePath, getFileNameForAbsolutePath(filePath));
-    }
-
-    protected static String getFileNameForAbsolutePath(String filePath) {
-        return Paths.get(filePath).getFileName().toString();
+        return new MissingFileSnapshot(filePath);
     }
 
     @Override

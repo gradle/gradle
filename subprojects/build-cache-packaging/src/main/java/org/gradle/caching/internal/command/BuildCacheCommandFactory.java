@@ -126,7 +126,7 @@ public class BuildCacheCommandFactory {
                 List<FileSystemSnapshot> roots = new ArrayList<>();
 
                 if (treeSnapshot == null) {
-                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath, root.getName());
+                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath);
                     virtualFileSystem.updateWithKnownSnapshot(internedAbsolutePath, missingFileSnapshot);
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
                     return;
