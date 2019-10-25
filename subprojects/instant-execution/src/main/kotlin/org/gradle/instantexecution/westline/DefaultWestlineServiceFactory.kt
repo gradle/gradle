@@ -129,10 +129,11 @@ class DefaultWestlineServiceSpec<P : WestlineServiceParameters>(
  */
 internal
 inline fun <P : PI, reified S : Any, reified PI : Any> extractParametersType(
-    implementationClass: Class<*>
+    implementationClass: Class<*>,
+    parameterIndex: Int = 0
 ): Class<P> {
     val superType = TypeToken.of(implementationClass).getSupertype(S::class.java.uncheckedCast()).type as ParameterizedType
-    val parametersType: Class<P> = TypeToken.of(superType.actualTypeArguments[0]).rawType.uncheckedCast()
+    val parametersType: Class<P> = TypeToken.of(superType.actualTypeArguments[parameterIndex]).rawType.uncheckedCast()
     if (parametersType == PI::class.java) {
         val parametersInterfaceName = ModelType.of(PI::class.java).displayName
         throw IllegalArgumentException(

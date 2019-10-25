@@ -66,6 +66,7 @@ import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.ProvidersListener;
+import org.gradle.api.internal.provider.WestlineProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -462,9 +463,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             : ClassLoaderScopeRegistryListener.NULL;
     }
 
-    ProviderFactory createProviderFactory(ListenerManager listenerManager) {
+    ProviderFactory createProviderFactory(ListenerManager listenerManager, WestlineProviderFactory westlineProviderFactory) {
         return new DefaultProviderFactory(
-            listenerManager.getBroadcaster(ProvidersListener.class)
+            listenerManager.getBroadcaster(ProvidersListener.class),
+            westlineProviderFactory
         );
     }
 

@@ -114,7 +114,8 @@ public class WorkerDaemonServer implements WorkerProtocol {
     private static class WorkerDaemonServices {
         ProviderFactory createProviderFactory(ListenerManager listenerManager) {
             return new DefaultProviderFactory(
-                listenerManager.getBroadcaster(ProvidersListener.class)
+                listenerManager.getBroadcaster(ProvidersListener.class),
+                null
             );
         }
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 import java.util.concurrent.Callable;
@@ -50,4 +51,20 @@ public interface ProviderFactory {
      */
     @Incubating
     Provider<String> systemProperty(String propertyName);
+
+    /**
+     * Creates a {@link Provider} whose value is computed by the given {@link WestlineProvider}.
+     *
+     * @param providerType the provider type
+     * @param configuration action to configure the parameters to the given {@link WestlineProvider}
+     * @return the provider, never returns null
+     * @since 6.1
+     */
+    @Incubating
+    <T, P extends WestlineProviderParameters>
+    Provider<T> westline(
+        // M metadata, // TODO instant-execution allow user-provided metadata
+        Class<? extends WestlineProvider<T, P>> providerType,
+        Action<? super WestlineProviderSpec<P>> configuration
+    );
 }

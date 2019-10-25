@@ -20,6 +20,100 @@ import spock.lang.Unroll
 
 class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
+    @Unroll
+    def "property from properties file #usage used as build logic input"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildKotlinFile """
+
+            import org.gradle.api.provider.*
+
+            abstract class PropertyFromPropertiesFile : WestlineProvider<String, PropertyFromPropertiesFile.Params> {
+
+                interface Params : WestlineProviderParameters {
+
+                    @get:InputFile
+                    val file: RegularFileProperty
+
+                    @get:Input
+                    val propertyName: Property<String>
+                }
+
+                override fun provide(): String? = parameters.run {
+                    file.get().asFile.takeIf { it.isFile }?.inputStream()?.use {
+                        java.util.Properties().apply { load(it) }
+                    }?.get(propertyName.get()) as String?
+                }
+            }
+
+            val propertiesFile = layout.projectDirectory.file("local.properties")
+            val isCi: Provider<String> = providers.westline(PropertyFromPropertiesFile::class) {
+                parameters {
+                    // TODO consider whether we should introduce .source and .value in Property<T>
+                    // file.source = propertiesFile
+                    // propertyName.value = "ci" 
+                    file.set(propertiesFile)
+                    propertyName.set("ci")
+                }
+            }
+ 
+            if ($expression) {
+                tasks.register("run") {
+                    doLast { println("ON CI") }
+                }
+            } else {
+                tasks.register("run") {
+                    doLast { println("NOT CI") }
+                }            
+            }
+        """
+
+        when: "running without a file present"
+        instantRun "run"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateStored()
+
+        when: "running with an empty file"
+        file("local.properties") << ""
+        instantRun "run"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateLoaded()
+// TODO instant-execution
+//        when: "running with the property present in the file"
+//        file("local.properties") << "ci=true"
+//        instantRun "run"
+//
+//        then:
+//        output.count("ON CI") == 1
+//        instant.assertStateStored()
+//
+//        when: "running after changing the file without changing the property value"
+//        file("local.properties") << "\nunrelated.properties=foo"
+//        instantRun "run"
+//
+//        then:
+//        output.count("ON CI") == 1
+//        instant.assertStateLoaded()
+//
+//        when: "running after changing the property value"
+//        file("local.properties").text = "ci=false"
+//        instantRun "run"
+//
+//        then:
+//        output.count("NOT CI") == 1
+//        instant.assertStateStored()
+
+        where:
+        expression                                     | usage
+        "isCi.map(String::toBoolean).getOrElse(false)" | "value"
+        "isCi.isPresent"                               | "presence"
+    }
+
     def "system property used as task input"() {
 
         given:

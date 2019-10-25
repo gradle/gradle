@@ -16,17 +16,25 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.WestlineProvider;
+import org.gradle.api.provider.WestlineProviderParameters;
+import org.gradle.api.provider.WestlineProviderSpec;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
 
     private final ProvidersListener broadcaster;
+    @Nullable
+    private final WestlineProviderFactory westlineProviderFactory;
 
-    public DefaultProviderFactory(ProvidersListener broadcaster) {
+    public DefaultProviderFactory(ProvidersListener broadcaster, @Nullable WestlineProviderFactory westlineProviderFactory) {
         this.broadcaster = broadcaster;
+        this.westlineProviderFactory = westlineProviderFactory;
     }
 
     @Override
@@ -40,5 +48,13 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> systemProperty(String propertyName) {
         return new SystemPropertyProvider(propertyName, broadcaster);
+    }
+
+    @Override
+    public <T, P extends WestlineProviderParameters> Provider<T> westline(Class<? extends WestlineProvider<T, P>> providerType, Action<? super WestlineProviderSpec<P>> configuration) {
+        if (westlineProviderFactory == null) {
+            throw new UnsupportedOperationException();
+        }
+        return westlineProviderFactory.createProviderOf(providerType, configuration);
     }
 }
