@@ -56,6 +56,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
@@ -224,12 +225,15 @@ public class JvmPluginsHelper {
         capabilities.forEach(variant.getOutgoing()::capability);
 
         if (!tasks.getNames().contains(jarTaskName)) {
-            tasks.register(jarTaskName, Jar.class, jar -> {
+            TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
                 jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
                 jar.setGroup(BasePlugin.BUILD_GROUP);
                 jar.from(artifactSource);
                 jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
             });
+            if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
+                tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
+            }
         }
         TaskProvider<Task> jar = tasks.named(jarTaskName);
         variant.getOutgoing().artifact(new LazyPublishArtifact(jar));
