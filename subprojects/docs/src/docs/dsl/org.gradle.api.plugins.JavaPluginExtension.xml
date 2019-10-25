@@ -49,7 +49,10 @@
                 <td>withJavadocJar</td>
             </tr>
             <tr>
-                <td>withSourceJar</td>
+                <td>withSourcesJar</td>
+            </tr>
+            <tr>
+                <td>registerFeature</td>
             </tr>
         </table>
     </section>
