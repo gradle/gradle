@@ -129,14 +129,13 @@ public class GradleModuleMetadataParser {
         if (variants == null || variants.isEmpty()) {
             return;
         }
-        for (MutableComponentVariant variant : variants) {
+        for (MutableComponentVariant variant : ImmutableList.copyOf(variants)) {
             AttributeValue<String> entry = variant.getAttributes().findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
             if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get()) && variant.getCapabilities().isEmpty()) {
                 // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
                 ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
                 Capability enforcedCapability = buildShadowPlatformCapability(metadata.getId());
                 metadata.addVariant(variant.copy("enforced" + capitalize(variant.getName()), enforcedAttributes, enforcedCapability));
-                break;
             }
         }
     }

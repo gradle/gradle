@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -449,14 +450,15 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
     }
 
     @Issue("gradle/gradle#11091")
-    def "can enforce a platform that is already on the dependency graph"() {
+    @Unroll
+    def "can enforce a platform that is already on the dependency graph on the #classpath classpath"() {
         def platform = mavenHttpRepo.module("org", "platform", "1.0").withModuleMetadata().withoutDefaultVariants()
-            .withVariant('api') {
+            .withVariant('apiElements') {
                 useDefaultArtifacts = false
                 attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
                 attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
             }
-            .withVariant('runtime') {
+            .withVariant('runtimeElements') {
                 useDefaultArtifacts = false
                 attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
                 attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
@@ -469,31 +471,39 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                 api enforcedPlatform("org:platform:1.0")
             }
         """
-        checkConfiguration("compileClasspath")
+        checkConfiguration("${classpath}Classpath")
 
         platform.pom.expectGet()
         platform.moduleMetadata.expectGet()
         run ":checkDeps"
 
         then:
+        def javaUsage = "java-${usage}"
+        def regularVariant = "${usage}Elements"
+        def enforcedVariant = "enforced${usage.capitalize()}Elements"
         resolve.expectGraph {
             root(":", "org.test:test:1.9") {
                 module("org:platform:1.0") {
-                    variant("api", [
+                    variant(regularVariant, [
                         'org.gradle.category': 'platform',
                         'org.gradle.status': 'release',
-                        'org.gradle.usage': 'java-api'])
+                        'org.gradle.usage': javaUsage])
                     noArtifacts()
                 }
                 module("org:platform:1.0") {
-                    variant("enforcedApi", [
+                    variant(enforcedVariant, [
                         'org.gradle.category': 'enforced-platform',
                         'org.gradle.status': 'release',
-                        'org.gradle.usage': 'java-api'])
+                        'org.gradle.usage': javaUsage])
                     noArtifacts()
                 }
             }
         }
+
+        where:
+        classpath | usage
+        'compile' | 'api'
+        'runtime' | 'runtime'
     }
 
     private void checkConfiguration(String configuration) {

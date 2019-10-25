@@ -47,9 +47,17 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        pluginApplied(PLUGIN_AUTO_APPLY_VERSION)
+        pluginAppliedOnce()
     }
 
+    def "only applies once when -b used"() {
+        when:
+        file("other-build.gradle") << "task dummy {}"
+        runBuildWithScanRequest("-b", "other-build.gradle")
+
+        then:
+        pluginAppliedOnce()
+    }
 
     def "does not automatically apply plugin when --scan is not provided on command-line"() {
         when:
@@ -70,7 +78,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        pluginApplied(PLUGIN_AUTO_APPLY_VERSION)
+        pluginAppliedOnce()
     }
 
     def "does not apply plugin to nested builds in a composite"() {
@@ -92,7 +100,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains 'in nested build'
-        pluginApplied(PLUGIN_AUTO_APPLY_VERSION)
+        pluginAppliedOnce()
     }
 
     @Unroll
@@ -110,7 +118,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        pluginApplied(version)
+        pluginAppliedOnce(version)
 
         where:
         sequence | version
@@ -140,7 +148,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        pluginApplied(version)
+        pluginAppliedOnce(version)
 
         where:
         sequence | version
@@ -174,7 +182,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest('-I', 'init.gradle')
 
         then:
-        pluginApplied(version)
+        pluginAppliedOnce(version)
 
         where:
         sequence | version
@@ -212,7 +220,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         runBuildWithScanRequest()
 
         then:
-        pluginApplied(PLUGIN_AUTO_APPLY_VERSION)
+        pluginAppliedOnce()
     }
 
     def "fails well when trying to use old plugin"() {
@@ -249,8 +257,8 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         succeeds("dummy")
     }
 
-    private void pluginApplied(String version) {
-        assert output.contains("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${version}")
+    private void pluginAppliedOnce(String version = PLUGIN_AUTO_APPLY_VERSION) {
+        assert output.count("${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${version}") == 1
     }
 
     private void pluginNotApplied() {

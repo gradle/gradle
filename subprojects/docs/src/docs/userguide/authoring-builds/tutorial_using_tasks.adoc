@@ -288,7 +288,11 @@ This is equivalent to running `gradle clean run`. In a multi-project build every
 [[configure-by-dag]]
 == Configure by DAG
 
-As we later describe in full detail (see <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>>), Gradle has a configuration phase and an execution phase. After the configuration phase, Gradle knows all tasks that should be executed. Gradle offers you a hook to make use of this information. A use-case for this would be to check if the release task is among the tasks to be executed. Depending on this, you can assign different values to some variables.
+As we later describe in full detail (see <<build_lifecycle.adoc#build_lifecycle,Build Lifecycle>>), Gradle has a configuration phase and an execution phase.
+After the configuration phase, Gradle knows all tasks that should be executed.
+Gradle offers you a hook to make use of this information.
+A use-case for this would be to check if the release task is among the tasks to be executed.
+Depending on this, you can assign different values to some variables.
 
 In the following example, execution of the `distribution` and `release` tasks results in different value of the `version` variable.
 
@@ -310,7 +314,15 @@ include::{samplesPath}/userguide/tutorial/configByDag/configByDag.out[]
 ----
 ====
 
-The important thing is that `whenReady` affects the release task _before_ the release task is executed. This works even when the release task is not the _primary_ task (i.e., the task passed to the `gradle` command).
+The important thing is that `whenReady` affects the release task _before_ the release task is executed.
+This works even when the release task is not the _primary_ task (i.e., the task passed to the `gradle` command).
+
+[NOTE]
+====
+This example works because the `version` value is only read at execution time.
+When using a similar construct in a real build you must make sure that nowhere is the value read eagerly during configuration.
+Otherwise your build may use different values for a property between configuration and execution.
+====
 
 [[sec:build_script_external_dependencies]]
 == External dependencies for the build script

@@ -117,8 +117,8 @@ public class JvmOptions {
      * The result is a subset of options returned by {@link #getAllJvmArgs()}
      */
     public List<String> getAllImmutableJvmArgs() {
-        List<String> args = new ArrayList<String>(getManagedJvmArgs());
-        args.addAll(getJvmArgs());
+        List<String> args = new ArrayList<String>(getJvmArgs());
+        args.addAll(getManagedJvmArgs());
         return args;
     }
 
