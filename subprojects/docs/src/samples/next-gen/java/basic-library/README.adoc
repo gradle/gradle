@@ -1,0 +1,31 @@
+= Basic Java Library Sample
+
+ifndef::env-github[]
+- link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[Download Kotlin DSL ZIP]
+endif::[]
+
+This sample shows how a simple Java library can be built with Gradle.
+The library has no dependencies and the build has minimal configuration.
+
+====
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
+====
+
+To build the library:
+
+====
+[.testable-sample,dir="groovy"]
+=====
+[.sample-command]
+----
+$ ./gradlew jar
+
+BUILD SUCCESSFUL in 1s
+2 actionable tasks: 2 executed
+----
+=====
+====
+
+For more information, see link:{userManualPath}/java_library_plugin.html[Java Library Plugin reference chapter].

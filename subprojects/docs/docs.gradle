@@ -588,10 +588,18 @@ samples {
         sampleDirectory = file("src/samples/next-gen/groovy/basic-application")
         description = "Demonstrate how to build a basic Groovy application."
     }
+    groovyBasicLibrary {
+        sampleDirectory = file("src/samples/next-gen/groovy/basic-library")
+        description = "Demonstrate how to build a basic Groovy library."
+    }
 
     javaBasicApplication {
         sampleDirectory = file("src/samples/next-gen/java/basic-application")
         description = "Demonstrate how to build a basic Java application."
+    }
+    javaBasicLibrary {
+        sampleDirectory = file("src/samples/next-gen/java/basic-library")
+        description = "Demonstrate how to build a basic Java library."
     }
 }
 
