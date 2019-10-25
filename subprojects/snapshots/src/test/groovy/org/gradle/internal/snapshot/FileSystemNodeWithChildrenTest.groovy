@@ -16,11 +16,14 @@
 
 package org.gradle.internal.snapshot
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.spockframework.mock.EmptyOrDummyResponse
 import org.spockframework.mock.IDefaultResponse
 import org.spockframework.mock.IMockInvocation
 import spock.lang.Specification
 
+@Requires(TestPrecondition.UNIX)
 class FileSystemNodeWithChildrenTest extends Specification {
 
     def "returns empty when queried at root"() {
