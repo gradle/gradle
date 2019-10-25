@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.AbstractFileSystemNode;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
-import org.gradle.internal.snapshot.SnapshotFileSystemNode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +32,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     private final FileSystemNode rootNode;
 
     DefaultFileHierarchySet(String path, MetadataSnapshot snapshot) {
-        this.rootNode = new SnapshotFileSystemNode(normalizeFileSystemRoot(path), snapshot);
+        this.rootNode = snapshot.withPrefix(normalizeFileSystemRoot(path));
     }
 
     DefaultFileHierarchySet(FileSystemNode rootNode) {

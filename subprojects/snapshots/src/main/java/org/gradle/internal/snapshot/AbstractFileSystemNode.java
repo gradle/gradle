@@ -178,17 +178,17 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
 
             @Override
             public FileSystemNode handleParent() {
-                return new SnapshotFileSystemNode(path, snapshot);
+                return snapshot.withPrefix(path);
             }
 
             @Override
             public FileSystemNode handleSame() {
                 return snapshot instanceof FileSystemLocationSnapshot
-                    ? new SnapshotFileSystemNode(path, snapshot)
+                    ? snapshot.withPrefix(path)
                     : child.getSnapshot(path, path.length() + 1)
                         .filter(oldSnapshot -> oldSnapshot instanceof FileSystemLocationSnapshot)
                         .map(FileSystemNode.class::cast)
-                        .orElse(new SnapshotFileSystemNode(path, snapshot));
+                        .orElse(snapshot.withPrefix(path));
             }
 
             @Override
@@ -196,7 +196,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
                 String prefix = child.getPrefix();
                 String commonPrefix = prefix.substring(0, commonPrefixLength);
                 FileSystemNode newChild = child.withPrefix(prefix.substring(commonPrefixLength + 1));
-                FileSystemNode sibling = new SnapshotFileSystemNode(path.substring(commonPrefixLength + 1), snapshot);
+                FileSystemNode sibling = snapshot.withPrefix(path.substring(commonPrefixLength + 1));
                 ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newChild.getPrefix(), sibling.getPrefix()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);

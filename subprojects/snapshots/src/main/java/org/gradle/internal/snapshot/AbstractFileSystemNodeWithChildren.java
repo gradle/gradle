@@ -69,7 +69,7 @@ public abstract class AbstractFileSystemNodeWithChildren extends AbstractFileSys
             @Override
             public FileSystemNode handleNewChild(int insertBefore) {
                 List<FileSystemNode> newChildren = new ArrayList<>(children);
-                newChildren.add(insertBefore, new SnapshotFileSystemNode(path, snapshot));
+                newChildren.add(insertBefore, snapshot.withPrefix(path));
                 return createCopy(getPrefix(), newChildren);
             }
 
