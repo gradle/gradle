@@ -321,7 +321,7 @@ version = 1.0
 group =  "org.test"
 
 java {
-    publishSources()
+    withSourcesJar()
 }
 
 task testJar(type: Jar) {

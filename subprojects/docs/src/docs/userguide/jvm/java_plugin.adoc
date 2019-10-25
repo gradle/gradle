@@ -420,11 +420,11 @@ Java version compatibility to use when compiling Java source. Default value: ver
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
 Java version to generate classes for. Default value: `__sourceCompatibility__`.
 
-`publishJavadoc()`::
-Automatically package Javadoc during publishing and publish a variant `javadocElements` with an artifact `-javadoc.jar`.
+`withJavadocJar()`::
+Automatically packages Javadoc and creates a variant `javadocElements` with an artifact `-javadoc.jar`, which will be part of the publication.
 
-`publishSources()`::
-Automatically package source code during publishing and publish a variant `sourceElements` with an artifact `-sources.jar`.
+`withSourcesJar()`::
+Automatically packages source code and creates a variant `sourceElements` with an artifact `-sources.jar`, which will be part of the publication.
 
 == Convention properties
 

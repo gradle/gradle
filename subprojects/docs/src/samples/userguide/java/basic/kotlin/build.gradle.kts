@@ -103,8 +103,8 @@ tasks.check { dependsOn(integrationTest) }
 
 // tag::defining-sources-jar-task[]
 java {
-    publishJavadoc()
-    publishSources()
+    withJavadocJar()
+    withSourcesJar()
 }
 // end::defining-sources-jar-task[]
 

@@ -97,8 +97,8 @@ abstract class SigningProjectSpec extends AbstractProjectBuilderSpec {
     def useJavadocAndSourceJars() {
         apply plugin: "java"
         java {
-            publishJavadoc()
-            publishSources()
+            withJavadocJar()
+            withSourcesJar()
         }
     }
 }

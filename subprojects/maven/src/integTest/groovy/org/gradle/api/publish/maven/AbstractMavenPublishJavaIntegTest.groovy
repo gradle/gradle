@@ -1257,8 +1257,8 @@ include(':platform')
             }
 
             java {
-                ${features().findAll { it != MavenJavaModule.MAIN_FEATURE }.collect { "registerFeature('$it') { usingSourceSet(sourceSets.${it}SourceSet); ${withDocs() ? 'publishJavadoc(); publishSources()' : ''} }"}.join('\n')}
-                ${withDocs() ? 'publishJavadoc(); publishSources()' : ''}
+                ${features().findAll { it != MavenJavaModule.MAIN_FEATURE }.collect { "registerFeature('$it') { usingSourceSet(sourceSets.${it}SourceSet); ${withDocs() ? 'withJavadocJar(); withSourcesJar()' : ''} }"}.join('\n')}
+                ${withDocs() ? 'withJavadocJar(); withSourcesJar()' : ''}
             }
 
             publishing {
