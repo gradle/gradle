@@ -8,10 +8,12 @@ plugins {
 group = "com.example"
 version = "1.0"
 
+// tag::defining-sources-jar-task[]
 java {
     withJavadocJar()
     withSourcesJar()
 }
+// end::defining-sources-jar-task[]
 
 // tag::pom-customization[]
 // tag::versions-resolved[]

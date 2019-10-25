@@ -113,7 +113,7 @@ Secondary variants (*)
             plugins { id 'java-library' }
             java {
                 withJavadocJar()
-                withSourceJar()
+                withSourcesJar()
             }
             group = 'org'
             version = '1.0'

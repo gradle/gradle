@@ -101,14 +101,6 @@ val integrationTest = task<Test>("integrationTest") {
 tasks.check { dependsOn(integrationTest) }
 // end::integ-test-task[]
 
-// tag::defining-sources-jar-task[]
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-// end::defining-sources-jar-task[]
-
-
 // tag::defining-custom-javadoc-task[]
 tasks.register<Javadoc>("testJavadoc") {
     source = sourceSets.test.get().allJava
