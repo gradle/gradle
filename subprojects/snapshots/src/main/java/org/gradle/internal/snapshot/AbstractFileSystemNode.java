@@ -247,7 +247,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return descendantHandler.handleDifferent(commonPrefixLength);
     }
 
-    private static final boolean checkForSlash = File.separatorChar != '/';
+    private static final boolean CHECK_FOR_SLASH = File.separatorChar != '/';
 
     public static String getFileName(String absolutePath) {
         int lastSeparator = lastIndexOfSeparator(absolutePath);
@@ -259,7 +259,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
     private static int lastIndexOfSeparator(String absolutePath) {
         for (int i = absolutePath.length() - 1; i >= 0; i--) {
             char currentChar = absolutePath.charAt(i);
-            if (currentChar == File.separatorChar || (checkForSlash && currentChar == '/')) {
+            if (currentChar == File.separatorChar || (CHECK_FOR_SLASH && currentChar == '/')) {
                 return i;
             }
         }

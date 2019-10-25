@@ -51,7 +51,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         if (!AbstractFileSystemNode.isChildOfOrThis(path, 0, rootNode.getPrefix())) {
             return Optional.empty();
         }
-        return rootNode.getSnapshot(normalizeFileSystemRoot(path),rootNode.getPrefix().length() + 1);
+        return rootNode.getSnapshot(normalizeFileSystemRoot(path), rootNode.getPrefix().length() + 1);
     }
 
     @Override
