@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -27,7 +28,7 @@ public interface FileSystemNode {
      *
      * When calling this method, the caller needs to make sure the the snapshot is a child of this node or this node.
      * That means that filePath.substring(offset) does not include the {@link #getPrefix()}.
-     * Therefore, when filePath.length < offset, then this node will be returned.
+     * Therefore, when filePath.length + 1 == offset, then this node will be returned.
      */
     Optional<MetadataSnapshot> getSnapshot(String filePath, int offset);
 
@@ -58,9 +59,9 @@ public interface FileSystemNode {
      */
     FileSystemNode withPrefix(String newPrefix);
 
-    static Optional<MetadataSnapshot> thisOrGet(MetadataSnapshot current, String filePath, int offset, Supplier<Optional<MetadataSnapshot>> supplier) {
+    static Optional<MetadataSnapshot> thisOrGet(@Nullable MetadataSnapshot current, String filePath, int offset, Supplier<Optional<MetadataSnapshot>> supplier) {
         if (filePath.length() + 1 == offset) {
-            return Optional.of(current);
+            return Optional.ofNullable(current);
         }
         return supplier.get();
     }

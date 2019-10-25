@@ -95,12 +95,11 @@ public abstract class AbstractFileSystemNodeWithChildren extends AbstractFileSys
 
     @Override
     public Optional<MetadataSnapshot> getSnapshot(String filePath, int offset) {
-        return getThisSnapshot()
-            .map(current -> FileSystemNode.thisOrGet(
-                current, filePath, offset,
-                () -> getSnapshotFromChildren(filePath, offset)
-            ))
-            .orElseGet(() -> getSnapshotFromChildren(filePath, offset));
+        return FileSystemNode.thisOrGet(
+            getThisSnapshot().orElse(null),
+            filePath, offset,
+            () -> getSnapshotFromChildren(filePath, offset)
+        );
     }
 
     private Optional<MetadataSnapshot> getSnapshotFromChildren(String filePath, int offset) {
