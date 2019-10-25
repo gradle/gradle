@@ -74,20 +74,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
 
 public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
-
     private static final Logger LOGGER = Logging.getLogger(ZincScalaCompiler.class);
-    private static final xsbti.Logger SBT_LOGGER_ADAPTER = new SbtLoggerAdapter();
 
     private final ScalaInstance scalaInstance;
     private final ScalaCompiler scalaCompiler;
     private final AnalysisStoreProvider analysisStoreProvider;
 
     private final ClearableMapBackedCache<File, DefinesClass> definesClassCache = new ClearableMapBackedCache<>(new ConcurrentHashMap<>());
-
-    private long defineClassCacheTimestamp = -1;
 
     @Inject
     public ZincScalaCompiler(ScalaInstance scalaInstance, ScalaCompiler scalaCompiler, AnalysisStoreProvider analysisStoreProvider) {
@@ -102,12 +97,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
         Timer timer = Time.startTimer();
 
-        if (defineClassCacheTimestamp != spec.getBuildStartTimestamp()) {
-            definesClassCache.clear();
-            LOGGER.info("Removed defineClassCache due to build timestamp ({}), old({})", spec.getBuildStartTimestamp(), defineClassCacheTimestamp);
-            defineClassCacheTimestamp = spec.getBuildStartTimestamp();
-        }
-
         IncrementalCompilerImpl incremental = new IncrementalCompilerImpl();
 
         Compilers compilers = incremental.compilers(scalaInstance, ClasspathOptionsUtil.boot(), Option.apply(Jvm.current().getJavaHome()), scalaCompiler);
@@ -116,33 +105,33 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         List<String> javacOptions = new JavaCompilerArgumentsBuilder(spec).includeClasspath(false).noEmptySourcePath().build();
 
         CompileOptions compileOptions = CompileOptions.create()
-            .withSources(Iterables.toArray(spec.getSourceFiles(), File.class))
-            .withClasspath(Iterables.toArray(Iterables.concat(Arrays.asList(scalaInstance.allJars()), spec.getCompileClasspath()), File.class))
-            .withScalacOptions(scalacOptions.toArray(new String[scalacOptions.size()]))
-            .withClassesDirectory(spec.getDestinationDir())
-            .withJavacOptions(javacOptions.toArray(new String[javacOptions.size()]));
+                .withSources(Iterables.toArray(spec.getSourceFiles(), File.class))
+                .withClasspath(Iterables.toArray(Iterables.concat(Arrays.asList(scalaInstance.allJars()), spec.getCompileClasspath()), File.class))
+                .withScalacOptions(scalacOptions.toArray(new String[0]))
+                .withClassesDirectory(spec.getDestinationDir())
+                .withJavacOptions(javacOptions.toArray(new String[0]));
 
         File analysisFile = spec.getAnalysisFile();
         AnalysisStore analysisStore = analysisStoreProvider.get(analysisFile);
 
         PreviousResult previousResult = analysisStore.get()
-            .map(a -> PreviousResult.of(Optional.of(a.getAnalysis()), Optional.of(a.getMiniSetup())))
-            .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
+                .map(a -> PreviousResult.of(Optional.of(a.getAnalysis()), Optional.of(a.getMiniSetup())))
+                .orElse(PreviousResult.of(Optional.empty(), Optional.empty()));
 
         IncOptions incOptions = IncOptions.of()
-                                .withExternalHooks(new LookupOnlyExternalHooks(new ExternalBinariesLookup()))
-                                .withRecompileOnMacroDef(Optional.of(false))
-                                .withTransitiveStep(5);
+                .withExternalHooks(new LookupOnlyExternalHooks(new ExternalBinariesLookup()))
+                .withRecompileOnMacroDef(Optional.of(false))
+                .withTransitiveStep(5);
 
         Setup setup = incremental.setup(new EntryLookup(spec),
-            false,
-            analysisFile,
-            CompilerCache.fresh(),
-            incOptions,
-            new LoggedReporter(100, SBT_LOGGER_ADAPTER, p -> p),
-            Option.empty(),
-            getExtra()
-            );
+                false,
+                analysisFile,
+                CompilerCache.fresh(),
+                incOptions,
+                new LoggedReporter(100, new SbtLoggerAdapter(), p -> p),
+                Option.empty(),
+                getExtra()
+        );
 
         Inputs inputs = incremental.inputs(compileOptions, compilers, setup, previousResult);
         if (LOGGER.isDebugEnabled()) {
@@ -155,7 +144,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         LOGGER.info("Prepared Zinc Scala inputs: {}", timer.getElapsed());
 
         try {
-            CompileResult compile = incremental.compile(inputs, SBT_LOGGER_ADAPTER);
+            CompileResult compile = incremental.compile(inputs, new SbtLoggerAdapter());
             AnalysisContents contentNext = AnalysisContents.create(compile.analysis(), compile.setup());
             analysisStore.set(contentNext);
         } catch (xsbti.CompileFailed e) {
@@ -186,7 +175,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
 
         @Override
         public DefinesClass definesClass(File classpathEntry) {
-            Optional<DefinesClass> dc = analysis(classpathEntry).map(a -> a instanceof Analysis ? (Analysis)a : null).map(a -> new AnalysisBakedDefineClass(a));
+            Optional<DefinesClass> dc = analysis(classpathEntry).map(a -> a instanceof Analysis ? (Analysis) a : null).map(a -> new AnalysisBakedDefineClass(a));
             return dc.orElseGet(() -> {
                 return definesClassCache.get(classpathEntry, new Factory<DefinesClass>() {
                     @Nullable
@@ -199,7 +188,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         }
     }
 
-    private class ExternalBinariesLookup implements ExternalLookup {
+    private static class ExternalBinariesLookup implements ExternalLookup {
 
         @SuppressWarnings("unchecked")
         public <T> Option<T> none() {
@@ -216,7 +205,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         public Option<Set<File>> changedBinaries(CompileAnalysis previousAnalysis) {
             java.util.List<File> result = new java.util.ArrayList<File>();
 
-            for (Map.Entry<File, Stamp> e: previousAnalysis.readStamps().getAllBinaryStamps().entrySet()) {
+            for (Map.Entry<File, Stamp> e : previousAnalysis.readStamps().getAllBinaryStamps().entrySet()) {
                 if (!e.getKey().exists() || !e.getValue().equals(Stamper.forLastModified().apply(e.getKey()))) {
                     result.add(e.getKey());
                 }
@@ -248,7 +237,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         }
     }
 
-    private class LookupOnlyExternalHooks implements ExternalHooks {
+    private static class LookupOnlyExternalHooks implements ExternalHooks {
         private final Optional<Lookup> lookup;
 
         public LookupOnlyExternalHooks(Lookup lookup) {
@@ -276,7 +265,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         }
     }
 
-    private class AnalysisBakedDefineClass implements DefinesClass {
+    private static class AnalysisBakedDefineClass implements DefinesClass {
         private final Analysis analysis;
 
         public AnalysisBakedDefineClass(Analysis analysis) {
@@ -286,33 +275,6 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         @Override
         public boolean apply(String className) {
             return analysis.relations().productClassName().reverse(className).nonEmpty();
-        }
-    }
-
-    private static class SbtLoggerAdapter implements xsbti.Logger {
-        @Override
-        public void error(Supplier<String> msg) {
-            LOGGER.error(msg.get());
-        }
-
-        @Override
-        public void warn(Supplier<String> msg) {
-            LOGGER.warn(msg.get());
-        }
-
-        @Override
-        public void info(Supplier<String> msg) {
-            LOGGER.info(msg.get());
-        }
-
-        @Override
-        public void debug(Supplier<String> msg) {
-            LOGGER.debug(msg.get());
-        }
-
-        @Override
-        public void trace(Supplier<Throwable> exception) {
-            LOGGER.trace(exception.get().toString());
         }
     }
 

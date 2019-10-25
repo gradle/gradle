@@ -100,7 +100,14 @@ public class ScalaRuntime {
                 String scalaMajorMinorVersion = Joiner.on('.').join(Splitter.on('.').splitToList(scalaVersion).subList(0, 2));
                 DefaultExternalModuleDependency compilerBridgeJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-bridge_" + scalaMajorMinorVersion, DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
                 compilerBridgeJar.setTransitive(false);
-                return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion), compilerBridgeJar);
+                compilerBridgeJar.artifact(artifact -> {
+                    artifact.setClassifier("sources");
+                    artifact.setType("jar");
+                    artifact.setExtension("jar");
+                    artifact.setName(compilerBridgeJar.getName());
+                });
+                DefaultExternalModuleDependency compilerInterfaceJar = new DefaultExternalModuleDependency("org.scala-sbt", "compiler-interface", DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
+                return project.getConfigurations().detachedConfiguration(new DefaultExternalModuleDependency("org.scala-lang", "scala-compiler", scalaVersion), compilerBridgeJar, compilerInterfaceJar);
             }
 
             // let's override this so that delegate isn't created at autowiring time (which would mean on every build)
