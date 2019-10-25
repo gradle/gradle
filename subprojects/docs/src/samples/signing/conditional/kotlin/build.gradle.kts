@@ -1,6 +1,6 @@
 plugins {
     java
-    maven
+    `maven-publish`
     signing
 }
 
@@ -10,11 +10,27 @@ group = "gradle"
 version = "1.0-SNAPSHOT"
 extra["isReleaseVersion"] = !version.toString().endsWith("SNAPSHOT")
 
+// end::conditional-signing[]
+publishing {
+    publications {
+        create<MavenPublication>("main") {
+            from(components["java"])
+        }
+    }
+    repositories {
+        maven {
+            name = "localRepo"
+            url = uri("$buildDir/repo")
+        }
+    }
+}
+
+// tag::conditional-signing[]
 signing {
     setRequired({
-        (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("uploadArchives")
+        (project.extra["isReleaseVersion"] as Boolean) && gradle.taskGraph.hasTask("publish")
     })
-    sign(configurations.archives.get())
+    sign(publishing.publications["main"])
 }
 // end::conditional-signing[]
 
@@ -24,18 +40,3 @@ tasks.withType<Sign>().configureEach {
     onlyIf { project.extra["isReleaseVersion"] as Boolean }
 }
 // end::only-if[]
-
-tasks.named<Upload>("uploadArchives") {
-    repositories {
-        withConvention(MavenRepositoryHandlerConvention::class) {
-            mavenDeployer {
-                withGroovyBuilder {
-                    "repository"("url" to uri("$buildDir/repo"))
-                }
-                if (project.extra["isReleaseVersion"] as Boolean) {
-                    beforeDeployment { signing.signPom(this) }
-                }
-            }
-        }
-    }
-}
