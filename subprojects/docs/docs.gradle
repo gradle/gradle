@@ -592,6 +592,10 @@ samples {
         sampleDirectory = file("src/samples/next-gen/groovy/basic-library")
         description = "Demonstrate how to build a basic Groovy library."
     }
+    groovyTransitiveDependencies {
+        sampleDirectory = file("src/samples/next-gen/groovy/transitive-dependencies")
+        description = "Demonstrate how transitive dependencies work with Groovy projects."
+    }
 
     javaBasicApplication {
         sampleDirectory = file("src/samples/next-gen/java/basic-application")
@@ -600,6 +604,10 @@ samples {
     javaBasicLibrary {
         sampleDirectory = file("src/samples/next-gen/java/basic-library")
         description = "Demonstrate how to build a basic Java library."
+    }
+    javaTransitiveDependencies {
+        sampleDirectory = file("src/samples/next-gen/java/transitive-dependencies")
+        description = "Demonstrate how transitive dependencies work with Java projects."
     }
 }
 
