@@ -142,12 +142,6 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         return children;
     }
 
-    private static <T> Optional<T> mapRegularFileContentHash(Function<HashCode, T> visitor, FileSystemLocationSnapshot snapshot) {
-        return snapshot.getType() == FileType.RegularFile
-            ? Optional.ofNullable(visitor.apply(snapshot.getHash()))
-            : Optional.empty();
-    }
-
     @Override
     public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
         if (filter.isEmpty()) {
