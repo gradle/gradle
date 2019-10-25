@@ -551,24 +551,32 @@ tasks.named("check") {
     dependsOn(checkDeadInternalLinks)
 }
 
-samples.configureEach { sample ->
-    sample.asciidoctorTask.configure {
-        options doctype: 'book'
+def asciidoctorTaskConfigurator = { AsciidoctorTask task ->
+    task.options doctype: 'book'
 
-        inputs.file("$srcDocsDir/css/manual.css")
-                .withPropertyName("manual")
-                .withPathSensitivity(PathSensitivity.RELATIVE)
-        inputs.dir(file("src/main/resources"))
-                .withPropertyName("resources")
-                .withPathSensitivity(PathSensitivity.RELATIVE)
+    task.inputs.file("$srcDocsDir/css/manual.css")
+            .withPropertyName("manual")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
+    task.inputs.dir(file("src/main/resources"))
+            .withPropertyName("resources")
+            .withPathSensitivity(PathSensitivity.RELATIVE)
 
-        attributes stylesdir: file('src/docs/css/').absolutePath,
-                stylesheet: 'manual.css',
-                nofooter: true,
-                sectanchors: true,
-                sectlinks: true,
-                linkattrs: true
+    task.attributes stylesdir: file('src/docs/css/').absolutePath,
+            stylesheet: 'manual.css',
+            nofooter: true,
+            sectanchors: true,
+            sectlinks: true,
+            linkattrs: true
+}
+
+tasks.withType(AsciidoctorTask).configureEach {
+    if (name == 'asciidocSampleIndex') {
+        asciidoctorTaskConfigurator(it)
     }
+}
+
+samples.configureEach { sample ->
+    sample.asciidoctorTask.configure(asciidoctorTaskConfigurator)
 
     sample.asciidoctorTask.configure { task ->
         task.attributes.put('docinfodir', "${buildDir}/tmp/${task.name}".toString())
