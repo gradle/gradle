@@ -617,6 +617,10 @@ samples {
         sampleDirectory = file("src/samples/next-gen/java/components-with-spock-tests")
         description = "Demonstrate how to test Java components using Spock framework"
     }
+    javaComponentsWithJUnit4Tests {
+        sampleDirectory = file("src/samples/next-gen/java/components-with-junit-4-tests")
+        description = "Demonstrate how to test Java components using JUnit 4"
+    }
 }
 
 tasks.register("publishSamplesToDocsZip", Sync) {

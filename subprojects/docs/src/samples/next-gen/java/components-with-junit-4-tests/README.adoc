@@ -1,0 +1,39 @@
+= Testing Java Components with JUnit 4 Sample
+
+ifndef::env-github[]
+- link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[Download Kotlin DSL ZIP]
+endif::[]
+
+This sample shows how to test Java projects using JUnit 4 in Gradle.
+
+Applications can be configured as follow:
+
+====
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+====
+
+Libraries can be configured as follow:
+
+====
+include::sample[dir="groovy",files="library/build.gradle[]"]
+include::sample[dir="kotlin",files="library/build.gradle.kts[]"]
+====
+
+To test the projects:
+
+====
+[.testable-sample,dir="groovy"]
+=====
+[.sample-command]
+----
+$ ./gradlew test
+
+BUILD SUCCESSFUL in 7s
+7 actionable tasks: 7 executed
+----
+=====
+====
+
+For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].
