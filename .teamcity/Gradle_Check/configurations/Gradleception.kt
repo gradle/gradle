@@ -15,7 +15,7 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 
     params {
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome())
     }
 
     features {

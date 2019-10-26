@@ -10,7 +10,7 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
     name = "Build Distributions"
     description = "Creation and verification of the distribution and documentation"
 
-    applyDefaults(model, this, "packageBuild", extraParameters = buildScanTag("BuildDistributions") + " -PtestJavaHome=$distributionTestJavaHome")
+    applyDefaults(model, this, "packageBuild", extraParameters = buildScanTag("BuildDistributions") + " -PtestJavaHome=${buildJavaHome()}")
 
     features {
         publishBuildStatusToGithub(model)
@@ -22,6 +22,6 @@ class BuildDistributions(model: CIBuildModel, stage: Stage) : BaseGradleBuildTyp
     """.trimIndent()
 
     params {
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome())
     }
 })

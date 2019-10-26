@@ -13,7 +13,7 @@ class SmokeTests(model: CIBuildModel, stage: Stage, testJava: JvmCategory) : Bas
 
     params {
         param("env.ANDROID_HOME", "/opt/android/sdk")
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome())
     }
 
     features {

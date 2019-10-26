@@ -38,7 +38,7 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
             executionMode = runnerExecutionMode
             gradleParams = (performanceTestCommandLine(task = runnerTasks, baselines = "%performance.baselines%", extraParameters = type.extraParameters) +
                     buildToolGradleParameters(isContinue = false) +
-                    distributedPerformanceTestParameters(IndividualPerformanceScenarioWorkers(model).id.toString()) +
+                    distributedPerformanceTestParameters(IndividualPerformanceScenarioWorkers(model, Os.linux).id.toString()) +
                     listOf(buildScanTag("PerformanceTest")) +
                     model.parentBuildCache.gradleParameters(Os.linux) +
                     extraParameters

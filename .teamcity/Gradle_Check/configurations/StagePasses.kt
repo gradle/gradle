@@ -69,7 +69,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     }
 
     params {
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome())
     }
 
     val baseBuildType = this

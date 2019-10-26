@@ -11,7 +11,7 @@ class DependenciesCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType
     description = "Checks external dependencies in Gradle distribution for known, published vulnerabilities"
 
     params {
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome())
     }
 
     features {
