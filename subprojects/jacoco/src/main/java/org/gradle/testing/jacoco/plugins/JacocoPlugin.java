@@ -22,7 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.artifacts.ArtifactAttributes;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.ReportingBasePlugin;
@@ -33,6 +33,7 @@ import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.jacoco.JacocoAgentJar;
+import org.gradle.internal.jacoco.transform.AgentJarExtraction;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.testing.jacoco.tasks.JacocoBase;
@@ -70,7 +71,8 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         project.getPluginManager().apply(ReportingBasePlugin.class);
         this.project = project;
         addJacocoConfigurations();
-        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class, project.getServices().get(FileOperations.class));
+        registerAgentJarExtraction();
+        JacocoAgentJar agent = instantiator.newInstance(JacocoAgentJar.class);
         JacocoPluginExtension extension = project.getExtensions().create(PLUGIN_EXTENSION_NAME, JacocoPluginExtension.class, project, agent);
         extension.setToolVersion(DEFAULT_JACOCO_VERSION);
         final ReportingExtension reportingExtension = (ReportingExtension) project.getExtensions().getByName(ReportingExtension.NAME);
@@ -97,12 +99,22 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         agentConf.setVisible(false);
         agentConf.setTransitive(true);
         agentConf.setDescription("The Jacoco agent to use to get coverage data.");
+        agentConf.attributes(attributes -> attributes.attribute(ArtifactAttributes.ARTIFACT_FORMAT, "jacoco-agent-jar"));
         Configuration antConf = project.getConfigurations().create(ANT_CONFIGURATION_NAME);
         antConf.setVisible(false);
         antConf.setTransitive(true);
         antConf.setDescription("The Jacoco ant tasks to use to get execute Gradle tasks.");
     }
 
+    /**
+     * Registers a {@link org.gradle.api.artifacts.transform.TransformAction} to extract the Jacoco agent jar that is embedded inside the jacoco agent library artifact.
+     */
+    private void registerAgentJarExtraction() {
+        project.getDependencies().registerTransform(AgentJarExtraction.class, spec -> {
+            spec.getFrom().attribute(ArtifactAttributes.ARTIFACT_FORMAT, "jar");
+            spec.getTo().attribute(ArtifactAttributes.ARTIFACT_FORMAT, "jacoco-agent-jar");
+        });
+    }
 
     /**
      * Configures the agent dependencies using the 'jacocoAnt' configuration. Uses the version declared in 'toolVersion' of the Jacoco extension if no dependencies are explicitly declared.
