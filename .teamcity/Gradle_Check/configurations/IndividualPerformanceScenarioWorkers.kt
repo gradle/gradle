@@ -48,7 +48,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.linu
                     "%baselines%",
                     """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel%""",
                     individualPerformanceTestJavaHome(os)
-                ) +
+                , os) +
                     buildToolGradleParameters(isContinue = false, os = os) +
                     buildScanTag("IndividualPerformanceScenarioWorkers") +
                     model.parentBuildCache.gradleParameters(os)

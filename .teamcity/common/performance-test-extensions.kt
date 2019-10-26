@@ -38,14 +38,17 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30)
     }
 }
 
-fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", testJavaHome: String = individualPerformanceTestJavaHome(Os.linux)) = listOf(
-        "$task --baselines $baselines $extraParameters",
-        "-x prepareSamples",
-        "-Porg.gradle.performance.branchName=%teamcity.build.branch%",
-        "-Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
-        "-PteamCityToken=%teamcity.user.bot-gradle.token%",
-        "-PtestJavaHome=$testJavaHome"
-)
+fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", testJavaHome: String = individualPerformanceTestJavaHome(Os.linux), os: Os = Os.linux) = listOf(
+    "$task --baselines $baselines $extraParameters",
+    "-x prepareSamples"
+) + listOf(
+    "-PtestJavaHome" to testJavaHome,
+    "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
+    "-Porg.gradle.performance.db.url" to "%performance.db.url%",
+    "-Porg.gradle.performance.db.username" to "%performance.db.username%",
+    "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%",
+    "-PteamCityToken" to "%teamcity.user.bot-gradle.token%"
+    ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
 fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_IndividualPerformanceScenarioWorkersLinux") = listOf(
         "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"

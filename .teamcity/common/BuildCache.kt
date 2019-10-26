@@ -37,6 +37,3 @@ object NoBuildCache : BuildCache {
         return emptyList()
     }
 }
-
-private
-fun Os.escapeKeyValuePair(key: String, value: String) = if (this == Os.windows) """$key="$value"""" else """"$key=$value""""

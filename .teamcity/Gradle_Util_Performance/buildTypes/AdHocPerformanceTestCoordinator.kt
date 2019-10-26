@@ -47,7 +47,7 @@ open class AdHocPerformanceTestCoordinator(uuid: String, id: String, os: Os) : B
             tasks = ""
             gradleParams = (
                 buildToolGradleParameters(isContinue = false) +
-                    performanceTestCommandLine(task = "clean distributedPerformanceTests", baselines = "%performance.baselines%", testJavaHome = individualPerformanceTestJavaHome(os)) +
+                    performanceTestCommandLine(task = "clean distributedPerformanceTests", baselines = "%performance.baselines%", testJavaHome = individualPerformanceTestJavaHome(os), os = os) +
                     distributedPerformanceTestParameters("Gradle_Check_IndividualPerformanceScenarioWorkers${os.name.capitalize()}") +
                     builtInRemoteBuildCacheNode.gradleParameters(os)
                 ).joinToString(separator = " ")
