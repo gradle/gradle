@@ -27,7 +27,6 @@ import org.gradle.api.provider.WestlineProviderSpec
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.service.DefaultServiceRegistry
 
 
 class DefaultWestlineProviderFactory(
@@ -78,17 +77,15 @@ class DefaultWestlineProviderProvider<T, P : WestlineProviderParameters>(
 
     private
     val value: T? by lazy {
-        createService().provide()
+        createProvider().provide()
     }
 
     private
-    fun createService(): WestlineProvider<T, P> {
-        val serviceRegistry = DefaultServiceRegistry().apply {
-            add(parametersType, parameters.isolate())
-        }
-        val instantiator = instantiatorFactory.inject(serviceRegistry)
-        return instantiator.newInstance(providerType)
-    }
+    fun createProvider(): WestlineProvider<T, P> = instantiatorFactory.newIsolatedInstance(
+        providerType,
+        parametersType,
+        parameters
+    )
 
     override fun getType(): Class<T>? = null
 
@@ -96,5 +93,3 @@ class DefaultWestlineProviderProvider<T, P : WestlineProviderParameters>(
 
     override fun getOrNull(): T? = value
 }
-
-

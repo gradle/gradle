@@ -30,11 +30,11 @@ import org.gradle.api.westline.events.WestlineListenerSpec
 import org.gradle.api.westline.events.WestlineTaskExecutionResult
 import org.gradle.api.westline.events.WestlineTaskInfo
 import org.gradle.instantexecution.westline.extractParametersType
+import org.gradle.instantexecution.westline.newIsolatedInstance
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.service.DefaultServiceRegistry
 
 
 internal
@@ -93,21 +93,9 @@ class DefaultWestlineEvents(
         val isolatedParameters = prepareParameters(parametersType, configuration)
         return { listenerAction ->
             listenerAction(
-                createListener(listenerType, parametersType, isolatedParameters)
+                instantiatorFactory.newIsolatedInstance(listenerType, parametersType, isolatedParameters)
             )
         }
-    }
-
-    private
-    fun <L : WestlineListener<P>, P : WestlineListenerParameters> createListener(
-        listenerType: Class<L>,
-        parametersType: Class<P>,
-        isolatedParameters: Isolatable<P>
-    ): L {
-        val serviceRegistry = DefaultServiceRegistry().apply {
-            add(parametersType, isolatedParameters.isolate())
-        }
-        return instantiatorFactory.inject(serviceRegistry).newInstance(listenerType)
     }
 
     private

@@ -72,18 +72,17 @@ class WestlineServiceProvider<T : WestlineService<P>, P : WestlineServiceParamet
     private val instantiatorFactory: InstantiatorFactory,
     private val listenerManager: ListenerManager
 ) : AbstractReadOnlyProvider<T>() {
+
     private
     var service: T? = null
 
     private
-    fun createService(): T {
-        val serviceRegistry = DefaultServiceRegistry().apply {
-            add(parametersType, parameters.isolate())
-        }
-        val instantiator = instantiatorFactory.inject(serviceRegistry)
-        return instantiator.newInstance(serviceType).also {
-            registerForClosing(it)
-        }
+    fun createService(): T = instantiatorFactory.newIsolatedInstance(
+        serviceType,
+        parametersType,
+        parameters
+    ).also { service ->
+        registerForClosing(service)
     }
 
     private
@@ -142,3 +141,13 @@ inline fun <P : PI, reified S : Any, reified PI : Any> extractParametersType(
     }
     return parametersType
 }
+
+
+internal
+fun <T, P> InstantiatorFactory.newIsolatedInstance(
+    listenerType: Class<T>,
+    parametersType: Class<P>,
+    isolatedParameters: Isolatable<P>
+): T = inject(DefaultServiceRegistry().apply {
+    add(parametersType, isolatedParameters.isolate())
+}).newInstance(listenerType)
