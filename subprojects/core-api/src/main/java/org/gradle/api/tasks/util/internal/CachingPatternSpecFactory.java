@@ -30,6 +30,7 @@ import org.gradle.internal.UncheckedException;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class CachingPatternSpecFactory extends PatternSpecFactory {
     private static final int RESULTS_CACHE_MAX_SIZE = 10000;
@@ -44,6 +45,10 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
 
     @Override
     protected Spec<FileTreeElement> createSpec(final Collection<String> patterns, final boolean include, final boolean caseSensitive) {
+        if (isFastPattern(patterns)) {
+            return fastPatternSpec(patterns, include, caseSensitive);
+        }
+
         final SpecKey key = new SpecKey(ImmutableList.copyOf(patterns), include, caseSensitive);
         try {
             return specInstanceCache.get(key, new Callable<Spec<FileTreeElement>>() {
@@ -56,6 +61,54 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
         } catch (ExecutionException e) {
             throw UncheckedException.throwAsUncheckedException(e.getCause());
         }
+    }
+
+    private Spec<FileTreeElement> fastPatternSpec(Collection<String> patterns, boolean include, boolean caseSensitive) {
+        if (caseSensitive) {
+            return FastSpec.caseSensitive(patterns, include);
+        } else {
+            return FastSpec.caseInsensitive(patterns, include);
+        }
+    }
+
+
+    private static class FastSpec implements Spec<FileTreeElement> {
+        private final Collection<String> suffixes;
+        private final boolean include;
+        private final boolean caseSensitive;
+
+        public FastSpec(Collection<String> suffixes, boolean include, boolean caseSensitive) {
+            this.suffixes = suffixes;
+            this.include = include;
+            this.caseSensitive = caseSensitive;
+        }
+
+        private static Spec<FileTreeElement> caseSensitive(Collection<String> patterns, boolean include) {
+            return new FastSpec(patterns.stream().map(s -> s.substring(4)).collect(Collectors.toList()), include, true);
+        }
+
+        private static Spec<FileTreeElement> caseInsensitive(Collection<String> patterns, boolean include) {
+            return new FastSpec(patterns.stream().map(s -> s.substring(4).toUpperCase()).collect(Collectors.toList()), include, false);
+        }
+
+        @Override
+        public boolean isSatisfiedBy(FileTreeElement element) {
+            String targetName = caseSensitive ? element.getName() : element.getName().toUpperCase();
+            if (include) {
+                return suffixes.stream().anyMatch(targetName::endsWith);
+            } else {
+                return suffixes.stream().noneMatch(targetName::endsWith);
+            }
+        }
+    }
+
+    private boolean isFastPattern(Collection<String> patterns) {
+        // "**/*.java", "**/*.groovy"
+        return !patterns.isEmpty() && patterns.stream().allMatch(this::isSuffixPattern);
+    }
+
+    private boolean isSuffixPattern(String pattern) {
+        return pattern.startsWith("**/*") && pattern.length() > 4 && !pattern.substring(4).contains("/");
     }
 
     private class CachingSpec implements Spec<FileTreeElement> {
@@ -131,4 +184,5 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
                 .toString();
         }
     }
+
 }
