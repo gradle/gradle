@@ -2,6 +2,7 @@ package Gradle_Util_Performance
 
 import Gradle_Util_Performance.buildTypes.AdHocPerformanceScenarioLinux
 import Gradle_Util_Performance.buildTypes.AdHocPerformanceTestCoordinatorLinux
+import Gradle_Util_Performance.buildTypes.AdHocPerformanceTestCoordinatorWindows
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 
 object Project : Project({
@@ -12,4 +13,5 @@ object Project : Project({
 
     buildType(AdHocPerformanceScenarioLinux)
     buildType(AdHocPerformanceTestCoordinatorLinux)
+    buildType(AdHocPerformanceTestCoordinatorWindows)
 })

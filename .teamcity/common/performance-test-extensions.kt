@@ -17,7 +17,7 @@
 package common
 
 import configurations.buildJavaHome
-import configurations.coordinatorPerformanceTestJavaHome
+import configurations.individualPerformanceTestJavaHome
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 
 fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30) {
@@ -31,14 +31,14 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30)
     }
     params {
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome(os))
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
         param("performance.db.url", "jdbc:h2:ssl://metrics.gradle.org:9094")
         param("performance.db.username", "tcagent")
     }
 }
 
-fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", testJavaHome: String = coordinatorPerformanceTestJavaHome) = listOf(
+fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", testJavaHome: String = individualPerformanceTestJavaHome(Os.linux)) = listOf(
         "$task --baselines $baselines $extraParameters",
         "-x prepareSamples",
         "-Porg.gradle.performance.branchName=%teamcity.build.branch%",
