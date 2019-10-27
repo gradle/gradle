@@ -72,7 +72,13 @@ open class AvailableJavaInstallations(
     }
 
     private
-    fun determineJavaInstallationForCompilation(project: Project) = if (JavaVersion.current().isJava9Compatible) currentJavaInstallation else determineJavaInstallation(project, java9HomePropertyName)
+    fun determineJavaInstallationForCompilation(project: Project) =
+        if (JavaVersion.current().let { it.isJava9Compatible && it.canCompileJava6 }) currentJavaInstallation
+        else determineJavaInstallation(project, java9HomePropertyName)
+
+    private
+    val JavaVersion.canCompileJava6
+        get() = this <= JavaVersion.VERSION_11
 
     private
     fun determineJavaInstallation(project: Project, propertyName: String): JavaInstallation {
