@@ -92,12 +92,17 @@ plugins.withType<EclipsePlugin>().configureEach { // lazy as plugin not applied 
     }
 }
 
-// TODO Copied from instant-execution.gradle.kts, we should have one place to clone this thing and clone it from there locally when needed
 tasks {
+    // TODO Copied from instant-execution.gradle.kts, we should have one place to clone this thing and clone it from there locally when needed
     val santaTracker by registering(RemoteProject::class) {
         remoteUri.set("https://github.com/gradle/santa-tracker-android.git")
         // From branch agp-3.6.0
         ref.set("036aad22af993d2f564a6a15d6a7b9706ba37d8e")
+    }
+
+    val gradleBuildCurrent by registering(RemoteProject::class) {
+        remoteUri.set(rootDir.absolutePath)
+        ref.set(rootProject.tasks.named<DetermineCommitId>("determineCommitId").flatMap { it.determinedCommitId })
     }
 
     if (BuildEnvironment.isCiServer) {
@@ -108,18 +113,11 @@ tasks {
 
     withType<SmokeTest>().configureEach {
         dependsOn(santaTracker)
+        dependsOn(gradleBuildCurrent)
         inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
     }
 
     register<Delete>("cleanRemoteProjects") {
         delete(santaTracker.get().outputDirectory)
-    }
-
-    val gradleBuildCurrent by registering(RemoteProject::class) {
-        remoteUri.set(rootDir.absolutePath)
-        ref.set(rootProject.tasks.named<DetermineCommitId>("determineCommitId").flatMap { it.determinedCommitId })
-    }
-    named("smokeTest") {
-        dependsOn(gradleBuildCurrent)
     }
 }
