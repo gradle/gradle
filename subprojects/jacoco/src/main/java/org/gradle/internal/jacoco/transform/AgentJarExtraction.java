@@ -47,8 +47,7 @@ public abstract class AgentJarExtraction implements TransformAction<TransformPar
     }
 
     private void extractAgentJar(File input, File output) {
-        try {
-            ZipFile zipFile = new ZipFile(input);
+        try (ZipFile zipFile = new ZipFile(input)) {
             Enumeration<? extends ZipEntry> zipEntries = zipFile.entries();
             while (zipEntries.hasMoreElements()) {
                 ZipEntry zipEntry = zipEntries.nextElement();
