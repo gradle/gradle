@@ -45,9 +45,9 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
     "-PtestJavaHome" to testJavaHome,
     "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
     "-Porg.gradle.performance.db.url" to "%performance.db.url%",
+    "-PteamCityToken" to "%teamcity.user.bot-gradle.token%",
     "-Porg.gradle.performance.db.username" to "%performance.db.username%",
-    "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%",
-    "-PteamCityToken" to "%teamcity.user.bot-gradle.token%"
+    "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%"
     ).map { (key, value) -> """"${key}=${value}"""" }
 
 fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_IndividualPerformanceScenarioWorkersLinux") = listOf(
