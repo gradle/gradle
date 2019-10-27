@@ -59,5 +59,9 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         return runner(*(tasks + GRADLE_BUILD_TEST_ARGS)).build()
     }
 
-    private static final GRADLE_BUILD_TEST_ARGS = ["-PbuildSrcCheck=false"]
+    private static final GRADLE_BUILD_TEST_ARGS = [
+        "-PbuildSrcCheck=false",
+        "-Djava9Home=${System.getenv("GRADLE_BUILD_JAVA_HOME")}",
+        "-DtestJavaHome=${System.getenv("GRADLE_BUILD_JAVA_HOME")}"
+    ]
 }
