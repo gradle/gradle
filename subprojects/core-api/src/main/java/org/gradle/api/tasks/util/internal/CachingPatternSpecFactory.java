@@ -93,14 +93,11 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
 
         @Override
         public boolean isSatisfiedBy(FileTreeElement element) {
-            if (element.isDirectory()) {
+            if (element.isDirectory() && include) {
                 return true;
-            }
-            String targetName = caseSensitive ? element.getName() : element.getName().toUpperCase();
-            if (include) {
-                return suffixes.stream().anyMatch(targetName::endsWith);
             } else {
-                return suffixes.stream().noneMatch(targetName::endsWith);
+                String targetName = caseSensitive ? element.getName() : element.getName().toUpperCase();
+                return suffixes.stream().anyMatch(targetName::endsWith);
             }
         }
     }
