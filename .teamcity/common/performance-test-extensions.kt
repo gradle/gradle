@@ -48,7 +48,7 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
     "-Porg.gradle.performance.db.username" to "%performance.db.username%",
     "-Porg.gradle.performance.db.password" to "%performance.db.password.tcagent%",
     "-PteamCityToken" to "%teamcity.user.bot-gradle.token%"
-    ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
+    ).map { (key, value) -> """"${key}=${value}"""" }
 
 fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_IndividualPerformanceScenarioWorkersLinux") = listOf(
         "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
