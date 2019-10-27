@@ -108,7 +108,11 @@ public class CachingPatternSpecFactory extends PatternSpecFactory {
     }
 
     private boolean isSuffixPattern(String pattern) {
-        return pattern.startsWith("**/*") && pattern.length() > 4 && !pattern.substring(4).contains("/");
+        return pattern.startsWith("**/*") && pattern.length() > 4 && hasOnlyPlainCharacters(pattern.substring(4)); //!pattern.substring(4).contains("/");
+    }
+
+    private boolean hasOnlyPlainCharacters(String str) {
+        return !str.contains("/") && !str.contains("\\") && !str.contains("*") && !str.contains("?");
     }
 
     private class CachingSpec implements Spec<FileTreeElement> {
