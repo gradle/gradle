@@ -24,6 +24,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.caching.http.HttpBuildCache
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 import java.io.File
@@ -71,7 +72,7 @@ open class BuildCommitDistribution : DefaultTask() {
     fun getBuildCommands(checkoutDir: File): Array<String> {
         project.delete(commitDistributionHome.get().asFile)
         val buildCommands = mutableListOf(
-            "./gradlew",
+            "./gradlew" + (if (OperatingSystem.current().isWindows()) ".bat" else ""),
             "--init-script",
             File(checkoutDir, "gradle/init-scripts/build-scan.init.gradle.kts").absolutePath,
             "clean",
