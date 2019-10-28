@@ -31,6 +31,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Bean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BrokenConstructor
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceContainerPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
@@ -266,7 +267,15 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         InterfaceMapPropertyBean       | _
     }
 
-    def canConstructInstanceOfInterfaceWithReadOnlyMethodsWithCovariantReturnTypeWhereSomeTypesAreNotSupported() {
+    def "can construct instance of class without running its constructor to use for deserialization"() {
+        def bean = createForSerialization(BrokenConstructor)
+
+        expect:
+        !bean.value.present
+        bean.bean != null
+    }
+
+    def canConstructInstanceOfInterfaceWithReadOnlyMethodsWithCovariantReturnTypeWhereOverriddenTypesAreNotSupported() {
         def bean = create(AbstractCovariantReadOnlyPropertyBean)
 
         expect:

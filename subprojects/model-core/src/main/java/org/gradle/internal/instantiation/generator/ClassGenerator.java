@@ -42,6 +42,18 @@ interface ClassGenerator {
         Class<?> getOuterType();
 
         List<GeneratedConstructor<T>> getConstructors();
+
+        /**
+         * Creates a serialization constructor. Note: this can be expensive and does not perform any caching.
+         */
+        SerializationConstructor<T> getSerializationConstructor(Class<? super T> baseClass);
+    }
+
+    interface SerializationConstructor<T> {
+        /**
+         * Creates a new instance, using the given services and parameters. Uses the given instantiator to create nested objects, if required.
+         */
+        T newInstance(ServiceLookup services, InstanceGenerator nested) throws InvocationTargetException, IllegalAccessException, InstantiationException;
     }
 
     interface GeneratedConstructor<T> {
@@ -59,9 +71,6 @@ interface ClassGenerator {
          * Does this constructor use a service injected via the given annotation?
          */
         boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation);
-
-        //TODO:instant-execution: remove this
-        Class<?> getGeneratedClass();
 
         Class<?>[] getParameterTypes();
 

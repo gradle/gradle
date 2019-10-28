@@ -50,6 +50,11 @@ class IdentityClassGenerator implements ClassGenerator {
             }
 
             @Override
+            public SerializationConstructor<T> getSerializationConstructor(Class<? super T> baseClass) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
             public List<GeneratedConstructor<T>> getConstructors() {
                 List<GeneratedConstructor<T>> constructors = new ArrayList<GeneratedConstructor<T>>();
                 for (final Constructor<?> constructor : type.getDeclaredConstructors()) {
@@ -68,11 +73,6 @@ class IdentityClassGenerator implements ClassGenerator {
                         @Override
                         public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
                             return false;
-                        }
-
-                        @Override
-                        public Class<?> getGeneratedClass() {
-                            return constructor.getDeclaringClass();
                         }
 
                         @Override
