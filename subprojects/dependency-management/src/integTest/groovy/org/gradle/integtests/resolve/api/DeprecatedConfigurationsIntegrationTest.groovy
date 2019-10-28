@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -144,6 +145,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         outputContains "The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. Please use attributes to consume the compileElements configuration instead."
     }
 
+    @FailsWithInstantExecution
     def "warn if a deprecated project configuration is consumed directly"() {
         // this is testing legacy code that we can/should probably get rid of
         given:

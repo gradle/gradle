@@ -17,7 +17,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -166,6 +168,7 @@ allprojects {
         executed ":lib:jar", ":lib:utilClasses", ":lib:utilDir", ":lib:utilJar", ":ui:jar", ":app:resolve"
     }
 
+    @IgnoreWithInstantExecution
     def "can create a view that selects different artifacts from the same dependency graph"() {
         given:
         def m1 = ivyHttpRepo.module('org', 'test', '1.0')
@@ -317,6 +320,7 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=profile, flavor=tasty, usage=api}]")
     }
 
+    @FailsWithInstantExecution
     def "applies producer's disambiguation rules when selecting variant"() {
         buildFile << """
 class FlavorCompatibilityRule implements AttributeCompatibilityRule<String> {
@@ -455,6 +459,7 @@ task show {
         outputContains("variants: [{artifactType=jar, buildType=debug, extra=good, usage=api}]")
     }
 
+    @FailsWithInstantExecution
     def "can select the implicit variant of a configuration"() {
         buildFile << """
 

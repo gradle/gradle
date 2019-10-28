@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -32,6 +34,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         return server
     }
 
+    @FailsWithInstantExecution
     void "fails when configured with AwsCredentials"() {
         given:
         def remoteIvyRepo = server.remoteIvyRepo
@@ -67,6 +70,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }
 
+    @FailsWithInstantExecution
     public void "can resolve and cache dependencies with missing status and publication date"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -110,6 +114,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         succeeds 'listJars'
     }
 
+    @IgnoreWithInstantExecution
     void "skip subsequent Ivy repositories on timeout and recovers for later resolution"() {
         given:
         executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")

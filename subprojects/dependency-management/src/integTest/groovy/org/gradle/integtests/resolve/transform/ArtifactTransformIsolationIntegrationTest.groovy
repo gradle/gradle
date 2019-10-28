@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
@@ -79,6 +80,7 @@ class Resolve extends Copy {
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
+    @FailsWithInstantExecution
     def "serialized mutable class is isolated during artifact transformation"() {
         mavenRepo.module("test", "test", "1.3").publish()
         mavenRepo.module("test", "test2", "2.3").publish()

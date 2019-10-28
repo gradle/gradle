@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
     def "deprecation warning when configuration in another project is resolved unsafely"() {
@@ -58,6 +59,7 @@ class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDe
         outputContains("The configuration :bar:bar was resolved without accessing the project in a safe manner.")
     }
 
+    @FailsWithInstantExecution
     def "exception when configuration is resolved from a non-gradle thread"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 

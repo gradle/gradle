@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.internal.id.UUIDGenerator
 import spock.lang.Issue
@@ -92,6 +93,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2861")
+    @FailsWithInstantExecution
     def "uses properties from active profile to resolve dependency with placeholders in dependency management"() {
         given:
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()

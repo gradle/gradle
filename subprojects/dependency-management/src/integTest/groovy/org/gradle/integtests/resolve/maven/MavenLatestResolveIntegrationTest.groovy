@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -53,6 +54,7 @@ class MavenLatestResolveIntegrationTest extends AbstractHttpDependencyResolution
         status << ["integration", "milestone", "release"]
     }
 
+    @FailsWithInstantExecution
     def "latest selector with unknown status leads to failure"() {
         mavenRepo().module('group', 'projectA', '1.0').publish()
 

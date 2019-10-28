@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.resolve.MetadataArtifactResolveTestFixture
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.test.fixtures.maven.MavenRepository
@@ -41,6 +42,7 @@ repositories {
 """
     }
 
+    @FailsWithInstantExecution
     def "successfully resolve existing Maven module artifact"() {
         given:
         MavenHttpModule module = publishModule()
@@ -57,6 +59,7 @@ repositories {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "invalid component type and artifact type (#reason)"() {
         given:
         MavenHttpModule module = publishModule()
@@ -77,6 +80,7 @@ repositories {
         'IvyModule'   | 'IvyDescriptorArtifact' | 'cannot retrieve Ivy component and metadata artifact for Maven module'           | new ArtifactResolveException("Could not determine artifacts for some.group:some-artifact:1.0: Cannot locate 'ivy descriptor' artifacts for 'some.group:some-artifact:1.0' in repository 'maven'")
     }
 
+    @FailsWithInstantExecution
     def "requesting MavenModule for a project component"() {
         MavenHttpModule module = publishModule()
 
@@ -92,6 +96,7 @@ repositories {
         checkArtifactsResolvedAndCached()
     }
 
+    @FailsWithInstantExecution
     def "request an Maven POM for a Maven module with no metadata when artifact metadata source are configured"() {
         given:
         MavenHttpModule module = publishModuleWithoutMetadata()
@@ -121,6 +126,7 @@ repositories {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "updates artifacts for module #condition"() {
         given:
         MavenHttpModule module = publishModule()

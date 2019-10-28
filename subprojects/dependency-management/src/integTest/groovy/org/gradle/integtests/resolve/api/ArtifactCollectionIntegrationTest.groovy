@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
 
@@ -62,6 +63,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
 """
     }
 
+    @FailsWithInstantExecution
     def "artifact collection has resolved artifact files and metadata"() {
         when:
         buildFile << """
@@ -112,6 +114,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
         succeeds "checkArtifacts"
     }
 
+    @FailsWithInstantExecution
     def "can use artifact collection as task input"() {
         given:
         buildFile << """
@@ -130,6 +133,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
         succeeds "verify"
     }
 
+    @FailsWithInstantExecution
     def "task is not up-to-date when files of artifact collection input changes"() {
         given:
         buildFile << """
@@ -173,6 +177,7 @@ class Main {
         executedAndNotSkipped ":project-lib:jar", ":verify"
     }
 
+    @FailsWithInstantExecution
     def "failure to resolve artifact collection"() {
         given:
         buildFile << """

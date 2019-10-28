@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 
 class ConfigurationDefaultsIntegrationTest extends AbstractDependencyResolutionTest {
@@ -63,6 +64,7 @@ task checkExplicit {
 """
     }
 
+    @FailsWithInstantExecution
     def "can use defaultDependencies to specify default dependencies"() {
         buildFile << """
 configurations.conf.defaultDependencies { deps ->
@@ -113,6 +115,7 @@ project.status = 'foo'
     }
 
     @Issue("gradle/gradle#812")
+    @FailsWithInstantExecution
     def "can use defaultDependencies in a multi-project build"() {
         buildFile.text = """
 subprojects {
@@ -170,6 +173,7 @@ include 'consumer', 'producer'
         succeeds("resolve")
 
     }
+    @FailsWithInstantExecution
     def "can use defaultDependencies in a composite build"() {
         buildTestFixture.withBuildInSubDir()
 
@@ -261,6 +265,7 @@ configurations.conf.incoming.beforeResolve {
         failure.assertHasCause "Cannot change dependencies of configuration ':conf' after it has been included in dependency resolution."
     }
 
+    @FailsWithInstantExecution
     def "copied configuration has independent set of listeners"() {
         buildFile << """
 configurations {

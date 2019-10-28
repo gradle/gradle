@@ -16,9 +16,12 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 
 class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
+    @IgnoreWithInstantExecution
     def "detects changed module descriptor when flagged as changing"() {
         given:
         buildFile << """
@@ -79,6 +82,7 @@ task retrieve(type: Copy) {
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar', 'projectB-2.0.jar')
     }
 
+    @IgnoreWithInstantExecution
     def "can mark a module as changing after first retrieval"() {
         given:
         buildFile << """
@@ -127,6 +131,7 @@ task retrieve(type: Copy) {
         file('build/projectA-1.1.jar').assertHasChangedSince(jarSnapshot)
     }
 
+    @IgnoreWithInstantExecution
     def "detects changed artifact when flagged as changing"() {
         given:
         buildFile << """
@@ -184,6 +189,7 @@ task retrieve(type: Copy) {
         changedJarFile.assertIsCopyOf(module.jarFile)
     }
 
+    @IgnoreWithInstantExecution
     def "caches changing module descriptor and artifacts until cache expiry"() {
         given:
         buildFile << """
@@ -259,6 +265,7 @@ task retrieve(type: Copy) {
         jarFile.assertIsCopyOf(module.jarFile)
     }
 
+    @FailsWithInstantExecution
     def "avoid redownload unchanged artifact when no checksum available"() {
         given:
         buildFile << """

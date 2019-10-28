@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.encoding.Identifier
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -131,6 +132,7 @@ task retrieve(type: Sync) {
         identifier << Identifier.all
     }
 
+    @FailsWithInstantExecution
     def "can resolve and cache artifact-only dependencies from an HTTP Maven repository"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', '1.2')
@@ -179,6 +181,7 @@ task listJars {
         succeeds('listJars')
     }
 
+    @FailsWithInstantExecution
     def "can resolve and cache artifact-only dependencies with no pom from an HTTP Maven repository"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', '1.2')
@@ -227,6 +230,7 @@ task listJars {
         succeeds('listJars')
     }
 
+    @FailsWithInstantExecution
     def "can resolve and cache dependencies from multiple HTTP Maven repositories"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -366,6 +370,7 @@ task listJars {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
+    @FailsWithInstantExecution
     void "fails when configured with AwsCredentials"() {
         given:
         mavenHttpRepo.module('group', 'projectA', '1.2').publish()

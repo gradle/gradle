@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationWorkspace
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -49,6 +50,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         """
     }
 
+    @FailsWithInstantExecution
     def "transform is applied to each file once per build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withLibJarDependency("lib3.jar")
@@ -96,6 +98,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         }
     }
 
+    @FailsWithInstantExecution
     def "scheduled transformation is invoked before consuming task is executed"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks()
@@ -115,6 +118,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         transformationPosition2 < taskPosition
     }
 
+    @FailsWithInstantExecution
     def "scheduled transformation is only invoked once per subject"() {
         given:
         settingsFile << """
@@ -137,6 +141,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("> Transform artifact lib2.jar (project :lib) with FileSizer") == 1
     }
 
+    @FailsWithInstantExecution
     def "scheduled chained transformation is only invoked once per subject"() {
         given:
         settingsFile << """
@@ -309,6 +314,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transforming artifact lib2.jar (project :lib) with MakeGreen") == 2
     }
 
+    @FailsWithInstantExecution
     def "each file is transformed once per set of configuration parameters"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
@@ -411,6 +417,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    @FailsWithInstantExecution
     def "can use custom type that does not implement equals() for transform configuration"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """
@@ -514,6 +521,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can use configuration parameter of type #type"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << """
@@ -603,6 +611,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         "Named"        | "objects.named(Named, 'abc')"
     }
 
+    @FailsWithInstantExecution
     def "each file is transformed once per transform class"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << """
@@ -719,6 +728,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    @FailsWithInstantExecution
     def "transform is run again and old output is removed after it failed in previous build"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withJarTasks() << withLibJarDependency("lib3.jar")
@@ -758,6 +768,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    @FailsWithInstantExecution
     def "transform is re-executed when input file content changes between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
@@ -808,6 +819,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    @FailsWithInstantExecution
     def "transform is executed in different workspace for different file produced in chain"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << duplicatorTransform << """
@@ -872,6 +884,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         output.count("Transformed") == 0
     }
 
+    @FailsWithInstantExecution
     def "long transformation chain works"() {
         given:
         buildFile << declareAttributes() << withJarTasks() << withLibJarDependency("lib3.jar") << duplicatorTransform << """
@@ -938,6 +951,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "failure in transformation chain propagates (position in chain: #failingTransform)"() {
         given:
 
@@ -1014,6 +1028,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "failure in resolution propagates to chain (scheduled: #scheduled)"() {
         given:
         def module = mavenHttpRepo.module("test", "test", "1.3").publish()
@@ -1120,6 +1135,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
     """
 
     @Unroll
+    @FailsWithInstantExecution
     def "transform is rerun when output is #action between builds"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform() << withClassesSizeTransform() << withLibJarDependency()
@@ -1187,6 +1203,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         action << ['changed', 'removed', 'added']
     }
 
+    @FailsWithInstantExecution
     def "transform is supplied with a different output directory when transform implementation changes"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform(parameterObject: useParameterObject) << withClassesSizeTransform(useParameterObject)
@@ -1236,6 +1253,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         useParameterObject << [true, false]
     }
 
+    @FailsWithInstantExecution
     def "transform is supplied with a different output directory when parameters change"() {
         given:
         // Use another script to define the value, so that transform implementation does not change when the value is changed
@@ -1289,6 +1307,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         useParameterObject << [true, false]
     }
 
+    @FailsWithInstantExecution
     def "transform is supplied with a different output directory when external dependency changes"() {
         def m1 = mavenHttpRepo.module("test", "changing", "1.2").publish()
         def m2 = mavenHttpRepo.module("test", "snapshot", "1.2-SNAPSHOT").publish()
@@ -1414,6 +1433,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
         outputDir("snapshot-1.2-SNAPSHOT.jar", "snapshot-1.2-SNAPSHOT.jar.txt") != outputDir2
     }
 
+    @FailsWithInstantExecution
     def "cleans up cache"() {
         given:
         buildFile << declareAttributes() << multiProjectWithJarSizeTransform()

@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
@@ -247,6 +248,7 @@ configurations {
         failure.assertHasCause('Did not resolve \'org:foo:1.0\' which is part of the dependency lock state')
     }
 
+    @FailsWithInstantExecution
     def 'succeeds without lock file present and does not create one'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -277,6 +279,7 @@ dependencies {
         lockfileFixture.expectMissing('unlockedConf')
     }
 
+    @FailsWithInstantExecution
     def 'does not write-locks for unlocked configuration'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -303,6 +306,7 @@ dependencies {
         lockfileFixture.expectMissing('unlockedConf')
     }
 
+    @FailsWithInstantExecution
     def 'dependency report passes with failed dependencies using out-of-date lock file'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -342,6 +346,7 @@ dependencies {
 \\--- org:foo:{strictly 1.0} FAILED"""
     }
 
+    @FailsWithInstantExecution
     def 'dependency report passes with FAILED dependencies for all out lock issues'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -384,6 +389,7 @@ dependencies {
 """
     }
 
+    @FailsWithInstantExecution
     def 'writes dependency lock file when requested'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -418,6 +424,7 @@ dependencies {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "writes dependency lock file for resolved version #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
@@ -506,6 +513,7 @@ task check {
         succeeds 'check'
     }
 
+    @FailsWithInstantExecution
     def "does not lock a configuration that is marked with deactivateDependencyLocking"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
             mavenRepo.module('org', artifact, '1.0').publish()
@@ -558,6 +566,7 @@ dependencies {
         lockfileFixture.expectMissing('secondLockEnabledConf')
     }
 
+    @FailsWithInstantExecution
     def 'upgrades lock file'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -593,6 +602,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'])
     }
 
+    @FailsWithInstantExecution
     def 'counts dependencies with multiple paths as one instance'() {
         def foo = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
@@ -627,6 +637,7 @@ dependencies {
         outputContains("org:foo:1.0")
     }
 
+    @FailsWithInstantExecution
     def 'does not write duplicates in the lockfile'() {
         def foo = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
@@ -659,6 +670,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
 
+    @FailsWithInstantExecution
     def 'includes transitive dependencies in the lock file'() {
         def dep = mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.0').dependsOn(dep).publish()
@@ -690,6 +702,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
 
+    @FailsWithInstantExecution
     def 'updates part of the lockfile'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -726,6 +739,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
     }
 
+    @FailsWithInstantExecution
     def 'updates part of the lockfile using wildcard'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -762,6 +776,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
     }
 
+    @FailsWithInstantExecution
     def 'updates but ignores irrelevant modules'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
@@ -798,6 +813,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.1'])
     }
 
+    @FailsWithInstantExecution
     def 'updates multiple parts of the lockfile'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -839,6 +855,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1', 'org:baz:1.1', 'org:buz:1.0'])
     }
 
+    @FailsWithInstantExecution
     def 'writes a new lock file if update done without lockfile present'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -873,6 +890,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
     }
 
+    @FailsWithInstantExecution
     def 'writes an empty lock file for an empty configuration'() {
         buildFile << """
 dependencyLocking {
@@ -896,6 +914,7 @@ configurations {
         lockfileFixture.verifyLockfile('lockedConf', [])
     }
 
+    @FailsWithInstantExecution
     def 'does not write an empty lock file for an empty configuration if not requested'() {
         buildFile << """
 dependencyLocking {
@@ -919,6 +938,7 @@ configurations {
         lockfileFixture.expectMissing('lockedConf')
     }
 
+    @FailsWithInstantExecution
     def 'overwrites a not empty lock file with an empty one when configuration no longer has dependencies'() {
         buildFile << """
 dependencyLocking {
@@ -945,6 +965,7 @@ configurations {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "fails if trying to resolve a locked configuration with #flag"() {
         buildFile << """
 dependencyLocking {

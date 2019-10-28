@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
@@ -34,6 +36,7 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
 
     }
 
+    @FailsWithInstantExecution
     def "downloads and caches the module metadata when present"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
@@ -92,6 +95,7 @@ dependencies {
         }
     }
 
+    @FailsWithInstantExecution
     def "skips module metadata when not present and caches result"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").publish()
 
@@ -148,6 +152,7 @@ dependencies {
         }
     }
 
+    @FailsWithInstantExecution
     def "uses dependencies and files from selected variant"() {
         def c = mavenHttpRepo.module("test", "c", "2.2").publish()
         def b = mavenHttpRepo.module("test", "b", "2.0").publish()
@@ -229,6 +234,7 @@ task checkRelease {
         succeeds("checkRelease")
     }
 
+    @FailsWithInstantExecution
     def "variant can define zero files or multiple files"() {
         def b = mavenHttpRepo.module("test", "b", "2.0").publish()
         def a = mavenHttpRepo.module("test", "a", "1.2")
@@ -320,6 +326,7 @@ task checkRelease {
         succeeds("checkDebug")
     }
 
+    @FailsWithInstantExecution
     def "variant can define files whose names are different to their maven contention location"() {
         def a = mavenHttpRepo.module("test", "a", "1.2")
             .withModuleMetadata()
@@ -388,6 +395,7 @@ task checkDebug {
         succeeds("checkDebug")
     }
 
+    @FailsWithInstantExecution
     def "variant can define files whose names and locations do not match maven convention"() {
         def a = mavenHttpRepo.module("test", "a", "1.2")
             .withModuleMetadata()
@@ -568,6 +576,7 @@ task checkRelease {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "consumer can use attribute of type #type"() {
         def a = mavenHttpRepo.module("test", "a", "1.2")
             .withModuleMetadata()
@@ -652,6 +661,7 @@ task checkRelease {
         "true"            | "false"             | "Boolean"       | "true"                              | "false"
     }
 
+    @IgnoreWithInstantExecution
     def "reports and recovers from failure to locate module"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
 
@@ -699,6 +709,7 @@ Required by:
         }
     }
 
+    @IgnoreWithInstantExecution
     def "reports and recovers from failure to download module metadata"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
@@ -742,6 +753,7 @@ dependencies {
         }
     }
 
+    @IgnoreWithInstantExecution
     def "reports failure to parse module metadata"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
         m.moduleMetadata.file.text = 'not-really-json'
@@ -783,6 +795,7 @@ dependencies {
         failure.assertHasCause("Could not parse module metadata ${m.moduleMetadata.uri}")
     }
 
+    @FailsWithInstantExecution
     def "reports failure to locate files"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
         m.artifact(classifier: 'extra')

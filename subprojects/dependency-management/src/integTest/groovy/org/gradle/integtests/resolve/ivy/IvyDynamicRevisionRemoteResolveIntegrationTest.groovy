@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.encoding.Identifier
@@ -67,6 +69,7 @@ dependencies {
         assert succeeds('checkDeps')
     }
 
+    @IgnoreWithInstantExecution
     def "uses latest version from version range and latest status"() {
         given:
         useRepository ivyHttpRepo
@@ -143,6 +146,7 @@ dependencies {
         identifier << Identifier.all
     }
 
+    @FailsWithInstantExecution
     def "determines latest version with jar only if artifact metadata source is configured"() {
         given:
         useRepository ivyHttpRepo
@@ -189,6 +193,7 @@ dependencies {
                      "group:projectB:latest.integration": "group:projectB:1.2"
     }
 
+    @IgnoreWithInstantExecution
     def "uses latest version with correct status for latest.release and latest.milestone"() {
         given:
         useRepository ivyHttpRepo
@@ -238,6 +243,7 @@ dependencies {
         checkResolve "group:projectA:latest.milestone": ["group:projectA:2.1", "didn't match version 2.2"]
     }
 
+    @FailsWithInstantExecution
     def "reuses cached meta-data when resolving latest.status"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -292,6 +298,7 @@ task cache { doLast { configurations.staticVersions.files } }
         checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
     }
 
+    @FailsWithInstantExecution
     def "can use latest version from different remote repositories"() {
         def repo1 = ivyHttpRepo("ivy1")
         def repo2 = ivyHttpRepo("ivy2")
@@ -325,6 +332,7 @@ task cache { doLast { configurations.staticVersions.files } }
         checkResolve "group:projectA:latest.milestone": ["group:projectA:1.1", "didn't match version 1.2"]
     }
 
+    @IgnoreWithInstantExecution
     def "checks new repositories before returning any cached value"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -373,6 +381,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
+    @IgnoreWithInstantExecution
     def "fails on broken directory listing in subsequent resolution"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -408,6 +417,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
+    @FailsWithInstantExecution
     def "uses and caches latest of versions obtained from multiple HTTP repositories"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -443,6 +453,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
+    @FailsWithInstantExecution
     def "reuses cached artifacts that match multiple dynamic versions"() {
         given:
         useRepository ivyHttpRepo
@@ -492,6 +503,7 @@ dependencies {
     }
 
     @Issue("gradle/gradle#3019")
+    @IgnoreWithInstantExecution
     def "should honour dynamic version cache expiry for subsequent resolutions in the same build"() {
         given:
         useRepository ivyHttpRepo
@@ -542,6 +554,7 @@ task resolveStaleThenFresh {
         outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
     }
 
+    @IgnoreWithInstantExecution
     def "reuses cached version lists unless no matches"() {
         given:
         useRepository ivyHttpRepo
@@ -616,6 +629,7 @@ dependencies {
         }
     }
 
+    @FailsWithInstantExecution
     def "caches resolved revisions until cache expiry"() {
         given:
         useRepository ivyHttpRepo
@@ -657,6 +671,7 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
+    @FailsWithInstantExecution
     def "uses and caches dynamic revisions for transitive dependencies"() {
         given:
         useRepository ivyHttpRepo
@@ -738,6 +753,7 @@ if (project.hasProperty('noDynamicRevisionCache')) {
         }
     }
 
+    @FailsWithInstantExecution
     def "resolves dynamic version with 2 repositories where first repo results in 404 for directory listing"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -768,6 +784,7 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.0"
     }
 
+    @IgnoreWithInstantExecution
     def "reuses cached artifacts across repository types"() {
         def ivyRepo = ivyHttpRepo('repo1')
         def mavenRepo = mavenHttpRepo('repo2')
@@ -816,6 +833,7 @@ dependencies {
         checkResolve "org.test:a:[1.0,2.0)": "org.test:a:1.1:runtime"
     }
 
+    @FailsWithInstantExecution
     def "can resolve dynamic versions from repository with multiple ivy patterns"() {
         given:
         def repo1versions = [:]
@@ -879,6 +897,7 @@ dependencies {
 
     }
 
+    @IgnoreWithInstantExecution
     def "versions are listed once only per resolve"() {
         given:
         useRepository ivyHttpRepo
@@ -939,6 +958,7 @@ configurations.all {
         }
     }
 
+    @IgnoreWithInstantExecution
     def "reports and recovers from no matching version for dynamic version"() {
         def repo2 = ivyHttpRepo("repo-2")
 
@@ -1028,6 +1048,7 @@ Required by:
         checkResolve "group:projectA:2.+": ["group:projectA:2.2", "didn't match versions 3.0, 1.2, 1.1, 4.4"]
     }
 
+    @IgnoreWithInstantExecution
     def "reports and recovers from missing directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
@@ -1073,6 +1094,7 @@ Required by:
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
+    @IgnoreWithInstantExecution
     def "reports and recovers from missing dynamic version when no repositories defined"() {
         given:
         buildFile << """
@@ -1095,6 +1117,7 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
+    @IgnoreWithInstantExecution
     def "reports and recovers from broken directory available for dynamic version"() {
         given:
         useRepository ivyHttpRepo
@@ -1126,6 +1149,7 @@ dependencies {
         checkResolve "group:projectA:2.+": "group:projectA:2.2"
     }
 
+    @IgnoreWithInstantExecution
     def "reports and recovers from missing module for dynamic version that requires meta-data"() {
         given:
         useRepository ivyHttpRepo
@@ -1160,6 +1184,7 @@ Required by:
         checkResolve "group:projectA:latest.release": "group:projectA:1.2"
     }
 
+    @IgnoreWithInstantExecution
     def "reports and recovers from broken module for dynamic version that requires meta-data"() {
         given:
         useRepository ivyHttpRepo
@@ -1200,6 +1225,7 @@ dependencies {
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "finds best matching version in local and remote repository with #order"() {
         given:
         def fileRepo = ivyRepo("fileRepo")

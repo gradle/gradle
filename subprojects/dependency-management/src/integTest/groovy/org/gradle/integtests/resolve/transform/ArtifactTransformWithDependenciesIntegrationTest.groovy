@@ -24,6 +24,8 @@ import groovy.transform.Canonical
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
@@ -211,6 +213,7 @@ allprojects {
 """
     }
 
+    @FailsWithInstantExecution
     def "transform can access artifact dependencies as a set of files when using ArtifactView"() {
         given:
         setupBuildWithSingleStep()
@@ -245,6 +248,7 @@ project(':common') {
         output.contains('Single step transform received dependencies files [] for processing otherLib.jar')
     }
 
+    @FailsWithInstantExecution
     def "transform can access artifact dependencies as a set of files when using ArtifactView, even if first step did not use dependencies"() {
         given:
         setupBuildWithFirstStepThatDoesNotUseDependencies()
@@ -268,6 +272,7 @@ project(':common') {
         )
     }
 
+    @FailsWithInstantExecution
     def "transform can access artifact dependencies, in previous transform step, as set of files when using ArtifactView"() {
         given:
         setupBuildWithTwoSteps()
@@ -291,6 +296,7 @@ project(':common') {
         )
     }
 
+    @FailsWithInstantExecution
     def "transform with changed set of dependencies are re-executed"() {
         given:
         setupBuildWithSingleStep()
@@ -329,6 +335,7 @@ project(':common') {
         assertTransformationsExecuted()
     }
 
+    @FailsWithInstantExecution
     def "transform with changed project file dependencies content or path are re-executed"() {
         given:
         setupBuildWithSingleStep()
@@ -404,6 +411,7 @@ project(':common') {
         assertTransformationsExecuted()
     }
 
+    @FailsWithInstantExecution
     def "can attach @PathSensitive(NONE) to dependencies property"() {
         given:
         setupBuildWithNoSteps()
@@ -499,6 +507,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can attach @#classpathAnnotation.simpleName to dependencies property"() {
         given:
         setupBuildWithNoSteps {
@@ -598,6 +607,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         classpathAnnotation << [Classpath, CompileClasspath]
     }
 
+    @FailsWithInstantExecution
     def "transforms with different dependencies in multiple dependency graphs are executed"() {
         given:
         withColorVariants(mavenHttpRepo.module("org.slf4j", "slf4j-api", "1.7.26")).publish().allowAll()
@@ -656,6 +666,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         assert libTransformWithNewSlf4j < app2Resolve
     }
 
+    @FailsWithInstantExecution
     def "transform does not execute when dependencies cannot be found"() {
         given:
         mavenHttpRepo.module("unknown", "not-found", "4.3").allowAll().assertNotPublished()
@@ -678,6 +689,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         failure.assertThatCause(CoreMatchers.containsString("Could not find unknown:not-found:4.3"))
     }
 
+    @IgnoreWithInstantExecution
     def "transform does not execute when dependencies cannot be downloaded"() {
         given:
         def cantBeDownloaded = withColorVariants(mavenHttpRepo.module("test", "cant-be-downloaded", "4.3")).publish()
@@ -713,6 +725,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
     }
 
+    @FailsWithInstantExecution
     def "transform does not execute when dependencies cannot be transformed"() {
         given:
         setupBuildWithFirstStepThatDoesNotUseDependencies()
@@ -738,6 +751,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
     }
 
+    @FailsWithInstantExecution
     def "transform does not execute when dependencies cannot be built"() {
         given:
         setupBuildWithTwoSteps()

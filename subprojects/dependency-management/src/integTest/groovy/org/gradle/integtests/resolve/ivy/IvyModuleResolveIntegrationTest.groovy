@@ -17,10 +17,12 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
 class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    @FailsWithInstantExecution
     def "wildcard on LHS of configuration mapping includes all public configurations of target module"() {
         given:
         buildFile << """
@@ -86,6 +88,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-other-1.6.jar', 'projectD-1.0.jar')
     }
 
+    @FailsWithInstantExecution
     def "fails when project dependency references a configuration that does not exist"() {
         ivyRepo.module('test', 'target', '1.0').publish()
 
@@ -110,6 +113,7 @@ task retrieve(type: Sync) {
         failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
     }
 
+    @FailsWithInstantExecution
     def "fails when ivy module references a configuration that does not exist"() {
         def b = ivyRepo.module('test', 'b', '1.0').publish()
         ivyRepo.module('test', 'a', '1.0')
@@ -225,6 +229,7 @@ task retrieve(type: Sync) {
         "a->a(*),b(*);b->b(*)"  | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
     }
 
+    @FailsWithInstantExecution
     def "prefers revConstraint over rev when dynamic resolve mode is used"() {
         given:
         buildFile << """

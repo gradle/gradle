@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.rules
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -45,6 +46,7 @@ task resolve {
 """
     }
 
+    @FailsWithInstantExecution
     def "rule is cached across builds"() {
         repository {
             'org.test:projectA:1.0' {
@@ -98,6 +100,7 @@ dependencies {
         outputDoesNotContain('See dependency')
     }
 
+    @FailsWithInstantExecution
     def 'rule cache properly differentiates inputs'() {
         repository {
             'org.test:projectA:1.0'()
@@ -146,6 +149,7 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
+    @FailsWithInstantExecution
     def 'can cache rules with service injection'() {
         repository {
             'org.test:projectA:1.0'()
@@ -213,6 +217,7 @@ dependencies {
         outputContains('Rule B executed - saw changing true')
     }
 
+    @FailsWithInstantExecution
     def 'can cache rules having a custom type attribute as parameter'() {
         repository {
             'org.test:projectA:1.0'()
@@ -267,6 +272,7 @@ dependencies {
     @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     )
+    @FailsWithInstantExecution
     def 'can cache rules setting custom type attributes'() {
         repository {
             'org.test:projectA:1.0'()
@@ -361,6 +367,7 @@ dependencies {
         }
     }
 
+    @FailsWithInstantExecution
     def 'changing rule implementation invalidates cache'() {
         repository {
             'org.test:projectA:1.0'()

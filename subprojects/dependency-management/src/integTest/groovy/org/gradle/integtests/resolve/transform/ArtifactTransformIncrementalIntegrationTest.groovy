@@ -17,9 +17,11 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class ArtifactTransformIncrementalIntegrationTest extends AbstractDependencyResolutionTest implements ArtifactTransformTestFixture {
 
+    @FailsWithInstantExecution
     def "can query incremental changes"() {
         settingsFile << """
             include 'a', 'b'

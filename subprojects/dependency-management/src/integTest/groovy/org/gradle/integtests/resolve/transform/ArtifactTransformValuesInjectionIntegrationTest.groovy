@@ -34,6 +34,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.matchesRegexp
@@ -159,6 +160,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
     }
 
+    @FailsWithInstantExecution
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -289,6 +291,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot query parameters for artifact transform without parameters.")
     }
 
+    @FailsWithInstantExecution
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -331,6 +334,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b'
@@ -563,6 +567,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """
             include 'a', 'b', 'c'

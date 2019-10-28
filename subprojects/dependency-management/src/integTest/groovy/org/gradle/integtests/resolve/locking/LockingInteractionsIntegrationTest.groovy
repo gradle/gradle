@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import spock.lang.Unroll
 
 class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -27,6 +29,7 @@ class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutio
         settingsFile << "rootProject.name = 'locking-interactions'"
     }
 
+    @FailsWithInstantExecution
     def 'locking constraints do not bring back excluded modules'() {
         def foo = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
@@ -64,6 +67,7 @@ dependencies {
 
     }
 
+    @FailsWithInstantExecution
     def 'does not lock dependencies missing a version'() {
         def flatRepo = testDirectory.file('repo')
         flatRepo.createFile('my-dep-1.0.jar')
@@ -95,6 +99,7 @@ dependencies {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can lock when using latest.#level"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').withNonUniqueSnapshots().publish()
@@ -139,6 +144,7 @@ dependencies {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can write lock when using #version"() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
@@ -188,6 +194,7 @@ dependencies {
 
     }
 
+    @FailsWithInstantExecution
     def 'kind of locks snapshots but warns about it'() {
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
         mavenRepo.module('org', 'bar', '1.0-SNAPSHOT').publish()
@@ -227,6 +234,7 @@ dependencies {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can update a single lock entry when using #version"() {
         ['bar', 'baz', 'foo'].each { artifactId ->
             mavenRepo.module('org', artifactId, '1.0').publish()
@@ -490,6 +498,7 @@ task resolve {
         succeeds 'resolve', '--include-build', 'composite'
     }
 
+    @IgnoreWithInstantExecution
     def "avoids HTTP requests for dynamic version when lock exists"() {
         def foo10 = mavenHttpRepo.module('org', 'foo', '1.0').publish()
         mavenHttpRepo.module('org', 'foo', '1.1').publish()

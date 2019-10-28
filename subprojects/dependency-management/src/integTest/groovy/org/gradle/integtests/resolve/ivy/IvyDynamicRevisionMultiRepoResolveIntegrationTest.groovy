@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -25,6 +26,7 @@ class IvyDynamicRevisionMultiRepoResolveIntegrationTest extends AbstractDependen
     }
 
     @Issue("GRADLE-2502")
+    @FailsWithInstantExecution
     def "can resolve dynamic version from different repositories"() {
         given:
         def repo1 = ivyRepo("ivyRepo1")
