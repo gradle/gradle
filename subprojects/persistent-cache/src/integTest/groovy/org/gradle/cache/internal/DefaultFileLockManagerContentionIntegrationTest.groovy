@@ -137,7 +137,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         def build1 = executer.withArguments("-d").withTasks("help").start()
         def build2 = executer.withArguments("-d").withTasks("help").start()
         def build3 = executer.withArguments("-d").withTasks("help").start()
-        poll {
+        poll(120) {
             assert requestReceived
             assertConfirmationCount(build1)
             assertConfirmationCount(build2)
