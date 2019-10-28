@@ -59,6 +59,7 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
+import sun.reflect.ReflectionFactory;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
@@ -125,6 +126,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     private final int factoryId;
 
     private static final String GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME = "getDisplayNameForNext";
+
     // Used by generated code, see ^
     @SuppressWarnings("unused")
     @Nullable
@@ -133,6 +135,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static final String GET_SERVICES_FOR_NEXT_METHOD_NAME = "getServicesForNext";
+
     // Used by generated code, see ^
     @SuppressWarnings("unused")
     public static ServiceLookup getServicesForNext() {
@@ -140,6 +143,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     private static final String GET_FACTORY_FOR_NEXT_METHOD_NAME = "getFactoryForNext";
+
     // Used by generated code, see ^
     @SuppressWarnings("unused")
     public static ManagedObjectFactory getFactoryForNext() {
@@ -192,15 +196,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     }
 
     @Override
-    protected <T> T newInstance(Constructor<T> constructor, ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-        ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
-        SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName));
+    protected InstantiationStrategy createUsingConstructor(Constructor<?> constructor) {
+        return new InvokeConstructorStrategy(constructor);
+    }
+
+    @Override
+    protected InstantiationStrategy createForSerialization(Class<?> generatedType, Class<?> baseClass) {
+        Constructor<?> constructor;
         try {
-            constructor.setAccessible(true);
-            return constructor.newInstance(params);
-        } finally {
-            SERVICES_FOR_NEXT_OBJECT.set(previous);
+            constructor = ReflectionFactory.getReflectionFactory().newConstructorForSerialization(generatedType, baseClass.getDeclaredConstructor());
+        } catch (NoSuchMethodException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
+
+        Method method = CollectionUtils.findFirst(generatedType.getDeclaredMethods(), m -> m.getName().equals(ClassBuilderImpl.INIT_METHOD));
+        method.setAccessible(true);
+
+        return new InvokeSerializationConstructorAndInitializeFieldsStrategy(constructor, method);
     }
 
     @Override
@@ -321,10 +333,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String META_CLASS_FIELD = "_gr_mc_";
         private static final String SERVICES_FIELD = "_gr_svcs_";
         private static final String DISPLAY_NAME_FIELD = "_gr_dn_";
-        private static final String SERVICES_METHOD = "$gradleServices";
         private static final String FACTORY_ID_FIELD = "_gr_fid_";
         private static final String FACTORY_FIELD = "_gr_f_";
+        private static final String SERVICES_METHOD = "$gradleServices";
         private static final String FACTORY_METHOD = "$gradleFactory";
+        private static final String INIT_METHOD = "$gradleInit";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = Type.getDescriptor(ConventionMapping.class);
         private static final String META_CLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
         private final static Type META_CLASS_TYPE = Type.getType(MetaClass.class);
@@ -489,8 +502,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 generateServiceRegistrySupport();
             }
             if (requiresFactory) {
-                generateInstantiatorSupport();
+                generateManagedPropertyCreationSupport();
             }
+            generateInitMethod();
             generateGeneratedSubtypeMethods();
         }
 
@@ -498,11 +512,14 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         public void addDefaultConstructor() {
             MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "<init>", RETURN_VOID, null, EMPTY_STRINGS);
             methodVisitor.visitCode();
+
             // this.super()
             methodVisitor.visitVarInsn(ALOAD, 0);
             methodVisitor.visitMethodInsn(INVOKESPECIAL, OBJECT_TYPE.getInternalName(), "<init>", RETURN_VOID, false);
 
-            initializeFields(methodVisitor);
+            // this.init_method()
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), INIT_METHOD, RETURN_VOID, false);
 
             methodVisitor.visitInsn(RETURN);
             methodVisitor.visitMaxs(0, 0);
@@ -538,6 +555,19 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 stackVar += argType.getSize();
             }
             methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), "<init>", methodDescriptor, false);
+
+            // this.init_method()
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), INIT_METHOD, RETURN_VOID, false);
+
+            methodVisitor.visitInsn(RETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        private void generateInitMethod() {
+            MethodVisitor methodVisitor = visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, INIT_METHOD, RETURN_VOID, null, EMPTY_STRINGS);
+            methodVisitor.visitCode();
 
             initializeFields(methodVisitor);
 
@@ -920,11 +950,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void generateServicesField() {
-            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC, SERVICES_FIELD, SERVICE_LOOKUP_TYPE.getDescriptor(), null, null);
+            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, SERVICES_FIELD, SERVICE_LOOKUP_TYPE.getDescriptor(), null, null);
         }
 
         private void generateGetServices() {
-            MethodVisitor mv = visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, SERVICES_METHOD, RETURN_SERVICE_LOOKUP, null, null);
+            MethodVisitor mv = visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, SERVICES_METHOD, RETURN_SERVICE_LOOKUP, null, null);
             mv.visitCode();
             // GENERATE if (services != null) { return services; } else { return AsmBackedClassGenerator.getServicesForNext(); }
             mv.visitVarInsn(ALOAD, 0);
@@ -1513,16 +1543,16 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             generateGetServices();
         }
 
-        private void generateInstantiatorSupport() {
-            generateInstantiatorField();
-            generateGetInstantiator();
+        private void generateManagedPropertyCreationSupport() {
+            generateManagedObjectFactoryField();
+            generateGetManagedObjectFactory();
         }
 
-        private void generateInstantiatorField() {
+        private void generateManagedObjectFactoryField() {
             visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC | ACC_TRANSIENT, FACTORY_FIELD, MANAGED_OBJECT_FACTORY_TYPE.getDescriptor(), null, null);
         }
 
-        private void generateGetInstantiator() {
+        private void generateGetManagedObjectFactory() {
             MethodVisitor mv = visitor.visitMethod(ACC_PRIVATE | ACC_SYNTHETIC, FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY, null, null);
             mv.visitCode();
             // GENERATE if (instantiator != null) { return instantiator; } else { return AsmBackedClassGenerator.getFactoryForNext(); }
@@ -1810,6 +1840,48 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         @Override
         public Class<?> generate() {
             return type;
+        }
+    }
+
+    private static class InvokeConstructorStrategy implements InstantiationStrategy {
+        private final Constructor<?> constructor;
+
+        public InvokeConstructorStrategy(Constructor<?> constructor) {
+            this.constructor = constructor;
+        }
+
+        @Override
+        public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+            ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
+            SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, displayName));
+            try {
+                return constructor.newInstance(params);
+            } finally {
+                SERVICES_FOR_NEXT_OBJECT.set(previous);
+            }
+        }
+    }
+
+    private static class InvokeSerializationConstructorAndInitializeFieldsStrategy implements InstantiationStrategy {
+        private final Constructor<?> constructor;
+        private final Method initMethod;
+
+        public InvokeSerializationConstructorAndInitializeFieldsStrategy(Constructor<?> constructor, Method initMethod) {
+            this.constructor = constructor;
+            this.initMethod = initMethod;
+        }
+
+        @Override
+        public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+            ObjectCreationDetails previous = SERVICES_FOR_NEXT_OBJECT.get();
+            SERVICES_FOR_NEXT_OBJECT.set(new ObjectCreationDetails(nested, services, null));
+            try {
+                Object instance = constructor.newInstance();
+                initMethod.invoke(instance);
+                return instance;
+            } finally {
+                SERVICES_FOR_NEXT_OBJECT.set(previous);
+            }
         }
     }
 }
