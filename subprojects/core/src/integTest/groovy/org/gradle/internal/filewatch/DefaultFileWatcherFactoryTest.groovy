@@ -19,6 +19,7 @@ package org.gradle.internal.filewatch
 import org.gradle.api.file.DirectoryTree
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.Pair
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.Stoppable
@@ -45,6 +46,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         }
     }
 
+    @FailsWithInstantExecution
     def "watch service should notify of new files"() {
         given:
         def listener = Mock(FileWatcherListener)
@@ -62,6 +64,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         0 * _._
     }
 
+    @FailsWithInstantExecution
     def "watch service should notify of new files in subdirectories"() {
         given:
         def listener = Mock(FileWatcherListener)
@@ -93,6 +96,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         listenerCalledLatch.countDown()
     }
 
+    @FailsWithInstantExecution
     def "watch service should register to watch subdirs at startup"() {
         given:
         def listener = Mock(FileWatcherListener)
@@ -109,6 +113,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         }
     }
 
+    @FailsWithInstantExecution
     def "listener can terminate watcher"() {
         given:
         def block = this.<List<Boolean>> blockingVar()
@@ -129,6 +134,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         !fileWatcher.running
     }
 
+    @FailsWithInstantExecution
     def "observer can terminate watcher"() {
         given:
         def eventLatch = new CountDownLatch(1)
@@ -155,6 +161,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         !result.get()
     }
 
+    @FailsWithInstantExecution
     def "can interrupt watcher"() {
         given:
         def watcherThread = this.<Thread> blockingVar()
@@ -173,6 +180,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         await { assert !fileWatcher.running }
     }
 
+    @FailsWithInstantExecution
     def "can interrupt watcher event delivery"() {
         when:
         def eventReceivedLatch = new CountDownLatch(1)
@@ -197,6 +205,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         waitOn(interruptedLatch)
     }
 
+    @FailsWithInstantExecution
     def "watcher can detects all files added to watched directory"() {
         when:
         def eventReceivedLatch = new CountDownLatch(1)
@@ -222,6 +231,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         waitOn(totalLatch)
     }
 
+    @FailsWithInstantExecution
     def "watcher doesn't add directories that have been deleted after change detection"() {
         when:
         def eventReceivedLatch = new CountDownLatch(1)
@@ -241,6 +251,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
     }
 
 
+    @FailsWithInstantExecution
     def "watcher will stop if listener throws and error is forwarded"() {
         when:
         def onErrorStatus = this.<Pair<Boolean, Throwable>> blockingVar()
@@ -260,6 +271,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "watcher should register to watch all added directories - #scenario"() {
         given:
         def listener = Mock(FileWatcherListener)
@@ -304,6 +316,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         //'neither exists'                 | false         | false         | false
     }
 
+    @FailsWithInstantExecution
     def "should support watching directory that didn't exist when watching started"() {
         given:
         def listener = Mock(FileWatcherListener)
@@ -332,6 +345,7 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "should watch changes in sub directory when watching first for single file in parent directory where usesDirectoryTree: #usesDirectoryTree"() {
         given:
         def listener = Mock(FileWatcherListener)

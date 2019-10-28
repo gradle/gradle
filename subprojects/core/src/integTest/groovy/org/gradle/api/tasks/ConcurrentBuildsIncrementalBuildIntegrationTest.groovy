@@ -32,6 +32,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -86,6 +87,7 @@ public class TransformerTask extends DefaultTask {
 '''
     }
 
+    @FailsWithInstantExecution
     def "task history is shared between multiple build processes"() {
         prepareTransformTask()
 

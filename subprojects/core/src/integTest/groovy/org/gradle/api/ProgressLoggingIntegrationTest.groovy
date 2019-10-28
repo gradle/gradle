@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 
 class ProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
@@ -33,6 +34,7 @@ class ProgressLoggingIntegrationTest extends AbstractIntegrationSpec {
         events.progressLogged("Task :help")
     }
 
+    @FailsWithInstantExecution
     def "generates buildSrc progress events when there is a nested buildSrc build"() {
         when:
         run()

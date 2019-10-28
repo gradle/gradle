@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -109,6 +110,7 @@ class DispatchingBuildCacheIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @FailsWithInstantExecution
     def 'pull from local first'() {
         pushToRemote()
         cacheOriginInputFile.text = 'remote'

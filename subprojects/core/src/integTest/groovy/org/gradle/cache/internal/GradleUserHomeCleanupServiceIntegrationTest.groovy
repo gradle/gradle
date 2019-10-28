@@ -17,6 +17,7 @@
 package org.gradle.cache.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 
@@ -25,6 +26,7 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 
 class GradleUserHomeCleanupServiceIntegrationTest extends AbstractIntegrationSpec implements GradleUserHomeCleanupFixture {
 
+    @FailsWithInstantExecution
     def "cleans up unused version-specific cache directories and corresponding distributions"() {
         given:
         requireOwnGradleUserHomeDir() // because we delete caches and distributions

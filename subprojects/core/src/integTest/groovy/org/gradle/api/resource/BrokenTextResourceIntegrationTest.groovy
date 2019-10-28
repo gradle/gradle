@@ -17,6 +17,8 @@
 package org.gradle.api.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
@@ -40,6 +42,7 @@ task text(type: TextTask)
 """
     }
 
+    @FailsWithInstantExecution
     def "reports read of missing text file"() {
         given:
         buildFile << """
@@ -53,6 +56,7 @@ task text(type: TextTask)
         failure.assertHasCause("Could not read '${file}' as it does not exist.")
     }
 
+    @FailsWithInstantExecution
     def "reports read of missing archive"() {
         given:
         buildFile << """
@@ -66,6 +70,7 @@ task text(type: TextTask)
         failure.assertHasCause("Could not read '${file}' as it does not exist.")
     }
 
+    @FailsWithInstantExecution
     def "reports read of missing archive entry"() {
         given:
         buildFile << """
@@ -80,6 +85,7 @@ task text(type: TextTask)
         failure.assertHasCause("Expected entry 'config.txt' in archive file collection to contain exactly one file, however, it contains no files.")
     }
 
+    @IgnoreWithInstantExecution
     def "reports read of missing uri resource"() {
         given:
         def uuid = UUID.randomUUID()

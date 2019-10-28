@@ -19,6 +19,7 @@ package org.gradle.internal.operations.logging
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
@@ -48,6 +49,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
+    @FailsWithInstantExecution
     def "captures output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()
@@ -141,6 +143,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithInstantExecution
     def "captures threaded output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()
@@ -232,6 +235,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked(':buildSrc')
     }
 
+    @FailsWithInstantExecution
     def "captures output from composite builds"() {
         given:
         configureNestedBuild()
@@ -249,6 +253,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
+    @FailsWithInstantExecution
     def "captures output from GradleBuild task builds"() {
         given:
         configureNestedBuild()
@@ -378,6 +383,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         uniqueMessages.contains "finished operation"
     }
 
+    @FailsWithInstantExecution
     def "filters non supported output events"() {
         settingsFile << """
             rootProject.name = 'root'

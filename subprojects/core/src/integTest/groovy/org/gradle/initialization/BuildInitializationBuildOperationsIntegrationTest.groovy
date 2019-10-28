@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -59,6 +60,7 @@ class BuildInitializationBuildOperationsIntegrationTest extends AbstractIntegrat
         buildOperations.first('Configure build').id == loadProjectsBuildOperation.parentId
     }
 
+    @FailsWithInstantExecution
     def "operations are fired for complex nest of builds"() {
         settingsFile << """
             rootProject.name = "root-changed"

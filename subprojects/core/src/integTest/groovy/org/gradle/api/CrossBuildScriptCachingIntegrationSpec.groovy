@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -156,6 +157,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(settingsHash, *buildHashes)
     }
 
+    @FailsWithInstantExecution
     def "cache size increases when build file changes"() {
         given:
         root {
@@ -251,6 +253,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(4)
     }
 
+    @FailsWithInstantExecution
     def "caches scripts applied from remote locations"() {
         server.start()
 
@@ -274,6 +277,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(buildHash, sharedHash)
     }
 
+    @FailsWithInstantExecution
     def "caches scripts applied from remote locations when remote script changes"() {
         server.start()
 
@@ -354,6 +358,7 @@ task fastTask { }
         hasCachedScripts(*hasRemapped('build'))
     }
 
+    @FailsWithInstantExecution
     def "build script is recompiled when project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
@@ -389,6 +394,7 @@ task fastTask { }
         getCompileClasspath(coreHash, 'proj').length == 2
     }
 
+    @FailsWithInstantExecution
     def "build script is recompiled when parent project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
@@ -581,6 +587,7 @@ task fastTask { }
         noExceptionThrown()
     }
 
+    @FailsWithInstantExecution
     def "same applied script is compiled once for different projects with different classpath"() {
         root {
             'common.gradle'('println "poke"')

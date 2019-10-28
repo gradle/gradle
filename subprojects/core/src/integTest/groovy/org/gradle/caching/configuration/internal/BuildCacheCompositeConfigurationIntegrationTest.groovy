@@ -19,6 +19,7 @@ package org.gradle.caching.configuration.internal
 import org.gradle.caching.internal.FinalizeBuildCacheConfigurationBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -36,6 +37,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can configure with settings.gradle - enabled by #by"() {
         def enablingCode = by == EnabledBy.PROGRAMMATIC ? """\ngradle.startParameter.buildCacheEnabled = true\n""" : ""
         if (by == EnabledBy.INVOCATION_SWITCH) {
@@ -121,6 +123,7 @@ class BuildCacheCompositeConfigurationIntegrationTest extends AbstractIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4216")
+    @FailsWithInstantExecution
     def "build cache service is closed only after all included builds are finished"() {
         executer.beforeExecute { it.withBuildCacheEnabled() }
         def localCache = new TestBuildCache(file("local-cache"))

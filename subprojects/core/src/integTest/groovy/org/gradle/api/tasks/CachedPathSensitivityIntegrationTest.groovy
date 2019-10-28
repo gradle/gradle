@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 @Unroll
@@ -46,6 +47,7 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
         return "FROM-CACHE"
     }
 
+    @FailsWithInstantExecution
     def "single #pathSensitivity input file loaded from cache can be used as input"() {
         file("src/data/input.txt").text = "data"
 

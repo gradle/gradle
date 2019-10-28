@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Matchers
 import org.gradle.util.ToBeImplemented
@@ -1251,6 +1252,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing spec-level property #property makes task out-of-date"() {
         given:
         buildScript """

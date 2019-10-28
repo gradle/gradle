@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -172,6 +173,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         fileExtension = taskName
     }
 
+    @FailsWithInstantExecution
     def "#taskName can use zipTree and tarTree"() {
         given:
         createTestFiles()

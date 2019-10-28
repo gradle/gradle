@@ -17,6 +17,7 @@
 package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.jvm.Jvm
@@ -29,6 +30,7 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     private int daemonLogCheckpoint
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "can cancel #scenario"() {
         given:
         blockCode()
@@ -73,6 +75,7 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and ignoreExitValue = #ignoreExitValue"() {
         given:
         file('outputFile') << ''
@@ -108,6 +111,7 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "task gets rerun after cancellation when buildcache = #buildCacheEnabled and exceptions ignored = #ignored"() {
         given:
         file('outputFile') << ''

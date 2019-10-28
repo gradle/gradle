@@ -17,6 +17,7 @@
 package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
@@ -52,6 +53,7 @@ task assertCodDisabled {
         succeeds ':assertCodDisabled'
     }
 
+    @FailsWithInstantExecution
     def "system property set on command line takes precedence over properties file"() {
         given:
         file('gradle.properties') << """
@@ -107,6 +109,7 @@ task assertCodDisabled {
         succeeds ':assertCodDisabled'
     }
 
+    @FailsWithInstantExecution
     def "system property set on command line takes precedence over jvm args"() {
         given:
         executer.requireGradleDistribution()
@@ -142,6 +145,7 @@ task printSystemProp {
         succeeds ':help'
     }
 
+    @FailsWithInstantExecution
     def "Gradle properties can be derived from environment variables"() {
         given:
         buildFile << """

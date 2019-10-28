@@ -17,9 +17,11 @@
 package org.gradle.initialization.buildsrc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class BuildSrcVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
+    @FailsWithInstantExecution
     def "buildSrc classes are not visible in settings"() {
         file('buildSrc/build.gradle') << """
             apply plugin: 'groovy'

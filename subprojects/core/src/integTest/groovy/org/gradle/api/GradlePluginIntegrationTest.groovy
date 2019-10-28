@@ -19,6 +19,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
     File initFile;
@@ -28,6 +29,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initFile);
     }
 
+    @FailsWithInstantExecution
     def "can apply binary plugin from init script"() {
         when:
         initFile << """
@@ -46,6 +48,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         executed.output.contains("Gradle Plugin received build finished!")
     }
 
+    @FailsWithInstantExecution
     def "can apply script with relative path"() {
         setup:
         def externalInitFile = temporaryFolder.createFile("initscripts/somePath/anInit.gradle")
@@ -73,6 +76,7 @@ class GradlePluginIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot convert relative path somePath${File.separator}anInit.gradle to an absolute file")
     }
 
+    @FailsWithInstantExecution
     def "path to script is interpreted relative to the applying script"() {
         setup:
         def externalInitFile = temporaryFolder.createFile("initscripts/path1/anInit.gradle")

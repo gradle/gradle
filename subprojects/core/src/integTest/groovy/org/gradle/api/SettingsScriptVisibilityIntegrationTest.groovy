@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 
@@ -25,6 +26,7 @@ class SettingsScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
     @org.junit.Rule
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
+    @FailsWithInstantExecution
     def "classes loaded in settings are visible to buildSrc build scripts and project scripts"() {
         def plugin1Builder = new PluginBuilder(file("plugin1"))
         plugin1Builder.addSettingsPlugin("", "test.plugin1", "MySettingsPlugin1")

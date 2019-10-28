@@ -17,10 +17,12 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 
 class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
+    @FailsWithInstantExecution
     def "task can use Path to represent input and output locations on annotated properties"() {
         buildFile << """
             import java.nio.file.Path
@@ -87,6 +89,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksNotSkipped(":transform")
     }
 
+    @FailsWithInstantExecution
     def "task can use Path to represent input and output locations on ad hoc properties"() {
         buildFile << """
             import java.nio.file.Path

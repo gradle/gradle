@@ -17,7 +17,6 @@
 package org.gradle.internal.operations.notify
 
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType
 import org.gradle.configuration.project.NotifyProjectAfterEvaluatedBuildOperationType
@@ -31,6 +30,8 @@ import org.gradle.initialization.NotifyProjectsEvaluatedBuildOperationType
 import org.gradle.initialization.NotifyProjectsLoadedBuildOperationType
 import org.gradle.initialization.buildsrc.BuildBuildSrcBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 
@@ -106,6 +107,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.finished(ExecuteTaskBuildOperationType.Result, [actionable: false, originExecutionTime: null, cachingDisabledReasonMessage: "Cacheability was not determined", upToDateMessages: [], cachingDisabledReasonCategory: "UNKNOWN", skipMessage: "UP-TO-DATE", originBuildInvocationId: null])
     }
 
+    @FailsWithInstantExecution
     def "can emit notifications for nested builds"() {
         when:
         file("buildSrc/build.gradle") << ""
@@ -215,6 +217,7 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
     }
 
+    @FailsWithInstantExecution
     def "emits for GradleBuild tasks"() {
         when:
         def initScript = file("init.gradle") << """

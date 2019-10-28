@@ -16,6 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -105,6 +106,7 @@ public class TransformerTask extends DefaultTask {
 '''
     }
 
+    @FailsWithInstantExecution
     def "skips task when output file is up-to-date"() {
         writeTransformerTask()
 
@@ -366,6 +368,7 @@ a.format = '- %s -'
         result.assertTasksSkipped(":a", ":b")
     }
 
+    @FailsWithInstantExecution
     def "skips task when output dir contents are up-to-date"() {
         writeDirTransformerTask()
 
@@ -565,6 +568,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         }
     }
 
+    @FailsWithInstantExecution
     def "skips tasks when input properties have not changed"() {
         buildFile << '''
 public class GeneratorTask extends DefaultTask {
@@ -620,6 +624,7 @@ task a(type: GeneratorTask) {
         result.assertTasksNotSkipped(":a")
     }
 
+    @FailsWithInstantExecution
     def "multiple tasks can generate into overlapping output directories"() {
         writeDirTransformerTask()
 
@@ -693,6 +698,7 @@ task b(type: DirTransformerTask) {
         result.assertTasksNotSkipped(":b")
     }
 
+    @FailsWithInstantExecution
     def "can use up-to-date predicate to force task to execute"() {
         def inputFileName = 'src.txt'
 
@@ -800,6 +806,7 @@ task nothing {
         result.assertTasksNotSkipped(":nothing")
     }
 
+    @FailsWithInstantExecution
     def "lifecycle task is up-to-date when all dependencies are skipped"() {
         writeTransformerTask()
 
@@ -824,6 +831,7 @@ task b(dependsOn: a)
         result.assertTasksSkipped(":a", ":b")
     }
 
+    @FailsWithInstantExecution
     def "can share artifacts between builds"() {
         writeTransformerTask()
 
@@ -857,6 +865,7 @@ task generate(type: TransformerTask) {
         result.assertTasksSkipped(":${testDirectory.name}:generate", ":transform")
     }
 
+    @FailsWithInstantExecution
     def "task can have outputs and no inputs"() {
         buildFile << """
             class TaskA extends DefaultTask {
@@ -1013,6 +1022,7 @@ task generate(type: TransformerTask) {
         result.assertTasksSkipped(":transform1", ":transform2")
     }
 
+    @FailsWithInstantExecution
     def "can use outputs and inputs from other task"() {
         buildFile << """
             class TaskA extends DefaultTask {
@@ -1066,6 +1076,7 @@ task generate(type: TransformerTask) {
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
+    @FailsWithInstantExecution
     def "task loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1100,6 +1111,7 @@ task generate(type: TransformerTask) {
         output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
+    @FailsWithInstantExecution
     def "task with custom action loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1148,6 +1160,7 @@ task generate(type: TransformerTask) {
     }
 
     @Issue("gradle/gradle#1168")
+    @FailsWithInstantExecution
     def "task is not up-to-date when it has overlapping outputs"() {
         buildFile << """
             apply plugin: 'base'
@@ -1192,6 +1205,7 @@ task generate(type: TransformerTask) {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2180")
+    @FailsWithInstantExecution
     def "fileTrees can be used as output files"() {
         given:
         buildScript """
@@ -1240,6 +1254,7 @@ task generate(type: TransformerTask) {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/1224')
+    @FailsWithInstantExecution
     def 'can change input properties dynamically'() {
         given:
         file('inputDir1').createDir()
@@ -1272,6 +1287,7 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
+    @FailsWithInstantExecution
     def "private inputs can be overridden in subclass"() {
         given:
         buildFile << '''
@@ -1331,6 +1347,7 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
+    @FailsWithInstantExecution
     def "private inputs in superclass are respected"() {
         given:
         buildFile << '''

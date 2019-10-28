@@ -19,6 +19,8 @@ package org.gradle.api.tasks
 import org.gradle.initialization.RunNestedBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Unroll
@@ -27,6 +29,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
+    @FailsWithInstantExecution
     def "handles properties which are not String when calling GradleBuild"() {
         given:
         settingsFile << "rootProject.name = 'parent'"
@@ -87,6 +90,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "shows deprecation warning when accessing #displayName when configuring GradleBuild task"() {
         given:
         settingsFile << "rootProject.name = 'parent'"
@@ -114,6 +118,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         "StartParameter#isUseEmptySettings()"      | "buildInBuild.startParameter.useEmptySettings"
     }
 
+    @FailsWithInstantExecution
     def "nested build can use Gradle home directory that is different to outer build"() {
         given:
         def dir = file("other-home")
@@ -138,6 +143,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         output.contains("build script code source: ${dir.toURI()}")
     }
 
+    @FailsWithInstantExecution
     def "nested build can have buildSrc"() {
         given:
         buildFile << """
@@ -181,6 +187,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         result.assertTaskExecuted(":buildSrc:otherBuild")
     }
 
+    @FailsWithInstantExecution
     def "nested build can nest more builds"() {
         given:
         buildFile << """
@@ -210,6 +217,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
         outputContains(":other:other2:build")
     }
 
+    @FailsWithInstantExecution
     def "nested build can contain project dependencies"() {
         given:
         buildFile << """
@@ -241,6 +249,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
     @Rule
     BlockingHttpServer barrier = new BlockingHttpServer()
 
+    @IgnoreWithInstantExecution
     def "can run multiple GradleBuild tasks concurrently"() {
         barrier.start()
 

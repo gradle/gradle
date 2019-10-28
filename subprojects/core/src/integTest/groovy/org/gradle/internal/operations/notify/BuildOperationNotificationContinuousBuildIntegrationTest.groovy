@@ -17,12 +17,14 @@
 package org.gradle.internal.operations.notify
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.launcher.exec.RunBuildBuildOperationType
 
 class BuildOperationNotificationContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def notifications = new BuildOperationNotificationFixture(testDirectory)
 
+    @FailsWithInstantExecution
     def "obtains notifications about init scripts"() {
         when:
         settingsFile << notifications.registerListener()

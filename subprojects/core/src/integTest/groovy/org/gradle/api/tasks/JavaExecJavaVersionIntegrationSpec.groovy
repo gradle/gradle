@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.util.Requires
 import spock.lang.Issue
 
@@ -32,6 +33,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireDaemon().requireIsolatedDaemons()
     }
 
+    @FailsWithInstantExecution
     def "up-to-date when executing twice in a row"() {
         given:
         setupRunHelloWorldTask()
@@ -50,6 +52,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
+    @FailsWithInstantExecution
     def "not up-to-date when the Java version changes"() {
         given:
         setupRunHelloWorldTask()
@@ -69,6 +72,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6694")
+    @FailsWithInstantExecution
     def "up-to-date when the Java executable changes but the version does not"() {
         given:
         setupRunHelloWorldTask()

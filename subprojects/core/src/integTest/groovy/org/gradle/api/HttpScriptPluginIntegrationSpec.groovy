@@ -16,6 +16,8 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -179,6 +181,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds()
     }
 
+    @IgnoreWithInstantExecution
     def "does not cache URIs with query parts"() {
         when:
         def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
@@ -313,6 +316,7 @@ task check {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can recover from failure to download cached #source resource by running with --offline"() {
         given:
         def scriptFile = file("script.gradle")
@@ -357,6 +361,7 @@ task check {
         "initscript"  | "init.gradle"     | "init-script-plugin.gradle"
     }
 
+    @IgnoreWithInstantExecution
     def "will only request resource once for build invocation"() {
         given:
         def scriptName = "script-once.gradle"
@@ -392,6 +397,7 @@ task check {
         output.count('loaded external script') == 4
     }
 
+    @IgnoreWithInstantExecution
     def "will refresh cached value on subsequent build invocation"() {
         given:
         def scriptName = "script-cached.gradle"

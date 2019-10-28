@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
+import static org.gradle.integtests.fixtures.IgnoreWithInstantExecutionExtension.assumeNotInstantExecution
+
 @SuppressWarnings("IntegrationTestFixtures")
 class BuildScriptExecutionIntegrationTest extends AbstractIntegrationTest {
 
@@ -56,6 +58,8 @@ try {
 
     @Test
     void buildScriptCanContainATaskDefinition() {
+        assumeNotInstantExecution()
+
         testFile('build.gradle') << '''
             task t(type: SomeTask)
 
@@ -68,6 +72,8 @@ try {
 
     @Test
     void buildScriptCanContainOnlyClassDefinitions() {
+        assumeNotInstantExecution()
+
         testFile('build.gradle') << '''
             class TestComparable implements Comparable<TestComparable>, SomeInterface {
                 int compareTo(TestComparable t) {

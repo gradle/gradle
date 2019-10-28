@@ -28,6 +28,7 @@ import org.gradle.initialization.NotifyProjectsEvaluatedBuildOperationType
 import org.gradle.initialization.NotifyProjectsLoadedBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.operations.BuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
@@ -623,6 +624,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(whenReadyEvaluated, initScriptAppId, 'init', expectedGradleOps)
     }
 
+    @FailsWithInstantExecution
     def 'no extra executions for composite builds'() {
         // This test does two things:
         // - shake out internal listener registration that isn't using InternalListener.
@@ -718,6 +720,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyExpectedNumberOfExecuteListenerChildren(projectsLoaded, 0)
     }
 
+    @FailsWithInstantExecution
     def 'application ids are unique across gradleBuild builds'() {
         given:
         initFile << ""

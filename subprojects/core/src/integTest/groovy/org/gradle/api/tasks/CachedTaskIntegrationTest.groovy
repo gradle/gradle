@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.archive.TarTestFixture
 
 class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
@@ -81,6 +82,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         skipped ":foo"
     }
 
+    @FailsWithInstantExecution
     def "task is loaded from cache when returning to already cached state after failure"() {
         buildFile << """
             task foo {
@@ -110,6 +112,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         skipped ":foo"
     }
 
+    @FailsWithInstantExecution
     def "displays info about loading and storing in cache"() {
         buildFile << defineCacheableTask()
         when:

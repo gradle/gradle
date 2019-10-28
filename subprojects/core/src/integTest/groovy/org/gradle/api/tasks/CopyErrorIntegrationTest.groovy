@@ -26,11 +26,15 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 
+import static org.gradle.integtests.fixtures.IgnoreWithInstantExecutionExtension.assumeNotInstantExecution
+
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Test
     void givesReasonableErrorMessageWhenPathCannotBeConverted() {
+        assumeNotInstantExecution()
+
         file('src/thing.txt').createFile()
 
         testFile('build.gradle') << '''

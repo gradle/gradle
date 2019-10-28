@@ -17,6 +17,7 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 
 class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
@@ -120,6 +121,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'Output: outputFiles$2 [output2.txt]'
     }
 
+    @FailsWithInstantExecution
     def "nested properties are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -151,6 +153,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Output file property 'bean.outputDir'"
     }
 
+    @FailsWithInstantExecution
     def "nested iterable properties have names"() {
         buildFile << printPropertiesTask()
         buildFile << """ 
@@ -185,6 +188,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Input property 'beans.\$1.secondInput'"
     }
 
+    @FailsWithInstantExecution
     def "nested destroyables are discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -215,6 +219,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output =~ /Destroys: '.*destroyed'/
     }
 
+    @FailsWithInstantExecution
     def "nested local state is discovered"() {
         buildFile << classesForNestedProperties()
         buildFile << """
@@ -245,6 +250,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output =~ /Local state: '.*localState'/
     }
 
+    @FailsWithInstantExecution
     def "unnamed file properties are named"() {
         buildFile << """
             import org.gradle.api.internal.tasks.*
@@ -276,6 +282,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4085")
+    @FailsWithInstantExecution
     def "can register more unnamed properties after properties have been queried"() {
         buildFile << """
             import org.gradle.api.internal.tasks.*
@@ -316,6 +323,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent()
     }
 
+    @FailsWithInstantExecution
     def "input properties can be overridden"() {
         buildFile << classesForNestedProperties()
         buildFile << """
