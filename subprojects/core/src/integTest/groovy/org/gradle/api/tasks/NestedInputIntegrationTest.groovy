@@ -781,6 +781,45 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Implementation of input property 'bean' has changed for task ':customTask'"
     }
 
+    def "changes to nested domain object container are tracked"() {
+        buildFile << taskWithNestedInput()
+        buildFile << """
+            abstract class Bean {
+                @Internal
+                final String name
+                @Input
+                abstract Property<String> getProp()
+
+                Bean(String name) {
+                    this.name = name
+                }
+            }
+        """
+        buildFile << """
+            def domainObjectCollection = objects.domainObjectContainer(Bean)
+            myTask.nested = domainObjectCollection
+            
+            domainObjectCollection.create('first') { prop = project.property('value') }
+            domainObjectCollection.create('second') { prop = '2' }
+        """
+
+        when:
+        run "myTask", "-Pvalue=1"
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        run "myTask", "-Pvalue=1"
+        then:
+        skipped(":myTask")
+
+        when:
+        run "myTask", "-Pvalue=2", "--info"
+        then:
+        executedAndNotSkipped(":myTask")
+        outputContains("Value of input property 'nested.\$0.prop' has changed for task ':myTask'")
+    }
+
     private static String taskWithNestedBeanFromCustomClassLoader() {
         """
             @CacheableTask
