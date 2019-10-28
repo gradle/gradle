@@ -65,6 +65,7 @@ class PerformanceTestBuildTypeTest {
                 "-Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
                 "-PteamCityToken=%teamcity.user.bot-gradle.token%",
                 "-PtestJavaHome=%linux.java8.oracle.64bit%",
+                "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 "-s",
                 "--daemon",
