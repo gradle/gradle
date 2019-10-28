@@ -34,19 +34,22 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
     @Override
     public void generate(InitSettings settings) {
         File file = fileResolver.resolve(".gitignore");
-        try {
-            PrintWriter writer = new PrintWriter(new FileWriter(file));
-            try {
-                writer.println("# Ignore Gradle project-specific cache directory");
-                writer.println(".gradle");
+        try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
+            if(file.exists()) {
                 writer.println();
-                writer.println("# Ignore Gradle build output directory");
-                writer.println("build");
-            } finally {
-                writer.close();
             }
+            appendGradleSpecificIgnores(writer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
+
+    private void appendGradleSpecificIgnores(PrintWriter writer) {
+        writer.println("# Ignore Gradle project-specific cache directory");
+        writer.println(".gradle");
+        writer.println();
+        writer.println("# Ignore Gradle build output directory");
+        writer.println("build");
+    }
+
 }
