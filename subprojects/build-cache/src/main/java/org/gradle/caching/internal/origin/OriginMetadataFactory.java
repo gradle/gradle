@@ -24,10 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Properties;
-import java.util.function.Consumer;
 
 public class OriginMetadataFactory {
 
@@ -43,20 +40,27 @@ public class OriginMetadataFactory {
     private static final String HOST_NAME_KEY = "hostName";
     private static final String USER_NAME_KEY = "userName";
 
+    private final File rootDir;
     private final String userName;
     private final String operatingSystem;
     private final String currentBuildInvocationId;
-    private final Consumer<Properties> additionalProperties;
-    private final File rootDir;
+    private final PropertiesConfigurator additionalProperties;
+    private final HostnameLookup hostnameLookup;
 
-    private volatile String localHostName;
-
-    public OriginMetadataFactory(File rootDir, String userName, String operatingSystem, String currentBuildInvocationId, Consumer<Properties> additionalProperties) {
+    public OriginMetadataFactory(
+        File rootDir,
+        String userName,
+        String operatingSystem,
+        String currentBuildInvocationId,
+        PropertiesConfigurator additionalProperties,
+        HostnameLookup hostnameLookup
+    ) {
         this.rootDir = rootDir;
         this.userName = userName;
         this.operatingSystem = operatingSystem;
         this.additionalProperties = additionalProperties;
         this.currentBuildInvocationId = currentBuildInvocationId;
+        this.hostnameLookup = hostnameLookup;
     }
 
     public OriginWriter createWriter(CacheableEntity entry, long elapsedTime) {
@@ -71,23 +75,12 @@ public class OriginMetadataFactory {
                 properties.setProperty(EXECUTION_TIME_KEY, Long.toString(elapsedTime));
                 properties.setProperty(ROOT_PATH_KEY, rootDir.getAbsolutePath());
                 properties.setProperty(OPERATING_SYSTEM_KEY, operatingSystem);
-                properties.setProperty(HOST_NAME_KEY, determineHostName());
+                properties.setProperty(HOST_NAME_KEY, hostnameLookup.getHostname());
                 properties.setProperty(USER_NAME_KEY, userName);
-                additionalProperties.accept(properties);
+                additionalProperties.configure(properties);
                 properties.store(outputStream, "Generated origin information");
             }
         };
-    }
-
-    private String determineHostName() {
-        if (localHostName == null) {
-            try {
-                localHostName = InetAddress.getLocalHost().getHostName();
-            } catch (UnknownHostException e) {
-                localHostName = "<unknown>";
-            }
-        }
-        return localHostName;
     }
 
     public OriginReader createReader(CacheableEntity entry) {
@@ -111,5 +104,13 @@ public class OriginMetadataFactory {
                 return new OriginMetadata(originBuildInvocationId, originalExecutionTime);
             }
         };
+    }
+
+    public interface PropertiesConfigurator {
+        void configure(Properties properties);
+    }
+
+    public interface HostnameLookup {
+        String getHostname();
     }
 }
