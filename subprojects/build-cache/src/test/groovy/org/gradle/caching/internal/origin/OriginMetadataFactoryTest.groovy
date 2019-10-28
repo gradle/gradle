@@ -23,7 +23,14 @@ class OriginMetadataFactoryTest extends Specification {
     def entry = Mock(CacheableEntity)
     def rootDir = Mock(File)
     def buildInvocationId = UUID.randomUUID().toString()
-    def factory = new OriginMetadataFactory(rootDir, "user", "os", buildInvocationId, { it.gradleVersion = "3.0" })
+    def factory = new OriginMetadataFactory(
+        rootDir,
+        "user",
+        "os",
+        buildInvocationId,
+        { it.gradleVersion = "3.0" },
+        { "my-host" }
+    )
 
     def "converts to origin metadata"() {
         entry.identity >> "identity"
@@ -46,7 +53,7 @@ class OriginMetadataFactoryTest extends Specification {
         origin.executionTime == "10"
         origin.rootPath == "root"
         origin.operatingSystem == "os"
-        origin.hostName == InetAddress.localHost.hostName
+        origin.hostName == "my-host"
         origin.userName == "user"
         origin.buildInvocationId == buildInvocationId
     }
