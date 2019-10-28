@@ -64,7 +64,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         when:
         def build = executer.withTasks("help").start()
         def timer = Time.startTimer()
-        poll {
+        poll(120) {
             assert (build.standardOutput =~ 'Pinged owner at port').count == 3
         }
         receivingLock.close()
