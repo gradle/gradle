@@ -35,7 +35,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
         when:
         // TODO remove this once instant execution works from a clean workspace
-        run(":baseServices:testClasses")
+        run(":createBuildReceipt", "jar")
 
         and:
         def result = instantRun(*supportedTasks)
