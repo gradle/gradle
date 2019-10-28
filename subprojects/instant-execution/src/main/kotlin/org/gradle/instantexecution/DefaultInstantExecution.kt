@@ -205,6 +205,7 @@ class DefaultInstantExecution internal constructor(
     fun readContextFor(decoder: KryoBackedDecoder) = DefaultReadContext(
         codecs.userTypesCodec,
         decoder,
+        service(),
         beanConstructors,
         logger
     )

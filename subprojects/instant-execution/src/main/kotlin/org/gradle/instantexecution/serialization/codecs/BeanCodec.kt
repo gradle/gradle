@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.GeneratedSubclasses
 
 import org.gradle.instantexecution.serialization.Codec
@@ -41,24 +42,31 @@ class BeanCodec : Codec<Any> {
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
             val beanType = readClass()
+            val generated = readBoolean()
             withBeanTrace(beanType) {
-                readBeanOf(beanType, id)
+                readBeanOf(beanType, generated, id)
             }
         }
 
     private
     suspend fun WriteContext.writeBeanOf(beanType: Class<*>, value: Any) {
-        beanStateWriterFor(beanType).run {
-            writeClass(beanType)
+        writeClass(beanType)
+        // TODO - should collect the details of the decoration (eg enabled annotations, etc), and also carry this information with the serialized class reference
+        //  instead of separately for each bean
+        val generated = value is GeneratedSubclass
+        writeBoolean(generated)
+        beanStateWriterFor(value.javaClass).run {
             writeStateOf(value)
         }
     }
 
     private
-    suspend fun ReadContext.readBeanOf(beanType: Class<*>, id: Int): Any =
-        beanStateReaderFor(beanType).run {
-            newBeanWithId(id).also {
-                readStateOf(it)
-            }
+    suspend fun ReadContext.readBeanOf(beanType: Class<*>, generated: Boolean, id: Int): Any {
+        // TODO - do a single lookup of reader rather than 2
+        val bean = beanStateReaderFor(beanType).run { newBeanWithId(generated, id) }
+        beanStateReaderFor(bean.javaClass).run {
+            readStateOf(bean)
         }
+        return bean
+    }
 }

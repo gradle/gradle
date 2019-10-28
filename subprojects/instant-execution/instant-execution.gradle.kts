@@ -40,6 +40,9 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testLibrary("mockito_kotlin2"))
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(kotlin("reflect"))
+
     integTestImplementation(project(":toolingApi"))
 
     integTestImplementation(library("guava"))
@@ -54,8 +57,6 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-
-    testRuntimeOnly(kotlin("reflect"))
 }
 
 gradlebuildJava {
