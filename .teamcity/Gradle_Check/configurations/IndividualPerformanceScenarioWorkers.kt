@@ -37,7 +37,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.linu
         script {
             name = "KILL_GRADLE_PROCESSES"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = killAllGradleProcesses
+            scriptContent = if (os == Os.windows) killAllGradleProcessesWindows else killAllGradleProcessesLinux
         }
         gradleWrapper {
             name = "GRADLE_RUNNER"

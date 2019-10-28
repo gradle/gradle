@@ -9,7 +9,7 @@ import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
 import configurations.individualPerformanceTestJavaHome
-import configurations.killAllGradleProcesses
+import configurations.killAllGradleProcessesLinux
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
@@ -44,7 +44,7 @@ object AdHocPerformanceScenarioLinux : BuildType({
         script {
             name = "KILL_GRADLE_PROCESSES"
             executionMode = BuildStep.ExecutionMode.ALWAYS
-            scriptContent = killAllGradleProcesses
+            scriptContent = killAllGradleProcessesLinux
         }
         gradleWrapper {
             name = "GRADLE_RUNNER"
