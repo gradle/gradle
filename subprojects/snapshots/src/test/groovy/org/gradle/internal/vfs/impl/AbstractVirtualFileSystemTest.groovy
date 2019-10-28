@@ -54,9 +54,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
     }
 
     FileSystemLocationSnapshot readFromVfs(File file) {
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
-        vfs.read(file.absolutePath, result.&set)
-        return result.get()
+        return vfs.read(file.absolutePath, { it })
     }
 
     FileSystemLocationSnapshot readFromVfs(File file, SnapshottingFilter filter) {

@@ -16,6 +16,9 @@
 
 package org.gradle.internal.vfs.impl
 
+import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.test.fixtures.file.TestFile
 
 class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
@@ -195,5 +198,58 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
         snapshot = readFromVfs(excludedFile)
         then:
         assertIsFileSnapshot(snapshot, excludedFile)
+    }
+
+    def "reuses cached unfiltered trees when looking for details of a filtered tree"() {
+        given: "An existing snapshot"
+        def d = temporaryFolder.createDir("d")
+        d.file("f1").createFile()
+        d.file("d1/f1").createFile()
+        d.file("d1/f2").createFile()
+
+        allowFileSystemAccess(true)
+        readFromVfs(d)
+
+        and: "A filtered tree over the same directory"
+        def patterns = new FileNameFilter({ it.endsWith('1') })
+
+        when:
+        allowFileSystemAccess(false)
+        def snapshot = readFromVfs(d, patterns)
+        def relativePaths = [] as Set
+        snapshot.accept(new FileSystemSnapshotVisitor() {
+            private Deque<String> relativePath = new ArrayDeque<String>()
+            private boolean seenRoot = false
+
+            @Override
+            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                if (!seenRoot) {
+                    seenRoot = true
+                } else {
+                    relativePath.addLast(directorySnapshot.name)
+                    relativePaths.add(relativePath.join("/"))
+                }
+                return true
+            }
+
+            @Override
+            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+                relativePath.addLast(fileSnapshot.name)
+                relativePaths.add(relativePath.join("/"))
+                relativePath.removeLast()
+            }
+
+            @Override
+            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                if (relativePath.isEmpty()) {
+                    seenRoot = false
+                } else {
+                    relativePath.removeLast()
+                }
+            }
+        })
+
+        then: "The filtered tree uses the cached state"
+        relativePaths == ["d1", "d1/f1", "f1"] as Set
     }
 }
