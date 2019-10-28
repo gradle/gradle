@@ -22,15 +22,20 @@ import org.gradle.internal.service.ServiceLookup
 import spock.lang.Specification
 
 import javax.inject.Inject
-import java.lang.reflect.Type
-
 
 class DefaultInstantiationSchemeTest extends Specification {
-    def scheme = new DefaultInstantiationScheme(new Jsr330ConstructorSelector(new IdentityClassGenerator(), new TestCrossBuildInMemoryCacheFactory.TestCache<Class<?>, Jsr330ConstructorSelector.CachedConstructor>()), new DefaultServiceRegistry(), [] as Set, new TestCrossBuildInMemoryCacheFactory())
+    def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
+    def classGenerator = AsmBackedClassGenerator.injectOnly([], [], cacheFactory, 123)
+    def scheme = new DefaultInstantiationScheme(
+        new Jsr330ConstructorSelector(classGenerator, cacheFactory.newClassCache()),
+        classGenerator,
+        new DefaultServiceRegistry(),
+        [] as Set,
+        new TestCrossBuildInMemoryCacheFactory())
 
     def "can specify a set of services to inject"() {
         def services = Mock(ServiceLookup)
-        _ * services.find((Type) String) >> "value"
+        _ * services.get(String) >> "value"
 
         when:
         def value = scheme.withServices(services).instantiator().newInstance(WithServices)
@@ -39,12 +44,23 @@ class DefaultInstantiationSchemeTest extends Specification {
         value.prop == "value"
     }
 
-    def "can create instances without invoking their constructor"() {
+    def "can create instances without invoking their constructor to use for deserialization"() {
         when:
         def value = scheme.deserializationInstantiator().newInstance(Impl, Base)
 
         then:
         value.prop == "default"
+    }
+
+    def "can inject services into instances created for deserialization"() {
+        def services = Mock(ServiceLookup)
+        _ * services.get(String) >> "value"
+
+        when:
+        def value = scheme.withServices(services).deserializationInstantiator().newInstance(WithServices, Object)
+
+        then:
+        value.prop == "value"
     }
 
     static class Base {
@@ -55,18 +71,14 @@ class DefaultInstantiationSchemeTest extends Specification {
         }
     }
 
-    static class Impl extends Base {
+    static abstract class Impl extends Base {
         Impl() {
             throw new RuntimeException("should not be called")
         }
     }
 
-    static class WithServices {
-        String prop
-
+    static abstract class WithServices {
         @Inject
-        WithServices(String value) {
-            prop = value
-        }
+        abstract String getProp()
     }
 }

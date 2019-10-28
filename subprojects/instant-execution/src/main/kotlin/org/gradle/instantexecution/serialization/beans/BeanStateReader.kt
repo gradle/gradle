@@ -21,12 +21,12 @@ import org.gradle.instantexecution.serialization.ReadContext
 
 interface BeanStateReader {
 
-    suspend fun ReadContext.newBeanWithId(id: Int) =
-        newBean().also {
+    suspend fun ReadContext.newBeanWithId(generated: Boolean, id: Int) =
+        newBean(generated).also {
             isolate.identities.putInstance(id, it)
         }
 
-    suspend fun ReadContext.newBean(): Any
+    suspend fun ReadContext.newBean(generated: Boolean): Any
 
     suspend fun ReadContext.readStateOf(bean: Any)
 }
