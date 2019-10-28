@@ -12,9 +12,6 @@ object Project : Project({
     parentId("Gradle")
     name = "Util"
 
-    buildType(Gradle_Util_AdHocFunctionalTestWindows)
-    buildType(Gradle_Util_AdHocFunctionalTestLinux)
-
     params {
         password("teamcity.user.bot-gradle.token", "credentialsJSON:6c130acc-332a-4dd3-98e0-7b699377dc7c", display = ParameterDisplay.HIDDEN)
     }
