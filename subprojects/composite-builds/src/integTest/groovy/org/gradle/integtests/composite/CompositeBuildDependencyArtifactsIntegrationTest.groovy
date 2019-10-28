@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -49,6 +51,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         includedBuilds << buildB
     }
 
+    @FailsWithInstantExecution
     def "builds single artifact for substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -61,6 +64,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar')
     }
 
+    @FailsWithInstantExecution
     def "builds multiple artifacts for substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -84,6 +88,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
+    @FailsWithInstantExecution
     def "builds artifacts for dependencies on multiple subprojects in the same build"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -97,6 +102,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
+    @FailsWithInstantExecution
     def "builds substituted dependency with transitive external dependencies"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -119,6 +125,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), moduleC.artifactFile
     }
 
+    @FailsWithInstantExecution
     def "builds substituted dependency with transitive external dependency that is substituted"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -144,6 +151,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
+    @FailsWithInstantExecution
     def "builds dependency once when included directly and as a transitive dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -170,6 +178,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
     }
 
+    @FailsWithInstantExecution
     def "builds substituted dependency with transitive external dependency that is substituted in the same build"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -188,6 +197,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar')
     }
 
+    @FailsWithInstantExecution
     def "builds substituted dependency with transitive project dependencies"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -220,6 +230,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0-my.jar')
     }
 
+    @FailsWithInstantExecution
     def "builds substituted dependency with file dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -241,6 +252,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file("build/libs/buildB-1.0-1.jar")
     }
 
+    @FailsWithInstantExecution
     def "builds substituted dependency with non-default configuration"() {
         given:
         buildA.buildFile << """
@@ -273,6 +285,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), moduleC.artifactFile
     }
 
+    @FailsWithInstantExecution
     def "builds substituted dependency with non-default artifactType"() {
         given:
         buildA.buildFile << """
@@ -299,6 +312,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/distributions/buildB-1.0.zip')
     }
 
+    @FailsWithInstantExecution
     def "builds substituted dependency with defined artifacts"() {
         given:
         buildA.buildFile << """
@@ -334,6 +348,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0-my.jar'), buildB.file('build/libs/another-1.0.jar')
     }
 
+    @FailsWithInstantExecution
     def "builds multiple configurations for the same substituted dependency"() {
         given:
         buildA.buildFile << """
@@ -363,6 +378,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
+    @FailsWithInstantExecution
     def "does not attempt to build dependency artifacts more than once"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -383,6 +399,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
+    @FailsWithInstantExecution
     def "build dependency artifacts only once when depended on by multiple subprojects"() {
         given:
         def buildC = singleProjectBuild("buildC") {
@@ -419,6 +436,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildC:compileJava", ":buildC:jar", ":b2:compileJava", ":b2:jar"
     }
 
+    @FailsWithInstantExecution
     def "builds multiple configurations for the same project via separate dependency paths"() {
         given:
         buildA.buildFile << """
@@ -458,6 +476,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar'), buildC.file("build/libs/buildC-1.0.jar")
     }
 
+    @FailsWithInstantExecution
     def "builds artifacts for different subprojects from the same build included via separate dependency paths"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -482,6 +501,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
     }
 
+    @FailsWithInstantExecution
     def "substitutes and builds compileOnly dependency"() {
         given:
         buildA.buildFile << """
@@ -496,6 +516,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:compileJava", ":buildB:classes", ":compileJava", ":jar"
     }
 
+    @FailsWithInstantExecution
     def "substitutes and builds transitive compileOnly dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -520,6 +541,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildC:jar", ":buildB:jar"
     }
 
+    @FailsWithInstantExecution
     def "only builds dependency once when included as transitive compile and compileOnly dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -542,6 +564,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:compileJava", ":buildB:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
+    @FailsWithInstantExecution
     def "handles compileOnly dependencies for different subprojects from the same build included via separate dependency paths"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -566,6 +589,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executed ":buildB:b1:compileJava", ":buildB:b2:compileJava", ":buildC:compileJava"
     }
 
+    @FailsWithInstantExecution
     def "handles separate implementation and compileOnly dependencies on different subprojects"() {
         given:
         dependency 'org.test:buildC:1.0'
@@ -595,6 +619,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         executedInOrder ":buildB:b2:jar", ":buildC:compileJava", ":buildC:jar"
     }
 
+    @FailsWithInstantExecution
     def "reports failure to build dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -613,6 +638,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             .assertHasCause("jar task failed")
     }
 
+    @FailsWithInstantExecution
     def "reports failure to build transitive dependent artifact"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -644,6 +670,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
+    @IgnoreWithInstantExecution
     def "builds artifacts and reports failures for dependency on multiple subprojects where one fails"() {
         given:
         server.start()
@@ -682,6 +709,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         notExecuted(":resolveCompile")
     }
 
+    @FailsWithInstantExecution
     def "new substitutions can be discovered while building the task graph for the first level included builds"() {
         given:
         def firstLevel = (1..2).collect{ "firstLevel$it" }

@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
@@ -47,6 +49,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         }
     }
 
+    @FailsWithInstantExecution
     def "does not configure build with declared substitutions that is not required for dependency substitution"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -70,6 +73,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         }
     }
 
+    @FailsWithInstantExecution
     def "build with discovered substitutions that is not required for dependency substitution is configured only once"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -95,6 +99,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "configures included build only once when #action"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -175,6 +180,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         name << ["discovered", "declared"]
     }
 
+    @FailsWithInstantExecution
     def "configures included build only once when building multiple artifacts"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -202,6 +208,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         output.count('Configured buildB') == 1
     }
 
+    @FailsWithInstantExecution
     def "configures included build only once when building multiple artifacts for a dependency of a referenced task"() {
         given:
         includeBuild buildB

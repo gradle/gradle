@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
@@ -55,6 +56,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
+    @FailsWithInstantExecution
     def "will only make declared substitutions when defined for included build"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -80,6 +82,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
+    @FailsWithInstantExecution
     def "can combine included builds with declared and discovered substitutions"() {
         given:
         dependency "org.test:b1:1.0"
@@ -103,6 +106,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
+    @FailsWithInstantExecution
     def "can inject substitutions into other builds"() {
         given:
         mavenRepo.module("org.test", "plugin", "1.0").publish()
@@ -129,6 +133,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5871")
+    @FailsWithInstantExecution
     def "can inject substitutions into other builds when root build does not reference included builds via a dependency and included build has non-empty script classpath"() {
         mavenRepo.module("org.test", "plugin", "1.0").publish()
 
@@ -159,6 +164,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         result.assertTaskExecuted(":buildC:jar")
     }
 
+    @FailsWithInstantExecution
     def "can substitute arbitrary coordinates for included build"() {
         given:
         dependency "org.test:buildX:1.0"
@@ -177,6 +183,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
+    @FailsWithInstantExecution
     def "resolves project substitution for build based on rootProject name"() {
         given:
         def buildB2 = rootDir.file("hierarchy", "buildB");
@@ -206,6 +213,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
+    @FailsWithInstantExecution
     def "substitutes external dependency with project dependency from same participant build"() {
         given:
         dependency "org.test:buildB:1.0"

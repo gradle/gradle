@@ -16,11 +16,12 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
@@ -42,6 +43,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         includedBuilds << buildB
     }
 
+    @FailsWithInstantExecution
     def "generates build operations for tasks in included builds"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -64,6 +66,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "generates build lifecycle operations for included builds with #display"() {
         given:
         dependency "org.test:${dependencyName}:1.0"
@@ -128,6 +131,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
+    @FailsWithInstantExecution
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
         given:
         buildA.buildFile.text = """

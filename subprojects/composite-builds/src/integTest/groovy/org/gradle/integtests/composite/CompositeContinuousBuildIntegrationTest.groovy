@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 
 class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIntegrationTest {
@@ -23,6 +24,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         buildTestFixture.withBuildInSubDir()
     }
 
+    @FailsWithInstantExecution
     def "will rebuild on input change for included build task dependency"() {
         def outputFile = file("included/build/output.txt")
         def inputFile = file("included/inputs/input.txt")
@@ -65,6 +67,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         outputFile.text == "second"
     }
 
+    @FailsWithInstantExecution
     def "will rebuild on change for included build library dependency"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """
@@ -122,6 +125,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         outputContains("Goodbye Friend")
     }
 
+    @FailsWithInstantExecution
     def "will rebuild on change for plugin supplied by included build"() {
         // to reduce contention with concurrently executing tests
         requireOwnGradleUserHomeDir()
@@ -180,6 +184,7 @@ class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIn
         stopGradle()
     }
 
+    @FailsWithInstantExecution
     def "will rebuild on change for build included into a multi-project build"() {
         def includedLibrary = singleProjectBuild("library") {
             buildFile << """

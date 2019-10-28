@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     def "can query the included builds defined by the root build"() {
@@ -120,6 +121,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         failure.assertHasCause("Included build 'buildB' not found in build 'buildA'.")
     }
 
+    @FailsWithInstantExecution
     def "included builds added from command-line are visible to root build"() {
         given:
         def buildB = singleProjectBuild("buildB") {
@@ -162,6 +164,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         execute(buildA, "withoutBuild")
     }
 
+    @FailsWithInstantExecution
     def "parent and sibling builds are not visible from included build"() {
         given:
         def buildB = singleProjectBuild("buildB") {
