@@ -26,6 +26,28 @@ import java.util.Optional;
 public abstract class AbstractFileSystemNode implements FileSystemNode {
     private static final Comparator<String> PATH_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0);
 
+    /**
+     * The Unix separator character.
+     */
+    private static final char UNIX_SEPARATOR = '/';
+
+    /**
+     * The Windows separator character.
+     */
+    private static final char WINDOWS_SEPARATOR = '\\';
+
+    /**
+     * The system separator character.
+     */
+    private static final char SYSTEM_SEPARATOR = File.separatorChar;
+
+    private static final boolean IS_WINDOWS_SEPARATOR = SYSTEM_SEPARATOR == WINDOWS_SEPARATOR;
+
+    /**
+     * The separator character that is the opposite of the system separator.
+     */
+    private static final char OTHER_SEPARATOR = IS_WINDOWS_SEPARATOR ? UNIX_SEPARATOR : WINDOWS_SEPARATOR;
+
     private final String prefix;
 
     public AbstractFileSystemNode(String prefix) {
@@ -37,17 +59,14 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return prefix;
     }
 
-    /**
-     * Does not include the file separator.
-     */
-    public static int sizeOfCommonPrefix(String path1, String path2, int offset) {
-        return sizeOfCommonPrefix(path1, path2, offset, File.separatorChar);
+    public static boolean isFileSeparator(char toCheck) {
+        return toCheck == SYSTEM_SEPARATOR || toCheck == OTHER_SEPARATOR;
     }
 
     /**
      * Does not include the separator char.
      */
-    public static int sizeOfCommonPrefix(String path1, String path2, int offset, char separatorChar) {
+    public static int sizeOfCommonPrefix(String path1, String path2, int offset) {
         int pos = 0;
         int lastSeparator = 0;
         int maxPos = Math.min(path1.length(), path2.length() - offset);
@@ -55,7 +74,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             if (path1.charAt(pos) != path2.charAt(pos + offset)) {
                 break;
             }
-            if (path1.charAt(pos) == separatorChar) {
+            if (isFileSeparator(path1.charAt(pos))) {
                 lastSeparator = pos;
             }
         }
@@ -63,25 +82,25 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             if (path1.length() == path2.length() - offset) {
                 return pos;
             }
-            if (pos < path1.length() && path1.charAt(pos) == separatorChar) {
+            if (pos < path1.length() && isFileSeparator(path1.charAt(pos))) {
                 return pos;
             }
-            if (pos < path2.length() - offset && path2.charAt(pos + offset) == separatorChar) {
+            if (pos < path2.length() - offset && isFileSeparator(path2.charAt(pos + offset))) {
                 return pos;
             }
         }
         return lastSeparator;
     }
 
-    public static int compareWithCommonPrefix(String path1, String path2, int offset, char separatorChar) {
+    public static int compareWithCommonPrefix(String path1, String path2, int offset) {
         int maxPos = Math.min(path1.length(), path2.length() - offset);
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
             if (charInPath1 != charInPath2) {
-                return compareChars(charInPath1, charInPath2, separatorChar);
+                return compareChars(charInPath1, charInPath2);
             }
-            if (path1.charAt(pos) == separatorChar) {
+            if (isFileSeparator(path1.charAt(pos))) {
                 if (pos > 0) {
                     return 0;
                 }
@@ -91,9 +110,9 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             return 0;
         }
         if (path1.length() > path2.length() - offset) {
-            return path1.charAt(maxPos) == File.separatorChar ? 0 : 1;
+            return isFileSeparator(path1.charAt(maxPos)) ? 0 : 1;
         }
-        return path2.charAt(maxPos + offset) == File.separatorChar ? 0 : -1;
+        return isFileSeparator(path2.charAt(maxPos + offset)) ? 0 : -1;
     }
 
     private static int comparePaths(String prefix, String path, int offset) {
@@ -102,15 +121,15 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             char charInPath1 = prefix.charAt(pos);
             char charInPath2 = path.charAt(pos + offset);
             if (charInPath1 != charInPath2) {
-                return compareChars(charInPath1, charInPath2, File.separatorChar);
+                return compareChars(charInPath1, charInPath2);
             }
         }
         return Integer.compare(prefix.length(), path.length());
     }
 
-    protected static int compareChars(char char1, char char2, char separatorChar) {
-        return char1 == separatorChar ? -1
-            : char2 == separatorChar ? 1
+    protected static int compareChars(char char1, char char2) {
+        return isFileSeparator(char1) ? -1
+            : isFileSeparator(char2) ? 1
             : Character.compare(char1, char2);
     }
 
@@ -134,14 +153,14 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
                 return false;
             }
         }
-        return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == File.separatorChar;
+        return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment));
     }
 
     /**
      * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
      * which does not check for negative indices or integer overflow.
      */
-    public static int compareToChildOfOrThis(String prefix, String filePath, int offset, char separatorChar) {
+    public static int compareToChildOfOrThis(String prefix, String filePath, int offset) {
         int pathLength = filePath.length();
         int prefixLength = prefix.length();
         int endOfThisSegment = prefixLength + offset;
@@ -152,16 +171,16 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             char prefixChar = prefix.charAt(i);
             char pathChar = filePath.charAt(i + offset);
             if (prefixChar != pathChar) {
-                return compareChars(prefixChar, pathChar, separatorChar);
+                return compareChars(prefixChar, pathChar);
             }
         }
-        return endOfThisSegment == pathLength || filePath.charAt(endOfThisSegment) == separatorChar ? 0 : -1;
+        return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment)) ? 0 : -1;
     }
 
     public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, ChildHandler<T> childHandler) {
         int childIndex = ListUtils.binarySearch(
             children,
-            candidate -> compareWithCommonPrefix(candidate.getPrefix(), path, offset, File.separatorChar)
+            candidate -> compareWithCommonPrefix(candidate.getPrefix(), path, offset)
         );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(childIndex);
@@ -247,8 +266,6 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return descendantHandler.handleDifferent(commonPrefixLength);
     }
 
-    private static final boolean CHECK_FOR_SLASH = File.separatorChar != '/';
-
     public static String getFileName(String absolutePath) {
         int lastSeparator = lastIndexOfSeparator(absolutePath);
         return lastSeparator < 0
@@ -259,7 +276,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
     private static int lastIndexOfSeparator(String absolutePath) {
         for (int i = absolutePath.length() - 1; i >= 0; i--) {
             char currentChar = absolutePath.charAt(i);
-            if (currentChar == File.separatorChar || (CHECK_FOR_SLASH && currentChar == '/')) {
+            if (isFileSeparator(currentChar)) {
                 return i;
             }
         }

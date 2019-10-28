@@ -122,7 +122,7 @@ public abstract class AbstractFileSystemNodeWithChildren extends AbstractFileSys
                 }
                 return Optional.empty();
             default:
-                int foundChild = ListUtils.binarySearch(children, child -> compareToChildOfOrThis(child.getPrefix(), filePath, offset, File.separatorChar));
+                int foundChild = ListUtils.binarySearch(children, child -> compareToChildOfOrThis(child.getPrefix(), filePath, offset));
                 return foundChild >= 0
                     ? getSnapshotFromChild(filePath, offset, children.get(foundChild))
                     : Optional.empty();
