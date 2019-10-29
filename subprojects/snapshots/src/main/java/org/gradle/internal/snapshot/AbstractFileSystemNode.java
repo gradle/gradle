@@ -209,10 +209,10 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
 
             @Override
             public FileSystemNode handleSame() {
-                return snapshot instanceof FileSystemLocationSnapshot
+                return snapshot instanceof CompleteFileSystemLocationSnapshot
                     ? snapshot.withPrefix(child.getPrefix())
                     : child.getSnapshot(path, path.length() + 1)
-                        .filter(oldSnapshot -> oldSnapshot instanceof FileSystemLocationSnapshot)
+                        .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
                         .map(FileSystemNode.class::cast)
                         .orElse(snapshot.withPrefix(child.getPrefix()));
             }
@@ -227,7 +227,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
                 ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newChild.getPrefix(), sibling.getPrefix()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
-                return new FileSystemNodeWithChildren(commonPrefix, newChildren);
+                return new UnknownSnapshot(commonPrefix, newChildren);
             }
         });
     }

@@ -21,6 +21,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+/**
+ * Any snapshot in the tree of the virtual file system.
+ */
 public interface FileSystemNode {
 
     /**
@@ -35,7 +38,7 @@ public interface FileSystemNode {
     /**
      * Adds more information to the file system node.
      *
-     * Complete information, like {@link FileSystemLocationSnapshot}s, are not touched nor replaced.
+     * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
      * @param absolutePath the path to update, starting from offset. Must not include the {@link #getPrefix()}.
      */
     FileSystemNode update(String absolutePath, int offset, MetadataSnapshot snapshot);

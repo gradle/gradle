@@ -37,7 +37,7 @@ class RegularFileMetadataSnapshotTest extends Specification {
     }
 
     void assertMissingFileSnapshot(MetadataSnapshot metadataSnapshot, String absolutePath, int offset) {
-        FileSystemLocationSnapshot result = metadataSnapshot.getSnapshot(absolutePath, offset).get()
+        CompleteFileSystemLocationSnapshot result = metadataSnapshot.getSnapshot(absolutePath, offset).get()
         result.type == FileType.Missing
         result.absolutePath == absolutePath
     }

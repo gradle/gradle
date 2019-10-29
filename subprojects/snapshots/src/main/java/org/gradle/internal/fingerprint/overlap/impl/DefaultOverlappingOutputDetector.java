@@ -23,8 +23,8 @@ import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputs;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
@@ -86,7 +86,7 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth++;
             if (overlappingPath == null) {
                 overlappingPath = detectOverlappingPath(directorySnapshot);
@@ -95,19 +95,19 @@ public class DefaultOverlappingOutputDetector implements OverlappingOutputDetect
         }
 
         @Override
-        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
             if (overlappingPath == null) {
                 overlappingPath = detectOverlappingPath(fileSnapshot);
             }
         }
 
         @Override
-        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth--;
         }
 
         @Nullable
-        private String detectOverlappingPath(FileSystemLocationSnapshot beforeSnapshot) {
+        private String detectOverlappingPath(CompleteFileSystemLocationSnapshot beforeSnapshot) {
             String path = beforeSnapshot.getAbsolutePath();
             HashCode contentHash = beforeSnapshot.getHash();
             FileSystemLocationFingerprint previousFingerprint = previousFingerprints.get(path);

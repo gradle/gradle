@@ -17,8 +17,8 @@
 package org.gradle.internal.snapshot.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
@@ -56,7 +56,7 @@ public class FileSystemSnapshotFilter {
         }
 
         @Override
-        public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+        public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             boolean root = relativePathTracker.isRoot();
             relativePathTracker.enter(directorySnapshot);
             if (root || predicate.test(directorySnapshot, relativePathTracker.getRelativePath())) {
@@ -70,7 +70,7 @@ public class FileSystemSnapshotFilter {
         }
 
         @Override
-        public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+        public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
             boolean root = relativePathTracker.isRoot();
             relativePathTracker.enter(fileSnapshot);
             Iterable<String> relativePathForFiltering = root ? ImmutableList.of(fileSnapshot.getName()) : relativePathTracker.getRelativePath();
@@ -83,7 +83,7 @@ public class FileSystemSnapshotFilter {
         }
 
         @Override
-        public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+        public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             relativePathTracker.leave();
             delegate.postVisitDirectory(directorySnapshot);
         }

@@ -23,8 +23,8 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -165,7 +165,7 @@ class OutputFilterUtilTest extends Specification {
 
     private FileSystemSnapshot snapshotOutput(File output) {
         virtualFileSystem.invalidateAll()
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
         virtualFileSystem.read(output.getAbsolutePath(), result.&set)
         return result.get()
     }
@@ -179,18 +179,18 @@ class OutputFilterUtilTest extends Specification {
         fileSystemSnapshots.each {
             it.accept(new FileSystemSnapshotVisitor() {
                 @Override
-                boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     result.add(directorySnapshot)
                     return true
                 }
 
                 @Override
-                void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+                void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                     result.add(fileSnapshot)
                 }
 
                 @Override
-                void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 }
             })
         }

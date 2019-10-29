@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import javax.annotation.CheckReturnValue;
@@ -48,10 +48,10 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
     Optional<MetadataSnapshot> getMetadata(String path);
 
-    default Optional<FileSystemLocationSnapshot> getSnapshot(String path) {
+    default Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String path) {
         return getMetadata(path)
-            .filter(FileSystemLocationSnapshot.class::isInstance)
-            .map(FileSystemLocationSnapshot.class::cast);
+            .filter(CompleteFileSystemLocationSnapshot.class::isInstance)
+            .map(CompleteFileSystemLocationSnapshot.class::cast);
     }
 
     /**

@@ -23,10 +23,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractFileSystemNodeWithChildren extends AbstractFileSystemNode {
+public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFileSystemNode {
     protected final List<? extends FileSystemNode> children;
 
-    public AbstractFileSystemNodeWithChildren(String prefix, List<? extends FileSystemNode> children) {
+    public AbstractIncompleteSnapshotWithChildren(String prefix, List<? extends FileSystemNode> children) {
         super(prefix);
         this.children = children;
     }
@@ -83,7 +83,7 @@ public abstract class AbstractFileSystemNodeWithChildren extends AbstractFileSys
 
     private FileSystemNode withReplacedChild(int childIndex, FileSystemNode childToReplace, FileSystemNode newChild) {
         if (newChild == childToReplace) {
-            return AbstractFileSystemNodeWithChildren.this;
+            return AbstractIncompleteSnapshotWithChildren.this;
         }
         if (children.size() == 1) {
             return createCopy(getPrefix(), ImmutableList.of(newChild));

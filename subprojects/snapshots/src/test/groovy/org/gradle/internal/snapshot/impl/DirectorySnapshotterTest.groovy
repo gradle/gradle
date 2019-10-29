@@ -22,8 +22,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.TestFileHasher
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -186,10 +186,10 @@ class DirectorySnapshotterTest extends Specification {
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
 
         then:
-        assert snapshot instanceof DirectorySnapshot
+        assert snapshot instanceof CompleteDirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
             readableFile: RegularFileSnapshot,
-            readableDirectory: DirectorySnapshot,
+            readableDirectory: CompleteDirectorySnapshot,
             unreadableFile: MissingFileSnapshot,
             unreadableDirectory: MissingFileSnapshot
         ]
@@ -207,7 +207,7 @@ class DirectorySnapshotterTest extends Specification {
         when:
         def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
         then:
-        assert snapshot instanceof DirectorySnapshot
+        assert snapshot instanceof CompleteDirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
             testPipe: MissingFileSnapshot
         ]
@@ -250,21 +250,21 @@ abstract class RelativePathTrackingVisitor implements FileSystemSnapshotVisitor 
     private Deque<String> relativePath = new ArrayDeque<String>()
 
     @Override
-    boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+    boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
         relativePath.addLast(directorySnapshot.name)
         visit(directorySnapshot.absolutePath, relativePath)
         return true
     }
 
     @Override
-    void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+    void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
         relativePath.addLast(fileSnapshot.name)
         visit(fileSnapshot.absolutePath, relativePath)
         relativePath.removeLast()
     }
 
     @Override
-    void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+    void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
         relativePath.removeLast()
     }
 

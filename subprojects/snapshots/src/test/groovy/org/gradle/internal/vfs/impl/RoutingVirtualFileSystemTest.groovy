@@ -19,7 +19,7 @@ package org.gradle.internal.vfs.impl
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.internal.classpath.CachedJarFileStore
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -57,8 +57,8 @@ class RoutingVirtualFileSystemTest extends Specification {
         def hashFunction = { it } as Function<HashCode, HashCode>
         def location = inGradleUserHome ? userHomeFile.absolutePath : projectFile.absolutePath
         def expectedVirtualFileSystem = inGradleUserHome ? gradleUserHomeVirtualFileSystem : buildSessionScopedVirtualFileSystem
-        def consumer = {} as Consumer<FileSystemLocationSnapshot>
-        def snapshotFunction = { it } as Function<FileSystemLocationSnapshot, FileSystemLocationSnapshot>
+        def consumer = {} as Consumer<CompleteFileSystemLocationSnapshot>
+        def snapshotFunction = { it } as Function<CompleteFileSystemLocationSnapshot, CompleteFileSystemLocationSnapshot>
 
         when:
         routingVirtualFileSystem.updateWithKnownSnapshot(fileSnapshot)

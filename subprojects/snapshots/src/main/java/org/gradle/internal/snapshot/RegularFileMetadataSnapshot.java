@@ -22,6 +22,11 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * An incomplete snapshot of an existing file.
+ *
+ * The content hash is unknown.
+ */
 public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implements MetadataSnapshot {
 
     public RegularFileMetadataSnapshot(String prefix) {
@@ -37,7 +42,7 @@ public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implemen
     public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
         return FileSystemNode.thisOrGet(
             this, absolutePath, offset,
-            () -> Optional.of(AbstractFileSystemLocationSnapshot.missingSnapshotForAbsolutePath(absolutePath)));
+            () -> Optional.of(AbstractCompleteFileSystemLocationSnapshot.missingSnapshotForAbsolutePath(absolutePath)));
     }
 
     @Override

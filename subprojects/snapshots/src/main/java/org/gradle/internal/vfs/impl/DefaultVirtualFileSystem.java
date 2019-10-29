@@ -23,8 +23,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -56,7 +56,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public <T> T read(String location, Function<FileSystemLocationSnapshot, T> visitor) {
+    public <T> T read(String location, Function<CompleteFileSystemLocationSnapshot, T> visitor) {
         return visitor.apply(readLocation(location));
     }
 
@@ -67,8 +67,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 if (snapshot.getType() != FileType.RegularFile) {
                     return Optional.of(Optional.empty());
                 }
-                if (snapshot instanceof FileSystemLocationSnapshot) {
-                    return Optional.of(Optional.of(((FileSystemLocationSnapshot) snapshot).getHash()));
+                if (snapshot instanceof CompleteFileSystemLocationSnapshot) {
+                    return Optional.of(Optional.of(((CompleteFileSystemLocationSnapshot) snapshot).getHash()));
                 }
                 return Optional.empty();
             })
@@ -99,19 +99,19 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void read(String location, SnapshottingFilter filter, Consumer<FileSystemLocationSnapshot> visitor) {
+    public void read(String location, SnapshottingFilter filter, Consumer<CompleteFileSystemLocationSnapshot> visitor) {
         if (filter.isEmpty()) {
             visitor.accept(readLocation(location));
         } else {
             FileSystemSnapshot filteredSnapshot = root.get().getSnapshot(location)
-                .filter(FileSystemLocationSnapshot.class::isInstance)
+                .filter(CompleteFileSystemLocationSnapshot.class::isInstance)
                 .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                 .orElseGet(() -> producingSnapshots.guardByKey(location,
                     () -> root.get().getSnapshot(location)
                         .map(snapshot -> FileSystemSnapshotFilter.filterSnapshot(filter.getAsSnapshotPredicate(), snapshot))
                         .orElseGet(() -> {
                             AtomicBoolean hasBeenFiltered = new AtomicBoolean(false);
-                            FileSystemLocationSnapshot snapshot = directorySnapshotter.snapshot(location, filter.getAsDirectoryWalkerPredicate(), hasBeenFiltered);
+                            CompleteFileSystemLocationSnapshot snapshot = directorySnapshotter.snapshot(location, filter.getAsDirectoryWalkerPredicate(), hasBeenFiltered);
                             if (!hasBeenFiltered.get()) {
                                 root.updateAndGet(root -> root.update(snapshot.getAbsolutePath(), snapshot));
                             }
@@ -119,13 +119,13 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                         })
                 ));
 
-            if (filteredSnapshot instanceof FileSystemLocationSnapshot) {
-                visitor.accept((FileSystemLocationSnapshot) filteredSnapshot);
+            if (filteredSnapshot instanceof CompleteFileSystemLocationSnapshot) {
+                visitor.accept((CompleteFileSystemLocationSnapshot) filteredSnapshot);
             }
         }
     }
 
-    private FileSystemLocationSnapshot snapshot(String location) {
+    private CompleteFileSystemLocationSnapshot snapshot(String location) {
         File file = new File(location);
         FileMetadataSnapshot stat = this.stat.stat(file);
         switch (stat.getType()) {
@@ -139,7 +139,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 root.updateAndGet(root -> root.update(missingFileSnapshot.getAbsolutePath(), missingFileSnapshot));
                 return missingFileSnapshot;
             case Directory:
-                FileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
+                CompleteFileSystemLocationSnapshot directorySnapshot = directorySnapshotter.snapshot(location, null, new AtomicBoolean(false));
                 root.updateAndGet(root -> root.update(directorySnapshot.getAbsolutePath(), directorySnapshot));
                 return directorySnapshot;
             default:
@@ -147,7 +147,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         }
     }
 
-    private FileSystemLocationSnapshot readLocation(String location) {
+    private CompleteFileSystemLocationSnapshot readLocation(String location) {
         return root.get().getSnapshot(location)
             .orElseGet(() -> producingSnapshots.guardByKey(location,
                 () -> root.get().getSnapshot(location).orElseGet(() -> snapshot(location)))
@@ -172,7 +172,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void updateWithKnownSnapshot(FileSystemLocationSnapshot snapshot) {
+    public void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
         root.updateAndGet(root -> root.update(snapshot.getAbsolutePath(), snapshot));
     }
 

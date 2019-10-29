@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import java.util.Deque;
 
 /**
- * Holds a reference to a relative path {@link String} when visiting a {@link FileSystemLocationSnapshot}.
+ * Holds a reference to a relative path {@link String} when visiting a {@link CompleteFileSystemLocationSnapshot}.
  *
  * If you need to keep track of individual path segments use {@link RelativePathSegmentsTracker} instead.
  */
@@ -29,7 +29,7 @@ public class RelativePathStringTracker {
     private final Deque<String> relativePathStrings = Lists.newLinkedList();
     private boolean root = true;
 
-    public void enter(FileSystemLocationSnapshot snapshot) {
+    public void enter(CompleteFileSystemLocationSnapshot snapshot) {
         enter(snapshot.getName());
     }
 

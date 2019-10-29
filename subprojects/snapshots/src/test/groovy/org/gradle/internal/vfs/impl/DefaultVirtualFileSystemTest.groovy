@@ -16,8 +16,9 @@
 
 package org.gradle.internal.vfs.impl
 
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.test.fixtures.file.TestFile
 
@@ -222,7 +223,7 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
             private boolean seenRoot = false
 
             @Override
-            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (!seenRoot) {
                     seenRoot = true
                 } else {
@@ -233,14 +234,14 @@ class DefaultVirtualFileSystemTest extends AbstractVirtualFileSystemTest {
             }
 
             @Override
-            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                 relativePath.addLast(fileSnapshot.name)
                 relativePaths.add(relativePath.join("/"))
                 relativePath.removeLast()
             }
 
             @Override
-            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (relativePath.isEmpty()) {
                     seenRoot = false
                 } else {

@@ -25,13 +25,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A file snapshot which can have children (i.e. a directory).
+ * A complete snapshot of an existing directory.
+ *
+ * Includes complete snapshots of every child and the Merkle tree hash.
  */
-public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
-    private final List<FileSystemLocationSnapshot> children;
+public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
+    private final List<CompleteFileSystemLocationSnapshot> children;
     private final HashCode contentHash;
 
-    public DirectorySnapshot(String absolutePath, String name, List<FileSystemLocationSnapshot> children, HashCode contentHash) {
+    public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash) {
         super(absolutePath, name);
         this.children = children;
         this.contentHash = contentHash;
@@ -48,8 +50,8 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
-        return other instanceof DirectorySnapshot;
+    public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
+        return other instanceof CompleteDirectorySnapshot;
     }
 
     @Override
@@ -57,13 +59,13 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
         if (!visitor.preVisitDirectory(this)) {
             return;
         }
-        for (FileSystemLocationSnapshot child : children) {
+        for (CompleteFileSystemLocationSnapshot child : children) {
             child.accept(visitor);
         }
         visitor.postVisitDirectory(this);
     }
 
-    public List<FileSystemLocationSnapshot> getChildren() {
+    public List<CompleteFileSystemLocationSnapshot> getChildren() {
         return children;
     }
 
@@ -72,7 +74,7 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
         return FileSystemNode.thisOrGet(
             this, absolutePath, offset,
             () -> {
-                for (FileSystemLocationSnapshot child : getChildren()) {
+                for (CompleteFileSystemLocationSnapshot child : getChildren()) {
                     if (AbstractFileSystemNode.isChildOfOrThis(absolutePath, offset, child.getName())) {
                         int endOfThisSegment = child.getName().length() + offset;
                         return child.getSnapshot(absolutePath, endOfThisSegment + 1);
@@ -89,33 +91,33 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return children.isEmpty()
                     ? Optional.empty()
-                    : Optional.of(new FileSystemNodeWithChildren(getPrefix(), children));
+                    : Optional.of(new UnknownSnapshot(getPrefix(), children));
             }
 
             @Override
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
-                FileSystemLocationSnapshot foundChild = children.get(childIndex);
+                CompleteFileSystemLocationSnapshot foundChild = children.get(childIndex);
                 int indexForSubSegment = foundChild.getPrefix().length();
                 Optional<FileSystemNode> invalidated = indexForSubSegment == absolutePath.length() - offset
                     ? Optional.empty()
                     : foundChild.invalidate(absolutePath, offset + indexForSubSegment + 1);
                 if (children.size() == 1) {
-                    return invalidated.map(it -> new FileSystemNodeWithChildren(getPrefix(), ImmutableList.of(it)));
+                    return invalidated.map(it -> new UnknownSnapshot(getPrefix(), ImmutableList.of(it)));
                 }
 
                 return invalidated
                     .map(invalidatedChild -> {
                         ArrayList<FileSystemNode> newChildren = new ArrayList<>(children);
                         newChildren.set(childIndex, invalidatedChild);
-                        return Optional.<FileSystemNode>of(new FileSystemNodeWithChildren(getPrefix(), newChildren));
+                        return Optional.<FileSystemNode>of(new UnknownSnapshot(getPrefix(), newChildren));
                     }).orElseGet(() -> {
                         if (children.size() == 2) {
-                            FileSystemLocationSnapshot singleChild = childIndex == 0 ? children.get(1) : children.get(0);
-                            return Optional.of(new FileSystemNodeWithChildren(getPrefix(), ImmutableList.of(singleChild)));
+                            CompleteFileSystemLocationSnapshot singleChild = childIndex == 0 ? children.get(1) : children.get(0);
+                            return Optional.of(new UnknownSnapshot(getPrefix(), ImmutableList.of(singleChild)));
                         }
-                        ArrayList<FileSystemLocationSnapshot> newChildren = new ArrayList<>(children);
+                        ArrayList<CompleteFileSystemLocationSnapshot> newChildren = new ArrayList<>(children);
                         newChildren.remove(childIndex);
-                        return Optional.of(new FileSystemNodeWithChildren(getPrefix(), newChildren));
+                        return Optional.of(new UnknownSnapshot(getPrefix(), newChildren));
                     });
             }
         });

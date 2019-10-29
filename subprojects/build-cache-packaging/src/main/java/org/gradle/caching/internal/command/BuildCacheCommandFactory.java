@@ -31,7 +31,7 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy;
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -117,11 +117,11 @@ public class BuildCacheCommandFactory {
             };
         }
 
-        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends FileSystemLocationSnapshot> treeSnapshots) {
+        private ImmutableSortedMap<String, CurrentFileCollectionFingerprint> snapshotUnpackedData(Map<String, ? extends CompleteFileSystemLocationSnapshot> treeSnapshots) {
             ImmutableSortedMap.Builder<String, CurrentFileCollectionFingerprint> builder = ImmutableSortedMap.naturalOrder();
             FingerprintingStrategy fingerprintingStrategy = AbsolutePathFingerprintingStrategy.IGNORE_MISSING;
             entity.visitOutputTrees((treeName, type, root) -> {
-                FileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
+                CompleteFileSystemLocationSnapshot treeSnapshot = treeSnapshots.get(treeName);
                 String internedAbsolutePath = stringInterner.intern(root.getAbsolutePath());
                 List<FileSystemSnapshot> roots = new ArrayList<>();
 

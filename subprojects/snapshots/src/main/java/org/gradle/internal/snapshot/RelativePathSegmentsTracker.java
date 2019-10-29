@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import java.util.Deque;
 
 /**
- * Tracks the relative path as an {@link Iterable}{@code <String>} when visiting a {@link FileSystemLocationSnapshot}.
+ * Tracks the relative path as an {@link Iterable}{@code <String>} when visiting a {@link CompleteFileSystemLocationSnapshot}.
  *
  * If you need to keep track of the concatenated relative path use {@link RelativePathStringTracker} instead.
  */
@@ -30,7 +30,7 @@ public class RelativePathSegmentsTracker {
     private String rootName;
 
 
-    public void enter(FileSystemLocationSnapshot snapshot) {
+    public void enter(CompleteFileSystemLocationSnapshot snapshot) {
         enter(snapshot.getName());
     }
 

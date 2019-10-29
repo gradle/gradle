@@ -19,9 +19,15 @@ package org.gradle.internal.snapshot;
 import java.util.List;
 import java.util.Optional;
 
-public class FileSystemNodeWithChildren extends AbstractFileSystemNodeWithChildren {
+/**
+ * An incomplete snapshot where we don’t know if it’s a file, a directory, or nothing.
+ *
+ * The snapshot must have children.
+ * It is created when we store missing files underneath it, so that we don’t have to query them again and again.
+ */
+public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
 
-    public FileSystemNodeWithChildren(String prefix, List<? extends FileSystemNode> children) {
+    public UnknownSnapshot(String prefix, List<? extends FileSystemNode> children) {
         super(prefix, children);
         assert !children.isEmpty();
     }
@@ -33,7 +39,7 @@ public class FileSystemNodeWithChildren extends AbstractFileSystemNodeWithChildr
 
     @Override
     protected FileSystemNode createCopy(String prefix, List<? extends FileSystemNode> merged) {
-        return new FileSystemNodeWithChildren(prefix, merged);
+        return new UnknownSnapshot(prefix, merged);
     }
 
     @Override

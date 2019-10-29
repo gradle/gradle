@@ -16,13 +16,13 @@
 
 package org.gradle.internal.fingerprint;
 
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.util.Map;
 
 /**
- * Strategy for converting a sequence of {@link FileSystemLocationSnapshot}s into a {@link FileCollectionFingerprint}.
+ * Strategy for converting a sequence of {@link CompleteFileSystemLocationSnapshot}s into a {@link FileCollectionFingerprint}.
  */
 public interface FingerprintingStrategy {
 
@@ -48,5 +48,5 @@ public interface FingerprintingStrategy {
 
     CurrentFileCollectionFingerprint getEmptyFingerprint();
 
-    String normalizePath(FileSystemLocationSnapshot snapshot);
+    String normalizePath(CompleteFileSystemLocationSnapshot snapshot);
 }

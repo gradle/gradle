@@ -25,7 +25,7 @@ import java.util.Optional;
 /**
  * A snapshot of a missing file or a broken symbolic link or a named pipe.
  */
-public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
+public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot {
     private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
 
     public MissingFileSnapshot(String absolutePath, String name) {
@@ -47,7 +47,7 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
+    public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
         return other instanceof MissingFileSnapshot;
     }
 

@@ -21,10 +21,10 @@ import org.spockframework.mock.IDefaultResponse
 import org.spockframework.mock.IMockInvocation
 import spock.lang.Specification
 
-class FileSystemNodeWithChildrenTest extends Specification {
+class UnknownSnapshotTest extends Specification {
 
     def "returns empty when queried at root"() {
-        def node = new FileSystemNodeWithChildren("some/prefix", createChildren("myFile.txt"))
+        def node = new UnknownSnapshot("some/prefix", createChildren("myFile.txt"))
 
         when:
         def snapshot = node.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1)
@@ -37,7 +37,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
         given:
         def children = createChildren(childNames)
         def first = children.get(0)
-        def node = new FileSystemNodeWithChildren("some/prefix", children)
+        def node = new UnknownSnapshot("some/prefix", children)
         def relativePath = "${first.prefix}/someString"
         def result = Mock(MetadataSnapshot)
 
@@ -55,7 +55,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
         given:
         def children = createChildren(childNames)
         def first = children.get(0)
-        def node = new FileSystemNodeWithChildren("some/prefix", children)
+        def node = new UnknownSnapshot("some/prefix", children)
         def relativePath = "${first.prefix}1/someString"
 
         when:
@@ -71,7 +71,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
     def "invalidating unknown child does nothing"() {
         given:
         def children = createChildren(childNames)
-        def node = new FileSystemNodeWithChildren("some/prefix", children)
+        def node = new UnknownSnapshot("some/prefix", children)
         def relativePath = "first/outside"
 
         when:
@@ -87,7 +87,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
     def "invalidating only child returns empty"() {
         given:
         def children = createChildren("first")
-        def node = new FileSystemNodeWithChildren("some/prefix", children)
+        def node = new UnknownSnapshot("some/prefix", children)
         def childToInvalidate = children.get(0)
         def relativePath = childToInvalidate.prefix
 
@@ -101,7 +101,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
     def "invalidating known child removes it"() {
         given:
         def children = createChildren(childNames)
-        def node = new FileSystemNodeWithChildren("some/prefix", children)
+        def node = new UnknownSnapshot("some/prefix", children)
         def childToInvalidate = children.get(0)
         def relativePath = childToInvalidate.prefix
         def snapshot = Mock(MetadataSnapshot)
@@ -133,7 +133,7 @@ class FileSystemNodeWithChildrenTest extends Specification {
     def "invalidating location within child works"() {
         given:
         def children = createChildren(childNames)
-        def node = new FileSystemNodeWithChildren("some/prefix", children)
+        def node = new UnknownSnapshot("some/prefix", children)
         def childWithChildToInvalidate = children.get(0)
         def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPrefix(childWithChildToInvalidate.prefix))
 

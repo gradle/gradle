@@ -22,7 +22,12 @@ import org.gradle.internal.file.FileType;
 import java.util.List;
 import java.util.Optional;
 
-public class ShallowDirectorySnapshot extends AbstractFileSystemNodeWithChildren implements MetadataSnapshot {
+/**
+ * An incomplete snapshot of an existing directory.
+ *
+ * We know all the metadata of its children, but the child snapshots are not necessarily complete, nor have we calculated a Merkle hash for the directory.
+ */
+public class ShallowDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren implements MetadataSnapshot {
 
     public ShallowDirectorySnapshot(String prefix, List<? extends FileSystemNode> children) {
         super(prefix, children);
@@ -36,7 +41,7 @@ public class ShallowDirectorySnapshot extends AbstractFileSystemNodeWithChildren
     @Override
     public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
         return Optional.of(super.getSnapshot(absolutePath, offset)
-            .orElseGet(() -> AbstractFileSystemLocationSnapshot.missingSnapshotForAbsolutePath(absolutePath)));
+            .orElseGet(() -> AbstractCompleteFileSystemLocationSnapshot.missingSnapshotForAbsolutePath(absolutePath)));
     }
 
     @Override

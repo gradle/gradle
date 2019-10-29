@@ -21,8 +21,8 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -58,7 +58,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             private final relativePathTracker = new RelativePathSegmentsTracker()
 
             @Override
-            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 def isRoot = relativePathTracker.root
                 relativePathTracker.enter(directorySnapshot)
                 if (!isRoot) {
@@ -69,7 +69,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             }
 
             @Override
-            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                 files.add(fileSnapshot.absolutePath)
                 relativePathTracker.enter(fileSnapshot)
                 relativePaths.add(relativePathTracker.relativePath.join("/"))
@@ -77,7 +77,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
             }
 
             @Override
-            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 relativePathTracker.leave()
             }
         })

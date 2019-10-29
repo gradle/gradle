@@ -18,11 +18,11 @@ package org.gradle.internal.snapshot;
 
 import java.util.List;
 
-public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
+public abstract class AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
     private final String absolutePath;
     private final String name;
 
-    public AbstractFileSystemLocationSnapshot(String absolutePath, String name) {
+    public AbstractCompleteFileSystemLocationSnapshot(String absolutePath, String name) {
         this.absolutePath = absolutePath;
         this.name = name;
     }
@@ -43,7 +43,7 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
     }
 
     @Override
-    public FileSystemLocationSnapshot update(String absolutePath, int offset, MetadataSnapshot snapshot) {
+    public CompleteFileSystemLocationSnapshot update(String absolutePath, int offset, MetadataSnapshot snapshot) {
         return this;
     }
 
@@ -53,7 +53,7 @@ public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLo
 
     @Override
     public FileSystemNode withPrefix(String newPrefix) {
-        return new SnapshotFileSystemNode(newPrefix, this);
+        return new PathCompressingSnapshotWrapper(newPrefix, this);
     }
 
     @Override

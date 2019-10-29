@@ -20,10 +20,15 @@ import java.io.File;
 import java.util.List;
 import java.util.Optional;
 
-public class SnapshotFileSystemNode extends AbstractFileSystemNode {
+/**
+ * A wrapper that extends the relative path of the snapshot to something longer.
+ *
+ * It delegates everything to the wrapped snapshot.
+ */
+public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode {
     private final MetadataSnapshot snapshot;
 
-    public SnapshotFileSystemNode(String prefix, MetadataSnapshot snapshot) {
+    public PathCompressingSnapshotWrapper(String prefix, MetadataSnapshot snapshot) {
         super(prefix);
         this.snapshot = snapshot;
     }
@@ -57,6 +62,6 @@ public class SnapshotFileSystemNode extends AbstractFileSystemNode {
 
     @Override
     public FileSystemNode withPrefix(String newPrefix) {
-        return new SnapshotFileSystemNode(newPrefix, snapshot);
+        return new PathCompressingSnapshotWrapper(newPrefix, snapshot);
     }
 }

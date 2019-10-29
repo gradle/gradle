@@ -22,7 +22,12 @@ import org.gradle.internal.file.FileType;
 import java.util.List;
 import java.util.Optional;
 
-public class PartialDirectorySnapshot extends AbstractFileSystemNodeWithChildren implements MetadataSnapshot {
+/**
+ * An incomplete snapshot of an existing directory.
+ *
+ * May include some of its children.
+ */
+public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren implements MetadataSnapshot {
 
     public PartialDirectorySnapshot(String prefix, List<? extends FileSystemNode> children) {
         super(prefix, children);

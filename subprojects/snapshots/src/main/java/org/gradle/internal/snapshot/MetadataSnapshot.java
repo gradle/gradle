@@ -18,6 +18,9 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileType;
 
+/**
+ * A snapshot where we know the metadata (i.e. the type).
+ */
 public interface MetadataSnapshot extends FileSystemNode {
     /**
      * The type of the file.

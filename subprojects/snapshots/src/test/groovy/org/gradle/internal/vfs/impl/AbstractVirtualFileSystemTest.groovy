@@ -25,8 +25,8 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.SnapshottingFilter
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -53,12 +53,12 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         stat.allowStat(allow)
     }
 
-    FileSystemLocationSnapshot readFromVfs(File file) {
+    CompleteFileSystemLocationSnapshot readFromVfs(File file) {
         return vfs.read(file.absolutePath, { it })
     }
 
-    FileSystemLocationSnapshot readFromVfs(File file, SnapshottingFilter filter) {
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+    CompleteFileSystemLocationSnapshot readFromVfs(File file, SnapshottingFilter filter) {
+        MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
         vfs.read(file.absolutePath, filter, result.&set)
         return result.get()
     }
@@ -127,24 +127,24 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         }
     }
 
-    void assertIsFileSnapshot(FileSystemLocationSnapshot snapshot, File file) {
+    void assertIsFileSnapshot(CompleteFileSystemLocationSnapshot snapshot, File file) {
         assert snapshot.absolutePath == file.absolutePath
         assert snapshot.name == file.name
         assert snapshot.type == FileType.RegularFile
         assert snapshot.hash == hashFile(file)
     }
 
-    void assertIsMissingFileSnapshot(FileSystemLocationSnapshot snapshot, File file) {
+    void assertIsMissingFileSnapshot(CompleteFileSystemLocationSnapshot snapshot, File file) {
         assert snapshot.absolutePath == file.absolutePath
         assert snapshot.name == file.name
         assert snapshot.type == FileType.Missing
     }
 
-    void assertIsDirectorySnapshot(FileSystemLocationSnapshot snapshot, File file) {
+    void assertIsDirectorySnapshot(CompleteFileSystemLocationSnapshot snapshot, File file) {
         assert snapshot.absolutePath == file.absolutePath
         assert snapshot.name == file.name
         assert snapshot.type == FileType.Directory
-        assert (((DirectorySnapshot) snapshot).children*.name as Set) == (file.list() as Set)
+        assert (((CompleteDirectorySnapshot) snapshot).children*.name as Set) == (file.list() as Set)
     }
 
     HashCode hashFile(File file) {
@@ -167,7 +167,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         FileSystemSnapshotPredicate getAsSnapshotPredicate() {
             return new FileSystemSnapshotPredicate() {
                 @Override
-                boolean test(FileSystemLocationSnapshot fileSystemLocationSnapshot, Iterable<String> relativePath) {
+                boolean test(CompleteFileSystemLocationSnapshot fileSystemLocationSnapshot, Iterable<String> relativePath) {
                     return fileSystemLocationSnapshot.getType() == FileType.Directory || predicate.test(fileSystemLocationSnapshot.name)
                 }
             }
@@ -190,7 +190,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         private final List<String> relativePaths = []
 
         @Override
-        boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+        boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             if (!seenRoot) {
                 seenRoot = true
             } else {
@@ -201,14 +201,14 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         }
 
         @Override
-        void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+        void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
             relativePath.addLast(fileSnapshot.name)
             relativePaths.add(relativePath.join("/"))
             relativePath.removeLast()
         }
 
         @Override
-        void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+        void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             if (relativePath.isEmpty()) {
                 seenRoot = false
             } else {

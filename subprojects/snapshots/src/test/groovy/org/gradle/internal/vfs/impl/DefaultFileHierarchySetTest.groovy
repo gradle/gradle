@@ -21,9 +21,9 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.AbstractFileSystemNode
-import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileMetadata
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
@@ -426,12 +426,12 @@ class DefaultFileHierarchySetTest extends Specification {
         Assume.assumeTrue("Root is only defined for the file separator '/'", File.separator == '/')
 
         when:
-        def set = FileHierarchySet.EMPTY.update("/", new DirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
+        def set = FileHierarchySet.EMPTY.update("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
         then:
         set.getMetadata("/root.txt").get().type == FileType.RegularFile
 
         when:
-        set = set.invalidate("/root.txt").update("/", new DirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(2222)))
+        set = set.invalidate("/root.txt").update("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(2222)))
         then:
         set.getMetadata("/base.txt").get().type == FileType.RegularFile
     }
@@ -549,22 +549,22 @@ class DefaultFileHierarchySetTest extends Specification {
         !invalidated.getMetadata(secondPath).present
     }
 
-    private static DirectorySnapshot rootDirectorySnapshot() {
-        new DirectorySnapshot("/", "", [
+    private static CompleteDirectorySnapshot rootDirectorySnapshot() {
+        new CompleteDirectorySnapshot("/", "", [
             new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1)),
             new RegularFileSnapshot("/other.txt", "other.txt", HashCode.fromInt(4321), new FileMetadata(5, 28))
         ], HashCode.fromInt(1111))
     }
 
-    private static DirectorySnapshot directorySnapshotForPath(String absolutePath) {
-        new DirectorySnapshot(absolutePath, AbstractFileSystemNode.getFileName(absolutePath), [new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111))
+    private static CompleteDirectorySnapshot directorySnapshotForPath(String absolutePath) {
+        new CompleteDirectorySnapshot(absolutePath, AbstractFileSystemNode.getFileName(absolutePath), [new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111))
     }
 
-    private FileSystemLocationSnapshot snapshotDir(File dir) {
+    private CompleteFileSystemLocationSnapshot snapshotDir(File dir) {
         directorySnapshotter.snapshot(dir.absolutePath, null, new AtomicBoolean(false))
     }
 
-    private static FileSystemLocationSnapshot snapshotFile(File file) {
+    private static CompleteFileSystemLocationSnapshot snapshotFile(File file) {
         if (!file.exists()) {
             return new MissingFileSnapshot(file.absolutePath, file.name)
         }
