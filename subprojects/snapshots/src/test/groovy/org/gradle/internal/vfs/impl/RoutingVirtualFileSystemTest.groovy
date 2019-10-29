@@ -51,11 +51,13 @@ class RoutingVirtualFileSystemTest extends Specification {
     def "routes method to the right underlying virtual file system"() {
         def userHomeFile = cacheDir.file("some/dir/a")
         def projectFile = tmpDir.file("build/some/file.txt")
-        def fileSnapshot = Stub(RegularFileSnapshot)
         def snapshottingFilter = Mock(SnapshottingFilter)
         def action = {} as Runnable
         def hashFunction = { it } as Function<HashCode, HashCode>
         def location = inGradleUserHome ? userHomeFile.absolutePath : projectFile.absolutePath
+        def fileSnapshot = Stub(RegularFileSnapshot) {
+            getAbsolutePath() >> location
+        }
         def expectedVirtualFileSystem = inGradleUserHome ? gradleUserHomeVirtualFileSystem : buildSessionScopedVirtualFileSystem
         def consumer = {} as Consumer<CompleteFileSystemLocationSnapshot>
         def snapshotFunction = { it } as Function<CompleteFileSystemLocationSnapshot, CompleteFileSystemLocationSnapshot>
