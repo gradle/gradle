@@ -22,17 +22,19 @@ import spock.lang.Unroll
 class JavaIncompatiblePluginsIntegrationTest  extends AbstractIntegrationSpec {
 
     @Unroll
-    def "nag users when applying both java-platform and #plugin"() {
-        when:
+    def "cannot apply both the java-platform and #plugin"() {
+        given:
         buildFile << """
 plugins {
     id 'java-platform'
     id '${plugin}'
 }
 """
+        when:
+        fails 'help'
+
         then:
-        executer.expectDeprecationWarning()
-        succeeds 'help'
+        failureHasCause("The \"java\" or \"java-library\" plugin cannot be applied together with the \"java-platform\" plugin")
 
         where:
         plugin << ['java', 'java-library']
@@ -40,15 +42,17 @@ plugins {
 
     @Unroll
     def "cannot apply both #plugin and java-platform"() {
-        when:
+        given:
         buildFile << """
 plugins {
     id '${plugin}'
     id 'java-platform'
 }
 """
-        then:
+        when:
         fails 'help'
+
+        then:
         failureHasCause("The \"java-platform\" plugin cannot be applied together with the \"java\" (or \"java-library\") plugin")
 
         where:
