@@ -48,15 +48,15 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
      */
     private static final char OTHER_SEPARATOR = IS_WINDOWS_SEPARATOR ? UNIX_SEPARATOR : WINDOWS_SEPARATOR;
 
-    private final String prefix;
+    private final String pathToParent;
 
-    public AbstractFileSystemNode(String prefix) {
-        this.prefix = prefix;
+    public AbstractFileSystemNode(String pathToParent) {
+        this.pathToParent = pathToParent;
     }
 
     @Override
-    public String getPrefix() {
-        return prefix;
+    public String getPathToParent() {
+        return pathToParent;
     }
 
     public static boolean isFileSeparator(char toCheck) {
@@ -183,7 +183,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
     public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, ChildHandler<T> childHandler) {
         int childIndex = ListUtils.binarySearch(
             children,
-            candidate -> compareWithCommonPrefix(candidate.getPrefix(), path, offset)
+            candidate -> compareWithCommonPrefix(candidate.getPathToParent(), path, offset)
         );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(childIndex);
@@ -192,39 +192,39 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
     }
 
     public static FileSystemNode updateSingleChild(FileSystemNode child, String path, int offset, MetadataSnapshot snapshot) {
-        return handlePrefix(child.getPrefix(), path, offset, new DescendantHandler<FileSystemNode>() {
+        return handlePrefix(child.getPathToParent(), path, offset, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
-                int childOffset = descendantChildOffset(child.getPrefix(), path);
+                int childOffset = descendantChildOffset(child.getPathToParent(), path);
                 return child.update(
                     path,
-                    offset + child.getPrefix().length() + childOffset,
+                    offset + child.getPathToParent().length() + childOffset,
                     snapshot);
             }
 
             @Override
             public FileSystemNode handleParent() {
-                return snapshot.withPrefix(path.substring(offset));
+                return snapshot.withPathToParent(path.substring(offset));
             }
 
             @Override
             public FileSystemNode handleSame() {
                 return snapshot instanceof CompleteFileSystemLocationSnapshot
-                    ? snapshot.withPrefix(child.getPrefix())
+                    ? snapshot.withPathToParent(child.getPathToParent())
                     : child.getSnapshot(path, path.length() + 1)
                         .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
                         .map(FileSystemNode.class::cast)
-                        .orElse(snapshot.withPrefix(child.getPrefix()));
+                        .orElse(snapshot.withPathToParent(child.getPathToParent()));
             }
 
             @Override
             public FileSystemNode handleDifferent(int commonPrefixLength) {
-                String prefix = child.getPrefix();
+                String prefix = child.getPathToParent();
                 String commonPrefix = prefix.substring(0, commonPrefixLength);
                 boolean emptyCommonPrefixAndNoSlashAtStart = commonPrefixLength == 0 && (!isFileSeparator(prefix.charAt(0)) || !isFileSeparator(path.charAt(offset)));
-                FileSystemNode newChild = emptyCommonPrefixAndNoSlashAtStart ? child : child.withPrefix(prefix.substring(commonPrefixLength + 1));
-                FileSystemNode sibling = snapshot.withPrefix(emptyCommonPrefixAndNoSlashAtStart ? path : path.substring(offset + commonPrefixLength + 1));
-                ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newChild.getPrefix(), sibling.getPrefix()) < 0
+                FileSystemNode newChild = emptyCommonPrefixAndNoSlashAtStart ? child : child.withPathToParent(prefix.substring(commonPrefixLength + 1));
+                FileSystemNode sibling = snapshot.withPathToParent(emptyCommonPrefixAndNoSlashAtStart ? path : path.substring(offset + commonPrefixLength + 1));
+                ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
                 return new UnknownSnapshot(commonPrefix, newChildren);
@@ -233,11 +233,11 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
     }
 
     public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, String path, int offset) {
-        return handlePrefix(child.getPrefix(), path, offset, new DescendantHandler<Optional<FileSystemNode>>() {
+        return handlePrefix(child.getPathToParent(), path, offset, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
-                int childOffset = descendantChildOffset(child.getPrefix(), path);
-                return child.invalidate(path, offset + child.getPrefix().length() + childOffset);
+                int childOffset = descendantChildOffset(child.getPathToParent(), path);
+                return child.invalidate(path, offset + child.getPathToParent().length() + childOffset);
             }
 
             @Override

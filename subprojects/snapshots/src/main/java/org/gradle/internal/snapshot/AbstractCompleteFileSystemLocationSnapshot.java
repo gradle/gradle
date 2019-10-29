@@ -38,7 +38,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public String getPrefix() {
+    public String getPathToParent() {
         return getName();
     }
 
@@ -52,8 +52,8 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public FileSystemNode withPrefix(String newPrefix) {
-        return new PathCompressingSnapshotWrapper(newPrefix, this);
+    public FileSystemNode withPathToParent(String newPathToParent) {
+        return new PathCompressingSnapshotWrapper(newPathToParent, this);
     }
 
     @Override

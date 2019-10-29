@@ -27,8 +27,8 @@ import java.util.Optional;
  */
 public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
 
-    public UnknownSnapshot(String prefix, List<? extends FileSystemNode> children) {
-        super(prefix, children);
+    public UnknownSnapshot(String pathToParent, List<? extends FileSystemNode> children) {
+        super(pathToParent, children);
         assert !children.isEmpty();
     }
 

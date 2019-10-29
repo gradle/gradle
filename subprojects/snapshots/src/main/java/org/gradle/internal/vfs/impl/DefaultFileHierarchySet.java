@@ -33,7 +33,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     private final FileSystemNode rootNode;
 
     public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot) {
-        return new DefaultFileHierarchySet(snapshot.withPrefix(normalizeRoot(absolutePath)));
+        return new DefaultFileHierarchySet(snapshot.withPathToParent(normalizeRoot(absolutePath)));
     }
 
     private DefaultFileHierarchySet(FileSystemNode rootNode) {
@@ -50,11 +50,11 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     @Override
     public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
         String normalizedPath = normalizeRoot(absolutePath);
-        String prefix = rootNode.getPrefix();
-        if (!AbstractFileSystemNode.isChildOfOrThis(normalizedPath, 0, prefix)) {
+        String pathToParent = rootNode.getPathToParent();
+        if (!AbstractFileSystemNode.isChildOfOrThis(normalizedPath, 0, pathToParent)) {
             return Optional.empty();
         }
-        return rootNode.getSnapshot(normalizedPath, prefix.length() + rootNodeOffset(prefix, normalizedPath));
+        return rootNode.getSnapshot(normalizedPath, pathToParent.length() + rootNodeOffset(pathToParent, normalizedPath));
     }
 
     private static int rootNodeOffset(String prefix, String normalizedPath) {

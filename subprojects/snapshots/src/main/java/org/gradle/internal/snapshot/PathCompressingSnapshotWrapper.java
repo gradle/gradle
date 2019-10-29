@@ -28,19 +28,19 @@ import java.util.Optional;
 public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode {
     private final MetadataSnapshot snapshot;
 
-    public PathCompressingSnapshotWrapper(String prefix, MetadataSnapshot snapshot) {
-        super(prefix);
+    public PathCompressingSnapshotWrapper(String pathToParent, MetadataSnapshot snapshot) {
+        super(pathToParent);
         this.snapshot = snapshot;
     }
 
     @Override
     public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
-        return snapshot.invalidate(absolutePath, offset).map(splitSnapshot -> splitSnapshot.withPrefix(getPrefix()));
+        return snapshot.invalidate(absolutePath, offset).map(splitSnapshot -> splitSnapshot.withPathToParent(getPathToParent()));
     }
 
     @Override
     public FileSystemNode update(String absolutePath, int offset, MetadataSnapshot newSnapshot) {
-        return snapshot.update(absolutePath, offset, newSnapshot).withPrefix(getPrefix());
+        return snapshot.update(absolutePath, offset, newSnapshot).withPathToParent(getPathToParent());
     }
 
     @Override
@@ -54,14 +54,14 @@ public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode {
     @Override
     public void collect(int depth, List<String> prefixes) {
         if (depth == 0) {
-            prefixes.add(getPrefix());
+            prefixes.add(getPathToParent());
         } else {
-            prefixes.add(depth + ":" + getPrefix().replace(File.separatorChar, '/'));
+            prefixes.add(depth + ":" + getPathToParent().replace(File.separatorChar, '/'));
         }
     }
 
     @Override
-    public FileSystemNode withPrefix(String newPrefix) {
-        return new PathCompressingSnapshotWrapper(newPrefix, snapshot);
+    public FileSystemNode withPathToParent(String newPathToParent) {
+        return new PathCompressingSnapshotWrapper(newPathToParent, snapshot);
     }
 }

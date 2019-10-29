@@ -38,14 +38,14 @@ class UnknownSnapshotTest extends Specification {
         def children = createChildren(childNames)
         def first = children.get(0)
         def node = new UnknownSnapshot("some/prefix", children)
-        def relativePath = "${first.prefix}/someString"
+        def relativePath = "${first.pathToParent}/someString"
         def result = Mock(MetadataSnapshot)
 
         when:
         def snapshot = node.getSnapshot(relativePath, 0)
         then:
         snapshot.get() == result
-        _ * first.getSnapshot(relativePath, first.prefix.length() + 1) >> Optional.of(result)
+        _ * first.getSnapshot(relativePath, first.pathToParent.length() + 1) >> Optional.of(result)
 
         where:
         childNames << [["first"], ["first", "second"], ["first", "second", "third"]]
@@ -56,7 +56,7 @@ class UnknownSnapshotTest extends Specification {
         def children = createChildren(childNames)
         def first = children.get(0)
         def node = new UnknownSnapshot("some/prefix", children)
-        def relativePath = "${first.prefix}1/someString"
+        def relativePath = "${first.pathToParent}1/someString"
 
         when:
         def snapshot = node.getSnapshot(relativePath, 0)
@@ -89,7 +89,7 @@ class UnknownSnapshotTest extends Specification {
         def children = createChildren("first")
         def node = new UnknownSnapshot("some/prefix", children)
         def childToInvalidate = children.get(0)
-        def relativePath = childToInvalidate.prefix
+        def relativePath = childToInvalidate.pathToParent
 
         when:
         def result = node.invalidate(relativePath, 0)
@@ -103,25 +103,25 @@ class UnknownSnapshotTest extends Specification {
         def children = createChildren(childNames)
         def node = new UnknownSnapshot("some/prefix", children)
         def childToInvalidate = children.get(0)
-        def relativePath = childToInvalidate.prefix
+        def relativePath = childToInvalidate.pathToParent
         def snapshot = Mock(MetadataSnapshot)
         def remainingChildren = children.findAll { it != childToInvalidate }
 
         when:
         def result = node.invalidate(relativePath, 0).get()
         remainingChildren.each {
-            assert result.getSnapshot(it.prefix, 0).get() == snapshot
+            assert result.getSnapshot(it.pathToParent, 0).get() == snapshot
         }
         then:
         0 * _.invalidate(_)
         interaction {
             remainingChildren.each {
-                _ * it.getSnapshot(it.prefix, it.prefix.length() + 1) >> Optional.of(snapshot)
+                _ * it.getSnapshot(it.pathToParent, it.pathToParent.length() + 1) >> Optional.of(snapshot)
             }
         }
 
         when:
-        def removedSnapshot = result.getSnapshot(childToInvalidate.prefix, 0)
+        def removedSnapshot = result.getSnapshot(childToInvalidate.pathToParent, 0)
         then:
         0 * _.getSnapshot(_)
         !removedSnapshot.present
@@ -135,13 +135,13 @@ class UnknownSnapshotTest extends Specification {
         def children = createChildren(childNames)
         def node = new UnknownSnapshot("some/prefix", children)
         def childWithChildToInvalidate = children.get(0)
-        def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPrefix(childWithChildToInvalidate.prefix))
+        def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPrefix(childWithChildToInvalidate.pathToParent))
 
         when:
-        def result = node.invalidate("${childWithChildToInvalidate.prefix}/deeper", 0).get()
+        def result = node.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", 0).get()
 
         then:
-        1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.prefix}/deeper", childWithChildToInvalidate.prefix.length() + 1) >> Optional.of(invalidatedChild)
+        1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", childWithChildToInvalidate.pathToParent.length() + 1) >> Optional.of(invalidatedChild)
         0 * _.invalidate(_)
         !result.getSnapshot(invalidatedChild.prefix, 0).present
 

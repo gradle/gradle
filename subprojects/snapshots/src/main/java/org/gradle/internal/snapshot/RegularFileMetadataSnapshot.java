@@ -29,8 +29,8 @@ import java.util.Optional;
  */
 public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implements MetadataSnapshot {
 
-    public RegularFileMetadataSnapshot(String prefix) {
-        super(prefix);
+    public RegularFileMetadataSnapshot(String pathToParent) {
+        super(pathToParent);
     }
 
     @Override
@@ -58,14 +58,14 @@ public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implemen
     @Override
     public void collect(int depth, List<String> prefixes) {
         if (depth == 0) {
-            prefixes.add(getPrefix());
+            prefixes.add(getPathToParent());
         } else {
-            prefixes.add(depth + ":" + getPrefix().replace(File.separatorChar, '/'));
+            prefixes.add(depth + ":" + getPathToParent().replace(File.separatorChar, '/'));
         }
     }
 
     @Override
-    public FileSystemNode withPrefix(String newPrefix) {
-        return new RegularFileMetadataSnapshot(newPrefix);
+    public FileSystemNode withPathToParent(String newPathToParent) {
+        return new RegularFileMetadataSnapshot(newPathToParent);
     }
 }

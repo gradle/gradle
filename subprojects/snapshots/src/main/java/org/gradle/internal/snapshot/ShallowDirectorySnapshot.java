@@ -29,8 +29,8 @@ import java.util.Optional;
  */
 public class ShallowDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren implements MetadataSnapshot {
 
-    public ShallowDirectorySnapshot(String prefix, List<? extends FileSystemNode> children) {
-        super(prefix, children);
+    public ShallowDirectorySnapshot(String pathToParent, List<? extends FileSystemNode> children) {
+        super(pathToParent, children);
     }
 
     @Override
@@ -51,12 +51,12 @@ public class ShallowDirectorySnapshot extends AbstractIncompleteSnapshotWithChil
 
     @Override
     protected Optional<FileSystemNode> withNoChildren() {
-        return Optional.of(new PartialDirectorySnapshot(getPrefix(), ImmutableList.of()));
+        return Optional.of(new PartialDirectorySnapshot(getPathToParent(), ImmutableList.of()));
     }
 
     @Override
     protected FileSystemNode withUnkownChildInvalidated() {
-        return new PartialDirectorySnapshot(getPrefix(), children);
+        return new PartialDirectorySnapshot(getPathToParent(), children);
     }
 
     @Override
