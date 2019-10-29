@@ -29,6 +29,8 @@ import java.util.List;
 interface ClassGenerator {
     /**
      * Generates a proxy class for the given class. May return the given class unmodified or may generate a subclass.
+     *
+     * <p>Implementation should ensure that it is efficient to call this method multiple types for the same class.</p>
      */
     <T> GeneratedClass<? extends T> generate(Class<T> type) throws ClassGenerationException;
 

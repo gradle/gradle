@@ -58,8 +58,8 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
         this.managedFactory = new ClassGeneratorBackedManagedFactory(injectOnlyGenerator);
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnlyGenerator, cacheFactory.newClassCache());
         ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decoratedGenerator, cacheFactory.newClassCache());
-        ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnlyGenerator, cacheFactory.newClassCache());
-        ConstructorSelector decoratedLenientSelector = new ParamsMatchingConstructorSelector(decoratedGenerator, cacheFactory.newClassCache());
+        ConstructorSelector injectOnlyLenientSelector = new ParamsMatchingConstructorSelector(injectOnlyGenerator);
+        ConstructorSelector decoratedLenientSelector = new ParamsMatchingConstructorSelector(decoratedGenerator);
         injectOnlyScheme = new DefaultInstantiationScheme(injectOnlyJsr330Selector, injectOnlyGenerator, defaultServices, ImmutableSet.of(Inject.class), cacheFactory);
         injectOnlyLenientScheme = new DefaultInstantiationScheme(injectOnlyLenientSelector, injectOnlyGenerator, defaultServices, ImmutableSet.of(Inject.class), cacheFactory);
         decoratingScheme = new DefaultInstantiationScheme(decoratedJsr330Selector, decoratedGenerator, defaultServices, ImmutableSet.of(Inject.class), cacheFactory);
