@@ -24,10 +24,12 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
 
         given:
         new JavaProjectUnderTest(testDirectory).writeBuildScript().writeSourceFiles()
+        buildFile << '\njacocoTestReport.dependsOn test'
         def htmlReportDir = file("build/reports/jacoco/test/html")
 
+
         expect:
-        instantRun 'test', 'jacocoTestReport'
+        instantRun 'jacocoTestReport'
         htmlReportDir.assertIsDir()
 
         when:
