@@ -17,11 +17,13 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 class VisualStudioCompositeBuildIntegrationTest extends AbstractVisualStudioIntegrationSpec {
     def app = new CppHelloWorldApp()
 
+    @FailsWithInstantExecution
     def "includes a visual studio project for every project in build with a C++ component"() {
         when:
         settingsFile << """

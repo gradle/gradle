@@ -19,6 +19,7 @@ package org.gradle.ide.xcode
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
 import org.gradle.ide.xcode.fixtures.XcodebuildExecutor
 import org.gradle.ide.xcode.internal.DefaultXcodeProject
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.nativeplatform.fixtures.app.CppGreeterFunction
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithDep
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
@@ -42,6 +43,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         useXcodebuildTool()
     }
 
+    @FailsWithInstantExecution
     def "can create xcode project for Swift application"() {
         given:
         buildFile << """
@@ -95,6 +97,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':app:compileReleaseSwift', ':app:linkRelease', ':app:stripSymbolsRelease', ':app:installRelease', ':app:_xcode___App_Release')
     }
 
+    @FailsWithInstantExecution
     def "can create xcode project for Swift application with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
@@ -164,6 +167,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':hello:_xcode___Hello_Release')
     }
 
+    @FailsWithInstantExecution
     def "can create xcode project for Swift application with binary-specific dependencies"() {
         def app = new SwiftAppWithLibraries()
 
@@ -239,6 +243,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':hello:_xcode___Hello_Release')
     }
 
+    @FailsWithInstantExecution
     def "can create xcode project for Swift application with dependency on c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
@@ -318,6 +323,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':hello:_xcode___Hello_Release')
     }
 
+    @FailsWithInstantExecution
     def "can create xcode project for Swift application with dependency on a static c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def swiftGreeter = new SwiftGreeterUsingCppFunction(cppGreeter)
@@ -401,6 +407,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
             ':hello:_xcode___Hello_Release')
     }
 
+    @FailsWithInstantExecution
     def "can clean xcode project with transitive dependencies"() {
         def app = new SwiftAppWithLibraries()
 
@@ -466,6 +473,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
     }
 
     @Ignore
+    @FailsWithInstantExecution
     def "can create xcode project for Swift application inside composite build"() {
         requireSwiftToolChain()
 
@@ -528,6 +536,7 @@ class XcodeMultipleSwiftProjectIntegrationTest extends AbstractXcodeIntegrationS
         resultReleaseGreeter.assertTasksExecuted(':compileReleaseSwift', ':linkRelease', ':stripSymbolsRelease', ':_xcode___Greeter_Release')
     }
 
+    @FailsWithInstantExecution
     def "can run tests for Swift library within multi-project from xcode"() {
         given:
         buildFile << """

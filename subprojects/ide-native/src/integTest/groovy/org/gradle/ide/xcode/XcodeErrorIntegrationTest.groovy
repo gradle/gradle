@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -24,6 +25,7 @@ import static org.gradle.util.Matchers.containsText
 
 class XcodeErrorIntegrationTest extends AbstractXcodeIntegrationSpec {
     @Requires(TestPrecondition.XCODE)
+    @FailsWithInstantExecution
     def "fails to build when project code is broken"() {
         useXcodebuildTool()
 

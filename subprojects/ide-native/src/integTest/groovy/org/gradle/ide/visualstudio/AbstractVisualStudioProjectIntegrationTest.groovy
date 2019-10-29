@@ -19,6 +19,7 @@ package org.gradle.ide.visualstudio
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.language.VariantContext
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
@@ -44,6 +45,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         """
     }
 
+    @FailsWithInstantExecution
     def "ignores target machine not buildable from project configuration dimensions"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -69,6 +71,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         solutionFile.assertReferencesProject(projectFile, projectConfigurations)
     }
 
+    @FailsWithInstantExecution
     def "create visual studio solution for component with multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -103,6 +106,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @FailsWithInstantExecution
     def "build generated visual studio solution with multiple target machines"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -158,6 +162,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         succeeds "help"
     }
 
+    @FailsWithInstantExecution
     def "can create visual studio project for unbuildable component"() {
         given:
         makeSingleProject()
@@ -181,6 +186,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         solutionFile.assertReferencesProject(projectFile, projectConfigurations)
     }
 
+    @FailsWithInstantExecution
     def "warns about unbuildable components in generated visual studio project"() {
         given:
         makeSingleProject()
@@ -198,6 +204,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @FailsWithInstantExecution
     def "returns meaningful errors from visual studio when component product is unbuildable due to operating system"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -232,6 +239,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Requires(TestPrecondition.MSBUILD)
+    @FailsWithInstantExecution
     def "returns meaningful errors from visual studio when component product is unbuildable due to architecture"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         useMsbuildTool()
@@ -257,6 +265,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can detect the language standard for Visual Studio IntelliSense [#expectedLanguageStandard]"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -291,6 +300,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         '-std:cpplatest' | 'stdcpplatest'
     }
 
+    @FailsWithInstantExecution
     def "can detect different language standard per component for Visual Studio IntelliSense"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
@@ -319,6 +329,7 @@ abstract class AbstractVisualStudioProjectIntegrationTest extends AbstractVisual
         projectFile.projectConfigurations['release'].languageStandard == 'stdcpp17'
     }
 
+    @FailsWithInstantExecution
     def "does not configure language standard when compiler flag is absent for Visual Studio Intellisense"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
 
