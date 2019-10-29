@@ -17,14 +17,13 @@
 package org.gradle.internal.instantiation.generator
 
 import org.gradle.api.reflect.ObjectInstantiationException
-import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.service.ServiceLookup
 import spock.lang.Specification
 
 class DependencyInjectionUsingLenientConstructorSelectorTest extends Specification {
     def services = Mock(ServiceLookup)
     def classGenerator = new IdentityClassGenerator()
-    def instantiator = new DependencyInjectingInstantiator(new ParamsMatchingConstructorSelector(classGenerator, new TestCrossBuildInMemoryCacheFactory.TestCache()), services)
+    def instantiator = new DependencyInjectingInstantiator(new ParamsMatchingConstructorSelector(classGenerator), services)
 
     def "creates instance that has default constructor"() {
         when:
