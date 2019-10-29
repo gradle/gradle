@@ -245,7 +245,6 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
                 return Optional.empty();
             }
 
-
             @Override
             public Optional<FileSystemNode> handleSame() {
                 return Optional.empty();

@@ -57,7 +57,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         return rootNode.getSnapshot(normalizedPath, prefix.length() + rootNodeOffset(prefix, normalizedPath));
     }
 
-    private int rootNodeOffset(String prefix, String normalizedPath) {
+    private static int rootNodeOffset(String prefix, String normalizedPath) {
         if (prefix.isEmpty() && normalizedPath.length() > 0 && !isFileSeparator(normalizedPath.charAt(0))) {
             return 0;
         }
