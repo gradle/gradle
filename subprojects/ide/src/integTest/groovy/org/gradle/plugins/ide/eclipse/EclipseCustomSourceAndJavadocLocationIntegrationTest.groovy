@@ -15,8 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+
 class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclipseIntegrationSpec {
 
+    @FailsWithInstantExecution
     def "custom source and javadoc location"() {
         setup:
         String customSourcePath = temporaryFolder.file('guava-custom-source.jar').absolutePath.replace('\\', '\\\\')

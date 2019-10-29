@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.http.*
 import org.junit.Rule
 
@@ -43,6 +45,7 @@ abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeI
         succeeds "resolve"
     }
 
+    @FailsWithInstantExecution
     def "sources and javadoc jars from maven repositories are resolved, attached and cached"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -75,6 +78,7 @@ dependencies {
         ideFileContainsEntry("module-1.0-api.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
+    @FailsWithInstantExecution
     def "ignores missing sources and javadoc jars in maven repositories"() {
         def repo = mavenHttpRepo
         repo.module("some", "module", "1.0").publish().allowAll()
@@ -87,6 +91,7 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
+    @IgnoreWithInstantExecution
     def "ignores broken source or javadoc artifacts in maven repository"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -128,6 +133,7 @@ dependencies {
         succeeds "resolve"
     }
 
+    @IgnoreWithInstantExecution
     def "sources and javadoc jars from ivy repositories are resolved, attached and cached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -150,6 +156,7 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-my-sources.jar", "module-1.0-my-javadoc.jar")
     }
 
+    @FailsWithInstantExecution
     def "all sources and javadoc jars resolved from ivy repo are attached to all artifacts for module"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -183,6 +190,7 @@ dependencies {
         ideFileContainsEntry("module-1.0-tests.jar", sources, javadoc)
     }
 
+    @FailsWithInstantExecution
     def "all sources jars from ivy repositories are attached when there are multiple unclassified artifacts"() {
         def repo = ivyHttpRepo
 
@@ -210,6 +218,7 @@ dependencies {
         ideFileContainsEntry("foo-api-1.0.jar", ["foo-sources-1.0.jar", "foo-api-sources-1.0.jar"], ["foo-javadoc-1.0.jar", "foo-api-javadoc-1.0.jar"])
     }
 
+    @IgnoreWithInstantExecution
     def "ignores missing sources and javadoc jars in ivy repositories"() {
         def repo = ivyHttpRepo
         final module = repo.module("some", "module", "1.0")
@@ -227,6 +236,7 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
+    @IgnoreWithInstantExecution
     def "ignores broken source or javadoc artifacts in ivy repository"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -252,6 +262,7 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
+    @FailsWithInstantExecution
     def "sources and javadoc jars stored with maven scheme in ivy repositories are resolved and attached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -270,7 +281,7 @@ dependencies {
         ideFileContainsEntry("module-1.0.jar", "module-1.0-sources.jar", "module-1.0-javadoc.jar")
     }
 
-
+    @FailsWithInstantExecution
     def "sources and javadoc jars from flatdir repositories are resolved and attached"() {
         file("repo/module-1.0.jar").createFile()
         file("repo/module-1.0-sources.jar").createFile()

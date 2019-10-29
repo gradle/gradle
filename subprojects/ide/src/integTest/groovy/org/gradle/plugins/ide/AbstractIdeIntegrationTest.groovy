@@ -25,9 +25,12 @@ import org.gradle.plugins.ide.fixtures.IdeaProjectFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Before
 
+import static org.gradle.integtests.fixtures.IgnoreWithInstantExecutionExtension.assumeNotInstantExecution
+
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
     @Before
     void setUp() {
+        assumeNotInstantExecution()
         executer.withRepositoryMirrors()
     }
 

@@ -17,9 +17,10 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class IdeaNestedBuildIntegrationTest extends AbstractIntegrationSpec {
+    @FailsWithInstantExecution
     def "can use GradleBuild task to run a build that applies the IDEA plugin"() {
         buildFile << """
             task go(type: GradleBuild) {

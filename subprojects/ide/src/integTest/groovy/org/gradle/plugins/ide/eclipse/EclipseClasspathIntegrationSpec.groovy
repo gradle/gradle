@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 
 class EclipseClasspathIntegrationSpec extends AbstractEclipseIntegrationSpec {
@@ -22,6 +23,7 @@ class EclipseClasspathIntegrationSpec extends AbstractEclipseIntegrationSpec {
     // TODO this should be part of EclipseClasspathIntegrationTest, but it uses a legacy superclass
 
     @Issue("https://github.com/gradle/gradle/issues/10393")
+    @FailsWithInstantExecution
     def  "Does not contain duplicate project dependencies"() {
         setup:
         buildFile <<  """

@@ -16,8 +16,11 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+
 class EclipseLinkedResourceIntegrationTest extends AbstractEclipseIntegrationSpec {
 
+    @FailsWithInstantExecution
     def "can reference linked resources as source folders"() {
         given:
         multiProjectWithSiblingSourceFolders()
