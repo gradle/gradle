@@ -189,11 +189,15 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {
-        String text = buildFile.text
+        replaceVariablesInFile(binding, buildFile)
+    }
+
+    protected void replaceVariablesInFile(Map binding, File file) {
+        String text = file.text
         binding.each { String var, String value ->
             text = text.replaceAll("\\\$${var}".toString(), value)
         }
-        buildFile.text = text
+        file.text = text
     }
 
     protected static String jcenterRepository() {
