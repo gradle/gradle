@@ -48,6 +48,10 @@ android {
     testOptions {
         unitTests.isReturnDefaultValues = true
     }
+    kotlinOptions {
+        require(this is org.jetbrains.kotlin.gradle.dsl.KotlinJvmOptions)
+        jvmTarget = "1.8"
+    }
 }
 
 project.afterEvaluate {
