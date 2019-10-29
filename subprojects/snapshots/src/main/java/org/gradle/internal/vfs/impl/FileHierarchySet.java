@@ -56,8 +56,6 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
     /**
      * Returns a set that contains the union of this set and the given directory. The set contains the directory itself, plus all its descendants.
-     * @param absolutePath
-     * @param snapshot
      */
     @CheckReturnValue
     FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot);

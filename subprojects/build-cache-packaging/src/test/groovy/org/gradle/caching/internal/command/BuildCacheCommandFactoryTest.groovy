@@ -31,6 +31,7 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
+import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -84,13 +85,11 @@ class BuildCacheCommandFactoryTest extends Specification {
         1 * packer.unpack(entity, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
-        1 * virtualFileSystem.updateWithKnownSnapshot(outputDir.absolutePath, _ as DirectorySnapshot) >> { args ->
-            DirectorySnapshot snapshot = args[1]
+        1 * virtualFileSystem.updateWithKnownSnapshot(_ as DirectorySnapshot) >> { FileSystemLocationSnapshot snapshot  ->
             assert snapshot.absolutePath == outputDir.absolutePath
             assert snapshot.name == outputDir.name
         }
-        1 * virtualFileSystem.updateWithKnownSnapshot(outputFileSnapshot.absolutePath, _ as RegularFileSnapshot) >> { args ->
-            RegularFileSnapshot snapshot = args[1]
+        1 * virtualFileSystem.updateWithKnownSnapshot(_ as RegularFileSnapshot) >> { FileSystemLocationSnapshot snapshot ->
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash
@@ -153,7 +152,7 @@ class BuildCacheCommandFactoryTest extends Specification {
 
     def entity(TestCacheableTree... trees) {
         return Stub(CacheableEntity) {
-            visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
+            visitOutputTrees(_ as CacheableEntity.CacheableTreeVisitor) >> { CacheableEntity.CacheableTreeVisitor visitor ->
                 trees.each { visitor.visitOutputTree(it.name, it.type, it.root) }
             }
         }

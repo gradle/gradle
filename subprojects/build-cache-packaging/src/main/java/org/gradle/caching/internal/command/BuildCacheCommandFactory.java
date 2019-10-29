@@ -127,7 +127,7 @@ public class BuildCacheCommandFactory {
 
                 if (treeSnapshot == null) {
                     MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath);
-                    virtualFileSystem.updateWithKnownSnapshot(internedAbsolutePath, missingFileSnapshot);
+                    virtualFileSystem.updateWithKnownSnapshot(missingFileSnapshot);
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
                     return;
                 }
@@ -138,11 +138,11 @@ public class BuildCacheCommandFactory {
                             throw new IllegalStateException(String.format("Only a regular file should be produced by unpacking tree '%s', but saw a %s", treeName, treeSnapshot.getType()));
                         }
                         roots.add(treeSnapshot);
-                        virtualFileSystem.updateWithKnownSnapshot(treeSnapshot.getAbsolutePath(), treeSnapshot);
+                        virtualFileSystem.updateWithKnownSnapshot(treeSnapshot);
                         break;
                     case DIRECTORY:
                         roots.add(treeSnapshot);
-                        virtualFileSystem.updateWithKnownSnapshot(internedAbsolutePath, treeSnapshot);
+                        virtualFileSystem.updateWithKnownSnapshot(treeSnapshot);
                         break;
                     default:
                         throw new AssertionError();

@@ -82,8 +82,8 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot) {
-        getVirtualFileSystemFor(location).updateWithKnownSnapshot(location, snapshot);
+    public void updateWithKnownSnapshot(FileSystemLocationSnapshot snapshot) {
+        getVirtualFileSystemFor(snapshot.getAbsolutePath()).updateWithKnownSnapshot(snapshot);
     }
 
     private VirtualFileSystem getVirtualFileSystemFor(String location) {

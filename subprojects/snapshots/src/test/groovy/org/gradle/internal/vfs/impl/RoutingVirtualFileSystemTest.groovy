@@ -61,9 +61,9 @@ class RoutingVirtualFileSystemTest extends Specification {
         def snapshotFunction = { it } as Function<FileSystemLocationSnapshot, FileSystemLocationSnapshot>
 
         when:
-        routingVirtualFileSystem.updateWithKnownSnapshot(location, fileSnapshot)
+        routingVirtualFileSystem.updateWithKnownSnapshot(fileSnapshot)
         then:
-        1 * expectedVirtualFileSystem.updateWithKnownSnapshot(location, fileSnapshot)
+        1 * expectedVirtualFileSystem.updateWithKnownSnapshot(fileSnapshot)
         0 * _
 
         when:

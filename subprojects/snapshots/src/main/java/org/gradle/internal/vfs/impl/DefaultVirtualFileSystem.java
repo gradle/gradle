@@ -43,12 +43,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
-    private AtomicReference<FileHierarchySet> root = new AtomicReference<>(FileHierarchySet.EMPTY);
+    private final AtomicReference<FileHierarchySet> root = new AtomicReference<>(FileHierarchySet.EMPTY);
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
-
 
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, String... defaultExcludes) {
         this.stat = stat;
@@ -173,7 +172,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public void updateWithKnownSnapshot(String location, FileSystemLocationSnapshot snapshot) {
+    public void updateWithKnownSnapshot(FileSystemLocationSnapshot snapshot) {
         root.updateAndGet(root -> root.update(snapshot.getAbsolutePath(), snapshot));
     }
 
