@@ -634,9 +634,9 @@ class DefaultFileHierarchySetTest extends Specification {
 
     private static void collectPrefixes(FileSystemNode node, int depth, List<String> prefixes) {
         if (depth == 0) {
-            prefixes.add(node.getPathToParent());
+            prefixes.add(node.getPathToParent())
         } else {
-            prefixes.add(depth + ":" + node.getPathToParent().replace(File.separatorChar, (char) '/'));
+            prefixes.add(depth + ":" + node.getPathToParent().replace(File.separatorChar, (char) '/'))
         }
         List<? extends FileSystemNode> children
         if (node instanceof CompleteDirectorySnapshot) {
@@ -647,7 +647,7 @@ class DefaultFileHierarchySetTest extends Specification {
             children = []
         }
         children.forEach { child ->
-            collectPrefixes(child, depth + 1, prefixes);
+            collectPrefixes(child, depth + 1, prefixes)
         }
     }
 }
