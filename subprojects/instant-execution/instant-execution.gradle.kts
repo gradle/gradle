@@ -102,4 +102,8 @@ tasks {
         delete(santaTrackerJava.get().outputDirectory)
         delete(santaTrackerKotlin.get().outputDirectory)
     }
+
+    instantIntegTest {
+        enabled = false
+    }
 }
