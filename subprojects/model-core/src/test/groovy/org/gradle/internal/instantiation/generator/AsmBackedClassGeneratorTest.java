@@ -56,7 +56,6 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.JavaReflectionUtil;
-import org.gradle.internal.reflect.annotations.impl.DefaultTypeAnnotationMetadataStoreTest;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
