@@ -94,8 +94,8 @@ public class PatternSpecFactory {
     private Spec<FileTreeElement> updateDefaultExcludeCache(List<String> defaultExcludes, boolean caseSensitive) {
         previousDefaultExcludes.clear();
         previousDefaultExcludes.addAll(defaultExcludes);
-        defaultExcludeSpecs.put(caseSensitive, createSpec(defaultExcludes, false, true));
-        defaultExcludeSpecs.put(caseSensitive, createSpec(defaultExcludes, false, false));
+        defaultExcludeSpecs.put(true, createSpec(defaultExcludes, false, true));
+        defaultExcludeSpecs.put(false, createSpec(defaultExcludes, false, false));
         return defaultExcludeSpecs.get(caseSensitive);
     }
 

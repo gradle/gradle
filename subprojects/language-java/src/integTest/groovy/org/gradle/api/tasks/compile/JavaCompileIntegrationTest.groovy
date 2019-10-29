@@ -940,4 +940,33 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         then:
         !file("build/headers/java/main/Foo.h").exists()
     }
+
+    @Issue("https://github.com/gradle/gradle/issues/11017")
+    def "does not use case insensitive default excludes"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+        """
+        file("src/main/java/com/example/Main.java") << """
+            package com.example;
+            
+            import com.example.cvs.Test;
+            
+            public class Main {
+            
+              public static void main(String[] args) {
+                System.out.println(new Test());
+              }
+            }
+        """
+        file("src/main/java/com/example/cvs/Test.java") << """
+            package com.example.cvs;
+            
+            public class Test {
+            }
+        """
+
+        expect:
+        succeeds("compileJava")
+    }
 }
