@@ -17,7 +17,7 @@
 package org.gradle.integtests.fixtures
 
 class ScalaCoverage {
-    static final String NEWEST = "2.13.1"
+    static final String NEWEST = "2.12.10"
 
-    static final String[] DEFAULT = [NEWEST, "2.10.7", "2.11.12", "2.12.10", "2.13.0"]
+    static final String[] DEFAULT = [NEWEST, "2.10.7", "2.11.12", "2.12.10", "2.13.0", "2.13.1"]
 }
