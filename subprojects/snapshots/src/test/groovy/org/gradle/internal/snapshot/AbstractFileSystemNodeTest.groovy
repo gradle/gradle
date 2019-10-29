@@ -35,4 +35,15 @@ class AbstractFileSystemNodeTest extends Specification {
         "C:${File.separator}Windows/system${File.separator}win32" | "win32"
     }
 
+    def "common prefix of #prefix and #path at #offset is #result"() {
+        expect:
+        AbstractFileSystemNode.sizeOfCommonPrefix(prefix, path, offset) == result
+
+        where:
+        prefix       | path          | offset | result
+        '/root'      | '/'           | 0      | 0
+        '/root'      | '/root'       | 0      | 5
+        '/root/some' | '/root/other' | 0      | 5
+    }
+
 }

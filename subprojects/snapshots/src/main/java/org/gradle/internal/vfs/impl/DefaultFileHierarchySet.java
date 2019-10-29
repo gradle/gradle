@@ -26,13 +26,14 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.gradle.internal.snapshot.AbstractFileSystemNode.invalidateSingleChild;
+import static org.gradle.internal.snapshot.AbstractFileSystemNode.isFileSeparator;
 import static org.gradle.internal.snapshot.AbstractFileSystemNode.updateSingleChild;
 
 public class DefaultFileHierarchySet implements FileHierarchySet {
     private final FileSystemNode rootNode;
 
-    DefaultFileHierarchySet(String path, MetadataSnapshot snapshot) {
-        this.rootNode = snapshot.withPrefix(normalizeFileSystemRoot(path));
+    DefaultFileHierarchySet(String absolutePath, MetadataSnapshot snapshot) {
+        this.rootNode = snapshot.withPrefix(normalizeRoot(absolutePath));
     }
 
     DefaultFileHierarchySet(FileSystemNode rootNode) {
@@ -47,28 +48,37 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     }
 
     @Override
-    public Optional<MetadataSnapshot> getMetadata(String path) {
-        if (!AbstractFileSystemNode.isChildOfOrThis(path, 0, rootNode.getPrefix())) {
+    public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
+        String normalizedPath = normalizeRoot(absolutePath);
+        String prefix = rootNode.getPrefix();
+        if (!AbstractFileSystemNode.isChildOfOrThis(normalizedPath, 0, prefix)) {
             return Optional.empty();
         }
-        return rootNode.getSnapshot(normalizeFileSystemRoot(path), rootNode.getPrefix().length() + 1);
+        return rootNode.getSnapshot(normalizedPath, prefix.length() + rootNodeOffset(prefix, normalizedPath));
+    }
+
+    private int rootNodeOffset(String prefix, String normalizedPath) {
+        if (prefix.isEmpty() && normalizedPath.length() > 0 && !isFileSeparator(normalizedPath.charAt(0))) {
+            return 0;
+        }
+        return 1;
     }
 
     @Override
     public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
-        String normalizedPath = normalizeFileSystemRoot(absolutePath);
+        String normalizedPath= normalizeRoot(absolutePath);
         return new DefaultFileHierarchySet(updateSingleChild(rootNode, normalizedPath, 0, snapshot));
     }
 
     @Override
-    public FileHierarchySet invalidate(String path) {
-        String normalizedPath = normalizeFileSystemRoot(path);
+    public FileHierarchySet invalidate(String absolutePath) {
+        String normalizedPath = normalizeRoot(absolutePath);
         return invalidateSingleChild(rootNode, normalizedPath, 0)
             .<FileHierarchySet>map(DefaultFileHierarchySet::new)
             .orElse(FileHierarchySet.EMPTY);
     }
 
-    private String normalizeFileSystemRoot(String absolutePath) {
+    private String normalizeRoot(String absolutePath) {
         return absolutePath.equals("/") ? "" : absolutePath;
     }
 }

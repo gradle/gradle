@@ -20,6 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.AbstractFileSystemNode
 import org.gradle.internal.snapshot.DirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemLocationSnapshot
@@ -29,7 +30,6 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Assume
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
@@ -458,21 +458,106 @@ class DefaultFileHierarchySetTest extends Specification {
         set.flatten() == [childA.absolutePath, "1:b", "2:c", "3:a", "3:b", "2:d", "1:b-c/c"]
     }
 
-    @Ignore("Ignore test for now, there is a bug on Windows")
-    def "can add to completely different paths"() {
-        def firstPath = File.separator == "/"
-            ? "/var/log"
-            : "C:\\Windows\\log"
-        def secondPath = File.separator == "/"
-            ? "/usr/bin"
-            : "D:\\Users\\bin"
+    def "can add to completely different paths with Unix paths"() {
+        def firstPath = "/var/log"
+        def secondPath = "/usr/bin"
 
-        def set = FileHierarchySet.EMPTY.update(firstPath, new DirectorySnapshot(firstPath, "log", [new RegularFileSnapshot("${firstPath}${File.separator}root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
-        .update(secondPath, new DirectorySnapshot(secondPath, "bin", [new RegularFileSnapshot("${secondPath}${File.separator}root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
+        def set = FileHierarchySet.EMPTY
+            .update(firstPath, directorySnapshotForPath(firstPath))
+            .update(secondPath, directorySnapshotForPath(secondPath))
+            .update("/other/fuckup", directorySnapshotForPath("/other/fuckup"))
 
         expect:
         set.getMetadata(firstPath).present
         set.getMetadata(secondPath).present
+        !set.getMetadata("/").present
+
+        when:
+        def invalidated = set.invalidate(firstPath)
+        then:
+        !invalidated.getMetadata(firstPath).present
+        invalidated.getMetadata(secondPath).present
+        !set.getMetadata("/").present
+    }
+
+    def "can update the root path"() {
+        when:
+        def set = FileHierarchySet.EMPTY
+            .update("/", rootDirectorySnapshot())
+        then:
+        set.getMetadata("/").present
+        set.getMetadata("/root.txt").get().type == FileType.RegularFile
+        assertMissingFileSnapshot(set, new File("some/other/path"))
+
+        when:
+        set = FileHierarchySet.EMPTY
+            .update("/some/path", directorySnapshotForPath("/some/path"))
+            .update("/", rootDirectorySnapshot())
+        then:
+        set.getMetadata("/").present
+        set.getMetadata("/root.txt").get().type == FileType.RegularFile
+        assertMissingFileSnapshot(set, new File("some/path"))
+
+        when:
+        set = FileHierarchySet.EMPTY
+            .update("/firstPath", directorySnapshotForPath("/firstPath"))
+            .update("/secondPath", directorySnapshotForPath("/secondPath"))
+        then:
+        set.invalidate("/") == FileHierarchySet.EMPTY
+
+        when:
+        set = FileHierarchySet.EMPTY
+            .update("/", rootDirectorySnapshot())
+            .invalidate("/root.txt")
+        then:
+        !set.getMetadata("/").present
+        !set.getMetadata("/root.txt").present
+        set.getMetadata("/other.txt").get().type == FileType.RegularFile
+    }
+
+    def "can add to completely different paths with Windows paths"() {
+        def firstPath = "C:\\Windows\\log"
+        def secondPath = "D:\\Users\\bin"
+        def thirdPath = "E:\\Some\\other"
+
+        def set = FileHierarchySet.EMPTY
+            .update(firstPath, directorySnapshotForPath(firstPath))
+            .update(secondPath, directorySnapshotForPath(secondPath))
+            .update(thirdPath, directorySnapshotForPath(thirdPath))
+
+        expect:
+        set.getMetadata(firstPath).present
+        set.getMetadata(secondPath).present
+        set.getMetadata(thirdPath).present
+
+        when:
+        def invalidated = set.invalidate(firstPath)
+        then:
+        !invalidated.getMetadata(firstPath).present
+        invalidated.getMetadata(secondPath).present
+
+        when:
+        invalidated = set.invalidate("C:")
+        then:
+        !invalidated.getMetadata(firstPath).present
+        invalidated.getMetadata(secondPath).present
+
+        when:
+        invalidated = set.invalidate("D:")
+        then:
+        invalidated.getMetadata(firstPath).present
+        !invalidated.getMetadata(secondPath).present
+    }
+
+    private static DirectorySnapshot rootDirectorySnapshot() {
+        new DirectorySnapshot("/", "", [
+            new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1)),
+            new RegularFileSnapshot("/other.txt", "other.txt", HashCode.fromInt(4321), new FileMetadata(5, 28))
+        ], HashCode.fromInt(1111))
+    }
+
+    private static DirectorySnapshot directorySnapshotForPath(String absolutePath) {
+        new DirectorySnapshot(absolutePath, AbstractFileSystemNode.getFileName(absolutePath), [new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111))
     }
 
     private FileSystemLocationSnapshot snapshotDir(File dir) {
