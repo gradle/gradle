@@ -29,7 +29,7 @@ import java.util.Optional;
  *
  * Includes complete snapshots of every child and the Merkle tree hash.
  */
-public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
+public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocationSnapshot {
     private final List<CompleteFileSystemLocationSnapshot> children;
     private final HashCode contentHash;
 
