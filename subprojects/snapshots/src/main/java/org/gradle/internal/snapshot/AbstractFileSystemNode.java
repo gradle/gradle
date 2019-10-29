@@ -18,35 +18,10 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 
-import java.io.File;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
 public abstract class AbstractFileSystemNode implements FileSystemNode {
-    private static final Comparator<String> PATH_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0);
-
-    /**
-     * The Unix separator character.
-     */
-    private static final char UNIX_SEPARATOR = '/';
-
-    /**
-     * The Windows separator character.
-     */
-    private static final char WINDOWS_SEPARATOR = '\\';
-
-    /**
-     * The system separator character.
-     */
-    private static final char SYSTEM_SEPARATOR = File.separatorChar;
-
-    private static final boolean IS_WINDOWS_SEPARATOR = SYSTEM_SEPARATOR == WINDOWS_SEPARATOR;
-
-    /**
-     * The separator character that is the opposite of the system separator.
-     */
-    private static final char OTHER_SEPARATOR = IS_WINDOWS_SEPARATOR ? UNIX_SEPARATOR : WINDOWS_SEPARATOR;
 
     private final String pathToParent;
 
@@ -59,131 +34,10 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return pathToParent;
     }
 
-    public static boolean isFileSeparator(char toCheck) {
-        return toCheck == SYSTEM_SEPARATOR || toCheck == OTHER_SEPARATOR;
-    }
-
-    /**
-     * Does not include the separator char.
-     */
-    public static int sizeOfCommonPrefix(String path1, String path2, int offset) {
-        int pos = 0;
-        int lastSeparator = 0;
-        int maxPos = Math.min(path1.length(), path2.length() - offset);
-        for (; pos < maxPos; pos++) {
-            if (path1.charAt(pos) != path2.charAt(pos + offset)) {
-                break;
-            }
-            if (isFileSeparator(path1.charAt(pos))) {
-                lastSeparator = pos;
-            }
-        }
-        if (pos == maxPos) {
-            if (path1.length() == path2.length() - offset) {
-                return pos;
-            }
-            if (pos < path1.length() && isFileSeparator(path1.charAt(pos))) {
-                return pos;
-            }
-            if (pos < path2.length() - offset && isFileSeparator(path2.charAt(pos + offset))) {
-                return pos;
-            }
-        }
-        return lastSeparator;
-    }
-
-    public static int compareWithCommonPrefix(String path1, String path2, int offset) {
-        int maxPos = Math.min(path1.length(), path2.length() - offset);
-        for (int pos = 0; pos < maxPos; pos++) {
-            char charInPath1 = path1.charAt(pos);
-            char charInPath2 = path2.charAt(pos + offset);
-            if (charInPath1 != charInPath2) {
-                return compareChars(charInPath1, charInPath2);
-            }
-            if (isFileSeparator(path1.charAt(pos))) {
-                if (pos > 0) {
-                    return 0;
-                }
-            }
-        }
-        if (path1.length() == path2.length() - offset) {
-            return 0;
-        }
-        if (path1.length() > path2.length() - offset) {
-            return isFileSeparator(path1.charAt(maxPos)) ? 0 : 1;
-        }
-        return isFileSeparator(path2.charAt(maxPos + offset)) ? 0 : -1;
-    }
-
-    private static int comparePaths(String prefix, String path, int offset) {
-        int maxPos = Math.min(prefix.length(), path.length() - offset);
-        for (int pos = 0; pos < maxPos; pos++) {
-            char charInPath1 = prefix.charAt(pos);
-            char charInPath2 = path.charAt(pos + offset);
-            if (charInPath1 != charInPath2) {
-                return compareChars(charInPath1, charInPath2);
-            }
-        }
-        return Integer.compare(prefix.length(), path.length());
-    }
-
-    protected static int compareChars(char char1, char char2) {
-        return isFileSeparator(char1) ? -1
-            : isFileSeparator(char2) ? 1
-            : Character.compare(char1, char2);
-    }
-
-    public static Comparator<String> pathComparator() {
-        return PATH_COMPARATOR;
-    }
-
-    /**
-     * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
-     * which does not check for negative indices or integer overflow.
-     */
-    public static boolean isChildOfOrThis(String filePath, int offset, String prefix) {
-        int prefixLength = prefix.length();
-        if (prefixLength == 0) {
-            return true;
-        }
-        int pathLength = filePath.length();
-        int endOfThisSegment = prefixLength + offset;
-        if (pathLength < endOfThisSegment) {
-            return false;
-        }
-        for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-            if (prefix.charAt(i) != filePath.charAt(j)) {
-                return false;
-            }
-        }
-        return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment));
-    }
-
-    /**
-     * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
-     * which does not check for negative indices or integer overflow.
-     */
-    public static int compareToChildOfOrThis(String prefix, String filePath, int offset) {
-        int pathLength = filePath.length();
-        int prefixLength = prefix.length();
-        int endOfThisSegment = prefixLength + offset;
-        if (pathLength < endOfThisSegment) {
-            return comparePaths(prefix, filePath, offset);
-        }
-        for (int i = 0; i < prefixLength; i++) {
-            char prefixChar = prefix.charAt(i);
-            char pathChar = filePath.charAt(i + offset);
-            if (prefixChar != pathChar) {
-                return compareChars(prefixChar, pathChar);
-            }
-        }
-        return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment)) ? 0 : -1;
-    }
-
     public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, ChildHandler<T> childHandler) {
         int childIndex = ListUtils.binarySearch(
             children,
-            candidate -> compareWithCommonPrefix(candidate.getPathToParent(), path, offset)
+            candidate -> PathUtil.compareWithCommonPrefix(candidate.getPathToParent(), path, offset)
         );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(childIndex);
@@ -195,7 +49,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return handlePrefix(child.getPathToParent(), path, offset, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
-                int childOffset = descendantChildOffset(child.getPathToParent(), path);
+                int childOffset = PathUtil.descendantChildOffset(child.getPathToParent(), path);
                 return child.update(
                     path,
                     offset + child.getPathToParent().length() + childOffset,
@@ -221,10 +75,10 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             public FileSystemNode handleDifferent(int commonPrefixLength) {
                 String prefix = child.getPathToParent();
                 String commonPrefix = prefix.substring(0, commonPrefixLength);
-                boolean emptyCommonPrefixAndNoSlashAtStart = commonPrefixLength == 0 && (!isFileSeparator(prefix.charAt(0)) || !isFileSeparator(path.charAt(offset)));
+                boolean emptyCommonPrefixAndNoSlashAtStart = commonPrefixLength == 0 && (!PathUtil.isFileSeparator(prefix.charAt(0)) || !PathUtil.isFileSeparator(path.charAt(offset)));
                 FileSystemNode newChild = emptyCommonPrefixAndNoSlashAtStart ? child : child.withPathToParent(prefix.substring(commonPrefixLength + 1));
                 FileSystemNode sibling = snapshot.withPathToParent(emptyCommonPrefixAndNoSlashAtStart ? path : path.substring(offset + commonPrefixLength + 1));
-                ImmutableList<FileSystemNode> newChildren = pathComparator().compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
+                ImmutableList<FileSystemNode> newChildren = PathUtil.pathComparator().compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
                 return new UnknownSnapshot(commonPrefix, newChildren);
@@ -236,7 +90,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return handlePrefix(child.getPathToParent(), path, offset, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
-                int childOffset = descendantChildOffset(child.getPathToParent(), path);
+                int childOffset = PathUtil.descendantChildOffset(child.getPathToParent(), path);
                 return child.invalidate(path, offset + child.getPathToParent().length() + childOffset);
             }
 
@@ -257,15 +111,11 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         });
     }
 
-    private static int descendantChildOffset(String prefix, String path) {
-        return prefix.isEmpty() && !isFileSeparator(path.charAt(0)) ? 0 : 1;
-    }
-
     public static <T> T handlePrefix(String prefix, String path, int offset, DescendantHandler<T> descendantHandler) {
         int prefixLength = prefix.length();
         int pathLength = path.length() - offset;
         int maxPos = Math.min(prefixLength, pathLength);
-        int commonPrefixLength = sizeOfCommonPrefix(prefix, path, offset);
+        int commonPrefixLength = PathUtil.sizeOfCommonPrefix(prefix, path, offset);
         if (commonPrefixLength == maxPos) {
             if (prefixLength > pathLength) {
                 return descendantHandler.handleParent();
@@ -276,23 +126,6 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             return descendantHandler.handleDescendant();
         }
         return descendantHandler.handleDifferent(commonPrefixLength);
-    }
-
-    public static String getFileName(String absolutePath) {
-        int lastSeparator = lastIndexOfSeparator(absolutePath);
-        return lastSeparator < 0
-            ? absolutePath
-            : absolutePath.substring(lastSeparator + 1);
-    }
-
-    private static int lastIndexOfSeparator(String absolutePath) {
-        for (int i = absolutePath.length() - 1; i >= 0; i--) {
-            char currentChar = absolutePath.charAt(i);
-            if (isFileSeparator(currentChar)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     public interface DescendantHandler<T> {

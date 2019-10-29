@@ -33,7 +33,7 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     public MissingFileSnapshot(String absolutePath) {
-        super(absolutePath, AbstractFileSystemNode.getFileName(absolutePath));
+        super(absolutePath, PathUtil.getFileName(absolutePath));
     }
 
     @Override

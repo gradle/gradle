@@ -17,15 +17,15 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.snapshot.AbstractFileSystemNode;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
+import org.gradle.internal.snapshot.PathUtil;
 
 import java.util.Optional;
 
 import static org.gradle.internal.snapshot.AbstractFileSystemNode.invalidateSingleChild;
-import static org.gradle.internal.snapshot.AbstractFileSystemNode.isFileSeparator;
 import static org.gradle.internal.snapshot.AbstractFileSystemNode.updateSingleChild;
+import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
 
 public class DefaultFileHierarchySet implements FileHierarchySet {
     @VisibleForTesting
@@ -43,7 +43,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
         String normalizedPath = normalizeRoot(absolutePath);
         String pathToParent = rootNode.getPathToParent();
-        if (!AbstractFileSystemNode.isChildOfOrThis(normalizedPath, 0, pathToParent)) {
+        if (!PathUtil.isChildOfOrThis(normalizedPath, 0, pathToParent)) {
             return Optional.empty();
         }
         return rootNode.getSnapshot(normalizedPath, pathToParent.length() + rootNodeOffset(pathToParent, normalizedPath));

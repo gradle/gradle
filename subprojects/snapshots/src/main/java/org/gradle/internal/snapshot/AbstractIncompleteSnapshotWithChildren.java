@@ -107,21 +107,21 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
                 return Optional.empty();
             case 1:
                 FileSystemNode onlyChild = children.get(0);
-                return isChildOfOrThis(filePath, offset, onlyChild.getPathToParent())
+                return PathUtil.isChildOfOrThis(filePath, offset, onlyChild.getPathToParent())
                     ? getSnapshotFromChild(filePath, offset, onlyChild)
                     : Optional.empty();
             case 2:
                 FileSystemNode firstChild = children.get(0);
                 FileSystemNode secondChild = children.get(1);
-                if (isChildOfOrThis(filePath, offset, firstChild.getPathToParent())) {
+                if (PathUtil.isChildOfOrThis(filePath, offset, firstChild.getPathToParent())) {
                     return getSnapshotFromChild(filePath, offset, firstChild);
                 }
-                if (isChildOfOrThis(filePath, offset, secondChild.getPathToParent())) {
+                if (PathUtil.isChildOfOrThis(filePath, offset, secondChild.getPathToParent())) {
                     return getSnapshotFromChild(filePath, offset, secondChild);
                 }
                 return Optional.empty();
             default:
-                int foundChild = ListUtils.binarySearch(children, child -> compareToChildOfOrThis(child.getPathToParent(), filePath, offset));
+                int foundChild = ListUtils.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset));
                 return foundChild >= 0
                     ? getSnapshotFromChild(filePath, offset, children.get(foundChild))
                     : Optional.empty();

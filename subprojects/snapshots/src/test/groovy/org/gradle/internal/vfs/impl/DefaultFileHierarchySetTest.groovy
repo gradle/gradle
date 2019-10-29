@@ -20,13 +20,13 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.AbstractFileSystemNode
 import org.gradle.internal.snapshot.AbstractIncompleteSnapshotWithChildren
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.FileSystemNode
 import org.gradle.internal.snapshot.MissingFileSnapshot
+import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -559,7 +559,7 @@ class DefaultFileHierarchySetTest extends Specification {
     }
 
     private static CompleteDirectorySnapshot directorySnapshotForPath(String absolutePath) {
-        new CompleteDirectorySnapshot(absolutePath, AbstractFileSystemNode.getFileName(absolutePath), [new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111))
+        new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), [new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111))
     }
 
     private CompleteFileSystemLocationSnapshot snapshotDir(File dir) {

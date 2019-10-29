@@ -75,7 +75,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             this, absolutePath, offset,
             () -> {
                 for (CompleteFileSystemLocationSnapshot child : getChildren()) {
-                    if (AbstractFileSystemNode.isChildOfOrThis(absolutePath, offset, child.getName())) {
+                    if (PathUtil.isChildOfOrThis(absolutePath, offset, child.getName())) {
                         int endOfThisSegment = child.getName().length() + offset;
                         return child.getSnapshot(absolutePath, endOfThisSegment + 1);
                     }

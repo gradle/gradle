@@ -14,16 +14,47 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl
+package org.gradle.internal.snapshot
 
-import org.gradle.internal.snapshot.AbstractFileSystemNode
 import spock.lang.Specification
+import spock.lang.Unroll
 
-class AbstractNodeTest extends Specification {
+import static org.gradle.internal.snapshot.PathUtil.compareToChildOfOrThis
+import static org.gradle.internal.snapshot.PathUtil.compareWithCommonPrefix
+import static org.gradle.internal.snapshot.PathUtil.getFileName
+import static org.gradle.internal.snapshot.PathUtil.sizeOfCommonPrefix
+
+@Unroll
+class PathUtilTest extends Specification {
+
+    def "file name of '#path' is '#name'"() {
+        expect:
+        getFileName(path) == name
+
+        where:
+        path                                                      | name
+        "/a/b/c"                                                  | "c"
+        "/"                                                       | ""
+        "C:${File.separator}some-name"                            | "some-name"
+        ""                                                        | ""
+        "C:${File.separator}Windows/system${File.separator}win32" | "win32"
+    }
+
+    def "common prefix of #prefix and #path at #offset is #result"() {
+        expect:
+        sizeOfCommonPrefix(prefix, path, offset) == result
+
+        where:
+        prefix       | path          | offset | result
+        '/root'      | '/'           | 0      | 0
+        '/root'      | '/root'       | 0      | 5
+        '/root/some' | '/root/other' | 0      | 5
+    }
+
 
     def "can compare size of common prefix"() {
         expect:
-        Integer.signum(AbstractFileSystemNode.compareWithCommonPrefix(prefix, path, offset)) == result
+        Integer.signum(compareWithCommonPrefix(prefix, path, offset)) == result
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
         }
@@ -45,7 +76,7 @@ class AbstractNodeTest extends Specification {
 
     def "separator is smaller than every other character"() {
         expect:
-        Integer.signum(AbstractFileSystemNode.compareWithCommonPrefix(prefix, path, offset)) == result
+        Integer.signum(compareWithCommonPrefix(prefix, path, offset)) == result
 
         where:
         prefix              | path                    | offset | result
@@ -54,7 +85,7 @@ class AbstractNodeTest extends Specification {
 
     def "can compare to child of this"() {
         expect:
-        Integer.signum(AbstractFileSystemNode.compareToChildOfOrThis(prefix, path, offset)) == result
+        Integer.signum(compareToChildOfOrThis(prefix, path, offset)) == result
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
         }
