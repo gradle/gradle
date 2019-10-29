@@ -21,8 +21,6 @@ import org.gradle.internal.snapshot.AbstractFileSystemNode;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import static org.gradle.internal.snapshot.AbstractFileSystemNode.invalidateSingleChild;
@@ -30,7 +28,8 @@ import static org.gradle.internal.snapshot.AbstractFileSystemNode.isFileSeparato
 import static org.gradle.internal.snapshot.AbstractFileSystemNode.updateSingleChild;
 
 public class DefaultFileHierarchySet implements FileHierarchySet {
-    private final FileSystemNode rootNode;
+    @VisibleForTesting
+    final FileSystemNode rootNode;
 
     public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot) {
         return new DefaultFileHierarchySet(snapshot.withPathToParent(normalizeRoot(absolutePath)));
@@ -38,13 +37,6 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
 
     private DefaultFileHierarchySet(FileSystemNode rootNode) {
         this.rootNode = rootNode;
-    }
-
-    @VisibleForTesting
-    List<String> flatten() {
-        List<String> prefixes = new ArrayList<>();
-        rootNode.collect(0, prefixes);
-        return prefixes;
     }
 
     @Override

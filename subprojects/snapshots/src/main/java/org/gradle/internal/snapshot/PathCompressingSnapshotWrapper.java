@@ -16,8 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import java.io.File;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -49,15 +47,6 @@ public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode {
             snapshot, absolutePath, offset,
             () -> snapshot.getSnapshot(absolutePath, offset)
         );
-    }
-
-    @Override
-    public void collect(int depth, List<String> prefixes) {
-        if (depth == 0) {
-            prefixes.add(getPathToParent());
-        } else {
-            prefixes.add(depth + ":" + getPathToParent().replace(File.separatorChar, '/'));
-        }
     }
 
     @Override

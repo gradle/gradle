@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot;
 
 import javax.annotation.Nullable;
-import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
@@ -54,11 +53,6 @@ public interface FileSystemNode {
      * The path to the parent snapshot or the root of the file system.
      */
     String getPathToParent();
-
-    /**
-     * Only used for testing, should maybe removed
-     */
-    void collect(int depth, List<String> prefixes);
 
     /**
      * Creates a new node with the same children, but a different path to the parent.

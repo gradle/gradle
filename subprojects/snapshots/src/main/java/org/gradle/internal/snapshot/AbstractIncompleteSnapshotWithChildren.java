@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -131,18 +130,6 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
 
     private Optional<MetadataSnapshot> getSnapshotFromChild(String filePath, int offset, FileSystemNode child) {
         return child.getSnapshot(filePath, offset + child.getPathToParent().length() + 1);
-    }
-
-    @Override
-    public void collect(int depth, List<String> prefixes) {
-        if (depth == 0) {
-            prefixes.add(getPathToParent());
-        } else {
-            prefixes.add(depth + ":" + getPathToParent().replace(File.separatorChar, '/'));
-        }
-        for (FileSystemNode child : children) {
-            child.collect(depth + 1, prefixes);
-        }
     }
 
     @Override

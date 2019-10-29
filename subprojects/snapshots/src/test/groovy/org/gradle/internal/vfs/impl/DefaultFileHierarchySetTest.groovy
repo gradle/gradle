@@ -21,9 +21,11 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.AbstractFileSystemNode
+import org.gradle.internal.snapshot.AbstractIncompleteSnapshotWithChildren
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileMetadata
+import org.gradle.internal.snapshot.FileSystemNode
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
@@ -74,7 +76,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(set, tmpDir.file("dir"))
         !snapshotPresent(set, tmpDir.file("dir12"))
         !snapshotPresent(set, tmpDir.file("common/dir21"))
-        set.flatten() == [parent.path, "1:common", "2:dir2", "2:dir3", "1:dir1"]
+        flatten(set) == [parent.path, "1:common", "2:dir2", "2:dir3", "1:dir1"]
     }
 
     def "creates from files where one file is ancestor of the others"() {
@@ -93,7 +95,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(set, tmpDir.file("dir"))
         !snapshotPresent(set, tmpDir.file("dir12"))
         !snapshotPresent(set, tmpDir.file("dir21"))
-        set.flatten() == [dir1.path]
+        flatten(set) == [dir1.path]
     }
 
     def "can add dir to empty set"() {
@@ -132,7 +134,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s1, tooFew)
         !snapshotPresent(s1, tooMany)
         !snapshotPresent(s1, parent)
-        s1.flatten() == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s1) == [parent.path, "1:dir1", "1:dir2"]
 
         def s2 = updateDir(single, dir1)
         snapshotPresent(s2, dir1)
@@ -142,7 +144,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s2, tooFew)
         !snapshotPresent(s2, tooMany)
         !snapshotPresent(s2, parent)
-        s2.flatten() == [dir1.path]
+        flatten(s2) == [dir1.path]
 
         def s3 = updateDir(single, child)
         snapshotPresent(s3, dir1)
@@ -152,7 +154,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s3, tooFew)
         !snapshotPresent(s3, tooMany)
         !snapshotPresent(s3, parent)
-        s3.flatten() == [dir1.path]
+        flatten(s3) == [dir1.path]
 
         def s4 = updateDir(single, parent)
         snapshotPresent(s4, dir1)
@@ -160,7 +162,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s4, dir2)
         snapshotPresent(s4, dir3)
         snapshotPresent(s4, parent)
-        s4.flatten() == [parent.path]
+        flatten(s4) == [parent.path]
 
         def s5 = updateDir(single, tooFew)
         snapshotPresent(s5, dir1)
@@ -169,7 +171,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s5, dir2)
         !snapshotPresent(s5, tooMany)
         !snapshotPresent(s5, parent)
-        s5.flatten() == [parent.path, "1:dir", "1:dir1"]
+        flatten(s5) == [parent.path, "1:dir", "1:dir1"]
 
         def s6 = updateDir(single, tooMany)
         snapshotPresent(s6, dir1)
@@ -178,7 +180,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s6, dir2)
         !snapshotPresent(s6, tooFew)
         !snapshotPresent(s6, parent)
-        s6.flatten() == [parent.path, "1:dir1", "1:dir12"]
+        flatten(s6) == [parent.path, "1:dir1", "1:dir12"]
     }
 
     def "can add dir to multi set"() {
@@ -199,7 +201,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s1, dir3)
         !snapshotPresent(s1, other)
         !snapshotPresent(s1, parent)
-        s1.flatten() == [parent.path, "1:dir1", "1:dir2", "1:dir3"]
+        flatten(s1) == [parent.path, "1:dir1", "1:dir2", "1:dir3"]
 
         def s2 = updateDir(multi, dir2)
         snapshotPresent(s2, dir1)
@@ -208,7 +210,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s2, dir3)
         !snapshotPresent(s2, other)
         !snapshotPresent(s2, parent)
-        s2.flatten() == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s2) == [parent.path, "1:dir1", "1:dir2"]
 
         def s3 = updateDir(multi, child)
         snapshotPresent(s3, dir1)
@@ -217,7 +219,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s3, dir3)
         !snapshotPresent(s3, other)
         !snapshotPresent(s3, parent)
-        s3.flatten() == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s3) == [parent.path, "1:dir1", "1:dir2"]
 
         def s4 = updateDir(multi, parent)
         snapshotPresent(s4, dir1)
@@ -225,7 +227,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s4, dir2)
         snapshotPresent(s4, other)
         snapshotPresent(s4, parent)
-        s4.flatten() == [parent.path]
+        flatten(s4) == [parent.path]
     }
 
     def "splits and merges prefixes as directories are added"() {
@@ -239,25 +241,25 @@ class DefaultFileHierarchySetTest extends Specification {
 
         expect:
         def s1 = fileHierarchySet([dir1dir2dir3, dir1dir5])
-        s1.flatten() == [dir1.path, "1:dir2/dir3", "1:dir5/and/more"]
+        flatten(s1) == [dir1.path, "1:dir2/dir3", "1:dir5/and/more"]
 
         def s2 = updateDir(s1, dir1dir2dir4)
-        s2.flatten() == [dir1.path, "1:dir2", "2:dir3", "2:dir4", "1:dir5/and/more"]
+        flatten(s2) == [dir1.path, "1:dir2", "2:dir3", "2:dir4", "1:dir5/and/more"]
 
         def s3 = updateDir(s2, dir6)
-        s3.flatten() == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
+        flatten(s3) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
 
         def s4 = updateDir(s3, dir1dir2)
-        s4.flatten() == [parent.path, "1:dir1", "2:dir2", "2:dir5/and/more", "1:dir6"]
+        flatten(s4) == [parent.path, "1:dir1", "2:dir2", "2:dir5/and/more", "1:dir6"]
 
         def s5 = updateDir(s4, dir1)
-        s5.flatten() == [parent.path, "1:dir1", "1:dir6"]
+        flatten(s5) == [parent.path, "1:dir1", "1:dir6"]
 
         def s6 = updateDir(s3, dir1)
-        s6.flatten() == [parent.path, "1:dir1", "1:dir6"]
+        flatten(s6) == [parent.path, "1:dir1", "1:dir6"]
 
         def s7 = updateDir(s3, parent)
-        s7.flatten() == [parent.path]
+        flatten(s7) == [parent.path]
     }
 
     def "can add directory snapshot in between to forking points"() {
@@ -445,17 +447,17 @@ class DefaultFileHierarchySetTest extends Specification {
         when:
         def set = fileHierarchySet([childA, childB, childB1])
         then:
-        set.flatten() == [parent.absolutePath, "1:a", "1:b", "1:b1"]
+        flatten(set) == [parent.absolutePath, "1:a", "1:b", "1:b1"]
 
         when:
         set = fileHierarchySet([parent.file("a/b/c"), parent.file("a/b-c/c"), parent.file("a/b/d")])
         then:
-        set.flatten() == [childA.absolutePath, "1:b", "2:c", "2:d", "1:b-c/c"]
+        flatten(set) == [childA.absolutePath, "1:b", "2:c", "2:d", "1:b-c/c"]
 
         when:
         set = fileHierarchySet([parent.file("a/b/c/a"), parent.file("a/b/c/b"), parent.file("a/b-c/c"), parent.file("a/b/d")])
         then:
-        set.flatten() == [childA.absolutePath, "1:b", "2:c", "3:a", "3:b", "2:d", "1:b-c/c"]
+        flatten(set) == [childA.absolutePath, "1:b", "2:c", "3:a", "3:b", "2:d", "1:b-c/c"]
     }
 
     def "can add to completely different paths with Unix paths"() {
@@ -619,5 +621,33 @@ class DefaultFileHierarchySetTest extends Specification {
 
     private FileHierarchySet updateDir(FileHierarchySet set, File dir) {
         set.update(dir.absolutePath, snapshotDir(dir))
+    }
+
+    private static List<String> flatten(FileHierarchySet set) {
+        if (!(set instanceof DefaultFileHierarchySet)) {
+            return []
+        }
+        List<String> prefixes = new ArrayList<>()
+        collectPrefixes(set.rootNode, 0, prefixes)
+        return prefixes
+    }
+
+    private static void collectPrefixes(FileSystemNode node, int depth, List<String> prefixes) {
+        if (depth == 0) {
+            prefixes.add(node.getPathToParent());
+        } else {
+            prefixes.add(depth + ":" + node.getPathToParent().replace(File.separatorChar, (char) '/'));
+        }
+        List<? extends FileSystemNode> children
+        if (node instanceof CompleteDirectorySnapshot) {
+            children = node.children
+        } else if (node instanceof AbstractIncompleteSnapshotWithChildren) {
+            children = node.children
+        } else {
+            children = []
+        }
+        children.forEach { child ->
+            collectPrefixes(child, depth + 1, prefixes);
+        }
     }
 }

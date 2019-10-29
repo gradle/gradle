@@ -18,8 +18,6 @@ package org.gradle.internal.snapshot;
 
 import org.gradle.internal.file.FileType;
 
-import java.io.File;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -53,15 +51,6 @@ public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implemen
     @Override
     public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
         return Optional.empty();
-    }
-
-    @Override
-    public void collect(int depth, List<String> prefixes) {
-        if (depth == 0) {
-            prefixes.add(getPathToParent());
-        } else {
-            prefixes.add(depth + ":" + getPathToParent().replace(File.separatorChar, '/'));
-        }
     }
 
     @Override

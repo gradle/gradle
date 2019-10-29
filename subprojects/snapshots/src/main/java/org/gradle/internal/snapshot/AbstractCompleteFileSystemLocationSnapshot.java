@@ -16,8 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.List;
-
 public abstract class AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
     private final String absolutePath;
     private final String name;
@@ -56,7 +54,4 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         return new PathCompressingSnapshotWrapper(newPathToParent, this);
     }
 
-    @Override
-    public void collect(int depth, List<String> prefixes) {
-    }
 }
