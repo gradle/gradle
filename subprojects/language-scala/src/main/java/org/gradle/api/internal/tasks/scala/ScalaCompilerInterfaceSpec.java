@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.api.internal.tasks.scala;
 
-class ScalaCoverage {
-    static final String NEWEST = "2.12.10"
-
-    static final String[] DEFAULT = [NEWEST, "2.10.7", "2.11.12", "2.12.10", "2.13.0", "2.13.1"]
+public class ScalaCompilerInterfaceSpec {
 }
