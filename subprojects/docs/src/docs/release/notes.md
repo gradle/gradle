@@ -189,6 +189,8 @@ scala {
 Please note that the coordinates for the supported version of Zinc has changed since Zinc 1.0. 
 If you try to use the `com.typesafe.zinc:zinc` compiler, Gradle will switch to the new Zinc implementation with a default version (1.3.0).
 
+This was originally contributed by [Predrag Knežević](https://github.com/pedjak).
+
 <a name="task-problems"></a>
 ## Problems with tasks called out during build
 
