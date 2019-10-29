@@ -37,7 +37,7 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
         @Override
         public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
-            return new DefaultFileHierarchySet(absolutePath, snapshot);
+            return DefaultFileHierarchySet.from(absolutePath, snapshot);
         }
 
         @Override

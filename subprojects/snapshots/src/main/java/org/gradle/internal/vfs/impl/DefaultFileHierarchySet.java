@@ -32,11 +32,11 @@ import static org.gradle.internal.snapshot.AbstractFileSystemNode.updateSingleCh
 public class DefaultFileHierarchySet implements FileHierarchySet {
     private final FileSystemNode rootNode;
 
-    DefaultFileHierarchySet(String absolutePath, MetadataSnapshot snapshot) {
-        this.rootNode = snapshot.withPrefix(normalizeRoot(absolutePath));
+    public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot) {
+        return new DefaultFileHierarchySet(snapshot.withPrefix(normalizeRoot(absolutePath)));
     }
 
-    DefaultFileHierarchySet(FileSystemNode rootNode) {
+    private DefaultFileHierarchySet(FileSystemNode rootNode) {
         this.rootNode = rootNode;
     }
 
@@ -66,7 +66,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
 
     @Override
     public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
-        String normalizedPath= normalizeRoot(absolutePath);
+        String normalizedPath = normalizeRoot(absolutePath);
         return new DefaultFileHierarchySet(updateSingleChild(rootNode, normalizedPath, 0, snapshot));
     }
 
@@ -78,7 +78,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
             .orElse(FileHierarchySet.EMPTY);
     }
 
-    private String normalizeRoot(String absolutePath) {
+    private static String normalizeRoot(String absolutePath) {
         return absolutePath.equals("/") ? "" : absolutePath;
     }
 }
