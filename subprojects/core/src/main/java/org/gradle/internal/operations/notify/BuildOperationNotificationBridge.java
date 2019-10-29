@@ -17,7 +17,6 @@
 package org.gradle.internal.operations.notify;
 
 import org.gradle.BuildListener;
-import org.gradle.api.Project;
 import org.gradle.api.internal.InternalAction;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.InternalBuildAdapter;
@@ -88,25 +87,16 @@ public class BuildOperationNotificationBridge {
         }
     };
 
-    // Listen for the end of configuration of the root project of the root build,
-    // and discard buffered notifications if no listeners have yet appeared.
+    // Notification listeners are expected to register before projectsLoaded.
     // This avoids buffering until the end of the build when no listener comes.
     private final BuildListener buildListener = new InternalBuildAdapter() {
         @Override
-        public void buildStarted(@SuppressWarnings("NullableProblems") Gradle gradle) {
+        public void buildStarted(Gradle gradle) {
             if (gradle.getParent() == null) {
-                gradle.rootProject(new InternalAction<Project>() {
-                    @Override
-                    public void execute(@SuppressWarnings("NullableProblems") Project project) {
-                        project.afterEvaluate(new InternalAction<Project>() {
-                            @Override
-                            public void execute(@SuppressWarnings("NullableProblems") Project project) {
-                                State s = state;
-                                if (s != null && s.notificationListener == null) {
-                                    valve.stop();
-                                }
-                            }
-                        });
+                gradle.projectsLoaded((InternalAction<Gradle>) project -> {
+                    State s = state;
+                    if (s != null && s.notificationListener == null) {
+                        valve.stop();
                     }
                 });
             }

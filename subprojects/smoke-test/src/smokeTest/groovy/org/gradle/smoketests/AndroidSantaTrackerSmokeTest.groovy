@@ -16,13 +16,16 @@
 
 package org.gradle.smoketests
 
-import org.apache.commons.io.FileUtils
-import org.eclipse.jgit.api.Git
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
+import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
@@ -30,50 +33,67 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
-class AndroidCachingSmokeTest extends AbstractSmokeTest {
+class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder
+    TestFile homeDir
+
+    def setup() {
+        homeDir = temporaryFolder.createDir("test-kit-home")
+    }
+
+    def "check deprecation warnings produced by building Santa Tracker"() {
+        def checkoutDir = temporaryFolder.createDir ("checkout")
+        setupCopyOfSantaTracker(checkoutDir)
+
+        def result = buildLocation(checkoutDir)
+
+        expect:
+        expectDeprecationWarnings(result,
+            "Property 'excludeListProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'inputFiles' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Property 'packageNameSupplier' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration1 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration10 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration11 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration12 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration13 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration14 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration15 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration2 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration3 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration4 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration5 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration6 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration7 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration8 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "The configuration :detachedConfiguration9 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Type 'DependencyTask': field 'configurations' without corresponding getter has been annotated with @Input. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Type 'DependencyTask': field 'outputDir' without corresponding getter has been annotated with @OutputDirectory. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Type 'DependencyTask': field 'outputFile' without corresponding getter has been annotated with @OutputFile. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Type 'LicensesTask': field 'dependenciesJson' without corresponding getter has been annotated with @InputFile. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Type 'LicensesTask': field 'licenses' without corresponding getter has been annotated with @OutputFile. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Type 'LicensesTask': field 'licensesMetadata' without corresponding getter has been annotated with @OutputFile. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+            "Type 'LicensesTask': field 'outputDir' without corresponding getter has been annotated with @OutputDirectory. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
+        )
+    }
 
     def "can cache Santa Tracker Android application"() {
-        def testRepoUri = "https://github.com/gradle/santa-tracker-android.git"
-        def testRepoTarget = "036aad22af993d2f564a6a15d6a7b9706ba37d8e"
+        def originalDir = temporaryFolder.createDir ("original")
+        def relocatedDir = temporaryFolder.createDir("relocated")
 
-        def root = new TestFile(testProjectDir.root)
-        def homeDir = root.createDir ("home")
-        def originalDir = root.createDir ("original")
-        def relocatedDir = root.createDir("relocated")
+        setupCopyOfSantaTracker(originalDir)
+        setupCopyOfSantaTracker(relocatedDir)
 
-        setupRepo(testRepoUri, originalDir, testRepoTarget)
-
-        println "> Copying original to relocated"
-        FileUtils.copyDirectory(originalDir, relocatedDir)
-
-        runner("assembleDebug", "--scan")
-            .withProjectDir(originalDir)
-            .withTestKitDir(homeDir)
-            .forwardOutput()
-            .build()
-
-        def relocatedResult = runner("assembleDebug", "--scan")
-            .withProjectDir(relocatedDir)
-            .withTestKitDir(homeDir)
-            .forwardOutput()
-            .build()
+        buildLocation(originalDir)
+        BuildResult relocatedResult = buildLocation(relocatedDir)
 
         expect:
         verify(relocatedResult, EXPECTED_RESULTS)
     }
 
-    private static Git setupRepo(String sourceUri, TestFile targetDir, String targetRef) {
-        println "> Cloning $sourceUri into $targetDir"
-        def git = Git.cloneRepository()
-            .setURI(sourceUri)
-            .setDirectory(targetDir)
-            .setNoCheckout(true)
-            .call()
-
-        println "> Checking out ${targetRef}"
-        git.checkout()
-            .setName(targetRef)
-            .call()
+    private void setupCopyOfSantaTracker(TestFile targetDir) {
+        copyRemoteProject("santaTracker", targetDir)
 
         def settingsFile = targetDir.file("settings.gradle")
         settingsFile.text = """
@@ -84,11 +104,17 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
                 }
             }
         """ + settingsFile.text
-
-        return git
     }
 
-    boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {
+    private BuildResult buildLocation(File projectDir) {
+        runner("assembleDebug", "--scan")
+            .withProjectDir(projectDir)
+            .withTestKitDir(homeDir)
+            .forwardOutput()
+            .build()
+    }
+
+    private static boolean verify(BuildResult result, Map<String, TaskOutcome> outcomes) {
         println "> Expecting ${outcomes.size()} tasks with outcomes:"
         outcomes.values().groupBy { it }.sort().forEach { outcome, instances -> println "> - $outcome: ${instances.size()}" }
 
@@ -116,7 +142,7 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         return hasMatchingTasks && allOutcomesMatched
     }
 
-    static final EXPECTED_RESULTS = [
+    private static final EXPECTED_RESULTS = [
         ':cityquiz:assembleDebug': SUCCESS,
         ':cityquiz:checkDebugDuplicateClasses': FROM_CACHE,
         ':cityquiz:compileDebugAidl': NO_SOURCE,
@@ -670,4 +696,9 @@ class AndroidCachingSmokeTest extends AbstractSmokeTest {
         ':wearable:stripDebugDebugSymbols': FROM_CACHE,
         ':wearable:validateSigningDebug': FROM_CACHE,
     ]
+
+    def cleanup() {
+        // The daemons started by test kit need to be killed, so no locked files are left behind.
+        DaemonLogsAnalyzer.newAnalyzer(homeDir.file(ToolingApiGradleExecutor.TEST_KIT_DAEMON_DIR_NAME)).killAll()
+    }
 }

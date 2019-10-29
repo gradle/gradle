@@ -61,7 +61,7 @@ By adding this rule, we will make sure that Gradle _will_ detect conflicts and p
            Cannot select module with conflict on capability 'log4j:log4j:1.2.16' also provided by [org.slf4j:log4j-over-slf4j:1.7.10(compile)]
 ----
 
-See the <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps, capabilities section of the documentation>> to figure out how to fix capability conflicts.
+See the <<dependency_capability_conflict.adoc#sub:selecting-between-candidates, capabilities section of the documentation>> to figure out how to fix capability conflicts.
 
 == Declaring additional capabilities for a local component
 

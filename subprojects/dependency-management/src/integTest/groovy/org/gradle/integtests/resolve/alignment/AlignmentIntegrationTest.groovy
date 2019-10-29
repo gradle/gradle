@@ -1063,7 +1063,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         buildFile << '''
             dependencies {
               constraints {
-                  conf platform("org:platform:1.1")
+                  conf "org:platform:1.1"
               }
             
               conf 'org:foo:1.0'
@@ -1110,7 +1110,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         buildFile << '''
             dependencies {
               constraints {
-                  conf platform("org:platform:1.1")
+                  conf "org:platform:1.1"
               }
             
               conf 'start:start:1.0'

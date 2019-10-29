@@ -34,6 +34,12 @@ abstract class AbstractClassGeneratorSpec extends Specification {
 
     abstract ClassGenerator getGenerator()
 
+    protected <T> T createForSerialization(Class<T> clazz) {
+        def nested = Stub(InstanceGenerator)
+        _ * nested.newInstanceWithDisplayName(_, _, _) >> { type, displayName, params -> create(type) }
+        return generator.generate(clazz).getSerializationConstructor(Object).newInstance(defaultServices(), nested)
+    }
+
     protected <T> T create(Class<T> clazz, Object... args) {
         return doCreate(generator, clazz, defaultServices(), null, args)
     }

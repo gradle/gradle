@@ -1328,7 +1328,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
         @Override
         public void comment(char[] ch, int start, int length) throws SAXException {
             String comment = new String(ch, start, length);
-            if (comment.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
+            if (comment.contains(MetaDataParser.GRADLE_6_METADATA_MARKER) || comment.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
                 hasGradleMetadataRedirect = true;
             }
         }

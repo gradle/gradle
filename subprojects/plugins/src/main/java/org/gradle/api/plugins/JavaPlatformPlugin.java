@@ -25,13 +25,15 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
-import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.java.DefaultJavaPlatformExtension;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
+import org.gradle.internal.component.external.model.DefaultShadowedCapability;
+import org.gradle.internal.component.external.model.ProjectDerivedCapability;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -86,12 +88,10 @@ public class JavaPlatformPlugin implements Plugin<Project> {
             "Found dependencies in the '%s' configuration.";
 
     private final SoftwareComponentFactory softwareComponentFactory;
-    private final PlatformSupport platformSupport;
 
     @Inject
-    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory, PlatformSupport platformSupport) {
+    public JavaPlatformPlugin(SoftwareComponentFactory softwareComponentFactory) {
         this.softwareComponentFactory = softwareComponentFactory;
-        this.platformSupport = platformSupport;
     }
 
     @Override
@@ -104,12 +104,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
         project.getPluginManager().apply(BasePlugin.class);
         createConfigurations(project);
         configureExtension(project);
-        addPlatformDisambiguationRule(project);
         JavaEcosystemSupport.configureSchema(project.getDependencies().getAttributesSchema(), project.getObjects());
-    }
-
-    private void addPlatformDisambiguationRule(Project project) {
-        platformSupport.addDisambiguationRule(project.getDependencies().getAttributesSchema());
     }
 
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
@@ -121,15 +116,19 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     private void createConfigurations(Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
+        Capability enforcedCapability = new DefaultShadowedCapability(new ProjectDerivedCapability(project), "-derived-enforced-platform");
+
         Configuration api = configurations.create(API_CONFIGURATION_NAME, AS_BUCKET);
         Configuration apiElements = createConsumableApi(project, configurations, api, API_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
         Configuration enforcedApiElements = createConsumableApi(project, configurations, api, ENFORCED_API_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
+        enforcedApiElements.getOutgoing().capability(enforcedCapability);
 
         Configuration runtime = project.getConfigurations().create(RUNTIME_CONFIGURATION_NAME, AS_BUCKET);
         runtime.extendsFrom(api);
 
         Configuration runtimeElements = createConsumableRuntime(project, runtime, RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.REGULAR_PLATFORM);
         Configuration enforcedRuntimeElements = createConsumableRuntime(project, runtime, ENFORCED_RUNTIME_ELEMENTS_CONFIGURATION_NAME, Category.ENFORCED_PLATFORM);
+        enforcedRuntimeElements.getOutgoing().capability(enforcedCapability);
 
         Configuration classpath = configurations.create(CLASSPATH_CONFIGURATION_NAME, AS_RESOLVABLE_CONFIGURATION);
         classpath.extendsFrom(runtimeElements);

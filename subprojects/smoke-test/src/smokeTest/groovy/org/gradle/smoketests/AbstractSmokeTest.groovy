@@ -157,7 +157,7 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     GradleRunner runner(String... tasks) {
-        DefaultGradleRunner gradleRunner = GradleRunner.create()
+        GradleRunner gradleRunner = GradleRunner.create()
             .withGradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir)
             .withTestKitDir(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir)
             .withProjectDir(testProjectDir.root)
@@ -225,8 +225,12 @@ abstract class AbstractSmokeTest extends Specification {
             if (remainingWarnings.remove(line)) {
                 return
             }
-            assert !line.contains("deprecated"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
+            assert !line.contains("has been deprecated and is scheduled to be removed in Gradle"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
         }
         assert remainingWarnings.empty, "Expected ${remainingWarnings.size()} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
+    }
+
+    void copyRemoteProject(String remoteProject, File targetDir) {
+        new TestFile(new File("build/$remoteProject")).copyTo(targetDir)
     }
 }

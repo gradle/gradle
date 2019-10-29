@@ -237,17 +237,19 @@ include::{samplesPath}/signing/maven/signingArchivesOutput.out[]
 ----
 
 [[sec:signing_tasks]]
-=== Signing Tasks
+=== Signing Task Output
 
-In some cases the artifact that you need to sign may not be part of a configuration. In this case you can directly sign the task that produces the artifact to sign.
+In some cases the artifact that you need to sign may not be part of a configuration.
+In this case you can directly sign the task that produces the artifact to sign.
 
-.Signing a task
+.Signing a task output
 ====
 include::sample[dir="signing/tasks/groovy",files="build.gradle[tags=sign-task]"]
 include::sample[dir="signing/tasks/kotlin",files="build.gradle.kts[tags=sign-task]"]
 ====
 
-This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signStuffZip`, that will build the input task's archive (if needed) and then sign it. The signature file will be placed alongside the artifact being signed.
+This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign]) in your project named `signStuffZip`, that will build the input task's archive (if needed) and then sign it.
+The signature file will be placed alongside the artifact being signed.
 
 === Example: Signing a task output
 
@@ -257,12 +259,15 @@ This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing
 include::{samplesPath}/signing/tasks/signingTaskOutput.out[]
 ----
 
-For a task to be _signable_, it must produce an archive of some type, i.e. it must extend link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]. Tasks that do this are the link:{groovyDslPath}/org.gradle.api.tasks.bundling.Tar.html[Tar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War] and link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] tasks.
+For a task to be _signable_, it must produce an archive of some type, i.e. it must extend link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask].
+Tasks that do this are the link:{groovyDslPath}/org.gradle.api.tasks.bundling.Tar.html[Tar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[Zip], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar], link:{groovyDslPath}/org.gradle.api.tasks.bundling.War.html[War] and link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear] tasks.
 
 [[sec:conditional_signing]]
 === Conditional Signing
 
-A common usage pattern is to require the signing of build artifacts only under certain conditions. For example, you may not need to sign artifacts for non-release versions. To achieve this, you can specify the condition as an argument of the `required()` method.
+A common usage pattern is to require the signing of build artifacts only under certain conditions.
+For example, you may not need to sign artifacts for non-release versions.
+To achieve this, you can specify the condition as an argument of the `required()` method.
 
 .Specifying when signing is required
 ====
@@ -270,9 +275,13 @@ include::sample[dir="signing/conditional/groovy",files="build.gradle[tags=condit
 include::sample[dir="signing/conditional/kotlin",files="build.gradle.kts[tags=conditional-signing]"]
 ====
 
-In this example, we only want to require signing if we are building a release version and we are going to publish it. Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation. See link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html#setRequired-java.lang.Object-[SigningExtension.setRequired(java.lang.Object)] for more information.
+In this example, we only want to require signing if we are building a release version and we are going to publish it.
+Because we are inspecting the task graph to determine if we are going to be publishing, we must set the `signing.required` property to a closure to defer the evaluation.
+See link:{javadocPath}/org/gradle/plugins/signing/SigningExtension.html#setRequired-java.lang.Object-[SigningExtension.setRequired(java.lang.Object)] for more information.
 
-If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured. Alternatively, you may want to skip signing entirely whether or not signatory credentials are available. If so, you can configure the link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign] tasks to be skipped, for example by attaching a predicate using the `onlyIf()` method shown in the following example:
+If the `required` condition does not hold true, artifacts will only be signed if signatory credentials are configured.
+Alternatively, you may want to skip signing entirely whether or not signatory credentials are available.
+If so, you can configure the link:{groovyDslPath}/org.gradle.plugins.signing.Sign.html[Sign] tasks to be skipped, for example by attaching a predicate using the `onlyIf()` method shown in the following example:
 
 .Specifying when signing is skipped
 ====
@@ -283,16 +292,18 @@ include::sample[dir="signing/conditional/kotlin",files="build.gradle.kts[tags=on
 [[sec:publishing_the_signatures]]
 == Publishing the signatures
 
-When signing <<#sec:signing_publications,publications>>, the resultant signature artifacts are automatically added to the corresponding publication. Thus, when publishing to a repository, e.g. by executing the `publish` task, your signatures will be distributed along with the other artifacts without any additional configuration.
+When signing <<#sec:signing_publications,publications>>, the resultant signature artifacts are automatically added to the corresponding publication.
+Thus, when publishing to a repository, e.g. by executing the `publish` task, your signatures will be distributed along with the other artifacts without any additional configuration.
 
-When signing <<#sec:signing_configurations,configurations>> and <<#sec:signing_tasks,tasks>>, the resultant signature artifacts are automatically added to the `signatures` and `archives` dependency configurations. This means that if you want to upload your signatures to your distribution repository along with the artifacts you simply execute the `uploadArchives` task.
+When signing <<#sec:signing_configurations,configurations>> and <<#sec:signing_tasks,tasks>>, the resultant signature artifacts are automatically added to the `signatures` and `archives` dependency configurations.
+This means that if you want to upload your signatures to your distribution repository along with the artifacts you simply execute the `uploadArchives` task.
 
 [[sec:signing_pom_files]]
 == Signing POM files
 
 [NOTE]
 ====
-This section covers signing POM files for the _original_ publishing mechanism available in Gradle 1.0.
+This section covers signing POM files for the _legacy_ publishing mechanism available in Gradle 1.0.
 The POM file generated by the _new_ Maven publishing support provided by the <<publishing_maven.adoc#publishing_maven,Maven Publishing plugin>> is automatically signed if the corresponding publication is <<#sec:signing_publications,specified to be signed>>.
 ====
 

@@ -102,14 +102,6 @@ task integrationTest(type: Test) {
 check.dependsOn integrationTest
 // end::integ-test-task[]
 
-// tag::defining-sources-jar-task[]
-java {
-    publishJavadoc()
-    publishSources()
-}
-// end::defining-sources-jar-task[]
-
-
 // tag::defining-custom-javadoc-task[]
 task testJavadoc(type: Javadoc) {
     source = sourceSets.test.allJava

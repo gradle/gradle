@@ -25,13 +25,15 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Bean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BrokenConstructor
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceContainerPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileCollectionBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
@@ -263,6 +265,21 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         InterfaceListPropertyBean      | _
         InterfaceSetPropertyBean       | _
         InterfaceMapPropertyBean       | _
+    }
+
+    def "can construct instance of class without running its constructor to use for deserialization"() {
+        def bean = createForSerialization(BrokenConstructor)
+
+        expect:
+        !bean.value.present
+        bean.bean != null
+    }
+
+    def canConstructInstanceOfInterfaceWithReadOnlyMethodsWithCovariantReturnTypeWhereOverriddenTypesAreNotSupported() {
+        def bean = create(AbstractCovariantReadOnlyPropertyBean)
+
+        expect:
+        bean.prop.toString() == "property 'prop'"
     }
 
     def canConstructInstanceOfInterfaceWithDefaultMethodsOnly() {

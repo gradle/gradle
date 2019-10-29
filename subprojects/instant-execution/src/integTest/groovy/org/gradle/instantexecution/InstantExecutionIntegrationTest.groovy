@@ -694,20 +694,40 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
     def "restores task abstract properties"() {
         buildFile << """
+            interface Bean {
+                @Internal
+                Property<String> getValue() 
+
+                @Internal
+                Property<String> getUnused() 
+            }
 
             abstract class SomeTask extends DefaultTask {
+                @Nested
+                abstract Bean getBean()
+
+                @Nested
+                abstract Bean getUnusedBean()
 
                 @Internal
                 abstract Property<String> getValue()
 
+                @Internal
+                abstract Property<String> getUnused()
+
                 @TaskAction
                 void run() {
                     println "this.value = " + value.getOrNull()
+                    println "this.unused = " + unused.getOrNull()
+                    println "this.bean.value = " + bean.value.getOrNull()
+                    println "this.bean.unused = " + bean.unused.getOrNull()
+                    println "this.unusedBean.value = " + unusedBean.value.getOrNull()
                 }
             }
 
             task ok(type: SomeTask) {
                 value = "42"
+                bean.value = "42"
             }
         """
 
@@ -717,6 +737,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         outputContains("this.value = 42")
+        outputContains("this.unused = null")
+        outputContains("this.bean.value = 42")
+        outputContains("this.bean.unused = null")
+        outputContains("this.unusedBean.value = null")
     }
 
     def "task can reference itself"() {

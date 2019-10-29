@@ -61,7 +61,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.serialize.SetSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
@@ -95,9 +94,6 @@ class Codecs(
     transformListener: ArtifactTransformListener,
     providerFactory: ProviderFactory
 ) {
-
-    private
-    val fileSetSerializer = SetSerializer(FILE_SERIALIZER)
 
     val userTypesCodec = BindingsBackedCodec {
 
@@ -159,9 +155,10 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        bind(FileTreeCodec(fileSetSerializer, directoryFileTreeFactory))
+        bind(FileTreeCodec(directoryFileTreeFactory))
         bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
         bind(FileCollectionCodec(fileCollectionFactory))
+        bind(PatternSetCodec)
 
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)

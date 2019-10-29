@@ -23,6 +23,7 @@ import com.google.gson.stream.JsonToken;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
@@ -38,6 +39,8 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.component.external.model.DefaultShadowedCapability;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
@@ -118,6 +121,31 @@ public class GradleModuleMetadataParser {
                 }
             }
         });
+        maybeAddEnforcedPlatformVariant(metadata);
+    }
+
+    private void maybeAddEnforcedPlatformVariant(MutableModuleComponentResolveMetadata metadata) {
+        List<? extends MutableComponentVariant> variants = metadata.getMutableVariants();
+        if (variants == null || variants.isEmpty()) {
+            return;
+        }
+        for (MutableComponentVariant variant : ImmutableList.copyOf(variants)) {
+            AttributeValue<String> entry = variant.getAttributes().findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
+            if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get()) && variant.getCapabilities().isEmpty()) {
+                // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
+                ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
+                Capability enforcedCapability = buildShadowPlatformCapability(metadata.getId());
+                metadata.addVariant(variant.copy("enforced" + capitalize(variant.getName()), enforcedAttributes, enforcedCapability));
+            }
+        }
+    }
+
+    private Capability buildShadowPlatformCapability(ModuleComponentIdentifier componentId) {
+        return new DefaultShadowedCapability(new ImmutableCapability(
+                componentId.getGroup(),
+                componentId.getModule(),
+                componentId.getVersion()
+            ), "-derived-enforced-platform");
     }
 
     private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
@@ -207,13 +235,6 @@ public class GradleModuleMetadataParser {
 
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
-        AttributeValue<String> entry = attributes.findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
-        if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get())) {
-            // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
-            ImmutableAttributes enforcedAttributes = attributesFactory.concat(attributes, MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
-            MutableComponentVariant syntheticEnforcedVariant = metadata.addVariant("enforced" + capitalize(variantName), enforcedAttributes);
-            populateVariant(files, dependencies, dependencyConstraints, capabilities, syntheticEnforcedVariant);
-        }
     }
 
     private void populateVariant(List<ModuleFile> files, List<ModuleDependency> dependencies, List<ModuleDependencyConstraint> dependencyConstraints, List<VariantCapability> capabilities, MutableComponentVariant variant) {

@@ -8,6 +8,7 @@ import common.checkCleanM2
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
+import configurations.individualPerformanceTestJavaHome
 import configurations.killAllGradleProcesses
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
@@ -51,7 +52,8 @@ object AdHocPerformanceScenarioLinux : BuildType({
                 performanceTestCommandLine(
                     "clean %templates% performance:performanceAdHocTest",
                     "%baselines%",
-                    """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%"""
+                    """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""",
+                    individualPerformanceTestJavaHome(Os.linux)
                 ) +
                     buildToolGradleParameters(isContinue = false) +
                     builtInRemoteBuildCacheNode.gradleParameters(Os.linux)

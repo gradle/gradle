@@ -16,8 +16,6 @@
 
 package org.gradle.internal.instantiation.generator;
 
-import org.gradle.api.Transformer;
-import org.gradle.cache.internal.CrossBuildInMemoryCache;
 import org.gradle.internal.Cast;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.JavaReflectionUtil;
@@ -25,11 +23,9 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import java.util.List;
 
 class ParamsMatchingConstructorSelector implements ConstructorSelector {
-    private final CrossBuildInMemoryCache<Class<?>, ClassGenerator.GeneratedClass<?>> constructorCache;
     private final ClassGenerator classGenerator;
 
-    public ParamsMatchingConstructorSelector(ClassGenerator classGenerator, CrossBuildInMemoryCache<Class<?>, ClassGenerator.GeneratedClass<?>> constructorCache) {
-        this.constructorCache = constructorCache;
+    public ParamsMatchingConstructorSelector(ClassGenerator classGenerator) {
         this.classGenerator = classGenerator;
     }
 
@@ -45,12 +41,7 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
 
     @Override
     public <T> ClassGenerator.GeneratedConstructor<? extends T> forParams(final Class<T> type, Object[] params) {
-        ClassGenerator.GeneratedClass<?> generatedClass = constructorCache.get(type, new Transformer<ClassGenerator.GeneratedClass<?>, Class<?>>() {
-            @Override
-            public ClassGenerator.GeneratedClass<?> transform(Class<?> aClass) {
-                return classGenerator.generate(type);
-            }
-        });
+        ClassGenerator.GeneratedClass<?> generatedClass = classGenerator.generate(type);
 
         if (generatedClass.getOuterType() != null && (params.length == 0 || !generatedClass.getOuterType().isInstance(params[0]))) {
             TreeFormatter formatter = new TreeFormatter();

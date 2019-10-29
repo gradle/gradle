@@ -108,8 +108,8 @@ It will also, by convention, create a `Jar` task to bundle the classes built fro
 
 .Declaring a feature variant using a separate source set
 ====
-include::sample[dir="java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant]"]
-include::sample[dir="java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=register_variant]"]
+include::sample[dir="java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant,register_variant2]"]
+include::sample[dir="java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=register_variant,register_variant2]"]
 ====
 
 [[sec::publishing_feature_variants]]
@@ -131,6 +131,18 @@ The Java Plugin (or Java Library Plugin) will take care of registering the addit
 ====
 include::sample[dir="java-feature-variant/producer/groovy",files="build.gradle[tags=plugins,publishing]"]
 include::sample[dir="java-feature-variant/producer/kotlin",files="build.gradle.kts[tags=plugins,publishing]"]
+====
+
+[[sub:javadoc_sources_features_variants]]
+=== Adding javadoc and sources JARs
+
+Similar to the <<building_java_projects.adoc#sec:java_packaging,main Javadoc and sources JARs>>, you can configure the added feature variant so that it produces JARs for the Javadoc and sources.
+This however only makes sense when using a source set other than the main one.
+
+.Producing javadoc and sources JARs for feature variants
+====
+include::sample[dir="java-feature-variant/producer-separate-sourceset/groovy",files="build.gradle[tags=register_variant_extra_jars]"]
+include::sample[dir="java-feature-variant/producer-separate-sourceset/kotlin",files="build.gradle.kts[tags=register_variant_extra_jars]"]
 ====
 
 [[sec::consuming_feature_variants]]

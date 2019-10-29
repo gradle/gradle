@@ -755,6 +755,59 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
+    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
+    def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                $dependencies
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:core:2.9.4", "org:core:2.7.9") {
+                    forced()
+                }
+                module("org:databind:2.7.9") {
+                    module('org:annotations:2.7.9')
+                    module('org:core:2.7.9')
+                }
+                edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
+                    forced()
+                    module('org:core:2.7.9')
+                    module('org:annotations:2.7.9')
+                }
+            }
+            virtualConfiguration('org:platform:2.7.9')
+        }
+
+        where: "order of dependencies doesn't matter"
+        dependencies << [
+            'conf("org:core:2.9.4")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4.1")',
+            'constraints { conf ("org:platform") { version { strictly("2.7.9") } } }'
+        ].permutations()*.join("\n")
+    }
+
 
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
@@ -800,7 +853,7 @@ include 'other'
                 'conf("org:core:2.7.9")',
                 'conf("org:databind:2.7.9")',
                 'conf("org:kotlin:2.9.4")',
-                'constraints { conf platform("org:platform:2.9.4.1") }'
+                'constraints { conf "org:platform:2.9.4.1" }'
         ].permutations()*.join("\n")
     }
 
@@ -903,7 +956,7 @@ include 'other'
         """
 
         and:
-        "a rule which infers module set from group and version"()
+        "a rule which infers module set from group and version"(false)
 
         when:
         allowAllRepositoryInteractions()
@@ -923,6 +976,15 @@ include 'other'
                     forced()
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
+                }
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedPlatform' : 'enforced-platform-runtime'
+                constraint("org:platform:2.7.9", "org:platform:2.7.9:$expectedVariant") {
+                    noArtifacts()
+                    forced()
+                    constraint('org:core:2.7.9')
+                    constraint('org:annotations:2.7.9')
+                    constraint('org:databind:2.7.9')
+                    constraint('org:kotlin:2.7.9')
                 }
             }
             virtualConfiguration('org:platform:2.7.9')

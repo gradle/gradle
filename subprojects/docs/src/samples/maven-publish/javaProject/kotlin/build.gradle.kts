@@ -16,8 +16,8 @@ repositories {
 
 // tag::publish-modify-component[]
 java {
-    publishJavadoc()
-    publishSources()
+    withJavadocJar()
+    withSourcesJar()
 }
 
 val javaComponent = components["java"] as AdhocComponentWithVariants

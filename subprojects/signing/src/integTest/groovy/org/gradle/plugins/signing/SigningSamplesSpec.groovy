@@ -63,15 +63,14 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         inDirectory(sample.dir.file(dsl))
 
         when:
-        executer.expectDeprecationWarnings(2)
-        run "uploadArchives"
+        run "publish"
 
         then:
-        skipped(":signArchives")
+        skipped(":signMainPublication")
 
         and:
-        def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT').withoutExtraChecksums()
-        module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
+        def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT')
+        module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.module", "conditional-${module.publishArtifactVersion}.jar")
 
         where:
         dsl << ['groovy', 'kotlin']

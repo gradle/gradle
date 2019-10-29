@@ -85,7 +85,8 @@ tasks {
             versionProperties["scala"] = "${scalaVersion.major}.${scalaVersion.minor}"
 
             findLatest("scalatest", "org.scalatest:scalatest_${versionProperties["scala"]}:(3.0,)", versionProperties)
-            findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:latest.release", versionProperties)
+            // The latest released version is 2.0.0-M1, which is excluded by "don't use snapshot" strategy
+            findLatest("scala-xml", "org.scala-lang.modules:scala-xml_${versionProperties["scala"]}:1.2.0", versionProperties)
             findLatest("groovy", "org.codehaus.groovy:groovy:(2.5,)", versionProperties)
             findLatest("junit", "junit:junit:(4.0,)", versionProperties)
             findLatest("junit-jupiter", "org.junit.jupiter:junit-jupiter-api:(5,)", versionProperties)

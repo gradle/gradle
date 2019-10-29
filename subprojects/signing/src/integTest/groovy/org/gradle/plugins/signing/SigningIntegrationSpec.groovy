@@ -110,8 +110,8 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
     String getJavadocAndSourceJarsScript(String configurationName = null) {
         def javaPluginConfig = """
             java {
-                publishJavadoc()
-                publishSources()
+                withJavadocJar()
+                withSourcesJar()
             }
         """
 
@@ -122,7 +122,7 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
                 configurations {
                     $configurationName
                 }
-                
+
                 artifacts {
                     $configurationName sourcesJar, javadocJar
                 }

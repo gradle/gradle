@@ -81,7 +81,7 @@ public class MavenPomFileGenerator {
             int idx = builder.indexOf("<modelVersion");
             builder.insert(idx, xmlComments(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES)
                     + "  "
-                    + xmlComment(MetaDataParser.GRADLE_METADATA_MARKER)
+                    + xmlComment(MetaDataParser.GRADLE_6_METADATA_MARKER)
                     + "  ");
         }
     };

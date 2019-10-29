@@ -44,16 +44,16 @@ allprojects {
 project(':other-java') {
     apply plugin: 'java'
     java {
-        publishJavadoc()
-        publishSources()
+        withJavadocJar()
+        withSourcesJar()
     }
 }
 
 project(':java') {
     apply plugin: 'java'
     java {
-        publishJavadoc()
-        publishSources()
+        withJavadocJar()
+        withSourcesJar()
     }
     dependencies {
         compile 'test:compile:1.0'

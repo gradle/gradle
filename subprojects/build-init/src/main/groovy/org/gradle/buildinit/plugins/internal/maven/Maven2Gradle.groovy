@@ -118,7 +118,7 @@ class Maven2Gradle {
                 }
                 if (packagesJavadocs(module)) {
                     def javaExtension = moduleScriptBuilder.block(null, "java")
-                    javaExtension.methodInvocation(null, "publishJavadoc")
+                    javaExtension.methodInvocation(null, "withJavadocJar")
                 }
 
                 moduleScriptBuilder.create().generate()
@@ -156,10 +156,10 @@ class Maven2Gradle {
         if (publishesSources || publishesJavadoc) {
             def javaExtension = builder.block(null, "java")
             if (publishesSources) {
-                javaExtension.methodInvocation(null, "publishSources")
+                javaExtension.methodInvocation(null, "withSourcesJar")
             }
             if (publishesJavadoc) {
-                javaExtension.methodInvocation(null, "publishJavadoc")
+                javaExtension.methodInvocation(null, "withJavadocJar")
             }
         }
         def publishing = builder.block(null, "publishing")

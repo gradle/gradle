@@ -64,7 +64,7 @@ class IvyDescriptorFileGeneratorTest extends Specification {
         generator = new IvyDescriptorFileGenerator(projectIdentity, markerPresent, versionMappingStrategy)
 
         expect:
-        ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER) == markerPresent
+        ivyFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER) == markerPresent
 
         where:
         markerPresent << [true, false]

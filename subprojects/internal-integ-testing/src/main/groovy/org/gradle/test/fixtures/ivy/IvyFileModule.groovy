@@ -460,7 +460,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         }
         infoAttrs += extraAttributes.collectEntries { key, value -> ["e:$key", value] }
         if (writeGradleMetadataRedirection) {
-            ivyFileWriter << "<!-- ${MetaDataParser.GRADLE_METADATA_MARKER} -->"
+            ivyFileWriter << "<!-- ${MetaDataParser.GRADLE_6_METADATA_MARKER} -->"
         }
         builder.info(infoAttrs) {
             if (extendsFrom) {
@@ -642,14 +642,14 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     }
 
     IvyFileModule removeGradleMetadataRedirection() {
-        if (ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)) {
-            ivyFile.replace(MetaDataParser.GRADLE_METADATA_MARKER, '')
+        if (ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)) {
+            ivyFile.replace(MetaDataParser.GRADLE_6_METADATA_MARKER, '')
         }
         this
     }
 
     boolean hasGradleMetadataRedirectionMarker() {
-        ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_METADATA_MARKER)
+        ivyFile.exists() && ivyFile.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 
     interface IvyModuleArtifact extends ModuleArtifact {

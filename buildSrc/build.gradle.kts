@@ -119,8 +119,12 @@ val isSkipBuildSrcVerification: Boolean =
 
 if (isSkipBuildSrcVerification) {
     allprojects {
-        tasks.matching { it.group == LifecycleBasePlugin.VERIFICATION_GROUP }.configureEach {
-            enabled = false
+        afterEvaluate {
+            plugins.withId("lifecycle-base") {
+                tasks.named("check") {
+                    setDependsOn(listOf("assemble"))
+                }
+            }
         }
     }
 }

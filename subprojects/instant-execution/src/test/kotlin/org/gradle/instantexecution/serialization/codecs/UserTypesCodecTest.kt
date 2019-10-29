@@ -36,6 +36,7 @@ import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.util.TestUtil
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -268,6 +269,7 @@ class UserTypesCodecTest {
         DefaultReadContext(
             codec = codecs().userTypesCodec,
             decoder = KryoBackedDecoder(inputStream),
+            instantiatorFactory = TestUtil.instantiatorFactory(),
             constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
             logger = mock()
         )

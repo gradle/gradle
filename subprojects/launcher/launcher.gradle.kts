@@ -80,7 +80,7 @@ val availableJavaInstallations = rootProject.availableJavaInstallations
 val javaInstallationForTest = availableJavaInstallations.javaInstallationForTest
 if (!javaInstallationForTest.javaVersion.isJava9Compatible) {
     dependencies {
-        integTestRuntime(files(javaInstallationForTest.toolsJar))
+        integTestRuntimeOnly(files(javaInstallationForTest.toolsJar))
     }
 }
 

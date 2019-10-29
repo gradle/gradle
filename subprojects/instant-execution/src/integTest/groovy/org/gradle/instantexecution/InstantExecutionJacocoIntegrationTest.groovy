@@ -24,6 +24,10 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
 
         given:
         new JavaProjectUnderTest(testDirectory).writeBuildScript().writeSourceFiles()
+        // jacoco plugin makes jacocoTestReport mustRunAfter test, not dependsOn
+        // mustRunAfter is not captured by instant execution currently
+        // https://github.com/gradle/instant-execution/issues/86
+        buildFile << '\njacocoTestReport.dependsOn test'
         def htmlReportDir = file("build/reports/jacoco/test/html")
 
         expect:

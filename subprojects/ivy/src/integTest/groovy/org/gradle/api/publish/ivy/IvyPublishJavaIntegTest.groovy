@@ -80,7 +80,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         given:
         file("settings.gradle") << '''
-            rootProject.name = 'publishTest' 
+            rootProject.name = 'publishTest'
             include "b"
         '''
         buildFile << """
@@ -100,7 +100,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
-            
+
             dependencies {
                 $gradleConfiguration project(':b')
             }
@@ -108,10 +108,10 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         file('b/build.gradle') << """
             apply plugin: 'java'
-            
+
             group = 'org.gradle.test'
             version = '1.2'
-            
+
         """
 
         when:
@@ -531,7 +531,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 constraints {
                     api "commons-logging:commons-logging:1.1"
                     implementation "commons-logging:commons-logging:1.2"
-                    
+
                     implementation("org.tukaani:xz") {
                         version { strictly "1.6" }
                     }
@@ -869,7 +869,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
                 implementation("commons-collections:commons-collections:[3.2, 4)") {
-                    version { 
+                    version {
                         reject '3.2.1', '[3.2.2,)'
                     }
                 }
@@ -993,6 +993,35 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
     }
 
+    def "can ignore all publication warnings by variant name"() {
+        given:
+        def silenceMethod = "suppressIvyMetadataWarningsFor"
+        createBuildScripts("""
+
+            configurations.api.outgoing.capability 'org:foo:1.0'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        $silenceMethod('apiElements')
+                        $silenceMethod('runtimeElements')
+                    }
+                }
+            }
+""")
+
+        when:
+        run "publish"
+
+        then:
+        outputDoesNotContain(DefaultIvyPublication.PUBLICATION_WARNING_FOOTER)
+        outputDoesNotContain("Ivy publication 'ivy' warnings:")
+        outputDoesNotContain('Declares capability org:foo:1.0')
+        javaLibrary.assertPublished()
+    }
+
     def "can ignore all publication warnings"() {
         given:
         createBuildScripts("""
@@ -1045,13 +1074,13 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                         attribute(attr1, 'hello')
                     }
                 }
-                
+
                 api(project(':utils')) {
                     attributes {
                         attribute(attr1, 'bazinga')
                     }
                 }
-                
+
                 constraints {
                     implementation("org.test:bar:1.1") {
                         attributes {
@@ -1061,7 +1090,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
-            
+
             publishing {
                 publications {
                     ivy(IvyPublication) {
@@ -1135,7 +1164,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     }
                 }
             }
-            
+
             generateMetadataFileForIvyPublication.enabled = $enabled
         """)
         settingsFile.text = "rootProject.name = 'publishTest' "

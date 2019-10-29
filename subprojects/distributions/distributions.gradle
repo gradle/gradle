@@ -26,8 +26,8 @@ configurations.all {
 //tasks.remove(jar)
 
 tasks.withType(AbstractArchiveTask).configureEach {
-    baseName "gradle"
-    version = baseVersion
+    archiveBaseName = "gradle"
+    archiveVersion = baseVersion
 
     // The CI server looks for the distributions at this location
     destinationDirectory.set(rootProject.layout.buildDirectory.dir(rootProject.distsDirName))
@@ -84,7 +84,7 @@ dependencies {
     minimalRuntime(project(":platformJvm"))
 
     testImplementation(testFixtures(project(":core")))
-    
+
     integTestImplementation(project(":baseServices"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
@@ -127,11 +127,6 @@ ext {
         }
         into('docs') {
             from configurations.gradleFullDocs
-        }
-        into('samples') {
-            from configurations.gradleSamples
-            exclude '**/*.out'
-            exclude '**/*.sample.conf*'
         }
     }
 }

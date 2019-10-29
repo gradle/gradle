@@ -52,7 +52,7 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
                 val beanType = readClass()
                 withBeanTrace(beanType) {
                     val beanStateReader = beanStateReaderFor(beanType)
-                    beanStateReader.run { newBeanWithId(id) }.also { bean ->
+                    beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
                         readObjectMethodOf(beanType).invoke(
                             bean,
                             ObjectInputStreamAdapter(

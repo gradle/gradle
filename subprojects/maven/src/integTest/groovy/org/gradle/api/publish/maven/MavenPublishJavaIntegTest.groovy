@@ -110,4 +110,32 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
             assert variants[0].dependencies*.coords == ["org:foo:1.0"]
         }
     }
+
+    def "can ignore all publication warnings by variant name"() {
+        given:
+        def silenceMethod = "suppressPomMetadataWarningsFor"
+        createBuildScripts("""
+
+            configurations.api.outgoing.capability 'org:foo:1.0'
+            configurations.implementation.outgoing.capability 'org:bar:1.0'
+
+            publishing {
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                        $silenceMethod('runtimeElements')
+                        $silenceMethod('apiElements')
+                    }
+                }
+            }
+        """)
+
+        when:
+        run "publish"
+
+        then:
+        outputDoesNotContain(DefaultMavenPublication.PUBLICATION_WARNING_FOOTER)
+        javaLibrary.assertPublished()
+    }
+
 }

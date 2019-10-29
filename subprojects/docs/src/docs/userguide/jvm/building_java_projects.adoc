@@ -345,8 +345,8 @@ If a publishing plugin is used, these tasks will automatically run during publis
 
 .Configure a project to publish Javadoc and sources
 ====
-include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
-include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
+include::sample[dir="signing/maven-publish/groovy",files="build.gradle[tags=defining-sources-jar-task]"]
+include::sample[dir="signing/maven-publish/kotlin",files="build.gradle.kts[tags=defining-sources-jar-task]"]
 ====
 
 If you want to create an 'uber' (AKA 'fat') JAR, then you can use a task definition like this:
