@@ -267,7 +267,7 @@ fun Decoder.readFile(): File =
 
 
 internal
-fun Encoder.writeStrings(strings: List<String>) {
+fun Encoder.writeStrings(strings: Collection<String>) {
     writeCollection(strings) {
         writeString(it)
     }
