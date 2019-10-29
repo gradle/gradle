@@ -34,9 +34,9 @@ public class ShallowDirectorySnapshot extends AbstractFileSystemNodeWithChildren
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(String filePath, int offset) {
-        return Optional.of(super.getSnapshot(filePath, offset)
-            .orElseGet(() -> AbstractFileSystemLocationSnapshot.missingSnapshotForAbsolutePath(filePath)));
+    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
+        return Optional.of(super.getSnapshot(absolutePath, offset)
+            .orElseGet(() -> AbstractFileSystemLocationSnapshot.missingSnapshotForAbsolutePath(absolutePath)));
     }
 
     @Override

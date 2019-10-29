@@ -29,20 +29,20 @@ public class SnapshotFileSystemNode extends AbstractFileSystemNode {
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String path, int offset) {
-        return snapshot.invalidate(path, offset).map(splitSnapshot -> splitSnapshot.withPrefix(getPrefix()));
+    public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
+        return snapshot.invalidate(absolutePath, offset).map(splitSnapshot -> splitSnapshot.withPrefix(getPrefix()));
     }
 
     @Override
-    public FileSystemNode update(String path, int offset, MetadataSnapshot newSnapshot) {
-        return snapshot.update(path, offset, newSnapshot).withPrefix(getPrefix());
+    public FileSystemNode update(String absolutePath, int offset, MetadataSnapshot newSnapshot) {
+        return snapshot.update(absolutePath, offset, newSnapshot).withPrefix(getPrefix());
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(String filePath, int offset) {
+    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
         return FileSystemNode.thisOrGet(
-            snapshot, filePath, offset,
-            () -> snapshot.getSnapshot(filePath, offset)
+            snapshot, absolutePath, offset,
+            () -> snapshot.getSnapshot(absolutePath, offset)
         );
     }
 

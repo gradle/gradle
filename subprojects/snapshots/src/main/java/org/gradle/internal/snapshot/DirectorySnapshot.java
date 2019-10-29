@@ -68,23 +68,23 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(String filePath, int offset) {
+    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
         return FileSystemNode.thisOrGet(
-            this, filePath, offset,
+            this, absolutePath, offset,
             () -> {
                 for (FileSystemLocationSnapshot child : getChildren()) {
-                    if (AbstractFileSystemNode.isChildOfOrThis(filePath, offset, child.getName())) {
+                    if (AbstractFileSystemNode.isChildOfOrThis(absolutePath, offset, child.getName())) {
                         int endOfThisSegment = child.getName().length() + offset;
-                        return child.getSnapshot(filePath, endOfThisSegment + 1);
+                        return child.getSnapshot(absolutePath, endOfThisSegment + 1);
                     }
                 }
-                return Optional.of(missingSnapshotForAbsolutePath(filePath));
+                return Optional.of(missingSnapshotForAbsolutePath(absolutePath));
             });
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String path, int offset) {
-        return AbstractFileSystemNode.handleChildren(children, path, offset, new AbstractFileSystemNode.ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
+        return AbstractFileSystemNode.handleChildren(children, absolutePath, offset, new AbstractFileSystemNode.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return children.isEmpty()
@@ -96,9 +96,9 @@ public class DirectorySnapshot extends AbstractFileSystemLocationSnapshot implem
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
                 FileSystemLocationSnapshot foundChild = children.get(childIndex);
                 int indexForSubSegment = foundChild.getPrefix().length();
-                Optional<FileSystemNode> invalidated = indexForSubSegment == path.length() - offset
+                Optional<FileSystemNode> invalidated = indexForSubSegment == absolutePath.length() - offset
                     ? Optional.empty()
-                    : foundChild.invalidate(path, offset + indexForSubSegment + 1);
+                    : foundChild.invalidate(absolutePath, offset + indexForSubSegment + 1);
                 if (children.size() == 1) {
                     return invalidated.map(it -> new FileSystemNodeWithChildren(getPrefix(), ImmutableList.of(it)));
                 }

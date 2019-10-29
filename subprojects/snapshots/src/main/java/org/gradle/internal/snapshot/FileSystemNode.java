@@ -30,22 +30,22 @@ public interface FileSystemNode {
      * That means that filePath.substring(offset) does not include the {@link #getPrefix()}.
      * Therefore, when filePath.length + 1 == offset, then this node will be returned.
      */
-    Optional<MetadataSnapshot> getSnapshot(String filePath, int offset);
+    Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset);
 
     /**
      * Adds more information to the file system node.
      *
      * Complete information, like {@link FileSystemLocationSnapshot}s, are not touched nor replaced.
-     * @param path the path to update, starting from offset. Must not include the {@link #getPrefix()}.
+     * @param absolutePath the path to update, starting from offset. Must not include the {@link #getPrefix()}.
      */
-    FileSystemNode update(String path, int offset, MetadataSnapshot snapshot);
+    FileSystemNode update(String absolutePath, int offset, MetadataSnapshot snapshot);
 
     /**
      * Invalidates part of the node.
      *
-     * @param path the path to invalidate, starting from the offset. Must not include the {@link #getPrefix()}.
+     * @param absolutePath the path to invalidate, starting from the offset. Must not include the {@link #getPrefix()}.
      */
-    Optional<FileSystemNode> invalidate(String path, int offset);
+    Optional<FileSystemNode> invalidate(String absolutePath, int offset);
 
     String getPrefix();
 
