@@ -38,8 +38,8 @@ public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
     }
 
     @Override
-    protected FileSystemNode createCopy(String prefix, List<? extends FileSystemNode> merged) {
-        return new UnknownSnapshot(prefix, merged);
+    protected FileSystemNode createCopy(String pathToParent, List<? extends FileSystemNode> merged) {
+        return new UnknownSnapshot(pathToParent, merged);
     }
 
     @Override

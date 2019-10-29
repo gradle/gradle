@@ -48,10 +48,10 @@ class UnknownSnapshotTest extends Specification {
         _ * first.getSnapshot(relativePath, first.pathToParent.length() + 1) >> Optional.of(result)
 
         where:
-        childNames << [["first"], ["first", "second"], ["first", "second", "third"]]
+        childNames << [["first", "second", "third"]]
     }
 
-    def "finds no snapshot when no child has a similar prefix"() {
+    def "finds no snapshot when no child has a similar pathToParent"() {
         given:
         def children = createChildren(childNames)
         def first = children.get(0)
@@ -135,7 +135,7 @@ class UnknownSnapshotTest extends Specification {
         def children = createChildren(childNames)
         def node = new UnknownSnapshot("some/prefix", children)
         def childWithChildToInvalidate = children.get(0)
-        def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPrefix(childWithChildToInvalidate.pathToParent))
+        def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPathToParent(childWithChildToInvalidate.pathToParent))
 
         when:
         def result = node.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", 0).get()
@@ -143,37 +143,37 @@ class UnknownSnapshotTest extends Specification {
         then:
         1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", childWithChildToInvalidate.pathToParent.length() + 1) >> Optional.of(invalidatedChild)
         0 * _.invalidate(_)
-        !result.getSnapshot(invalidatedChild.prefix, 0).present
+        !result.getSnapshot(invalidatedChild.pathToParent, 0).present
 
 
         where:
         childNames << [["first/more"], ["first/some", "second/other"], ["first/even/deeper", "second", "third/whatever"], ["first/more/stuff", "second", "third", "fourth"]]
     }
 
-    private List<FileSystemNode> createChildren(String... prefixes) {
-        createChildren(prefixes as List)
+    private List<FileSystemNode> createChildren(String... pathsToParent) {
+        createChildren(pathsToParent as List)
     }
 
-    private List<FileSystemNode> createChildren(Iterable<String> prefixes) {
-        prefixes.sort()
+    private List<FileSystemNode> createChildren(Iterable<String> pathsToParent) {
+        pathsToParent.sort()
         List<FileSystemNode> result = []
-        prefixes.each {
-            result.add(Mock(FileSystemNode, defaultResponse: new RespondWithPrefix(it)))
+        pathsToParent.each {
+            result.add(Mock(FileSystemNode, defaultResponse: new RespondWithPathToParent(it)))
         }
         return result
     }
 
-    private static class RespondWithPrefix implements IDefaultResponse {
-        private final String prefix
+    private static class RespondWithPathToParent implements IDefaultResponse {
+        private final String pathToParent
 
-        RespondWithPrefix(String prefix) {
-            this.prefix = prefix
+        RespondWithPathToParent(String pathToParent) {
+            this.pathToParent = pathToParent
         }
 
         @Override
         Object respond(IMockInvocation invocation) {
-            if (invocation.getMethod().name == "getPrefix") {
-                return prefix
+            if (invocation.getMethod().name == "getPathToParent") {
+                return pathToParent
             }
             return EmptyOrDummyResponse.INSTANCE.respond(invocation)
         }
