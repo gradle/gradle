@@ -334,7 +334,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
             }
         });
-        // TODO: Allow this to be added lazily
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);
