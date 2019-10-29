@@ -98,7 +98,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 } else {
                     LOGGER.info("Loaded lock state for configuration '{}'", context.identityPath(configurationName));
                 }
-                return new DefaultDependencyLockingState(partialUpdate, results, lockMode);
+                boolean strictlyValidate = !partialUpdate && lockMode != LockMode.LENIENT;
+                return new DefaultDependencyLockingState(strictlyValidate, results);
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;

@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.locking
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
-class DependencyLockingIntegrationTest extends AbstractLockingIntegrationTest {
+class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrationTest {
 
     @Override
     LockMode lockMode() {

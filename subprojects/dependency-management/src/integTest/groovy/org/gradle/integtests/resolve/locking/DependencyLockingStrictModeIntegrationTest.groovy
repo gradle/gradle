@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
 
-class DependencyLockingStrictModeIntegrationTest extends AbstractLockingIntegrationTest {
+class DependencyLockingStrictModeIntegrationTest extends AbstractValidatingLockingIntegrationTest {
 
     @Override
     LockMode lockMode() {
