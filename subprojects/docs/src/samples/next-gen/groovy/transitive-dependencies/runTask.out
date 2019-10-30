@@ -1,0 +1,27 @@
+> Task :list:compileJava NO-SOURCE
+> Task :list:compileGroovy
+> Task :list:processResources NO-SOURCE
+> Task :list:classes
+> Task :list:jar
+> Task :utilities:compileJava NO-SOURCE
+> Task :utilities:compileGroovy
+> Task :utilities:processResources NO-SOURCE
+> Task :utilities:classes
+> Task :utilities:jar
+> Task :application:compileJava NO-SOURCE
+> Task :application:compileGroovy
+> Task :application:processResources NO-SOURCE
+> Task :application:classes
+
+> Task :application:run
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by org.codehaus.groovy.vmplugin.v7.Java7$1 (file:/private/var/folders/rg/y7myh0qj1sd58f02v_tgypvh0000gn/T/.gradle-test-kit-daniel/caches/modules-2/files-2.1/org.codehaus.groovy/groovy/2.5.7/99907efe4b69f800c42584386f5d668e4d952bd5/groovy-2.5.7.jar) to constructor java.lang.invoke.MethodHandles$Lookup(java.lang.Class,int)
+WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.vmplugin.v7.Java7$1
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+Hello, World!
+
+See https://docs.gradle.org/6.0-rc-1/userguide/command_line_interface.html#sec:command_line_warnings
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed
