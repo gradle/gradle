@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareToChildOfOrThis
 import static org.gradle.internal.snapshot.PathUtil.compareWithCommonPrefix
 import static org.gradle.internal.snapshot.PathUtil.getFileName
@@ -105,5 +106,24 @@ class PathUtilTest extends Specification {
         "/hello/world/some" | "/var/hello/other"      | 4      | 1
         "dir1"              | "some/dir12"            | 5      | -1
         "dir12"             | "some/dir1"             | 5      | 1
+    }
+
+    def "can compare path separator chars correctly"() {
+        expect:
+        compareChars(left as char, right as char) == result
+
+        where:
+        left | right | result
+        'a'  | 'a'   | 0
+        'a'  | 'b'   | -1
+        'b'  | 'a'   | 1
+        '/'  | 'a'   | -1
+        'a'  | '/'   | 1
+        '\\' | 'a'   | -1
+        'a'  | '\\'  | 1
+        '/'  | '/'   | 0
+        '\\' | '\\'  | 0
+        '/'  | '\\'  | 0
+        '\\' | '/'   | 0
     }
 }

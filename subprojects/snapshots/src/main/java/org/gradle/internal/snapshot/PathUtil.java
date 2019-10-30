@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.io.File;
 import java.util.Comparator;
 
@@ -60,10 +62,15 @@ public class PathUtil {
         return Integer.compare(prefix.length(), path.length() - offset);
     }
 
-    private static int compareChars(char char1, char char2) {
-        return isFileSeparator(char1) ? -1
-            : isFileSeparator(char2) ? 1
-            : Character.compare(char1, char2);
+    @VisibleForTesting
+    static int compareChars(char char1, char char2) {
+        return isFileSeparator(char1)
+            ? isFileSeparator(char2)
+                ? 0
+                : -1
+            : isFileSeparator(char2)
+                ? 1
+                : Character.compare(char1, char2);
     }
 
     public static Comparator<String> pathComparator() {
