@@ -313,6 +313,11 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
 
         @Override
+        public void addCapability(Capability capability) {
+            capabilities.add(capability);
+        }
+
+        @Override
         public List<? extends ComponentVariant.File> getFiles() {
             return files;
         }
