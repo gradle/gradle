@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@
 
 package org.gradle.kotlin.dsl
 
+
 import org.gradle.api.Incubating
 import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.plugins.PluginAware
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinBuildScriptCompilationConfiguration
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
+import org.gradle.kotlin.dsl.support.KotlinSettingsScriptCompilationConfiguration
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.invalidPluginsCall
@@ -67,5 +71,35 @@ open class KotlinBuildScript(
      * @see [PluginDependenciesSpec]
      */
     open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpec.() -> Unit): Unit =
+        invalidPluginsCall()
+}
+
+
+/**
+ * Base class for Kotlin settings scripts.
+ *
+ * @since 6.0
+ */
+@GradleDsl
+@KotlinScript(
+    displayName = "Gradle Settings Script",
+    fileExtension = "gradle.kts",
+    filePathPattern = "^(settings|.+\\.settings)\\.gradle\\.kts$",
+    compilationConfiguration = KotlinSettingsScriptCompilationConfiguration::class
+)
+@Incubating
+abstract class KotlinSettingsScript(
+    host: KotlinScriptHost<Settings>
+) : CompiledKotlinSettingsScript(host) {
+
+    /**
+     * Configures the plugin dependencies for the project's settings.
+     *
+     * @see [PluginDependenciesSpec]
+     * @since 6.0
+     */
+    @Incubating
+    @Suppress("unused")
+    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         invalidPluginsCall()
 }
