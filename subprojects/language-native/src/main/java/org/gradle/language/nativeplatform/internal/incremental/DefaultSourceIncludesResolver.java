@@ -16,6 +16,7 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import com.google.common.base.Objects;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -349,12 +350,32 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
                 return includeFile;
             }
 
-            File candidate = new File(searchDir, includePath);
             return contents.computeIfAbsent(includePath,
-                key -> virtualFileSystem.readRegularFileContentHash(candidate.getAbsolutePath(),
-                    contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash))
-                    .orElse(MISSING_INCLUDE_FILE));
+                key -> {
+                    File candidate = normalizeIncludePath(searchDir, includePath);
+                    return virtualFileSystem.readRegularFileContentHash(candidate.getAbsolutePath(),
+                            contentHash -> (CachedIncludeFile) new SystemIncludeFile(candidate, key, contentHash)
+                        ).orElse(MISSING_INCLUDE_FILE);
+                });
         }
+    }
+
+    private File normalizeIncludePath(File searchDir, String prefixPath) {
+        boolean onlyDotsSinceLastSeparator = true;
+        for (int i = 0; i < prefixPath.length(); i++) {
+            char currentChar = prefixPath.charAt(i);
+            if (currentChar == '/' || currentChar == '\\') {
+                if (onlyDotsSinceLastSeparator) {
+                    return FileUtils.normalize(new File(searchDir, prefixPath));
+                }
+                onlyDotsSinceLastSeparator = true;
+            } else {
+                if (currentChar != '.') {
+                    onlyDotsSinceLastSeparator = false;
+                }
+            }
+        }
+        return new File(searchDir, prefixPath);
     }
 
     private static abstract class CachedIncludeFile {

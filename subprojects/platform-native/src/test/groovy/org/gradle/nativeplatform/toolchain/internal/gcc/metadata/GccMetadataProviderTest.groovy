@@ -305,6 +305,7 @@ End of search list.
         1 * visitor.node("g++ appears to be GCC rather than Clang. Treating it as GCC.")
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "parses gcc system includes"() {
         def includes = correctPathSeparators(['/usr/local', '/usr/some/dir'])
         expect:
@@ -312,6 +313,7 @@ End of search list.
         result.component.systemIncludes*.path == includes
     }
 
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "parses clang system includes"() {
         def includes = correctPathSeparators([
             '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.0.0/include',
@@ -337,6 +339,7 @@ End of search list.
         result.component.systemIncludes*.path == includes
     }
 
+    @Requires(TestPrecondition.WINDOWS)
     def "parses gcc cygwin system includes and maps to windows paths"() {
         def includes = [
             '/usr/include',
