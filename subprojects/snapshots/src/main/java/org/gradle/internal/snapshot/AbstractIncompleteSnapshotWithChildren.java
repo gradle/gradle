@@ -97,39 +97,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
         return FileSystemNode.thisOrGet(
             getThisSnapshot().orElse(null),
             absolutePath, offset,
-            () -> getSnapshotFromChildren(absolutePath, offset)
+            () -> getSnapshotFromChildren(children, absolutePath, offset)
         );
-    }
-
-    private Optional<MetadataSnapshot> getSnapshotFromChildren(String filePath, int offset) {
-        switch (children.size()) {
-            case 0:
-                return Optional.empty();
-            case 1:
-                FileSystemNode onlyChild = children.get(0);
-                return PathUtil.isChildOfOrThis(filePath, offset, onlyChild.getPathToParent())
-                    ? getSnapshotFromChild(filePath, offset, onlyChild)
-                    : Optional.empty();
-            case 2:
-                FileSystemNode firstChild = children.get(0);
-                FileSystemNode secondChild = children.get(1);
-                if (PathUtil.isChildOfOrThis(filePath, offset, firstChild.getPathToParent())) {
-                    return getSnapshotFromChild(filePath, offset, firstChild);
-                }
-                if (PathUtil.isChildOfOrThis(filePath, offset, secondChild.getPathToParent())) {
-                    return getSnapshotFromChild(filePath, offset, secondChild);
-                }
-                return Optional.empty();
-            default:
-                int foundChild = ListUtils.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset));
-                return foundChild >= 0
-                    ? getSnapshotFromChild(filePath, offset, children.get(foundChild))
-                    : Optional.empty();
-        }
-    }
-
-    private static Optional<MetadataSnapshot> getSnapshotFromChild(String filePath, int offset, FileSystemNode child) {
-        return child.getSnapshot(filePath, offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()));
     }
 
     @Override

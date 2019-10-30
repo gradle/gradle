@@ -73,15 +73,8 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
         return FileSystemNode.thisOrGet(
             this, absolutePath, offset,
-            () -> {
-                for (CompleteFileSystemLocationSnapshot child : getChildren()) {
-                    if (PathUtil.isChildOfOrThis(absolutePath, offset, child.getName())) {
-                        int endOfThisSegment = child.getName().length() + offset;
-                        return child.getSnapshot(absolutePath, endOfThisSegment + 1);
-                    }
-                }
-                return Optional.of(missingSnapshotForAbsolutePath(absolutePath));
-            });
+            () -> Optional.of(AbstractFileSystemNode.getSnapshotFromChildren(children, absolutePath, offset)
+                .orElseGet(() -> missingSnapshotForAbsolutePath(absolutePath))));
     }
 
     @Override
