@@ -37,6 +37,8 @@ import java.io.File;
 
 /**
  * Generates HTML API documentation for Scala source files.
+ *
+ * <em>NOTE: This no longer works for Scala 2.13 and newer.</em>
  */
 @CacheableTask
 public class ScalaDoc extends SourceTask {

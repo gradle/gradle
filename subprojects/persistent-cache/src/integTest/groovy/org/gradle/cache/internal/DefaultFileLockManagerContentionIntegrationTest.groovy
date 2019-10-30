@@ -64,7 +64,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         when:
         def build = executer.withTasks("help").start()
         def timer = Time.startTimer()
-        poll {
+        poll(120) {
             assert (build.standardOutput =~ 'Pinged owner at port').count == 3
         }
         receivingLock.close()
@@ -86,7 +86,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         when:
         def build = executer.withTasks("help").start()
-        poll { assert requestReceived }
+        poll(120) { assert requestReceived }
 
         // simulate additional requests
         def socket = new DatagramSocket(0, addressFactory.wildcardBindingAddress)
@@ -114,7 +114,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         when:
         def build = executer.withTasks("help").start()
-        poll {
+        poll(120) {
             assert requestReceived
         }
         replaceSocketReceiver {
@@ -137,7 +137,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         def build1 = executer.withArguments("-d").withTasks("help").start()
         def build2 = executer.withArguments("-d").withTasks("help").start()
         def build3 = executer.withArguments("-d").withTasks("help").start()
-        poll {
+        poll(120) {
             assert requestReceived
             assertConfirmationCount(build1)
             assertConfirmationCount(build2)
@@ -168,7 +168,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         def build3 = executer.withArguments("-d").withTasks("help").start()
 
         then:
-        poll {
+        poll(120) {
             assert signal != null
             assertConfirmationCount(build1)
             assertConfirmationCount(build2)
@@ -179,7 +179,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         signal.trigger()
 
         then:
-        poll {
+        poll(120) {
             assertReleaseSignalTriggered(build1)
             assertReleaseSignalTriggered(build2)
             assertReleaseSignalTriggered(build3)
@@ -199,7 +199,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
 
         when:
         def build = executer.withTasks("help").start()
-        poll {
+        poll(120) {
             assert requestReceived
             assert countPingsSent(build) == 1
         }
@@ -211,7 +211,7 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
         def lock2 = setupLockOwner() {
             requestReceived = true
         }
-        poll {
+        poll(120) {
             assert requestReceived
             assert countPingsSent(build, prevReceivingSocket) == 1
             assert countPingsSent(build, receivingSocket) == 1
@@ -244,11 +244,11 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
             import org.gradle.internal.service.scopes.GlobalScopeServices;
 
             task doWorkInWorker(type: WorkerTask)
-            
+
             class WorkerTask extends DefaultTask {
                 @javax.inject.Inject
                 WorkerExecutor getWorkerExecutor() { throw new UnsupportedOperationException() }
-                
+
                 @TaskAction
                 void doWork() {
                     (1..8).each {
@@ -275,18 +275,18 @@ class DefaultFileLockManagerContentionIntegrationTest extends AbstractIntegratio
                     }
                 }
             }
-            
+
             class ZincCompilerServices extends DefaultServiceRegistry {
                 private static ZincCompilerServices instance;
-        
+
                 private ZincCompilerServices(File gradleUserHome) {
                     super(NativeServices.getInstance());
-        
+
                     add(OutputEventListener.class, OutputEventListener.NO_OP);
                     addProvider(new GlobalScopeServices(true));
                     addProvider(new CacheRepositoryServices(gradleUserHome, null));
                 }
-        
+
                 public static ZincCompilerServices getInstance(File gradleUserHome) {
                     if (instance == null) {
                         NativeServices.initialize(gradleUserHome);

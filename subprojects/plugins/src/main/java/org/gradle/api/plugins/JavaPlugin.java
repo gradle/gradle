@@ -55,7 +55,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.language.jvm.tasks.ProcessResources;
-import org.gradle.util.DeprecationLogger;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -288,6 +287,11 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     @Override
     public void apply(ProjectInternal project) {
+        if (project.getPluginManager().hasPlugin("java-platform")) {
+            throw new IllegalStateException("The \"java\" or \"java-library\" plugin cannot be applied together with the \"java-platform\" plugin. " +
+                "A project is either a platform or a library but cannot be both at the same time.");
+        }
+
         project.getPluginManager().apply(JavaBasePlugin.class);
 
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
@@ -301,11 +305,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         configureJavadocTask(project, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
-
-        if (project.getPluginManager().hasPlugin("java-platform")) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour("The \"java\" (or \"java-library\") plugin cannot be used together with the \"java-platform\" plugin on a given project. " +
-                "A project is either a platform or a library but cannot be both at the same time.");
-        }
     }
 
     private void configureSourceSets(JavaPluginConvention pluginConvention, final BuildOutputCleanupRegistry buildOutputCleanupRegistry) {
@@ -335,7 +334,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                 jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getOutput());
             }
         });
-        // TODO: Allow this to be added lazily
         PublishArtifact jarArtifact = new LazyPublishArtifact(jar);
         Configuration apiElementConfiguration = project.getConfigurations().getByName(API_ELEMENTS_CONFIGURATION_NAME);
         Configuration runtimeConfiguration = project.getConfigurations().getByName(RUNTIME_CONFIGURATION_NAME);

@@ -40,6 +40,10 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             class Thing {
             }
         """
+        // Ignored by the Java source set excludes
+        file("src/main/java/Gizmo.groovy") << """
+            class Gizmo { def foo() {} }
+        """
 
         expect:
         instantRun "build"

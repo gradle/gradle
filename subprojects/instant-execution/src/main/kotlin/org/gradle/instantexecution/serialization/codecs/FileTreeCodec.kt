@@ -23,32 +23,35 @@ import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.internal.serialize.SetSerializer
 import java.io.File
+
+
+private
+typealias FileTreeSpec = Pair<File, PatternSet>
 
 
 internal
 class FileTreeCodec(
-    private val fileSetSerializer: SetSerializer<File>,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory
 ) : Codec<FileTreeInternal> {
 
     override suspend fun WriteContext.encode(value: FileTreeInternal) {
-        fileSetSerializer.write(this, fileTreeRootsOf(value))
+        write(fileTreeRootsOf(value))
     }
 
     override suspend fun ReadContext.decode(): FileTreeInternal? =
         DefaultCompositeFileTree(
-            fileSetSerializer.read(this).map {
-                FileTreeAdapter(directoryFileTreeFactory.create(it))
+            read()!!.uncheckedCast<List<FileTreeSpec>>().map {
+                FileTreeAdapter(directoryFileTreeFactory.create(it.first, it.second))
             }
         )
 
     private
-    fun fileTreeRootsOf(value: FileTreeInternal): LinkedHashSet<File> {
+    fun fileTreeRootsOf(value: FileTreeInternal): List<FileTreeSpec> {
         val visitor = FileTreeVisitor()
         value.visitStructure(visitor)
         return visitor.roots
@@ -58,14 +61,14 @@ class FileTreeCodec(
     class FileTreeVisitor : FileCollectionStructureVisitor {
 
         internal
-        var roots = LinkedHashSet<File>()
+        var roots = mutableListOf<FileTreeSpec>()
 
         override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) = throw UnsupportedOperationException()
 
         override fun visitGenericFileTree(fileTree: FileTreeInternal) = throw UnsupportedOperationException()
 
         override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
-            roots.add(root)
+            roots.add(root to patterns)
         }
 
         override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) = throw UnsupportedOperationException()

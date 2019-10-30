@@ -17,7 +17,6 @@
 package org.gradle.api.internal.resources;
 
 import com.google.common.io.Files;
-import jdk.internal.jline.internal.Nullable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
@@ -29,6 +28,7 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
