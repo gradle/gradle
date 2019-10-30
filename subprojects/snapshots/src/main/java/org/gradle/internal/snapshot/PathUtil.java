@@ -57,7 +57,7 @@ public class PathUtil {
                 return compareChars(charInPath1, charInPath2);
             }
         }
-        return Integer.compare(prefix.length(), path.length());
+        return Integer.compare(prefix.length(), path.length() - offset);
     }
 
     private static int compareChars(char char1, char char2) {

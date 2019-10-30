@@ -103,5 +103,7 @@ class PathUtilTest extends Specification {
         "bbc/some"          | "/var/abc/other"        | 5      | 1
         "/hello/world/some" | "/var/hello/other"      | 0      | -1
         "/hello/world/some" | "/var/hello/other"      | 4      | 1
+        "dir1"              | "some/dir12"            | 5      | -1
+        "dir12"             | "some/dir1"             | 5      | 1
     }
 }
