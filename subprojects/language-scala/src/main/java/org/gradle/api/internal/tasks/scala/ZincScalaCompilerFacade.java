@@ -17,24 +17,33 @@
 package org.gradle.api.internal.tasks.scala;
 
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.CacheFactory;
+import org.gradle.cache.internal.DefaultCacheRepository;
+import org.gradle.cache.internal.DefaultCacheScopeMapping;
+import org.gradle.initialization.GradleUserHomeDirProvider;
 import org.gradle.language.base.internal.compile.Compiler;
+import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
 
 public class ZincScalaCompilerFacade implements Compiler<ScalaJavaJointCompileSpec>, Serializable {
+    private final CacheRepository cacheRepository;
     private final Iterable<File> scalaClasspath;
-    private Iterable<File> zincClasspath;
 
     @Inject
-    public ZincScalaCompilerFacade(Iterable<File> scalaClasspath, Iterable<File> zincClasspath) {
+    public ZincScalaCompilerFacade(CacheFactory cacheFactory, GradleUserHomeDirProvider gradleUserHomeDirProvider, Iterable<File> scalaClasspath) {
+        // TODO: This should be injectable
+        DefaultCacheScopeMapping cacheScopeMapping = new DefaultCacheScopeMapping(
+                gradleUserHomeDirProvider.getGradleUserHomeDirectory(), null, GradleVersion.current());
+        this.cacheRepository = new DefaultCacheRepository(cacheScopeMapping, cacheFactory);
         this.scalaClasspath = scalaClasspath;
-        this.zincClasspath = zincClasspath;
     }
 
     @Override
     public WorkResult execute(ScalaJavaJointCompileSpec spec) {
-        return ZincScalaCompilerFactory.getCompiler(scalaClasspath, zincClasspath).execute(spec);
+        return ZincScalaCompilerFactory.getCompiler(cacheRepository, scalaClasspath).execute(spec);
     }
 }
