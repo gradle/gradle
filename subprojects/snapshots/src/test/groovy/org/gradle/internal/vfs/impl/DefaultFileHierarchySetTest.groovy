@@ -71,8 +71,8 @@ class DefaultFileHierarchySetTest extends Specification {
             assertFileSnapshot(set, it)
         }
         assertMissingFileSnapshot(set, dir2.file("some/non-existing/file"))
-        !snapshotPresent(set, parent)
-        !snapshotPresent(set, dir2.parentFile)
+        assertPartialDirectorySnapshot(set, parent)
+        assertPartialDirectorySnapshot(set, dir2.parentFile)
         !snapshotPresent(set, tmpDir.file("dir"))
         !snapshotPresent(set, tmpDir.file("dir12"))
         !snapshotPresent(set, tmpDir.file("common/dir21"))
@@ -127,18 +127,18 @@ class DefaultFileHierarchySetTest extends Specification {
 
         expect:
         def s1 = updateDir(single, dir2)
-        snapshotPresent(s1, dir1)
-        snapshotPresent(s1, child)
-        snapshotPresent(s1, dir2)
+        assertDirectorySnapshot(s1, dir1)
+        assertDirectorySnapshot(s1, child)
+        assertDirectorySnapshot(s1, dir2)
         !snapshotPresent(s1, dir3)
         !snapshotPresent(s1, tooFew)
         !snapshotPresent(s1, tooMany)
-        !snapshotPresent(s1, parent)
+        assertPartialDirectorySnapshot(s1, parent)
         flatten(s1) == [parent.path, "1:dir1", "1:dir2"]
 
         def s2 = updateDir(single, dir1)
-        snapshotPresent(s2, dir1)
-        snapshotPresent(s2, child)
+        assertDirectorySnapshot(s2, dir1)
+        assertDirectorySnapshot(s2, child)
         !snapshotPresent(s2, dir2)
         !snapshotPresent(s2, dir3)
         !snapshotPresent(s2, tooFew)
@@ -147,8 +147,8 @@ class DefaultFileHierarchySetTest extends Specification {
         flatten(s2) == [dir1.path]
 
         def s3 = updateDir(single, child)
-        snapshotPresent(s3, dir1)
-        snapshotPresent(s3, child)
+        assertDirectorySnapshot(s3, dir1)
+        assertDirectorySnapshot(s3, child)
         !snapshotPresent(s3, dir2)
         !snapshotPresent(s3, dir3)
         !snapshotPresent(s3, tooFew)
@@ -157,29 +157,29 @@ class DefaultFileHierarchySetTest extends Specification {
         flatten(s3) == [dir1.path]
 
         def s4 = updateDir(single, parent)
-        snapshotPresent(s4, dir1)
-        snapshotPresent(s4, child)
-        snapshotPresent(s4, dir2)
-        snapshotPresent(s4, dir3)
-        snapshotPresent(s4, parent)
+        assertDirectorySnapshot(s4, dir1)
+        assertDirectorySnapshot(s4, child)
+        assertDirectorySnapshot(s4, dir2)
+        assertDirectorySnapshot(s4, dir3)
+        assertDirectorySnapshot(s4, parent)
         flatten(s4) == [parent.path]
 
         def s5 = updateDir(single, tooFew)
-        snapshotPresent(s5, dir1)
-        snapshotPresent(s5, child)
-        snapshotPresent(s5, tooFew)
+        assertDirectorySnapshot(s5, dir1)
+        assertDirectorySnapshot(s5, child)
+        assertDirectorySnapshot(s5, tooFew)
         !snapshotPresent(s5, dir2)
         !snapshotPresent(s5, tooMany)
-        !snapshotPresent(s5, parent)
+        assertPartialDirectorySnapshot(s5, parent)
         flatten(s5) == [parent.path, "1:dir", "1:dir1"]
 
         def s6 = updateDir(single, tooMany)
-        snapshotPresent(s6, dir1)
-        snapshotPresent(s6, child)
-        snapshotPresent(s6, tooMany)
+        assertDirectorySnapshot(s6, dir1)
+        assertDirectorySnapshot(s6, child)
+        assertDirectorySnapshot(s6, tooMany)
         !snapshotPresent(s6, dir2)
         !snapshotPresent(s6, tooFew)
-        !snapshotPresent(s6, parent)
+        assertPartialDirectorySnapshot(s6, parent)
         flatten(s6) == [parent.path, "1:dir1", "1:dir12"]
     }
 
@@ -200,7 +200,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s1, dir2)
         snapshotPresent(s1, dir3)
         !snapshotPresent(s1, other)
-        !snapshotPresent(s1, parent)
+        assertPartialDirectorySnapshot(s1, parent)
         flatten(s1) == [parent.path, "1:dir1", "1:dir2", "1:dir3"]
 
         def s2 = updateDir(multi, dir2)
@@ -209,7 +209,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s2, dir2)
         !snapshotPresent(s2, dir3)
         !snapshotPresent(s2, other)
-        !snapshotPresent(s2, parent)
+        assertPartialDirectorySnapshot(s2, parent)
         flatten(s2) == [parent.path, "1:dir1", "1:dir2"]
 
         def s3 = updateDir(multi, child)
@@ -218,7 +218,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s3, dir2)
         !snapshotPresent(s3, dir3)
         !snapshotPresent(s3, other)
-        !snapshotPresent(s3, parent)
+        assertPartialDirectorySnapshot(s2, parent)
         flatten(s3) == [parent.path, "1:dir1", "2:child1", "1:dir2"]
 
         def s4 = updateDir(multi, parent)
@@ -226,7 +226,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s4, child)
         snapshotPresent(s4, dir2)
         snapshotPresent(s4, other)
-        snapshotPresent(s4, parent)
+        assertPartialDirectorySnapshot(s2, parent)
         flatten(s4) == [parent.path]
     }
 
@@ -374,7 +374,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(set, dir3)
         snapshotPresent(set, dir2File)
         snapshotPresent(set, dir2FileSibling)
-        !snapshotPresent(set, dir2)
+        assertPartialDirectorySnapshot(set, dir2)
 
         when:
         set = invalidate(fullSet, dir2File)
@@ -382,7 +382,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(set, dir1)
         snapshotPresent(set, dir3)
         snapshotPresent(set, dir2FileSibling)
-        !snapshotPresent(set, dir2)
+        assertPartialDirectorySnapshot(set, dir2)
         !snapshotPresent(set, dir2File)
 
         when:
@@ -627,6 +627,13 @@ class DefaultFileHierarchySetTest extends Specification {
         assert snapshot.name == location.name
         assert snapshot.type == FileType.Directory
         assert snapshot.hash == snapshotDir(location).hash
+
+    }
+
+    private static void assertPartialDirectorySnapshot(FileHierarchySet set, File location) {
+        def snapshot = set.getMetadata(location.absolutePath).get()
+        assert snapshot.type == FileType.Directory
+        assert !(snapshot instanceof CompleteFileSystemLocationSnapshot)
     }
 
     private static void assertMissingFileSnapshot(FileHierarchySet set, File location) {

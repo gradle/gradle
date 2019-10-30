@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.file.FileType;
 
 import java.util.List;
 import java.util.Optional;
@@ -80,9 +81,14 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
                 ImmutableList<FileSystemNode> newChildren = PathUtil.pathComparator().compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
-                return new UnknownSnapshot(commonPrefix, newChildren);
+                boolean isDirectory = isNotUnknownOrMissing(child) || isNotUnknownOrMissing(snapshot);
+                return isDirectory ? new PartialDirectorySnapshot(commonPrefix, newChildren) : new UnknownSnapshot(commonPrefix, newChildren);
             }
         });
+    }
+
+    private static boolean isNotUnknownOrMissing(FileSystemNode node) {
+        return (node instanceof MetadataSnapshot) && ((MetadataSnapshot) node).getType() != FileType.Missing;
     }
 
     public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, String path, int offset) {

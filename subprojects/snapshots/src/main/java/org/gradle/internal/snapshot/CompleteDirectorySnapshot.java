@@ -89,9 +89,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
         return AbstractFileSystemNode.handleChildren(children, absolutePath, offset, new AbstractFileSystemNode.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
-                return children.isEmpty()
-                    ? Optional.empty()
-                    : Optional.of(new UnknownSnapshot(getPathToParent(), children));
+                return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));
             }
 
             @Override
@@ -101,23 +99,27 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                 Optional<FileSystemNode> invalidated = indexForSubSegment == absolutePath.length() - offset
                     ? Optional.empty()
                     : foundChild.invalidate(absolutePath, offset + indexForSubSegment + 1);
+                return Optional.of(new PartialDirectorySnapshot(getPathToParent(), getChildren(childIndex, invalidated)));
+            }
+
+            private List<FileSystemNode> getChildren(int childIndex, @SuppressWarnings("OptionalUsedAsFieldOrParameterType") Optional<FileSystemNode> invalidated) {
                 if (children.size() == 1) {
-                    return invalidated.map(it -> new UnknownSnapshot(getPathToParent(), ImmutableList.of(it)));
+                    return invalidated.map(ImmutableList::of).orElseGet(ImmutableList::of);
                 }
 
                 return invalidated
                     .map(invalidatedChild -> {
-                        ArrayList<FileSystemNode> newChildren = new ArrayList<>(children);
+                        List<FileSystemNode> newChildren = new ArrayList<>(children);
                         newChildren.set(childIndex, invalidatedChild);
-                        return Optional.<FileSystemNode>of(new UnknownSnapshot(getPathToParent(), newChildren));
+                        return newChildren;
                     }).orElseGet(() -> {
                         if (children.size() == 2) {
                             CompleteFileSystemLocationSnapshot singleChild = childIndex == 0 ? children.get(1) : children.get(0);
-                            return Optional.of(new UnknownSnapshot(getPathToParent(), ImmutableList.of(singleChild)));
+                            return ImmutableList.of(singleChild);
                         }
-                        ArrayList<CompleteFileSystemLocationSnapshot> newChildren = new ArrayList<>(children);
+                        List<FileSystemNode> newChildren = new ArrayList<>(children);
                         newChildren.remove(childIndex);
-                        return Optional.of(new UnknownSnapshot(getPathToParent(), newChildren));
+                        return newChildren;
                     });
             }
         });

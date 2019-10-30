@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.file.FileType;
+
 import java.util.Optional;
 
 /**
@@ -23,7 +25,7 @@ import java.util.Optional;
  *
  * It delegates everything to the wrapped snapshot.
  */
-public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode {
+public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode implements MetadataSnapshot {
     private final MetadataSnapshot snapshot;
 
     public PathCompressingSnapshotWrapper(String pathToParent, MetadataSnapshot snapshot) {
@@ -54,5 +56,10 @@ public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode {
         return getPathToParent().equals(newPathToParent)
             ? this
             : new PathCompressingSnapshotWrapper(newPathToParent, snapshot);
+    }
+
+    @Override
+    public FileType getType() {
+        return snapshot.getType();
     }
 }
