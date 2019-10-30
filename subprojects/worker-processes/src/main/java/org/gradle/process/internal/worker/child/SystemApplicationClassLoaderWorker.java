@@ -23,7 +23,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.DefaultListenerManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.io.ClassLoaderObjectInputStream;
@@ -105,8 +104,12 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         final WorkerServices workerServices = new WorkerServices(basicWorkerServices, gradleUserHomeDir);
 
         ObjectConnection connection = null;
+
         WorkerLogEventListener workerLogEventListener = null;
-        PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(workerServices.get(WorkerDirectoryProvider.class));
+        File workingDirectory = workerServices.get(WorkerDirectoryProvider.class).getWorkingDirectory();
+        File errorLog = getLastResortErrorLogFile(workingDirectory);
+        PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(errorLog);
+
         try {
             // Read serialized worker
             byte[] serializedWorker = decoder.readBinary();
@@ -147,47 +150,46 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 }
             });
         } finally {
-            if (workerLogEventListener != null) {
-                loggingManager.removeOutputEventListener(workerLogEventListener);
+            try {
+                if (workerLogEventListener != null) {
+                    loggingManager.removeOutputEventListener(workerLogEventListener);
+                }
+                CompositeStoppable.stoppable(connection, basicWorkerServices).stop();
+                loggingManager.stop();
+            } catch (Throwable t) {
+                // We're failing while shutting down, so log whatever might have happened.
+                unrecoverableErrorHandler.execute(t);
             }
-            CompositeStoppable.stoppable(connection, unrecoverableErrorHandler, basicWorkerServices).stop();
-            loggingManager.stop();
         }
 
         return null;
     }
 
-    private class PrintUnrecoverableErrorToFileHandler implements Action<Throwable>, Stoppable {
-        private final File workerDirectory;
-        private PrintStream ps;
+    private File getLastResortErrorLogFile(File workingDirectory) {
+        return new File(workingDirectory, "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt");
+    }
 
-        private PrintUnrecoverableErrorToFileHandler(WorkerDirectoryProvider workerDirectoryProvider) {
-            this.workerDirectory = workerDirectoryProvider.getWorkingDirectory();
+    private static class PrintUnrecoverableErrorToFileHandler implements Action<Throwable> {
+        private final File errorLog;
+
+        private PrintUnrecoverableErrorToFileHandler(File errorLog) {
+            this.errorLog = errorLog;
         }
 
         @Override
         public void execute(Throwable throwable) {
-            if (ps == null) {
-                String fileName = "worker-error-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".txt";
+            try {
+                final PrintStream ps = new PrintStream(errorLog);
                 try {
-                    ps = new PrintStream(new File(workerDirectory, fileName));
-                } catch (FileNotFoundException ignored) {
-                    // ignored
+                    ps.println("Encountered unrecoverable error:");
+                    throwable.printStackTrace(ps);
+                } finally {
+                    ps.close();
                 }
-            }
-            if (ps != null) {
-                ps.println("Encountered unrecoverable error:");
-                throwable.printStackTrace(ps);
+            } catch (FileNotFoundException e) {
+                // ignore this, we won't be able to get any logs
             }
         }
-
-        @Override
-        public void stop() {
-            if (ps != null) {
-                ps.close();
-            }
-        }
-
     }
 
     private WorkerLogEventListener configureLogging(LoggingManagerInternal loggingManager, ObjectConnection connection) {
