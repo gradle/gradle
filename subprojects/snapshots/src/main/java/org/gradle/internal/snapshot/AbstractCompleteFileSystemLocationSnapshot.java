@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import java.util.Optional;
+
 public abstract class AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
     private final String absolutePath;
     private final String name;
@@ -45,10 +47,6 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         return this;
     }
 
-    public static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
-        return new MissingFileSnapshot(filePath);
-    }
-
     @Override
     public FileSystemNode withPathToParent(String newPathToParent) {
         return getPathToParent().equals(newPathToParent)
@@ -56,4 +54,14 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
             : new PathCompressingSnapshotWrapper(newPathToParent, this);
     }
 
+    @Override
+    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
+        return SnapshotUtil.thisOrGet(this,
+            absolutePath, offset,
+            () -> getChildSnapshot(absolutePath, offset));
+    }
+
+    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+        return Optional.of(SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath));
+    }
 }

@@ -65,13 +65,6 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
-        return FileSystemNode.thisOrGet(
-            this, absolutePath, offset,
-            () -> Optional.of(missingSnapshotForAbsolutePath(absolutePath)));
-    }
-
-    @Override
     public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
         return Optional.empty();
     }

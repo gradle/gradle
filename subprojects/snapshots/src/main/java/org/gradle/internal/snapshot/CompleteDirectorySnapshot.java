@@ -70,16 +70,16 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
-        return FileSystemNode.thisOrGet(
-            this, absolutePath, offset,
-            () -> Optional.of(AbstractFileSystemNode.getSnapshotFromChildren(children, absolutePath, offset)
-                .orElseGet(() -> missingSnapshotForAbsolutePath(absolutePath))));
+    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+        return Optional.of(
+            SnapshotUtil.getSnapshotFromChildren(children, absolutePath, offset)
+                .orElseGet(() -> SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath))
+        );
     }
 
     @Override
     public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
-        return AbstractFileSystemNode.handleChildren(children, absolutePath, offset, new AbstractFileSystemNode.ChildHandler<Optional<FileSystemNode>>() {
+        return SnapshotUtil.handleChildren(children, absolutePath, offset, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));

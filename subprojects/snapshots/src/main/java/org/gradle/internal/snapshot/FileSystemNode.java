@@ -16,9 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.function.Supplier;
 
 /**
  * Any snapshot in the tree of the virtual file system.
@@ -58,11 +56,4 @@ public interface FileSystemNode {
      * Creates a new node with the same children, but a different path to the parent.
      */
     FileSystemNode withPathToParent(String newPathToParent);
-
-    static Optional<MetadataSnapshot> thisOrGet(@Nullable MetadataSnapshot current, String filePath, int offset, Supplier<Optional<MetadataSnapshot>> supplier) {
-        if (filePath.length() + 1 == offset) {
-            return Optional.ofNullable(current);
-        }
-        return supplier.get();
-    }
 }

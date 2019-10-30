@@ -23,9 +23,9 @@ import org.gradle.internal.snapshot.PathUtil;
 
 import java.util.Optional;
 
-import static org.gradle.internal.snapshot.AbstractFileSystemNode.invalidateSingleChild;
-import static org.gradle.internal.snapshot.AbstractFileSystemNode.updateSingleChild;
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
+import static org.gradle.internal.snapshot.SnapshotUtil.invalidateSingleChild;
+import static org.gradle.internal.snapshot.SnapshotUtil.updateSingleChild;
 
 public class DefaultFileHierarchySet implements FileHierarchySet {
     @VisibleForTesting

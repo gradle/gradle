@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot;
 import java.util.Comparator;
 import java.util.List;
 
-public abstract class ListUtils {
+public abstract class SearchUtil {
 
     /**
      * Does a binary search for an element determined by the return value of a comparator.

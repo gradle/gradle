@@ -39,9 +39,11 @@ public class ShallowDirectorySnapshot extends AbstractIncompleteSnapshotWithChil
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
-        return Optional.of(super.getSnapshot(absolutePath, offset)
-            .orElseGet(() -> AbstractCompleteFileSystemLocationSnapshot.missingSnapshotForAbsolutePath(absolutePath)));
+    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+        return Optional.of(
+            super.getChildSnapshot(absolutePath, offset)
+                .orElseGet(() -> SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath))
+        );
     }
 
     @Override
