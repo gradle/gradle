@@ -49,12 +49,6 @@ include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAll
 include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockingAllConfigurations/kotlin",files="build.gradle.kts[tags=locking-all]"]
 ====
 
-.Unocking a specific configuration
-====
-include::sample[dir="userguide/dependencyManagement/dependencyLocking/unlockingSingleConfiguration/groovy",files="build.gradle[tags=unlocking-one]"]
-include::sample[dir="userguide/dependencyManagement/dependencyLocking/unlockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=unlocking-one]"]
-====
-
 [NOTE]
 ====
 Only configurations that can be resolved will have lock state attached to them.
@@ -64,6 +58,15 @@ Applying locking on non resolvable-configurations is simply a no-op.
 [NOTE]
 ====
 The above will lock all _project_ configurations, but not the _buildscript_ ones.
+====
+
+You can also disable locking on a specific configuration.
+This can be useful if a plugin configured locking on all configurations but you happen to add one that should not be locked.
+
+.Unlocking a specific configuration
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/unlockingSingleConfiguration/groovy",files="build.gradle[tags=locking-one]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/unlockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=locking-one]"]
 ====
 
 == Locking buildscript classpath configuration
