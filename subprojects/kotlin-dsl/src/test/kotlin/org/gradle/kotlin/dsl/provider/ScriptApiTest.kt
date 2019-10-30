@@ -206,7 +206,7 @@ fun KType.isParameterTypeCompatibleWith(apiParameterType: KType) =
 
 private
 fun KType.hasCompatibleTypeArguments(api: KType) =
-    arguments.size == api.arguments.size && (0..(arguments.size - 1)).all { idx ->
+    arguments.size == api.arguments.size && arguments.indices.all { idx ->
         arguments[idx].type!!.isTypeArgumentCompatibleWith(api.arguments[idx].type!!)
     }
 
