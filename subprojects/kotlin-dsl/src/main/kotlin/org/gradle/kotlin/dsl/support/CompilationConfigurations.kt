@@ -17,10 +17,13 @@
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.HasImplicitReceiver
+import org.gradle.api.Project
+import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.precompile.v1.scriptResolverEnvironmentOf
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import java.io.File
+import kotlin.reflect.KClass
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptDependenciesResolver
 import kotlin.script.experimental.api.ExternalSourceCode
@@ -46,8 +49,31 @@ import kotlin.script.experimental.jvm.updateClasspath
 internal
 object KotlinBuildScriptCompilationConfiguration : ScriptCompilationConfiguration({
 
+    kotlinDslScriptTemplate(
+        implicitReceiver = Project::class,
+        compilationConfiguration = KotlinBuildScriptCompilationConfiguration::class
+    )
+})
+
+
+internal
+object KotlinSettingsScriptCompilationConfiguration : ScriptCompilationConfiguration({
+
+    kotlinDslScriptTemplate(
+        implicitReceiver = Settings::class,
+        compilationConfiguration = KotlinSettingsScriptCompilationConfiguration::class
+    )
+})
+
+
+private
+fun ScriptCompilationConfiguration.Builder.kotlinDslScriptTemplate(
+    implicitReceiver: KClass<*>,
+    compilationConfiguration: KClass<*>
+) {
+
     implicitReceivers(
-        org.gradle.api.Project::class
+        implicitReceiver
     )
 
     compilerOptions(
@@ -64,7 +90,7 @@ object KotlinBuildScriptCompilationConfiguration : ScriptCompilationConfiguratio
 
     jvm {
         dependenciesFromClassContext(
-            KotlinBuildScriptCompilationConfiguration::class,
+            compilationConfiguration,
             "gradle-kotlin-dsl",
             "gradle-kotlin-dsl-extensions",
             "gradle-kotlin-dsl-tooling-models",
@@ -86,11 +112,14 @@ object KotlinBuildScriptCompilationConfiguration : ScriptCompilationConfiguratio
             refineKotlinScriptConfiguration(context)
         }
     }
-})
+}
 
 
 private
-fun refineKotlinScriptConfiguration(context: ScriptConfigurationRefinementContext): ResultWithDiagnostics.Success<ScriptCompilationConfiguration> {
+fun refineKotlinScriptConfiguration(
+    context: ScriptConfigurationRefinementContext
+): ResultWithDiagnostics.Success<ScriptCompilationConfiguration> {
+
     val script = context.script
 
     val diagnostics = mutableListOf<ScriptDiagnostic>()
@@ -98,7 +127,7 @@ fun refineKotlinScriptConfiguration(context: ScriptConfigurationRefinementContex
     val scriptExternalDependencies = KotlinBuildScriptDependenciesResolver().run {
         resolve(
             scriptContentsOf(script),
-            scriptResolverEnvironmentOf(context),
+            scriptResolverEnvironmentOf(context)!!,
             { severity, message, pos -> diagnostics.add(scriptDiagnosticOf(script, message, severity, pos)) },
             null
         )

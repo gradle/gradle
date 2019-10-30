@@ -60,6 +60,7 @@ import org.jetbrains.kotlin.name.NameUtils
 import org.jetbrains.kotlin.samWithReceiver.CliSamWithReceiverComponentContributor
 
 import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingCompilerConfigurationComponentRegistrar
+import org.jetbrains.kotlin.scripting.compiler.plugin.ScriptingConfigurationKeys.DISABLE_SCRIPT_DEFINITIONS_FROM_CLASSPATH_OPTION
 import org.jetbrains.kotlin.scripting.configuration.ScriptingConfigurationKeys.SCRIPT_DEFINITIONS
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
 
@@ -161,6 +162,7 @@ fun compileKotlinScriptModuleTo(
                 put(RETAIN_OUTPUT_IN_MEMORY, false)
                 put(OUTPUT_DIRECTORY, outputDirectory)
                 setModuleName(moduleName)
+                put(DISABLE_SCRIPT_DEFINITIONS_FROM_CLASSPATH_OPTION, true)
                 addScriptingCompilerComponents()
                 addScriptDefinition(scriptDef)
                 scriptFiles.forEach { addKotlinSourceRoot(it) }
