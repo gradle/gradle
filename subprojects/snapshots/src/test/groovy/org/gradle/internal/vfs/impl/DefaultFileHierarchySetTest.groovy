@@ -76,7 +76,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(set, tmpDir.file("dir"))
         !snapshotPresent(set, tmpDir.file("dir12"))
         !snapshotPresent(set, tmpDir.file("common/dir21"))
-        flatten(set) == [parent.path, "1:common", "2:dir2", "2:dir3", "1:dir1"]
+        flatten(set) == [parent.path, "1:common", "2:dir2", "2:dir3", "3:child", "1:dir1"]
     }
 
     def "creates from files where one file is ancestor of the others"() {
@@ -219,7 +219,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s3, dir3)
         !snapshotPresent(s3, other)
         !snapshotPresent(s3, parent)
-        flatten(s3) == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s3) == [parent.path, "1:dir1", "2:child1", "1:dir2"]
 
         def s4 = updateDir(multi, parent)
         snapshotPresent(s4, dir1)
@@ -250,13 +250,13 @@ class DefaultFileHierarchySetTest extends Specification {
         flatten(s3) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
 
         def s4 = updateDir(s3, dir1dir2)
-        flatten(s4) == [parent.path, "1:dir1", "2:dir2", "2:dir5/and/more", "1:dir6"]
+        flatten(s4) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5/and/more", "1:dir6"]
 
         def s5 = updateDir(s4, dir1)
-        flatten(s5) == [parent.path, "1:dir1", "1:dir6"]
+        flatten(s5) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5", "3:and", "4:more", "1:dir6"]
 
         def s6 = updateDir(s3, dir1)
-        flatten(s6) == [parent.path, "1:dir1", "1:dir6"]
+        flatten(s6) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5", "3:and", "4:more", "1:dir6"]
 
         def s7 = updateDir(s3, parent)
         flatten(s7) == [parent.path]
