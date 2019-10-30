@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,43 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
-import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
-import org.gradle.kotlin.dsl.support.KotlinScriptHost
-import org.gradle.kotlin.dsl.support.KotlinSettingsScriptCompilationConfiguration
-import org.gradle.plugin.use.PluginDependenciesSpec
-import kotlin.script.experimental.annotations.KotlinScript
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.file.DefaultFileOperations
+import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.invocation.Gradle
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.kotlin.dsl.support.get
+import java.io.File
 
 
-/**
- * Base class for Kotlin settings scripts.
- *
- * @since 6.0
- */
-@GradleDsl
-@KotlinScript(
-    displayName = "Gradle Settings Script",
-    fileExtension = "gradle.kts",
-    filePathPattern = "^(settings|.+\\.settings)\\.gradle\\.kts$",
-    compilationConfiguration = KotlinSettingsScriptCompilationConfiguration::class
-)
-@Incubating
-abstract class KotlinSettingsScript(
-    host: KotlinScriptHost<Settings>
-) : CompiledKotlinSettingsScript(host) {
+internal
+fun fileOperationsFor(settings: Settings): FileOperations =
+    fileOperationsFor(settings.gradle, settings.rootDir)
 
-    /**
-     * Configures the plugin dependencies for the project's settings.
-     *
-     * @see [PluginDependenciesSpec]
-     * @since 6.0
-     */
-    @Incubating
-    @Suppress("unused")
-    open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
-        throw Exception("The plugins {} block must not be used here. "
-            + "If you need to apply a plugin imperatively, please use apply<PluginType>() or apply(plugin = \"id\") instead.")
+
+internal
+fun fileOperationsFor(gradle: Gradle, baseDir: File?): FileOperations =
+    fileOperationsFor((gradle as GradleInternal).services, baseDir)
+
+
+internal
+fun fileOperationsFor(services: ServiceRegistry, baseDir: File?): FileOperations {
+    val fileLookup = services.get<FileLookup>()
+    val fileResolver = baseDir?.let { fileLookup.getFileResolver(it) } ?: fileLookup.fileResolver
+    val fileCollectionFactory = services.get<FileCollectionFactory>().withResolver(fileResolver)
+    return DefaultFileOperations.createSimple(
+        fileResolver,
+        fileCollectionFactory,
+        services
+    )
 }
