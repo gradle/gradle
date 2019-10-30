@@ -1,0 +1,47 @@
+= Transitive Dependencies Sample
+
+ifndef::env-github[]
+- link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[Download Kotlin DSL ZIP]
+endif::[]
+
+This sample shows how transitive dependencies work with Java projects in Gradle.
+
+The `application` project has an implementation dependency on the `utilities` project:
+
+====
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+====
+
+Which in turn has an API dependency on the `list` project:
+
+====
+include::sample[dir="groovy",files="utilities/build.gradle[]"]
+include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
+====
+
+To build the projects, you simply needs to build the application:
+
+====
+[.testable-sample,dir="groovy"]
+=====
+[.sample-command]
+----
+$ ./gradlew :application:run
+
+> Task :application:run
+WARNING: An illegal reflective access operation has occurred
+WARNING: Illegal reflective access by org.codehaus.groovy.vmplugin.v7.Java7$1 (file:/usr/local/Cellar/gradle/5.6.2/libexec/lib/groovy-all-1.3-2.5.4.jar) to constructor java.lang.invoke.MethodHandles$Lookup(java.lang.Class,int)
+WARNING: Please consider reporting this to the maintainers of org.codehaus.groovy.vmplugin.v7.Java7$1
+WARNING: Use --illegal-access=warn to enable warnings of further illegal reflective access operations
+WARNING: All illegal access operations will be denied in a future release
+Hello, World!
+
+BUILD SUCCESSFUL in 3s
+6 actionable tasks: 6 executed
+----
+=====
+====
+
+For more information, see link:{userManualPath}/introduction_dependency_management.html[dependency management chapters].

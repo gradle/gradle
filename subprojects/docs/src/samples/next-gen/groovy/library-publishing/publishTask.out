@@ -1,0 +1,12 @@
+> Task :compileJava NO-SOURCE
+> Task :compileGroovy
+> Task :processResources NO-SOURCE
+> Task :classes
+> Task :jar
+> Task :generateMetadataFileForLibraryPublication
+> Task :generatePomFileForLibraryPublication
+> Task :publishLibraryPublicationToMavenRepository
+> Task :publish
+
+BUILD SUCCESSFUL in 0s
+5 actionable tasks: 5 executed

@@ -1,0 +1,17 @@
+> Task :list:compileJava
+> Task :utilities:compileJava
+> Task :application:compileJava
+> Task :application:processResources NO-SOURCE
+> Task :application:classes
+> Task :list:processResources NO-SOURCE
+> Task :list:classes
+> Task :list:jar
+> Task :utilities:processResources NO-SOURCE
+> Task :utilities:classes
+> Task :utilities:jar
+
+> Task :application:run
+Hello, World!
+
+BUILD SUCCESSFUL in 0s
+6 actionable tasks: 6 executed
