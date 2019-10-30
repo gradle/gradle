@@ -47,6 +47,8 @@ public interface MutableComponentVariant {
 
     void addCapability(String group, String name, String version);
 
+    void addCapability(Capability capability);
+
     ImmutableAttributes getAttributes();
 
     void setAttributes(ImmutableAttributes updatedAttributes);
