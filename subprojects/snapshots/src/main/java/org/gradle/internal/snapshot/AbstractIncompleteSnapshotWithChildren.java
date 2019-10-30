@@ -134,6 +134,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
 
     @Override
     public FileSystemNode withPathToParent(String newPathToParent) {
-        return createCopy(newPathToParent, children);
+        return getPathToParent().equals(newPathToParent)
+            ? this
+            : createCopy(newPathToParent, children);
     }
 }

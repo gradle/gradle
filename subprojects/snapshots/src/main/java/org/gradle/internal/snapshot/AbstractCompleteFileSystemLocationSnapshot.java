@@ -51,7 +51,9 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
 
     @Override
     public FileSystemNode withPathToParent(String newPathToParent) {
-        return new PathCompressingSnapshotWrapper(newPathToParent, this);
+        return getPathToParent().equals(newPathToParent)
+            ? this
+            : new PathCompressingSnapshotWrapper(newPathToParent, this);
     }
 
 }

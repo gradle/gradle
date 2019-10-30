@@ -55,6 +55,8 @@ public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implemen
 
     @Override
     public FileSystemNode withPathToParent(String newPathToParent) {
-        return new RegularFileMetadataSnapshot(newPathToParent);
+        return getPathToParent().equals(newPathToParent)
+            ? this
+            : new RegularFileMetadataSnapshot(newPathToParent);
     }
 }
