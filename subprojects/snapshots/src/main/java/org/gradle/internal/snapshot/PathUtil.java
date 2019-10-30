@@ -182,7 +182,7 @@ public class PathUtil {
         return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment)) ? 0 : -1;
     }
 
-    static int descendantChildOffset(String prefix, String path) {
-        return prefix.isEmpty() && !isFileSeparator(path.charAt(0)) ? 0 : 1;
+    public static int descendantChildOffset(String childPathToParent) {
+        return childPathToParent.isEmpty() ? 0 : 1;
     }
 }

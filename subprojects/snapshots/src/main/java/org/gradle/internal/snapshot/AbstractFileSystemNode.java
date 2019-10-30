@@ -49,10 +49,9 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return handlePrefix(child.getPathToParent(), path, offset, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
-                int childOffset = PathUtil.descendantChildOffset(child.getPathToParent(), path);
                 return child.update(
                     path,
-                    offset + child.getPathToParent().length() + childOffset,
+                    offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()),
                     snapshot);
             }
 
@@ -75,9 +74,9 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
             public FileSystemNode handleDifferent(int commonPrefixLength) {
                 String prefix = child.getPathToParent();
                 String commonPrefix = prefix.substring(0, commonPrefixLength);
-                boolean emptyCommonPrefixAndNoSlashAtStart = commonPrefixLength == 0 && (!PathUtil.isFileSeparator(prefix.charAt(0)) || !PathUtil.isFileSeparator(path.charAt(offset)));
-                FileSystemNode newChild = emptyCommonPrefixAndNoSlashAtStart ? child : child.withPathToParent(prefix.substring(commonPrefixLength + 1));
-                FileSystemNode sibling = snapshot.withPathToParent(emptyCommonPrefixAndNoSlashAtStart ? path : path.substring(offset + commonPrefixLength + 1));
+                boolean emptyCommonPrefix = commonPrefixLength == 0;
+                FileSystemNode newChild = emptyCommonPrefix ? child : child.withPathToParent(prefix.substring(commonPrefixLength + 1));
+                FileSystemNode sibling = snapshot.withPathToParent(emptyCommonPrefix ? path.substring(offset) : path.substring(offset + commonPrefixLength + 1));
                 ImmutableList<FileSystemNode> newChildren = PathUtil.pathComparator().compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
@@ -90,8 +89,7 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         return handlePrefix(child.getPathToParent(), path, offset, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
-                int childOffset = PathUtil.descendantChildOffset(child.getPathToParent(), path);
-                return child.invalidate(path, offset + child.getPathToParent().length() + childOffset);
+                return child.invalidate(path, offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()));
             }
 
             @Override

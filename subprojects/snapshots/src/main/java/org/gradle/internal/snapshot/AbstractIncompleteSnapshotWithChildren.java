@@ -128,8 +128,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
         }
     }
 
-    private Optional<MetadataSnapshot> getSnapshotFromChild(String filePath, int offset, FileSystemNode child) {
-        return child.getSnapshot(filePath, offset + child.getPathToParent().length() + 1);
+    private static Optional<MetadataSnapshot> getSnapshotFromChild(String filePath, int offset, FileSystemNode child) {
+        return child.getSnapshot(filePath, offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()));
     }
 
     @Override

@@ -539,16 +539,53 @@ class DefaultFileHierarchySetTest extends Specification {
         invalidated.getMetadata(secondPath).present
 
         when:
-        invalidated = set.invalidate("C:")
+        invalidated = set.invalidate("C:\\")
         then:
         !invalidated.getMetadata(firstPath).present
         invalidated.getMetadata(secondPath).present
 
         when:
-        invalidated = set.invalidate("D:")
+        invalidated = set.invalidate("D:\\")
         then:
         invalidated.getMetadata(firstPath).present
         !invalidated.getMetadata(secondPath).present
+    }
+
+    def "can handle UNC paths"() {
+        def firstPath = "\\\\server\\some"
+        def secondPath = "\\\\server\\whatever"
+        def thirdPath = "\\\\otherServer\\whatever"
+
+        def set = FileHierarchySet.EMPTY
+            .update(firstPath, directorySnapshotForPath(firstPath))
+            .update(secondPath, directorySnapshotForPath(secondPath))
+            .update(thirdPath, directorySnapshotForPath(thirdPath))
+            .update("C:\\Some\\Location", directorySnapshotForPath("C:\\Some\\Location"))
+
+        expect:
+        set.getMetadata(firstPath).present
+        set.getMetadata(secondPath).present
+        set.getMetadata(thirdPath).present
+
+        when:
+        def invalidated = set.invalidate(firstPath)
+        then:
+        !invalidated.getMetadata(firstPath).present
+        invalidated.getMetadata(secondPath).present
+
+        when:
+        invalidated = set.invalidate("\\\\server")
+        then:
+        !invalidated.getMetadata(firstPath).present
+        !invalidated.getMetadata(secondPath).present
+        invalidated.getMetadata(thirdPath).present
+
+        when:
+        invalidated = set.invalidate("\\\\otherServer")
+        then:
+        invalidated.getMetadata(firstPath).present
+        invalidated.getMetadata(secondPath).present
+        !invalidated.getMetadata(thirdPath).present
     }
 
     private static CompleteDirectorySnapshot rootDirectorySnapshot() {
@@ -634,7 +671,7 @@ class DefaultFileHierarchySetTest extends Specification {
 
     private static void collectPrefixes(FileSystemNode node, int depth, List<String> prefixes) {
         if (depth == 0) {
-            prefixes.add(node.getPathToParent())
+            prefixes.add((File.separator == '/' ? '/' : "") + node.getPathToParent())
         } else {
             prefixes.add(depth + ":" + node.getPathToParent().replace(File.separatorChar, (char) '/'))
         }
