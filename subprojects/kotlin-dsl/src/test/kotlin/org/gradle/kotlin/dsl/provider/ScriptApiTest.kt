@@ -237,11 +237,7 @@ fun KType.isParameterTypeCompatibleWith(apiParameterType: KType) =
 private
 fun KType.hasCompatibleTypeArguments(api: KType) =
     arguments.size == api.arguments.size && arguments.indices.all { idx ->
-        val expectedType = arguments[idx].type
-        val actualType = api.arguments[idx].type
-        expectedType?.let { e ->
-            actualType?.let { a -> e.isTypeArgumentCompatibleWith(a) }
-        } ?: false
+        arguments[idx].type!!.isTypeArgumentCompatibleWith(api.arguments[idx].type!!)
     }
 
 
