@@ -1,7 +1,6 @@
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Action
-import org.gradle.api.initialization.Settings
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledInitScript
 import org.gradle.kotlin.dsl.precompile.v1.PrecompiledProjectScript
@@ -41,10 +40,6 @@ class ScriptApiTest {
     @Test
     fun `IDE settings script template implements script api`() =
         assertScriptApiOf<KotlinSettingsScript>()
-
-    @Test
-    fun `IDE settings script template implements Settings#enableFeaturePreview`() =
-        assert(KotlinSettingsScript::class.implements(Settings::enableFeaturePreview))
 
     @Test
     fun `IDE init script template implements script api`() =
@@ -111,11 +106,6 @@ val KClass<*>.apiMembers: ScriptApiMembers
 private
 fun ScriptApiMembers.missingMembersFrom(scriptTemplate: KClass<*>): List<KCallable<*>> =
     filterNot(scriptTemplate.publicMembers::containsMemberCompatibleWith)
-
-
-private
-fun KClass<*>.implements(api: KCallable<*>) =
-    publicMembers.containsMemberCompatibleWith(api)
 
 
 private
