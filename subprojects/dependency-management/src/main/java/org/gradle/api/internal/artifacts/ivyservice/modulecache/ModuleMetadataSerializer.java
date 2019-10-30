@@ -39,12 +39,16 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.MavenScope;
+import org.gradle.internal.component.external.model.CapabilityInternal;
 import org.gradle.internal.component.external.model.ComponentVariant;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultShadowedCapability;
 import org.gradle.internal.component.external.model.ExternalDependencyDescriptor;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor;
 import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata;
@@ -178,7 +182,15 @@ public class ModuleMetadataSerializer {
 
         private void writeVariantCapabilities(List<? extends Capability> capabilities) throws IOException {
             encoder.writeSmallInt(capabilities.size());
-            for (Capability capability : capabilities) {
+            for (Capability capability: capabilities) {
+                boolean shadowed = capability instanceof ShadowedCapability;
+                if (shadowed) {
+                    ShadowedCapability shadowedCapability = (ShadowedCapability) capability;
+                    encoder.writeNullableString(shadowedCapability.getAppendix());
+                    capability = shadowedCapability.getShadowedCapability();
+                } else {
+                    encoder.writeNullableString(null);
+                }
                 encoder.writeString(capability.getGroup());
                 encoder.writeString(capability.getName());
                 encoder.writeString(capability.getVersion());
@@ -494,9 +506,14 @@ public class ModuleMetadataSerializer {
         }
 
         private void readVariantCapabilities(MutableComponentVariant variant) throws IOException {
-            int count = decoder.readSmallInt();
-            for (int i = 0; i < count; i++) {
-                variant.addCapability(decoder.readString(), decoder.readString(), decoder.readString());
+            int capabilitiesCount = decoder.readSmallInt();
+            for (int j = 0; j < capabilitiesCount; j++) {
+                String appendix = decoder.readNullableString();
+                CapabilityInternal capability = new ImmutableCapability(decoder.readString(), decoder.readString(), decoder.readString());
+                if (appendix != null) {
+                    capability = new DefaultShadowedCapability(capability, appendix);
+                }
+                variant.addCapability(capability);
             }
         }
 

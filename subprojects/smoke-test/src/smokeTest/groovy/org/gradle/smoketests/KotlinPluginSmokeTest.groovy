@@ -53,17 +53,24 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     def 'kotlin #kotlinPluginVersion android #androidPluginVersion plugins, workers=#workers'() {
         given:
         AndroidHome.assertIsSet()
-        useSample("android-kotlin-example")
-        replaceVariablesInBuildFile(
-            kotlinVersion: kotlinPluginVersion,
-            androidPluginVersion: androidPluginVersion,
-            androidBuildToolsVersion: TestedVersions.androidTools)
+        useSample(sampleName)
+
+        def buildFileName = sampleName.endsWith("kotlin-dsl")
+            ? "build.gradle.kts"
+            : "build.gradle"
+        [buildFileName, "app/$buildFileName"].each { sampleBuildFileName ->
+            replaceVariablesInFile(
+                file(sampleBuildFileName),
+                kotlinVersion: kotlinPluginVersion,
+                androidPluginVersion: androidPluginVersion,
+                androidBuildToolsVersion: TestedVersions.androidTools)
+        }
 
         when:
-        def result = build(workers, 'clean', 'testDebugUnitTestCoverage')
+        def result = build(workers, 'clean', ':app:testDebugUnitTestCoverage')
 
         then:
-        result.task(':testDebugUnitTestCoverage').outcome == SUCCESS
+        result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
 
         if (kotlinPluginVersion == TestedVersions.kotlin.latest()
             && androidPluginVersion == TestedVersions.androidGradle.latest()) {
@@ -71,10 +78,18 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         }
 
         where:
-        [kotlinPluginVersion, androidPluginVersion, workers] << [
+// To run a specific combination, set the values here, uncomment the following four lines
+//  and comment out the lines coming after
+//        kotlinPluginVersion = '1.3.50'
+//        androidPluginVersion = '3.5.1'
+//        workers = false
+//        sampleName = 'android-kotlin-example-kotlin-dsl'
+
+        [kotlinPluginVersion, androidPluginVersion, workers, sampleName] << [
             TestedVersions.kotlin.versions,
             TestedVersions.androidGradle.versions,
-            [true, false]
+            [true, false],
+            ["android-kotlin-example", "android-kotlin-example-kotlin-dsl"]
         ].combinations()
     }
 

@@ -85,7 +85,7 @@ open class DetermineCommitId @Inject constructor(
     private
     fun gitCommitId(): String? {
         val gitDir = rootDir.resolve(".git")
-        if (!gitDir.isDirectory) {
+        if (!gitDir.exists()) {
             return null
         }
         val execOutput = ByteArrayOutputStream()
