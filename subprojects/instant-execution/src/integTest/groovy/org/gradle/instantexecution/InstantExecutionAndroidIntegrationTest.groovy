@@ -71,14 +71,15 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
 
     def "android 3.6 minimal build clean assembleDebug"() {
         when:
-        executer.expectDeprecationWarning() // Coming from Android plugin
+        executer.expectDeprecationWarning("BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
         instantRun("assembleDebug")
 
         then:
         instantExecution.assertStateStored()
 
         when:
-        executer.expectDeprecationWarning() // Coming from Android plugin
+        executer.expectDeprecationWarning("BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDeprecationWarning("Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead.")
         run 'clean'
         // Instant execution avoid registering the listener inside Android plugin
         instantRun("assembleDebug")
