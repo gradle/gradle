@@ -47,7 +47,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 5.x upgrade guide](userguide/upgrading_version_5.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-**NOTE**: Gradle 5.6 has had _three_ patch releases fixing [several issues](#fixed-issues). We recommend using the latest patch release.
+**NOTE**: Gradle 5.6 has had _four_ patch releases fixing [several issues](#fixed-issues). We recommend using the latest patch release.
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
