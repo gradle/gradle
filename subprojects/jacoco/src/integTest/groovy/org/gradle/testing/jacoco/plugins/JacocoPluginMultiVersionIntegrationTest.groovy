@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
@@ -35,6 +36,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         javaProjectUnderTest.writeSourceFiles()
     }
 
+    @FailsWithInstantExecution
     void generatesHtmlReportOnlyAsDefault() {
         when:
         succeeds('test', 'jacocoTestReport')
@@ -47,6 +49,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         htmlReport().totalCoverage() == 100
     }
 
+    @FailsWithInstantExecution
     void canConfigureReportsInJacocoTestReport() {
         given:
         buildFile << """
@@ -68,6 +71,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         file(REPORT_CSV_DEFAULT_REPORT).exists()
     }
 
+    @FailsWithInstantExecution
     void respectsReportingBaseDir() {
         given:
         buildFile << """
@@ -88,6 +92,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         file("build/customReports/jacoco/test/jacocoTestReport.csv").exists()
     }
 
+    @FailsWithInstantExecution
     void canConfigureReportDirectory() {
         given:
         def customReportDirectory = "customJacocoReportDir"
@@ -110,6 +115,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         file("build/${customReportDirectory}/test/jacocoTestReport.csv").exists()
     }
 
+    @FailsWithInstantExecution
     void jacocoTestReportIsSkippedIfNoCoverageDataAvailable() {
         when:
         def executionResult = succeeds('jacocoTestReport')
@@ -117,6 +123,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         executionResult.assertTaskSkipped(':jacocoTestReport')
     }
 
+    @FailsWithInstantExecution
     void canUseCoverageDataFromPreviousRunForCoverageReport() {
         when:
         succeeds('jacocoTestReport')
@@ -136,6 +143,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
         htmlReport().totalCoverage() == 100
     }
 
+    @FailsWithInstantExecution
     void canMergeCoverageData() {
         given:
         file("src/otherMain/java/Thing.java") << """
@@ -193,6 +201,7 @@ public class ThingTest {
     }
 
     @Issue("GRADLE-2917")
+    @FailsWithInstantExecution
     void "configures default jacoco dependencies even if the configuration was resolved before"() {
         expect:
         //dependencies task forces resolution of the configurations
@@ -200,6 +209,7 @@ public class ThingTest {
     }
 
     @Issue("GRADLE-3498")
+    @FailsWithInstantExecution
     void "can use different execution data"() {
         setup:
         buildFile << """
@@ -227,6 +237,7 @@ public class ThingTest {
         executedAndNotSkipped ':jacocoTestReport'
     }
 
+    @FailsWithInstantExecution
     def "skips report task if all of the execution data files do not exist"() {
         given:
         buildFile << """
@@ -243,6 +254,7 @@ public class ThingTest {
         skipped ':jacocoTestReport'
     }
 
+    @FailsWithInstantExecution
     def "fails report task if only some of the execution data files do not exist"() {
         given:
         def execFileName = 'unknown.exec'
@@ -261,6 +273,7 @@ public class ThingTest {
         failure.assertHasCause("Unable to read execution data file ${new File(testDirectory, execFileName)}")
     }
 
+    @FailsWithInstantExecution
     def "coverage data is aggregated from many tests"() {
         javaProjectUnderTest.writeSourceFiles(2000)
 

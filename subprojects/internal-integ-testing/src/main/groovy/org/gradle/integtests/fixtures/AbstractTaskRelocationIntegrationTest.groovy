@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegrationSpec {
 
+    @IgnoreWithInstantExecution
     def "task is relocatable"() {
         setupProjectInOriginalLocation()
 

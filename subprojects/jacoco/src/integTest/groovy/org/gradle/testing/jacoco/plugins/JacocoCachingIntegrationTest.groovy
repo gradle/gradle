@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
@@ -42,6 +43,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         """
     }
 
+    @FailsWithInstantExecution
     def "jacoco file results are cached"() {
         when:
         withBuildCache().run "test", "jacocoTestReport"
@@ -62,6 +64,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
+    @FailsWithInstantExecution
     def "jacoco file results are not cached when sharing output with another task"() {
         javaProjectUnderTest.writeIntegrationTestSourceFiles()
         buildFile << """
@@ -88,6 +91,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         executedAndNotSkipped ":test", ":jacocoTestReport"
     }
 
+    @FailsWithInstantExecution
     def "test execution is cached with different gradle user home"() {
         when:
         withBuildCache().run "test", "jacocoTestReport"
@@ -109,6 +113,7 @@ class JacocoCachingIntegrationTest extends AbstractIntegrationSpec implements Di
         reportFile.assertContentsHaveNotChangedSince(snapshot)
     }
 
+    @FailsWithInstantExecution
     def "test is cached when jacoco is disabled"() {
         buildFile << """
             test {

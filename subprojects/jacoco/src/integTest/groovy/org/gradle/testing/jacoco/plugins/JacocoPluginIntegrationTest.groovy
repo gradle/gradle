@@ -19,6 +19,7 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
@@ -31,6 +32,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
     }
 
+    @FailsWithInstantExecution
     def "does not add jvmArgs if jacoco is disabled"() {
         buildFile << """
             test {
@@ -64,6 +66,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'doCheck'
     }
 
+    @FailsWithInstantExecution
     def "dependencies report shows default jacoco dependencies"() {
         when: succeeds("dependencies", "--configuration", "jacocoAgent")
         then: output.contains "org.jacoco:org.jacoco.agent:"
@@ -72,6 +75,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then: output.contains "org.jacoco:org.jacoco.ant:"
     }
 
+    @FailsWithInstantExecution
     void "allows configuring tool dependencies explicitly"() {
         when:
         buildFile << """
@@ -89,6 +93,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         then: output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
     }
 
+    @FailsWithInstantExecution
     void jacocoReportIsIncremental() {
         def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/jacoco-resources")
 
