@@ -17,6 +17,7 @@
 package org.gradle.api.model;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
@@ -106,7 +107,7 @@ public interface ObjectFactory {
     ConfigurableFileCollection fileCollection();
 
     /**
-     * Creates a new {@link ConfigurableFileTree}. The tree has no base dir specified.
+     * Creates a new {@link ConfigurableFileTree}. The tree will have no base dir specified.
      *
      * @since 6.0
      */
@@ -116,7 +117,7 @@ public interface ObjectFactory {
     /**
      * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type.</p>
      *
-     * <p>The specified type must have a public constructor which takes the name as a String parameter. The type must be non-final and a class or abstract class. Interfaces are currently not supported.</p>
+     * <p>The specified element type must have a public constructor which takes the name as a String parameter. The type must be non-final and a class or abstract class. Interfaces are currently not supported.</p>
      *
      * <p>All objects <b>MUST</b> expose their name as a bean property called "name". The name must be constant for the life of the object.</p>
      *
@@ -129,6 +130,19 @@ public interface ObjectFactory {
      */
     @Incubating
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType);
+
+    /**
+     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type.</p>
+     *
+     * <p>The returned container will not have any factories or bindings registered.</p>
+     *
+     * @param elementType The type of objects for the container to contain.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container.
+     * @since 6.1
+     */
+    @Incubating
+    <T> ExtensiblePolymorphicDomainObjectContainer<T> polymorphicDomainObjectContainer(Class<T> elementType);
 
     /**
      * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type. The given factory is used to create object instances.</p>

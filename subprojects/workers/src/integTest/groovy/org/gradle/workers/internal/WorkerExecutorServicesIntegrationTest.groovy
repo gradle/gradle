@@ -161,7 +161,9 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
             objectFactory.setProperty(String)
             objectFactory.mapProperty(String, String)
             objectFactory.named(Foo, "foo")
+            objectFactory.domainObjectSet(Foo)
             objectFactory.domainObjectContainer(Foo)
+            objectFactory.polymorphicDomainObjectContainer(Foo)
         """
         fixture.withWorkActionClassInBuildScript()
 

@@ -19,11 +19,13 @@ package org.gradle.api.internal.collections;
 import groovy.lang.Closure;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
+import org.gradle.api.internal.DefaultPolymorphicDomainObjectContainer;
 import org.gradle.api.internal.DynamicPropertyNamer;
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer;
 import org.gradle.api.internal.MutationGuard;
@@ -74,6 +76,12 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
     public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> type, Closure factoryClosure) {
         Instantiator instantiator = instantiatorFactory.decorateLenient();
         return Cast.uncheckedCast(instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure, mutationGuard, collectionCallbackActionDecorator));
+    }
+
+    @Override
+    public <T> ExtensiblePolymorphicDomainObjectContainer<T> newPolymorphicDomainObjectContainer(Class<T> elementType) {
+        Instantiator instantiator = instantiatorFactory.decorateLenient();
+        return Cast.uncheckedCast(instantiator.newInstance(DefaultPolymorphicDomainObjectContainer.class, elementType, instantiator, collectionCallbackActionDecorator));
     }
 
     @Override

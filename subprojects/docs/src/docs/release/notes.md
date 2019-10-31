@@ -10,17 +10,11 @@ Include only their name, impactful features should be called out separately belo
 
 [Mark Nordhoff](https://github.com/MarkNordhoff)
 
-<!-- 
-## 1
+## Improvements for plugin authors
 
-details of 1
+### New factory methods
 
-## 2
-
-details of 2
-
-## n
--->
+TBD - `ObjectFactory` has a method to create `ExtensiblePolymorphicDomainObjectContainer` instances.
 
 ## Upgrade Instructions
 

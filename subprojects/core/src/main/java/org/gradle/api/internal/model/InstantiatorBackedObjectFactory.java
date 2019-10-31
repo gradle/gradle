@@ -16,6 +16,7 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
@@ -62,17 +63,22 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType) {
-        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object container");
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object containers");
     }
 
     @Override
     public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
-        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object container with factory");
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object containers");
+    }
+
+    @Override
+    public <T> ExtensiblePolymorphicDomainObjectContainer<T> polymorphicDomainObjectContainer(Class<T> elementType) {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object containers");
     }
 
     @Override
     public <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType) {
-        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing domain object set");
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing domain object sets");
     }
 
     @Override
