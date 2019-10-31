@@ -20,7 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractProjectRelocationIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "project is relocatable"() {
         def originalDir = file("original-dir")
         originalDir.file("settings.gradle") << localCacheConfiguration()
