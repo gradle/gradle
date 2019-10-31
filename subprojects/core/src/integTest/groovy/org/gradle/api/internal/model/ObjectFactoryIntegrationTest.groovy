@@ -519,7 +519,7 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    def "plugin can create a NamedDomainObjectContainer instance that creates decorated elements of type using type's public constructor"() {
+    def "plugin can create a NamedDomainObjectContainer instance that creates decorated elements of type and uses name bean property"() {
         given:
         buildFile << """
             abstract class NamedThing implements Named {
@@ -577,6 +577,53 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
             assert domainObjectSet != null
             assert domainObjectSet.add('foo')
             assert domainObjectSet.size() == 1
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create a NamedDomainObjectSet instance that uses name bean property"() {
+        given:
+        buildFile << """
+            class NamedThing implements Named {
+                final String name
+                NamedThing(String name) {
+                    this.name = name
+                }
+            }
+
+            def container = project.objects.namedDomainObjectSet(NamedThing)
+            assert container != null
+            container.add(new NamedThing('foo'))
+            container.add(new NamedThing('bar'))
+            assert container.size() == 2
+            def element = container.getByName('foo')
+            assert element.name == 'foo'
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "plugin can create a NamedDomainObjectList instance that uses name bean property"() {
+        given:
+        buildFile << """
+            class NamedThing implements Named {
+                final String name
+                NamedThing(String name) {
+                    this.name = name
+                }
+            }
+
+            def container = project.objects.namedDomainObjectList(NamedThing)
+            assert container != null
+            container.add(new NamedThing('foo'))
+            container.add(new NamedThing('bar'))
+            assert container.size() == 2
+            def element = container.getByName('foo')
+            assert element.name == 'foo'
+            assert element == container[0]
         """
 
         expect:

@@ -20,6 +20,8 @@ import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NamedDomainObjectList;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -79,6 +81,16 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
     @Override
     public <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType) {
         throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing domain object sets");
+    }
+
+    @Override
+    public <T> NamedDomainObjectSet<T> namedDomainObjectSet(Class<T> elementType) {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object sets");
+    }
+
+    @Override
+    public <T> NamedDomainObjectList<T> namedDomainObjectList(Class<T> elementType) {
+        throw new UnsupportedOperationException("This ObjectFactory implementation does not support constructing named domain object lists");
     }
 
     @Override

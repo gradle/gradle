@@ -27,7 +27,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 
 /**
- * <p>A {@code NamedDomainObjectCollection} represents a collection of domain objects that have an inherent, constant, name.</p>
+ * <p>A {@code NamedDomainObjectCollection} represents a collection of objects that have an inherent, constant, name.</p>
  *
  * <p>Objects to be added to a named domain object collection must implement {@code equals()} in such a way that no two objects
  * with different names are considered equal. That is, all equality tests <strong>must</strong> consider the name as an
@@ -71,7 +71,7 @@ import java.util.SortedSet;
  * books.gradle.name == "gradle"
  * </pre>
  *
- * @param <T> The type of domain objects in this collection.
+ * @param <T> The type of objects in this collection.
  */
 public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T> {
 

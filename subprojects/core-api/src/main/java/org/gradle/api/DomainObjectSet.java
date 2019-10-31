@@ -23,6 +23,8 @@ import java.util.Set;
 /**
  * <p>A {@code DomainObjectSet} is a specialization of {@link DomainObjectCollection} that guarantees {@link Set} semantics.</p>
  *
+ * <p>You can create an instance of this type using the factory method {@link org.gradle.api.model.ObjectFactory#domainObjectSet(Class)}.</p>
+ *
  * @param <T> The type of objects in this set.
  */
 public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {

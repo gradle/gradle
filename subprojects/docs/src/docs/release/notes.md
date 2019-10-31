@@ -19,6 +19,8 @@ TBD - Managed properties of type `DomainObjectSet<T>` now supported.
 ### New factory methods
 
 TBD - `ObjectFactory` has a method to create `ExtensiblePolymorphicDomainObjectContainer` instances.
+TBD - `ObjectFactory` has a method to create `NamedDomainObjectSet` instances.
+TBD - `ObjectFactory` has a method to create `NamedDomainObjectList` instances.
 
 ## Upgrade Instructions
 
