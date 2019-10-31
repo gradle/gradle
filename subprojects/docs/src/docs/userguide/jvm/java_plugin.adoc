@@ -357,7 +357,7 @@ Runtime classpath for running tests. Used by task `test`.
 `archives`::
 Artifacts (e.g. jars) produced by this project. Used by task `uploadArchives`.
 
-`default` extends `runtime`::
+`default` extends `runtimeClasspath`::
 The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
 
 The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
