@@ -223,6 +223,37 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("beans = [1, 2]")
     }
 
+    def "can define task with abstract read-only DomainObjectSet<T> property"() {
+        given:
+        buildFile << """
+            class Bean {
+                @Input
+                String prop
+            }
+            
+            abstract class MyTask extends DefaultTask {
+                @Nested
+                abstract DomainObjectSet<Bean> getBeans()
+                
+                @TaskAction
+                void go() {
+                    println("beans = \${beans.collect { it.prop } }")
+                }
+            }
+            
+            tasks.create("thing", MyTask) {
+                beans.add(new Bean(prop: '1'))
+                beans.add(new Bean(prop: '2'))
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("beans = [1, 2]")
+    }
+
     def "can define task with abstract read-only @Nested property"() {
         given:
         buildFile << """

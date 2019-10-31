@@ -355,6 +355,28 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
+    def "can create instance of interface with read-only DomainObjectSet property"() {
+        buildFile << """
+            class Bean {
+                String name
+            }
+
+            interface Thing {
+                DomainObjectSet<Bean> getValue()
+            }
+            
+            extensions.create("thing", Thing)
+            assert thing.value.toString() == "[]"
+            assert thing.value.empty
+            thing.value.add(new Bean(name: "a"))
+            thing.value.add(new Bean(name: "b"))
+            assert thing.value*.name == ['a', 'b']
+        """
+
+        expect:
+        succeeds()
+    }
+
     def "can create instance of abstract class with mutable property"() {
         buildFile << """
             abstract class Thing {

@@ -12,6 +12,10 @@ Include only their name, impactful features should be called out separately belo
 
 ## Improvements for plugin authors
 
+### New managed property types
+
+TBD - Managed properties of type `DomainObjectSet<T>` now supported.
+
 ### New factory methods
 
 TBD - `ObjectFactory` has a method to create `ExtensiblePolymorphicDomainObjectContainer` instances.
