@@ -22,6 +22,7 @@ import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.DeprecationLogger;
 
 public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObjectContainer<T> {
 
@@ -52,6 +53,7 @@ public class FactoryNamedDomainObjectContainer<T> extends AbstractNamedDomainObj
     @Deprecated
     public FactoryNamedDomainObjectContainer(Class<T> type, Instantiator instantiator, NamedDomainObjectFactory<T> factory) {
         this(type, instantiator, Named.Namer.forType(type), factory, MutationGuards.identity(), CollectionCallbackActionDecorator.NOOP);
+        DeprecationLogger.nagUserOfDeprecated("Internal API constructor FactoryNamedDomainObjectContainer(Class<T>, Instantiator, NamedDomainObjectFactory<T>)", "Please use ObjectFactory.domainObjectContainer(Class<T>, NamedDomainObjectFactory<T>) instead.");
     }
 
     /**
