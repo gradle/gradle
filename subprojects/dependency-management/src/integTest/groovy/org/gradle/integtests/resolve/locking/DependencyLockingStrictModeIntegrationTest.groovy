@@ -29,8 +29,6 @@ class DependencyLockingStrictModeIntegrationTest extends AbstractValidatingLocki
         mavenRepo.module('org', 'foo', '1.0').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -66,8 +64,6 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.1').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -101,8 +97,6 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockMode = LockMode.${lockMode()}
 }

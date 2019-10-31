@@ -40,8 +40,6 @@ abstract class AbstractLockingIntegrationTest extends AbstractDependencyResoluti
         mavenRepo.module('org', 'foo', '1.1').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -115,8 +113,6 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.0').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -155,8 +151,6 @@ dependencies {
         mavenRepo.module('org', 'bar', '2.1').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -203,8 +197,6 @@ dependencies {
         }
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockMode = LockMode.${lockMode()}
 }
@@ -258,8 +250,6 @@ dependencies {
         mavenRepo.module('org', 'foo', '2.0').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -295,8 +285,6 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -332,8 +320,6 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -368,8 +354,6 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.0').dependsOn(dep).publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -407,8 +391,6 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -447,8 +429,6 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -487,8 +467,6 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -531,8 +509,6 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0', 'org:baz:1.0', 'org:buz:1.0'])
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -565,8 +541,6 @@ dependencies {
     @ToBeFixedForInstantExecution
     def 'writes an empty lock file for an empty configuration'() {
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -592,8 +566,6 @@ configurations {
     @ToBeFixedForInstantExecution
     def 'overwrites a not empty lock file with an empty one when configuration no longer has dependencies'() {
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -622,8 +594,6 @@ configurations {
     @ToBeFixedForInstantExecution
     def "fails if trying to resolve a locked configuration with #flag"() {
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}

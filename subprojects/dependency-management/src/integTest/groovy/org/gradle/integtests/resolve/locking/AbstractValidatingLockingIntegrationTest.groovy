@@ -27,8 +27,6 @@ abstract class AbstractValidatingLockingIntegrationTest extends AbstractLockingI
         mavenRepo.module('org', 'foo', '1.1').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -69,8 +67,6 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.1').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -109,8 +105,6 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.0').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -147,8 +141,6 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.0').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -183,8 +175,6 @@ dependencies {
     def 'fails when resolution result is empty and lock file contains entries'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -216,8 +206,6 @@ configurations {
         mavenRepo.module('org', 'foo', '1.1').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
@@ -260,8 +248,6 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.0').publish()
 
         buildFile << """
-import org.gradle.api.artifacts.dsl.LockMode
-
 dependencyLocking {
     lockAllConfigurations()
     lockMode = LockMode.${lockMode()}
