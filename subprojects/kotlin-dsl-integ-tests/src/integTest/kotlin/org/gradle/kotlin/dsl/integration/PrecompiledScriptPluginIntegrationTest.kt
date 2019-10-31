@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -15,6 +16,7 @@ import org.junit.Test
 class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
+    @FailsWithInstantExecution
     fun `generated code follows kotlin-dsl coding conventions`() {
 
         withBuildScript("""
@@ -45,6 +47,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @FailsWithInstantExecution
     fun `precompiled script plugins tasks are cached and relocatable`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -106,6 +109,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @FailsWithInstantExecution
     fun `precompiled script plugins adapters generation clean stale outputs`() {
 
         withBuildScript("""
@@ -146,6 +150,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @FailsWithInstantExecution
     fun `accessors are available after script body change`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
