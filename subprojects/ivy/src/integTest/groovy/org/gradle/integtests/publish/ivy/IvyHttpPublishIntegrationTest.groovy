@@ -18,6 +18,8 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -56,6 +58,7 @@ credentials {
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -106,6 +109,7 @@ uploadArchives {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -149,6 +153,7 @@ uploadArchives {
         AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
+    @FailsWithInstantExecution
     public void reportsFailedPublishToHttpRepository() {
         given:
         server.start()
@@ -190,6 +195,7 @@ uploadArchives {
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
+    @IgnoreWithInstantExecution
     public void usesFirstConfiguredPatternForPublication() {
         given:
         server.start()

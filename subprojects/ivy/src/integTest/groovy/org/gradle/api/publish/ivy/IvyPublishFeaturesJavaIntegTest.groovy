@@ -16,11 +16,12 @@
 
 package org.gradle.api.publish.ivy
 
-
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaIntegTest {
 
+    @FailsWithInstantExecution
     def "can publish java-library with a feature"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -83,6 +84,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
         }
     }
 
+    @FailsWithInstantExecution
     def "can group dependencies by feature"() {
         ivyRepo.module('org', 'optionaldep-g1', '1.0').publish()
         ivyRepo.module('org', 'optionaldep1-g2', '1.0').publish()
@@ -161,6 +163,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
     }
 
     @Unroll("publish java-library with feature with additional artifact #id (#optionalFeatureFileName)")
+    @FailsWithInstantExecution
     def "publish java-library with feature with additional artifact"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -256,6 +259,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
 
     }
 
+    @FailsWithInstantExecution
     def "can publish java-library with a feature from a configuration with more than one outgoing variant"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -331,6 +335,7 @@ class IvyPublishFeaturesJavaIntegTest extends AbstractIvyPublishFeaturesJavaInte
         }
     }
 
+    @FailsWithInstantExecution
     def "can publish java-library with a feature from a configuration with more than one outgoing variant and filter out variants"() {
         ivyRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 

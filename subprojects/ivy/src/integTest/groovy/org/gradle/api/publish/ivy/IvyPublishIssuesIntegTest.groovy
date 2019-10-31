@@ -16,12 +16,14 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
 public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
 
     @Issue("GRADLE-2456")
+    @FailsWithInstantExecution
     def "generates SHA1 file with leading zeros"() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")

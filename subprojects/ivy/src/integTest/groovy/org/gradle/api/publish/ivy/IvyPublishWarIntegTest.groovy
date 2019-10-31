@@ -15,8 +15,11 @@
  */
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+
 class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
 
+    @FailsWithInstantExecution
     void "can publish WAR only for mixed java and WAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

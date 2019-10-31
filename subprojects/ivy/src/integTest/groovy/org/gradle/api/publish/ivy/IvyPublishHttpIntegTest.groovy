@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -55,6 +57,7 @@ credentials {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
     }
 
+    @IgnoreWithInstantExecution
     def "can publish to unauthenticated HTTP repository"() {
         given:
         server.start()
@@ -105,6 +108,7 @@ credentials {
         progressLogging.uploadProgressLogged(module.jar.uri)
     }
 
+    @IgnoreWithInstantExecution
     def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
         given:
         server.start()
@@ -152,6 +156,7 @@ credentials {
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -214,6 +219,7 @@ credentials {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -262,6 +268,7 @@ credentials {
         AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
+    @FailsWithInstantExecution
     def "reports failure publishing to HTTP repository"() {
         given:
         server.start()
@@ -309,6 +316,7 @@ credentials {
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
+    @IgnoreWithInstantExecution
     def "uses first configured pattern for publication"() {
         given:
         server.start()
@@ -416,6 +424,7 @@ credentials {
         module.jarFile.assertIsCopyOf(new TestFile(toolsJar))
     }
 
+    @IgnoreWithInstantExecution
     public void "does not upload meta-data file if artifact upload fails"() {
         given:
         server.start()
@@ -453,6 +462,7 @@ credentials {
         module.ivyFile.assertDoesNotExist()
     }
 
+    @IgnoreWithInstantExecution
     def "retries artifact upload for transient network error"() {
         given:
         server.start()

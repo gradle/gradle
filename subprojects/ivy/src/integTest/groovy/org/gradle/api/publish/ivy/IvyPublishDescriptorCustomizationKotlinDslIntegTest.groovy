@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 
@@ -40,6 +41,7 @@ class IvyPublishDescriptorCustomizationKotlinDslIntegTest extends AbstractIvyPub
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
     }
 
+    @FailsWithInstantExecution
     def "can customize Ivy descriptor using Kotlin DSL"() {
         given:
         settingsFile << 'rootProject.name = "customizeIvy"'

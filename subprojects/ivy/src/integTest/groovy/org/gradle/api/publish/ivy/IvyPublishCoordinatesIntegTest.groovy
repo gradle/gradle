@@ -17,8 +17,11 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+
 class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
 
+    @FailsWithInstantExecution
     def "can publish single jar with specified coordinates"() {
         given:
         def javaLibrary = javaLibrary(ivyRepo.module('org.custom', 'custom', '2.2'))
@@ -61,6 +64,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         resolveArtifacts(javaLibrary) { expectFiles 'custom-2.2.jar' }
     }
 
+    @FailsWithInstantExecution
     def "can produce multiple separate publications for single project"() {
         given:
         def module = javaLibrary(ivyRepo.module('org.custom', 'custom', '2.2'))
@@ -145,6 +149,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    @FailsWithInstantExecution
     def "warns when multiple publications share the same coordinates"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-publications'"
@@ -189,6 +194,7 @@ class IvyPublishCoordinatesIntegTest extends AbstractIvyPublishIntegTest {
         outputContains("Multiple publications with coordinates 'org.example:duplicate-publications:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
     }
 
+    @FailsWithInstantExecution
     def "warns when publications in different projects share the same coordinates"() {
         given:
         settingsFile << """
@@ -224,6 +230,7 @@ include 'projectB'
         outputContains("Multiple publications with coordinates 'org.example:duplicate:1.0' are published to repository 'ivy'. The publications will overwrite each other!")
     }
 
+    @FailsWithInstantExecution
     def "does not fail for publication with duplicate repositories"() {
         given:
         settingsFile << "rootProject.name = 'duplicate-repos'"

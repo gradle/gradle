@@ -17,8 +17,10 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class IvySingleProjectPublishIntegrationTest extends AbstractIntegrationSpec {
+    @FailsWithInstantExecution
     def "publish multiple artifacts in single configuration"() {
         settingsFile << "rootProject.name = 'publishTest'"
         file("file1") << "some content"
@@ -70,6 +72,7 @@ uploadPublish {
         ivyDescriptor.expectArtifact("jar2").conf == ["publish"]
     }
 
+    @FailsWithInstantExecution
     def "publish classified artifact"() {
         settingsFile << "rootProject.name = 'publishTest'"
         file("file1") << "some content"
@@ -113,6 +116,7 @@ uploadPublish {
         ivyDescriptor.expectArtifact("jar1").classifier == "classy"
     }
 
+    @FailsWithInstantExecution
     def "publish multiple artifacts in separate configurations"() {
         file("settings.gradle") << "rootProject.name = 'publishTest'"
         file("file1") << "some content"
