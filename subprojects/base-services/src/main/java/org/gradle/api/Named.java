@@ -31,13 +31,13 @@ public interface Named {
 
     // -- Internal note --
     // It would be better to only require getName() to return Object and just call toString() on it, but
-    // if you have a groovy class with a “String name” property the generated getName() method will not 
+    // if you have a groovy class with a “String name” property the generated getName() method will not
     // satisfy the Named interface. This seems to be a bug in the Groovy compiler - LD.
 
     /**
      * An implementation of the namer interface for objects implementing the named interface.
      */
-    public static class Namer implements org.gradle.api.Namer<Named> {
+    class Namer implements org.gradle.api.Namer<Named> {
 
         public static final org.gradle.api.Namer<Named> INSTANCE = new Namer();
 
