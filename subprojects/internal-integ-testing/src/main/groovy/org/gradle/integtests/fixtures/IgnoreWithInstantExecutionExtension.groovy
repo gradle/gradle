@@ -21,8 +21,6 @@ import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
 import org.spockframework.runtime.model.SpecInfo
 
-import static org.junit.Assume.assumeFalse
-
 
 class IgnoreWithInstantExecutionExtension extends AbstractAnnotationDrivenExtension<IgnoreWithInstantExecution> {
 
@@ -38,12 +36,5 @@ class IgnoreWithInstantExecutionExtension extends AbstractAnnotationDrivenExtens
         if (GradleContextualExecuter.isInstant()) {
             feature.skipped = true
         }
-    }
-
-    /**
-     * Ignore JUnit test with instant execution.
-     */
-    static void assumeNotInstantExecution() {
-        assumeFalse(GradleContextualExecuter.isInstant())
     }
 }

@@ -37,6 +37,12 @@ public abstract class AbstractIntegrationTest {
     @Rule
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
 
+    @Rule
+    public final IgnoreWithInstantExecutionRule ignoreWithInstantExecution = new IgnoreWithInstantExecutionRule();
+
+    @Rule
+    public final FailsWithInstantExecutionRule failsWithInstantExecution = new FailsWithInstantExecutionRule();
+
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());
     public final GradleContextualExecuter executer = createExecuter();
 

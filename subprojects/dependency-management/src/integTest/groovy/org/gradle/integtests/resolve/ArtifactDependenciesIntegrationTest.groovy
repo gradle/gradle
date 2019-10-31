@@ -26,7 +26,6 @@ import org.junit.runner.RunWith
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
-import static org.gradle.integtests.fixtures.IgnoreWithInstantExecutionExtension.assumeNotInstantExecution
 
 /**
  * This test contains some of the original coverage for dependency resolution.
@@ -50,7 +49,6 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void dependencyReportWithConflicts() {
-        assumeNotInstantExecution()
 
         File buildFile = testFile("projectWithConflicts.gradle");
         usingBuildFile(buildFile).run();

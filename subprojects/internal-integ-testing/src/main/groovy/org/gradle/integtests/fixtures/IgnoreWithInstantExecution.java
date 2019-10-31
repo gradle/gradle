@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.integtests.fixtures;
 
-import org.spockframework.runtime.extension.ExtensionAnnotation
+import org.spockframework.runtime.extension.ExtensionAnnotation;
 
-import java.lang.annotation.ElementType
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-import java.lang.annotation.Target
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 
 /**
@@ -35,6 +35,7 @@ import java.lang.annotation.Target
  * Another example is partially failing unrolled tests.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target([ElementType.METHOD, ElementType.TYPE])
+@Target({ElementType.METHOD, ElementType.TYPE})
 @ExtensionAnnotation(IgnoreWithInstantExecutionExtension.class)
-@interface IgnoreWithInstantExecution {}
+public @interface IgnoreWithInstantExecution {
+}

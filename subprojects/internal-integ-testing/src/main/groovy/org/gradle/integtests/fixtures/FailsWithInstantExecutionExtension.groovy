@@ -55,7 +55,7 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
         }
     }
 
-    private static class UnexpectedSuccessException extends Exception {
+    static class UnexpectedSuccessException extends Exception {
         UnexpectedSuccessException() {
             super("Expected to fail with instant execution, but succeeded!")
         }

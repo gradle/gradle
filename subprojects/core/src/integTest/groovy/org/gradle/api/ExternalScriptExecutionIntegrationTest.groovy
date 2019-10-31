@@ -27,8 +27,6 @@ import org.gradle.util.GradleVersion
 import org.junit.Rule
 import org.junit.Test
 
-import static org.gradle.integtests.fixtures.IgnoreWithInstantExecutionExtension.assumeNotInstantExecution
-
 @SuppressWarnings("IntegrationTestFixtures")
 class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -111,7 +109,6 @@ assert 'value' == doStuff.someProp
 
     @Test
     void canExecuteExternalScriptFromSettingsScript() {
-        assumeNotInstantExecution()
 
         testFile('settings.gradle') << ''' apply { from 'other.gradle' } '''
         testFile('other.gradle') << ''' include 'child' '''
