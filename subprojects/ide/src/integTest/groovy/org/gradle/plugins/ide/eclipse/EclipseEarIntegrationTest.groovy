@@ -15,11 +15,13 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.junit.Test
 
 class EclipseEarIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
+    @FailsWithInstantExecution
     void configuresEarWithoutJavaPlugin() {
         //when
         runEclipseTask """

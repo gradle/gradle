@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.idea
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
@@ -28,6 +29,7 @@ class IdeaModuleIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @FailsWithInstantExecution
     void enablesCustomizationsOnNewModel() {
         //given
         testResources.dir.create {
@@ -119,6 +121,7 @@ idea {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/6547")
+    @FailsWithInstantExecution
     void "omit resource declaration if directory is also a source directory"() {
         //given
         testResources.dir.create {
@@ -164,6 +167,7 @@ sourceSets {
     }
 
     @Test
+    @FailsWithInstantExecution
     void plusMinusConfigurationsWorkFineForSelfResolvingFileDependencies() {
         //when
         runTask 'idea', '''
@@ -202,6 +206,7 @@ idea {
 
     @Issue("GRADLE-3101")
     @Test
+    @FailsWithInstantExecution
     void scopesCustomizedUsingPlusEqualOperator() {
         //when
         runTask 'idea', '''
@@ -229,6 +234,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void allowsReconfiguringBeforeOrAfterMerging() {
         //given
         def existingIml = file('root.iml')
@@ -269,6 +275,7 @@ idea {
 
     @Issue("GRADLE-1504")
     @Test
+    @FailsWithInstantExecution
     void shouldNotPutSourceSetsOutputDirOnClasspath() {
         //when
         runTask 'idea', '''
@@ -301,6 +308,7 @@ sourceSets.test.output.dir "$buildDir/ws/test"
     }
 
     @Test
+    @FailsWithInstantExecution
     void theBuiltByTaskBeExecuted() {
         //when
         def result = runIdeaTask('''
@@ -318,6 +326,7 @@ task generateForTest
     }
 
     @Test
+    @FailsWithInstantExecution
     void enablesTogglingJavadocAndSourcesOff() {
         //given
         def repoDir = file("repo")
@@ -352,6 +361,7 @@ idea.module {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "respects external dependencies order"() {
         //given
         def repoDir = file("repo")
@@ -382,6 +392,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "respects local dependencies order"() {
         //given
         file('artifact1.jar').createNewFile()
@@ -407,6 +418,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "works with artifacts without group and version"() {
         //given
         testFile('repo/hibernate-core.jar').createFile()
@@ -431,6 +443,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void doesNotBreakWhenSomeDependenciesCannotBeResolved() {
         //given
         def repoDir = file("repo")
@@ -470,6 +483,7 @@ project(':impl') {
 
     @Issue("GRADLE-2017")
     @Test
+    @FailsWithInstantExecution
     void "create external dependency in more scopes when needed"() {
         //given
         def repoDir = file("repo")
@@ -500,6 +514,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "custom configuration is added to all specified scopes considering IDEA scope inclusion"() {
         //given
         def repoDir = file("repo")
@@ -537,6 +552,7 @@ idea {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "custom configuration can be added to TEST and RUNTIME"() {
         //given
         def repoDir = file("repo")
@@ -576,6 +592,7 @@ idea {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "no libraries generated without java plugin"() {
         //given
         def repoDir = file("repo")
@@ -605,6 +622,7 @@ dependencies {
 
     @Test
     @Issue("GRADLE-1945")
+    @FailsWithInstantExecution
     void unresolvedDependenciesAreLogged() {
         //given
         def module = mavenRepo.module('myGroup', 'existing-artifact', '1.0')
@@ -646,6 +664,7 @@ Could not resolve: myGroup:missing-artifact:1.0
     }
 
     @Test
+    @FailsWithInstantExecution
     void "compile only dependencies handled correctly"() {
         // given
         def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
@@ -679,6 +698,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "test compile only dependencies mapped to IDEA scopes"() {
         // given
         def shared = mavenRepo.module('org.gradle.test', 'shared', '1.0').publish()
@@ -709,6 +729,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "conflicting versions of the same library requested for compile and compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
@@ -738,6 +759,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "conflicting versions of the same library requested for runtime and compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
@@ -767,6 +789,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "conflicting versions of the same library requested for test-compile and test-compile-only mapped to IDEA scopes"() {
         // given
         mavenRepo.module('org.gradle.test', 'bothCompileAndCompileOnly', '1.0').publish()
@@ -795,6 +818,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "providedCompile dependencies are added to PROVIDED only"() {
         // given
         mavenRepo.module('org.gradle.test', 'foo', '1.0').publish()
@@ -820,6 +844,7 @@ dependencies {
     }
 
     @Test
+    @FailsWithInstantExecution
     void "providedRuntime dependencies are added to PROVIDED only"() {
         // given
         mavenRepo.module('org.gradle.test', 'foo', '1.0').publish()

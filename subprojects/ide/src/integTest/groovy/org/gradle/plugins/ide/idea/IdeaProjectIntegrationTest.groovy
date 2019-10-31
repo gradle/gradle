@@ -15,6 +15,8 @@
  */
 
 package org.gradle.plugins.ide.idea
+
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -25,6 +27,7 @@ class IdeaProjectIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @FailsWithInstantExecution
     void "allows configuring the VCS"() {
         //when
         runTask('idea', '''
@@ -43,6 +46,7 @@ idea.project {
     }
 
     @Test
+    @FailsWithInstantExecution
     void enablesCustomizationsOnNewModel() {
         //when
         def result = runTask ':idea', 'include "someProjectThatWillBeExcluded", "api"', '''
@@ -84,6 +88,7 @@ idea {
     }
 
     @Test
+    @FailsWithInstantExecution
     void configuresHooks() {
         def ipr = file('root.ipr')
         ipr.text = '''<?xml version="1.0" encoding="UTF-8"?>

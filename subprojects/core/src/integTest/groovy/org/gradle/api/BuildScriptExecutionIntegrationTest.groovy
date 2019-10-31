@@ -18,6 +18,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
@@ -55,6 +56,7 @@ try {
     }
 
     @Test
+    @FailsWithInstantExecution
     void buildScriptCanContainATaskDefinition() {
 
         testFile('build.gradle') << '''
@@ -68,6 +70,7 @@ try {
     }
 
     @Test
+    @FailsWithInstantExecution
     void buildScriptCanContainOnlyClassDefinitions() {
 
         testFile('build.gradle') << '''

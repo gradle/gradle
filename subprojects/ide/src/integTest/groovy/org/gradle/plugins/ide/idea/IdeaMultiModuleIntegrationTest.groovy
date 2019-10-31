@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
+
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -24,6 +26,7 @@ class IdeaMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @FailsWithInstantExecution
     void buildsCorrectModuleDependencies() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << """
@@ -77,6 +80,7 @@ project(':shared:model') {
 
 
     @Test
+    @FailsWithInstantExecution
     void buildsCorrectModuleDependenciesForDependencyOnRoot() {
         file("settings.gradle") << """
 rootProject.name = 'root-project-1'
@@ -109,6 +113,7 @@ project(':api') {
     }
 
     @Test
+    @FailsWithInstantExecution
     void respectsApiOfJavaLibraries() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << """
@@ -159,6 +164,7 @@ project(":application") {
     }
 
     @Test
+    @FailsWithInstantExecution
     void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
         file("settings.gradle") << """
 rootProject.name = 'root-project-1'
@@ -210,6 +216,7 @@ project(':util') {
     }
 
     @Test
+    @FailsWithInstantExecution
     void dealsWithDuplicatedModuleNames() {
       /*
       This is the multi-module project structure the integration test works with:
@@ -309,6 +316,7 @@ project(':services:utilities') {
     }
 
     @Test
+    @FailsWithInstantExecution
     void allowsFullyReconfiguredModuleNames() {
         //use case from the mailing list
         def settingsFile = file("master/settings.gradle")
@@ -347,6 +355,7 @@ project(':api') {
     }
 
     @Test
+    @FailsWithInstantExecution
     void handlesModuleDependencyCycles() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << """
@@ -402,6 +411,7 @@ project(':three') {
     }
 
     @Test
+    @FailsWithInstantExecution
     void classpathContainsConflictResolvedDependencies() {
         def someLib1Jar = mavenRepo.module('someGroup', 'someLib', '1.0').publish().artifactFile
         def someLib2Jar= mavenRepo.module('someGroup', 'someLib', '2.0').publish().artifactFile
@@ -463,6 +473,7 @@ project(':two') {
     }
 
     @Test
+    @FailsWithInstantExecution
     void cleansCorrectlyWhenModuleNamesAreChangedOrDeduplicated() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'shared:api', 'contrib'"
@@ -494,6 +505,7 @@ project(':contrib') {
     }
 
     @Test
+    @FailsWithInstantExecution
     void handlesInternalDependenciesToNonIdeaProjects() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'nonIdeaProject'"
@@ -521,6 +533,7 @@ project(':api') {
     }
 
     @Test
+    @FailsWithInstantExecution
     void doesNotCreateDuplicateEntriesInIpr() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << "include 'api', 'iml'"
@@ -542,6 +555,7 @@ allprojects {
     }
 
     @Test
+    @FailsWithInstantExecution
     void buildsCorrectModuleDependenciesWithScopes() {
         def settingsFile = file("master/settings.gradle")
         settingsFile << """

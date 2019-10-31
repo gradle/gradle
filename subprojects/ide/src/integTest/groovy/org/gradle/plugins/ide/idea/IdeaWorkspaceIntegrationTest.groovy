@@ -16,12 +16,14 @@
 
 package org.gradle.plugins.ide.idea
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Test
 
 class IdeaWorkspaceIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test
+    @FailsWithInstantExecution
     void enablesCustomizationOfIws() {
         //when
         runIdeaTask '''
