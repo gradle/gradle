@@ -23,6 +23,7 @@ import org.gradle.kotlin.dsl.precompile.v1.scriptResolverEnvironmentOf
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import java.io.File
+import java.net.URL
 import kotlin.reflect.KClass
 import kotlin.script.dependencies.ScriptContents
 import kotlin.script.dependencies.ScriptDependenciesResolver
@@ -151,7 +152,7 @@ fun scriptContentsOf(script: SourceCode) =
         override val annotations: Iterable<Annotation>
             get() = emptyList()
         override val file: File?
-            get() = (script as? ExternalSourceCode)?.externalLocation?.toURI()?.let(::File)
+            get() = (script as? ExternalSourceCode)?.externalLocation?.toFileOrNull()
         override val text: CharSequence?
             get() = script.text
     }
@@ -173,3 +174,13 @@ fun scriptDiagnosticOf(
         )
     }
 )
+
+
+internal
+fun URL.toFileOrNull() =
+    try {
+        File(toURI().schemeSpecificPart).canonicalFile
+    } catch (e: java.net.URISyntaxException) {
+        if (protocol != "file") null
+        else File(file).canonicalFile
+    }
