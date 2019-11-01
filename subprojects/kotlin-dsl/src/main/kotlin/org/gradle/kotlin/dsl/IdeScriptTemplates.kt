@@ -84,7 +84,7 @@ open class KotlinBuildScript(
 @KotlinScript(
     displayName = "Gradle Settings Script",
     fileExtension = "gradle.kts",
-    filePathPattern = "^(settings|.+\\.settings)\\.gradle\\.kts$",
+    filePathPattern = "^.*/(settings|.+\\.settings)\\.gradle\\.kts$",
     compilationConfiguration = KotlinSettingsScriptCompilationConfiguration::class
 )
 @Incubating
