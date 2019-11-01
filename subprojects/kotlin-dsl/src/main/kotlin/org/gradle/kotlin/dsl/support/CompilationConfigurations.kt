@@ -45,6 +45,7 @@ import kotlin.script.experimental.api.refineConfiguration
 import kotlin.script.experimental.api.with
 import kotlin.script.experimental.jvm.JvmDependency
 import kotlin.script.experimental.jvm.dependenciesFromClassContext
+import kotlin.script.experimental.jvm.jdkHome
 import kotlin.script.experimental.jvm.jvm
 import kotlin.script.experimental.jvm.updateClasspath
 
@@ -159,6 +160,9 @@ fun refineKotlinScriptConfiguration(
             updateClasspath(classpath.toList())
             defaultImports(imports.toList())
             ide.dependenciesSources(JvmDependency(sources.toList()))
+            javaHome?.let { javaHome ->
+                jvm.jdkHome(File(javaHome))
+            }
         }
     }.asSuccess(diagnostics)
 }
