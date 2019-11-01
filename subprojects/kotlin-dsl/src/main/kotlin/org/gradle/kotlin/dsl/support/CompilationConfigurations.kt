@@ -95,9 +95,28 @@ fun ScriptCompilationConfiguration.Builder.kotlinDslScriptTemplate(
         dependenciesFromClassContext(
             compilationConfiguration,
             "gradle-kotlin-dsl",
-            "gradle-kotlin-dsl-tooling-models",
-            "gradle-api", "groovy-all",
+            "gradle-api",
             "kotlin-stdlib", "kotlin-reflect"
+// Full classpath extracted from gradle-kotlin-dsl-classpath.properties
+// projects=gradle-base-services,gradle-native,gradle-logging,gradle-process-services,gradle-persistent-cache,gradle-core-api,gradle-model-core,gradle-core,gradle-base-services-groovy,gradle-file-collections,gradle-files,gradle-resources,gradle-build-cache,gradle-tooling-api,gradle-kotlin-dsl-tooling-models,kotlin-compiler-embeddable-1.3.50-patched-for-gradle
+//            "gradle-kotlin-dsl-tooling-models",
+//            "gradle-tooling-api",
+//            "gradle-core-api",
+//            "gradle-core",
+//            "gradle-base-services",
+//            "gradle-native",
+//            "gradle-logging",
+//            "gradle-process-services",
+//            "gradle-persistent-cache",
+//            "gradle-model-core",
+//            "gradle-base-services-groovy",
+//            "gradle-file-collections",
+//            "gradle-files",
+//            "gradle-resources",
+//            "gradle-build-cache",
+//            "kotlin-compiler-embeddable-1.3.50-patched-for-gradle",
+//            "gradle-kotlin-dsl-tooling-models",
+//            "groovy-all"
         )
     }
 
