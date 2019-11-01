@@ -95,7 +95,6 @@ fun ScriptCompilationConfiguration.Builder.kotlinDslScriptTemplate(
         dependenciesFromClassContext(
             compilationConfiguration,
             "gradle-kotlin-dsl",
-            "gradle-kotlin-dsl-extensions",
             "gradle-kotlin-dsl-tooling-models",
             "gradle-api", "groovy-all",
             "kotlin-stdlib", "kotlin-reflect"
