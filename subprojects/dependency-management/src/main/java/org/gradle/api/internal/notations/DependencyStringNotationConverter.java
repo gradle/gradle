@@ -17,9 +17,12 @@
 package org.gradle.api.internal.notations;
 
 import com.google.common.collect.Interner;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalDependency;
+import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dsl.ParsedModuleStringNotation;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
@@ -64,13 +67,19 @@ public class DependencyStringNotationConverter<T> implements NotationConverter<S
     }
 
     private void maybeEnrichVersion(DependencyStringNotationConverter.RichVersion version, T moduleDependency) {
-        if (version.strictly != null && moduleDependency instanceof ExternalDependency) {
-            ((ExternalDependency) moduleDependency).version(v -> {
+        if (version.strictly != null) {
+            Action<MutableVersionConstraint> versionAction = v -> {
                 v.strictly(version.strictly);
                 if (!version.prefer.isEmpty()) {
                     v.prefer(version.prefer);
                 }
-            });
+            };
+            if (moduleDependency instanceof ExternalDependency) {
+                ((ExternalDependency) moduleDependency).version(versionAction);
+            }
+            if (moduleDependency instanceof DependencyConstraint) {
+                ((DependencyConstraint) moduleDependency).version(versionAction);
+            }
         }
     }
 

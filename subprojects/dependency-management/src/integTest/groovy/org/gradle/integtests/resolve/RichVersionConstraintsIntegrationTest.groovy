@@ -61,6 +61,39 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         }
     }
 
+    void "can declare a strict dependency constraint onto an external component"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo')
+                constraints {
+                    conf('org:foo:1.0!!')
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo", "org:foo:1.0")
+                constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
+            }
+        }
+    }
+
     @Issue("gradle/gradle#4186")
     def "should choose highest when multiple prefer versions disagree"() {
         repository {
