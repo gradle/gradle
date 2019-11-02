@@ -41,7 +41,6 @@ abstract class PmdInvoker {
         def classpath = pmdTask.classpath?.filter(new FileExistFilter())
         def reports = pmdTask.reports
         def consoleOutput = pmdTask.consoleOutput
-        def stdOutIsAttachedToTerminal = pmdTask.stdOutIsAttachedToTerminal()
         def ignoreFailures = pmdTask.ignoreFailures
         def logger = pmdTask.logger
         def incrementalAnalysis = pmdTask.incrementalAnalysis.get()
@@ -124,12 +123,8 @@ abstract class PmdInvoker {
                         }
 
                         if (consoleOutput) {
-                            def consoleOutputType = 'text'
-                            if (stdOutIsAttachedToTerminal) {
-                                consoleOutputType = 'textcolor'
-                            }
                             a.builder.saveStreams = false
-                            formatter(type: consoleOutputType, toConsole: true)
+                            formatter(type: 'text', toConsole: true)
                         }
                     }
                     def failureCount = ant.project.properties["pmdFailureCount"]
