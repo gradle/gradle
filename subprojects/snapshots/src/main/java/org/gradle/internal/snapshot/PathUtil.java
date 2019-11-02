@@ -55,8 +55,9 @@ public class PathUtil {
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = prefix.charAt(pos);
             char charInPath2 = path.charAt(pos + offset);
-            if (charInPath1 != charInPath2) {
-                return compareChars(charInPath1, charInPath2);
+            int comparedChars = compareChars(charInPath1, charInPath2);
+            if (comparedChars != 0) {
+                return comparedChars;
             }
         }
         return Integer.compare(prefix.length(), path.length() - offset);
@@ -64,6 +65,9 @@ public class PathUtil {
 
     @VisibleForTesting
     static int compareChars(char char1, char char2) {
+        if (char1 == char2) {
+            return 0;
+        }
         return isFileSeparator(char1)
             ? isFileSeparator(char2)
                 ? 0
@@ -71,6 +75,13 @@ public class PathUtil {
             : isFileSeparator(char2)
                 ? 1
                 : Character.compare(char1, char2);
+    }
+
+    private static boolean equalChars(char char1, char char2) {
+        if (char1 == char2) {
+            return true;
+        }
+        return isFileSeparator(char1) && isFileSeparator(char2);
     }
 
     public static Comparator<String> pathComparator() {
@@ -85,10 +96,12 @@ public class PathUtil {
         int lastSeparator = 0;
         int maxPos = Math.min(path1.length(), path2.length() - offset);
         for (; pos < maxPos; pos++) {
-            if (path1.charAt(pos) != path2.charAt(pos + offset)) {
+            char charInPath1 = path1.charAt(pos);
+            char charInPath2 = path2.charAt(pos + offset);
+            if (!equalChars(charInPath1, charInPath2)) {
                 break;
             }
-            if (isFileSeparator(path1.charAt(pos))) {
+            if (isFileSeparator(charInPath1)) {
                 lastSeparator = pos;
             }
         }
@@ -111,10 +124,11 @@ public class PathUtil {
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
-            if (charInPath1 != charInPath2) {
-                return compareChars(charInPath1, charInPath2);
+            int comparedChars = compareChars(charInPath1, charInPath2);
+            if (comparedChars != 0) {
+                return comparedChars;
             }
-            if (isFileSeparator(path1.charAt(pos))) {
+            if (isFileSeparator(charInPath1)) {
                 if (pos > 0) {
                     return 0;
                 }
@@ -161,7 +175,7 @@ public class PathUtil {
             return false;
         }
         for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-            if (prefix.charAt(i) != filePath.charAt(j)) {
+            if (!equalChars(prefix.charAt(i), filePath.charAt(j))) {
                 return false;
             }
         }
@@ -182,8 +196,9 @@ public class PathUtil {
         for (int i = 0; i < prefixLength; i++) {
             char prefixChar = prefix.charAt(i);
             char pathChar = filePath.charAt(i + offset);
-            if (prefixChar != pathChar) {
-                return compareChars(prefixChar, pathChar);
+            int comparedChars = compareChars(prefixChar, pathChar);
+            if (comparedChars != 0) {
+                return comparedChars;
             }
         }
         return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment)) ? 0 : -1;

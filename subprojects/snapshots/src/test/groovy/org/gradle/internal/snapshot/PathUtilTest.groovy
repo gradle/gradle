@@ -52,7 +52,6 @@ class PathUtilTest extends Specification {
         '/root/some' | '/root/other' | 0      | 5
     }
 
-
     def "can compare size of common prefix"() {
         expect:
         Integer.signum(compareWithCommonPrefix(prefix, path, offset)) == result
@@ -65,6 +64,7 @@ class PathUtilTest extends Specification {
         "hello/world"       | "hello/other"           | 0      | 0
         "hello/world"       | "/var/hello/other"      | 5      | 0
         "hello/world"       | "/var/hello/world"      | 5      | 0
+        "hello/world"       | "/var/hello\\world"      | 5      | 0
         "hello/world"       | "/var/hello/world/next" | 5      | 0
         "hello/world"       | "/var/hello1/other"     | 5      | -1
         "hello1/world"      | "/var/hello/other"      | 5      | 1
@@ -73,6 +73,37 @@ class PathUtilTest extends Specification {
         "bbc/some"          | "/var/abc/other"        | 5      | 1
         "/hello/world/some" | "/var/hello/other"      | 0      | -1
         "/hello/world/some" | "/var/hello/other"      | 4      | 0
+    }
+
+    def "size of common prefix of #prefix with #path at offset #offset is #result"() {
+        expect:
+        sizeOfCommonPrefix(prefix, path, offset) == result
+
+        where:
+        prefix              | path                    | offset | result
+        "hello/world"       | "hello/other"           | 0      | 5
+        "hello/world"       | "/var/hello/other"      | 5      | 5
+        "hello/world"       | "/var/hello/world"      | 5      | 11
+        "hello/world"       | "/var/hello\\world"     | 5      | 11
+        "hello/world"       | "/var/hello/world/next" | 5      | 11
+        "hello/world"       | "/var/hello1/other"     | 5      | 0
+        "hello1/world"      | "/var/hello/other"      | 5      | 0
+        "hello/world/some"  | "/var/hello/other"      | 5      | 5
+        "hello/world"       | "/var/hello1/other"     | 5      | 0
+        "bbc/some"          | "/var/abc/other"        | 5      | 0
+        "/hello/world/some" | "/var/hello/other"      | 0      | 0
+        "/hello/world/some" | "/var/hello/other"      | 4      | 6
+    }
+
+    def "#prefix is child of or this of #path at offset #offset: #result"() {
+        expect:
+        sizeOfCommonPrefix(prefix, path, offset)
+
+        where:
+        prefix         | path                       | offset | result
+        "hello/world"  | "hello/world\\inside"      | 0      | true
+        "hello/world"  | "/var/hello/world\\inside" | 5      | true
+        "hello\\world" | "/var/hello/world\\inside" | 5      | true
     }
 
     def "separator is smaller than every other character"() {
