@@ -18,6 +18,7 @@ package org.gradle.java.compile.incremental
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -80,6 +81,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
+    @FailsWithInstantExecution
     def "recompiles when upstream module-info changes"() {
         file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
         file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"

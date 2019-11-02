@@ -17,6 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
@@ -28,6 +29,7 @@ import org.gradle.util.TestPrecondition
 class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
 
+    @FailsWithInstantExecution
     def "reports failure to compile bad java sources"() {
         when:
         def badApp = new BadJavaComponent()
@@ -50,6 +52,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         }
     }
 
+    @FailsWithInstantExecution
     def "target should produce in the correct bytecode"() {
         when:
         app.sources*.writeToDir(file("src/myLib/java"))
@@ -73,6 +76,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
+    @FailsWithInstantExecution
     def "multiple targets should produce in the correct bytecode"() {
         when:
         app.writeSources(file("src/myLib"))

@@ -18,6 +18,8 @@ package org.gradle.java.compile.incremental
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -31,6 +33,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "change to #retention retention annotation class recompiles #desc"() {
         def annotationClass = file("src/main/${language.name}/SomeAnnotation.${language.name}") << """
             import java.lang.annotation.*;
@@ -135,6 +138,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         result.assertHasErrorOutput("package java.util.logging is not visible")
     }
 
+    @FailsWithInstantExecution
     def "reports source type that does not support detection of source root"() {
         given:
         buildFile << "${language.compileTaskName}.source([file('extra'), file('other'), file('text-file.txt')])"
@@ -158,6 +162,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         output.contains("Full recompilation is required because the source roots could not be inferred.")
     }
 
+    @FailsWithInstantExecution
     def "does not recompile when a resource changes"() {
         given:
         buildFile << """

@@ -20,6 +20,7 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -185,6 +186,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
+    @FailsWithInstantExecution
     def "detects change to dependency and ensures class dependency info refreshed"() {
         source api: ["class A {}", "class B extends A {}"]
         source impl: ["class SomeImpl {}", "class ImplB extends B {}", "class ImplB2 extends ImplB {}"]
@@ -401,6 +403,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("ImplA")
     }
 
+    @FailsWithInstantExecution
     def "detects class changes in subsequent runs ensuring the jar snapshots are refreshed"() {
         source api: ["class A {}", "class B {}"], impl: ["class ImplA extends A {}", "class ImplB extends B {}"]
         impl.snapshot { run language.compileTaskName }
@@ -422,6 +425,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("ImplB")
     }
 
+    @FailsWithInstantExecution
     def "changes to resources in jar do not incur recompilation"() {
         source impl: ["class A {}"]
         impl.snapshot { run "impl:${language.compileTaskName}" }
@@ -435,6 +439,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.noneRecompiled()
     }
 
+    @FailsWithInstantExecution
     def "handles multiple compile tasks in the same project"() {
         settingsFile << "\n include 'other'" //add an extra project
         source impl: ["class ImplA extends A {}"], api: ["class A {}"], other: ["class Other {}"]
@@ -484,6 +489,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         }
     }
 
+    @FailsWithInstantExecution
     def "the order of classpath items is unchanged"() {
         source api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
@@ -574,6 +580,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("A")
     }
 
+    @FailsWithInstantExecution
     def "new jar without duplicate class does not trigger compilation"() {
         source impl: ["class A {}"]
         impl.snapshot { run("impl:${language.compileTaskName}") }
@@ -848,6 +855,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses 'A', 'B', 'C'
     }
 
+    @FailsWithInstantExecution
     def "recompiles downstream dependents of classes whose package-info changed"() {
         given:
         def packageFile = file("api/src/main/${language.name}/foo/package-info.${language.name}")

@@ -17,6 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.util.Requires
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -70,6 +71,7 @@ public class TestApp {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "fails compilation when referencing a non-API class from a #scope dependency"() {
         given:
         applyJavaPlugin(buildFile)
@@ -108,6 +110,7 @@ public class TestApp {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing API class in ABI breaking way should trigger recompilation of a consuming library with #scope dependency when an API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -155,6 +158,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing non-API class should not trigger recompilation of a consuming library with #scope dependency when API is declared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -200,6 +204,7 @@ public class PersonInternal extends Person {
 
     @Unroll
     @Issue('Need to investigate the reason for the Java 9 failure')
+    @FailsWithInstantExecution
     def "changing comment in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -249,6 +254,7 @@ public class Person {
 
     @Unroll
     @Requires(FIX_TO_WORK_ON_JAVA9)
+    @FailsWithInstantExecution
     def "changing method body of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -330,6 +336,7 @@ public class Person {
         notRecompiled 'Main'
     }
 
+    @FailsWithInstantExecution
     def "changing signature of public method of API class should trigger recompilation of the consuming library"() {
         given:
         applyJavaPlugin(buildFile)
@@ -372,6 +379,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "extraction of private method in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -425,6 +433,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing the order of public methods of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -483,6 +492,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "adding a private field to an API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -533,6 +543,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "adding a private method to an API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -584,6 +595,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing the order of members of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -644,6 +656,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing an API field of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -696,6 +709,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing the superclass of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -750,6 +764,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing the interfaces of an API class should trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -805,6 +820,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing order of annotations on API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -884,6 +900,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing order of annotations on API method should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -965,6 +982,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing order of annotations on API method parameter should not trigger recompilation of the consuming library when #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1047,6 +1065,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "changing order of annotations on API field should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1128,6 +1147,7 @@ public class Person {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "building the API jar should not depend on the runtime jar when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)

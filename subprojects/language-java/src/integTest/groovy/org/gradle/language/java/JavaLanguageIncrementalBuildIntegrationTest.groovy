@@ -16,6 +16,7 @@
 
 package org.gradle.language.java
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
 import org.gradle.language.fixtures.TestJavaComponent
@@ -23,6 +24,7 @@ import org.gradle.language.fixtures.TestJavaComponent
 class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
     TestJvmComponent testComponent = new TestJavaComponent()
 
+    @FailsWithInstantExecution
     def "rebuilds jar when input property changed"() {
         given:
         run "mainJar"
@@ -39,6 +41,7 @@ class JavaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageInc
         executedAndNotSkipped ":compileMainJarMainJava", ":createMainJar", ":mainJar"
     }
 
+    @FailsWithInstantExecution
     def "task outcome is up to date when no recompilation necessary"() {
         given:
         buildFile.text = ""

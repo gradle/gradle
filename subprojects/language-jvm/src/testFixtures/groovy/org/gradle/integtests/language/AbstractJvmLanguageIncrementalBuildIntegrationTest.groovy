@@ -18,6 +18,7 @@ package org.gradle.integtests.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -52,6 +53,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
 """
     }
 
+    @FailsWithInstantExecution
     def "builds jar"() {
         when:
         run "mainJar"
@@ -63,6 +65,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").hasDescendants(testComponent.expectedOutputs*.fullPath as String[])
     }
 
+    @FailsWithInstantExecution
     def "does not re-execute build with no change"() {
         given:
         run "mainJar"
@@ -74,6 +77,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         allSkipped()
     }
 
+    @FailsWithInstantExecution
     def "rebuilds jar and classfile is removed when source file removed"() {
         given:
         run "mainJar"
@@ -90,6 +94,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         assertOutputs([testComponent.sources[0].classFile], [testComponent.resources[0], testComponent.resources[1]])
     }
 
+    @FailsWithInstantExecution
     def "rebuilds jar without resource when resource removed"() {
         given:
         run "mainJar"
@@ -105,6 +110,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         assertOutputs([testComponent.sources[0].classFile, testComponent.sources[1].classFile], [testComponent.resources[0]])
     }
 
+    @FailsWithInstantExecution
     def "rebuilds jar when source file changed"() {
         given:
         run "mainJar"
@@ -117,6 +123,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executedAndNotSkipped mainCompileTaskName, ":createMainJar", ":mainJar"
     }
 
+    @FailsWithInstantExecution
     def "rebuilds jar when resource file changed"() {
         given:
         run "mainJar"
@@ -129,6 +136,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         executedAndNotSkipped ":processMainJarMainResources", ":createMainJar", ":mainJar"
     }
 
+    @FailsWithInstantExecution
     def "rebuilds jar when source file added"() {
         given:
         run "mainJar"
@@ -146,6 +154,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").assertContainsFile("Extra.class")
     }
 
+    @FailsWithInstantExecution
     def "rebuilds jar when resource file added"() {
         given:
         run "mainJar"
@@ -162,6 +171,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
         jarFile("build/jars/main/jar/main.jar").assertContainsFile("Extra.txt")
     }
 
+    @FailsWithInstantExecution
     def "recompiles but does not rebuild jar when source file changed such that bytecode is the same"() {
         given:
         run "mainJar"
