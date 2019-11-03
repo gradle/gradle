@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.TestDeploymentFixture
 
 import static org.gradle.util.CollectionUtils.single
@@ -28,6 +29,7 @@ class DeploymentContinuousBuildIntegrationTest extends Java7RequiringContinuousI
         buildTimeout = 30
     }
 
+    @FailsWithInstantExecution
     def "deployment promoted to continuous build reports accurate build time" () {
         when:
         withoutContinuousBuild()
@@ -40,6 +42,7 @@ class DeploymentContinuousBuildIntegrationTest extends Java7RequiringContinuousI
         buildTimes[0] >= buildTimes[1]
     }
 
+    @FailsWithInstantExecution
     def "deployment in continuous build reports accurate build time" () {
         when:
         succeeds("runDeployment")

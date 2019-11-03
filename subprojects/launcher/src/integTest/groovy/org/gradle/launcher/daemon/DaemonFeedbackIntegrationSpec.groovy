@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.launcher.daemon.logging.DaemonMessages
@@ -74,6 +75,7 @@ task sleep {
         ex.message.contains("Unrecognized option: -Xyz")
     }
 
+    @FailsWithInstantExecution
     def "daemon log contains all necessary logging"() {
         given:
         file("build.gradle") << "println 'Hello build!'"
