@@ -16,11 +16,13 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractConsoleVerboseBasicFunctionalTest {
 
+    @FailsWithInstantExecution
     def 'up-to-date task result can be rendered'() {
         given:
         buildFile << '''

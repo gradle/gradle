@@ -19,6 +19,7 @@ package org.gradle
 import org.gradle.api.JavaVersion
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
@@ -71,6 +72,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def 'DeprecatedPlugin and DeprecatedTask - #scenario'() {
         given:
         buildFile << """
