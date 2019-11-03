@@ -67,6 +67,10 @@ fun Project.createTasks(sourceSet: SourceSet, testType: TestType) {
                 // (see CrossVersionTestsPlugin).
                 systemProperties["org.gradle.integtest.versions"] = "default"
             }
+            // TODO:instant-execution remove this once ready to enable
+            if (testType == TestType.INTEGRATION && executer == "instant") {
+                enabled = false
+            }
         })
     }
     // Use the default executer for the simply named task. This is what most developers will run when running check
