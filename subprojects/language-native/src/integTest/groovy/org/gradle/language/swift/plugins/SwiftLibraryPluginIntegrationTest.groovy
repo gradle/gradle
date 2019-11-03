@@ -16,9 +16,11 @@
 
 package org.gradle.language.swift.plugins
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class SwiftLibraryPluginIntegrationTest extends WellBehavedPluginTest {
+    @FailsWithInstantExecution
     def "plugin can build with empty project with static lib"() {
         given:
         applyPlugin()

@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.HostPlatform
@@ -26,6 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.junit.Assume
 
 class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec implements HostPlatform {
+    @FailsWithInstantExecution
     def "user receives reasonable error message when no tool chains are available"() {
         given:
         buildFile << """

@@ -16,9 +16,11 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.util.Matchers
 
 abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegrationTest {
+    @FailsWithInstantExecution
     def "skip assemble tasks when no source"() {
         given:
         makeSingleProject()
@@ -30,6 +32,7 @@ abstract class AbstractCppIntegrationTest extends AbstractCppComponentIntegratio
         result.assertTasksSkipped(tasksToAssembleDevelopmentBinary, ":assemble")
     }
 
+    @FailsWithInstantExecution
     def "build fails when compilation fails"() {
         given:
         makeSingleProject()

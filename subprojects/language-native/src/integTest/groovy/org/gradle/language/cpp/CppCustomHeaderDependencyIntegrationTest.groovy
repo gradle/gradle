@@ -16,10 +16,12 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 
 class CppCustomHeaderDependencyIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    @FailsWithInstantExecution
     def "can consume a directory as a header dependency"() {
         def app = new CppApp()
         settingsFile << """
