@@ -18,7 +18,7 @@ package org.gradle.integtests.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -37,7 +37,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     """
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "can build binary with sources in conventional location"() {
         when:
         app.writeSources(file("src/myLib"))
@@ -67,7 +67,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "generated binary includes compiled classes from all language source sets"() {
         setup:
         def extraSourceSetName = "extra${app.languageName}"
@@ -104,7 +104,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jar.hasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "can configure source locations for language and resource source sets"() {
         setup:
         def customSourceSetName = "my${app.languageName}"
@@ -140,7 +140,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "can combine resources and sources in a single source directory"() {
         when:
         app.writeSources(file("src/myLib"))
@@ -177,7 +177,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.instance.lineSeparator)
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "can configure output directories for classes and resources"() {
         when:
         app.writeSources(file("src/myLib"))
