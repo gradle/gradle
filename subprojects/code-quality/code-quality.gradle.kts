@@ -22,6 +22,7 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":logging"))
+    implementation(project(":native"))
     implementation(project(":processServices"))
     implementation(project(":coreApi"))
     implementation(project(":modelCore"))

@@ -42,6 +42,9 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.internal.nativeintegration.console.ConsoleDetector;
+import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.util.ClosureBackedAction;
 
 import javax.annotation.Nullable;
@@ -89,6 +92,13 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     @TaskAction
     public void run() {
         PmdInvoker.invoke(this);
+    }
+
+    @Deprecated //Issue: #11205
+    public boolean stdOutIsAttachedToTerminal() {
+        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+        return consoleMetaData != null && consoleMetaData.isStdOut();
     }
 
     /**
