@@ -16,11 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest {
     def publishedModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
+    @FailsWithInstantExecution
     def "cannot publish custom component with no usages or variants"() {
         createBuildScripts("""
             publishing {
@@ -40,6 +42,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
   - This publication must publish at least one variant"""
     }
 
+    @FailsWithInstantExecution
     def "can publish custom component with usages"() {
         createBuildScripts("""
             publishing {
@@ -62,6 +65,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         publishedModule.parsedModuleMetadata.variant("usage").dependencies*.coords == ['group:module:1.0']
     }
 
+    @FailsWithInstantExecution
     def "can publish custom component with variants (with proper unique SNAPSHOT handling)"() {
         createBuildScripts("""
             publishing {

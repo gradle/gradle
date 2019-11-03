@@ -16,9 +16,11 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
+    @FailsWithInstantExecution
     def "can publish java-library with feature using extension"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -79,6 +81,7 @@ class MavenPublishFeaturesJavaPluginIntegTest extends AbstractMavenPublishFeatur
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can update #prop after feature has been registered"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 

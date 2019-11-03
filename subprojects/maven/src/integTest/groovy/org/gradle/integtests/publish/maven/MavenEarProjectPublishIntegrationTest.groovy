@@ -16,6 +16,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -24,6 +25,7 @@ class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
+    @FailsWithInstantExecution
     public void "publishes EAR only for mixed java and WAR and EAR project"() {
         given:
         using m2 //uploadArchives leaks into local ~/.m2

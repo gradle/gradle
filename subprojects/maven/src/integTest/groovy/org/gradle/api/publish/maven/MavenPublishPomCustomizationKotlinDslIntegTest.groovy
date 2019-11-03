@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -39,6 +40,7 @@ class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublis
         requireOwnGradleUserHomeDir() // Isolate Kotlin DSL extensions API jar
     }
 
+    @FailsWithInstantExecution
     def "can customize POM using Kotlin DSL"() {
         given:
         settingsFile << 'rootProject.name = "customizePom"'

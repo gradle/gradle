@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -31,6 +32,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
         server.start()
     }
 
+    @IgnoreWithInstantExecution
     def "shows work-in-progress during publication"() {
         def m1 = mavenRepo.module("org.test", "test", "1.2")
 

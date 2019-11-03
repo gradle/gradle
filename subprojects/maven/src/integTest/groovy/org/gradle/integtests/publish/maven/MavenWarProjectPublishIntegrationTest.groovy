@@ -16,6 +16,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -24,6 +25,7 @@ class MavenWarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
+    @FailsWithInstantExecution
     public void "publishes WAR only for mixed java and WAR project"() {
         given:
         using m2

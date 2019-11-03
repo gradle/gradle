@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -24,6 +25,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
     def repoModule = javaLibrary(mavenRepo.module('group', 'root', '1.0'))
 
     @Issue('GRADLE-1574')
+    @FailsWithInstantExecution
     def "publishes wildcard exclusions for a non-transitive dependency"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -68,6 +70,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
 
     @Issue("GRADLE-3233")
     @Unroll
+    @FailsWithInstantExecution
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -111,6 +114,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         "null"      | "group:'group', name:'projectA', version:null"
     }
 
+    @FailsWithInstantExecution
     void "defaultDependencies are included in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -152,6 +156,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertRuntimeDependencies('org:explicit-dependency:1.0')
     }
 
+    @FailsWithInstantExecution
     void "dependency mutations are reflected in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -192,6 +197,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         repoModule.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:1.0')
     }
 
+    @FailsWithInstantExecution
     def "publishes both dependencies when one has a classifier"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -249,6 +255,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
+    @FailsWithInstantExecution
     def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
         given:
         settingsFile << "rootProject.name = 'root'"

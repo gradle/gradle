@@ -16,10 +16,12 @@
 
 package org.gradle.integtests.publish.maven
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenWagonPublishIntegrationTest extends AbstractMavenPublishIntegTest {
 
+    @FailsWithInstantExecution
     def "uses provided wagon type to perform publication"() {
         executer.expectDeprecationWarnings(2)
 

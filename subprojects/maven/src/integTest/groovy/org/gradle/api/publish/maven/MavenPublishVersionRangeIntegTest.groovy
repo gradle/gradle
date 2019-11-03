@@ -16,12 +16,14 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
 class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
+    @FailsWithInstantExecution
     void "version range is mapped to maven syntax in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
@@ -73,6 +75,7 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3233")
+    @FailsWithInstantExecution
     def "publishes POM dependency for Gradle dependency with empty version"() {
         settingsFile << "rootProject.name = 'publishTest' "
         buildFile << """

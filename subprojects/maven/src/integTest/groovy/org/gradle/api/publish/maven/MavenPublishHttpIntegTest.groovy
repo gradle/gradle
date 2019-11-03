@@ -17,8 +17,9 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.internal.credentials.DefaultPasswordCredentials
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -54,6 +55,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         settingsFile << 'rootProject.name = "publish"'
     }
 
+    @IgnoreWithInstantExecution
     def "can publish to an unauthenticated http repo"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -76,6 +78,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.moduleMetadata.verifyChecksums()
     }
 
+    @IgnoreWithInstantExecution
     def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -112,6 +115,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
 
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         PasswordCredentials credentials = new DefaultPasswordCredentials('username', 'password')
@@ -162,6 +166,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "reports failure publishing with wrong credentials using #authScheme"() {
         given:
         PasswordCredentials credentials = new DefaultPasswordCredentials('wrong', 'wrong')
@@ -183,6 +188,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "reports failure when required credentials are not provided #authScheme"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -202,6 +208,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3312")
+    @IgnoreWithInstantExecution
     def "can publish to a http repo via redirects"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -230,6 +237,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3312")
+    @IgnoreWithInstantExecution
     def "can publish to an authenticated http repo via redirects"() {
         given:
         redirectServer.start()
@@ -259,6 +267,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("gradle/gradle#1641")
+    @IgnoreWithInstantExecution
     def "can publish a new version of a module already present in the target repository"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
@@ -298,6 +307,7 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.versions == ["2", "3"]
     }
 
+    @IgnoreWithInstantExecution
     def "retries artifact upload for transient network error"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
