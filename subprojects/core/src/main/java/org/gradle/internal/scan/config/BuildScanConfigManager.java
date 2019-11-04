@@ -40,10 +40,8 @@ public class BuildScanConfigManager implements BuildScanConfigInit, BuildScanCon
 
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
-    private static final String HELP_LINK = "https://gradle.com/scans/help/gradle-cli";
-
-    public static final String NO_PLUGIN_MSG = "Build scan cannot be created because the Gradle Enterprise plugin was not applied.\n"
-        + "For more information on how to apply the Gradle Enterprise plugin, please visit " + HELP_LINK + ".";
+    public static final String NO_PLUGIN_MSG = "An internal error occurred that prevented a build scan from being created.\n" +
+        "Please report this via https://github.com/gradle/gradle/issues";
 
     private static final String SYSPROP_KEY = "scan";
     private static final List<String> ENABLED_SYS_PROP_VALUES = Arrays.asList(null, "", "yes", "true");
