@@ -1,8 +1,6 @@
 plugins {
     `java-library`
     `maven-publish`
-    eclipse
-    // See ??? for IntelliJ support
 }
 
 version = "1.0.2"
