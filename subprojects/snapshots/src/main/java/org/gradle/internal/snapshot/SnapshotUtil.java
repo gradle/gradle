@@ -26,15 +26,15 @@ import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
-    public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, String filePath, int offset) {
+    public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, String filePath, int offset, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
         switch (children.size()) {
             case 0:
-                return Optional.empty();
+                return noChildFoundResult.get();
             case 1:
                 FileSystemNode onlyChild = children.get(0);
                 return PathUtil.isChildOfOrThis(filePath, offset, onlyChild.getPathToParent())
                     ? getSnapshotFromChild(filePath, offset, onlyChild)
-                    : Optional.empty();
+                    : noChildFoundResult.get();
             case 2:
                 FileSystemNode firstChild = children.get(0);
                 FileSystemNode secondChild = children.get(1);
@@ -44,12 +44,12 @@ public class SnapshotUtil {
                 if (PathUtil.isChildOfOrThis(filePath, offset, secondChild.getPathToParent())) {
                     return getSnapshotFromChild(filePath, offset, secondChild);
                 }
-                return Optional.empty();
+                return noChildFoundResult.get();
             default:
                 int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset));
                 return foundChild >= 0
                     ? getSnapshotFromChild(filePath, offset, children.get(foundChild))
-                    : Optional.empty();
+                    : noChildFoundResult.get();
         }
     }
 
