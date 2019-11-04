@@ -146,6 +146,27 @@ class PartialEvaluatorTest {
     }
 
     @Test
+    fun `a top-level Settings pluginManagement block`() {
+
+        val fragment = fragment("pluginManagement", "...")
+        val program = Program.PluginManagement(fragment)
+
+        assertThat(
+            "reduces to static program that evaluates pluginManagement block then applies default plugin requests",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    Eval(fragment.source),
+                    ApplyDefaultPluginRequests
+                )))
+    }
+
+    @Test
     fun `a top-level Project buildscript block followed by plugins block`() {
 
         val program =
