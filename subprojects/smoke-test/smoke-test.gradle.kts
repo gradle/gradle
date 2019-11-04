@@ -15,6 +15,7 @@
  */
 import accessors.groovy
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
+import org.gradle.gradlebuild.test.integrationtests.defaultGradleGeneratedApiJarCacheDirProvider
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -47,20 +48,16 @@ dependencies {
     smokeTestImplementation(project(":coreApi"))
     smokeTestImplementation(project(":testKit"))
     smokeTestImplementation(project(":internalIntegTesting"))
+    smokeTestImplementation(project(":launcher"))
+    smokeTestImplementation(project(":persistentCache"))
     smokeTestImplementation(library("commons_io"))
     smokeTestImplementation(library("jgit"))
     smokeTestImplementation(testLibrary("spock"))
 
-    smokeTestRuntimeOnly(project(":kotlinDsl"))
-    smokeTestRuntimeOnly(project(":codeQuality"))
-    smokeTestRuntimeOnly(project(":ide"))
-    smokeTestRuntimeOnly(project(":ivy"))
-    smokeTestRuntimeOnly(project(":jacoco"))
-    smokeTestRuntimeOnly(project(":maven"))
-    smokeTestRuntimeOnly(project(":plugins"))
-    smokeTestRuntimeOnly(project(":pluginDevelopment"))
-    smokeTestRuntimeOnly(project(":toolingApiBuilders"))
-    smokeTestRuntimeOnly(project(":testingJunitPlatform"))
+    val allTestRuntimeDependencies: DependencySet by rootProject.extra
+    allTestRuntimeDependencies.forEach {
+        smokeTestRuntimeOnly(it)
+    }
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":versionControl")))
@@ -76,6 +73,9 @@ tasks.register<SmokeTest>("smokeTest") {
     testClassesDirs = smokeTest.output.classesDirs
     classpath = smokeTest.runtimeClasspath
     maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
+    gradleInstallationForTest.gradleGeneratedApiJarCacheDir.set(
+        defaultGradleGeneratedApiJarCacheDirProvider()
+    )
 }
 
 plugins.withType<IdeaPlugin>().configureEach { // lazy as plugin not applied yet

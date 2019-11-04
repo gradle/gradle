@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
+import org.gradle.cache.internal.DefaultGeneratedGradleJarCache
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -163,7 +164,17 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir.root)
             .forwardOutput()
             .withArguments(tasks.toList() + outputParameters() + repoMirrorParameters()) as DefaultGradleRunner
-        gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError")
+        gradleRunner.withJvmArguments(
+            ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"] + buildContextParameters()
+        )
+    }
+
+    private static List<String> buildContextParameters() {
+        def generatedApiJarCacheDir = IntegrationTestBuildContext.INSTANCE.gradleGeneratedApiJarCacheDir
+        if (generatedApiJarCacheDir == null) {
+            return []
+        }
+        return ["-D${DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY}=${generatedApiJarCacheDir.absolutePath}" as String]
     }
 
     private static List<String> outputParameters() {
