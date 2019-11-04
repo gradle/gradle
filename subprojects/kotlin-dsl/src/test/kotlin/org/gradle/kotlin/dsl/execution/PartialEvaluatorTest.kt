@@ -297,6 +297,22 @@ class PartialEvaluatorTest {
     }
 
     @Test
+    fun `an empty Settings top-level script`() {
+
+        assertThat(
+            "reduces to static program that applies default plugin requests",
+            partialEvaluationOf(
+                Program.Empty,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    ApplyDefaultPluginRequests
+                )))
+    }
+
+    @Test
     fun `a non-empty Settings top-level script`() {
 
         val source =
@@ -311,7 +327,7 @@ class PartialEvaluatorTest {
             ),
             isResidualProgram(
                 Static(
-                    CloseTargetScope,
+                    ApplyDefaultPluginRequests,
                     Eval(source)
                 )))
     }
@@ -333,7 +349,7 @@ class PartialEvaluatorTest {
                 Static(
                     SetupEmbeddedKotlin,
                     Eval(fragment.source),
-                    CloseTargetScope
+                    ApplyDefaultPluginRequests
                 )))
     }
 
@@ -369,7 +385,7 @@ class PartialEvaluatorTest {
                     Static(
                         SetupEmbeddedKotlin,
                         Eval(expectedEvalSource),
-                        CloseTargetScope
+                        ApplyDefaultPluginRequests
                     ),
                     scriptSource
                 )))
