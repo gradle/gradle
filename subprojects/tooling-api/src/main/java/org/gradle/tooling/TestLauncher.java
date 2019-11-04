@@ -87,6 +87,8 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     /**
      * Adds tests to be executed declared by the container task and the class name.
      *
+     * <p>Note: the values are ignored for target Gradle version 6.1 or earlier.</p>
+     *
      * @param task The path of the target task.
      * @param testClasses The class names of the tests to be executed.
      * @return this
@@ -98,6 +100,7 @@ public interface TestLauncher extends ConfigurableLauncher<TestLauncher> {
     /**
      * Adds tests to be executed declared by the container task, class and method name.
      *
+     * <p>Note: the values are ignored for target Gradle version 6.1 or earlier.</p>
      * @param task The path of the target task.
      * @param testClass The name of the class containing the methods to execute.
      * @param methods The names of the test methods to be executed.
