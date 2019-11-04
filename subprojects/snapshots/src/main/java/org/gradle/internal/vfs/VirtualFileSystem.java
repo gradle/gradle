@@ -38,7 +38,21 @@ public interface VirtualFileSystem {
      *
      * @return the visitor function applied to the found snapshot.
      */
-    <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor);
+    default <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
+        return readRegularFileContentHash(location, ParentFetchStrategy.NONE, visitor);
+    }
+
+    enum ParentFetchStrategy {
+        NONE,
+        SHALLOW
+    }
+
+    /**
+     * Visits the hash of the content of the file only if the file is a regular file.
+     *
+     * @return the visitor function applied to the found snapshot.
+     */
+    <T> Optional<T> readRegularFileContentHash(String location, ParentFetchStrategy parentFetchStrategy, Function<HashCode, T> visitor);
 
     /**
      * Visits the hierarchy of files at the given location.

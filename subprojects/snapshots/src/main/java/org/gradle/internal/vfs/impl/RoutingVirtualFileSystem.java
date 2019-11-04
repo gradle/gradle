@@ -48,8 +48,8 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
-        return getVirtualFileSystemFor(location).readRegularFileContentHash(location, visitor);
+    public <T> Optional<T> readRegularFileContentHash(String location, ParentFetchStrategy parentFetchStrategy, Function<HashCode, T> visitor) {
+        return getVirtualFileSystemFor(location).readRegularFileContentHash(location, parentFetchStrategy, visitor);
     }
 
     @Override
