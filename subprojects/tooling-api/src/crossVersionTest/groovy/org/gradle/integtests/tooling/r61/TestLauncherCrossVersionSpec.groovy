@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r61
 import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.TestExecutionException
 import org.gradle.tooling.TestLauncher
 import spock.lang.Timeout
 
@@ -38,11 +39,32 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         """
     }
 
+    def "fails with meaningful error when no tests declared"() {
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTaskAndTestClasses(':test',[])
+        }
+
+        then:
+        def e = thrown(TestExecutionException)
+        e.message == 'No test for task :test declared for execution.'
+
+        when:
+        launchTests { TestLauncher launcher ->
+            launcher.withTaskAndTestMethods(':test', 'example.MyTest2', [])
+        }
+
+        then:
+        e = thrown(TestExecutionException)
+        e.message == 'No test for task :test declared for execution.'
+    }
+
+
     @TargetGradleVersion("<6.1")
     def "no tests executed when withTaskAndTestClasses() invoked for old clients"() {
         when:
         launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestClasses(':secondTest',"example.MyTest")
+            launcher.withTaskAndTestClasses(':secondTest',["example.MyTest"])
         }
 
         then:
@@ -50,19 +72,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         e.cause.message.contains 'No matching tests found'
         assertTaskNotExecuted(":test")
         assertTaskNotExecuted(":secondTest")
-    }
-
-    def "can target specific test task and class"() {
-        when:
-        launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestClasses(':secondTest',"example.MyTest")
-        }
-        then:
-        assertTaskNotExecuted(":test")
-        assertTaskExecuted(":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-        assertTestNotExecuted(className: "example.MyTest2")
-
     }
 
     def "can target specific test task and classes"() {
@@ -76,19 +85,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTestExecuted(className: "example.MyTest2", methodName: "bar", task: ":secondTest")
         assertTestNotExecuted(className: "example.MyTest")
     }
-
-    def "can target specific test task and method"() {
-        when:
-        launchTests { TestLauncher launcher ->
-            launcher.withTaskAndTestMethods(':secondTest', "example.MyTest", "foo")
-        }
-        then:
-        assertTaskNotExecuted(":test")
-        assertTaskExecuted(":secondTest")
-        assertTestExecuted(className: "example.MyTest", methodName: "foo", task: ":secondTest")
-        assertTestNotExecuted(className: "example.MyTest2", methodName: 'foo2')
-    }
-
 
     def "can target specific test task and methods"() {
         when:

@@ -16,7 +16,9 @@
 
 package org.gradle.tooling.internal.consumer;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.TestExecutionException;
@@ -30,7 +32,13 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.util.CollectionUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTestLauncher> implements TestLauncher {
 
@@ -155,6 +163,11 @@ public class DefaultTestLauncher extends AbstractLongRunningOperation<DefaultTes
     public void run(final ResultHandler<? super Void> handler) {
         if (operationDescriptors.isEmpty() && internalJvmTestRequests.isEmpty() && tasksAndTests.isEmpty()) {
             throw new TestExecutionException("No test declared for execution.");
+        }
+        for (Map.Entry<String, List<InternalJvmTestRequest>> entry : tasksAndTests.entrySet()) {
+            if (entry.getValue().isEmpty()) {
+                throw new TestExecutionException("No test for task " + entry.getKey() + " declared for execution.");
+            }
         }
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
         final TestExecutionRequest testExecutionRequest = new TestExecutionRequest(operationDescriptors, ImmutableList.copyOf(testClassNames), ImmutableSet.copyOf(internalJvmTestRequests), debugOptions, ImmutableMap.copyOf(tasksAndTests));
