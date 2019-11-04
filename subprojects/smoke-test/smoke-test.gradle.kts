@@ -16,7 +16,7 @@
 import accessors.groovy
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
-import org.gradle.gradlebuild.test.integrationtests.generatedApiJarCacheDir
+import org.gradle.gradlebuild.test.integrationtests.defaultGradleGeneratedApiJarCacheDirProvider
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.versioning.DetermineCommitId
 import org.gradle.testing.performance.generator.tasks.RemoteProject
@@ -76,9 +76,9 @@ tasks.register<SmokeTest>("smokeTest") {
     testClassesDirs = smokeTest.output.classesDirs
     classpath = smokeTest.runtimeClasspath
     maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
-    gradleInstallationForTest.gradleGeneratedApiJarCacheDir.set(providers.provider {
-        generatedApiJarCacheDir(rootProject.layout)
-    })
+    gradleInstallationForTest.gradleGeneratedApiJarCacheDir.set(
+        defaultGradleGeneratedApiJarCacheDirProvider()
+    )
 }
 
 plugins.withType<IdeaPlugin>().configureEach { // lazy as plugin not applied yet

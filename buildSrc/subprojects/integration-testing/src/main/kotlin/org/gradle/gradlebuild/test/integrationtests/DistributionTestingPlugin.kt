@@ -91,7 +91,7 @@ class DistributionTestingPlugin : Plugin<Project> {
         gradleInstallationForTest.apply {
             val intTestImage: Sync by project.tasks
             gradleUserHomeDir.set(projectDirectory.dir("intTestHomeDir"))
-            gradleGeneratedApiJarCacheDir.set(providers.provider { generatedApiJarCacheDir(layout) })
+            gradleGeneratedApiJarCacheDir.set(defaultGradleGeneratedApiJarCacheDirProvider())
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
             gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
             gradleSamplesDir.set(layout.projectDirectory.dir("subprojects/docs/src/samples"))
@@ -141,8 +141,16 @@ class DistributionTestingPlugin : Plugin<Project> {
 }
 
 
-fun DistributionTest.generatedApiJarCacheDir(layout: ProjectLayout) =
-    layout.projectDirectory.dir("intTestHomeDir/generatedApiJars/${project.version}/${project.name}-$classpathHash")
+fun DistributionTest.defaultGradleGeneratedApiJarCacheDirProvider(): Provider<Directory> =
+    project.rootProject.providers.provider { defaultGeneratedGradleApiJarCacheDir() }
+
+
+/**
+ * Computes a project and classpath specific `intTestHomeDir/generatedApiJars` directory.
+ */
+private
+fun DistributionTest.defaultGeneratedGradleApiJarCacheDir(): Directory =
+    project.rootProject.layout.projectDirectory.dir("intTestHomeDir/generatedApiJars/${project.version}/${project.name}-$classpathHash")
 
 
 private
