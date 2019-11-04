@@ -44,12 +44,12 @@ public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode imple
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getThisSnapshot() {
+    protected Optional<MetadataSnapshot> getMetadata() {
         return Optional.of(snapshot);
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset) {
         return snapshot.getSnapshot(absolutePath, offset);
     }
 

@@ -33,22 +33,22 @@ public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getThisSnapshot() {
+    protected Optional<MetadataSnapshot> getMetadata() {
         return Optional.empty();
     }
 
     @Override
-    protected FileSystemNode createCopy(String pathToParent, List<? extends FileSystemNode> merged) {
+    protected FileSystemNode withIncompleteChildren(String pathToParent, List<? extends FileSystemNode> merged) {
         return new UnknownSnapshot(pathToParent, merged);
     }
 
     @Override
-    protected Optional<FileSystemNode> withNoChildren() {
+    protected Optional<FileSystemNode> withAllChildrenRemoved() {
         return Optional.empty();
     }
 
     @Override
-    protected FileSystemNode withUnkownChildInvalidated() {
+    protected FileSystemNode withIncompleteChildren() {
         return this;
     }
 

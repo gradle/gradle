@@ -34,22 +34,22 @@ public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChil
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getThisSnapshot() {
+    protected Optional<MetadataSnapshot> getMetadata() {
         return Optional.of(this);
     }
 
     @Override
-    protected FileSystemNode createCopy(String prefix, List<? extends FileSystemNode> newChildren) {
+    protected FileSystemNode withIncompleteChildren(String prefix, List<? extends FileSystemNode> newChildren) {
         return new PartialDirectorySnapshot(prefix, newChildren);
     }
 
     @Override
-    protected Optional<FileSystemNode> withNoChildren() {
+    protected Optional<FileSystemNode> withAllChildrenRemoved() {
         return Optional.of(new PartialDirectorySnapshot(getPathToParent(), ImmutableList.of()));
     }
 
     @Override
-    protected FileSystemNode withUnkownChildInvalidated() {
+    protected FileSystemNode withIncompleteChildren() {
         return this;
     }
 

@@ -37,12 +37,12 @@ public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implemen
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getThisSnapshot() {
+    protected Optional<MetadataSnapshot> getMetadata() {
         return Optional.of(this);
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset) {
         return Optional.of(SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath));
     }
 

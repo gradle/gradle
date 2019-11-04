@@ -30,18 +30,12 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
         this.children = children;
     }
 
-    protected abstract Optional<MetadataSnapshot> getThisSnapshot();
-
-    protected abstract FileSystemNode createCopy(String prefix, List<? extends FileSystemNode> newChildren);
-    protected abstract Optional<FileSystemNode> withNoChildren();
-    protected abstract FileSystemNode withUnkownChildInvalidated();
-
     @Override
     public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
         return SnapshotUtil.handleChildren(children, absolutePath, offset, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
-                return Optional.of(withUnkownChildInvalidated());
+                return Optional.of(withIncompleteChildren());
             }
 
             @Override
@@ -52,11 +46,11 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
                     .map(Optional::of)
                     .orElseGet(() -> {
                         if (children.size() == 1) {
-                            return withNoChildren();
+                            return withAllChildrenRemoved();
                         }
                         List<FileSystemNode> merged = new ArrayList<>(children);
                         merged.remove(childIndex);
-                        return Optional.of(createCopy(getPathToParent(), merged));
+                        return Optional.of(withIncompleteChildren(getPathToParent(), merged));
                     });
             }
         });
@@ -69,7 +63,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
             public FileSystemNode handleNewChild(int insertBefore) {
                 List<FileSystemNode> newChildren = new ArrayList<>(children);
                 newChildren.add(insertBefore, snapshot.withPathToParent(absolutePath.substring(offset)));
-                return createCopy(getPathToParent(), newChildren);
+                return withIncompleteChildren(getPathToParent(), newChildren);
             }
 
             @Override
@@ -80,27 +74,47 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
         });
     }
 
+    @Override
+    public FileSystemNode withPathToParent(String newPathToParent) {
+        return getPathToParent().equals(newPathToParent)
+            ? this
+            : withIncompleteChildren(newPathToParent, children);
+    }
+
+    @Override
+    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset) {
+        return SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset);
+    }
+
+    /**
+     * Returns an updated node with the same children. The list of children are
+     * incomplete, even if they were complete before.
+     */
+    protected abstract FileSystemNode withIncompleteChildren();
+
+    /**
+     * Returns an updated node with an updated list of children.
+     *
+     * Caller must ensure the child list is not be mutated as the method
+     * doesn't make a defensive copy.
+     */
+    protected abstract FileSystemNode withIncompleteChildren(String prefix, List<? extends FileSystemNode> newChildren);
+
+    /**
+     * Returns an updated node with all children removed, or {@link Optional#empty()}
+     * if the node without children would contain no useful information to keep around.
+     */
+    protected abstract Optional<FileSystemNode> withAllChildrenRemoved();
+
     private FileSystemNode withReplacedChild(int childIndex, FileSystemNode childToReplace, FileSystemNode newChild) {
         if (newChild == childToReplace) {
             return AbstractIncompleteSnapshotWithChildren.this;
         }
         if (children.size() == 1) {
-            return createCopy(getPathToParent(), ImmutableList.of(newChild));
+            return withIncompleteChildren(getPathToParent(), ImmutableList.of(newChild));
         }
         List<FileSystemNode> merged = new ArrayList<>(children);
         merged.set(childIndex, newChild);
-        return createCopy(getPathToParent(), merged);
-    }
-
-    @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
-        return SnapshotUtil.getSnapshotFromChildren(children, absolutePath, offset);
-    }
-
-    @Override
-    public FileSystemNode withPathToParent(String newPathToParent) {
-        return getPathToParent().equals(newPathToParent)
-            ? this
-            : createCopy(newPathToParent, children);
+        return withIncompleteChildren(getPathToParent(), merged);
     }
 }

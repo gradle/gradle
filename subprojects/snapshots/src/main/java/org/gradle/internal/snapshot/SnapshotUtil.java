@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
-    public static Optional<MetadataSnapshot> getSnapshotFromChildren(List<? extends FileSystemNode> children, String filePath, int offset) {
+    public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, String filePath, int offset) {
         switch (children.size()) {
             case 0:
                 return Optional.empty();
