@@ -89,13 +89,7 @@ class RoutingVirtualFileSystemTest extends Specification {
         when:
         routingVirtualFileSystem.readRegularFileContentHash(location, hashFunction)
         then:
-        1 * expectedVirtualFileSystem.readRegularFileContentHash(location, VirtualFileSystem.ParentFetchStrategy.NONE, hashFunction)
-        0 * _
-
-        when:
-        routingVirtualFileSystem.readRegularFileContentHash(location, VirtualFileSystem.ParentFetchStrategy.SHALLOW, hashFunction)
-        then:
-        1 * expectedVirtualFileSystem.readRegularFileContentHash(location, VirtualFileSystem.ParentFetchStrategy.SHALLOW, hashFunction)
+        1 * expectedVirtualFileSystem.readRegularFileContentHash(location, hashFunction)
         0 * _
 
         when:

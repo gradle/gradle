@@ -16,7 +16,6 @@
 
 package org.gradle.internal.vfs.impl;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
 import org.gradle.internal.file.FileMetadataSnapshot;
@@ -26,28 +25,15 @@ import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
-import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
-import org.gradle.internal.snapshot.PartialDirectorySnapshot;
-import org.gradle.internal.snapshot.RegularFileMetadataSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.ShallowDirectorySnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,8 +41,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
-
-import static org.gradle.internal.snapshot.PathUtil.getFileName;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private final AtomicReference<FileHierarchySet> root = new AtomicReference<>(FileHierarchySet.EMPTY);
@@ -77,7 +61,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     }
 
     @Override
-    public <T> Optional<T> readRegularFileContentHash(String location, ParentFetchStrategy parentFetchStrategy, Function<HashCode, T> visitor) {
+    public <T> Optional<T> readRegularFileContentHash(String location, Function<HashCode, T> visitor) {
         return root.get().getMetadata(location)
             .<Optional<HashCode>>flatMap(snapshot -> {
                 if (snapshot.getType() != FileType.RegularFile) {
@@ -92,7 +76,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
                 File file = new File(location);
                 FileMetadataSnapshot stat = this.stat.stat(file);
                 if (stat.getType() == FileType.Missing) {
-                    storeStatForMissingFile(file, location, parentFetchStrategy);
+                    storeStatForMissingFile(location);
                 }
                 if (stat.getType() != FileType.RegularFile) {
                     return Optional.empty();
@@ -110,50 +94,8 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             .map(visitor);
     }
 
-    private void storeStatForMissingFile(File file, String location, ParentFetchStrategy parentFetchStrategy) {
-        switch (parentFetchStrategy) {
-            case SHALLOW:
-                storeStatForMissingFile(file);
-                break;
-            case NONE:
-                root.updateAndGet(root -> root.update(location, new MissingFileSnapshot(location)));
-                break;
-            default:
-                throw new AssertionError();
-        }
-    }
-
-    private void storeStatForMissingFile(File file) {
-        File parentFile = file.getParentFile();
-        if (parentFile != null) {
-            String parentLocation = parentFile.getAbsolutePath();
-            FileMetadataSnapshot parentStat = this.stat.stat(parentFile);
-            if (parentStat.getType() == FileType.Missing) {
-                root.updateAndGet(root -> root.update(parentLocation, new MissingFileSnapshot(parentLocation)));
-            } else if (parentStat.getType() == FileType.RegularFile) {
-                root.updateAndGet(root -> root.update(parentLocation, new RegularFileMetadataSnapshot(getFileName(parentLocation))));
-            } else {
-                ShallowDirectorySnapshot shallowDirectorySnapshot = new ShallowDirectorySnapshot(getFileName(parentLocation), getChildrenForDirectory(parentFile));
-                root.updateAndGet(root -> root.update(parentLocation, shallowDirectorySnapshot));
-            }
-        }
-    }
-
-    private static List<? extends FileSystemNode> getChildrenForDirectory(File parentFile) {
-        List<MetadataSnapshot> children = new ArrayList<>();
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(parentFile.toPath())) {
-            for (Path path : directoryStream) {
-                if (Files.isDirectory(path)) {
-                    children.add(new PartialDirectorySnapshot(path.getFileName().toString(), ImmutableList.of()));
-                } else {
-                    children.add(new RegularFileMetadataSnapshot(path.getFileName().toString()));
-                }
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        children.sort(Comparator.comparing(FileSystemNode::getPathToParent));
-        return children;
+    private void storeStatForMissingFile(String location) {
+        root.updateAndGet(root -> root.update(location, new MissingFileSnapshot(location)));
     }
 
     @Override
