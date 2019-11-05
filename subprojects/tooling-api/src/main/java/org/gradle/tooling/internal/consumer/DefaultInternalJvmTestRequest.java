@@ -19,8 +19,9 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 
 import javax.annotation.Nullable;
+import java.io.Serializable;
 
-public class DefaultInternalJvmTestRequest implements InternalJvmTestRequest {
+public class DefaultInternalJvmTestRequest implements InternalJvmTestRequest, Serializable {
     private final String className;
     private final String methodName;
 
