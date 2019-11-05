@@ -410,12 +410,7 @@ def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoct
 
     backends = ['html5']
 
-    attributes icons        : null,
-        'note-caption'      : '&#10024;',
-        'tip-caption'       : '&#128161;',
-        'important-caption' : '&#10071;️',
-        'caution-caption'   : '&#9888;',
-        'warning-caption'   : '&#9888;',
+    attributes icons        : 'font',
         'source-highlighter': 'prettify',
         toc                 : 'auto',
         toclevels           : 1,
