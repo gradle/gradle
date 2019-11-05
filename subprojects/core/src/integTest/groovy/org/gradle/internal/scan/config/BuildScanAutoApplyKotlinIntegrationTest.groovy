@@ -32,18 +32,20 @@ class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTes
 
     def "can automatically apply plugin when --scan is provided on command-line"() {
         given:
+        file("settings.gradle").delete()
+        file("settings.gradle.kts") << """
+            rootProject.buildFileName = "$defaultBuildFileName"
+        """
+
         buildFile << """
             task("dummy")
         """
 
+        and:
         def initScript = file("init.gradle") << """
             beforeSettings {
                 it.with { ${fixture.pluginManagement()} }
             }
-        """
-
-        file("settings.gradle.kts") << """
-            gradleEnterprise {}
         """
 
         fixture.publishDummyPlugin(executer)
