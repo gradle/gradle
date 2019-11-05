@@ -82,7 +82,8 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
         Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests();
 
         List<Test> testTasksToRun = new ArrayList<Test>();
-        for (final String testTaskPath : taskAndTests.keySet()) {
+        for (final Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
+            String testTaskPath = entry.getKey();
             final Task task = gradle.getRootProject().getTasks().findByPath(testTaskPath);
             if (task == null) {
                 throw new TestExecutionException(String.format("Requested test task with path '%s' cannot be found.", testTaskPath));
@@ -90,7 +91,7 @@ class TestExecutionBuildConfigurationAction implements BuildConfigurationAction 
                 throw new TestExecutionException(String.format("Task '%s' of type '%s' not supported for executing tests via TestLauncher API.", testTaskPath, task.getClass().getName()));
             } else {
                 Test testTask = (Test) task;
-                for (InternalJvmTestRequest jvmTestRequest : taskAndTests.get(testTaskPath)) {
+                for (InternalJvmTestRequest jvmTestRequest : entry.getValue()) {
                     final TestFilter filter = testTask.getFilter();
                     filter.includeTest(jvmTestRequest.getClassName(), jvmTestRequest.getMethodName());
                 }
