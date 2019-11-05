@@ -60,7 +60,7 @@ open class DistributionTest : Test() {
     val rerun: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
 
     init {
-        dependsOn(Callable { if (binaryDistributions.distributionsRequired) listOf("all", "bin", "src").map { ":distributions:${it}Zip" } else null })
+        dependsOn(Callable { if (binaryDistributions.distributionsRequired) ":distributions:buildDists" else null })
         dependsOn(Callable { if (binaryDistributions.binZipRequired) ":distributions:binZip" else null })
         dependsOn(Callable { if (libsRepository.required) ":toolingApi:publishLocalArchives" else null })
         jvmArgumentProviders.add(gradleInstallationForTest)
