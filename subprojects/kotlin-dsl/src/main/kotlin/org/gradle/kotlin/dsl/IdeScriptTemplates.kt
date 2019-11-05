@@ -91,7 +91,7 @@ open class KotlinBuildScript(
     compilationConfiguration = KotlinSettingsScriptCompilationConfiguration::class
 )
 @Incubating
-abstract class KotlinSettingsScript(
+open class KotlinSettingsScript(
     host: KotlinScriptHost<Settings>
 ) : CompiledKotlinSettingsScript(host) {
 
@@ -102,7 +102,6 @@ abstract class KotlinSettingsScript(
      * @since 6.0
      */
     @Incubating
-    @Suppress("unused")
     open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         invalidPluginsCall()
 }
