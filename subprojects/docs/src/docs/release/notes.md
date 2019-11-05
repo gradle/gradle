@@ -12,6 +12,12 @@ Include only their name, impactful features should be called out separately belo
 [Kazuki Matsuda](https://github.com/kazuki-ma),
 and [Nicholas Gates](https://github.com/gatesn).
 
+## Features for Gradle tooling providers
+
+### `TestLauncher` can select specific methods
+
+The `TestLauncher` interface in the Tooling API is capable of launching tests by specifying the name of the test classes or methods. If there are multiple test tasks contain those test classes/methods, then all tasks are executed. This is not ideal for IDEs: developers usually want to execute only one test variant at the time. To overcome this, Gradle 6.1 introduces the `withTaskAndTestClasses()` and `withTaskAndTestMethods()` methods.
+
 ## Upgrade Instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
