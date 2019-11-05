@@ -21,10 +21,13 @@ import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginAware
+import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinBuildScriptCompilationConfiguration
+import org.gradle.kotlin.dsl.support.KotlinInitScriptCompilationConfiguration
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.KotlinSettingsScriptCompilationConfiguration
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
@@ -102,4 +105,29 @@ abstract class KotlinSettingsScript(
     @Suppress("unused")
     open fun plugins(@Suppress("unused_parameter") block: PluginDependenciesSpecScope.() -> Unit): Unit =
         invalidPluginsCall()
+}
+
+
+/**
+ * Base class for Kotlin init scripts.
+ *
+ * @since 6.0
+ */
+@GradleDsl
+@KotlinScript(
+    displayName = "Gradle Init Script",
+    fileExtension = "init.gradle.kts",
+    filePathPattern = "^.*/.+\\.init\\.gradle\\.kts$", // TODO: consider matching (/init\\.d/.*\\.gradle\\.kts) as well
+    compilationConfiguration = KotlinInitScriptCompilationConfiguration::class
+)
+@Incubating
+open class KotlinInitScript(
+    host: KotlinScriptHost<Gradle>
+) : CompiledKotlinInitScript(host) {
+
+    /**
+     * Configures the classpath of the init script.
+     */
+    open fun initscript(@Suppress("unused_parameter") block: ScriptHandlerScope.() -> Unit): Unit =
+        internalError()
 }

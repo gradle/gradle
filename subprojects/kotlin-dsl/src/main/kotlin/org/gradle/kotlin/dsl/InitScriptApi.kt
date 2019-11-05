@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,82 +16,29 @@
 
 package org.gradle.kotlin.dsl
 
-import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
-import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.resources.ResourceHandler
 import org.gradle.api.tasks.WorkResult
-import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
-import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.delegates.GradleDelegate
 import org.gradle.kotlin.dsl.support.internalError
 import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.support.unsafeLazy
-
 import org.gradle.process.ExecResult
 import org.gradle.process.ExecSpec
 import org.gradle.process.JavaExecSpec
-
 import java.io.File
 import java.net.URI
-
-import kotlin.script.extensions.SamWithReceiverAnnotations
-import kotlin.script.templates.ScriptTemplateAdditionalCompilerArguments
-import kotlin.script.templates.ScriptTemplateDefinition
-
-
-/**
- * Script template for Kotlin init scripts.
- */
-@ScriptTemplateDefinition(
-    resolver = KotlinBuildScriptDependenciesResolver::class,
-    scriptFilePattern = ".+\\.init\\.gradle\\.kts")
-@ScriptTemplateAdditionalCompilerArguments([
-    "-jvm-target", "1.8",
-    "-Xjsr305=strict",
-    "-XXLanguage:+NewInference",
-    "-XXLanguage:+SamConversionForKotlinFunctions"
-])
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
-abstract class KotlinInitScript(
-    private val host: KotlinScriptHost<Gradle>
-) : InitScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
-
-    /**
-     * The [ScriptHandler] for this script.
-     */
-    val initscript
-        get() = host.scriptHandler
-
-    /**
-     * Applies zero or more plugins or scripts.
-     * <p>
-     * The given action is used to configure an [ObjectConfigurationAction], which “builds” the plugin application.
-     * <p>
-     * @param action the action to configure an [ObjectConfigurationAction] with before “executing” it
-     * @see [PluginAware.apply]
-     */
-    override fun apply(action: Action<in ObjectConfigurationAction>) =
-        host.applyObjectConfigurationAction(action)
-
-    override val fileOperations
-        get() = host.fileOperations
-
-    override val processOperations
-        get() = host.processOperations
-}
 
 
 /**
