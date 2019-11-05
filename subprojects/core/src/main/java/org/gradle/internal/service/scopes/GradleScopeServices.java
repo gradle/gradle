@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.Action;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -32,6 +31,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.api.services.internal.DefaultBuildServicesRegistry;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.DefaultFileContentCacheFactory;
 import org.gradle.cache.internal.FileContentCacheFactory;
@@ -97,7 +98,6 @@ import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.internal.scopeids.id.UserScopeId;
 import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -119,12 +119,9 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     public GradleScopeServices(final ServiceRegistry parent, final GradleInternal gradle) {
         super(parent);
         add(GradleInternal.class, gradle);
-        register(new Action<ServiceRegistration>() {
-            @Override
-            public void execute(ServiceRegistration registration) {
-                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    pluginServiceRegistry.registerGradleServices(registration);
-                }
+        register(registration -> {
+            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                pluginServiceRegistry.registerGradleServices(registration);
             }
         });
 
@@ -278,6 +275,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
     FileContentCacheFactory createFileContentCacheFactory(FileContentCacheFactory globalCacheFactory, ListenerManager listenerManager, VirtualFileSystem virtualFileSystem, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, Gradle gradle, WellKnownFileLocations wellKnownFileLocations) {
         DefaultFileContentCacheFactory localCacheFactory = new DefaultFileContentCacheFactory(listenerManager, virtualFileSystem, cacheRepository, inMemoryCacheDecoratorFactory, gradle);
         return new SplitFileContentCacheFactory(globalCacheFactory, localCacheFactory, wellKnownFileLocations);
+    }
+
+    BuildServiceRegistry createSharedServiceRegistry(Instantiator instantiator, DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager) {
+        return instantiator.newInstance(DefaultBuildServicesRegistry.class, factory, instantiatorFactory, services, listenerManager);
     }
 
     protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
