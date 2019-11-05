@@ -16,18 +16,16 @@
 
 package org.gradle.instantexecution
 
-import org.junit.Assume
-
 class InstantExecutionKotlinIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def mavenLocal = new File(System.getProperty("user.home"), ".m2/repository")
+    def kotlinVersion = '1.3.70-dev-1099'
 
     def setup() {
-        Assume.assumeTrue(
-            "Local kotlin-gradle-plugin snapshot must be available under ~/.m2/repository",
-            new File(mavenLocal, "org/jetbrains/kotlin/kotlin-gradle-plugin").isDirectory()
-        )
         executer.noDeprecationChecks()
+    }
+
+    def kotlinDev() {
+        'maven { url = "https://dl.bintray.com/kotlin/kotlin-dev/" }'
     }
 
     def "compileKotlin"() {
@@ -35,22 +33,21 @@ class InstantExecutionKotlinIntegrationTest extends AbstractInstantExecutionInte
         def instantExecution = newInstantExecutionFixture()
 
         given:
-        def mavenLocal = mavenLocalURI()
         buildFile << """
             buildscript {
                 repositories {
-                    maven { url = "$mavenLocal" }
+                    ${kotlinDev()}
                     ${mavenCentralRepository()}
                 }
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3-SNAPSHOT")
+                    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
                 }
             }
 
             apply plugin: 'org.jetbrains.kotlin.jvm'
 
             repositories {
-                maven { url = "$mavenLocal" }
+                ${kotlinDev()}
                 ${mavenCentralRepository()}
             }
         """
@@ -93,22 +90,21 @@ class InstantExecutionKotlinIntegrationTest extends AbstractInstantExecutionInte
         def instantExecution = newInstantExecutionFixture()
 
         given:
-        def mavenLocal = mavenLocalURI()
         buildFile << """
             buildscript {
                 repositories {
-                    maven { url = "$mavenLocal" }
+                    ${kotlinDev()}
                     ${mavenCentralRepository()}
                 }
                 dependencies {
-                    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3-SNAPSHOT")
+                    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}")
                 }
             }
 
             apply plugin: 'org.jetbrains.kotlin.jvm'
 
             repositories {
-                maven { url = "$mavenLocal" }
+                ${kotlinDev()}
                 ${mavenCentralRepository()}
             }
 
@@ -170,9 +166,5 @@ class InstantExecutionKotlinIntegrationTest extends AbstractInstantExecutionInte
 
         and:
         assertTestsExecuted("ThingTest", "ok")
-    }
-
-    private String mavenLocalURI() {
-        this.mavenLocal.toURI().toString()
     }
 }
