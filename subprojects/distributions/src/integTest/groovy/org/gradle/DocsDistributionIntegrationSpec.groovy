@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,33 +16,35 @@
 
 package org.gradle
 
+
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Shared
 
-class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
-
+class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
     @Shared String version = buildContext.distZipVersion.version
 
     @Override
     String getDistributionLabel() {
-        "all"
+        "docs"
     }
 
-    def allZipContents() {
+    @Override
+    int getLibJarsCount() {
+        0
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def docsZipContents() {
         given:
         TestFile contentsDir = unpackDistribution()
 
         expect:
-        checkMinimalContents(contentsDir)
-
-        // Source
-        contentsDir.file('src').eachFile { TestFile file -> file.assertIsDir() }
-        contentsDir.file('src/core-api/org/gradle/api/Project.java').assertIsFile()
-        contentsDir.file('src/wrapper/org/gradle/wrapper/WrapperExecutor.java').assertIsFile()
-
-        // Samples
-        contentsDir.file('samples').assertDoesNotExist()
-
+        contentsDir.file("LICENSE").assertIsFile()
         assertDocsExist(contentsDir, version)
+
+        // Docs distribution contains all published samples
+        contentsDir.file("docs/samples/index.html").assertIsFile()
     }
 }
