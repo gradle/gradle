@@ -58,12 +58,12 @@ configurations {
         canBeConsumed = true
     }
 
-    gradleDotOrgDocsElements {
+    gradleSamplesElements {
         visible = false
         canBeResolved = false
         canBeConsumed = true
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
-        attributes.attribute(Attribute.of("type", String), "dot-org-docs")
+        attributes.attribute(Attribute.of("type", String), "samples")
     }
     gradleFullDocsElements {
         visible = false
@@ -125,29 +125,11 @@ ext {
     userguideSinglePageOutputDir = new File(buildDir, 'userguideSinglePage')
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
-    dotOrgDocsDir = file("$buildDir/dotOrgDocs")
+    samplesDir = new File(buildDir, "gradle-samples")
     userguideDir = new File(docsDir, 'userguide')
     distDocsDir = new File(buildDir, 'distDocs')
     docbookSrc = new File(project.buildDir, 'src')
     samplesSrcDir = file('src/samples')
-}
-
-configurations {
-    gradleDotOrgDocsElements {
-        outgoing.artifact(dotOrgDocsDir) {
-            builtBy 'dotOrgDocs'
-        }
-    }
-    gradleFullDocsElements {
-        outgoing.artifact(docsDir) {
-            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
-        }
-    }
-    gradleGettingStartedElements {
-        outgoing.artifact(distDocsDir) {
-            builtBy 'distDocs'
-        }
-    }
 }
 
 def configureCss = tasks.register("configureCss") {
@@ -167,21 +149,6 @@ def css = tasks.register("css", Sync) {
     from "src/docs/css"
     include "*.css"
     include "*.svg"
-}
-
-artifacts {
-    // declare that the generated css directory is an output of cssElements
-    cssElements file: css.get().destinationDir, builtBy: css
-}
-
-// TODO This is a hack pending a solution to https://github.com/gradle/gradle/issues/4612
-// Don't publish the CSS artifacts when calling uploadArchives
-afterEvaluate {
-    def notCssElements = configurations.archives.artifacts.findAll { !(it in configurations.cssElements.artifacts) }
-    configurations.archives.artifacts.clear()
-    artifacts {
-        archives notCssElements
-    }
 }
 
 ext.cssFiles = fileTree(css.map { it.destinationDir }) {
@@ -646,11 +613,45 @@ samples {
     }
 }
 
-tasks.register("dotOrgDocs", Sync) {
-    dependsOn("asciidocSampleIndex", *samples.collect { "assemble${it.name.capitalize()}Sample" }, "docs")
-    from(docsDir)
-    from(layout.buildDirectory.dir("gradle-samples")) {
-        into("samples")
+tasks.register("publishedSamples") {
+    dependsOn "asciidocSampleIndex"
+    dependsOn {
+        project.extensions.samples.collect { "assemble${it.name.capitalize()}Sample" }
     }
-    into(dotOrgDocsDir)
+}
+
+
+// Publications for the docs subproject:
+
+configurations {
+    gradleSamplesElements {
+        outgoing.artifact(samplesDir) {
+            builtBy 'publishedSamples'
+        }
+    }
+    gradleFullDocsElements {
+        outgoing.artifact(docsDir) {
+            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+        }
+    }
+    gradleGettingStartedElements {
+        outgoing.artifact(distDocsDir) {
+            builtBy 'distDocs'
+        }
+    }
+}
+
+artifacts {
+    // declare that the generated css directory is an output of cssElements
+    cssElements file: css.get().destinationDir, builtBy: css
+}
+
+// TODO This is a hack pending a solution to https://github.com/gradle/gradle/issues/4612
+// Don't publish the CSS artifacts when calling uploadArchives
+afterEvaluate {
+    def notCssElements = configurations.archives.artifacts.findAll { !(it in configurations.cssElements.artifacts) }
+    configurations.archives.artifacts.clear()
+    artifacts {
+        archives notCssElements
+    }
 }

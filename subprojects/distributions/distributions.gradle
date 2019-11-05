@@ -53,13 +53,13 @@ configurations {
         attributes.attribute(Attribute.of("org.gradle.api", String), "build-receipt")
     }
 
-    gradleDotOrgDocs {
+    gradleSamples {
         visible = false
         canBeResolved = true
         canBeConsumed = false
         extendsFrom(gradleDocumentation)
         attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "docs"))
-        attributes.attribute(Attribute.of("type", String), "dot-org-docs")
+        attributes.attribute(Attribute.of("type", String), "samples")
     }
 
     gradleFullDocs {
@@ -140,7 +140,14 @@ ext {
     }
 
     docsDistImage = copySpec {
-        from configurations.gradleDotOrgDocs
+        from("$rootDir/LICENSE")
+        from('src/toplevel')
+        into('docs') {
+            from configurations.gradleFullDocs
+            into('samples') {
+                from configurations.gradleSamples
+            }
+        }
     }
 }
 
