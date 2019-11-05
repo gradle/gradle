@@ -25,7 +25,7 @@ import java.util.Optional;
 
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
 import static org.gradle.internal.snapshot.SnapshotUtil.invalidateSingleChild;
-import static org.gradle.internal.snapshot.SnapshotUtil.updateSingleChild;
+import static org.gradle.internal.snapshot.SnapshotUtil.storeSingleChild;
 
 public class DefaultFileHierarchySet implements FileHierarchySet {
     @VisibleForTesting
@@ -55,7 +55,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     @Override
     public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
         String normalizedPath = normalizeRoot(absolutePath);
-        return new DefaultFileHierarchySet(updateSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), snapshot));
+        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), snapshot));
     }
 
     @Override

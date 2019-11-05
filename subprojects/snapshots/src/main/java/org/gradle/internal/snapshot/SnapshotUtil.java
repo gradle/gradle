@@ -57,11 +57,11 @@ public class SnapshotUtil {
         return child.getSnapshot(filePath, offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()));
     }
 
-    public static FileSystemNode updateSingleChild(FileSystemNode child, String path, int offset, MetadataSnapshot snapshot) {
+    public static FileSystemNode storeSingleChild(FileSystemNode child, String path, int offset, MetadataSnapshot snapshot) {
         return handlePrefix(child.getPathToParent(), path, offset, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
-                return child.update(
+                return child.store(
                     path,
                     offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()),
                     snapshot);

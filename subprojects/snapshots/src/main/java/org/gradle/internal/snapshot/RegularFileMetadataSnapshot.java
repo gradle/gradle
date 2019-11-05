@@ -47,7 +47,7 @@ public class RegularFileMetadataSnapshot extends AbstractFileSystemNode implemen
     }
 
     @Override
-    public FileSystemNode update(String absolutePath, int offset, MetadataSnapshot snapshot) {
+    public FileSystemNode store(String absolutePath, int offset, MetadataSnapshot snapshot) {
         return this;
     }
 

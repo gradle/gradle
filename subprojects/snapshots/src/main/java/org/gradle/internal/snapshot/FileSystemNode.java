@@ -33,12 +33,12 @@ public interface FileSystemNode {
     Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset);
 
     /**
-     * Adds more information to the file system node.
+     * Stores information to the virtual file system that we have learned about.
      *
      * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
      * @param absolutePath the path to update, starting from offset. Must not include the {@link #getPathToParent()}.
      */
-    FileSystemNode update(String absolutePath, int offset, MetadataSnapshot snapshot);
+    FileSystemNode store(String absolutePath, int offset, MetadataSnapshot snapshot);
 
     /**
      * Invalidates part of the node.

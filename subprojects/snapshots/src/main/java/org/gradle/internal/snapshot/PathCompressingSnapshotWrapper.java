@@ -39,8 +39,8 @@ public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode imple
     }
 
     @Override
-    public FileSystemNode update(String absolutePath, int offset, MetadataSnapshot newSnapshot) {
-        return snapshot.update(absolutePath, offset, newSnapshot).withPathToParent(getPathToParent());
+    public FileSystemNode store(String absolutePath, int offset, MetadataSnapshot newSnapshot) {
+        return snapshot.store(absolutePath, offset, newSnapshot).withPathToParent(getPathToParent());
     }
 
     @Override

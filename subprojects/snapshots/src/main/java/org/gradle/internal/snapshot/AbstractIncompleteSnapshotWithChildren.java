@@ -57,7 +57,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public FileSystemNode update(String absolutePath, int offset, MetadataSnapshot snapshot) {
+    public FileSystemNode store(String absolutePath, int offset, MetadataSnapshot snapshot) {
         return SnapshotUtil.handleChildren(children, absolutePath, offset, new SnapshotUtil.ChildHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleNewChild(int insertBefore) {
@@ -69,7 +69,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
             @Override
             public FileSystemNode handleChildOfExisting(int childIndex) {
                 FileSystemNode child = children.get(childIndex);
-                return withReplacedChild(childIndex, child, SnapshotUtil.updateSingleChild(child, absolutePath, offset, snapshot));
+                return withReplacedChild(childIndex, child, SnapshotUtil.storeSingleChild(child, absolutePath, offset, snapshot));
             }
         });
     }
