@@ -59,7 +59,7 @@ class BuildActionSerializerTest extends SerializerSpec {
         where:
         action << [
             new ClientProvidedBuildAction(new StartParameterInternal(), new SerializedPayload(null, []), true, new BuildClientSubscriptions(EnumSet.allOf(OperationType))),
-            new TestExecutionRequestAction(new BuildClientSubscriptions(EnumSet.allOf(OperationType)), new StartParameterInternal(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new DefaultDebugOptions()),
+            new TestExecutionRequestAction(new BuildClientSubscriptions(EnumSet.allOf(OperationType)), new StartParameterInternal(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), new DefaultDebugOptions(), Collections.emptyMap()),
             new BuildModelAction(new StartParameterInternal(), "model", false, new BuildClientSubscriptions(EnumSet.allOf(OperationType)))
         ]
     }
