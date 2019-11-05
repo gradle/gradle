@@ -22,9 +22,9 @@ import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileMetadata
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -54,7 +54,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def subdir = dir1.createDir("subdir")
         def subdirFile1 = subdir.createFile("subdirFile1")
 
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
         virtualFileSystem.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
         def unfiltered = result.get()
 
@@ -74,7 +74,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         def root = temporaryFolder.createFile("root")
 
         expect:
-        filteredPaths(new DirectorySnapshot(root.absolutePath, root.name, [], HashCode.fromInt(789)), include("different")) == [root] as Set
+        filteredPaths(new CompleteDirectorySnapshot(root.absolutePath, root.name, [], HashCode.fromInt(789)), include("different")) == [root] as Set
     }
 
     def "root file can be filtered"() {
@@ -93,7 +93,7 @@ class FileSystemSnapshotFilterTest extends Specification {
         dir1.createFile("dirFile1")
         dir1.createFile("dirFile2")
 
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+        MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
         virtualFileSystem.read(root.getAbsolutePath(), snapshottingFilter(new PatternSet()), result.&set)
         def unfiltered = result.get()
 
@@ -105,18 +105,18 @@ class FileSystemSnapshotFilterTest extends Specification {
         def result = [] as Set
         FileSystemSnapshotFilter.filterSnapshot(snapshottingFilter(patterns).asSnapshotPredicate, unfiltered).accept(new FileSystemSnapshotVisitor() {
             @Override
-            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 result << new File(directorySnapshot.absolutePath)
                 return true
             }
 
             @Override
-            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                 result << new File(fileSnapshot.absolutePath)
             }
 
             @Override
-            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             }
         })
         return result

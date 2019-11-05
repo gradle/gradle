@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,14 @@
 
 package org.gradle.internal.snapshot;
 
-public abstract class AbstractFileSystemLocationSnapshot implements FileSystemLocationSnapshot {
-    private final String absolutePath;
-    private final String name;
+import org.gradle.internal.file.FileType;
 
-    public AbstractFileSystemLocationSnapshot(String absolutePath, String name) {
-        this.absolutePath = absolutePath;
-        this.name = name;
-    }
-
-    @Override
-    public String getAbsolutePath() {
-        return absolutePath;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
+/**
+ * A snapshot where we know the metadata (i.e. the type).
+ */
+public interface MetadataSnapshot extends FileSystemNode {
+    /**
+     * The type of the file.
+     */
+    FileType getType();
 }

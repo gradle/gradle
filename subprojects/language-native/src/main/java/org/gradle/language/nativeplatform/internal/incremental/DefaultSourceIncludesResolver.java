@@ -345,11 +345,6 @@ public class DefaultSourceIncludesResolver implements SourceIncludesResolver {
         }
 
         CachedIncludeFile get(String includePath) {
-            CachedIncludeFile includeFile = contents.get(includePath);
-            if (includeFile != null) {
-                return includeFile;
-            }
-
             return contents.computeIfAbsent(includePath,
                 key -> {
                     File candidate = normalizeIncludePath(searchDir, includePath);

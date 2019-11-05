@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Comparator;
@@ -24,17 +23,14 @@ import java.util.Comparator;
 /**
  * A snapshot of a single location on the file system.
  *
+ * We know everything about this snapshot, including children and Merkle hash.
+ *
  * The snapshot can be a snapshot of a regular file or of a whole directory tree.
  * The file at the location is not required to exist (see {@link MissingFileSnapshot}.
  */
-public interface FileSystemLocationSnapshot extends FileSystemSnapshot {
+public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode, MetadataSnapshot {
 
-    Comparator<FileSystemLocationSnapshot> BY_NAME = Comparator.comparing(FileSystemLocationSnapshot::getName);
-
-    /**
-     * The type of the file.
-     */
-    FileType getType();
+    Comparator<CompleteFileSystemLocationSnapshot> BY_NAME = Comparator.comparing(CompleteFileSystemLocationSnapshot::getName);
 
     /**
      * The file name.
@@ -64,5 +60,5 @@ public interface FileSystemLocationSnapshot extends FileSystemSnapshot {
     /**
      * Whether the content and the metadata (modification date) of the current snapshot is the same as for the given one.
      */
-    boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other);
+    boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other);
 }

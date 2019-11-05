@@ -99,7 +99,6 @@ import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
-import org.gradle.internal.vfs.impl.FileSystemSnapshotterVirtualFileSystem;
 import org.gradle.internal.vfs.impl.RoutingVirtualFileSystem;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.internal.work.DefaultAsyncWorkTracker;
@@ -190,10 +189,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         WellKnownFileLocations wellKnownFileLocations,
         ListenerManager listenerManager
     ) {
-        String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
-        VirtualFileSystem buildSessionsScopedVirtualFileSystem = GradleUserHomeScopeServices.VFS_ENABLED
-            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes)
-            : new FileSystemSnapshotterVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes);
+        VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
 
         listenerManager.addListener(new OutputChangeListener() {
             @Override

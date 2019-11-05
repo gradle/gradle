@@ -84,7 +84,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.ExecutingBuildOperation;
 import org.gradle.internal.operations.RunnableBuildOperation;
-import org.gradle.internal.service.scopes.GradleUserHomeScopeServices;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.slf4j.Logger;
@@ -125,7 +124,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final FileCollectionFactory fileCollectionFactory;
-    private final boolean fineGrainedInvalidationEnabled = GradleUserHomeScopeServices.VFS_ENABLED;
+    private final boolean fineGrainedInvalidationEnabled = Boolean.getBoolean("org.gradle.experimental.fine.grained.invalidation");
 
     public ExecuteActionsTaskExecuter(
         boolean buildCacheEnabled,
@@ -326,7 +325,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
                 if (!(property instanceof CacheableOutputFilePropertySpec)) {
                     throw new IllegalStateException("Non-cacheable property: " + property);
                 }
-                File cacheRoot = ((CacheableOutputFilePropertySpec) property).getOutputFile();
+                File cacheRoot = property.getOutputFile();
                 if (cacheRoot == null) {
                     continue;
                 }

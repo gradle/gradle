@@ -26,7 +26,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.util.GFileUtils;
 
@@ -67,17 +67,17 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     }
 
     /**
-     * Adapts a {@link FileSystemLocationSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
+     * Adapts a {@link CompleteFileSystemLocationSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
      * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.
      */
     private static class LogicalFileTreeElement implements FileTreeElement, Describable {
         private final Iterable<String> relativePathIterable;
         private final Stat stat;
-        private final FileSystemLocationSnapshot snapshot;
+        private final CompleteFileSystemLocationSnapshot snapshot;
         private RelativePath relativePath;
         private File file;
 
-        public LogicalFileTreeElement(FileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, Stat stat) {
+        public LogicalFileTreeElement(CompleteFileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, Stat stat) {
             this.snapshot = snapshot;
             this.relativePathIterable = relativePathIterable;
             this.stat = stat;

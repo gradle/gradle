@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
 import org.gradle.internal.fingerprint.FingerprintingStrategy
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
@@ -72,8 +72,8 @@ class PathNormalizationStrategyTest extends Specification {
         ]
     }
 
-    private FileSystemLocationSnapshot snapshot(File file) {
-        MutableReference<FileSystemLocationSnapshot> result = MutableReference.empty()
+    private CompleteFileSystemLocationSnapshot snapshot(File file) {
+        MutableReference<CompleteFileSystemLocationSnapshot> result = MutableReference.empty()
         virtualFileSystem.read(file.absolutePath, result.&set)
         return result.get()
     }

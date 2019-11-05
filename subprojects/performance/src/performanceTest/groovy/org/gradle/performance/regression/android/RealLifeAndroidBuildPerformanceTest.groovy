@@ -44,7 +44,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
         runner.minimumBaseVersion = "5.6.1" // AGP 3.6 requires 5.6.1+
-        runner.targetVersions = ["6.0-20190926235010+0000"]
+        runner.targetVersions = ["6.1-branch-wolfs_vfs_vfs_by_default-20191105101017+0000"]
         if (testProject == SANTA_TRACKER_KOTLIN) {
             runner.targetVersions = ["5.6.1"]
         }

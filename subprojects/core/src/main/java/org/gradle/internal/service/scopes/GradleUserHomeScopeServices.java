@@ -93,7 +93,6 @@ import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
-import org.gradle.internal.vfs.impl.FileSystemSnapshotterVirtualFileSystem;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -108,8 +107,6 @@ import java.util.List;
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
  */
 public class GradleUserHomeScopeServices {
-    public static final String ENABLE_VFS_SYSTEM_PROPERTY_NAME = "org.gradle.experimental.enable.vfs";
-    public static final boolean VFS_ENABLED = false;
     private final ServiceRegistry globalServices;
 
     public GradleUserHomeScopeServices(ServiceRegistry globalServices) {
@@ -166,10 +163,7 @@ public class GradleUserHomeScopeServices {
     }
 
     VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager) {
-        String[] defaultExcludes = DirectoryScanner.getDefaultExcludes();
-        VirtualFileSystem virtualFileSystem = VFS_ENABLED
-            ? new DefaultVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes)
-            : new FileSystemSnapshotterVirtualFileSystem(hasher, stringInterner, stat, defaultExcludes);
+        VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
         listenerManager.addListener(new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {
