@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
+import org.gradle.api.invocation.Gradle
 import org.gradle.kotlin.dsl.precompile.v1.scriptResolverEnvironmentOf
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
 import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
@@ -66,6 +67,16 @@ object KotlinSettingsScriptCompilationConfiguration : ScriptCompilationConfigura
     kotlinDslScriptTemplate(
         implicitReceiver = Settings::class,
         compilationConfiguration = KotlinSettingsScriptCompilationConfiguration::class
+    )
+})
+
+
+internal
+object KotlinInitScriptCompilationConfiguration : ScriptCompilationConfiguration({
+
+    kotlinDslScriptTemplate(
+        implicitReceiver = Gradle::class,
+        compilationConfiguration = KotlinInitScriptCompilationConfiguration::class
     )
 })
 
