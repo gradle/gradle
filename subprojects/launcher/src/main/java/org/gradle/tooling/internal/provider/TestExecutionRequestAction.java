@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.StartParameterInternal;
@@ -25,7 +26,6 @@ import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest;
-import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
@@ -55,38 +55,36 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     // Unpacks the request to serialize across to the daemon and creates instance of
     // TestExecutionRequestAction
     public static TestExecutionRequestAction create(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
-        final Collection<String> testClassNames = testExecutionRequest.getTestClassNames();
-        final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests(Collections.<InternalJvmTestRequest>emptyList());
-        Set<InternalJvmTestRequest> providerInternalJvmTestRequests = ImmutableSet.copyOf(toProviderInternalJvmTestRequest(internalJvmTestRequests, testClassNames));
+        ImmutableSet<String> classNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
         return new TestExecutionRequestAction(clientSubscriptions, startParameter,
-                                                ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
-                                                ImmutableSet.copyOf(testClassNames),
-                                                providerInternalJvmTestRequests,
-                                                getDebugOptions(testExecutionRequest),
-                                                getTaskAndTests(testExecutionRequest));
+                ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),
+                classNames,
+                getInternalJvmTestRequests(testExecutionRequest, classNames),
+                getDebugOptions(testExecutionRequest),
+                getTaskAndTests(testExecutionRequest));
+    }
+
+    private static Set<InternalJvmTestRequest> getInternalJvmTestRequests(ProviderInternalTestExecutionRequest testExecutionRequest, Set<String> classNames) {
+        final Collection<InternalJvmTestRequest> internalJvmTestRequests = testExecutionRequest.getInternalJvmTestRequests(Collections.<InternalJvmTestRequest>emptyList());
+        return ImmutableSet.copyOf(toProviderInternalJvmTestRequest(internalJvmTestRequests, classNames));
     }
 
     private static InternalDebugOptions getDebugOptions(ProviderInternalTestExecutionRequest testExecutionRequest) {
-        try {
-            return testExecutionRequest.getDebugOptions();
-        } catch (UnsupportedMethodException e) {
-            // default value for older Gradle clients
-            return new DefaultDebugOptions();
-        }
+        return testExecutionRequest.getDebugOptions(new DefaultDebugOptions());
     }
 
     private static Map<String, List<InternalJvmTestRequest>> getTaskAndTests(ProviderInternalTestExecutionRequest testExecutionRequest) {
-        try {
-            return testExecutionRequest.getTaskAndTests();
-        } catch (UnsupportedMethodException e) {
-            // default value for older Gradle clients
-            return Collections.emptyMap();
+        Map<String, List<InternalJvmTestRequest>> taskAndTests = testExecutionRequest.getTaskAndTests(Collections.emptyMap());
+        ImmutableMap.Builder<String, List<InternalJvmTestRequest>> builder = ImmutableMap.builder();
+        for (Map.Entry<String, List<InternalJvmTestRequest>> entry : taskAndTests.entrySet()) {
+            builder.put(entry.getKey(), toProviderInternalJvmTestRequest(entry.getValue(), Collections.emptyList()));
         }
+        return builder.build();
     }
 
     private static List<InternalJvmTestRequest> toProviderInternalJvmTestRequest(Collection<InternalJvmTestRequest> internalJvmTestRequests, Collection<String> testClassNames) {
         // handle consumer < 2.7
-        if(internalJvmTestRequests.isEmpty()){
+        if (internalJvmTestRequests.isEmpty()) {
             return CollectionUtils.collect(testClassNames, new Transformer<InternalJvmTestRequest, String>() {
                 @Override
                 public InternalJvmTestRequest transform(String testClass) {

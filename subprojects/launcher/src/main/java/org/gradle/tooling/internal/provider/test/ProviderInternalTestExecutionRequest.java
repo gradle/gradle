@@ -31,6 +31,14 @@ public interface ProviderInternalTestExecutionRequest {
     Collection<InternalTestDescriptor> getTestExecutionDescriptors();
     Collection<String> getTestClassNames();
     Collection<InternalJvmTestRequest> getInternalJvmTestRequests(Collection<InternalJvmTestRequest> defaults);
-    InternalDebugOptions getDebugOptions();
-    Map<String, List<InternalJvmTestRequest>> getTaskAndTests();
+
+    /**
+     * @since 5.6
+     */
+    InternalDebugOptions getDebugOptions(InternalDebugOptions defaults);
+
+    /**
+     * @since 6.1
+     */
+    Map<String, List<InternalJvmTestRequest>> getTaskAndTests(Map<String, List<InternalJvmTestRequest>> defaults);
 }
