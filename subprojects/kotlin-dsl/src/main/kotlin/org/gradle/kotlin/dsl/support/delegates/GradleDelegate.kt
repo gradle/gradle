@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
-
 import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.StartParameter
@@ -31,7 +30,6 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.plugins.PluginManager
-
 import java.io.File
 
 
@@ -138,6 +136,8 @@ abstract class GradleDelegate : Gradle {
 
     override fun getGradle(): Gradle =
         delegate.gradle
+
+    override fun getSharedServices() = delegate.sharedServices
 
     override fun getIncludedBuilds(): MutableCollection<IncludedBuild> =
         delegate.includedBuilds

@@ -42,6 +42,7 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -67,7 +68,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
-public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
+public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private SettingsInternal settings;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
@@ -419,6 +420,9 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     public Gradle getGradle() {
         return this;
     }
+
+    @Override @Inject
+    public abstract BuildServiceRegistry getSharedServices();
 
     @Override
     public Collection<IncludedBuild> getIncludedBuilds() {
