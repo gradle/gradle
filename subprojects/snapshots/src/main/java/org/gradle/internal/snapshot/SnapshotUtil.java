@@ -79,7 +79,7 @@ public class SnapshotUtil {
                     : child.getSnapshot(path, path.length() + 1)
                         .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
                         .map(FileSystemNode.class::cast)
-                        .orElse(snapshot.withPathToParent(child.getPathToParent()));
+                        .orElseGet(() -> snapshot.withPathToParent(child.getPathToParent()));
             }
 
             @Override
