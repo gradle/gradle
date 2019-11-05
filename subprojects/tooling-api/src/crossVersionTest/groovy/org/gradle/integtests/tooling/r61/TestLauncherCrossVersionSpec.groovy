@@ -60,7 +60,7 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
     }
 
 
-    @TargetGradleVersion("<6.1")
+    @TargetGradleVersion(">2.6 <6.1")
     def "no tests executed when withTaskAndTestClasses() invoked for old clients"() {
         when:
         launchTests { TestLauncher launcher ->
