@@ -17,10 +17,13 @@
 package org.gradle.api.model;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NamedDomainObjectList;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
@@ -106,7 +109,7 @@ public interface ObjectFactory {
     ConfigurableFileCollection fileCollection();
 
     /**
-     * Creates a new {@link ConfigurableFileTree}. The tree has no base dir specified.
+     * Creates a new {@link ConfigurableFileTree}. The tree will have no base dir specified.
      *
      * @since 6.0
      */
@@ -116,7 +119,7 @@ public interface ObjectFactory {
     /**
      * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type.</p>
      *
-     * <p>The specified type must have a public constructor which takes the name as a String parameter. The type must be non-final and a class or abstract class. Interfaces are currently not supported.</p>
+     * <p>The specified element type must have a public constructor which takes the name as a String parameter. The type must be non-final and a class or abstract class. Interfaces are currently not supported.</p>
      *
      * <p>All objects <b>MUST</b> expose their name as a bean property called "name". The name must be constant for the life of the object.</p>
      *
@@ -145,6 +148,19 @@ public interface ObjectFactory {
     <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory);
 
     /**
+     * <p>Creates a new {@link NamedDomainObjectContainer} for managing named objects of the specified type.</p>
+     *
+     * <p>The returned container will not have any factories or bindings registered.</p>
+     *
+     * @param elementType The type of objects for the container to contain.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container.
+     * @since 6.1
+     */
+    @Incubating
+    <T> ExtensiblePolymorphicDomainObjectContainer<T> polymorphicDomainObjectContainer(Class<T> elementType);
+
+    /**
      * Creates a new {@link DomainObjectSet} for managing objects of the specified type.
      *
      * @param elementType The type of objects for the domain object set to contain.
@@ -154,6 +170,32 @@ public interface ObjectFactory {
      */
     @Incubating
     <T> DomainObjectSet<T> domainObjectSet(Class<T> elementType);
+
+    /**
+     * Creates a new {@link NamedDomainObjectSet} for managing named objects of the specified type.
+     *
+     * <p>All objects <b>MUST</b> expose their name as a bean property called "name". The name must be constant for the life of the object.</p>
+     *
+     * @param elementType The type of objects for the domain object set to contain.
+     * @param <T> The type of objects for the domain object set to contain.
+     * @return The domain object set.
+     * @since 6.1
+     */
+    @Incubating
+    <T> NamedDomainObjectSet<T> namedDomainObjectSet(Class<T> elementType);
+
+    /**
+     * Creates a new {@link NamedDomainObjectList} for managing named objects of the specified type.
+     *
+     * <p>All objects <b>MUST</b> expose their name as a bean property called "name". The name must be constant for the life of the object.</p>
+     *
+     * @param elementType The type of objects for the domain object set to contain.
+     * @param <T> The type of objects for the domain object set to contain.
+     * @return The domain object list.
+     * @since 6.1
+     */
+    @Incubating
+    <T> NamedDomainObjectList<T> namedDomainObjectList(Class<T> elementType);
 
     /**
      * Creates a {@link Property} implementation to hold values of the given type. The property has no initial value.

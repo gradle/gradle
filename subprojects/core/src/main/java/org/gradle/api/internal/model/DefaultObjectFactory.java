@@ -17,10 +17,13 @@
 package org.gradle.api.internal.model;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.ExtensiblePolymorphicDomainObjectContainer;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NamedDomainObjectFactory;
+import org.gradle.api.NamedDomainObjectList;
+import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
@@ -114,6 +117,21 @@ public class DefaultObjectFactory implements ObjectFactory {
     @Override
     public <T> NamedDomainObjectContainer<T> domainObjectContainer(Class<T> elementType, NamedDomainObjectFactory<T> factory) {
         return domainObjectCollectionFactory.newNamedDomainObjectContainer(elementType, factory);
+    }
+
+    @Override
+    public <T> ExtensiblePolymorphicDomainObjectContainer<T> polymorphicDomainObjectContainer(Class<T> elementType) {
+        return domainObjectCollectionFactory.newPolymorphicDomainObjectContainer(elementType);
+    }
+
+    @Override
+    public <T> NamedDomainObjectSet<T> namedDomainObjectSet(Class<T> elementType) {
+        return domainObjectCollectionFactory.newNamedDomainObjectSet(elementType);
+    }
+
+    @Override
+    public <T> NamedDomainObjectList<T> namedDomainObjectList(Class<T> elementType) {
+        return domainObjectCollectionFactory.newNamedDomainObjectList(elementType);
     }
 
     @Override

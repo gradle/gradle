@@ -25,6 +25,7 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
@@ -178,6 +179,16 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.empty
         bean.prop.register("one")
         bean.prop.names == ["one"] as Set
+    }
+
+    def canConstructInstanceOfInterfaceWithDomainObjectSetGetter() {
+        def bean = create(InterfaceDomainSetPropertyBean)
+
+        expect:
+        bean.prop.toString() == "[]"
+        bean.prop.empty
+        bean.prop.add(Stub(NamedBean))
+        bean.prop.size() == 1
     }
 
     def canConstructInstanceOfInterfaceWithNestedGetter() {

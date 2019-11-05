@@ -214,7 +214,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         """
         def otherDir = file("buildSrc/other")
         otherDir.file("build.gradle") << """
-            plugins { 
+            plugins {
                 id("java-library")
             }
             dependencies {

@@ -29,6 +29,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
@@ -104,7 +105,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         RegularFileProperty.class,
         DirectoryProperty.class,
         Property.class,
-        NamedDomainObjectContainer.class
+        NamedDomainObjectContainer.class,
+        DomainObjectSet.class
     );
     private static final Object[] NO_PARAMS = new Object[0];
 

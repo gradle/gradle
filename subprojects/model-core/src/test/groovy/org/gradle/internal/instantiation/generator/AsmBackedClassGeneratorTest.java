@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -1872,6 +1873,10 @@ public class AsmBackedClassGeneratorTest {
 
     public interface InterfaceContainerPropertyBean {
         NamedDomainObjectContainer<NamedBean> getProp();
+    }
+
+    public interface InterfaceDomainSetPropertyBean {
+        DomainObjectSet<NamedBean> getProp();
     }
 
     public interface InterfaceWithDefaultMethods {
