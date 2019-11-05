@@ -23,7 +23,7 @@ import org.gradle.test.fixtures.dsl.GradleDsl
 
 
 /**
- * Modify samples to use the kotlin-eap repository.
+ * Modify samples to use the kotlin-dev repository.
  *
  * This modifier is intended to be used when testing integration of Kotlin EAPs.
  */

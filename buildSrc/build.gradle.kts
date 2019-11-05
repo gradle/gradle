@@ -87,8 +87,8 @@ allprojects {
             url = uri("https://dl.bintray.com/kotlin/kotlinx")
         }
         maven {
-            name = "kotlin-eap"
-            url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
+            name = "kotlin-dev"
+            url = uri("https://dl.bintray.com/kotlin/kotlin-dev")
         }
     }
 }

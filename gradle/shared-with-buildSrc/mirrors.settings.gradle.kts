@@ -25,7 +25,7 @@ val originalUrls: Map<String, String> = mapOf(
     "gradle-releases" to "https://repo.gradle.org/gradle/libs-releases",
     "gradle-snapshots" to "https://repo.gradle.org/gradle/libs-snapshots",
     "kotlinx" to "https://kotlin.bintray.com/kotlinx/",
-    "kotlineap" to "https://dl.bintray.com/kotlin/kotlin-eap/"
+    "kotlineap" to "https://dl.bintray.com/kotlin/kotlin-dev/"
 )
 
 val mirrorUrls: Map<String, String> =

@@ -135,7 +135,7 @@ class StandardKotlinScriptEvaluator(
             "classpath"
         )
         scriptHandler.repositories.maven {
-            it.setUrl("https://dl.bintray.com/kotlin/kotlin-eap/")
+            it.setUrl("https://dl.bintray.com/kotlin/kotlin-dev/")
         }
     }
 

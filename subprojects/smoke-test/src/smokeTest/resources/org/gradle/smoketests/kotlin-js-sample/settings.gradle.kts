@@ -19,7 +19,7 @@ rootProject.name = "kotlin-js-sample"
 pluginManagement {
     repositories {
         gradlePluginPortal()
-        maven(url = "https://dl.bintray.com/kotlin/kotlin-eap/")
+        maven(url = "https://dl.bintray.com/kotlin/kotlin-dev/")
     }
     resolutionStrategy {
         eachPlugin {
