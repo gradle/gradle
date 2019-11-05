@@ -53,6 +53,15 @@ configurations {
         attributes.attribute(Attribute.of("org.gradle.api", String), "build-receipt")
     }
 
+    gradleDotOrgDocs {
+        visible = false
+        canBeResolved = true
+        canBeConsumed = false
+        extendsFrom(gradleDocumentation)
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, "docs"))
+        attributes.attribute(Attribute.of("type", String), "dot-org-docs")
+    }
+
     gradleFullDocs {
         visible = false
         canBeResolved = true
@@ -129,6 +138,10 @@ ext {
             from configurations.gradleFullDocs
         }
     }
+
+    docsDistImage = copySpec {
+        from configurations.gradleDotOrgDocs
+    }
 }
 
 def allZip = tasks.register("allZip", Zip) {
@@ -173,6 +186,17 @@ def srcZip = tasks.register("srcZip", Zip) {
             exclude '**/.gradle/'
         }
     }
+}
+
+def docsZip = tasks.register("docsZip", Zip) {
+    archiveClassifier.set('docs')
+    into(zipRootFolder) {
+        with docsDistImage
+    }
+}
+
+tasks.register("buildDists") {
+    dependsOn(allZip, binZip, srcZip, docsZip)
 }
 
 tasks.register("outputsZip", Zip) {

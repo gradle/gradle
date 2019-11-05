@@ -58,6 +58,13 @@ configurations {
         canBeConsumed = true
     }
 
+    gradleDotOrgDocsElements {
+        visible = false
+        canBeResolved = false
+        canBeConsumed = true
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
+        attributes.attribute(Attribute.of("type", String), "dot-org-docs")
+    }
     gradleFullDocsElements {
         visible = false
         canBeResolved = false
@@ -118,6 +125,7 @@ ext {
     userguideSinglePageOutputDir = new File(buildDir, 'userguideSinglePage')
     dslSrcDir = new File(srcDocsDir, 'dsl')
     docsDir = file("$buildDir/docs")
+    dotOrgDocsDir = file("$buildDir/dotOrgDocs")
     userguideDir = new File(docsDir, 'userguide')
     distDocsDir = new File(buildDir, 'distDocs')
     docbookSrc = new File(project.buildDir, 'src')
@@ -125,6 +133,11 @@ ext {
 }
 
 configurations {
+    gradleDotOrgDocsElements {
+        outgoing.artifact(dotOrgDocsDir) {
+            builtBy 'dotOrgDocs'
+        }
+    }
     gradleFullDocsElements {
         outgoing.artifact(docsDir) {
             builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
@@ -536,12 +549,6 @@ tasks.register("docs") {
     group = 'documentation'
 }
 
-tasks.register("docsZip", Zip) {
-    // TODO: Reduce duplication
-    from(docsDir)
-    dependsOn 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes', 'publishSamplesToDocsZip'
-}
-
 def checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", org.gradle.gradlebuild.docs.FindBrokenInternalLinks) {
     dependsOn(userguideFlattenSources)
     inputDirectory.set(userguideFlattenSources.get().destinationDir)
@@ -639,8 +646,11 @@ samples {
     }
 }
 
-tasks.register("publishSamplesToDocsZip", Sync) {
-    dependsOn("asciidocSampleIndex", *samples.collect { "assemble${it.name.capitalize()}Sample" })
-    from(layout.buildDirectory.dir("gradle-samples"))
-    into(new File(docsDir, "samples"))
+tasks.register("dotOrgDocs", Sync) {
+    dependsOn("asciidocSampleIndex", *samples.collect { "assemble${it.name.capitalize()}Sample" }, "docs")
+    from(docsDir)
+    from(layout.buildDirectory.dir("gradle-samples")) {
+        into("samples")
+    }
+    into(dotOrgDocsDir)
 }
