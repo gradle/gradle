@@ -2167,3 +2167,27 @@ div.screenshot {
     height: 135px;
     margin: 12px;
 }
+
+/* Samples download button */
+.download {
+  display: flex;
+}
+
+.download a {
+  border-style: solid;
+  border-width: 1px;
+  text-decoration: none;
+  padding: 5px;
+  display: block;
+  width: 10em;
+  margin: 5px;
+}
+
+.download ul {
+  list-style: none;
+  list-style-type: none;
+}
+
+.download li {
+  float: right;
+}

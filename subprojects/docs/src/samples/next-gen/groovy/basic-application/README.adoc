@@ -1,8 +1,9 @@
 = Basic Groovy Application Sample
 
 ifndef::env-github[]
-- link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[Download Kotlin DSL ZIP]
+[.download]
+- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
 endif::[]
 
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
