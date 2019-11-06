@@ -17,7 +17,12 @@
 package org.gradle.api.services
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.InstantExecutionRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.RequiredFeatures
+import org.junit.runner.RunWith
 
+@RunWith(InstantExecutionRunner)
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
@@ -64,9 +69,65 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertNotOutput("service:")
+
+        when:
+        run("help")
+
+        then:
+        result.assertNotOutput("service:")
     }
 
-    def "service can be used at configuration time"() {
+    def "tasks can use mapped value of service"() {
+        serviceImplementation()
+        buildFile << """
+            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+                parameters.initial = 10
+            }
+            
+            def count = provider.map { it.increment() + 10 }
+            
+            task first {
+                doFirst {
+                    println("got value = " + count.get())
+                }
+            }
+
+            task second {
+                doFirst {
+                    println("got value = " + count.get())
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("got value = 21")
+        outputContains("service: value is 12")
+        outputContains("got value = 22")
+        outputContains("service: closed with value 12")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("got value = 21")
+        outputContains("service: value is 12")
+        outputContains("got value = 22")
+        outputContains("service: closed with value 12")
+    }
+
+    @RequiredFeatures(
+        [@RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value="false")]
+    )
+    def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
             def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
@@ -110,6 +171,60 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: created with value = 10")
         outputContains("service: value is 11")
         outputContains("service: closed with value 11")
+    }
+
+    @RequiredFeatures(
+        [@RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value="true")]
+    )
+    def "service used at configuration and execution time can be used with instant execution"() {
+        serviceImplementation()
+        buildFile << """
+            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+                parameters.initial = 10
+            }
+            
+            task count {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+
+            provider.get().increment()
+        """
+
+        when:
+        run("count")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("service: value is 12")
+        outputContains("service: closed with value 12")
+
+        when:
+        run("count")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("service: closed with value 11")
+
+        when:
+        run("help")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("service: closed with value 11")
+
+        when:
+        run("help")
+
+        then:
+        result.assertNotOutput("service:")
     }
 
     def "plugin applied to multiple projects can register a shared service"() {
@@ -347,9 +462,11 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                     println("service: created with value = \${value}")
                 }
                 
-                void increment() {
+                // Service must be thread-safe
+                synchronized int increment() {
                     value++
                     println("service: value is \${value}")
+                    return value
                 }
                 
                 void close() {

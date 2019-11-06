@@ -37,6 +37,8 @@ import javax.inject.Inject;
  * <p>A service may optionally implement {@link AutoCloseable}, in which case {@link AutoCloseable#close()} will be called when
  * the service instance is no longer required. The implementation can release any resources it may be holding open.
  *
+ * <p>It is important to note that service implementations must be thread-safe, as they may be used by multiple tasks concurrently.</p>
+ *
  * @param <T> The type of parameters used by the service.
  * @since 6.1
  */

@@ -20,29 +20,21 @@ import com.google.common.reflect.TypeToken;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
-import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.Cast;
-import org.gradle.internal.Try;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.exceptions.Contextual;
-import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
-import javax.annotation.Nullable;
 import java.lang.reflect.ParameterizedType;
 
-public class DefaultBuildServicesRegistry implements BuildServiceRegistry {
+public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
     private final InstantiatorFactory instantiatorFactory;
     private final ServiceRegistry services;
@@ -70,8 +62,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistry {
         }
 
         // TODO - extract some shared infrastructure for this
-        ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(BuildService.class).getType();
-        Class<P> parameterType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
+        Class<P> parameterType = parameterTypeOf(implementationType);
         P parameters = instantiatorFactory.decorateScheme().withServices(services).instantiator().newInstance(parameterType);
         configureAction.execute(new BuildServiceSpec<P>() {
             @Override
@@ -88,7 +79,19 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistry {
         // TODO - isolate parameters
         // TODO - defer isolation of parameters until execution time
         // TODO - finalize the parameters during isolation
-        SharedServiceProvider<T, P> provider = new SharedServiceProvider<>(name, implementationType, parameterType, parameters, instantiatorFactory.injectScheme());
+        return doRegister(name, implementationType, parameterType, parameters);
+    }
+
+    @Override
+    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters) {
+        if (registrations.findByName(name) != null) {
+            throw new IllegalArgumentException("Service '%s' has already been registered.");
+        }
+        return doRegister(name, implementationType, parameterTypeOf(implementationType), parameters);
+    }
+
+    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(String name, Class<T> implementationType, Class<P> parameterType, P parameters) {
+        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(name, implementationType, parameterType, parameters, instantiatorFactory.injectScheme());
 
         registrations.add(new BuildServiceRegistration<T, P>() {
             @Override
@@ -118,75 +121,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistry {
         return provider;
     }
 
-    // TODO - make this work with instant execution
-    // TODO - complain when used at configuration time, except when opted in to this
-    private static class SharedServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractReadOnlyProvider<T> {
-        private final String name;
-        private final Class<T> implementationType;
-        private final InstantiationScheme instantiationScheme;
-        private final Class<P> parametersType;
-        private P parameters;
-        private Try<T> instance;
-
-        private SharedServiceProvider(String name, Class<T> implementationType, Class<P> parametersType, P parameters, InstantiationScheme instantiationScheme) {
-            this.name = name;
-            this.implementationType = implementationType;
-            this.parametersType = parametersType;
-            this.parameters = parameters;
-            this.instantiationScheme = instantiationScheme;
-        }
-
-        @Nullable
-        @Override
-        public Class<T> getType() {
-            return implementationType;
-        }
-
-        @Override
-        public boolean isPresent() {
-            return true;
-        }
-
-        @Nullable
-        @Override
-        public T getOrNull() {
-            synchronized (this) {
-                if (instance == null) {
-                    // TODO - extract a ServiceLookup implementation to reuse
-                    DefaultServiceRegistry services = new DefaultServiceRegistry();
-                    services.add(parametersType, parameters);
-                    try {
-                        instance = Try.successful(instantiationScheme.withServices(services).instantiator().newInstance(implementationType));
-                    } catch (Exception e) {
-                        instance = Try.failure(new ServiceLifecycleException("Failed to create service '" + name + "'.", e));
-                    }
-                    parameters = null;
-                }
-                return instance.get();
-            }
-        }
-
-        public void maybeStop() {
-            synchronized (this) {
-                if (instance != null) {
-                    instance.ifSuccessful(t -> {
-                        if (t instanceof AutoCloseable) {
-                            try {
-                                ((AutoCloseable) t).close();
-                            } catch (Exception e) {
-                                throw new ServiceLifecycleException("Failed to stop service '" + name + "'.", e);
-                            }
-                        }
-                    });
-                }
-            }
-        }
-    }
-
-    @Contextual
-    private static class ServiceLifecycleException extends GradleException {
-        public ServiceLifecycleException(String message, @Nullable Throwable cause) {
-            super(message, cause);
-        }
+    private <T extends BuildService<P>, P extends BuildServiceParameters> Class<P> parameterTypeOf(Class<T> implementationType) {
+        ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(BuildService.class).getType();
+        return Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
     }
 }
