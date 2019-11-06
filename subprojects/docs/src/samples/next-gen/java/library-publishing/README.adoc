@@ -34,14 +34,25 @@ build/publishing-repository/
                 │   ├── library-publishing-1.0.2.jar
                 │   ├── library-publishing-1.0.2.jar.md5
                 │   ├── library-publishing-1.0.2.jar.sha1
+                │   ├── library-publishing-1.0.2.jar.sha256
+                │   ├── library-publishing-1.0.2.jar.sha512
+                │   ├── library-publishing-1.0.2.module
+                │   ├── library-publishing-1.0.2.module.md5
+                │   ├── library-publishing-1.0.2.module.sha1
+                │   ├── library-publishing-1.0.2.module.sha256
+                │   ├── library-publishing-1.0.2.module.sha512
                 │   ├── library-publishing-1.0.2.pom
                 │   ├── library-publishing-1.0.2.pom.md5
-                │   └── library-publishing-1.0.2.pom.sha1
+                │   ├── library-publishing-1.0.2.pom.sha1
+                │   ├── library-publishing-1.0.2.pom.sha256
+                │   └── library-publishing-1.0.2.pom.sha512
                 ├── maven-metadata.xml
                 ├── maven-metadata.xml.md5
-                └── maven-metadata.xml.sha1
+                ├── maven-metadata.xml.sha1
+                ├── maven-metadata.xml.sha256
+                └── maven-metadata.xml.sha512
 
-5 directories, 9 files
+5 directories, 20 files
 ----
 =====
 ====
