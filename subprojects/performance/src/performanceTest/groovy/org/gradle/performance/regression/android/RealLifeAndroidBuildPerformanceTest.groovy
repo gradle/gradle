@@ -48,7 +48,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         if (testProject == SANTA_TRACKER_KOTLIN) {
             runner.targetVersions = ["5.6.1"]
         }
-        applyEnterprisePlugin(testProject)
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -82,7 +82,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
-        applyEnterprisePlugin(testProject)
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -104,7 +104,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumBaseVersion = "5.4"
         runner.targetVersions = ["6.0-20190823180744+0000"]
-        applyEnterprisePlugin(testProject)
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -123,7 +123,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumBaseVersion = "5.4"
         runner.targetVersions = ["6.0-20190823180744+0000"]
-        applyEnterprisePlugin(testProject)
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -135,7 +135,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         testProject << [SANTA_TRACKER_KOTLIN]
     }
 
-    void applyEnterprisePlugin(AndroidTestProject testProject) {
+    void applyEnterprisePlugin() {
         runner.addBuildMutator { invocationSettings ->
             new BuildMutator() {
                 @Override
