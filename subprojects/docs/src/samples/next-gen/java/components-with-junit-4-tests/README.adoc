@@ -1,8 +1,9 @@
 = Testing Java Components with JUnit 4 Sample
 
 ifndef::env-github[]
-- link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[Download Kotlin DSL ZIP]
+[.download]
+- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
 endif::[]
 
 This sample shows how to test Java projects using JUnit 4 in Gradle.

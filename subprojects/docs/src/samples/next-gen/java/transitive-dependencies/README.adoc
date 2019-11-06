@@ -1,8 +1,9 @@
 = Transitive Dependencies Sample
 
 ifndef::env-github[]
-- link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[Download Kotlin DSL ZIP]
+[.download]
+- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
 endif::[]
 
 The `application` project has an implementation dependency on the `utilities` project:
