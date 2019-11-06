@@ -84,7 +84,8 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         return new AbstractMappingProvider<Directory, File>(Directory.class, Providers.internal(provider)) {
             @Override
             protected Directory mapValue(File file) {
-                return new FixedDirectory(projectDir.fileResolver.resolve(file), projectDir.fileResolver, fileCollectionFactory);
+                final File resolved = projectDir.fileResolver.resolve(file);
+                return new FixedDirectory(resolved, projectDir.fileResolver.newResolver(resolved), fileCollectionFactory);
             }
         };
     }
