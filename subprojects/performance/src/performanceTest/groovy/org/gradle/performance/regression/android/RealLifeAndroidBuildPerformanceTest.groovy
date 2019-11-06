@@ -16,12 +16,12 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.EnterprisePluginFixture
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
-import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -48,7 +48,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         if (testProject == SANTA_TRACKER_KOTLIN) {
             runner.targetVersions = ["5.6.1"]
         }
-        updateScanPlugin(testProject)
+        applyEnterprisePlugin(testProject)
 
         when:
         def result = runner.run()
@@ -82,7 +82,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
-        updateScanPlugin(testProject)
+        applyEnterprisePlugin(testProject)
 
         when:
         def result = runner.run()
@@ -104,7 +104,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumBaseVersion = "5.4"
         runner.targetVersions = ["6.0-20190823180744+0000"]
-        updateScanPlugin(testProject)
+        applyEnterprisePlugin(testProject)
 
         when:
         def result = runner.run()
@@ -123,7 +123,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = ['-Dorg.gradle.parallel=true']
         runner.minimumBaseVersion = "5.4"
         runner.targetVersions = ["6.0-20190823180744+0000"]
-        updateScanPlugin(testProject)
+        applyEnterprisePlugin(testProject)
 
         when:
         def result = runner.run()
@@ -135,33 +135,14 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         testProject << [SANTA_TRACKER_KOTLIN]
     }
 
-    void updateScanPlugin(AndroidTestProject testProject) {
-        if (testProject != SANTA_TRACKER_KOTLIN) {
-            return
-        }
-
+    void applyEnterprisePlugin(AndroidTestProject testProject) {
         runner.addBuildMutator { invocationSettings ->
             new BuildMutator() {
                 @Override
                 void beforeScenario() {
-                    def buildDir = new TestFile(invocationSettings.projectDir)
-                    def buildFile = buildDir.file("build.gradle")
-                    buildFile.text -= """plugins {
-    id 'com.gradle.build-scan' version '2.1' apply false
-}
-
-if (!hasProperty("disableBuildScan")) {
-    apply plugin: "com.gradle.build-scan"
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-        captureTaskInputFiles = true
-    }
-}
-"""
+                    EnterprisePluginFixture.applyEnterprisePlugin(new File(invocationSettings.projectDir, "settings.gradle"))
                 }
             }
         }
-
     }
 }
