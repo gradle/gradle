@@ -49,7 +49,7 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
         runner.minimumBaseVersion = "5.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
-        runner.args = ["-Dorg.gradle.unsafe.instant-execution"]
+        runner.args = ["-Dorg.gradle.unsafe.instant-execution=true"]
 
         and:
         runner.useDaemon = daemon == hot

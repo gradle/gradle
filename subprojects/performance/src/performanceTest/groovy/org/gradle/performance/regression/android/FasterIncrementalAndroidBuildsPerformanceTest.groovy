@@ -28,7 +28,7 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 
 @Category(PerformanceExperiment)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
-    private static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution"
+    private static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution=true"
 
     @Unroll
     def "faster incremental build on #testProject (build comparison)"() {
