@@ -1,4 +1,4 @@
-= Testing Java Components with JUnit 4 Sample
+= {sample-displayName} Sample
 
 ifndef::env-github[]
 - link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
