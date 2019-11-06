@@ -99,8 +99,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
 
+    // TODO - don't use statics to communicate between the test runner and executer
     public static void propagateSystemProperty(String name) {
         PROPAGATED_SYSTEM_PROPERTIES.add(name);
+    }
+
+    public static void doNotPropagateSystemProperty(String name) {
+        PROPAGATED_SYSTEM_PROPERTIES.remove(name);
     }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
@@ -534,6 +539,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             buildJvmOpts.add("-Xmx512m");
         }
         if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
+            // Although Gradle isn't supported on earlier versions, some tests do run it using Java 6 and 7 to verify it behaves well in this case
             buildJvmOpts.add("-XX:MaxPermSize=320m");
         } else {
             buildJvmOpts.add("-XX:MaxMetaspaceSize=512m");
