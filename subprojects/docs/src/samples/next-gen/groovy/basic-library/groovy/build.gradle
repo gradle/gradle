@@ -1,7 +1,5 @@
 plugins {
     id 'groovy'
-    id 'eclipse'
-    // See ??? for IntelliJ support
 }
 
 version = '1.0.2'
