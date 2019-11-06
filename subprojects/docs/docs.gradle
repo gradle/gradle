@@ -605,6 +605,7 @@ samples {
     }
     javaComponentsWithJUnit4Tests {
         sampleDirectory = file("src/samples/next-gen/java/components-with-junit-4-tests")
+        displayName = "Java Components With JUnit 4 Tests"
         description = "Demonstrate how to test Java components using JUnit 4"
     }
     javaLibraryPublishing {
