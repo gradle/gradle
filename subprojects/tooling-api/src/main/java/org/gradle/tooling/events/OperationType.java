@@ -86,7 +86,7 @@ public enum OperationType {
      * The following events are currently issued for this operation type.
      * <ul>
      *     <li>{@link org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent-}</li>
+     *     <li>{@link org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent}</li>
      * </ul>
      * </p>
      *
