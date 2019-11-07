@@ -1,6 +1,6 @@
 package org.gradle.gradlebuild.buildquality
 
-import availableJavaInstallations
+import buildJvms
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -19,9 +19,9 @@ open class VerifyBuildEnvironmentPlugin : Plugin<Project> {
     private
     fun validateForProductionEnvironments(project: Project) =
         project.tasks.register("verifyIsProductionBuildEnvironment") {
-            val availableJavaInstallations = project.availableJavaInstallations
+            val javaInstallations = project.buildJvms.javaInstallations
             doLast {
-                availableJavaInstallations.get().validateForProductionEnvironment()
+                javaInstallations.get().validateForProductionEnvironment()
                 val systemCharset = Charset.defaultCharset().name()
                 assert(systemCharset == "UTF-8") {
                     "Platform encoding must be UTF-8. Is currently $systemCharset. Set -Dfile.encoding=UTF-8"
@@ -32,7 +32,7 @@ open class VerifyBuildEnvironmentPlugin : Plugin<Project> {
     private
     fun validateForAllCompileTasks(project: Project) {
         val verifyBuildEnvironment = project.tasks.register("verifyBuildEnvironment") {
-            val availableJavaInstallations = project.availableJavaInstallations
+            val availableJavaInstallations = project.buildJvms.javaInstallations
             doLast {
                 availableJavaInstallations.get().validateForCompilation()
             }

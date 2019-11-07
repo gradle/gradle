@@ -17,7 +17,7 @@ package org.gradle.gradlebuild.unittestandcompile
 
 import accessors.base
 import accessors.java
-import availableJavaInstallations
+import buildJvms
 import library
 import maxParallelForks
 import org.gradle.api.InvalidUserDataException
@@ -35,7 +35,8 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.build.ClasspathManifest
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
-import org.gradle.gradlebuild.java.AvailableJavaInstallations
+import org.gradle.gradlebuild.java.AvailableJavaInstallationsPlugin
+import org.gradle.gradlebuild.java.JavaInstallation
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
@@ -87,6 +88,7 @@ const val tooManyTestFailuresThreshold = 10
 class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "groovy")
+        plugins.apply(AvailableJavaInstallationsPlugin::class.java)
 
         val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
@@ -101,34 +103,30 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.configureCompile() {
         afterEvaluate {
-            val availableJavaInstallations = rootProject.availableJavaInstallations.get()
+            val jdkForCompilation = rootProject.buildJvms.compileJvm.get()
 
             tasks.withType<JavaCompile>().configureEach {
-                configureCompileTask(this, options, availableJavaInstallations)
+                configureCompileTask(this, options, jdkForCompilation)
             }
             tasks.withType<GroovyCompile>().configureEach {
                 groovyOptions.encoding = "utf-8"
-                configureCompileTask(this, options, availableJavaInstallations)
+                configureCompileTask(this, options, jdkForCompilation)
             }
         }
         addCompileAllTask()
     }
 
     private
-    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, availableJavaInstallations: AvailableJavaInstallations) {
+    fun configureCompileTask(compileTask: AbstractCompile, options: CompileOptions, jdkForCompilation: JavaInstallation) {
         options.isFork = true
         options.encoding = "utf-8"
         options.isIncremental = true
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
-        val jdkForCompilation = availableJavaInstallations.javaInstallationForCompilation
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }
         compileTask.inputs.property("javaInstallation", Callable {
-            when (compileTask) {
-                is JavaCompile -> jdkForCompilation
-                else -> availableJavaInstallations.currentJavaInstallation
-            }.vendorAndMajorVersion
+            jdkForCompilation.vendorAndMajorVersion
         })
     }
 
@@ -184,22 +182,22 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Test.configureJvmForTest() {
-        val javaInstallationForTest = project.rootProject.availableJavaInstallations.get().javaInstallationForTest
+        val jvmForTest = project.buildJvms.testJvm.get()
         jvmArgumentProviders.add(createCiEnvironmentProvider(this))
-        executable = javaInstallationForTest.jvm.javaExecutable.absolutePath
-        environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath
-        if (javaInstallationForTest.javaVersion.isJava7) {
+        executable = jvmForTest.jvm.javaExecutable.absolutePath
+        environment["JAVA_HOME"] = jvmForTest.javaHome.absolutePath
+        if (jvmForTest.javaVersion.isJava7) {
             // enable class unloading
             jvmArgs("-XX:+UseConcMarkSweepGC", "-XX:+CMSClassUnloadingEnabled")
         }
-        if (javaInstallationForTest.javaVersion.isJava9Compatible) {
+        if (jvmForTest.javaVersion.isJava9Compatible) {
             // allow embedded executer to modify environment variables
             jvmArgs("--add-opens", "java.base/java.util=ALL-UNNAMED")
             // allow embedded executer to inject legacy types into the system classloader
             jvmArgs("--add-opens", "java.base/java.lang=ALL-UNNAMED")
         }
         // Includes JVM vendor and major version
-        inputs.property("javaInstallation", Callable { javaInstallationForTest.vendorAndMajorVersion })
+        inputs.property("javaInstallation", Callable { jvmForTest.vendorAndMajorVersion })
     }
 
     private

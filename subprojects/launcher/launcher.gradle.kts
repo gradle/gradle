@@ -74,12 +74,10 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
 }
 
-val availableJavaInstallations = rootProject.availableJavaInstallations
-
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
-val toolsJar = availableJavaInstallations.map { installations ->
-    if (!installations.javaInstallationForTest.javaVersion.isJava9Compatible) {
-        listOf(installations.javaInstallationForTest.toolsJar).filterNotNull()
+val toolsJar = buildJvms.testJvm.map { jvm ->
+    if (!jvm.javaVersion.isJava9Compatible) {
+        listOf(jvm.toolsJar).filterNotNull()
     } else {
         emptyList()
     }
