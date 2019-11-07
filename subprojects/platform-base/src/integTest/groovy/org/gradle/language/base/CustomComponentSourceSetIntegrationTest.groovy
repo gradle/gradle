@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
@@ -46,6 +47,7 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
+    @FailsWithInstantExecution
     def "source order is retained"() {
         buildFile << '''
 class Dump extends RuleSource {

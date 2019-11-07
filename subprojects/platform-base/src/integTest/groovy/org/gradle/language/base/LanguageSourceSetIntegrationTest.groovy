@@ -18,6 +18,7 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
@@ -60,6 +61,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot create an instance of type 'DefaultCustomSourceSet' as this type is not known. Known types: org.gradle.platform.base.ComponentSpec, CustomSourceSet, ${LanguageSourceSet.name}")
     }
 
+    @FailsWithInstantExecution
     def "can create a top level LSS with a rule"() {
         buildScript """
         ${registerCustomLanguage()}

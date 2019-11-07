@@ -17,7 +17,12 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.platform.base.*
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.platform.base.ApplicationSpec
+import org.gradle.platform.base.BinarySpec
+import org.gradle.platform.base.ComponentSpec
+import org.gradle.platform.base.GeneralComponentSpec
+import org.gradle.platform.base.LibrarySpec
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -77,6 +82,7 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
         withCustomLanguageTransform()
     }
 
+    @FailsWithInstantExecution
     def "component container is visible to rules as various types"() {
         buildFile << """
 class Rules extends RuleSource {
@@ -194,6 +200,7 @@ model {
         }
     }
 
+    @FailsWithInstantExecution
     def "plugin can apply component beforeEach / afterEach"() {
         when:
         buildFile << """
@@ -318,6 +325,7 @@ afterEach CustomComponent 'newComponent'"""
         }
     }
 
+    @FailsWithInstantExecution
     def "buildscript can apply component beforeEach / afterEach"() {
         given:
         withMainSourceSet()
@@ -425,6 +433,7 @@ afterEach CustomComponent 'newComponent'"""
         failure.assertThatCause(containsText("Cannot create an instance of type 'AnotherCustomComponent' as this type is not known. Known types: ${ApplicationSpec.name}, ${BinarySpec.name}, ${ComponentSpec.name}, CustomComponent, ${GeneralComponentSpec.name}, ${LanguageSourceSet.name}, ${LibrarySpec.name}."))
     }
 
+    @FailsWithInstantExecution
     def "componentSpecContainer is groovy decorated when used in rules"() {
         given:
         withMainSourceSet()
@@ -527,6 +536,7 @@ afterEach CustomComponent 'newComponent'"""
         }
     }
 
+    @FailsWithInstantExecution
     def "can reference binaries container for a component in a rule"() {
         given:
         withBinaries()
@@ -550,6 +560,7 @@ afterEach CustomComponent 'newComponent'"""
         output.contains "names: [b1, b2]"
     }
 
+    @FailsWithInstantExecution
     def "can reference binaries container elements using specialized type in a rule"() {
         given:
         withBinaries()
@@ -575,6 +586,7 @@ afterEach CustomComponent 'newComponent'"""
         output.contains "binary data: bar"
     }
 
+    @FailsWithInstantExecution
     def "can reference task container of a binary in a rule"() {
         given:
         withBinaries()
@@ -601,6 +613,7 @@ afterEach CustomComponent 'newComponent'"""
         output.contains "names: [customMainB1MainSomeLang]"
     }
 
+    @FailsWithInstantExecution
     def "can view components container as a model map"() {
         given:
         buildFile << '''

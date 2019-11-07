@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class CustomManagedBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -29,6 +30,7 @@ interface SampleBinary extends BinarySpec {
 """
     }
 
+    @FailsWithInstantExecution
     def "custom managed binary type can be registered and created"() {
         when:
         buildWithCustomBinaryPlugin()
@@ -54,6 +56,7 @@ model {
         succeeds "checkModel"
     }
 
+    @FailsWithInstantExecution
     def "can configure managed binary defined by rule method using rule DSL"() {
         when:
         buildWithCustomBinaryPlugin()

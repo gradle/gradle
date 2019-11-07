@@ -15,7 +15,9 @@
  */
 
 package org.gradle.language.base
+
 import org.gradle.api.reporting.model.ModelReportOutput
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class ComponentBinariesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
@@ -139,6 +141,7 @@ model {
         failure.assertHasCause("Cannot create 'binaries.mylibMain' using creation rule 'mylibMain(CustomBinary) { ... } @ build.gradle line 55, column 9' as the rule 'ComponentModelBasePlugin.PluginRules#collectBinaries(BinaryContainer, ComponentSpecContainer) > put()' is already registered to create this model element.")
     }
 
+    @FailsWithInstantExecution
     def "binaries of a component can be configured using a rule attached to the top level binaries container"() {
         given:
         buildFile << '''
