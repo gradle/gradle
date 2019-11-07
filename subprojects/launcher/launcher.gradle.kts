@@ -32,11 +32,6 @@ dependencies {
     implementation(library("asm"))
     implementation(library("ant"))
 
-    runtimeOnly(library("asm"))
-    runtimeOnly(library("commons_io"))
-    runtimeOnly(library("commons_lang"))
-    runtimeOnly(library("slf4j_api"))
-
     testImplementation(project(":internalIntegTesting"))
     testImplementation(project(":native"))
     testImplementation(project(":cli"))
