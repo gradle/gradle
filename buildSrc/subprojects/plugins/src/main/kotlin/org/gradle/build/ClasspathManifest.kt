@@ -16,6 +16,7 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.FileCollectionDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -53,7 +54,7 @@ abstract class ClasspathManifest @Inject constructor(
     internal
     val runtime: Provider<String> = providers.provider {
         runtimeClasspath
-            .fileCollection { it is ExternalDependency || it is FileCollectionDependency }
+            .fileCollection { it is ExternalDependency || it is FileCollectionDependency || it.isPlatformProject() }
             .joinForProperties { it.name }
     }
 
@@ -105,6 +106,11 @@ abstract class ClasspathManifest @Inject constructor(
     private
     val runtimeClasspath
         get() = project.configurations["runtimeClasspath"]
+
+    private
+    fun Dependency.isPlatformProject(): Boolean {
+        return this is ProjectDependency && dependencyProject.plugins.hasPlugin("java-platform")
+    }
 
     private
     fun <T : Any> Iterable<T>.joinForProperties(transform: ((T) -> CharSequence)? = null) =
