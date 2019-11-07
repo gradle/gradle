@@ -34,7 +34,6 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.test.TestStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.test.TestFinishEvent}</li>
      * </ul>
-     * </p>
      */
     TEST,
 
@@ -47,12 +46,13 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.task.TaskStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
      * </ul>
-     * </p>
+     *
      */
     TASK,
 
     /**
      * Flag for operations with no specific type.
+     *
      * <p>
      * The following events are currently issued for this operation type.
      * <ul>
@@ -60,7 +60,7 @@ public enum OperationType {
      *     <li>{@link FinishEvent}</li>
      *     <li>{@link StatusEvent}</li>
      * </ul>
-     * </p>
+     *
      */
     GENERIC,
 
@@ -73,7 +73,6 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.work.WorkItemStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.work.WorkItemFinishEvent}</li>
      * </ul>
-     * </p>
      *
      * @since 5.1
      */
@@ -88,7 +87,6 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.configuration.ProjectConfigurationStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.configuration.ProjectConfigurationFinishEvent}</li>
      * </ul>
-     * </p>
      *
      * @since 5.1
      */
@@ -103,28 +101,24 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.transform.TransformStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.transform.TransformFinishEvent}</li>
      * </ul>
-     * </p>
      *
      * @since 5.1
      */
     TRANSFORM,
 
     /**
-     *  Flag for test output operation progress events.
-     *  <p>
-     *  Clients must subscribe to {@link #TEST} events too if they want to receive test output events.
-     *  </p>
-     *
+     * Flag for test output operation progress events.
      * <p>
+     * Clients must subscribe to {@link #TEST} events too if they want to receive test output events.
+     * </p>
+     *
      * The following events are currently issued for this operation type.
      * <ul>
      *     <li>{@link org.gradle.tooling.events.test.TestOutputEvent}</li>
      * </ul>
-     * </p>
      *
      * @since 6.0
      */
     @Incubating
     TEST_OUTPUT
-
 }
