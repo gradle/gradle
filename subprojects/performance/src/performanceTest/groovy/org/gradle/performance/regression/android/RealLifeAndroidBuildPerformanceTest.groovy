@@ -33,6 +33,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
 
     def setup() {
         runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
+        runner.targetVersions = ["6.1-20191105125831+0000"]
+        // AGP 3.6 requires 5.6.1+
+        // The enterprise plugin requires Gradle 6.0
+        runner.minimumBaseVersion = "6.0"
     }
 
     @Unroll
@@ -43,11 +47,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        runner.minimumBaseVersion = "5.6.1" // AGP 3.6 requires 5.6.1+
-        runner.targetVersions = ["6.1-20191105125831+0000"]
-        if (testProject == SANTA_TRACKER_KOTLIN) {
-            runner.targetVersions = ["5.6.1"]
-        }
         applyEnterprisePlugin()
 
         when:
@@ -77,8 +76,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.warmUpRuns = warmUpRuns
         runner.cleanTasks = ["clean"]
         runner.runs = runs
-        runner.minimumBaseVersion = "5.4"
-        runner.targetVersions = ["5.7-20190807220120+0000"]
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
@@ -102,8 +99,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configureForAbiChange(runner)
         runner.args = ['-Dorg.gradle.parallel=true']
-        runner.minimumBaseVersion = "5.4"
-        runner.targetVersions = ["6.0-20190823180744+0000"]
         applyEnterprisePlugin()
 
         when:
@@ -121,8 +116,6 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configureForNonAbiChange(runner)
         runner.args = ['-Dorg.gradle.parallel=true']
-        runner.minimumBaseVersion = "5.4"
-        runner.targetVersions = ["6.0-20190823180744+0000"]
         applyEnterprisePlugin()
 
         when:
