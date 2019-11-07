@@ -30,7 +30,6 @@ dependencies {
     implementation(project(":processServices"))
     implementation(project(":resources"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("ant"))
     implementation(library("guava"))
@@ -41,7 +40,7 @@ dependencies {
     testImplementation(library("asm"))
     testImplementation(library("asm_commons"))
     testImplementation(testFixtures(project(":logging")))
-    
+
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":baseServices"))
 }

@@ -59,7 +59,6 @@ dependencies {
     compileOnly(project(":pluginDevelopment"))
     compileOnly(project(":kotlinDsl"))
 
-    compileOnly(library("slf4j_api"))
     compileOnly(library("inject"))
 
     implementation(futureKotlin("stdlib-jdk8"))
@@ -77,7 +76,6 @@ dependencies {
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(project(":internalIntegTesting"))
     integTestImplementation(project(":kotlinDslTestFixtures"))
-    integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("mockito_kotlin"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":apiMetadata"))

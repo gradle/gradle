@@ -59,7 +59,6 @@ dependencies {
     implementation(library("inject"))
     implementation(library("asm"))
     implementation(library("asm_commons"))
-    implementation(library("slf4j_api"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
     implementation(library("nativePlatform"))
@@ -109,7 +108,6 @@ dependencies {
     testFixturesImplementation(project(":persistentCache"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(library("ivy"))
-    testFixturesImplementation(library("slf4j_api"))
     testFixturesImplementation(library("guava"))
     testFixturesImplementation(library("ant"))
 

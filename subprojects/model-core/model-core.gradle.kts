@@ -35,7 +35,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     implementation(library("inject"))
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("asm"))

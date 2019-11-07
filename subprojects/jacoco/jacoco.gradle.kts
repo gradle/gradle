@@ -33,7 +33,6 @@ dependencies {
     implementation(project(":reporting"))
 
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))

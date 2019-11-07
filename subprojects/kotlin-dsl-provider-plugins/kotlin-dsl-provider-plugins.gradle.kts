@@ -46,8 +46,6 @@ dependencies {
         isTransitive = false
     }
 
-    implementation(library("slf4j_api"))
-
     testImplementation(project(":kotlinDslTestFixtures"))
     testImplementation(testLibrary("mockito_kotlin2"))
 }

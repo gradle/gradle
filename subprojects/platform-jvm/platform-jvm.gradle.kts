@@ -34,8 +34,6 @@ dependencies {
     testImplementation(testFixtures(project(":platformNative")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
-
-    integTestImplementation(library("slf4j_api"))
 }
 
 gradlebuildJava {

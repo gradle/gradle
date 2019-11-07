@@ -12,8 +12,6 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":processServices"))
 
-    implementation(library("slf4j_api"))
-
     testImplementation(testFixtures(project(":core")))
 }
 

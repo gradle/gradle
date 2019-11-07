@@ -14,7 +14,6 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":native"))
 
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_io"))
 
@@ -24,7 +23,7 @@ dependencies {
     testImplementation(project(":snapshots"))
 
     testImplementation(testFixtures(project(":core")))
-    
+
     integTestImplementation(project(":internalIntegTesting"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }

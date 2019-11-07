@@ -53,7 +53,6 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(project(":ear"))
-    integTestImplementation(library("slf4j_api"))
     integTestImplementation(testLibrary("jetty"))
 
     integTestRuntimeOnly(project(":resourcesS3"))
@@ -70,7 +69,6 @@ dependencies {
     testFixturesImplementation(project(":dependencyManagement"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
     testLibraries("sshd").forEach { testFixturesImplementation(it) }
 
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))

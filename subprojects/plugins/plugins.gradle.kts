@@ -42,7 +42,6 @@ dependencies {
     implementation(project(":testingJvm"))
     implementation(project(":snapshots"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("ant"))
     implementation(library("asm"))

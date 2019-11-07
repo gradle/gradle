@@ -52,7 +52,6 @@ dependencies {
     implementation(project(":toolingApi"))
 
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("inject"))
 

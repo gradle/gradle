@@ -33,7 +33,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":baseServicesGroovy"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("guava"))
     implementation(library("commons_lang"))

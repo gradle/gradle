@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":files"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("guava"))
     implementation(library("inject"))

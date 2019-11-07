@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":workers"))
 
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
 
     implementation(futureKotlin("stdlib-jdk8"))

@@ -45,7 +45,6 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":workers"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("commons_io"))
     implementation(library("guava"))

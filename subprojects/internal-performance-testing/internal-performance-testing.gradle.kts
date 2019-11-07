@@ -57,7 +57,6 @@ dependencies {
     implementation(library("junit"))
     implementation(testLibrary("spock"))
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("joda"))
     implementation(library("jatl"))
     implementation(library("jgit"))

@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":core"))
 
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("jsch"))
     implementation(library("commons_io"))

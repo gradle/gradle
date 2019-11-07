@@ -32,7 +32,6 @@ dependencies {
     implementation(project(":logging"))
 
     implementation(library("commons_httpclient"))
-    implementation(library("slf4j_api"))
     implementation(library("jcl_to_slf4j"))
     implementation(library("jcifs"))
     implementation(library("guava"))
@@ -50,7 +49,6 @@ dependencies {
     testFixturesImplementation(project(":logging"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 

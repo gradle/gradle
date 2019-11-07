@@ -13,8 +13,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
-    
-    implementation(library("slf4j_api"))
+
     implementation(library("guava"))
     implementation(library("nativePlatform"))
     implementation(library("awsS3_core"))

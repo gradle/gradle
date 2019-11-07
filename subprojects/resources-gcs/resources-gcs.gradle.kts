@@ -13,7 +13,6 @@ dependencies {
     implementation(project(":resourcesHttp"))
     implementation(project(":core"))
 
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("jackson_core"))

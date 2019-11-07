@@ -20,7 +20,6 @@ dependencies {
     api(project(":hashing"))
     api(library("jsr305"))
 
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))

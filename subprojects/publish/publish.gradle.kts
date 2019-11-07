@@ -30,7 +30,6 @@ dependencies {
     implementation(project(":baseServicesGroovy")) // for 'Specs'
     implementation(project(":dependencyManagement"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
@@ -38,7 +37,7 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(testFixtures(project(":core")))
-    
+
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))
 

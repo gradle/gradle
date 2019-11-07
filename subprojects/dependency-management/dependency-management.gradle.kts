@@ -41,7 +41,6 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":execution"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("asm"))
     implementation(library("asm_commons"))
@@ -106,7 +105,6 @@ dependencies {
     testFixturesImplementation(project(":messaging"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("slf4j_api"))
     testFixturesImplementation(library("inject"))
 
     crossVersionTestRuntimeOnly(project(":maven"))

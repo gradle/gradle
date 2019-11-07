@@ -24,7 +24,6 @@ dependencies {
     implementation(project(":languageJava"))
     implementation(project(":files"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("guava"))
     implementation(library("asm"))

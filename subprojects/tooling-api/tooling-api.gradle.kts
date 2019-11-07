@@ -59,8 +59,6 @@ dependencies {
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("commons_io"))
-    testFixturesImplementation(library("slf4j_api"))
-
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":persistentCache"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))

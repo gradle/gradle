@@ -13,8 +13,6 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":cli"))
     implementation(project(":buildOption"))
-    implementation(library("slf4j_api"))
-
     implementation(project(":native"))
     implementation(library("jul_to_slf4j"))
     implementation(library("ant"))
@@ -26,7 +24,7 @@ dependencies {
     runtimeOnly(library("jcl_to_slf4j"))
 
     testImplementation(testFixtures(project(":core")))
-    
+
     integTestImplementation(library("ansi_control_sequence_util"))
 
     integTestRuntimeOnly(project(":apiMetadata"))
@@ -35,7 +33,6 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 
     testFixturesImplementation(project(":baseServices"))
-    testFixturesImplementation(library("slf4j_api"))
 }
 
 gradlebuildJava {

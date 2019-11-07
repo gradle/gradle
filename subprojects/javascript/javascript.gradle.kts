@@ -32,13 +32,12 @@ dependencies {
     implementation(project(":dependencyManagement")) // Required by JavaScriptExtension#getGoogleApisRepository()
 
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("commons_io"))
     implementation(library("inject"))
     implementation(library("rhino"))
     implementation(library("gson")) // used by JsHint.coordinates
     implementation(library("simple")) // used by http package in envjs.coordinates
-    
+
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))

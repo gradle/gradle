@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":toolingApi"))
 
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("fastutil"))
@@ -47,7 +46,7 @@ dependencies {
     testImplementation(testFixtures(project(":launcher")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
-    
+
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":core"))
@@ -57,10 +56,8 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(project(":persistentCache"))
-    testFixturesImplementation(library("slf4j_api"))
-
     integTestRuntimeOnly(project(":testingJunitPlatform"))
-    
+
     // TODO - get rid of this cycle
     integTestRuntimeOnly(project(":plugins"))
 }

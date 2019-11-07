@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":native"))
 
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))

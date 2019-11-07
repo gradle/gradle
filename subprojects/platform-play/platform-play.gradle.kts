@@ -50,7 +50,6 @@ dependencies {
     implementation(project(":reporting"))
 
     implementation(library("groovy"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
@@ -78,7 +77,6 @@ dependencies {
     testFixturesImplementation(project(":processServices"))
     testFixturesImplementation(library("commons_io"))
     testFixturesImplementation(library("commons_httpclient"))
-    testFixturesImplementation(library("slf4j_api"))
     testFixturesApi(testFixtures(project(":languageScala")))
     testFixturesApi(testFixtures(project(":languageJava")))
 

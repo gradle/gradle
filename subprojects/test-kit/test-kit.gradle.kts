@@ -42,7 +42,6 @@ dependencies {
     integTestImplementation(project(":launcher"))
     integTestImplementation(project(":buildOption"))
     integTestImplementation(project(":jvmServices"))
-    integTestImplementation(library("slf4j_api"))
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))

@@ -26,7 +26,14 @@
 plugins {
     `java-platform`
 }
+
+javaPlatform {
+    allowDependencies()
+}
+
 dependencies {
+    api(library("slf4j_api"))
+
     constraints {
         libraries.keys.forEach { libId ->
             api(library(libId)) {

@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":snapshots"))
 
     implementation(library("jsr305"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("commons_compress"))
@@ -40,7 +39,7 @@ dependencies {
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))
     testImplementation(project(":resources"))
-    
+
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))

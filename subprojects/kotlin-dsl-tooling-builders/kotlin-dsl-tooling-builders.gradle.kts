@@ -47,7 +47,6 @@ dependencies {
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 
     crossVersionTestImplementation(project(":persistentCache"))
-    crossVersionTestImplementation(library("slf4j_api"))
     crossVersionTestImplementation(library("guava"))
     crossVersionTestImplementation(library("ant"))
     crossVersionTestRuntimeOnly(project(":pluginDevelopment"))

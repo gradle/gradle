@@ -23,7 +23,6 @@ dependencies {
 
     implementation(library("groovy")) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
     implementation(library("ant"))
-    implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("inject"))
 

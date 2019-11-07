@@ -27,7 +27,6 @@ dependencies {
     performanceTestImplementation project(":coreApi")
     performanceTestImplementation project(":buildOption")
     performanceTestImplementation project(":internalIntegTesting")
-    performanceTestImplementation libraries.slf4j_api.coordinates
     performanceTestImplementation libraries.commons_io.coordinates
     performanceTestImplementation libraries.commons_compress.coordinates
     performanceTestImplementation testLibraries.jetty

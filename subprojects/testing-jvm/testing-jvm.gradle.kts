@@ -43,7 +43,6 @@ dependencies {
     implementation(project(":languageJava"))
     implementation(project(":testingBase"))
 
-    implementation(library("slf4j_api"))
     implementation(library("groovy"))
     implementation(library("guava"))
     implementation(library("commons_lang"))

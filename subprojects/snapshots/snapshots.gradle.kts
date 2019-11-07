@@ -28,8 +28,6 @@ dependencies {
     implementation(project(":files"))
     implementation(project(":hashing"))
     implementation(project(":pineapple"))
-    implementation(library("slf4j_api"))
-
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
     testImplementation(project(":native"))
