@@ -17,6 +17,7 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class ModelMapDslIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -290,6 +291,7 @@ model {
         succeeds "model"
     }
 
+    @FailsWithInstantExecution
     def "can create and configure elements dynamically"() {
         buildFile << '''
 model {
@@ -323,6 +325,7 @@ model {
         outputContains("value = [[a:foo], [b:foo], [c:foo], foo]")
     }
 
+    @FailsWithInstantExecution
     def "can create and configure elements conditionally"() {
         buildFile << '''
 model {
