@@ -16,6 +16,7 @@
 
 package org.gradle.play.tasks
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.play.integtest.fixtures.PlayCoverage
 import org.gradle.util.Requires
@@ -67,6 +68,7 @@ model {
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }
 
+    @FailsWithInstantExecution
     def "recompiles when route compiler type is changed"() {
         when:
         withRoutesTemplate()

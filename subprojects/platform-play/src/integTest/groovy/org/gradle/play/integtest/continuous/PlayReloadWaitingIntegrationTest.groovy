@@ -16,6 +16,8 @@
 
 package org.gradle.play.integtest.continuous
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.TestParticipant
 import org.junit.Rule
@@ -32,6 +34,7 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
         addPendingChangesHook()
     }
 
+    @IgnoreWithInstantExecution
     def "waits for app request before building changes"() {
         given:
         def hooksFile = file('hooks.gradle') << """
@@ -67,7 +70,8 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
         // Request should be complete soon after build completes
         routeChecker.completesWithin(1, TimeUnit.SECONDS)
     }
-    
+
+    @FailsWithInstantExecution
     def "wait for changes to be built when a change occurs during a build"() {
         given:
         appRunning()
@@ -95,6 +99,7 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
         secondRouteChecker.completesWithin(5, TimeUnit.SECONDS)
     }
 
+    @FailsWithInstantExecution
     def "wait for changes to be built when a fix occurs during a failing build"() {
         given:
         appRunning()

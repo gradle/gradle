@@ -15,7 +15,9 @@
  */
 
 package org.gradle.play.plugins
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
@@ -43,6 +45,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3386")
+    @FailsWithInstantExecution
     def "uses unique names for jars in distribution"() {
         given:
         file("extralib.jar").text = "This is not a jar"
@@ -89,6 +92,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
+    @FailsWithInstantExecution
     def "builds a tgz when requested"() {
         given:
         buildFile << """
@@ -109,6 +113,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         )
 
     }
+    @FailsWithInstantExecution
     def "builds empty distribution when no sources present" () {
         buildFile << """
             model {

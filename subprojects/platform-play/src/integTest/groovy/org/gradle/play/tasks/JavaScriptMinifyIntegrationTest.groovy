@@ -16,9 +16,11 @@
 
 package org.gradle.play.tasks
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
-import static org.gradle.play.integtest.fixtures.Repositories.*
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
 
@@ -68,6 +70,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         hasProcessedJavaScript("test")
     }
 
+    @FailsWithInstantExecution
     def "does not re-minify when inputs and outputs are unchanged"() {
         given:
         withJavaScriptSource("app/assets/test.js")
@@ -84,6 +87,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                 ":playBinary")
     }
 
+    @FailsWithInstantExecution
     def "re-minifies when an output is removed" () {
         given:
         withJavaScriptSource("app/assets/test.js")
@@ -104,6 +108,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         hasProcessedJavaScript("test")
     }
 
+    @FailsWithInstantExecution
     def "re-minifies when an input is changed" () {
         given:
         withJavaScriptSource("app/assets/test.js")
@@ -122,6 +127,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                 ":playBinary")
     }
 
+    @FailsWithInstantExecution
     def "cleans removed source file on minify" () {
         given:
         withJavaScriptSource("app/assets/test1.js")
@@ -152,6 +158,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         assetsJar.countFiles("public/test2.js") == 0
     }
 
+    @FailsWithInstantExecution
     def "minifies multiple javascript source sets as part of play application build" () {
         given:
         withJavaScriptSource("app/assets/test1.js")

@@ -17,6 +17,7 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.MultiProjectRunningPlayApp
@@ -42,6 +43,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         playApp.writeSources(testDirectory)
     }
 
+    @FailsWithInstantExecution
     def "can build play app binary"() {
         when:
         succeeds(":primary:assemble")
@@ -97,6 +99,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         )
     }
 
+    @FailsWithInstantExecution
     def "can run play app"() {
         setup:
         file("primary/build.gradle") << """
@@ -128,6 +131,7 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
+    @FailsWithInstantExecution
     def "can run play distribution"() {
         println file(".")
 

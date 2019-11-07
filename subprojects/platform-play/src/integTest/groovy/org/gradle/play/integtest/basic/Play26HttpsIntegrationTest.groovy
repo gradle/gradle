@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest.basic
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.play.integtest.fixtures.AbstractMultiVersionPlayContinuousBuildIntegrationTest
@@ -36,6 +37,7 @@ class Play26HttpsIntegrationTest extends AbstractMultiVersionPlayContinuousBuild
         executer.withRepositoryMirrors()
     }
 
+    @FailsWithInstantExecution
     def 'can enable https.port'() {
         when:
         buildFile << '''

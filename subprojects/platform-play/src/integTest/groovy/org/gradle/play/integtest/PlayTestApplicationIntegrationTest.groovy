@@ -16,11 +16,14 @@
 
 package org.gradle.play.integtest
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.play.integtest.fixtures.PlayMultiVersionApplicationIntegrationTest
 
 abstract class PlayTestApplicationIntegrationTest extends PlayMultiVersionApplicationIntegrationTest {
+
+    @FailsWithInstantExecution
     def "can run play app tests"() {
         when:
         succeeds("check")
