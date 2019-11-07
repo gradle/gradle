@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.plugins
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -238,6 +239,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         !buildDashboardFile.exists()
     }
 
+    @FailsWithInstantExecution
     void 'buildDashboard is incremental'() {
         given:
         goodCode()
@@ -257,6 +259,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         executedAndNotSkipped(':buildDashboard')
     }
 
+    @FailsWithInstantExecution
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
         goodCode()
@@ -355,6 +358,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':jacocoTestReport', 'html')
     }
 
+    @FailsWithInstantExecution
     void 'dashboard includes CodeNarc reports'() {
         given:
         goodCode()
