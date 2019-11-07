@@ -36,6 +36,7 @@ class InstantExecutionGradleExecuter extends InProcessGradleExecuter {
     protected List<String> getAllArgs() {
         return super.getAllArgs() + [
             "-D${SystemProperties.isEnabled}=true",
+            "-D${SystemProperties.maxProblems}=1",
             "-D${SystemProperties.failOnProblems}=true"
         ].collect { it.toString() }
     }
