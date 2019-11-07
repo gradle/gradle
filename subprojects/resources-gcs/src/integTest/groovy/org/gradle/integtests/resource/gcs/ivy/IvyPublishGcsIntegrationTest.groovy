@@ -17,6 +17,7 @@
 package org.gradle.integtests.resource.gcs.ivy
 
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.junit.Rule
 
@@ -34,6 +35,7 @@ class IvyPublishGcsIntegrationTest extends AbstractIvyPublishIntegTest {
         executer.withArgument("-D${GCS_DISABLE_AUTH_PROPERTY}=true")
     }
 
+    @IgnoreWithInstantExecution
     def "can publish to a Gcs Ivy repository"() {
         given:
         def ivyRepo = server.remoteIvyRepo

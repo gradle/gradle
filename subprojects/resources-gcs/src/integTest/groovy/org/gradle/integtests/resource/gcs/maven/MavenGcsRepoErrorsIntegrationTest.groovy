@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
 
@@ -45,6 +46,7 @@ task retrieve(type: Sync) {
 """
     }
 
+    @FailsWithInstantExecution
     def "should fail with a GCS authentication error"() {
         setup:
         buildFile << mavenGcsRepoDsl()
@@ -60,6 +62,7 @@ task retrieve(type: Sync) {
             .assertHasCause("401 Unauthorized")
     }
 
+    @FailsWithInstantExecution
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
         buildFile << """
@@ -82,6 +85,7 @@ repositories {
             .assertHasCause("Authentication scheme 'all'(Authentication) is not supported by protocol 'gcs'")
     }
 
+    @FailsWithInstantExecution
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenGcsRepoDsl()
@@ -102,6 +106,7 @@ Required by:
 """)
     }
 
+    @FailsWithInstantExecution
     def "cannot add invalid authentication types for gcs repo"() {
         given:
         module.publish()
