@@ -19,7 +19,30 @@ package org.gradle.integtests.fixtures
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 
 class EnterprisePluginFixture {
+    private static final String APPLY_ENTERPRISE_PLUGIN = """
+        plugins {
+            id('${AutoAppliedGradleEnterprisePlugin.ID}') version('${AutoAppliedGradleEnterprisePlugin.VERSION}')
+        }
+    """
+    private static final String PUBLISH_SCAN_TO_INTERNAL_SERVER = """
+         gradleEnterprise {
+            buildScan {
+                server = "https://e.grdev.net/"
+                captureTaskInputFiles = true
+                publishAlways()
+            }
+        }
+    """
+
     static void applyEnterprisePlugin(File settingsFile) {
-        settingsFile.text = "plugins { id('${AutoAppliedGradleEnterprisePlugin.ID}') version('${AutoAppliedGradleEnterprisePlugin.VERSION}') }\n\n" + settingsFile.text
+        prefixFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
+    }
+
+    static void publishScansToInternalServer(File settingsFile) {
+        prefixFile(settingsFile, APPLY_ENTERPRISE_PLUGIN, PUBLISH_SCAN_TO_INTERNAL_SERVER)
+    }
+
+    private static void prefixFile(File settingsFile, String... prefixes) {
+        settingsFile.text = prefixes*.stripIndent()*.trim().join("\n\n") + "\n\n" + settingsFile.text
     }
 }
