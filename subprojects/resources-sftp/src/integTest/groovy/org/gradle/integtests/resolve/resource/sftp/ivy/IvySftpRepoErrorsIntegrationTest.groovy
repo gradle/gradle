@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.resolve.resource.sftp.ivy
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {
+    @FailsWithInstantExecution
     void "resolve missing dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -56,6 +58,7 @@ Required by:
 """)
     }
 
+    @FailsWithInstantExecution
     void "resolve missing dynamic dependencies from a SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -90,6 +93,7 @@ Required by:
 """)
     }
 
+    @FailsWithInstantExecution
     void "resolve dependencies from a SFTP Ivy repository with invalid credentials"() {
         given:
         buildFile << """
@@ -120,6 +124,7 @@ Required by:
                 .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
+    @FailsWithInstantExecution
     void "resolve dependencies from a SFTP Ivy repository with unsupported password authentication"() {
         given:
         server.withPasswordAuthenticationDisabled()
@@ -152,6 +157,7 @@ Required by:
                 .assertHasCause("Password authentication not supported or invalid credentials for SFTP server at ${ivySftpRepo.serverUri}")
     }
 
+    @FailsWithInstantExecution
     void "resolve dependencies from an unreachable SFTP Ivy repository"() {
         given:
         buildFile << """
@@ -185,6 +191,7 @@ Required by:
                 .assertHasCause("Could not connect to SFTP server at ${ivySftpRepo.serverUri}")
     }
 
+    @FailsWithInstantExecution
     void 'resolve dependencies from a SFTP Ivy that returns a failure'() {
         given:
         buildFile << """
@@ -220,6 +227,7 @@ Required by:
                 .assertHasCause("Could not get resource '${projectA.ivy.uri}'")
     }
 
+    @FailsWithInstantExecution
     def "cannot add invalid authentication types for sftp repo"() {
         given:
         def remoteIvyRepo = getIvySftpRepo()

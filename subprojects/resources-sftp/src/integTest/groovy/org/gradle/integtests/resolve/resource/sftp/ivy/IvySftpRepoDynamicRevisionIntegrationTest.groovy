@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.resolve.resource.sftp.ivy
 
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
 class IvySftpRepoDynamicRevisionIntegrationTest extends AbstractSftpDependencyResolutionTest {
+    @IgnoreWithInstantExecution
     def "uses latest version from version range and latest status"() {
         given:
         buildFile << """
