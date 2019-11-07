@@ -78,6 +78,11 @@ buildTypes {
         tasks("parallelIntegTest")
     }
 
+    // Run the integration tests using instant execution
+    create("instantTest") {
+        tasks("instantIntegTest")
+    }
+
     create("performanceTests") {
         tasks("performance:performanceTest")
     }
