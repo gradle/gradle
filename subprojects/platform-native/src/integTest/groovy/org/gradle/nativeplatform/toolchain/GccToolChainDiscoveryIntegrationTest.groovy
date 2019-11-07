@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
@@ -53,6 +54,7 @@ model {
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
+    @FailsWithInstantExecution
     def "can build when language tools that are not required are not available"() {
         when:
         buildFile << """
@@ -92,6 +94,7 @@ model {
         succeeds "help"
     }
 
+    @FailsWithInstantExecution
     def "tool chain is not available when no tools are available"() {
         when:
         buildFile << """
@@ -123,6 +126,7 @@ model {
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
+    @FailsWithInstantExecution
     def "fails when required language tool is not available but other language tools are available"() {
         when:
         buildFile << """
@@ -143,6 +147,7 @@ model {
         failure.assertThatCause(CoreMatchers.startsWith("Could not find C compiler 'does-not-exist'"))
     }
 
+    @FailsWithInstantExecution
     def "fails when required linker tool is not available but language tool is available"() {
         when:
         buildFile << """
