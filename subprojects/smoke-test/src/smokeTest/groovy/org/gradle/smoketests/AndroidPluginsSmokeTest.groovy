@@ -97,12 +97,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
         if (pluginVersion == TestedVersions.androidGradle.latest()) {
-            expectDeprecationWarnings(result,
-                "Property 'outputScope' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'lintOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'deviceProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'testData' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            )
+            expectNoDeprecationWarnings(result)
         }
 
         where:
@@ -194,18 +189,14 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
         if (pluginVersion == TestedVersions.androidGradle.latest()) {
-            expectDeprecationWarnings(result,
-                "Property 'excludeListProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'packageNameSupplier' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'lintOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            )
+            expectNoDeprecationWarnings(result)
         }
 
         where:
         pluginVersion << TestedVersions.androidGradle
     }
 
-    private String activityDependency() {
+    private static String activityDependency() {
         """
             dependencies {
                 compile 'joda-time:joda-time:2.7'
@@ -213,7 +204,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """
     }
 
-    private String buildscript(String pluginVersion) {
+    private static String buildscript(String pluginVersion) {
         """
             buildscript {
                 ${jcenterRepository()}
