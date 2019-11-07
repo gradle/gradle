@@ -7,7 +7,6 @@ import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.eclipse.EclipsePlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
@@ -186,8 +185,3 @@ fun Project.configureIde(testType: TestType) {
         }
     }
 }
-
-
-internal
-val Project.currentTestJavaVersion
-    get() = rootProject.the<AvailableJavaInstallations>().javaInstallationForTest.javaVersion

@@ -15,6 +15,7 @@
  */
 
 import org.gradle.api.Project
+import org.gradle.api.provider.Provider
 import org.gradle.gradlebuild.unittestandcompile.UnitTestAndCompileExtension
 import org.gradle.gradlebuild.java.AvailableJavaInstallations
 import org.gradle.kotlin.dsl.*
@@ -23,16 +24,12 @@ import org.gradle.kotlin.dsl.*
 // This file contains Kotlin extensions for the gradle/gradle build
 
 
-fun Project.availableJavaInstallations(configure: AvailableJavaInstallations.() -> Unit): Unit =
-    extensions.configure("availableJavaInstallations", configure)
-
-
 fun Project.gradlebuildJava(configure: UnitTestAndCompileExtension.() -> Unit): Unit =
     extensions.configure("gradlebuildJava", configure)
 
 
 val Project.availableJavaInstallations
-    get() = extensions.getByName<AvailableJavaInstallations>("availableJavaInstallations")
+    get() = extensions.getByName<Provider<AvailableJavaInstallations>>("availableJavaInstallations")
 
 
 val Project.gradlebuildJava
