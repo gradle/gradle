@@ -89,3 +89,7 @@ gradlebuildJava {
 classycle {
     excludePatterns.set(listOf("org/gradle/language/nativeplatform/internal/**"))
 }
+
+tasks.named<Test>("integMultiVersionTest").configure {
+    include("org/gradle/language/assembler/AssemblyLanguageIncrementalBuildIntegrationTest.class")
+}
