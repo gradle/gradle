@@ -14,12 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.internal.scan.config.fixtures
 
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 
-class EnterprisePluginFixture {
+/**
+ * Applies the Gradle Enterprise plugin via the `settings.gradle` script.
+ */
+class GradleEnterprisePluginSettingsFixture {
+    private static final String APPLY_ENTERPRISE_PLUGIN = """
+        plugins {
+            id('${AutoAppliedGradleEnterprisePlugin.ID}') version('${AutoAppliedGradleEnterprisePlugin.VERSION}')
+        }
+    """
+
     static void applyEnterprisePlugin(File settingsFile) {
-        settingsFile.text = "plugins { id('${AutoAppliedGradleEnterprisePlugin.ID}') version('${AutoAppliedGradleEnterprisePlugin.VERSION}') }\n\n" + settingsFile.text
+        prefixFile(settingsFile, APPLY_ENTERPRISE_PLUGIN)
+    }
+
+    private static void prefixFile(File settingsFile, String... prefixes) {
+        settingsFile.text = prefixes*.stripIndent()*.trim().join("\n\n") + "\n\n" + settingsFile.text
     }
 }
