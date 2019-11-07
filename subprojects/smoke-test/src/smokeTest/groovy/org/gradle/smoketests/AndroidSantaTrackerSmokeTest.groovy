@@ -16,8 +16,8 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.EnterprisePluginFixture
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
@@ -95,7 +95,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
     private void setupCopyOfSantaTracker(TestFile targetDir) {
         copyRemoteProject("santaTracker", targetDir)
-        EnterprisePluginFixture.publishScansToInternalServer(targetDir.file("settings.gradle"))
+        GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(targetDir.file("settings.gradle"))
     }
 
     private BuildResult buildLocation(File projectDir) {

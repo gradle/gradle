@@ -16,7 +16,7 @@
 
 package org.gradle.performance.regression.android
 
-import org.gradle.integtests.fixtures.EnterprisePluginFixture
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.BuildMutator
@@ -140,7 +140,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
             new BuildMutator() {
                 @Override
                 void beforeScenario() {
-                    EnterprisePluginFixture.applyEnterprisePlugin(new File(invocationSettings.projectDir, "settings.gradle"))
+                    GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(new File(invocationSettings.projectDir, "settings.gradle"))
                 }
             }
         }
