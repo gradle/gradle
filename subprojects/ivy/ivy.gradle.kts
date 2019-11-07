@@ -37,7 +37,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
 
     implementation(library("groovy")) // for 'Closure' and 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
     implementation(library("ivy"))

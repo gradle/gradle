@@ -32,7 +32,6 @@ dependencies {
     implementation(project(":files"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("inject"))
 
     compileOnly("antlr:antlr:2.7.7") {

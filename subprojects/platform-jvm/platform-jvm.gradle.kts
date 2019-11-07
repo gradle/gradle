@@ -20,7 +20,6 @@ dependencies {
     implementation(project(":diagnostics"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("inject"))

@@ -35,7 +35,6 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     implementation(library("inject"))
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("asm"))
 
@@ -43,8 +42,6 @@ dependencies {
     testFixturesApi(testFixtures(project(":core")))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
-
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))
     testImplementation(project(":native"))

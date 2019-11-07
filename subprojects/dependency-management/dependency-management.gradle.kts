@@ -45,7 +45,6 @@ dependencies {
     implementation(library("asm"))
     implementation(library("asm_commons"))
     implementation(library("asm_util"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("commons_httpclient"))

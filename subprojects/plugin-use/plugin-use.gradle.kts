@@ -33,8 +33,6 @@ dependencies {
     runtimeOnly(project(":resourcesHttp"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
-
     testImplementation(testFixtures(project(":resourcesHttp")))
 
     integTestImplementation(project(":baseServicesGroovy"))

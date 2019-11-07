@@ -30,7 +30,6 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":logging"))
 
-    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("inject"))
 

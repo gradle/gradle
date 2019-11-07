@@ -13,7 +13,6 @@ dependencies {
     integTestImplementation(project(":processServices"))
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(library("groovy"))
-    integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))
     integTestImplementation(testLibrary("sampleCheck")) {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")

@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":toolingApi"))
 
     implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
-    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
     implementation(library("asm"))
@@ -52,7 +51,6 @@ dependencies {
 
     integTestImplementation(project(":persistentCache"))
     integTestImplementation(project(":internalIntegTesting"))
-    integTestImplementation(library("guava"))
     integTestImplementation(library("commons_lang"))
     integTestImplementation(library("commons_io"))
     integTestRuntimeOnly(project(":plugins"))

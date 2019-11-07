@@ -25,7 +25,6 @@ description = "Common shared classes without external dependencies"
 dependencies {
     implementation(project(":pineapple"))
     implementation(library("jsr305"))
-    implementation(library("guava"))
 }
 
 gradlebuildJava {

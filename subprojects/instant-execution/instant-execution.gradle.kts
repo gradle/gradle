@@ -31,8 +31,6 @@ dependencies {
     implementation(project(":workers"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
-
     implementation(futureKotlin("stdlib-jdk8"))
     implementation(futureKotlin("reflect"))
 
@@ -44,7 +42,6 @@ dependencies {
 
     integTestImplementation(project(":toolingApi"))
 
-    integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))
     integTestImplementation(library("inject"))
     integTestImplementation(testFixtures(project(":dependencyManagement")))

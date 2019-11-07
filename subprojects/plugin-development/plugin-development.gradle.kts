@@ -47,7 +47,6 @@ dependencies {
 
     implementation(library("groovy"))
     implementation(library("commons_io"))
-    implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("asm"))
 

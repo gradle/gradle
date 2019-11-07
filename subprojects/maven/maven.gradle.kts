@@ -36,7 +36,6 @@ dependencies {
     implementation(project(":publish"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
     implementation(library("ant"))

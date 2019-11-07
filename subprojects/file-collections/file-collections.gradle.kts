@@ -33,7 +33,6 @@ dependencies {
     implementation(project(":native"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
@@ -54,8 +53,6 @@ dependencies {
     testFixturesImplementation(project(":native"))
 
     testFixturesImplementation(project(":internalTesting"))
-
-    testFixturesImplementation(library("guava"))
 }
 
 java {

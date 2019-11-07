@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":snapshots"))
 
     implementation(library("jsr305"))
-    implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("commons_compress"))
     implementation(library("commons_io"))

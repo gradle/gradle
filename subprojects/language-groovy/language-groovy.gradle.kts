@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":files"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("asm"))
     implementation(library("inject"))
 

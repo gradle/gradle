@@ -22,7 +22,6 @@ dependencies {
     implementation(project(":platformJvm"))
 
     implementation(library("groovy")) // for 'Task.property(String propertyName) throws groovy.lang.MissingPropertyException'
-    implementation(library("guava"))
     implementation(library("inject"))
 
     testImplementation(project(":native"))
@@ -34,7 +33,6 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     testFixturesImplementation(library("commons_lang"))
-    testFixturesImplementation(library("guava"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(testFixtures(project(":launcher")))

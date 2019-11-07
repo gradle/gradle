@@ -52,7 +52,6 @@ dependencies {
     implementation(project(":toolingApi"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("inject"))
 
     implementation(futureKotlin("scripting-common")) {

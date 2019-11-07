@@ -17,7 +17,6 @@ dependencies {
     implementation(library("jul_to_slf4j"))
     implementation(library("ant"))
     implementation(library("commons_lang"))
-    implementation(library("guava"))
     implementation(library("jansi"))
 
     runtimeOnly(library("log4j_to_slf4j"))

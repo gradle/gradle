@@ -23,10 +23,8 @@ plugins {
 
 dependencies {
     implementation(project(":baseServices"))
-    
-    implementation(library("groovy"))
-    implementation(library("guava"))
 
+    implementation(library("groovy"))
     testImplementation(testFixtures(project(":core")))
 }
 

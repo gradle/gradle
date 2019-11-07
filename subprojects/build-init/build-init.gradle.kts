@@ -36,7 +36,6 @@ dependencies {
     implementation(project(":wrapper"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
     implementation("org.codehaus.plexus:plexus-container-default")

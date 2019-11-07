@@ -32,8 +32,6 @@ dependencies {
     implementation(project(":baseServicesGroovy"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
-
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":modelCore")))
 

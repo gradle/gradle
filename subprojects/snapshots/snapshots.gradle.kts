@@ -23,7 +23,6 @@ plugins {
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    implementation(library("guava"))
     implementation(library("jsr305"))
     implementation(project(":files"))
     implementation(project(":hashing"))

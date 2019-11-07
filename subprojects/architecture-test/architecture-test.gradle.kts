@@ -13,11 +13,9 @@ gradlebuildJava {
 dependencies {
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
-    
+
     testImplementation(testLibrary("archunit_junit4"))
     testImplementation(library("jsr305"))
-    testImplementation(library("guava"))
-
     publicProjects.forEach {
         testRuntimeOnly(it)
     }

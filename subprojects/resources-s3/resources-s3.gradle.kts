@@ -14,7 +14,6 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
 
-    implementation(library("guava"))
     implementation(library("nativePlatform"))
     implementation(library("awsS3_core"))
     implementation(library("awsS3_s3"))

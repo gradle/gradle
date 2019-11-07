@@ -34,7 +34,6 @@ dependencies {
     implementation(library("commons_httpclient"))
     implementation(library("jcl_to_slf4j"))
     implementation(library("jcifs"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("xerces"))

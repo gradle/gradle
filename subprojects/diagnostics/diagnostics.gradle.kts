@@ -34,7 +34,6 @@ dependencies {
     implementation(project(":baseServicesGroovy"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
     implementation(library("jatl"))
@@ -55,8 +54,6 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
-
     // These are only here for 'DiagnosticsComponentReportIntegrationTest.shows details of multiple components'
     integTestRuntimeOnly(project(":plugins"))
     integTestRuntimeOnly(project(":platformNative"))

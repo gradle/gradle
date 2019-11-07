@@ -26,7 +26,6 @@ dependencies {
     implementation(project(":toolingApi"))
 
     implementation(library("groovy")) // for 'Closure'
-    implementation(library("guava"))
     implementation(library("commons_io"))
 
     testImplementation(project(":fileCollections"))

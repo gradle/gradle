@@ -29,8 +29,6 @@ dependencies {
     implementation(project(":coreApi"))
     implementation(project(":core"))
 
-    implementation(library("guava"))
-    
     testImplementation(project(":internalTesting"))
 
     integTestImplementation(project(":buildOption"))

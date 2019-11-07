@@ -47,8 +47,6 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":wrapper"))
 
-    implementation(library("guava"))
-
     publishImplementation(library("slf4j_api")) { version { prefer(libraryVersion("slf4j_api")) } }
 
     testFixturesImplementation(project(":coreApi"))

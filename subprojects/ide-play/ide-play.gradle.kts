@@ -51,8 +51,6 @@ dependencies {
     implementation(project(":platformPlay"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
-
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformPlay")))
     testImplementation(testFixtures(project(":ide")))

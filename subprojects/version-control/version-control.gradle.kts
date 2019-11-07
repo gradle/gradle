@@ -33,7 +33,6 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":dependencyManagement"))
 
-    implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("jgit"))
     implementation(library("commons_httpclient"))
@@ -52,8 +51,6 @@ dependencies {
     testFixturesImplementation(library("commons_io"))
     testFixturesImplementation(library("commons_httpclient"))
     testFixturesImplementation(library("jsch"))
-    testFixturesImplementation(library("guava"))
-
     integTestImplementation(project(":launcher"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":testKit"))

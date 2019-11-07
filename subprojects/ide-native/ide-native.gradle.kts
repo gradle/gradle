@@ -36,7 +36,6 @@ dependencies {
     implementation(project(":testingNative"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
     implementation(library("plist"))
@@ -54,7 +53,6 @@ dependencies {
 
     testFixturesApi(testFixtures(project(":ide")))
     testFixturesImplementation(library("plist"))
-    testFixturesImplementation(library("guava"))
     testFixturesImplementation(testFixtures(project(":ide")))
 }
 

@@ -39,7 +39,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("inject"))
 
     testImplementation(project(":baseServicesGroovy"))

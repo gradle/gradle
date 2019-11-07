@@ -33,7 +33,6 @@ dependencies {
     implementation(project(":reporting"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
 

@@ -33,6 +33,7 @@ javaPlatform {
 
 dependencies {
     api(library("slf4j_api"))
+    api(library("guava"))
 
     constraints {
         libraries.keys.forEach { libId ->

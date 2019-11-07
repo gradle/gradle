@@ -34,7 +34,6 @@ dependencies {
     implementation(project(":platformBase"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("kryo"))
@@ -55,7 +54,6 @@ dependencies {
     testFixturesImplementation(project(":modelCore"))
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
     testFixturesImplementation(testLibrary("jsoup"))
 
     integTestRuntimeOnly(project(":testingJunitPlatform"))

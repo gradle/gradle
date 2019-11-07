@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("gson"))
     implementation(library("inject"))

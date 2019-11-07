@@ -21,7 +21,6 @@ dependencies {
     implementation(project(":native"))
     implementation(project(":resources"))
 
-    implementation(library("guava"))
     implementation(library("inject"))
 
     testImplementation(project(":native"))

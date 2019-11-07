@@ -9,7 +9,6 @@ dependencies {
     implementation(project(":baseServices"))
 
     implementation(library("fastutil"))
-    implementation(library("guava"))
     implementation(library("kryo"))
 
     testImplementation(testFixtures(project(":core")))

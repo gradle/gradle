@@ -25,7 +25,6 @@ description = "Base tools to work with files"
 dependencies {
     implementation(project(":pineapple"))
     implementation(library("jsr305"))
-    implementation(library("guava"))
     testImplementation(project(":native"))
     testImplementation(project(":baseServices")) {
         because("TextUtil is needed")

@@ -30,7 +30,6 @@ dependencies {
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
 
-    implementation(library("guava"))
     implementation(library("commons_httpclient"))
     implementation(library("commons_lang"))
     implementation(library("inject"))

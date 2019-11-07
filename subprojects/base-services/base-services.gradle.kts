@@ -20,14 +20,12 @@ dependencies {
     api(project(":hashing"))
     api(library("jsr305"))
 
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("asm"))
 
     integTestImplementation(project(":logging"))
 
-    testFixturesImplementation(library("guava"))
     testImplementation(testFixtures(project(":core")))
     testRuntimeOnly(library("xerces"))
 

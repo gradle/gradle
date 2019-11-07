@@ -55,7 +55,6 @@ dependencies {
 
     implementation(library("groovy"))
     implementation(library("ant"))
-    implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("asm"))
     implementation(library("asm_commons"))
@@ -108,7 +107,6 @@ dependencies {
     testFixturesImplementation(project(":persistentCache"))
     testFixturesImplementation(project(":snapshots"))
     testFixturesImplementation(library("ivy"))
-    testFixturesImplementation(library("guava"))
     testFixturesImplementation(library("ant"))
 
     testFixturesRuntimeOnly(project(":runtimeApiInfo"))

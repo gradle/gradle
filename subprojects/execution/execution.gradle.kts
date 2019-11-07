@@ -35,7 +35,6 @@ dependencies {
     implementation(project(":buildCachePackaging"))
 
     implementation(library("jsr305"))
-    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
@@ -52,7 +51,6 @@ dependencies {
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":core")))
 
-    testFixturesImplementation(library("guava"))
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":buildCache"))
     testFixturesImplementation(project(":snapshots"))

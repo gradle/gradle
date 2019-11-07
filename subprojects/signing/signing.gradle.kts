@@ -33,7 +33,6 @@ dependencies {
     implementation(project(":maven"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("bouncycastle_pgp"))
 

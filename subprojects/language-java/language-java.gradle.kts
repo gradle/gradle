@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":toolingApi"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("fastutil"))
     implementation(library("ant")) // for 'ZipFile' and 'ZipEntry'

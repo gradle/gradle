@@ -32,7 +32,6 @@ dependencies {
     implementation(project(":reporting"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("ant"))
 

@@ -14,7 +14,6 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":native"))
 
-    implementation(library("guava"))
     implementation(library("commons_io"))
 
     testImplementation(project(":processServices"))

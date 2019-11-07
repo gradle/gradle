@@ -32,7 +32,6 @@ dependencies {
 
     implementation(library("groovy"))
     implementation(library("ant"))
-    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
     implementation(library("inject"))

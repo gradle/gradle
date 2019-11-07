@@ -19,7 +19,6 @@ dependencies {
     integTestImplementation(project(":bootstrap"))
     integTestImplementation(project(":launcher"))
     integTestImplementation(library("groovy"))
-    integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))
     integTestImplementation(testLibrary("jsoup"))
     integTestImplementation(testLibrary("jetty"))

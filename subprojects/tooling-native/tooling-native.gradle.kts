@@ -34,8 +34,6 @@ dependencies {
     implementation(project(":toolingApi"))
     implementation(project(":ide")) // To pick up various builders (which should live somewhere else)
 
-    implementation(library("guava"))
-
     testImplementation(testFixtures(project(":platformNative")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))

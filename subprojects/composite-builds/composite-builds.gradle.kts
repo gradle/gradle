@@ -32,8 +32,6 @@ dependencies {
     implementation(project(":dependencyManagement"))
     implementation(project(":pluginUse"))
 
-    implementation(library("guava"))
-
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":launcher")))
 

@@ -34,7 +34,6 @@ dependencies {
 
     runtimeOnly(project(":native"))
 
-    testImplementation(library("guava"))
     testImplementation(testFixtures(project(":core")))
 
     integTestImplementation(project(":native"))

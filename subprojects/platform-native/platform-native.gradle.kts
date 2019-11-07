@@ -36,7 +36,6 @@ dependencies {
 
     implementation(library("nativePlatform"))
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("commons_io"))
     implementation(library("snakeyaml"))
@@ -59,7 +58,6 @@ dependencies {
     testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":processServices"))
     testFixturesImplementation(project(":snapshots"))
-    testFixturesImplementation(library("guava"))
     testFixturesImplementation(library("nativePlatform"))
     testFixturesImplementation(library("commons_lang"))
     testFixturesImplementation(library("commons_io"))

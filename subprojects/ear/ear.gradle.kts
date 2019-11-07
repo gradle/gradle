@@ -31,7 +31,6 @@ dependencies {
     implementation(project(":platformJvm"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
 

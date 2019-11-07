@@ -14,7 +14,6 @@ dependencies {
     implementation(project(":baseServices"))
 
     implementation(library("nativePlatform"))
-    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("jansi"))
 

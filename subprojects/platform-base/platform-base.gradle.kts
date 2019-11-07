@@ -17,7 +17,6 @@ dependencies {
     implementation(project(":execution"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("commons_lang"))
 
     testImplementation(testFixtures(project(":core")))
@@ -31,7 +30,6 @@ dependencies {
     testFixturesApi(project(":core"))
     testFixturesApi(project(":fileCollections"))
     testFixturesApi(testFixtures(project(":modelCore")))
-    testFixturesImplementation(library("guava"))
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesApi(testFixtures(project(":diagnostics")))
 }

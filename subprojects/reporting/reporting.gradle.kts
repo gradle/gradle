@@ -23,7 +23,6 @@ dependencies {
     implementation(project(":core"))
 
     implementation(library("groovy"))
-    implementation(library("guava"))
     implementation(library("inject"))
     implementation(library("jatl"))
 
@@ -31,7 +30,7 @@ dependencies {
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(testLibrary("jsoup"))
     testImplementation(testFixtures(project(":core")))
-    
+
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))
     testRuntimeOnly(project(":dependencyManagement"))

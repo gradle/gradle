@@ -45,7 +45,6 @@ dependencies {
     implementation(library("groovy"))
     implementation(library("ant"))
     implementation(library("asm"))
-    implementation(library("guava"))
     implementation(library("commons_io"))
     implementation(library("commons_lang"))
     implementation(library("inject"))
@@ -74,8 +73,6 @@ dependencies {
     testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":languageJvm"))
     testFixturesImplementation(project(":internalIntegTesting"))
-    testFixturesImplementation(library("guava"))
-
     testImplementation(testLibrary("jsoup"))
 
     integTestRuntimeOnly(project(":maven"))
