@@ -45,11 +45,19 @@ class ProbedLocalJavaInstallation(private val javaHome: File) : LocalJavaInstall
 
     override fun getName() = name
     override fun getDisplayName() = displayName
-    override fun setDisplayName(displayName: String) { this.displayName = displayName }
+    override fun setDisplayName(displayName: String) {
+        this.displayName = displayName
+    }
+
     override fun getJavaVersion() = javaVersion
-    override fun setJavaVersion(javaVersion: JavaVersion) { this.javaVersion = javaVersion }
+    override fun setJavaVersion(javaVersion: JavaVersion) {
+        this.javaVersion = javaVersion
+    }
+
     override fun getJavaHome() = javaHome
-    override fun setJavaHome(javaHome: File) { throw UnsupportedOperationException("JavaHome cannot be changed") }
+    override fun setJavaHome(javaHome: File) {
+        throw UnsupportedOperationException("JavaHome cannot be changed")
+    }
 }
 
 
@@ -60,16 +68,19 @@ private
 const val productionJdkName = "AdoptOpenJDK 11"
 
 
-interface AvailableJavaInstallationsParameters: BuildServiceParameters {
+interface AvailableJavaInstallationsParameters : BuildServiceParameters {
     var testJavaProperty: String?
 }
 
 
-abstract class AvailableJavaInstallations: BuildService<AvailableJavaInstallationsParameters>, AutoCloseable {
+abstract class AvailableJavaInstallations : BuildService<AvailableJavaInstallationsParameters>, AutoCloseable {
     // TODO - extract a public service for locating JVM/JDK instances and querying their metadata
-    private val services = ServiceRegistryBuilder.builder().parent(NativeServices.getInstance()).provider(GlobalScopeServices(false)).build()
-    private val jvmVersionDetector = CachingJvmVersionDetector(DefaultJvmVersionDetector(services.get(ExecHandleFactory::class.java)))
-    private val javaInstallationProbe = JavaInstallationProbe(services.get(ExecActionFactory::class.java))
+    private
+    val services = ServiceRegistryBuilder.builder().parent(NativeServices.getInstance()).provider(GlobalScopeServices(false)).build()
+    private
+    val jvmVersionDetector = CachingJvmVersionDetector(DefaultJvmVersionDetector(services.get(ExecHandleFactory::class.java)))
+    private
+    val javaInstallationProbe = JavaInstallationProbe(services.get(ExecActionFactory::class.java))
 
     val currentJavaInstallation: JavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe).also {
         println("-> CURRENT JVM = ${it.javaHome}")
@@ -147,6 +158,7 @@ abstract class AvailableJavaInstallations: BuildService<AvailableJavaInstallatio
 
     private
     fun resolveJavaHomePath(propertyName: String, overrideValue: String?): String? = when {
+        // TODO:instant-execution - these should be marked as a build input in some way
         overrideValue != null -> overrideValue
         System.getProperty(propertyName) != null -> System.getProperty(propertyName)
         System.getenv(propertyName) != null -> System.getenv(propertyName)

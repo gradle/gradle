@@ -177,7 +177,6 @@ allprojects {
 }
 
 apply(plugin = "gradlebuild.cleanup")
-apply(plugin = "gradlebuild.available-java-installations")
 apply(plugin = "gradlebuild.buildscan")
 apply(from = "gradle/versioning.gradle")
 apply(from = "gradle/dependencies.gradle")
