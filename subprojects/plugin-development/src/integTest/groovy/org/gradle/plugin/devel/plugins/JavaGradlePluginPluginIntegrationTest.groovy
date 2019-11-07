@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.plugins
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
@@ -39,6 +40,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "compileJava"
     }
 
+    @FailsWithInstantExecution
     def "jar produces usable plugin jar"() {
         given:
         buildFile()
@@ -56,6 +58,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         ! output.contains(INVALID_DESCRIPTOR_WARNING_PREFIX)
     }
 
+    @FailsWithInstantExecution
     def "jar issues warning if built jar does not contain any plugin descriptors" () {
         given:
         buildFile()
@@ -66,6 +69,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains(NO_DESCRIPTOR_WARNING)
     }
 
+    @FailsWithInstantExecution
     def "jar issues warning if built jar does not contain declared plugin" () {
         given:
         buildFile()
@@ -88,6 +92,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains(String.format(':jar', DECLARED_PLUGIN_MISSING_MESSAGE, "otherPlugin", "other-plugin"))
     }
 
+    @FailsWithInstantExecution
     def "jar issues warning if built jar contains bad descriptor" (String descriptorContents, String warningMessage) {
         given:
         buildFile()
@@ -105,6 +110,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX
     }
 
+    @FailsWithInstantExecution
     def "jar issues warning if built jar contains one bad descriptor out of multiple descriptors" (String descriptorContents, String warningMessage) {
         given:
         buildFile()
@@ -122,6 +128,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX
     }
 
+    @FailsWithInstantExecution
     def "jar issues correct warnings if built jar contains multiple bad descriptors" (String descriptorContents, String warningMessage, int messageCount) {
         given:
         buildFile()
@@ -140,6 +147,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         'implementation-class=com.xxx.WrongPluginClass' | BAD_IMPL_CLASS_WARNING_PREFIX     | 2
     }
 
+    @FailsWithInstantExecution
     def "jar issues correct warnings if built jar contains mixed descriptor problems" () {
         given:
         buildFile()
@@ -187,6 +195,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_IMPLEMENTATION_MESSAGE, 'helloPlugin'))
     }
 
+    @FailsWithInstantExecution
     def "Generates plugin descriptor for declared plugin"() {
         given:
         buildFile()
@@ -205,6 +214,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jar"
     }
 
+    @FailsWithInstantExecution
     def "Generated plugin descriptor are os independent"() {
         given:
         buildFile()
@@ -225,6 +235,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         descriptorHash == "0698dda8ffafedc3b054c5fe3aae95f1"
     }
 
+    @FailsWithInstantExecution
     def "Plugin descriptor generation is up-to-date if declarations did not change"() {
         given:
         buildFile()
@@ -245,6 +256,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         skipped ":pluginDescriptors"
     }
 
+    @FailsWithInstantExecution
     def "Plugin descriptor generation clears output folder"() {
         given:
         buildFile()
@@ -271,6 +283,7 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1061")
+    @FailsWithInstantExecution
     def "one plugin project can depend on another when using publishing plugins"() {
         given:
         settingsFile << "include 'a', 'b'"

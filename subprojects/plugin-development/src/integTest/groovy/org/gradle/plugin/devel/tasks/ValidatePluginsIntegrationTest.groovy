@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -72,6 +73,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
+    @FailsWithInstantExecution
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -100,6 +102,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "task cannot have property with annotation @#annotation.simpleName"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -136,6 +139,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
+    @FailsWithInstantExecution
     def "can enable stricter validation"() {
         buildFile << """
             dependencies {
@@ -178,6 +182,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
+    @FailsWithInstantExecution
     def "can validate task classes using external types"() {
         buildFile << """
             ${jcenterRepository()}
@@ -210,6 +215,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
+    @FailsWithInstantExecution
     def "can validate task classes using types from other projects"() {
         settingsFile << """
             include 'lib'
@@ -264,6 +270,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
+    @FailsWithInstantExecution
     def "can validate properties of an artifact transform action"() {
         file("src/main/java/MyTransformAction.java") << """
             import org.gradle.api.*;
@@ -322,6 +329,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
+    @FailsWithInstantExecution
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;
@@ -386,6 +394,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
+    @FailsWithInstantExecution
     def "can run old task"() {
         executer.expectDeprecationWarning()
 

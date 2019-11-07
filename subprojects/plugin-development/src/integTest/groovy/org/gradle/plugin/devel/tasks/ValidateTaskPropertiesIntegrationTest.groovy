@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -57,6 +58,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         "getOutputFile()"                 | null
     }
 
+    @FailsWithInstantExecution
     def "detects missing annotations on Java properties while emitting deprecation warning"() {
         buildFile << """
             validateTaskProperties {
