@@ -36,7 +36,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         embedded(false),
         forking(true),
         noDaemon(true),
-        parallel(true, true);
+        parallel(true, true),
+        instant(true);
 
         final public boolean forks;
         final public boolean executeParallel;
@@ -73,6 +74,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     public static boolean isParallel() {
         return getSystemPropertyExecuter().executeParallel;
+    }
+
+    public static boolean isInstant() {
+        return getSystemPropertyExecuter() == Executer.instant;
     }
 
     private GradleExecuter gradleExecuter;
@@ -118,6 +123,8 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
                 return new ParallelForkingGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case forking:
                 return new DaemonGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
+            case instant:
+                return new InstantExecutionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);
         }
