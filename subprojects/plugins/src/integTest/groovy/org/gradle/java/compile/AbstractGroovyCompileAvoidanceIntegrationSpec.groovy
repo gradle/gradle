@@ -17,6 +17,7 @@
 package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 
 abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJavaGroovyCompileAvoidanceIntegrationSpec {
@@ -135,6 +136,7 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         executedAndNotSkipped ":b:compileGroovy"
     }
 
+    @FailsWithInstantExecution
     def "recompile with change of local ast transformation"() {
         given:
         executer.beforeExecute {
@@ -176,6 +178,7 @@ abstract class AbstractGroovyCompileAvoidanceIntegrationSpec extends AbstractJav
         failure.assertHasCause('Bad AST transformation!')
     }
 
+    @FailsWithInstantExecution
     def "recompile with change of global ast transformation"() {
         given:
         executer.beforeExecute {

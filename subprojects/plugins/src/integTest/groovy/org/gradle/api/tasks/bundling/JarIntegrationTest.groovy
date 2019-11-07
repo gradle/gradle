@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
@@ -154,6 +155,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         jar.assertContainsFile('dir1/file1.txt')
     }
 
+    @FailsWithInstantExecution
     def usesManifestFromJarTaskWhenMergingJars() {
         given:
         createDir('src1') {
@@ -310,6 +312,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
+    @FailsWithInstantExecution
     def "changes to manifest attributes should be honoured by incremental build"() {
         given:
         def jarWithManifest = { manifest ->
@@ -644,6 +647,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         "'UTF-8'"       | null            | "contentCharset must not be null"
     }
 
+    @FailsWithInstantExecution
     def "JAR task is skipped when compiler output is unchanged"() {
         file("src/main/java/Main.java") << "public class Main {}\n"
         buildFile << """

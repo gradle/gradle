@@ -16,6 +16,7 @@
 package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.junit.Rule
@@ -50,6 +51,7 @@ class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @FailsWithInstantExecution
     public void failsCompilationWhenConfigScriptIsUpdated() {
         // compilation passes with a config script that does nothing
         executer.withTasks('compileGroovy').run().assertTasksExecutedInOrder(":compileJava",":compileGroovy")

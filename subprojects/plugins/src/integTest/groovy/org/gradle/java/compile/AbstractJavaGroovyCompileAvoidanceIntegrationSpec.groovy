@@ -18,7 +18,9 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import spock.lang.Issue
 
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
@@ -91,6 +93,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
     }
 
+    @FailsWithInstantExecution
     def "doesn't recompile when private element of implementation class changes"() {
         given:
         buildFile << """
@@ -201,6 +204,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":a:${language.compileTaskName}", ":b:${language.compileTaskName}"
     }
 
+    @FailsWithInstantExecution
     def "doesn't recompile when comments and whitespace of implementation class changes"() {
         given:
         buildFile << """
@@ -242,6 +246,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
+    @FailsWithInstantExecution
     def "doesn't recompile when implementation class code changes"() {
         given:
         buildFile << """
@@ -284,6 +289,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
+    @FailsWithInstantExecution
     def "doesn't recompile when initializer, static initializer or constructor is changed"() {
         given:
         buildFile << """
@@ -328,6 +334,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
+    @IgnoreWithInstantExecution
     def "recompiles when type of implementation class changes"() {
         given:
         buildFile << """
@@ -427,6 +434,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
+    @IgnoreWithInstantExecution
     def "recompiles when generic type signatures of implementation class changes"() {
         given:
         buildFile << """
@@ -496,6 +504,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
+    @FailsWithInstantExecution
     def "doesn't recompile when implementation resource is changed in various ways"() {
         given:
         buildFile << """
@@ -547,6 +556,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
+    @FailsWithInstantExecution
     def "doesn't recompile when empty directories are changed in various ways"() {
         given:
         buildFile << """
@@ -704,6 +714,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     }
 
     @Issue("gradle/gradle#1913")
+    @FailsWithInstantExecution
     def "detects changes in compile classpath"() {
         given:
         buildFile << """
@@ -745,6 +756,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         failure.assertHasCause('Compilation failed; see the compiler error output for details.')
     }
 
+    @FailsWithInstantExecution
     def "detects changes in compile classpath order"() {
         given:
         // Same class is defined in both project `a` and `b` but with a different ABI

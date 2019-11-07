@@ -18,6 +18,7 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Unroll
 
@@ -30,6 +31,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         }
     }
 
+    @FailsWithInstantExecution
     def "recompiles source when properties change"() {
         given:
         file("src/main/${language.name}/Test.${language.name}") << 'public class Test{}'
@@ -118,6 +120,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         failure.assertHasDescription "Execution failed for task ':app:${language.compileTaskName}'."
     }
 
+    @FailsWithInstantExecution
     def "task outcome is UP-TO-DATE when no recompilation necessary"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)
@@ -142,6 +145,7 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "does not recompile when only compileOptions.incremental property changes from #from to #to"() {
         given:
         libraryAppProjectWithIncrementalCompilation(language)
