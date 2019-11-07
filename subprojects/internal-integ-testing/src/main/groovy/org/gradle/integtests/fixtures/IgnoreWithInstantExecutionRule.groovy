@@ -28,7 +28,7 @@ class IgnoreWithInstantExecutionRule implements TestRule {
     @Override
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(IgnoreWithInstantExecution.class)
-        if (annotation == null) {
+        if (!GradleContextualExecuter.isInstant() || annotation == null) {
             return base
         }
         return new IgnoreWithInstantExecutionRuleStatement(base)

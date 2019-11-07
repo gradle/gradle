@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
@@ -28,7 +29,7 @@ class FailsWithInstantExecutionRule implements TestRule {
     @Override
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(FailsWithInstantExecution.class)
-        if (annotation == null) {
+        if (!GradleContextualExecuter.isInstant() || annotation == null) {
             return base
         }
         return new FailsWithInstantExecutionRuleStatement(base)
