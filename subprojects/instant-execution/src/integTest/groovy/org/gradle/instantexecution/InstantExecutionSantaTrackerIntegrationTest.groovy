@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 
@@ -37,8 +38,9 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         given:
         copyRemoteProject(remoteProject)
         withAgpNightly()
-
-
+        if (flavor == 'Kotlin') {
+            withEmbeddedKotlinVersion()
+        }
 
         when:
         instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
@@ -47,9 +49,9 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         instantRun ':santa-tracker:assembleDebug', '--dry-run', '--no-build-cache'
 
         where:
-        flavor | remoteProject
-        'Java' | "santaTrackerJava"
-        // 'Kotlin' | "santaTrackerKotlin" // TODO:instant-execution Instant execution state could not be cached.
+        flavor   | remoteProject
+        'Java'   | "santaTrackerJava"
+        'Kotlin' | "santaTrackerKotlin"
     }
 
     def "assembleDebug up-to-date on Santa Tracker Java"() {
@@ -81,5 +83,12 @@ class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecuti
         then:
         // Instant execution avoid registering the listener inside Android plugin
         instantRun("assembleDebug", "--no-build-cache")
+    }
+
+    private void withEmbeddedKotlinVersion(TestFile testFile = buildFile) {
+        testFile.text = testFile.text.replaceAll(
+            "ext.kotlin = '.*'",
+            "ext.kotlin = org.gradle.kotlin.dsl.KotlinDependencyExtensionsKt.embeddedKotlinVersion"
+        )
     }
 }
