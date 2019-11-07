@@ -17,6 +17,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
@@ -40,6 +41,7 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "help"
     }
 
+    @FailsWithInstantExecution
     def "buildscript blocks are allowed before plugin statements"() {
         when:
         buildScript """
