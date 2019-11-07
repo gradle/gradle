@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.samples.files
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
@@ -91,6 +92,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("userguide/files/archives")
+    @FailsWithInstantExecution
     def "can unpack a ZIP file with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -111,6 +113,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("userguide/files/archivesWithJavaPlugin")
+    @FailsWithInstantExecution
     def "can create an uber JAR with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)

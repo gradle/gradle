@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.samples.bestpractices
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
@@ -48,6 +50,7 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIn
 
     @Unroll
     @UsesSample('userguide/bestPractices/taskGroupDescription')
+    @FailsWithInstantExecution
     def "can render a task's group and description in tasks report with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -65,6 +68,7 @@ generateDocs - Generates the HTML documentation for this project.""")
 
     @Unroll
     @UsesSample('userguide/bestPractices/logicDuringConfiguration')
+    @IgnoreWithInstantExecution
     def "can execute logic during execution phase with #dsl dsl"() {
         executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
 
