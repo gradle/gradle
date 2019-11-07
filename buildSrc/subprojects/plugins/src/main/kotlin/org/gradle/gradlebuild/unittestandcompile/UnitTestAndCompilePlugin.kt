@@ -101,7 +101,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.configureCompile() {
         afterEvaluate {
-            val availableJavaInstallations = rootProject.the<AvailableJavaInstallations>()
+            val availableJavaInstallations = rootProject.availableJavaInstallations.get()
 
             tasks.withType<JavaCompile>().configureEach {
                 configureCompileTask(this, options, availableJavaInstallations)
@@ -184,7 +184,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Test.configureJvmForTest() {
-        val javaInstallationForTest = project.rootProject.availableJavaInstallations.javaInstallationForTest
+        val javaInstallationForTest = project.rootProject.availableJavaInstallations.get().javaInstallationForTest
         jvmArgumentProviders.add(createCiEnvironmentProvider(this))
         executable = javaInstallationForTest.jvm.javaExecutable.absolutePath
         environment["JAVA_HOME"] = javaInstallationForTest.javaHome.absolutePath

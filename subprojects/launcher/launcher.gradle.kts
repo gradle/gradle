@@ -77,11 +77,16 @@ dependencies {
 val availableJavaInstallations = rootProject.availableJavaInstallations
 
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
-val javaInstallationForTest = availableJavaInstallations.javaInstallationForTest
-if (!javaInstallationForTest.javaVersion.isJava9Compatible) {
-    dependencies {
-        integTestRuntimeOnly(files(javaInstallationForTest.toolsJar))
+val toolsJar = availableJavaInstallations.map { installations ->
+    if (!installations.javaInstallationForTest.javaVersion.isJava9Compatible) {
+        listOf(installations.javaInstallationForTest.toolsJar).filterNotNull()
+    } else {
+        emptyList()
     }
+}
+println("-> TOOLS JARS = ${toolsJar.get()}")
+dependencies {
+    integTestRuntimeOnly(files(toolsJar))
 }
 
 gradlebuildJava {
