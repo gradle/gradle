@@ -19,12 +19,29 @@ import org.gradle.process.internal.ExecHandleFactory
 import java.io.File
 
 
-class JavaInstallation(val current: Boolean, val jvm: JavaInfo, val javaVersion: JavaVersion, private val javaInstallationProbe: JavaInstallationProbe) {
-    val javaHome = jvm.javaHome
+class JavaInstallation(
+    val current: Boolean,
+    private val jvm: JavaInfo,
+    val javaVersion: JavaVersion,
+    private val javaInstallationProbe: JavaInstallationProbe) {
 
     override fun toString(): String = "$vendorAndMajorVersion (${javaHome.absolutePath})"
 
-    val toolsJar: File? by lazy { jvm.toolsJar }
+    val javaHome: File
+        get() = jvm.javaHome
+
+    val javaExecutable: File
+        get() = jvm.javaExecutable
+
+    val toolsClasspath: List<File> by lazy {
+        val toolsJar = jvm.toolsJar
+        if (!javaVersion.isJava9Compatible && toolsJar != null) {
+            listOf(toolsJar)
+        } else {
+            emptyList()
+        }
+    }
+
     val vendorAndMajorVersion: String by lazy {
         ProbedLocalJavaInstallation(jvm.javaHome).apply {
             javaInstallationProbe.checkJdk(jvm.javaHome).configure(this)
@@ -74,7 +91,10 @@ interface AvailableJavaInstallationsParameters : BuildServiceParameters {
 
 
 abstract class AvailableJavaInstallations : BuildService<AvailableJavaInstallationsParameters>, AutoCloseable {
-    // TODO - extract a public service for locating JVM/JDK instances and querying their metadata
+    // Duplicate some of the Gradle services here because:
+    // 1. no services are currently available for injection into build services and
+    // 2. we probably don't want to expose these internal services anyway
+    // TODO - instead, extract a public service for locating JVM/JDK instances and querying their metadata and make this available for injection
     private
     val services = ServiceRegistryBuilder.builder().parent(NativeServices.getInstance()).provider(GlobalScopeServices(false)).build()
     private
@@ -82,22 +102,15 @@ abstract class AvailableJavaInstallations : BuildService<AvailableJavaInstallati
     private
     val javaInstallationProbe = JavaInstallationProbe(services.get(ExecActionFactory::class.java))
 
-    val currentJavaInstallation: JavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe).also {
-        println("-> CURRENT JVM = ${it.javaHome}")
-    }
+    val currentJavaInstallation: JavaInstallation = JavaInstallation(true, Jvm.current(), JavaVersion.current(), javaInstallationProbe)
     val javaInstallationForTest by lazy {
-        determineJavaInstallation(testJavaHomePropertyName, parameters.testJavaProperty).also {
-            println("-> TEST JVM = ${it.javaHome}")
-        }
+        determineJavaInstallation(testJavaHomePropertyName, parameters.testJavaProperty)
     }
     val javaInstallationForCompilation by lazy {
-        determineJavaInstallationForCompilation().also {
-            println("-> COMPILE JVM = ${it.javaHome}")
-        }
+        determineJavaInstallationForCompilation()
     }
 
     override fun close() {
-        println("-> CLOSING INSTALLATIONS")
         CompositeStoppable.stoppable(services).stop()
     }
 
