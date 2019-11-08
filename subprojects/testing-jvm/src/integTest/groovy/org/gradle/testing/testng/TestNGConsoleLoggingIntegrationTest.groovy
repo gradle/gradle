@@ -17,6 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 // can make assumptions about order in which test methods of TestNGTest get executed
 // because the methods are chained with 'methodDependsOn'
@@ -80,6 +81,7 @@ class TestNGConsoleLoggingIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @FailsWithInstantExecution
     def "defaultLifecycleLogging"() {
         when:
         fails "test"
@@ -91,6 +93,7 @@ Gradle test > org.gradle.TestNGTest.badTest FAILED
         """)
     }
 
+    @FailsWithInstantExecution
     def customQuietLogging() {
         when:
         executer.withStackTraceChecksDisabled()
@@ -112,6 +115,7 @@ Gradle suite FAILED
         """)
     }
 
+    @FailsWithInstantExecution
     def "standardOutputLogging"() {
         given:
         buildFile.text = """

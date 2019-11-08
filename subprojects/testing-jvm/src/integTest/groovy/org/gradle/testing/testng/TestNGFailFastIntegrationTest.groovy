@@ -17,6 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
 import org.hamcrest.CoreMatchers
 import spock.lang.Unroll
@@ -42,6 +43,7 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers)

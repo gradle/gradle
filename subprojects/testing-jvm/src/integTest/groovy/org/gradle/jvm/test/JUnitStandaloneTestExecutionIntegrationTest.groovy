@@ -18,6 +18,7 @@ package org.gradle.jvm.test
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.hamcrest.CoreMatchers
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -42,6 +43,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         outputContains "build using task: :myTestBinary"
     }
 
+    @FailsWithInstantExecution
     def "fails with a reasonable error when no repository is declared"() {
         given:
         applyJUnitPluginAndDoNotDeclareRepo()
@@ -115,6 +117,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Executes a passing test suite with a JUnit component and #sourceconfig.description")
+    @FailsWithInstantExecution
     def "executes a passing test suite"() {
         given:
         applyJUnitPlugin()
@@ -159,6 +162,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Executes a failing test suite with a JUnit component and #sourceconfig.description")
+    @FailsWithInstantExecution
     def "executes a failing test suite"() {
         given:
         applyJUnitPlugin()
@@ -206,6 +210,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Can have multiple JUnit test suites in a single project under #container")
+    @FailsWithInstantExecution
     def "can have multiple JUnit test suites in a single project"() {
         given:
         applyJUnitPlugin()
@@ -254,6 +259,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         result.assertTasksExecuted ':assemble' // only
     }
 
+    @FailsWithInstantExecution
     def "check executes the test suite"() {
         given:
         applyJUnitPlugin()
@@ -368,6 +374,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failure.assertHasCause "Project ':' doesn't define any library."
     }
 
+    @FailsWithInstantExecution
     def "should not allow a test suite to use a non-exported class from a dependency"() {
         given:
         applyJUnitPlugin()
@@ -398,6 +405,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failure.assertHasErrorOutput 'package utils.internal does not exist'
     }
 
+    @FailsWithInstantExecution
     def "test should access test resources"() {
         given:
         applyJUnitPlugin()
@@ -424,6 +432,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         noExceptionThrown()
     }
 
+    @FailsWithInstantExecution
     def "test should access processed test resources in a non conventional place"() {
         given:
         applyJUnitPlugin()
@@ -463,6 +472,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Test should execute test suite with dependency on local library #library")
+    @FailsWithInstantExecution
     def "test should execute with transitive dependencies of local libraries"() {
         given:
         applyJUnitPlugin()
@@ -481,6 +491,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     }
 
+    @FailsWithInstantExecution
     def "test should execute with transitive dependencies of a binary specific source set"() {
         given:
         applyJUnitPlugin()
@@ -543,6 +554,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     }
 
+    @FailsWithInstantExecution
     def "test should execute with transitive dependencies of a dependency binary specific source set"() {
         given:
         applyJUnitPlugin()
@@ -605,6 +617,7 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     }
 
+    @FailsWithInstantExecution
     def "runtime transitive dependencies should not be on compile classpath of test suite"() {
         given:
         applyJUnitPlugin()

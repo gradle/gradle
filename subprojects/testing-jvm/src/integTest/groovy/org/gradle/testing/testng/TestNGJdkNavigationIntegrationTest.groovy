@@ -17,6 +17,7 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
@@ -27,6 +28,7 @@ class TestNGJdkNavigationIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
+    @FailsWithInstantExecution
     def shouldNotNavigateToJdkClasses() {
         when:
         succeeds('test')

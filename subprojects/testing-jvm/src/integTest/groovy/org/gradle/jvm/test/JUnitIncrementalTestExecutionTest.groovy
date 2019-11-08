@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.test
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+
 class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
     def setup() {
@@ -25,6 +27,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         writeTestResource()
     }
 
+    @FailsWithInstantExecution
     def "skips execution when nothing changes"() {
         expect:
         succeeds ':myTestBinaryTest'
@@ -39,6 +42,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         skipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
     }
 
+    @FailsWithInstantExecution
     def "re-executes test when source changes"() {
         expect:
         succeeds ':myTestBinaryTest'
@@ -56,6 +60,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
     }
 
+    @FailsWithInstantExecution
     def "re-executes test when resource changes"() {
         when:
         succeeds ':myTestBinaryTest'
@@ -73,6 +78,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
     }
 
+    @FailsWithInstantExecution
     def "re-executes test when local library dependency changes"() {
         given:
         utilsLibrary()

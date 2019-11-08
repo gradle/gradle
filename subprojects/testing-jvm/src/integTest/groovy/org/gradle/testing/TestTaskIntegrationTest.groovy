@@ -16,6 +16,7 @@
 
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -212,6 +213,7 @@ class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3627")
+    @FailsWithInstantExecution
     def "can reference properties from TestTaskReports when using @CompileStatic"() {
         buildFile << """
             import groovy.transform.CompileStatic
