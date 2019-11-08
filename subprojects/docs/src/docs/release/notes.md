@@ -356,7 +356,7 @@ The following services are now available for injection in [tasks that use the Wo
 - [ProviderFactory](javadoc/org/gradle/api/provider/ProviderFactory.html)
 - [ProjectLayout](javadoc/org/gradle/api/file/ProjectLayout.html)
 - [FileSystemOperations](javadoc/org/gradle/api/file/FileSystemOperations.html)
-- [ExecOperations](javadoc/org/gradle/process/Execoperations.html)
+- [ExecOperations](javadoc/org/gradle/process/ExecOperations.html)
 
 These services can be injected by adding them to the constructor arguments of the `WorkAction` implementation:
 
