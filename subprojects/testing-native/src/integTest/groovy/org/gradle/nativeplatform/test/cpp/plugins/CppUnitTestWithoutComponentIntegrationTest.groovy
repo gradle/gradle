@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.test.cpp.plugins
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
+
 class CppUnitTestWithoutComponentIntegrationTest extends AbstractCppUnitTestIntegrationTest {
     @Override
     protected void makeSingleProject() {
@@ -55,6 +57,7 @@ class CppUnitTestWithoutComponentIntegrationTest extends AbstractCppUnitTestInte
         // Ok
     }
 
+    @FailsWithInstantExecution
     def "test fails when test executable returns non-zero status"() {
         buildFile << """
             apply plugin: 'cpp-unit-test'

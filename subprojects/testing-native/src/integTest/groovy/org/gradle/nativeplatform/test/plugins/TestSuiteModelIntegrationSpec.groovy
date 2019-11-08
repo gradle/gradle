@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.test.plugins
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -115,6 +116,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithInstantExecution
     def "can reference sources container for a test suite in a rule"() {
         given:
         withMainSourceSet()
@@ -192,6 +194,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithInstantExecution
     def "can reference sources container elements in a rule"() {
         given:
         withMainSourceSet()
@@ -215,6 +218,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         output.contains "sources display name: Custom source 'main:main'"
     }
 
+    @FailsWithInstantExecution
     def "can reference sources container elements using specialized type in a rule"() {
         given:
         withMainSourceSet()
@@ -282,6 +286,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         }
     }
 
+    @FailsWithInstantExecution
     def "can reference binaries container for a test suite in a rule"() {
         given:
         withTestBinaryFactory()
@@ -313,6 +318,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
         output.contains "names: [first, second]"
     }
 
+    @FailsWithInstantExecution
     def "can reference binaries container elements using specialized type in a rule"() {
         given:
         withTestBinaryFactory()
