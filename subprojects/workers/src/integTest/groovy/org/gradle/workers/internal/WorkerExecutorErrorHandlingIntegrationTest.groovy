@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
@@ -137,6 +138,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "produces a sensible error when a parameter can't be serialized to the worker in #isolationMode"() {
         def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
         def alternateExecution = fixture.alternateWorkAction.writeToBuildSrc()
