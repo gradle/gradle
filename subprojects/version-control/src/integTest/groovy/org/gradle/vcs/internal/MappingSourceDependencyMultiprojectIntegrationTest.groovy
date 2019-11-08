@@ -16,7 +16,7 @@
 
 package org.gradle.vcs.internal
 
-
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.vcs.git.GitVersionControlSpec
 
 class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceDependencyMultiprojectIntegrationTest {
@@ -36,6 +36,7 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
         """
     }
 
+    @FailsWithInstantExecution
     def "can map all modules in group to repo using all {}"() {
         settingsFile << """
             sourceControl {
@@ -67,6 +68,7 @@ class MappingSourceDependencyMultiprojectIntegrationTest extends AbstractSourceD
         assertResolvesTo("foo-1.0.jar", "bar-1.0.jar")
     }
 
+    @FailsWithInstantExecution
     def "can map to a repository containing multiple separate builds"() {
         repo.file("settings.gradle").delete()
         repo.file("foo/build.gradle") << """
