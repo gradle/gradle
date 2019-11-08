@@ -75,7 +75,7 @@ class UnknownSnapshotTest extends Specification {
         def relativePath = "first/outside"
 
         when:
-        def result = node.invalidate(relativePath, 0)
+        def result = node.invalidate(relativePath, 0, true)
         then:
         0 * _.invalidate(_)
         result.get() == node
@@ -92,7 +92,7 @@ class UnknownSnapshotTest extends Specification {
         def relativePath = childToInvalidate.pathToParent
 
         when:
-        def result = node.invalidate(relativePath, 0)
+        def result = node.invalidate(relativePath, 0, true)
         then:
         0 * _.invalidate(_)
         !result.present
@@ -108,7 +108,7 @@ class UnknownSnapshotTest extends Specification {
         def remainingChildren = children.findAll { it != childToInvalidate }
 
         when:
-        def result = node.invalidate(relativePath, 0).get()
+        def result = node.invalidate(relativePath, 0, true).get()
         remainingChildren.each {
             assert result.getSnapshot(it.pathToParent, 0, true).get() == snapshot
         }
@@ -138,10 +138,10 @@ class UnknownSnapshotTest extends Specification {
         def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPathToParent(childWithChildToInvalidate.pathToParent))
 
         when:
-        def result = node.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", 0).get()
+        def result = node.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", 0, true).get()
 
         then:
-        1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", childWithChildToInvalidate.pathToParent.length() + 1) >> Optional.of(invalidatedChild)
+        1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", childWithChildToInvalidate.pathToParent.length() + 1, true) >> Optional.of(invalidatedChild)
         0 * _.invalidate(_)
         !result.getSnapshot(invalidatedChild.pathToParent, 0, true).present
 

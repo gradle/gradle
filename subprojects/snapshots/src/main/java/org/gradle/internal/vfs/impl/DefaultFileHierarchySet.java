@@ -57,13 +57,13 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     @Override
     public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
         String normalizedPath = normalizeRoot(absolutePath);
-        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), snapshot), caseSensitive);
+        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), snapshot, caseSensitive), caseSensitive);
     }
 
     @Override
     public FileHierarchySet invalidate(String absolutePath) {
         String normalizedPath = normalizeRoot(absolutePath);
-        return invalidateSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath))
+        return invalidateSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), caseSensitive)
             .<FileHierarchySet>map(newRootNode -> new DefaultFileHierarchySet(newRootNode, caseSensitive))
             .orElse(empty());
     }

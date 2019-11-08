@@ -88,6 +88,7 @@ public class PathUtil {
         }
         return char1 - char2;
     }
+
     @VisibleForTesting
     static boolean equalChars(char char1, char char2, boolean caseSensitive) {
         if (char1 == char2) {

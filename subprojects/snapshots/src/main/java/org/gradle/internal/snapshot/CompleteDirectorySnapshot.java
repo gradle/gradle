@@ -78,8 +78,8 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
-        return SnapshotUtil.handleChildren(children, absolutePath, offset, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(String absolutePath, int offset, boolean caseSensitive) {
+        return SnapshotUtil.handleChildren(children, absolutePath, offset, caseSensitive, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));
@@ -91,7 +91,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                 int indexForSubSegment = foundChild.getPathToParent().length();
                 Optional<FileSystemNode> invalidated = indexForSubSegment == absolutePath.length() - offset
                     ? Optional.empty()
-                    : foundChild.invalidate(absolutePath, offset + indexForSubSegment + 1);
+                    : foundChild.invalidate(absolutePath, offset + indexForSubSegment + 1, caseSensitive);
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), getChildren(childIndex, invalidated)));
             }
 

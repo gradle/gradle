@@ -43,7 +43,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public CompleteFileSystemLocationSnapshot store(String absolutePath, int offset, MetadataSnapshot snapshot) {
+    public CompleteFileSystemLocationSnapshot store(String absolutePath, int offset, boolean caseSensitive, MetadataSnapshot snapshot) {
         return this;
     }
 

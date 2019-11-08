@@ -38,14 +38,14 @@ public interface FileSystemNode {
      * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
      * @param absolutePath the path to update, starting from offset. Must not include the {@link #getPathToParent()}.
      */
-    FileSystemNode store(String absolutePath, int offset, MetadataSnapshot snapshot);
+    FileSystemNode store(String absolutePath, int offset, boolean caseSensitive, MetadataSnapshot snapshot);
 
     /**
      * Invalidates part of the node.
      *
      * @param absolutePath the path to invalidate, starting from the offset. Must not include the {@link #getPathToParent()}.
      */
-    Optional<FileSystemNode> invalidate(String absolutePath, int offset);
+    Optional<FileSystemNode> invalidate(String absolutePath, int offset, boolean caseSensitive);
 
     /**
      * The path to the parent snapshot or the root of the file system.
