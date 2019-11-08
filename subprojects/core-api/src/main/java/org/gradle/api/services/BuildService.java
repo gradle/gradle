@@ -27,7 +27,7 @@ import javax.inject.Inject;
  * to improve performance. Or, as another example, a service implementation might represent a web service that the build starts and
  * uses.
  *
- * <p>To create a service, create an abstract subclass of this interface and use {@link BuildServiceRegistry#maybeRegister(String, Class, Action)}
+ * <p>To create a service, create an abstract subclass of this interface and use {@link BuildServiceRegistry#registerIfAbsent(String, Class, Action)}
  * to register one or more instances. This method returns a {@link org.gradle.api.provider.Provider} that you can use to connect
  * the service to tasks.</p>
  *
