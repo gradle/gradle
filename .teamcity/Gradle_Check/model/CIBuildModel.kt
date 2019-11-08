@@ -415,7 +415,7 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
     slow("SlowPerformanceTest", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
     experiment("PerformanceExperiment", "Performance Experiment", 420, "defaults", uuid = "PerformanceExperimentOnlyCoordinator"),
     flakinessDetection("FlakinessDetection", "Performance Test Flakiness Detection", 600, "flakiness-detection-commit"),
-    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "3.5.1,4.10.2,5.6.2,last", "--checks none");
+    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "3.5.1,4.10.3,5.6.4,last", "--checks none");
 
     fun asId(model: CIBuildModel): String =
         "${model.projectPrefix}Performance${name.capitalize()}Coordinator"
