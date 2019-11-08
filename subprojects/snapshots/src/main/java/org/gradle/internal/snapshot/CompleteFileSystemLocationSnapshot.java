@@ -30,7 +30,7 @@ import java.util.Comparator;
  */
 public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode, MetadataSnapshot {
 
-    Comparator<CompleteFileSystemLocationSnapshot> BY_NAME = Comparator.comparing(CompleteFileSystemLocationSnapshot::getName);
+    Comparator<CompleteFileSystemLocationSnapshot> BY_NAME = Comparator.comparing(CompleteFileSystemLocationSnapshot::getName, PathUtil.pathComparator());
 
     /**
      * The file name.

@@ -26,27 +26,27 @@ import java.util.function.Supplier;
 
 public class SnapshotUtil {
 
-    public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, String filePath, int offset, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
+    public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, String filePath, int offset, boolean caseSensitive, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
         switch (children.size()) {
             case 0:
                 return noChildFoundResult.get();
             case 1:
                 FileSystemNode onlyChild = children.get(0);
-                return PathUtil.isChildOfOrThis(filePath, offset, onlyChild.getPathToParent())
+                return PathUtil.isChildOfOrThis(filePath, offset, onlyChild.getPathToParent(), caseSensitive)
                     ? getSnapshotFromChild(filePath, offset, onlyChild)
                     : noChildFoundResult.get();
             case 2:
                 FileSystemNode firstChild = children.get(0);
                 FileSystemNode secondChild = children.get(1);
-                if (PathUtil.isChildOfOrThis(filePath, offset, firstChild.getPathToParent())) {
+                if (PathUtil.isChildOfOrThis(filePath, offset, firstChild.getPathToParent(), caseSensitive)) {
                     return getSnapshotFromChild(filePath, offset, firstChild);
                 }
-                if (PathUtil.isChildOfOrThis(filePath, offset, secondChild.getPathToParent())) {
+                if (PathUtil.isChildOfOrThis(filePath, offset, secondChild.getPathToParent(), caseSensitive)) {
                     return getSnapshotFromChild(filePath, offset, secondChild);
                 }
                 return noChildFoundResult.get();
             default:
-                int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset));
+                int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset, caseSensitive));
                 return foundChild >= 0
                     ? getSnapshotFromChild(filePath, offset, children.get(foundChild))
                     : noChildFoundResult.get();
@@ -140,7 +140,7 @@ public class SnapshotUtil {
     public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, ChildHandler<T> childHandler) {
         int childIndex = SearchUtil.binarySearch(
             children,
-            candidate -> PathUtil.compareWithCommonPrefix(candidate.getPathToParent(), path, offset)
+            candidate -> PathUtil.compareWithCommonPrefix(candidate.getPathToParent(), path, offset, true)
         );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(childIndex);
@@ -157,7 +157,7 @@ public class SnapshotUtil {
         int prefixLength = prefix.length();
         int pathLength = path.length() - offset;
         int maxPos = Math.min(prefixLength, pathLength);
-        int commonPrefixLength = PathUtil.sizeOfCommonPrefix(prefix, path, offset);
+        int commonPrefixLength = PathUtil.sizeOfCommonPrefix(prefix, path, offset, true);
         if (commonPrefixLength == maxPos) {
             if (prefixLength > pathLength) {
                 return descendantHandler.handleParent();
