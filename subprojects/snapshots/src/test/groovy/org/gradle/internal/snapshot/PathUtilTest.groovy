@@ -217,30 +217,15 @@ class PathUtilTest extends Specification {
 
         where:
         left | right | result
-        'a'  | 'A'   | 1
+        'a'  | 'A'   | 32
         'a'  | 'B'   | -1
         'A'  | 'B'   | -1
         'A'  | 'b'   | -1
         'a'  | 'b'   | -1
-        'z'  | 'Z'   | 1
+        'z'  | 'Z'   | 32
         'y'  | 'z'   | -1
         'Y'  | 'z'   | -1
         'Y'  | 'Z'   | -1
         'y'  | 'Z'   | -1
-    }
-
-    def "non-letters are smaller than letters (caseSensitive: #caseSensitive)"() {
-        expect:
-        for (char letter in LETTERS) {
-            for (char nonLetter in NON_LETTER) {
-                assert compareChars(letter, nonLetter, caseSensitive) > 0
-                assert compareChars(nonLetter, letter, caseSensitive) < 0
-                assert !equalChars(letter, nonLetter, caseSensitive)
-                assert !equalChars(nonLetter, letter, caseSensitive)
-            }
-        }
-
-        where:
-        caseSensitive << [true, false]
     }
 }

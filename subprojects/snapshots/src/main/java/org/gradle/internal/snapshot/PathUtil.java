@@ -74,57 +74,20 @@ public class PathUtil {
                 : -1
             : isFileSeparator(char2)
                 ? 1
-                : compareToDifferentChars(char1, char2, caseSensitive);
+                : compareDifferentChars(char1, char2, caseSensitive);
     }
 
-    private static int compareToDifferentChars(char char1, char char2, boolean caseSensitive) {
-        if (isLowercase(char1)) {
-            if (isUppercase(char2)) {
-                return compareLowerToUppercase(char1, char2, caseSensitive);
-            } else if (isLowercase(char2)) {
-                return char1 - char2;
-            } else {
-                return 1;
-            }
-        } else if (isUppercase(char1)) {
-            if (isUppercase(char2)) {
-                return char1 - char2;
-            } else if (isLowercase(char2)) {
-                return -compareLowerToUppercase(char2, char1, caseSensitive);
-            } else {
-                return 1;
-            }
-        } else if (isLowercase(char2) || isUppercase(char2)) {
-            return -1;
-        } else {
-            return char1 - char2;
+    private static int compareDifferentChars(char char1, char char2, boolean caseSensitive) {
+        int uppercaseCompare = Character.toUpperCase(char1) - Character.toUpperCase(char2);
+        if (uppercaseCompare != 0) {
+            return uppercaseCompare;
         }
-    }
-
-    private static int compareLowerToUppercase(char lower, char upper, boolean caseSensitive) {
-        int lowerDiff = lower - 'a';
-        int upperDiff = upper - 'A';
-        if (caseSensitive) {
-            return lowerDiff == upperDiff
-                ? 1
-                : lowerDiff - upperDiff;
-        } else {
-            return lowerDiff - upperDiff;
+        int lowerCaseCompare = Character.toLowerCase(char1) - Character.toLowerCase(char2);
+        if (!caseSensitive || lowerCaseCompare != 0) {
+            return lowerCaseCompare;
         }
+        return char1 - char2;
     }
-
-    private static boolean isUppercase(char character) {
-        return 'A' <= character && 'Z' >= character;
-    }
-
-    private static boolean isLowercase(char character) {
-        return 'a' <= character && 'z' >= character;
-    }
-
-    private static boolean isLetter(char character) {
-        return isUppercase(character) || isLowercase(character);
-    }
-
     @VisibleForTesting
     static boolean equalChars(char char1, char char2, boolean caseSensitive) {
         if (char1 == char2) {
@@ -136,11 +99,8 @@ public class PathUtil {
         if (caseSensitive) {
             return false;
         } else {
-            int difference = char1 - char2;
-            if (Math.abs(difference) != 32) {
-                return false;
-            }
-            return isLetter(char1) && isLetter(char2);
+            return Character.toUpperCase(char1) == Character.toUpperCase(char2) &&
+                Character.toLowerCase(char1) == Character.toLowerCase(char2);
         }
     }
 
