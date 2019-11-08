@@ -16,7 +16,6 @@
 
 package org.gradle.api.services.internal;
 
-import com.google.common.reflect.TypeToken;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -30,10 +29,9 @@ import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceRegistry;
-
-import java.lang.reflect.ParameterizedType;
 
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
@@ -41,6 +39,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final ServiceRegistry services;
     private final ListenerManager listenerManager;
     private final IsolatableFactory isolatableFactory;
+    private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme = new IsolationScheme<>(BuildService.class);
 
     public DefaultBuildServicesRegistry(DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory) {
         this.registrations = Cast.uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
@@ -70,7 +69,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         }
 
         // TODO - extract some shared infrastructure for this
-        Class<P> parameterType = parameterTypeOf(implementationType);
+        Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
         P parameters = instantiatorFactory.decorateScheme().withServices(services).instantiator().newInstance(parameterType);
         configureAction.execute(new DefaultServiceSpec<>(parameters));
         // TODO - Add BuildServiceParameters.NONE marker and skip some work when using this
@@ -84,7 +83,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         if (registrations.findByName(name) != null) {
             throw new IllegalArgumentException("Service '%s' has already been registered.");
         }
-        return doRegister(name, implementationType, parameterTypeOf(implementationType), parameters);
+        return doRegister(name, implementationType, isolationScheme.parameterTypeFor(implementationType), parameters);
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(String name, Class<T> implementationType, Class<P> parameterType, P parameters) {
@@ -94,18 +93,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
         // TODO - should stop the service after last usage (ie after the last task that uses it) instead of at the end of the build
         // TODO - should reuse service across build invocations, until the parameters change
-        listenerManager.addListener(new BuildAdapter() {
-            @Override
-            public void buildFinished(BuildResult result) {
-                provider.maybeStop();
-            }
-        });
+        listenerManager.addListener(new ServiceCleanupListener(provider));
         return provider;
-    }
-
-    private <T extends BuildService<P>, P extends BuildServiceParameters> Class<P> parameterTypeOf(Class<T> implementationType) {
-        ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(BuildService.class).getType();
-        return Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
     }
 
     private static class DefaultServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> implements BuildServiceRegistration<T, P> {
@@ -113,7 +102,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         private final P parameters;
         private final BuildServiceProvider<T, P> provider;
 
-        public DefaultServiceRegistration(String name, P parameters, BuildServiceProvider<T, P> provider) {
+        DefaultServiceRegistration(String name, P parameters, BuildServiceProvider<T, P> provider) {
             this.name = name;
             this.parameters = parameters;
             this.provider = provider;
@@ -138,7 +127,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private static class DefaultServiceSpec<P extends BuildServiceParameters> implements BuildServiceSpec<P> {
         private final P parameters;
 
-        public DefaultServiceSpec(P parameters) {
+        DefaultServiceSpec(P parameters) {
             this.parameters = parameters;
         }
 
@@ -150,6 +139,19 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         @Override
         public void parameters(Action<? super P> configureAction) {
             configureAction.execute(parameters);
+        }
+    }
+
+    private static class ServiceCleanupListener extends BuildAdapter {
+        private final BuildServiceProvider<?, ?> provider;
+
+        ServiceCleanupListener(BuildServiceProvider<?, ?> provider) {
+            this.provider = provider;
+        }
+
+        @Override
+        public void buildFinished(BuildResult result) {
+            provider.maybeStop();
         }
     }
 }
