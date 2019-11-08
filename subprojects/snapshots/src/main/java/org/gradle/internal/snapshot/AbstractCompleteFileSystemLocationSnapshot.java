@@ -55,13 +55,13 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
+    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset, boolean caseSensitive) {
         return SnapshotUtil.thisOrGet(this,
             absolutePath, offset,
-            () -> getChildSnapshot(absolutePath, offset));
+            () -> getChildSnapshot(absolutePath, offset, caseSensitive));
     }
 
-    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset, boolean caseSensitive) {
         return Optional.of(SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath));
     }
 }

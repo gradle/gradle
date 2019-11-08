@@ -30,15 +30,17 @@ import static org.gradle.internal.snapshot.SnapshotUtil.storeSingleChild;
 public class DefaultFileHierarchySet implements FileHierarchySet {
     @VisibleForTesting
     final FileSystemNode rootNode;
+    private final boolean caseSensitive;
 
-    public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot) {
+    public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot, boolean caseSensitive) {
         String normalizedPath = normalizeRoot(absolutePath);
         int offset = determineOffset(absolutePath);
-        return new DefaultFileHierarchySet(snapshot.withPathToParent(offset == 0 ? normalizedPath : normalizedPath.substring(offset)));
+        return new DefaultFileHierarchySet(snapshot.withPathToParent(offset == 0 ? normalizedPath : normalizedPath.substring(offset)), caseSensitive);
     }
 
-    private DefaultFileHierarchySet(FileSystemNode rootNode) {
+    private DefaultFileHierarchySet(FileSystemNode rootNode, boolean caseSensitive) {
         this.rootNode = rootNode;
+        this.caseSensitive = caseSensitive;
     }
 
     @Override
@@ -46,24 +48,24 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         String normalizedPath = normalizeRoot(absolutePath);
         int offset = determineOffset(absolutePath);
         String pathToParent = rootNode.getPathToParent();
-        if (!PathUtil.isChildOfOrThis(normalizedPath, offset, pathToParent, true)) {
+        if (!PathUtil.isChildOfOrThis(normalizedPath, offset, pathToParent, caseSensitive)) {
             return Optional.empty();
         }
-        return rootNode.getSnapshot(normalizedPath, pathToParent.length() + offset + PathUtil.descendantChildOffset(pathToParent));
+        return rootNode.getSnapshot(normalizedPath, pathToParent.length() + offset + PathUtil.descendantChildOffset(pathToParent), caseSensitive);
     }
 
     @Override
     public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
         String normalizedPath = normalizeRoot(absolutePath);
-        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), snapshot));
+        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), snapshot), caseSensitive);
     }
 
     @Override
     public FileHierarchySet invalidate(String absolutePath) {
         String normalizedPath = normalizeRoot(absolutePath);
         return invalidateSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath))
-            .<FileHierarchySet>map(DefaultFileHierarchySet::new)
-            .orElse(FileHierarchySet.EMPTY);
+            .<FileHierarchySet>map(newRootNode -> new DefaultFileHierarchySet(newRootNode, caseSensitive))
+            .orElse(empty());
     }
 
     private static int determineOffset(String absolutePath) {
@@ -82,5 +84,15 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         return isFileSeparator(absolutePath.charAt(absolutePath.length() - 1))
             ? absolutePath.substring(0, absolutePath.length() - 1)
             : absolutePath;
+    }
+
+    @Override
+    public boolean isCaseSensitive() {
+        return caseSensitive;
+    }
+
+    @Override
+    public FileHierarchySet empty() {
+        return caseSensitive ? EMPTY_CASE_SENSITIVE : EMPTY_CASE_INSENSITIVE;
     }
 }

@@ -185,11 +185,12 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         FileHasher hasher,
         StringInterner stringInterner,
         Stat stat,
+        FileSystem fileSystem,
         VirtualFileSystem gradleUserHomeVirtualFileSystem,
         WellKnownFileLocations wellKnownFileLocations,
         ListenerManager listenerManager
     ) {
-        VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
+        VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, fileSystem.isCaseSensitive(), DirectoryScanner.getDefaultExcludes());
 
         listenerManager.addListener(new OutputChangeListener() {
             @Override

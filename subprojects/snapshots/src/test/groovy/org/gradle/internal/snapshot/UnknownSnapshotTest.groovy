@@ -27,7 +27,7 @@ class UnknownSnapshotTest extends Specification {
         def node = new UnknownSnapshot("some/prefix", createChildren("myFile.txt"))
 
         when:
-        def snapshot = node.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1)
+        def snapshot = node.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1, true)
         then:
         !snapshot.present
         0 * _
@@ -42,10 +42,10 @@ class UnknownSnapshotTest extends Specification {
         def result = Mock(MetadataSnapshot)
 
         when:
-        def snapshot = node.getSnapshot(relativePath, 0)
+        def snapshot = node.getSnapshot(relativePath, 0, true)
         then:
         snapshot.get() == result
-        _ * first.getSnapshot(relativePath, first.pathToParent.length() + 1) >> Optional.of(result)
+        _ * first.getSnapshot(relativePath, first.pathToParent.length() + 1, true) >> Optional.of(result)
 
         where:
         childNames << [["first", "second", "third"]]
@@ -59,7 +59,7 @@ class UnknownSnapshotTest extends Specification {
         def relativePath = "${first.pathToParent}1/someString"
 
         when:
-        def snapshot = node.getSnapshot(relativePath, 0)
+        def snapshot = node.getSnapshot(relativePath, 0, true)
         then:
         !snapshot.present
         0 * _.getSnapshot(_)
@@ -110,18 +110,18 @@ class UnknownSnapshotTest extends Specification {
         when:
         def result = node.invalidate(relativePath, 0).get()
         remainingChildren.each {
-            assert result.getSnapshot(it.pathToParent, 0).get() == snapshot
+            assert result.getSnapshot(it.pathToParent, 0, true).get() == snapshot
         }
         then:
         0 * _.invalidate(_)
         interaction {
             remainingChildren.each {
-                _ * it.getSnapshot(it.pathToParent, it.pathToParent.length() + 1) >> Optional.of(snapshot)
+                _ * it.getSnapshot(it.pathToParent, it.pathToParent.length() + 1, true) >> Optional.of(snapshot)
             }
         }
 
         when:
-        def removedSnapshot = result.getSnapshot(childToInvalidate.pathToParent, 0)
+        def removedSnapshot = result.getSnapshot(childToInvalidate.pathToParent, 0, true)
         then:
         0 * _.getSnapshot(_)
         !removedSnapshot.present
@@ -143,7 +143,7 @@ class UnknownSnapshotTest extends Specification {
         then:
         1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", childWithChildToInvalidate.pathToParent.length() + 1) >> Optional.of(invalidatedChild)
         0 * _.invalidate(_)
-        !result.getSnapshot(invalidatedChild.pathToParent, 0).present
+        !result.getSnapshot(invalidatedChild.pathToParent, 0, true).present
 
 
         where:

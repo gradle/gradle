@@ -33,28 +33,28 @@ public class SnapshotUtil {
             case 1:
                 FileSystemNode onlyChild = children.get(0);
                 return PathUtil.isChildOfOrThis(filePath, offset, onlyChild.getPathToParent(), caseSensitive)
-                    ? getSnapshotFromChild(filePath, offset, onlyChild)
+                    ? getSnapshotFromChild(filePath, offset, onlyChild, caseSensitive)
                     : noChildFoundResult.get();
             case 2:
                 FileSystemNode firstChild = children.get(0);
                 FileSystemNode secondChild = children.get(1);
                 if (PathUtil.isChildOfOrThis(filePath, offset, firstChild.getPathToParent(), caseSensitive)) {
-                    return getSnapshotFromChild(filePath, offset, firstChild);
+                    return getSnapshotFromChild(filePath, offset, firstChild, caseSensitive);
                 }
                 if (PathUtil.isChildOfOrThis(filePath, offset, secondChild.getPathToParent(), caseSensitive)) {
-                    return getSnapshotFromChild(filePath, offset, secondChild);
+                    return getSnapshotFromChild(filePath, offset, secondChild, caseSensitive);
                 }
                 return noChildFoundResult.get();
             default:
                 int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset, caseSensitive));
                 return foundChild >= 0
-                    ? getSnapshotFromChild(filePath, offset, children.get(foundChild))
+                    ? getSnapshotFromChild(filePath, offset, children.get(foundChild), caseSensitive)
                     : noChildFoundResult.get();
         }
     }
 
-    private static Optional<MetadataSnapshot> getSnapshotFromChild(String filePath, int offset, FileSystemNode child) {
-        return child.getSnapshot(filePath, offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()));
+    private static Optional<MetadataSnapshot> getSnapshotFromChild(String filePath, int offset, FileSystemNode child, boolean caseSensitive) {
+        return child.getSnapshot(filePath, offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()), caseSensitive);
     }
 
     public static FileSystemNode storeSingleChild(FileSystemNode child, String path, int offset, MetadataSnapshot snapshot) {
@@ -76,7 +76,7 @@ public class SnapshotUtil {
             public FileSystemNode handleSame() {
                 return snapshot instanceof CompleteFileSystemLocationSnapshot
                     ? snapshot.withPathToParent(child.getPathToParent())
-                    : child.getSnapshot(path, path.length() + 1)
+                    : child.getSnapshot(path, path.length() + 1, true)
                         .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
                         .map(FileSystemNode.class::cast)
                         .orElse(snapshot.withPathToParent(child.getPathToParent()));

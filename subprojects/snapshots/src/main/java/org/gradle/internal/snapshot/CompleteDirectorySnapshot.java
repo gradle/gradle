@@ -70,9 +70,9 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset, boolean caseSensitive) {
         return Optional.of(
-            SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, true, Optional::empty)
+            SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, caseSensitive, Optional::empty)
                 .orElseGet(() -> SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath))
         );
     }

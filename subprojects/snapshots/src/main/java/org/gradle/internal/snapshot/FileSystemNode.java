@@ -30,7 +30,7 @@ public interface FileSystemNode {
      * That means that filePath.substring(offset) does not include the {@link #getPathToParent()}.
      * Therefore, when filePath.length + 1 == offset, then this node will be returned.
      */
-    Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset);
+    Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset, boolean caseSensitive);
 
     /**
      * Stores information to the virtual file system that we have learned about.

@@ -82,8 +82,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset) {
-        return SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, true, Optional::empty);
+    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset, boolean caseSensitive) {
+        return SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, caseSensitive, Optional::empty);
     }
 
     /**

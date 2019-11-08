@@ -29,7 +29,7 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
     /**
      * The empty hierarchy.
      */
-    FileHierarchySet EMPTY = new FileHierarchySet() {
+    FileHierarchySet EMPTY_CASE_SENSITIVE = new FileHierarchySet() {
         @Override
         public Optional<MetadataSnapshot> getMetadata(String path) {
             return Optional.empty();
@@ -37,12 +37,52 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
         @Override
         public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
-            return DefaultFileHierarchySet.from(absolutePath, snapshot);
+            return DefaultFileHierarchySet.from(absolutePath, snapshot, true);
         }
 
         @Override
         public FileHierarchySet invalidate(String path) {
             return this;
+        }
+
+        @Override
+        public FileHierarchySet empty() {
+            return this;
+        }
+
+        @Override
+        public boolean isCaseSensitive() {
+            return true;
+        }
+    };
+
+    /**
+     * The empty hierarchy.
+     */
+    FileHierarchySet EMPTY_CASE_INSENSITIVE = new FileHierarchySet() {
+        @Override
+        public Optional<MetadataSnapshot> getMetadata(String path) {
+            return Optional.empty();
+        }
+
+        @Override
+        public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
+            return DefaultFileHierarchySet.from(absolutePath, snapshot, false);
+        }
+
+        @Override
+        public FileHierarchySet invalidate(String path) {
+            return this;
+        }
+
+        @Override
+        public FileHierarchySet empty() {
+            return this;
+        }
+
+        @Override
+        public boolean isCaseSensitive() {
+            return false;
         }
     };
 
@@ -62,4 +102,9 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
     @CheckReturnValue
     FileHierarchySet invalidate(String path);
+
+    @CheckReturnValue
+    FileHierarchySet empty();
+
+    boolean isCaseSensitive();
 }
