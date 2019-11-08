@@ -30,6 +30,7 @@ import org.gradle.api.services.BuildServiceSpec;
 import org.gradle.internal.Cast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.lang.reflect.ParameterizedType;
@@ -39,12 +40,14 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final InstantiatorFactory instantiatorFactory;
     private final ServiceRegistry services;
     private final ListenerManager listenerManager;
+    private final IsolatableFactory isolatableFactory;
 
-    public DefaultBuildServicesRegistry(DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager) {
+    public DefaultBuildServicesRegistry(DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory) {
         this.registrations = Cast.uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
         this.instantiatorFactory = instantiatorFactory;
         this.services = services;
         this.listenerManager = listenerManager;
+        this.isolatableFactory = isolatableFactory;
     }
 
     @Override
@@ -69,21 +72,10 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         // TODO - extract some shared infrastructure for this
         Class<P> parameterType = parameterTypeOf(implementationType);
         P parameters = instantiatorFactory.decorateScheme().withServices(services).instantiator().newInstance(parameterType);
-        configureAction.execute(new BuildServiceSpec<P>() {
-            @Override
-            public P getParameters() {
-                return parameters;
-            }
-
-            @Override
-            public void parameters(Action<? super P> configureAction) {
-                configureAction.execute(parameters);
-            }
-        });
+        configureAction.execute(new DefaultServiceSpec<>(parameters));
         // TODO - Add BuildServiceParameters.NONE marker and skip some work when using this
-        // TODO - isolate parameters
-        // TODO - defer isolation of parameters until execution time
         // TODO - finalize the parameters during isolation
+        // TODO - need to lock the project during isolation - should do this the same way as artifact transforms
         return doRegister(name, implementationType, parameterType, parameters);
     }
 
@@ -96,24 +88,9 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(String name, Class<T> implementationType, Class<P> parameterType, P parameters) {
-        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(name, implementationType, parameterType, parameters, instantiatorFactory.injectScheme());
+        BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(name, implementationType, parameterType, parameters, instantiatorFactory.injectScheme(), isolatableFactory);
 
-        registrations.add(new BuildServiceRegistration<T, P>() {
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public P getParameters() {
-                return parameters;
-            }
-
-            @Override
-            public Provider<T> getService() {
-                return provider;
-            }
-        });
+        registrations.add(new DefaultServiceRegistration<>(name, parameters, provider));
 
         // TODO - should stop the service after last usage (ie after the last task that uses it) instead of at the end of the build
         // TODO - should reuse service across build invocations, until the parameters change
@@ -129,5 +106,50 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private <T extends BuildService<P>, P extends BuildServiceParameters> Class<P> parameterTypeOf(Class<T> implementationType) {
         ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(BuildService.class).getType();
         return Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
+    }
+
+    private static class DefaultServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> implements BuildServiceRegistration<T, P> {
+        private final String name;
+        private final P parameters;
+        private final BuildServiceProvider<T, P> provider;
+
+        public DefaultServiceRegistration(String name, P parameters, BuildServiceProvider<T, P> provider) {
+            this.name = name;
+            this.parameters = parameters;
+            this.provider = provider;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public P getParameters() {
+            return parameters;
+        }
+
+        @Override
+        public Provider<T> getService() {
+            return provider;
+        }
+    }
+
+    private static class DefaultServiceSpec<P extends BuildServiceParameters> implements BuildServiceSpec<P> {
+        private final P parameters;
+
+        public DefaultServiceSpec(P parameters) {
+            this.parameters = parameters;
+        }
+
+        @Override
+        public P getParameters() {
+            return parameters;
+        }
+
+        @Override
+        public void parameters(Action<? super P> configureAction) {
+            configureAction.execute(parameters);
+        }
     }
 }
