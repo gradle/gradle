@@ -15,8 +15,8 @@
  */
 package org.gradle.scala
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import spock.lang.Issue
 
@@ -193,6 +193,7 @@ task someTask
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6849")
+    @FailsWithInstantExecution
     def "can publish test-only projects"() {
         using m2
         settingsFile << """
@@ -217,6 +218,7 @@ task someTask
         succeeds("install")
     }
 
+    @FailsWithInstantExecution
     def "forcing an incompatible version of Scala fails with a clear error message"() {
         settingsFile << """
             rootProject.name = "scala"
