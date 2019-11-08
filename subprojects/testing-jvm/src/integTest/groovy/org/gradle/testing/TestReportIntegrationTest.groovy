@@ -24,8 +24,8 @@ import spock.lang.Unroll
 
 import static org.gradle.testing.fixture.JUnitCoverage.*
 import static org.hamcrest.CoreMatchers.*
+import static org.junit.Assume.assumeTrue
 
-// https://github.com/junit-team/junit5/issues/1285
 @TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
 class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
@@ -411,6 +411,44 @@ public class SubClassTests extends SuperClassTests {
         clazz.assertTestCaseStdout("m2", is("beforeTest out\nm2 out\nafterTest out\n"))
         clazz.assertStderr(is("beforeClass err\nconstructor err\nconstructor err\nafterClass err\n"))
         clazz.assertStdout(is("beforeClass out\nconstructor out\nconstructor out\nafterClass out\n"))
+    }
+
+    def "collects output for failing non-root suite descriptors"() {
+        assumeTrue("TestExecutionListener only works on the JUnit Platform", isJUnitPlatform())
+
+        given:
+        buildScript """
+            $junitSetup
+            dependencies {
+                testImplementation(platform('org.junit:junit-bom:$dependencyVersion'))
+                testImplementation('org.junit.platform:junit-platform-launcher')
+            }
+        """
+
+        and:
+        testClass "SomeTest"
+        file("src/test/java/ThrowingListener.java") << """
+            import org.junit.platform.launcher.*;
+            public class ThrowingListener implements TestExecutionListener {
+                @Override
+                public void testPlanExecutionStarted(TestPlan testPlan) {
+                    System.out.println("System.out from ThrowingListener");
+                    System.err.println("System.err from ThrowingListener");
+                    throw new OutOfMemoryError("not caught by JUnit Platform");
+                }
+            }
+        """
+        file("src/test/resources/META-INF/services/org.junit.platform.launcher.TestExecutionListener") << "ThrowingListener"
+
+        when:
+        fails "test"
+
+        then:
+        new HtmlTestExecutionResult(testDirectory)
+            .testClassStartsWith("Gradle Test Executor")
+            .assertTestFailed("failed to execute tests", containsString("Could not complete execution"))
+            .assertStdout(containsString("System.out from ThrowingListener"))
+            .assertStderr(containsString("System.err from ThrowingListener"))
     }
 
     String getJunitSetup() {
