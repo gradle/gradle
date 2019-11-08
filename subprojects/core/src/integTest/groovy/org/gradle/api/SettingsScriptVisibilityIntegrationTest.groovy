@@ -86,6 +86,7 @@ class SettingsScriptVisibilityIntegrationTest extends AbstractIntegrationSpec {
         outputContains("project: plugin 2 not visible")
     }
 
+    @FailsWithInstantExecution
     def "classes loaded in settings are visible when -b is used"() {
         def plugin1Builder = new PluginBuilder(file("plugin1"))
         plugin1Builder.addSettingsPlugin("", "test.plugin1", "MySettingsPlugin1")

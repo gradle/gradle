@@ -19,6 +19,7 @@ package org.gradle.integtests
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -28,6 +29,7 @@ import spock.lang.Unroll
 class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-2440', 'GRADLE-2579'])
+    @FailsWithInstantExecution
     def 'stale output file is removed after input source directory is emptied.'() {
         def taskWithSources = new TaskWithSources()
         taskWithSources.createInputs()
@@ -184,6 +186,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         myTaskDir.assertExists()
     }
 
+    @FailsWithInstantExecution
     def "stale outputs are removed after Gradle version change"() {
         given:
         buildFile << """
@@ -434,6 +437,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         skipped(taskWithLocalState.taskPath)
     }
 
+    @FailsWithInstantExecution
     def "up-to-date checks detect removed stale outputs"() {
         buildFile << """                                    
             plugins {
@@ -497,6 +501,7 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         original.text == "Original"
     }
 
+    @FailsWithInstantExecution
     def "task with file tree output can be up-to-date"() {
         buildFile << """                                     
             plugins {

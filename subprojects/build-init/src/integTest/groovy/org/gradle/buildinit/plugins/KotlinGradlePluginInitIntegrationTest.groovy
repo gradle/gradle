@@ -17,7 +17,6 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Unroll
 
@@ -34,7 +33,6 @@ class KotlinGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec 
     }
 
     @Unroll
-    @FailsWithInstantExecution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'kotlin-gradle-plugin', '--dsl', scriptDsl.id)

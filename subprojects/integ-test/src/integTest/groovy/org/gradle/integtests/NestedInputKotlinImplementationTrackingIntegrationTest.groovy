@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
@@ -31,6 +32,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         return 'build.gradle.kts'
     }
 
+    @FailsWithInstantExecution
     def "implementations in nested Action property in Kotlin build script is tracked"() {
         setupTaskWithNestedAction('org.gradle.api.Action<File>', '.execute')
         buildFile << """
@@ -64,6 +66,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
         output.contains "Implementation of input property 'action' has changed for task ':myTask'"
     }
 
+    @FailsWithInstantExecution
     def "implementations in nested lambda property in Kotlin build script is tracked"() {
         setupTaskWithNestedAction('(File) -> Unit', '')
         buildFile << """

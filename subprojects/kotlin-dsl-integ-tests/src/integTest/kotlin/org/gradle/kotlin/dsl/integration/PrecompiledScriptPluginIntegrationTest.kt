@@ -130,6 +130,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @FailsWithInstantExecution
     fun `can apply precompiled script plugin from groovy script`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -187,6 +188,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @FailsWithInstantExecution
     fun `accessors are available after re-running tasks`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

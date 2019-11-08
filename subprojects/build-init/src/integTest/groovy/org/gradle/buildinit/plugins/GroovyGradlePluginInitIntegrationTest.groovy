@@ -17,13 +17,11 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 
 class GroovyGradlePluginInitIntegrationTest extends AbstractInitIntegrationSpec {
     @Unroll
-    @FailsWithInstantExecution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'groovy-gradle-plugin', '--dsl', scriptDsl.id)

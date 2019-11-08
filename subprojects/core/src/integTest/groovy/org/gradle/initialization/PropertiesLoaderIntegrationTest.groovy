@@ -109,7 +109,6 @@ task assertCodDisabled {
         succeeds ':assertCodDisabled'
     }
 
-    @FailsWithInstantExecution
     def "system property set on command line takes precedence over jvm args"() {
         given:
         executer.requireGradleDistribution()

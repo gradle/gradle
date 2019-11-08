@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer
 
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
@@ -32,6 +33,7 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     def executer = new GradleContextualExecuter(distribution, temporaryFolder, IntegrationTestBuildContext.INSTANCE)
 
     @Unroll
+    @FailsWithInstantExecution
     def "can write to System.out and System.err around build invocation with #console console when errors are redirected to stdout"() {
         given:
         temporaryFolder.file("settings.gradle") << '''
@@ -88,6 +90,7 @@ class InProcessGradleExecuterIntegrationTest extends Specification {
     }
 
     @Unroll
+    @FailsWithInstantExecution
     def "can write to System.out and System.err around build invocation with #console console when errors are written to stderr"() {
         given:
         temporaryFolder.file("settings.gradle") << '''

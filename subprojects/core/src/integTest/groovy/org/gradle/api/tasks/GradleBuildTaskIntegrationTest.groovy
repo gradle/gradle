@@ -48,6 +48,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    @FailsWithInstantExecution
     def "can set build path"() {
         given:
         settingsFile << "rootProject.name = 'parent'"
@@ -66,6 +67,7 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         executed(":bp:t")
     }
 
+    @FailsWithInstantExecution
     def "fails when build path is not unique"() {
         given:
         settingsFile << "rootProject.name = 'parent'"

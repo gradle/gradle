@@ -1123,6 +1123,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "**/abc*abc" | "abc"
     }
 
+    @FailsWithInstantExecution
     def "changing case-sensitive setting makes task out-of-date"() {
         given:
         buildScript '''

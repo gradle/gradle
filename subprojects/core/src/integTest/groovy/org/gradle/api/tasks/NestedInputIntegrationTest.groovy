@@ -792,6 +792,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Implementation of input property 'bean' has changed for task ':customTask'"
     }
 
+    @FailsWithInstantExecution
     def "changes to nested domain object container are tracked"() {
         buildFile << taskWithNestedInput()
         buildFile << """

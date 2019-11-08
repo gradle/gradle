@@ -19,6 +19,7 @@ package org.gradle.testing
 import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
 import spock.lang.Unroll
@@ -39,6 +40,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         return testSuite
     }
 
+    @IgnoreWithInstantExecution
     def "can listen for test results"() {
         given:
         createPassingFailingTest()
@@ -96,6 +98,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         succeeds "verifyTestResultConventions"
     }
 
+    @IgnoreWithInstantExecution
     def "test results show passing and failing tests"() {
         given:
         createPassingFailingTest()
@@ -115,6 +118,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
+    @IgnoreWithInstantExecution
     def "test results capture test output"() {
         Assume.assumeTrue(capturesTestOutput())
         given:
@@ -133,6 +137,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeTest').assertStderr(CoreMatchers.containsString("some error output"))
     }
 
+    @IgnoreWithInstantExecution
     def "failing tests cause report url to be printed"() {
         given:
         createPassingFailingTest()
@@ -144,6 +149,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("There were failing tests. See the report at:")
     }
 
+    @IgnoreWithInstantExecution
     def "lack of tests produce an empty report"() {
         given:
         createEmptyProject()
@@ -155,6 +161,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.assertNoTestClassesExecuted()
     }
 
+    @IgnoreWithInstantExecution
     def "adding and removing tests remove old tests from reports"() {
         given:
         createPassingFailingTest()
@@ -166,6 +173,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.assertTestClassesExecuted('SomeTest', 'NewTest')
     }
 
+    @IgnoreWithInstantExecution
     def "honors test case filter from --tests flag"() {
         given:
         createPassingFailingTest()
@@ -178,6 +186,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
+    @IgnoreWithInstantExecution
     def "honors test suite filter from --tests flag"() {
         given:
         createPassingFailingTest()
@@ -190,6 +199,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
+    @IgnoreWithInstantExecution
     def "reports when no matching methods found"() {
         given:
         createPassingFailingTest()
@@ -205,6 +215,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         then: failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
     }
 
+    @IgnoreWithInstantExecution
     def "task is out of date when --tests argument changes"() {
         given:
         createPassingFailingTest()
@@ -233,6 +244,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "can select multiple tests from command line #scenario"() {
         given:
         createPassingFailingTest()
@@ -266,6 +278,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     @Unroll
+    @IgnoreWithInstantExecution
     def "can deduplicate test filters when #scenario"() {
         given:
         createPassingFailingTest()

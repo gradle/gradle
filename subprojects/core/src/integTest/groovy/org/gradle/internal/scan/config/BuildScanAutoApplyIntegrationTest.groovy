@@ -52,6 +52,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
+    @FailsWithInstantExecution
     def "only applies once when -b used"() {
         when:
         file("other-build.gradle") << "task dummy {}"
@@ -233,6 +234,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
+    @FailsWithInstantExecution
     def "fails well when trying to use old plugin"() {
         given:
         buildFile.text = """

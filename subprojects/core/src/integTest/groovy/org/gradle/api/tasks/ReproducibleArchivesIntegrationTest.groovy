@@ -65,6 +65,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         expectedHash = taskName == 'tar' ? 'eff4909fee3367f576fe26537ff6403a' : '62b93684c0b891fcf905b4a6eaf32976'
     }
 
+    @FailsWithInstantExecution
     def "timestamps are ignored in #taskName"() {
         given:
         createTestFiles()

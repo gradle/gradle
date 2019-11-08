@@ -21,7 +21,6 @@ import com.google.common.util.concurrent.MoreExecutors
 import org.apache.log4j.Logger
 import org.gradle.api.Action
 import org.gradle.api.internal.file.FileSystemSubset
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.filewatch.AbstractFileWatcherTest
 import org.gradle.internal.filewatch.FileWatcher
 import org.gradle.internal.filewatch.FileWatcherEvent
@@ -55,7 +54,6 @@ class WatchServiceFileWatcherBackingTest extends AbstractFileWatcherTest {
     }
 
     @Unroll
-    @FailsWithInstantExecution
     def "checks for scenario when the first directory to watch doesn't exist - #testScenario"() {
         // corner case scenario where the directory to watch doesn't exist
         // internally it's parent will be watched for changes

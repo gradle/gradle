@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 
@@ -119,6 +120,7 @@ project('b') {
         file('b/build/testproject-1.0.jar').assertIsCopyOf(module2.jarFile)
     }
 
+    @FailsWithInstantExecution
     def 'dependency cache can be relocated'() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()

@@ -339,6 +339,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
+    @FailsWithInstantExecution
     void 'dashboard includes JaCoCo reports'() {
         given:
         goodCode()

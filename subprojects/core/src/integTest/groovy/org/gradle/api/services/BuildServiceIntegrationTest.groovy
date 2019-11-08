@@ -17,6 +17,7 @@
 package org.gradle.api.services
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -127,6 +128,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     @RequiredFeatures(
         [@RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value="false")]
     )
+    @FailsWithInstantExecution
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """

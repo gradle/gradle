@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -39,6 +40,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
     abstract protected String getRepoType()
 
     @Unroll
+    @FailsWithInstantExecution
     def "resolve with server certificate and #authSchemeName authentication"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)
@@ -64,6 +66,7 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         true    | AuthScheme.NTLM   | 'ntlm'         | ['None', 'NTLM']
     }
 
+    @FailsWithInstantExecution
     def "resolve with server and client certificate"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerAndClientCerts(server)

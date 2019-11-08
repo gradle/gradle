@@ -19,6 +19,7 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -132,6 +133,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.withArguments("-m").withTasks("b").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
     }
 
+    @FailsWithInstantExecution
     def executesTaskActionsInCorrectEnvironment() {
         buildFile << """
     // An action attached to built-in task
@@ -157,6 +159,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeeds("a", "b", "c")
     }
 
+    @FailsWithInstantExecution
     def excludesTasksWhenExcludePatternSpecified() {
         settingsFile << "include 'sub'"
         buildFile << """
@@ -202,6 +205,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(file('sub')).withTasks('c').withArguments('-x', 'a').run().assertTasksExecuted(':a', ':sub:b', ':sub:c')
     }
 
+    @FailsWithInstantExecution
     def 'can use camel-case matching to exclude tasks'() {
         buildFile << """
 task someDep
@@ -214,6 +218,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         executer.withTasks("someTask").withArguments("-x", ":sODep").run().assertTasksExecuted(":someDep", ":someTask")
     }
 
+    @FailsWithInstantExecution
     def 'can combine exclude task filters'() {
         buildFile << """
 task someDep

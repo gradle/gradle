@@ -33,6 +33,7 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
         outputs.recompiledClasses(recompiledClasses)
     }
 
+    @FailsWithInstantExecution
     def 'rebuild all after loading from cache'() {
         given:
         def a = source "class A {}"
