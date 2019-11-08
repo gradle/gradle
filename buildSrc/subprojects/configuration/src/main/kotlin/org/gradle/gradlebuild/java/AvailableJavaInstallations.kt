@@ -23,7 +23,8 @@ class JavaInstallation(
     val current: Boolean,
     private val jvm: JavaInfo,
     val javaVersion: JavaVersion,
-    private val javaInstallationProbe: JavaInstallationProbe) {
+    private val javaInstallationProbe: JavaInstallationProbe
+) {
 
     override fun toString(): String = "$vendorAndMajorVersion (${javaHome.absolutePath})"
 
