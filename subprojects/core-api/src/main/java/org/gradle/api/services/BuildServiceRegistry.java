@@ -37,7 +37,7 @@ public interface BuildServiceRegistry {
     NamedDomainObjectSet<BuildServiceRegistration<?, ?>> getRegistrations();
 
     /**
-     * Registers a service, if not already registered. The service is not created until required.
+     * Registers a service, if a service with the given name is not already registered. The service is not created until required.
      *
      * @param name A name to use to identify the service.
      * @param implementationType The service implementation type. Instances of the service are created as for {@link org.gradle.api.model.ObjectFactory#newInstance(Class, Object...)}.

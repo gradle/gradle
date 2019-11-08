@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
-import com.google.common.reflect.TypeToken;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NonExtensible;
@@ -36,11 +35,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.type.ModelType;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.ParameterizedType;
 import java.util.Arrays;
 import java.util.List;
 
@@ -52,6 +51,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
     private final InstantiatorFactory instantiatorFactory;
     private final InstantiationScheme parametersInstantiationScheme;
     private final TransformationRegistrationFactory registrationFactory;
+    private final IsolationScheme<TransformAction, TransformParameters> isolationScheme = new IsolationScheme<>(TransformAction.class);
 
     public DefaultVariantTransformRegistry(InstantiatorFactory instantiatorFactory, ImmutableAttributesFactory immutableAttributesFactory, ServiceRegistry services, TransformationRegistrationFactory registrationFactory, InstantiationScheme parametersInstantiationScheme) {
         this.instantiatorFactory = instantiatorFactory;
@@ -80,8 +80,7 @@ public class DefaultVariantTransformRegistry implements VariantTransformRegistry
 
     @Override
     public <T extends TransformParameters> void registerTransform(Class<? extends TransformAction<T>> actionType, Action<? super TransformSpec<T>> registrationAction) {
-        ParameterizedType superType = (ParameterizedType) TypeToken.of(actionType).getSupertype(TransformAction.class).getType();
-        Class<T> parameterType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
+        Class<T> parameterType = isolationScheme.parameterTypeFor(actionType);
         if (parameterType == TransformParameters.class) {
             throw new VariantTransformConfigurationException(String.format("Could not register transform: must use a sub-type of %s as parameter type. Use %s for transforms without parameters.", ModelType.of(TransformParameters.class).getDisplayName(), ModelType.of(TransformParameters.None.class).getDisplayName()));
         }
