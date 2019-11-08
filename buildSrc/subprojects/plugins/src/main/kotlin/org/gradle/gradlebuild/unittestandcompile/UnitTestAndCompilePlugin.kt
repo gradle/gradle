@@ -184,7 +184,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     fun Test.configureJvmForTest() {
         val jvmForTest = project.buildJvms.testJvm.get()
         jvmArgumentProviders.add(createCiEnvironmentProvider(this))
-        executable = jvmForTest.jvm.javaExecutable.absolutePath
+        executable = jvmForTest.javaExecutable.absolutePath
         environment["JAVA_HOME"] = jvmForTest.javaHome.absolutePath
         if (jvmForTest.javaVersion.isJava7) {
             // enable class unloading

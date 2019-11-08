@@ -75,14 +75,7 @@ dependencies {
 }
 
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
-val toolsJar = buildJvms.testJvm.map { jvm ->
-    if (!jvm.javaVersion.isJava9Compatible) {
-        listOf(jvm.toolsJar).filterNotNull()
-    } else {
-        emptyList()
-    }
-}
-println("-> TOOLS JARS = ${toolsJar.get()}")
+val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
 dependencies {
     integTestRuntimeOnly(files(toolsJar))
 }
