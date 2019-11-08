@@ -324,6 +324,57 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 16")
     }
 
+    def "service parameters are isolated when the service is instantiated"() {
+        serviceImplementation()
+        buildFile << """
+            def params
+            
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                params = parameters
+                parameters.initial = 10
+            }
+            
+            assert params.initial.get() == 10
+            params.initial = 12
+            
+            task first {
+                doFirst {
+                    params.initial = 15 // should have an effect
+                    provider.get().reset()
+                    params.initial = 1234 // should be ignored. Ideally should fail too
+                }
+            }
+
+            task second {
+                dependsOn first
+                doFirst {
+                    provider.get().increment()
+                    params.initial = 456 // should be ignored
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 15")
+        outputContains("service: value is 15")
+        outputContains("service: value is 16")
+        outputContains("service: closed with value 16")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 15")
+        outputContains("service: value is 15")
+        outputContains("service: value is 16")
+        outputContains("service: closed with value 16")
+    }
+
     def "service is stopped even if build fails"() {
         serviceImplementation()
         buildFile << """
@@ -460,6 +511,14 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                 CountingService() {
                     value = parameters.initial.get()
                     println("service: created with value = \${value}")
+                }
+                
+                synchronized int getInitialValue() { return parameters.initial.get() }
+
+                // Service must be thread-safe
+                synchronized void reset() {
+                    value = parameters.initial.get()
+                    println("service: value is \${value}")
                 }
                 
                 // Service must be thread-safe

@@ -22,12 +22,14 @@ import org.gradle.api.GradleException
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager()
-    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager)
+    def isolatableFactory = new DefaultValueSnapshotter(null, TestUtil.managedFactoryRegistry())
+    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory)
 
     def setup() {
         ServiceImpl.reset()
@@ -121,12 +123,15 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can tweak parameters via the registration"() {
         when:
+        def initialParameters
         def provider = registry.registerIfAbsent("service", ServiceImpl) {
             it.parameters.prop = "value 1"
+            initialParameters = it.parameters
         }
         def parameters = registry.registrations.getByName("service").parameters
 
         then:
+        parameters.is(initialParameters)
         parameters.prop == "value 1"
 
         when:
@@ -135,6 +140,27 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
         then:
         service.prop == "value 2"
+    }
+
+    def "parameters are isolated when the service is instantiated"() {
+        given:
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {
+            it.parameters.prop = "value 1"
+        }
+        def parameters = registry.registrations.getByName("service").parameters
+        def service = provider.get()
+
+        when:
+        parameters.prop = "ignore me 1"
+
+        then:
+        service.prop == "value 1"
+
+        when:
+        service.parameters.prop = "ignore me 2"
+
+        then:
+        parameters.prop == "ignore me 1"
     }
 
     def "stops service at end of build if it implements AutoCloseable"() {
