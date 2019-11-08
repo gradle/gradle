@@ -546,8 +546,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         ':santa-tracker:generateDebugFeatureTransitiveDeps': FROM_CACHE,
         ':santa-tracker:generateDebugResValues': FROM_CACHE,
         ':santa-tracker:generateDebugResources': SUCCESS,
-        ':santa-tracker:generateLicenses': SUCCESS,
-        ':santa-tracker:getDependencies': SUCCESS,
         ':santa-tracker:handleDebugMicroApk': SUCCESS,
         ':santa-tracker:javaPreCompileDebug': FROM_CACHE,
         ':santa-tracker:kaptDebugKotlin': SUCCESS,
