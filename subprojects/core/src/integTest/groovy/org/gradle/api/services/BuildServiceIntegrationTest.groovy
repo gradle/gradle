@@ -27,7 +27,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
         buildFile << """
-            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
@@ -80,7 +80,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "tasks can use mapped value of service"() {
         serviceImplementation()
         buildFile << """
-            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
@@ -130,7 +130,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
-            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
@@ -179,7 +179,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service used at configuration and execution time can be used with instant execution"() {
         serviceImplementation()
         buildFile << """
-            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
@@ -233,7 +233,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class CounterPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    def provider = project.gradle.sharedServices.maybeRegister("counter", CountingService) {
+                    def provider = project.gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                         parameters.initial = 10
                     }
                     project.tasks.register("count") {
@@ -285,10 +285,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             }
             apply plugin: CounterConventionPlugin
 
-            def counter1 = project.gradle.sharedServices.maybeRegister("counter1", CountingService) {
+            def counter1 = project.gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 0
             }
-            def counter2 = project.gradle.sharedServices.maybeRegister("counter2", CountingService) {
+            def counter2 = project.gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
             task count {
@@ -327,10 +327,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is stopped even if build fails"() {
         serviceImplementation()
         buildFile << """
-            def counter1 = project.gradle.sharedServices.maybeRegister("counter1", CountingService) {
+            def counter1 = project.gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 0
             }
-            def counter2 = project.gradle.sharedServices.maybeRegister("counter2", CountingService) {
+            def counter2 = project.gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
             task count {
@@ -363,10 +363,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "reports failure to create the service instance"() {
         brokenServiceImplementation()
         buildFile << """
-            def provider1 = gradle.sharedServices.maybeRegister("counter1", CountingService) {
+            def provider1 = gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 10
             }
-            def provider2 = gradle.sharedServices.maybeRegister("counter2", CountingService) {
+            def provider2 = gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
             
@@ -415,10 +415,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "reports failure to stop the service instance"() {
         brokenStopServiceImplementation()
         buildFile << """
-            def provider1 = gradle.sharedServices.maybeRegister("counter1", CountingService) {
+            def provider1 = gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 10
             }
-            def provider2 = gradle.sharedServices.maybeRegister("counter2", CountingService) {
+            def provider2 = gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
             

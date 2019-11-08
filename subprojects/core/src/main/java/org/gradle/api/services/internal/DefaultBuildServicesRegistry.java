@@ -54,6 +54,11 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Override
     public <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> maybeRegister(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction) {
+        return registerIfAbsent(name, implementationType, configureAction);
+    }
+
+    @Override
+    public <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction) {
         BuildServiceRegistration<?, ?> existing = registrations.findByName(name);
         if (existing != null) {
             // TODO - assert same type
