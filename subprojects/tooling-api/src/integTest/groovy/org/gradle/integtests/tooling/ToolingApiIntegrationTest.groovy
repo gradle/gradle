@@ -16,6 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleHandle
@@ -70,6 +71,7 @@ class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
         !stdOut.toString().contains("BUILD SUCCESSFUL")
     }
 
+    @IgnoreWithInstantExecution
     def "tooling api uses the wrapper properties to determine which version to use"() {
         projectDir.file('build.gradle').text = """
 wrapper { distributionUrl = '${otherVersion.binDistribution.toURI()}' }
@@ -153,6 +155,7 @@ allprojects {
     }
 
     @Issue("GRADLE-2419")
+    @IgnoreWithInstantExecution
     def "tooling API does not hold JVM open"() {
         given:
         def buildFile = projectDir.file("build.gradle")
