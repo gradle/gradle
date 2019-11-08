@@ -15,10 +15,12 @@
  */
 package org.gradle.plugins.signing
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 
 class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec {
 
+    @FailsWithInstantExecution
     def "signs with default signatory"() {
         given:
         buildFile << """
@@ -40,6 +42,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         file("build", "libs", "sign-1.0.jar.asc").exists()
     }
 
+    @FailsWithInstantExecution
     def "signs with custom signatory"() {
         given:
         buildFile << """
@@ -64,6 +67,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
         file("build", "libs", "sign-1.0.jar.asc").exists()
     }
 
+    @FailsWithInstantExecution
     def "supports keys without passwords"() {
         given:
         buildFile << """
@@ -85,6 +89,7 @@ class InMemoryPgpSignatoryProviderIntegrationSpec extends SigningIntegrationSpec
     }
 
     @Issue("gradle/gradle#10363")
+    @FailsWithInstantExecution
     def "supports signing subkeys"() {
         given:
         buildFile << """

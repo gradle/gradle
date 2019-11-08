@@ -16,10 +16,12 @@
 
 package org.gradle.plugins.signing
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 
 class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
+    @FailsWithInstantExecution
     def "signs single Maven publication"() {
         given:
         buildFile << """
@@ -51,6 +53,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
 
+    @FailsWithInstantExecution
     def "component can still be mutated after signing is configured for a Maven publication"() {
         given:
         buildFile << """
@@ -84,6 +87,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-3.0.jar").text
     }
 
+    @FailsWithInstantExecution
     def "component can still be mutated after signing is configured for an Ivy publication"() {
         given:
         buildFile << """
@@ -117,6 +121,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-3.0.jar").text
     }
 
+    @FailsWithInstantExecution
     def "artifacts can still be mutated after signing is configured"() {
         given:
 
@@ -158,6 +163,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0-custom2.jar.asc").text
     }
 
+    @FailsWithInstantExecution
     def "signs single Ivy publication"() {
         given:
         buildFile << """
@@ -189,6 +195,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivyJava", "ivy.xml.asc").text
     }
 
+    @FailsWithInstantExecution
     def "signs Gradle metadata"() {
         given:
         buildFile << """
@@ -226,6 +233,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivy", "module.json.asc").text
     }
 
+    @FailsWithInstantExecution
     def "disallows signing Gradle metadata if version is a snapshot"() {
         given:
         buildFile << """
@@ -255,6 +263,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         failure.assertHasCause("Signing Gradle Module Metadata is not supported for snapshot dependencies.")
     }
 
+    @FailsWithInstantExecution
     def "with signing not required, does not fail on Gradle metadata if version is a snapshot"() {
         given:
         buildFile << """
@@ -284,6 +293,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
 
     }
 
+    @FailsWithInstantExecution
     def "publishes signature files for Maven publication"() {
         given:
         buildFile << """
@@ -335,6 +345,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("$artifactId-${version}.module.asc").assertExists()
     }
 
+    @FailsWithInstantExecution
     def "publishes signature files for Ivy publication"() {
         given:
         buildFile << """
@@ -391,6 +402,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         ivyRepoFile("$artifactId-${version}.module.asc").assertExists()
     }
 
+    @FailsWithInstantExecution
     def "sign task takes into account configuration changes"() {
         given:
         buildFile << """
@@ -432,6 +444,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "mavenJava", "pom-default.xml.asc").text
     }
 
+    @FailsWithInstantExecution
     def "publish task takes into account configuration changes"() {
         given:
         buildFile << """
@@ -476,6 +489,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
     }
 
+    @FailsWithInstantExecution
     def "signs all publications in container"() {
         given:
         buildFile << """
@@ -513,6 +527,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "publications", "ivy", "ivy.xml.asc").assertExists()
     }
 
+    @FailsWithInstantExecution
     def "signs filtered publications of container"() {
         given:
         buildFile << """
@@ -546,6 +561,7 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5099")
+    @FailsWithInstantExecution
     def "disabling sign tasks skips uploading signature artifacts but does not break publishing"() {
         given:
         buildFile << """

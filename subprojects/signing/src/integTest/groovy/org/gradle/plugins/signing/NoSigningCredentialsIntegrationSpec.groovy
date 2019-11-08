@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.signing
 
-
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -26,6 +26,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         executer.withArguments("-info")
     }
 
+    @FailsWithInstantExecution
     def "trying to perform a signing operation without a signatory produces reasonable error"() {
         when:
         buildFile << """
@@ -42,6 +43,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
         failureHasCause "Cannot perform signing task ':signJar' because it has no configured signatory"
     }
 
+    @FailsWithInstantExecution
     def "trying to perform a signing operation without a signatory when not required does not error, and other artifacts still uploaded"() {
         when:
         buildFile << """
@@ -83,6 +85,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
 
     @Issue("https://github.com/gradle/gradle/issues/2267")
     @Unroll
+    @FailsWithInstantExecution
     def "trying to perform a signing operation for null signing properties when not required does not error"() {
         when:
         buildFile << """
