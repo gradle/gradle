@@ -16,8 +16,6 @@
 
 package org.gradle.testing.junitplatform
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
-
 class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec  {
 
     @Override
@@ -31,7 +29,6 @@ class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec  
         """
     }
 
-    @FailsWithInstantExecution
     def "should log display names if present"() {
         given:
         file("src/test/java/pkg/TopLevelClass.java")  << """
@@ -68,7 +65,6 @@ class JUnitPlatformLoggingIntegrationTest extends JUnitPlatformIntegrationSpec  
         outputContains("Class level display name > Nested class display name > Nested test method display name")
     }
 
-    @FailsWithInstantExecution
     def "should fall back to plain name if no display names present"() {
         given:
         file("src/test/java/pkg/TopLevelClass.java")  << """

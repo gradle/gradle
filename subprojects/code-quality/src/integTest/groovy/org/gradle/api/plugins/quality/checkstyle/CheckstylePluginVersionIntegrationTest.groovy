@@ -89,6 +89,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
     @ToBeImplemented
     @Issue("GRADLE-3432")
+    @FailsWithInstantExecution
     def "analyze bad resources"() {
         defaultLanguage('en')
         writeConfigFileForResources()
@@ -103,6 +104,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         // file("build/reports/checkstyle/main.html").assertContents(containsLine(containsString("bad.properties")))
     }
 
+    @FailsWithInstantExecution
     def "analyze bad code"() {
         defaultLanguage('en')
         badCode()
@@ -119,6 +121,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
+    @FailsWithInstantExecution
     def "can suppress console output"() {
         def message = "Name 'class1' must match pattern"
 
@@ -369,6 +372,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
+    @FailsWithInstantExecution
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         defaultLanguage('en')

@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
@@ -83,6 +82,7 @@ jar.dependsOn postCompile
         assert classloader.loadClass('Thing').getDeclaredFields()*.name == ["CHANGED"]
     }
 
+    @IgnoreWithInstantExecution
     def "new build should be triggered when input files to tasks are changed after each task has been executed, but before the build has completed"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }
@@ -130,7 +130,7 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "new build should be triggered when input files to tasks are changed during the task is executing"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }

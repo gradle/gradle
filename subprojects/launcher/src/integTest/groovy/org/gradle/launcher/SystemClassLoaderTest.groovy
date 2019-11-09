@@ -16,7 +16,6 @@
 package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
@@ -41,7 +40,6 @@ class SystemClassLoaderTest extends AbstractIntegrationSpec {
         explaining why this is.
     */
     @IgnoreIf({ GradleContextualExecuter.embedded })
-    @FailsWithInstantExecution
     def "daemon bootstrap classpath is bare bones"() {
         given:
         buildFile << """

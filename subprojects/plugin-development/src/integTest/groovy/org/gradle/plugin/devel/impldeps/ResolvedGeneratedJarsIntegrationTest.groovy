@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.impldeps
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Issue
 
 import java.util.zip.ZipFile
@@ -27,6 +28,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
         buildFile << testablePluginProject(applyJavaPlugin())
     }
 
+    @FailsWithInstantExecution
     def "gradle api jar is generated only when requested"() {
         setup:
         productionCode()
@@ -48,6 +50,7 @@ class ResolvedGeneratedJarsIntegrationTest extends BaseGradleImplDepsTestCodeInt
 
     }
 
+    @FailsWithInstantExecution
     def "gradle testkit jar is generated only when requested"() {
         setup:
         testCode()

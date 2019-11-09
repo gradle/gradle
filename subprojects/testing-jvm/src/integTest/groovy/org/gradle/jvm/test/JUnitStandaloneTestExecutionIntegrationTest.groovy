@@ -25,7 +25,6 @@ import spock.lang.Unroll
 
 class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
-    @FailsWithInstantExecution
     def "creates a JUnit test suite binary"() {
         given:
         applyJUnitPlugin()
@@ -64,7 +63,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Fails if no JUnit version is specified for a test suite declared under #container")
-    @FailsWithInstantExecution
     def "fails if no JUnit version is specified"() {
         given:
         applyJUnitPlugin()
@@ -89,7 +87,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Fails if no JUnit version is specified even if found in dependencies for a test suite declared under #container")
-    @FailsWithInstantExecution
     def "fails if no JUnit version is specified even if found in dependencies"() {
         given:
         applyJUnitPlugin()
@@ -245,7 +242,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         container << ['testSuites', 'components']
     }
 
-    @FailsWithInstantExecution
     def "assemble does not compile nor run test suite"() {
         given:
         applyJUnitPlugin()

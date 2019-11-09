@@ -16,6 +16,7 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
@@ -33,6 +34,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('codeQuality')
+    @FailsWithInstantExecution
     def "can generate reports with #dsl dsl"() {
         TestFile projectDir = sample.dir.file(dsl)
         TestFile buildDir = projectDir.file('build')

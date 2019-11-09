@@ -40,7 +40,6 @@ import java.io.File
 class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
-    @FailsWithInstantExecution
     fun `can access sub-project specific task`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -157,7 +156,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @FailsWithInstantExecution
     fun `can access extension of default package type`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -198,7 +196,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @FailsWithInstantExecution
     fun `can access task of default package type`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -236,7 +233,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @FailsWithInstantExecution
     fun `can access extension of nested type`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -1093,7 +1089,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @FailsWithInstantExecution
     fun `accessors to extensions of the dependency handler`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -1184,7 +1179,6 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @FailsWithInstantExecution
     fun `accessors to kotlin internal task types are typed with the first kotlin public parent type`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

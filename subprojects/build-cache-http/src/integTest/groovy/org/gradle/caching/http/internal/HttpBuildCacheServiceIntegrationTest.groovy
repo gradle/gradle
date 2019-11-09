@@ -18,6 +18,7 @@ package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
@@ -52,7 +53,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "no task is re-executed when inputs are unchanged"() {
         when:
         withBuildCache().run "jar"
@@ -80,6 +81,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().run "run"
     }
 
+    @IgnoreWithInstantExecution
     def "tasks get cached when source code changes back to previous state"() {
         expect:
         withBuildCache().run "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"

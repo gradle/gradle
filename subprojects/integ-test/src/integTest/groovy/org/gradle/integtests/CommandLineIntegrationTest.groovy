@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.jvm.Jvm
@@ -51,6 +52,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @FailsWithInstantExecution
     void canDefineJavaHomeUsingEnvironmentVariable() {
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"

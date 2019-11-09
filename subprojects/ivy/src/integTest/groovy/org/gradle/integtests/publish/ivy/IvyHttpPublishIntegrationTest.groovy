@@ -238,6 +238,7 @@ uploadArchives {
 
     @Requires(FIX_TO_WORK_ON_JAVA9)
     @Issue('provide a different large jar')
+    @IgnoreWithInstantExecution
     public void "can publish large artifact (tools.jar) to authenticated repository"() {
         given:
         server.start()
