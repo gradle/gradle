@@ -23,6 +23,7 @@ import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.is
 
 class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
