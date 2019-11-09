@@ -19,10 +19,8 @@ package org.gradle.internal.snapshot;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.io.File;
-import java.util.Comparator;
 
 public class PathUtil {
-    private static final Comparator<String> PATH_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, true);
 
     /**
      * The Unix separator character.
@@ -48,19 +46,6 @@ public class PathUtil {
 
     public static boolean isFileSeparator(char toCheck) {
         return toCheck == SYSTEM_SEPARATOR || toCheck == OTHER_SEPARATOR;
-    }
-
-    static int comparePaths(String prefix, String path, int offset, boolean caseSensitive) {
-        int maxPos = Math.min(prefix.length(), path.length() - offset);
-        for (int pos = 0; pos < maxPos; pos++) {
-            char charInPath1 = prefix.charAt(pos);
-            char charInPath2 = path.charAt(pos + offset);
-            int comparedChars = compareChars(charInPath1, charInPath2, caseSensitive);
-            if (comparedChars != 0) {
-                return comparedChars;
-            }
-        }
-        return Integer.compare(prefix.length(), path.length() - offset);
     }
 
     @VisibleForTesting
@@ -105,21 +90,17 @@ public class PathUtil {
         }
     }
 
-    public static Comparator<String> pathComparator() {
-        return PATH_COMPARATOR;
-    }
-
     /**
      * Does not include the separator char.
      */
-    public static int sizeOfCommonPrefix(String path1, String path2, int offset, boolean caseSensitive) {
+    public static int sizeOfCommonPrefix(String path1, String path2, int offset, CaseSensitivity caseSensitivity) {
         int pos = 0;
         int lastSeparator = 0;
         int maxPos = Math.min(path1.length(), path2.length() - offset);
         for (; pos < maxPos; pos++) {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
-            if (!equalChars(charInPath1, charInPath2, caseSensitive)) {
+            if (!caseSensitivity.equalChars(charInPath1, charInPath2)) {
                 break;
             }
             if (isFileSeparator(charInPath1)) {
@@ -140,12 +121,12 @@ public class PathUtil {
         return lastSeparator;
     }
 
-    public static int compareWithCommonPrefix(String path1, String path2, int offset, boolean caseSensitive) {
+    public static int compareWithCommonPrefix(String path1, String path2, int offset, CaseSensitivity caseSensitivity) {
         int maxPos = Math.min(path1.length(), path2.length() - offset);
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
-            int comparedChars = compareChars(charInPath1, charInPath2, caseSensitive);
+            int comparedChars = caseSensitivity.compareChars(charInPath1, charInPath2);
             if (comparedChars != 0) {
                 return comparedChars;
             }
@@ -185,7 +166,7 @@ public class PathUtil {
      * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
      * which does not check for negative indices or integer overflow.
      */
-    public static boolean isChildOfOrThis(String filePath, int offset, String prefix, boolean caseSensitive) {
+    public static boolean isChildOfOrThis(String filePath, int offset, String prefix, CaseSensitivity caseSensitivity) {
         int prefixLength = prefix.length();
         if (prefixLength == 0) {
             return true;
@@ -196,7 +177,7 @@ public class PathUtil {
             return false;
         }
         for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-            if (!equalChars(prefix.charAt(i), filePath.charAt(j), caseSensitive)) {
+            if (!caseSensitivity.equalChars(prefix.charAt(i), filePath.charAt(j))) {
                 return false;
             }
         }
@@ -207,17 +188,17 @@ public class PathUtil {
      * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
      * which does not check for negative indices or integer overflow.
      */
-    public static int compareToChildOfOrThis(String prefix, String filePath, int offset, boolean caseSensitive) {
+    public static int compareToChildOfOrThis(String prefix, String filePath, int offset, CaseSensitivity caseSensitivity) {
         int pathLength = filePath.length();
         int prefixLength = prefix.length();
         int endOfThisSegment = prefixLength + offset;
         if (pathLength < endOfThisSegment) {
-            return comparePaths(prefix, filePath, offset, caseSensitive);
+            return caseSensitivity.comparePaths(prefix, filePath, offset);
         }
         for (int i = 0; i < prefixLength; i++) {
             char prefixChar = prefix.charAt(i);
             char pathChar = filePath.charAt(i + offset);
-            int comparedChars = compareChars(prefixChar, pathChar, caseSensitive);
+            int comparedChars = caseSensitivity.compareChars(prefixChar, pathChar);
             if (comparedChars != 0) {
                 return comparedChars;
             }

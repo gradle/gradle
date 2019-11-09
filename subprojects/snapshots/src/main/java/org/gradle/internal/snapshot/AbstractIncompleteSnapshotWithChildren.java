@@ -31,8 +31,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String absolutePath, int offset, boolean caseSensitive) {
-        return SnapshotUtil.handleChildren(children, absolutePath, offset, caseSensitive, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+        return SnapshotUtil.handleChildren(children, absolutePath, offset, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return Optional.of(withIncompleteChildren());
@@ -41,7 +41,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
             @Override
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
                 FileSystemNode child = children.get(childIndex);
-                return SnapshotUtil.invalidateSingleChild(child, absolutePath, offset, caseSensitive)
+                return SnapshotUtil.invalidateSingleChild(child, absolutePath, offset, caseSensitivity)
                     .map(invalidatedChild -> withReplacedChild(childIndex, child, invalidatedChild))
                     .map(Optional::of)
                     .orElseGet(() -> {
@@ -57,8 +57,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public FileSystemNode store(String absolutePath, int offset, boolean caseSensitive, MetadataSnapshot snapshot) {
-        return SnapshotUtil.handleChildren(children, absolutePath, offset, caseSensitive, new SnapshotUtil.ChildHandler<FileSystemNode>() {
+    public FileSystemNode store(String absolutePath, int offset, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
+        return SnapshotUtil.handleChildren(children, absolutePath, offset, caseSensitivity, new SnapshotUtil.ChildHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleNewChild(int insertBefore) {
                 List<FileSystemNode> newChildren = new ArrayList<>(children);
@@ -69,7 +69,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
             @Override
             public FileSystemNode handleChildOfExisting(int childIndex) {
                 FileSystemNode child = children.get(childIndex);
-                return withReplacedChild(childIndex, child, SnapshotUtil.storeSingleChild(child, absolutePath, offset, snapshot, caseSensitive));
+                return withReplacedChild(childIndex, child, SnapshotUtil.storeSingleChild(child, absolutePath, offset, snapshot, caseSensitivity));
             }
         });
     }
@@ -82,8 +82,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset, boolean caseSensitive) {
-        return SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, caseSensitive, Optional::empty);
+    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+        return SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, caseSensitivity, Optional::empty);
     }
 
     /**

@@ -23,6 +23,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -53,7 +54,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
         this.stat = stat;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
         this.hasher = hasher;
-        this.root = new AtomicReference<>(caseSensitive ? FileHierarchySet.EMPTY_CASE_SENSITIVE : FileHierarchySet.EMPTY_CASE_INSENSITIVE);
+        this.root = new AtomicReference<>(DefaultFileHierarchySet.empty(caseSensitive ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE));
     }
 
     @Override

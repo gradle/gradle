@@ -26,65 +26,6 @@ import java.util.Optional;
  * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
  */
 public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
-    /**
-     * The empty hierarchy.
-     */
-    FileHierarchySet EMPTY_CASE_SENSITIVE = new FileHierarchySet() {
-        @Override
-        public Optional<MetadataSnapshot> getMetadata(String path) {
-            return Optional.empty();
-        }
-
-        @Override
-        public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
-            return DefaultFileHierarchySet.from(absolutePath, snapshot, true);
-        }
-
-        @Override
-        public FileHierarchySet invalidate(String path) {
-            return this;
-        }
-
-        @Override
-        public FileHierarchySet empty() {
-            return this;
-        }
-
-        @Override
-        public boolean isCaseSensitive() {
-            return true;
-        }
-    };
-
-    /**
-     * The empty hierarchy.
-     */
-    FileHierarchySet EMPTY_CASE_INSENSITIVE = new FileHierarchySet() {
-        @Override
-        public Optional<MetadataSnapshot> getMetadata(String path) {
-            return Optional.empty();
-        }
-
-        @Override
-        public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
-            return DefaultFileHierarchySet.from(absolutePath, snapshot, false);
-        }
-
-        @Override
-        public FileHierarchySet invalidate(String path) {
-            return this;
-        }
-
-        @Override
-        public FileHierarchySet empty() {
-            return this;
-        }
-
-        @Override
-        public boolean isCaseSensitive() {
-            return false;
-        }
-    };
 
     Optional<MetadataSnapshot> getMetadata(String path);
 
@@ -105,6 +46,4 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
     @CheckReturnValue
     FileHierarchySet empty();
-
-    boolean isCaseSensitive();
 }
