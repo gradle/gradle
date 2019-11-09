@@ -46,7 +46,7 @@ public class SnapshotUtil {
                 }
                 return noChildFoundResult.get();
             default:
-                int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset, caseSensitivity));
+                int foundChild = SearchUtil.binarySearch(children, child -> caseSensitivity.compareToChildOfOrThis(child.getPathToParent(), filePath, offset));
                 return foundChild >= 0
                     ? getSnapshotFromChild(filePath, offset, children.get(foundChild), caseSensitivity)
                     : noChildFoundResult.get();
@@ -141,7 +141,7 @@ public class SnapshotUtil {
     public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, CaseSensitivity caseSensitivity, ChildHandler<T> childHandler) {
         int childIndex = SearchUtil.binarySearch(
             children,
-            candidate -> PathUtil.compareWithCommonPrefix(candidate.getPathToParent(), path, offset, caseSensitivity)
+            candidate -> caseSensitivity.compareWithCommonPrefix(candidate.getPathToParent(), path, offset)
         );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(childIndex);

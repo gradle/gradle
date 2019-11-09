@@ -121,30 +121,6 @@ public class PathUtil {
         return lastSeparator;
     }
 
-    public static int compareWithCommonPrefix(String path1, String path2, int offset, CaseSensitivity caseSensitivity) {
-        int maxPos = Math.min(path1.length(), path2.length() - offset);
-        for (int pos = 0; pos < maxPos; pos++) {
-            char charInPath1 = path1.charAt(pos);
-            char charInPath2 = path2.charAt(pos + offset);
-            int comparedChars = caseSensitivity.compareChars(charInPath1, charInPath2);
-            if (comparedChars != 0) {
-                return comparedChars;
-            }
-            if (isFileSeparator(charInPath1)) {
-                if (pos > 0) {
-                    return 0;
-                }
-            }
-        }
-        if (path1.length() == path2.length() - offset) {
-            return 0;
-        }
-        if (path1.length() > path2.length() - offset) {
-            return isFileSeparator(path1.charAt(maxPos)) ? 0 : 1;
-        }
-        return isFileSeparator(path2.charAt(maxPos + offset)) ? 0 : -1;
-    }
-
     public static String getFileName(String absolutePath) {
         int lastSeparator = lastIndexOfSeparator(absolutePath);
         return lastSeparator < 0
@@ -182,28 +158,6 @@ public class PathUtil {
             }
         }
         return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment));
-    }
-
-    /**
-     * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
-     * which does not check for negative indices or integer overflow.
-     */
-    public static int compareToChildOfOrThis(String prefix, String filePath, int offset, CaseSensitivity caseSensitivity) {
-        int pathLength = filePath.length();
-        int prefixLength = prefix.length();
-        int endOfThisSegment = prefixLength + offset;
-        if (pathLength < endOfThisSegment) {
-            return caseSensitivity.comparePaths(prefix, filePath, offset);
-        }
-        for (int i = 0; i < prefixLength; i++) {
-            char prefixChar = prefix.charAt(i);
-            char pathChar = filePath.charAt(i + offset);
-            int comparedChars = caseSensitivity.compareChars(prefixChar, pathChar);
-            if (comparedChars != 0) {
-                return comparedChars;
-            }
-        }
-        return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment)) ? 0 : -1;
     }
 
     public static int descendantChildOffset(String childPathToParent) {

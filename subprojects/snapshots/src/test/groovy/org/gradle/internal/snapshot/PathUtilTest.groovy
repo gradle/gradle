@@ -20,8 +20,6 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.PathUtil.compareChars
-import static org.gradle.internal.snapshot.PathUtil.compareToChildOfOrThis
-import static org.gradle.internal.snapshot.PathUtil.compareWithCommonPrefix
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getFileName
 import static org.gradle.internal.snapshot.PathUtil.isChildOfOrThis
@@ -29,8 +27,6 @@ import static org.gradle.internal.snapshot.PathUtil.sizeOfCommonPrefix
 
 @Unroll
 class PathUtilTest extends Specification {
-    private static final List<Character> LETTERS = (('a'..'z') + ('A'..'Z')).collect { it.charAt(0) }
-    private static final List<Character> NON_LETTER = (Character.MIN_VALUE..Character.MAX_VALUE).minus(LETTERS)
 
     def "file name of '#path' is '#name'"() {
         expect:
@@ -47,8 +43,9 @@ class PathUtilTest extends Specification {
 
     def "common prefix of #prefix and #path at #offset is #result"() {
         expect:
-        sizeOfCommonPrefix(prefix, path, offset, true) == result
-        sizeOfCommonPrefix(prefix, path, offset, false) == result
+        CaseSensitivity.values().each {
+            assert sizeOfCommonPrefix(prefix, path, offset, it) == result
+        }
 
         where:
         prefix       | path          | offset | result
@@ -59,8 +56,9 @@ class PathUtilTest extends Specification {
 
     def "can compare size of common prefix"() {
         expect:
-        Integer.signum(compareWithCommonPrefix(prefix, path, offset, true)) == result
-        Integer.signum(compareWithCommonPrefix(prefix, path, offset, false)) == result
+        CaseSensitivity.values().each {
+            assert Integer.signum(it.compareWithCommonPrefix(prefix, path, offset)) == result
+        }
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
         }
@@ -83,8 +81,9 @@ class PathUtilTest extends Specification {
 
     def "size of common prefix of #prefix with #path at offset #offset is #result"() {
         expect:
-        sizeOfCommonPrefix(prefix, path, offset, true) == result
-        sizeOfCommonPrefix(prefix, path, offset, false) == result
+        CaseSensitivity.values().each {
+            assert sizeOfCommonPrefix(prefix, path, offset, it) == result
+        }
 
         where:
         prefix              | path                    | offset | result
@@ -104,10 +103,10 @@ class PathUtilTest extends Specification {
 
     def "#prefix is child of or this of #path at offset #offset: #result"() {
         expect:
-        isChildOfOrThis(path, offset, prefix, true)
-        isChildOfOrThis(path, offset, prefix, false)
-        sizeOfCommonPrefix(prefix, path, offset, true) == prefix.length()
-        sizeOfCommonPrefix(prefix, path, offset, false) == prefix.length()
+        CaseSensitivity.values().each {
+            assert isChildOfOrThis(path, offset, prefix, it)
+            assert sizeOfCommonPrefix(prefix, path, offset, it) == prefix.length()
+        }
 
         where:
         prefix         | path                       | offset | result
@@ -118,8 +117,9 @@ class PathUtilTest extends Specification {
 
     def "separator is smaller than every other character"() {
         expect:
-        Integer.signum(compareWithCommonPrefix(prefix, path, offset, true)) == result
-        Integer.signum(compareWithCommonPrefix(prefix, path, offset, false)) == result
+        CaseSensitivity.values().each {
+            assert Integer.signum(it.compareWithCommonPrefix(prefix, path, offset)) == result
+        }
 
         where:
         prefix              | path                    | offset | result
@@ -128,8 +128,9 @@ class PathUtilTest extends Specification {
 
     def "can compare to child of this"() {
         expect:
-        Integer.signum(compareToChildOfOrThis(prefix, path, offset, true)) == result
-        Integer.signum(compareToChildOfOrThis(prefix, path, offset, false)) == result
+        CaseSensitivity.values().each {
+            assert Integer.signum(it.compareToChildOfOrThis(prefix, path, offset)) == result
+        }
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
         }
@@ -153,11 +154,11 @@ class PathUtilTest extends Specification {
 
     def "equal chars are equal"() {
         expect:
-        (Character.MIN_VALUE..Character.MAX_VALUE).each {
-            assert compareChars(it as char, it as char, true) == 0
-            assert compareChars(it as char, it as char, false) == 0
-            assert equalChars(it as char, it as char, true)
-            assert equalChars(it as char, it as char, false)
+        (Character.MIN_VALUE..Character.MAX_VALUE).each { currentChar ->
+            CaseSensitivity.values().each {
+                assert it.compareChars(currentChar as char, currentChar as char) == 0
+                assert it.equalChars(currentChar as char, currentChar as char)
+            }
         }
     }
 
@@ -165,28 +166,24 @@ class PathUtilTest extends Specification {
         def slash = '/' as char
         def backslash = '\\' as char
         expect:
-        assert compareChars(slash, backslash, true) == 0
-        assert compareChars(slash, backslash, false) == 0
-        assert compareChars(backslash, slash, true) == 0
-        assert compareChars(backslash, slash, false) == 0
-        assert equalChars(slash, backslash, true)
-        assert equalChars(slash, backslash, false)
-        assert equalChars(backslash, slash, true)
-        assert equalChars(backslash, slash, false)
+        CaseSensitivity.values().each {
+            assert it.compareChars(slash, backslash) == 0
+            assert it.compareChars(backslash, slash) == 0
+            assert it.equalChars(slash, backslash)
+            assert it.equalChars(backslash, slash)
+        }
     }
 
     def "can compare path separator chars correctly (#left - #right = #result)"() {
         def char1 = left as char
         def char2 = right as char
         expect:
-        compareChars(char1, char2, true) == result
-        compareChars(char1, char2, false) == result
-        compareChars(char2, char1, true) == -result
-        compareChars(char2, char1, false) == -result
-        equalChars(char1, char2, true) == (result == 0)
-        equalChars(char1, char2, false) == (result == 0)
-        equalChars(char2, char1, true) == (result == 0)
-        equalChars(char2, char1, false) == (result == 0)
+        CaseSensitivity.values().each {
+            assert it.compareChars(char1, char2) == result
+            assert it.compareChars(char2, char1) == -result
+            assert it.equalChars(char1, char2) == (result == 0)
+            assert it.equalChars(char2, char1) == (result == 0)
+        }
 
         where:
         left | right | result
