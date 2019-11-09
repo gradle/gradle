@@ -189,6 +189,7 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test @UsesSample('userguide/tutorial/logging/groovy')
+    @FailsWithInstantExecution
     public void sampleDebugLogging() {
         checkOutput(this.&runSample, sample.debug)
     }
@@ -199,11 +200,13 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @FailsWithInstantExecution
     public void multiThreadedlifecycleLogging() {
         checkOutput(this.&runMultiThreaded, multiThreaded.lifecycle)
     }
 
     @Test
+    @FailsWithInstantExecution
     public void multiThreadedDebugLogging() {
         checkOutput(this.&runMultiThreaded, multiThreaded.debug)
     }

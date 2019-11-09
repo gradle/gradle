@@ -20,7 +20,6 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
@@ -46,7 +45,6 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
-    @FailsWithInstantExecution
     def "can deploy to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -71,7 +69,6 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
-    @FailsWithInstantExecution
     def "can install to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -122,7 +119,6 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
-    @FailsWithInstantExecution
     def "write deployer pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

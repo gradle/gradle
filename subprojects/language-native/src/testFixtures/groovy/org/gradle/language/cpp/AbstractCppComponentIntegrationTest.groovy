@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -38,6 +39,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         result.assertTasksExecutedAndNotSkipped(tasksToAssembleDevelopmentBinary, ":$taskNameToAssembleDevelopmentBinary")
     }
 
+    @IgnoreWithInstantExecution
     def "assemble task warns when current operating system family is excluded"() {
         given:
         makeSingleProject()

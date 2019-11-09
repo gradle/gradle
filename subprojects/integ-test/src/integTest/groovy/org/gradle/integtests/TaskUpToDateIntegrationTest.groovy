@@ -383,6 +383,7 @@ import org.gradle.api.tasks.TaskAction
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6592")
+    @FailsWithInstantExecution
     def "missing directory is ignored"() {
         buildFile << """
             class TaskWithInputDir extends DefaultTask {

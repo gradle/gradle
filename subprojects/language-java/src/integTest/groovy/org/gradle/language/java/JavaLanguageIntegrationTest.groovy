@@ -127,6 +127,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @FailsWithInstantExecution
     def "builds all buildable and skips non-buildable platforms when assembling"() {
         def current = DefaultJavaPlatform.current()
         when:
@@ -151,6 +152,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @FailsWithInstantExecution
     def "too high JDK target should produce reasonable error message"() {
         when:
         app.sources*.writeToDir(file("src/myLib/java"))

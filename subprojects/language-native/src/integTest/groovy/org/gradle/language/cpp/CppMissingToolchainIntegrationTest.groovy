@@ -83,6 +83,7 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec impleme
         }
     }
 
+    @FailsWithInstantExecution
     def "can build with Clang when gcc is available but g++ is not available"() {
         def gcc = AvailableToolChains.getToolChain(ToolChainRequirement.GCC)
         Assume.assumeTrue(gcc != null)

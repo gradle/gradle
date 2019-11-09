@@ -20,7 +20,6 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
 import org.junit.Rule
@@ -40,7 +39,6 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
     }
 
     @Unroll
-    @FailsWithInstantExecution
     def "can publish to a local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -61,7 +59,6 @@ class SamplesMavenQuickstartIntegrationTest extends AbstractSampleIntegrationTes
     }
 
     @Unroll
-    @FailsWithInstantExecution
     def "can install to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

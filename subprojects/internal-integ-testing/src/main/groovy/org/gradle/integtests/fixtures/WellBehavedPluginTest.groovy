@@ -78,6 +78,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         target << "apply plugin: '${getPluginName()}'\n"
     }
 
+    @IgnoreWithInstantExecution
     def "does not realize all possible tasks"() {
         // TODO: This isn't done yet, we still realize many tasks
         // Eventually, this should only realize "help"

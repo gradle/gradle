@@ -111,7 +111,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     // Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "can apply script via https"() {
         applyTrustStore()
 

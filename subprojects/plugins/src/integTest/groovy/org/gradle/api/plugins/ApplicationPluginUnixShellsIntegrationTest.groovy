@@ -54,6 +54,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
+    @FailsWithInstantExecution
     def "can execute generated Unix start script in Dash"() {
         given:
         succeeds('installDist')
@@ -66,6 +67,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
+    @FailsWithInstantExecution
     def "can execute generated Unix start script in BusyBox"() {
         given:
         succeeds('installDist')
@@ -92,6 +94,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
+    @FailsWithInstantExecution
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in Dash"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -105,6 +108,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
+    @FailsWithInstantExecution
     def "can use APP_HOME in DEFAULT_JVM_OPTS with custom start script in BusyBox"() {
         given:
         extendBuildFileWithAppHomeProperty()
@@ -134,6 +138,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("dash") })
+    @FailsWithInstantExecution
     def "can pass argument to App with custom start script in Dash"() {
         given:
         succeeds('installDist')
@@ -149,6 +154,7 @@ class ApplicationPluginUnixShellsIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(adhoc = { ApplicationPluginUnixShellsIntegrationTest.shellAvailable("static-sh") })
+    @FailsWithInstantExecution
     def "can pass argument to App with custom start script in BusyBox"() {
         given:
         succeeds('installDist')

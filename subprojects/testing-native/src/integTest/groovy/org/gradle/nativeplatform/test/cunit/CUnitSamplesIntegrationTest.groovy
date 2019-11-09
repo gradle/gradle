@@ -17,6 +17,7 @@
 
 package org.gradle.nativeplatform.test.cunit
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -50,6 +51,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         output.contains "C unit exe 'operatorsTest:passing:cUnitExe'"
     }
 
+    @FailsWithInstantExecution
     def "cunit"() {
         given:
         // On windows, CUnit sample only works out of the box with VS2015
