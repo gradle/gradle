@@ -22,6 +22,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -100,10 +103,16 @@ import java.util.Map;
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
-    private ExecResult execResult;
+    private final Property<ExecResult> execResult;
 
     public JavaExec() {
         javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
+        execResult = getObjectFactory().property(ExecResult.class);
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -120,7 +129,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public void exec() {
         setMain(getMain()); // make convention mapping work (at least for 'main'...
         setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
-        execResult = javaExecHandleBuilder.execute();
+        execResult.set(javaExecHandleBuilder.execute());
     }
 
     /**
@@ -685,7 +694,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Internal
     @Incubating
-    public ExecResult getExecResult() {
+    public Provider<ExecResult> getExecResult() {
         return execResult;
     }
 }
