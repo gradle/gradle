@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
 
-class InstantExecutionGradleExecuter extends InProcessGradleExecuter {
+class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
 
     InstantExecutionGradleExecuter(
         GradleDistribution distribution,
