@@ -17,11 +17,12 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.testing.internal.util.RetryUtil
 
 class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution
     def "Gradle API JAR is generated in an acceptable time frame"() {
         requireOwnGradleUserHomeDir()
         buildFile << """
