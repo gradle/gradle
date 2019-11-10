@@ -34,7 +34,6 @@ import org.gradle.internal.work.DefaultConditionalExecutionQueue;
 import org.gradle.internal.work.NoAvailableWorkerLeaseException;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
-import org.gradle.model.internal.type.ModelType;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
@@ -71,10 +70,13 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final ClassLoaderStructureProvider classLoaderStructureProvider;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final Instantiator instantiator;
-    private final IsolationScheme<WorkAction, WorkParameters> isolationScheme = new IsolationScheme<>(WorkAction.class);
+    private final IsolationScheme<WorkAction, WorkParameters> isolationScheme = new IsolationScheme<>(WorkAction.class, WorkParameters.class, WorkParameters.None.class);
     private final File baseDir;
 
-    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory, JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor, AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory, ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator, File baseDir) {
+    public DefaultWorkerExecutor(WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
+                                 JavaForkOptionsFactory forkOptionsFactory, WorkerLeaseRegistry workerLeaseRegistry, BuildOperationExecutor buildOperationExecutor,
+                                 AsyncWorkTracker asyncWorkTracker, WorkerDirectoryProvider workerDirectoryProvider, WorkerExecutionQueueFactory workerExecutionQueueFactory,
+                                 ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator, File baseDir) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
         this.noIsolationWorkerFactory = noIsolationWorkerFactory;
@@ -170,10 +172,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
 
     private <T extends WorkParameters> AsyncWorkCompletion submitWork(Class<? extends WorkAction<T>> workActionClass, WorkerSpecInternal workerSpec, Action<? super T> parameterAction) {
         Class<T> parameterType = isolationScheme.parameterTypeFor(workActionClass);
-        if (parameterType == WorkParameters.class) {
-            throw new IllegalArgumentException(String.format("Could not create worker parameters: must use a sub-type of %s as parameter type. Use %s for executions without parameters.", ModelType.of(WorkParameters.class).getDisplayName(), ModelType.of(WorkParameters.None.class).getDisplayName()));
-        }
-        T parameters = (parameterType == WorkParameters.None.class) ? null : instantiator.newInstance(parameterType);
+        T parameters = (parameterType == null) ? null : instantiator.newInstance(parameterType);
         if (parameters != null) {
             parameterAction.execute(parameters);
         }

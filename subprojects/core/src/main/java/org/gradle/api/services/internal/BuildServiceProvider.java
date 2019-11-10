@@ -36,7 +36,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     private final P parameters;
     private Try<T> instance;
 
-    public BuildServiceProvider(String name, Class<T> implementationType, Class<P> parametersType, P parameters, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory) {
+    public BuildServiceProvider(String name, Class<T> implementationType, Class<P> parametersType, @Nullable P parameters, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory) {
         this.name = name;
         this.implementationType = implementationType;
         this.parametersType = parametersType;
@@ -53,6 +53,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         return implementationType;
     }
 
+    @Nullable
     public P getParameters() {
         return parameters;
     }
@@ -83,7 +84,9 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
                 DefaultServiceRegistry services = new DefaultServiceRegistry();
                 // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
                 P isolatedParameters = isolatableFactory.isolate(parameters).isolate();
-                services.add(parametersType, isolatedParameters);
+                if (isolatedParameters != null) {
+                    services.add(parametersType, isolatedParameters);
+                }
                 try {
                     instance = Try.successful(instantiationScheme.withServices(services).instantiator().newInstance(implementationType));
                 } catch (Exception e) {
