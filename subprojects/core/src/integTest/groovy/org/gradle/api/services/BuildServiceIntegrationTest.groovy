@@ -18,12 +18,7 @@ package org.gradle.api.services
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.InstantExecutionRunner
-import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
-import org.junit.runner.RunWith
 
-@RunWith(InstantExecutionRunner)
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
@@ -125,9 +120,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 12")
     }
 
-    @RequiredFeatures(
-        [@RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value="false")]
-    )
     @FailsWithInstantExecution
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
@@ -175,9 +167,6 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 11")
     }
 
-    @RequiredFeatures(
-        [@RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value="true")]
-    )
     def "service used at configuration and execution time can be used with instant execution"() {
         serviceImplementation()
         buildFile << """
@@ -195,7 +184,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run("count")
+        run("count", "-Dorg.gradle.unsafe.instant-execution=true")
 
         then:
         output.count("service:") == 4
@@ -205,7 +194,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 12")
 
         when:
-        run("count")
+        run("count", "-Dorg.gradle.unsafe.instant-execution=true")
 
         then:
         output.count("service:") == 3
@@ -214,7 +203,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 11")
 
         when:
-        run("help")
+        run("help", "-Dorg.gradle.unsafe.instant-execution=true")
 
         then:
         output.count("service:") == 3
@@ -223,7 +212,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 11")
 
         when:
-        run("help")
+        run("help", "-Dorg.gradle.unsafe.instant-execution=true")
 
         then:
         result.assertNotOutput("service:")
