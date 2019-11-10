@@ -65,8 +65,6 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         install = installation("build/install/main")
     }
 
-    // TODO wolfs: ignored for now, see https://github.com/gradle/gradle/issues/11263
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "does not re-execute build with no change"() {
         when:
         run "mainExecutable"
