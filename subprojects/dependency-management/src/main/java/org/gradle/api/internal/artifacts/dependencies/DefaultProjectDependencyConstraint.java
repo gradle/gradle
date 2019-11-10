@@ -33,7 +33,7 @@ import java.util.Collections;
  * platforms.
  */
 public class DefaultProjectDependencyConstraint implements DependencyConstraintInternal {
-    private final ProjectDependency projectDependency;
+    public final ProjectDependency projectDependency;
     private String reason;
     private boolean force;
 
