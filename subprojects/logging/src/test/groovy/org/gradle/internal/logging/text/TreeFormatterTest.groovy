@@ -18,6 +18,8 @@ package org.gradle.internal.logging.text
 
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class TreeFormatterTest extends Specification {
@@ -290,7 +292,7 @@ Some thing.''')
         formatter.appendType(String.class)
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing class java.lang.String")
+        formatter.toString() == toPlatformLineSeparators("thing String")
     }
 
     def "can append interface name"() {
@@ -299,7 +301,34 @@ Some thing.''')
         formatter.appendType(List.class)
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing interface java.util.List")
+        formatter.toString() == toPlatformLineSeparators("thing List")
+    }
+
+    def "can append inner class name"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendType(Thing.Nested.Inner.class)
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing TreeFormatterTest.Thing.Nested.Inner")
+    }
+
+    def "can append parameterized type name"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendType(Thing.genericInterfaces[0])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing List<TreeFormatterTest.Thing.Nested>")
+    }
+
+    def "can append wildcard type name"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendType(Thing.genericInterfaces[1])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing Map<TreeFormatterTest.Thing.Nested, ? extends java.util.function.Consumer<? super T>>")
     }
 
     def "can append method name"() {
@@ -387,5 +416,11 @@ Some thing.''')
         then:
         def e = thrown(IllegalStateException)
         e.message == 'Cannot append text to node.'
+    }
+
+    interface Thing<T> extends List<Nested>, Map<Nested, ? extends Consumer<? super T>> {
+        interface Nested {
+            class Inner {}
+        }
     }
 }

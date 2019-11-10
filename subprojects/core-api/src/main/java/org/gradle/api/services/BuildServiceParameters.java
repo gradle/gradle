@@ -25,4 +25,14 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface BuildServiceParameters {
+    /**
+     * Used for services without parameters.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    final class None implements BuildServiceParameters {
+        private None() {
+        }
+    }
 }

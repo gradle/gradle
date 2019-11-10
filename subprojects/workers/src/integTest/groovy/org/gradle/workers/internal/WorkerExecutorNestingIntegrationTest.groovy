@@ -117,7 +117,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
         and:
         failure.assertHasCause("Could not create an instance of type FirstLevelExecution.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface org.gradle.workers.WorkerExecutor, or no service of type interface org.gradle.workers.WorkerExecutor")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type WorkerExecutor, or no service of type WorkerExecutor")
 
         where:
         nestedIsolationMode << ISOLATION_MODES
@@ -139,7 +139,7 @@ class WorkerExecutorNestingIntegrationTest extends AbstractWorkerExecutorIntegra
 
         and:
         failure.assertHasCause("Could not create an instance of type FirstLevelExecution.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface org.gradle.workers.WorkerExecutor, or no service of type interface org.gradle.workers.WorkerExecutor")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type WorkerExecutor, or no service of type WorkerExecutor")
 
         where:
         nestedIsolationMode << ISOLATION_MODES

@@ -16,12 +16,13 @@
 
 package org.gradle.internal.logging.text;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * Constructs a tree of diagnostic messages.
@@ -76,7 +77,12 @@ public class TreeFormatter implements DiagnosticsVisitor {
      */
     public void node(Class<?> type) {
         // Implementation is currently dumb, can be made smarter
-        node(StringUtils.capitalize(type.toString()));
+        if (type.isInterface()) {
+            node("Interface ");
+        } else {
+            node("Class ");
+        }
+        appendType(type);
     }
 
     /**
@@ -96,9 +102,37 @@ public class TreeFormatter implements DiagnosticsVisitor {
     /**
      * Appends a type name to the current node.
      */
-    public void appendType(Class<?> type) {
+    public void appendType(Type type) {
         // Implementation is currently dumb, can be made smarter
-        append(type.toString());
+        if (type instanceof Class) {
+            Class<?> classType = (Class<?>) type;
+            appendOuter(classType);
+            append(classType.getSimpleName());
+        } else if (type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            appendType(parameterizedType.getRawType());
+            append("<");
+            Type[] typeArguments = parameterizedType.getActualTypeArguments();
+            for (int i = 0; i < typeArguments.length; i++) {
+                Type typeArgument = typeArguments[i];
+                if (i > 0) {
+                    append(", ");
+                }
+                appendType(typeArgument);
+            }
+            append(">");
+        } else {
+            append(type.toString());
+        }
+    }
+
+    private void appendOuter(Class<?> type) {
+        Class<?> outer = type.getEnclosingClass();
+        if (outer != null) {
+            appendOuter(outer);
+            append(outer.getSimpleName());
+            append(".");
+        }
     }
 
     /**
@@ -275,8 +309,8 @@ public class TreeFormatter implements DiagnosticsVisitor {
                 return Separator.NewLine;
             }
             if (firstChild.nextSibling == null
-                    && firstChild.firstChild == null
-                    && value.length() + firstChild.value.length() < 60) {
+                && firstChild.firstChild == null
+                && value.length() + firstChild.value.length() < 60) {
                 // A single leaf node as child and total text is not too long, collapse
                 if (trailing == ':') {
                     return Separator.Empty;

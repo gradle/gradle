@@ -39,7 +39,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final ServiceRegistry services;
     private final ListenerManager listenerManager;
     private final IsolatableFactory isolatableFactory;
-    private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme = new IsolationScheme<>(BuildService.class);
+    private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme = new IsolationScheme<>(BuildService.class, BuildServiceParameters.class, BuildServiceParameters.None.class);
 
     public DefaultBuildServicesRegistry(DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory) {
         this.registrations = Cast.uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
@@ -70,9 +70,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
         // TODO - extract some shared infrastructure for this
         Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
-        P parameters = instantiatorFactory.decorateScheme().withServices(services).instantiator().newInstance(parameterType);
-        configureAction.execute(new DefaultServiceSpec<>(parameters));
-        // TODO - Add BuildServiceParameters.NONE marker and skip some work when using this
+        P parameters;
+        if (parameterType != null) {
+            parameters = instantiatorFactory.decorateScheme().withServices(services).instantiator().newInstance(parameterType);
+            configureAction.execute(new DefaultServiceSpec<>(parameters));
+        } else {
+            parameters = null;
+        }
         // TODO - finalize the parameters during isolation
         // TODO - need to lock the project during isolation - should do this the same way as artifact transforms
         return doRegister(name, implementationType, parameterType, parameters);

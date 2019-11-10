@@ -18,6 +18,7 @@ package org.gradle.api.services.internal
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
@@ -121,6 +122,22 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value"
     }
 
+    def "does not run configuration action when the service does not take parameters"() {
+        def action = Mock(Action)
+
+        when:
+        def provider = registry.registerIfAbsent("service", NoParamsServiceImpl, action)
+
+        then:
+        0 * action._
+
+        when:
+        def service = provider.get()
+
+        then:
+        service != null
+    }
+
     def "can tweak parameters via the registration"() {
         when:
         def initialParameters
@@ -140,6 +157,14 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
         then:
         service.prop == "value 2"
+    }
+
+    def "registration for service with no parameters is visible"() {
+        when:
+        registry.registerIfAbsent("service", NoParamsServiceImpl) {}
+
+        then:
+        registry.registrations.getByName("service") != null
     }
 
     def "parameters are isolated when the service is instantiated"() {
@@ -237,6 +262,10 @@ class DefaultBuildServicesRegistryTest extends Specification {
         void close() {
             instances.remove(this)
         }
+    }
+
+    static abstract class NoParamsServiceImpl implements BuildService<BuildServiceParameters.None> {
+
     }
 
     static abstract class BrokenServiceImpl implements BuildService<Params> {

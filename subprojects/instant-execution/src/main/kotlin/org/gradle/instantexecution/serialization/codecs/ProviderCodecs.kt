@@ -104,7 +104,7 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
         return decodePreservingIdentity(sharedIdentities) { id ->
             val name = readString()
             val implementationType = readClass() as Class<BuildService<*>>
-            val parameters = read() as BuildServiceParameters
+            val parameters = read() as BuildServiceParameters?
             val provider = serviceRegistry.register(name, implementationType, parameters)
             sharedIdentities.putInstance(id, provider)
             provider

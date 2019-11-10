@@ -73,7 +73,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         fails()
         failure.assertHasCause("Failed to apply plugin [class 'CustomPlugin']")
         failure.assertHasCause("Could not create plugin of type 'CustomPlugin'.")
-        failure.assertHasCause("The constructor for class CustomPlugin should be annotated with @Inject.")
+        failure.assertHasCause("The constructor for type CustomPlugin should be annotated with @Inject.")
     }
 
     def "fails when plugin constructor requests unknown service"() {
@@ -96,7 +96,7 @@ class PluginServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         fails()
         failure.assertHasCause("Failed to apply plugin [class 'CustomPlugin']")
         failure.assertHasCause("Could not create plugin of type 'CustomPlugin'.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface Unknown, or no service of type interface Unknown")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type Unknown, or no service of type Unknown")
     }
 
     def "can inject service using getter method"() {

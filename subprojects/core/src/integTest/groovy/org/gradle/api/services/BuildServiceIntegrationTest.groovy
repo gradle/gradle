@@ -375,6 +375,43 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 16")
     }
 
+    def "service can take no parameters"() {
+        noParametersServiceImplementation()
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {}
+            
+            task first {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+
+            task second {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: value is 1")
+        outputContains("service: value is 2")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: value is 1")
+        outputContains("service: value is 2")
+    }
+
     def "service is stopped even if build fails"() {
         serviceImplementation()
         buildFile << """
@@ -530,6 +567,26 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                 
                 void close() {
                     println("service: closed with value \${value}")
+                }
+            } 
+        """
+    }
+
+    def noParametersServiceImplementation() {
+        buildFile << """
+            abstract class CountingService implements BuildService<${BuildServiceParameters.name}.None> {
+                int value
+                
+                CountingService() {
+                    value = 0
+                    println("service: created with value = \${value}")
+                }
+                
+                // Service must be thread-safe
+                synchronized int increment() {
+                    value++
+                    println("service: value is \${value}")
+                    return value
                 }
             } 
         """
