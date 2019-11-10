@@ -20,9 +20,11 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
-class CaseSensitivityTest extends Specification {
+abstract class AbstractCaseSensitivyTest extends Specification{
 
-    def "finds right entry in sorted list (#caseSensitivity)"() {
+    abstract CaseSensitivity getCaseSensitivity()
+
+    def "finds right entry in sorted list"() {
         def children = ["bAda", "BaDb", "Badc"]
         children.sort(CaseSensitivity.CASE_SENSITIVE.pathComparator)
         expect:
@@ -33,25 +35,9 @@ class CaseSensitivityTest extends Specification {
             }
             assert foundIndex == i
         }
-
-        where:
-        caseSensitivity << CaseSensitivity.values()
     }
 
-    def "finds right entry in sorted list with only case differences"() {
-        def children = ["bAd", "BaD", "Bad"]
-        children.sort(CaseSensitivity.CASE_SENSITIVE.pathComparator)
-        expect:
-        for (int i = 0; i < children.size(); i++) {
-            def searchedChild = children[i]
-            int foundIndex = SearchUtil.binarySearch(children) { child ->
-                CaseSensitivity.CASE_SENSITIVE.compareToChildOfOrThis(child, searchedChild, 0)
-            }
-            assert foundIndex == i
-        }
-    }
-
-    def "finds child with common prefix (#caseSensitivity)"() {
+    def "finds child with common prefix"() {
         def children = ["bada/first", "BaDb/second", "BadC/third"]
         children.sort(CaseSensitivity.CASE_SENSITIVE.pathComparator)
         expect:
@@ -62,8 +48,5 @@ class CaseSensitivityTest extends Specification {
             }
             assert foundIndex == i
         }
-
-        where:
-        caseSensitivity << CaseSensitivity.values()
     }
 }

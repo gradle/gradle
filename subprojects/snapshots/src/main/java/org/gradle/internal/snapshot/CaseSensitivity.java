@@ -34,77 +34,30 @@ public enum CaseSensitivity {
 
         @Override
         int comparePaths(String prefix, String path, int offset) {
-            int maxPos = Math.min(prefix.length(), path.length() - offset);
-            int caseSensitiveCompare = 0;
-            for (int pos = 0; pos < maxPos; pos++) {
-                char charInPath1 = prefix.charAt(pos);
-                char charInPath2 = path.charAt(pos + offset);
-                int comparedChars = CASE_INSENSITIVE.compareChars(charInPath1, charInPath2);
-                if (comparedChars != 0) {
-                    return comparedChars;
-                }
-                if (caseSensitiveCompare == 0) {
-                    caseSensitiveCompare = compareChars(charInPath1, charInPath2);
-                }
-            }
-            int lengthCompare = Integer.compare(prefix.length(), path.length() - offset);
-            return lengthCompare != 0
-                ? lengthCompare
-                : caseSensitiveCompare;
+            return comparePaths(prefix, path, offset,
+                (previousCombinedValue, charInPath1, charInPath2) -> previousCombinedValue == 0
+                    ? compareChars(charInPath1, charInPath2)
+                    : previousCombinedValue
+                );
         }
 
         @Override
         public int compareToChildOfOrThis(String prefix, String filePath, int offset) {
-            int pathLength = filePath.length();
-            int prefixLength = prefix.length();
-            int endOfThisSegment = prefixLength + offset;
-            if (pathLength < endOfThisSegment) {
-                return comparePaths(prefix, filePath, offset);
-            }
-            int pathSensitiveCompare = 0;
-            for (int i = 0; i < prefixLength; i++) {
-                char prefixChar = prefix.charAt(i);
-                char pathChar = filePath.charAt(i + offset);
-                int comparedChars = CASE_INSENSITIVE.compareChars(prefixChar, pathChar);
-                if (comparedChars != 0) {
-                    return comparedChars;
-                }
-                if (pathSensitiveCompare == 0) {
-                    pathSensitiveCompare = compareChars(prefixChar, pathChar);
-                }
-            }
-            return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment))
-                ? pathSensitiveCompare
-                : -1;
+            return compareToChildOfOrThis(
+                prefix, filePath, offset,
+                (previousCombinedValue, charInPath1, charInPath2) -> previousCombinedValue == 0
+                    ? compareChars(charInPath1, charInPath2)
+                    : previousCombinedValue
+                );
         }
 
         @Override
         public int compareWithCommonPrefix(String path1, String path2, int offset) {
-            int maxPos = Math.min(path1.length(), path2.length() - offset);
-            int caseSensitiveCompare = 0;
-            for (int pos = 0; pos < maxPos; pos++) {
-                char charInPath1 = path1.charAt(pos);
-                char charInPath2 = path2.charAt(pos + offset);
-                int comparedChars = CASE_INSENSITIVE.compareChars(charInPath1, charInPath2);
-                if (comparedChars != 0) {
-                    return comparedChars;
-                }
-                if (caseSensitiveCompare == 0) {
-                    caseSensitiveCompare = compareChars(charInPath1, charInPath2);
-                }
-                if (isFileSeparator(charInPath1)) {
-                    if (pos > 0) {
-                        return caseSensitiveCompare;
-                    }
-                }
-            }
-            if (path1.length() == path2.length() - offset) {
-                return caseSensitiveCompare;
-            }
-            if (path1.length() > path2.length() - offset) {
-                return isFileSeparator(path1.charAt(maxPos)) ? caseSensitiveCompare : 1;
-            }
-            return isFileSeparator(path2.charAt(maxPos + offset)) ? caseSensitiveCompare : -1;
+            return compareWithCommonPrefix(path1, path2, offset,
+                (caseSensitiveCompare, charInPath1, charInPath2) -> caseSensitiveCompare == 0
+                    ? compareChars(charInPath1, charInPath2)
+                    : caseSensitiveCompare
+            );
         }
     },
     CASE_INSENSITIVE {
@@ -120,60 +73,17 @@ public enum CaseSensitivity {
 
         @Override
         int comparePaths(String prefix, String path, int offset) {
-            int maxPos = Math.min(prefix.length(), path.length() - offset);
-            for (int pos = 0; pos < maxPos; pos++) {
-                char charInPath1 = prefix.charAt(pos);
-                char charInPath2 = path.charAt(pos + offset);
-                int comparedChars = compareChars(charInPath1, charInPath2);
-                if (comparedChars != 0) {
-                    return comparedChars;
-                }
-            }
-            return Integer.compare(prefix.length(), path.length() - offset);
+            return comparePaths(prefix, path, offset, (x, char1, char2) -> 0);
         }
 
         @Override
         public int compareToChildOfOrThis(String prefix, String filePath, int offset) {
-            int pathLength = filePath.length();
-            int prefixLength = prefix.length();
-            int endOfThisSegment = prefixLength + offset;
-            if (pathLength < endOfThisSegment) {
-                return comparePaths(prefix, filePath, offset);
-            }
-            for (int i = 0; i < prefixLength; i++) {
-                char prefixChar = prefix.charAt(i);
-                char pathChar = filePath.charAt(i + offset);
-                int comparedChars = compareChars(prefixChar, pathChar);
-                if (comparedChars != 0) {
-                    return comparedChars;
-                }
-            }
-            return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment)) ? 0 : -1;
+            return compareToChildOfOrThis(prefix, filePath, offset, (previousCombinedValue, charInPath1, charInPath2) -> 0);
         }
 
         @Override
         public int compareWithCommonPrefix(String path1, String path2, int offset) {
-            int maxPos = Math.min(path1.length(), path2.length() - offset);
-            for (int pos = 0; pos < maxPos; pos++) {
-                char charInPath1 = path1.charAt(pos);
-                char charInPath2 = path2.charAt(pos + offset);
-                int comparedChars = compareChars(charInPath1, charInPath2);
-                if (comparedChars != 0) {
-                    return comparedChars;
-                }
-                if (isFileSeparator(charInPath1)) {
-                    if (pos > 0) {
-                        return 0;
-                    }
-                }
-            }
-            if (path1.length() == path2.length() - offset) {
-                return 0;
-            }
-            if (path1.length() > path2.length() - offset) {
-                return isFileSeparator(path1.charAt(maxPos)) ? 0 : 1;
-            }
-            return isFileSeparator(path2.charAt(maxPos + offset)) ? 0 : -1;
+            return compareWithCommonPrefix(path1, path2, offset, (x, c1, c2)  -> 0);
         }
     };
 
@@ -195,9 +105,85 @@ public enum CaseSensitivity {
 
     public abstract int compareWithCommonPrefix(String path1, String path2, int offset);
 
+    protected int compareWithCommonPrefix(String path1, String path2, int offset, Accumulator accumulator) {
+        int maxPos = Math.min(path1.length(), path2.length() - offset);
+        int accumulatedValue = 0;
+        for (int pos = 0; pos < maxPos; pos++) {
+            char charInPath1 = path1.charAt(pos);
+            char charInPath2 = path2.charAt(pos + offset);
+            int comparedChars = CASE_INSENSITIVE.compareChars(charInPath1, charInPath2);
+            if (comparedChars != 0) {
+                return comparedChars;
+            }
+            accumulatedValue = accumulator.computeCombinedCompare(accumulatedValue, charInPath1, charInPath2);
+            if (isFileSeparator(charInPath1)) {
+                if (pos > 0) {
+                    return accumulatedValue;
+                }
+            }
+        }
+        if (path1.length() == path2.length() - offset) {
+            return accumulatedValue;
+        }
+        if (path1.length() > path2.length() - offset) {
+            return isFileSeparator(path1.charAt(maxPos)) ? accumulatedValue : 1;
+        }
+        return isFileSeparator(path2.charAt(maxPos + offset)) ? accumulatedValue : -1;
+    }
+
+    protected int comparePaths(String prefix, String path, int offset, Accumulator accumulator) {
+        int maxPos = Math.min(prefix.length(), path.length() - offset);
+        int accumulatedValue = 0;
+        for (int pos = 0; pos < maxPos; pos++) {
+            char charInPath1 = prefix.charAt(pos);
+            char charInPath2 = path.charAt(pos + offset);
+            int comparedChars = CASE_INSENSITIVE.compareChars(charInPath1, charInPath2);
+            if (comparedChars != 0) {
+                return comparedChars;
+            }
+            accumulatedValue = accumulator.computeCombinedCompare(accumulatedValue, charInPath1, charInPath2);
+            if (accumulatedValue != 0 && isFileSeparator(charInPath1)) {
+                return accumulatedValue;
+            }
+        }
+        int lengthCompare = Integer.compare(prefix.length(), path.length() - offset);
+        return lengthCompare != 0
+            ? lengthCompare
+            : accumulatedValue;
+    }
+
+    public int compareToChildOfOrThis(String prefix, String filePath, int offset, Accumulator accumulator) {
+        int pathLength = filePath.length();
+        int prefixLength = prefix.length();
+        int endOfThisSegment = prefixLength + offset;
+        if (pathLength < endOfThisSegment) {
+            return comparePaths(prefix, filePath, offset);
+        }
+        int accumulatedValue = 0;
+        for (int i = 0; i < prefixLength; i++) {
+            char prefixChar = prefix.charAt(i);
+            char pathChar = filePath.charAt(i + offset);
+            int comparedChars = CASE_INSENSITIVE.compareChars(prefixChar, pathChar);
+            if (comparedChars != 0) {
+                return comparedChars;
+            }
+            accumulatedValue = accumulator.computeCombinedCompare(accumulatedValue, prefixChar, pathChar);
+            if (accumulatedValue != 0 && isFileSeparator(prefixChar)) {
+                return accumulatedValue;
+            }
+        }
+        return endOfThisSegment == pathLength || isFileSeparator(filePath.charAt(endOfThisSegment))
+            ? accumulatedValue
+            : -1;
+    }
+
     /**
      * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
      * which does not check for negative indices or integer overflow.
      */
     public abstract int compareToChildOfOrThis(String prefix, String filePath, int offset);
+
+    protected interface Accumulator {
+        int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2);
+    }
 }
