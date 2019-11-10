@@ -143,7 +143,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
     }
 
-    @FailsWithInstantExecution
     def "captures threaded output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()
@@ -383,7 +382,6 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         uniqueMessages.contains "finished operation"
     }
 
-    @FailsWithInstantExecution
     def "filters non supported output events"() {
         settingsFile << """
             rootProject.name = 'root'
