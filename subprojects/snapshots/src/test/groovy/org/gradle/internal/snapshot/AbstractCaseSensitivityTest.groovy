@@ -24,29 +24,85 @@ abstract class AbstractCaseSensitivityTest extends Specification{
 
     abstract CaseSensitivity getCaseSensitivity()
 
-    def "finds right entry in sorted list"() {
-        def children = ["bAda", "BaDb", "Badc"]
-        children.sort(CaseSensitivity.CASE_SENSITIVE.pathComparator)
+    def "entry #spec.searchedPrefix is child of #spec.expectedIndex in #spec.children"() {
+        def children = spec.children
         expect:
-        for (int i = 0; i < children.size(); i++) {
-            def searchedChild = children[i]
-            int foundIndex = SearchUtil.binarySearch(children) { child ->
-                caseSensitivity.compareToChildOfOrThis(child, searchedChild, 0)
+        SearchUtil.binarySearch(children) { child ->
+            caseSensitivity.compareToChildOfOrThis(child, spec.searchedPrefix, 0)
+        } == spec.expectedIndex
+
+        where:
+        spec << SAME_OR_CHILD
+    }
+
+    def "path #spec.searchedPrefix has common prefix with #spec.expectedIndex in #spec.children"() {
+        expect:
+        SearchUtil.binarySearch(spec.children) { child ->
+            caseSensitivity.compareWithCommonPrefix(child, spec.searchedPrefix, 0)
+        } == spec.expectedIndex
+        spec.children.each { child ->
+            def childIndex = spec.children.indexOf(child)
+            def sizeOfCommonPrefix = PathUtil.sizeOfCommonPrefix(spec.searchedPrefix, child, 0, caseSensitivity)
+            if (childIndex == spec.expectedIndex) {
+                assert sizeOfCommonPrefix > 0
+            } else {
+                assert sizeOfCommonPrefix == 0
             }
-            assert foundIndex == i
+        }
+
+        where:
+        spec << WITH_COMMON_PREFIX
+    }
+
+    static final List<List<String>> CHILDREN_LISTS = [
+        ["bAdA"],
+        ["bAdA", "BaDb"],
+        ["bAdA", "BaDb", "Badc"],
+        ["bAdA/something", "BaDb/other", "Badc/different"],
+        ["bad/mine", "c/other", "ab/second"],
+        ["Bad/mine", "c/other", "aB/second"],
+        ["Bad/mine", "c/other", "AB/second"],
+        ["Bad/mine", "cA/other", "AB/second"],
+        ["c", "b/something", "a/very/long/suffix"]
+    ]*.toSorted(CaseSensitivity.CASE_SENSITIVE.pathComparator)
+
+    static final List<CaseSensitivityTestSpec> SAME_OR_CHILD = CHILDREN_LISTS.collectMany { children ->
+        children.collectMany { child ->
+            def childIndex = children.indexOf(child)
+            [
+                new CaseSensitivityTestSpec(children, child, childIndex),
+                new CaseSensitivityTestSpec(children, "$child/a/something", childIndex),
+                new CaseSensitivityTestSpec(children, "$child/A/something", childIndex),
+                new CaseSensitivityTestSpec(children, "$child/e/something", childIndex),
+                new CaseSensitivityTestSpec(children, "$child/E/other", childIndex),
+            ]
         }
     }
 
-    def "finds child with common prefix"() {
-        def children = ["bada/first", "BaDb/second", "BadC/third"]
-        children.sort(CaseSensitivity.CASE_SENSITIVE.pathComparator)
-        expect:
-        for (int i = 0; i < children.size(); i++) {
-            def searchedChild = children[i].substring(0, children[i].indexOf('/'))
-            int foundIndex = SearchUtil.binarySearch(children) { child ->
-                caseSensitivity.compareWithCommonPrefix(child, searchedChild, 0)
+    static final List<CaseSensitivityTestSpec> WITH_COMMON_PREFIX = CHILDREN_LISTS.collectMany { children ->
+        children.collectMany { child ->
+            def childIndex = children.indexOf(child)
+            (child.split("/") as List).inits().tail().init().collect { it.join("/") }.collectMany { prefix ->
+                [
+                    new CaseSensitivityTestSpec(children, prefix, childIndex),
+                    new CaseSensitivityTestSpec(children, "$prefix/a/something", childIndex),
+                    new CaseSensitivityTestSpec(children, "$prefix/A/something", childIndex),
+                    new CaseSensitivityTestSpec(children, "$prefix/e/something", childIndex),
+                    new CaseSensitivityTestSpec(children, "$prefix/E/other", childIndex),
+                ]
             }
-            assert foundIndex == i
         }
+    }
+}
+
+class CaseSensitivityTestSpec {
+    List<String> children
+    String searchedPrefix
+    int expectedIndex
+
+    CaseSensitivityTestSpec(List<String> children, String searchedPrefix, int expectedIndex) {
+        this.children = children
+        this.searchedPrefix = searchedPrefix
+        this.expectedIndex = expectedIndex
     }
 }

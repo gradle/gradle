@@ -16,6 +16,9 @@
 
 package org.gradle.internal.snapshot
 
+import spock.lang.Unroll
+
+@Unroll
 class CaseSensitiveTest extends AbstractCaseSensitivityTest {
 
     def "finds right entry in sorted list with only case differences"() {
@@ -42,6 +45,16 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
             }
             assert foundIndex == i
         }
+    }
+
+    def "children #children are sorted the same with path sensitive and path insensitive compare"() {
+        def caseInsensitiveSorted = children.toSorted(CaseSensitivity.CASE_INSENSITIVE.pathComparator)
+        def caseSensitiveSorted = children.toSorted(CaseSensitivity.CASE_SENSITIVE.pathComparator)
+        expect:
+        caseInsensitiveSorted == caseSensitiveSorted
+
+        where:
+        children << CHILDREN_LISTS
     }
 
     @Override
