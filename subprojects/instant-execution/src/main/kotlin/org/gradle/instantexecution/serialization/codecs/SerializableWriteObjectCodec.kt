@@ -24,8 +24,14 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.readDouble
+import org.gradle.instantexecution.serialization.readFloat
+import org.gradle.instantexecution.serialization.readShort
 import org.gradle.instantexecution.serialization.withBeanTrace
 import org.gradle.instantexecution.serialization.withImmediateMode
+import org.gradle.instantexecution.serialization.writeDouble
+import org.gradle.instantexecution.serialization.writeFloat
+import org.gradle.instantexecution.serialization.writeShort
 
 import java.io.InputStream
 import java.io.ObjectInputStream
@@ -175,8 +181,20 @@ class RecordingObjectOutputStream(
         writeBoolean(`val`)
     }
 
+    override fun writeShort(`val`: Int) = record {
+        this.writeShort(`val`.toShort())
+    }
+
     override fun writeLong(`val`: Long) = record {
         writeLong(`val`)
+    }
+
+    override fun writeFloat(`val`: Float) = record {
+        this.writeFloat(`val`)
+    }
+
+    override fun writeDouble(`val`: Double) = record {
+        this.writeDouble(`val`)
     }
 
     override fun useProtocolVersion(version: Int) = Unit
@@ -195,13 +213,7 @@ class RecordingObjectOutputStream(
 
     override fun writeUnshared(obj: Any?) = TODO("writeUnshared")
 
-    override fun writeShort(`val`: Int) = TODO("writeShort")
-
     override fun writeBytes(str: String) = TODO("writeBytes")
-
-    override fun writeDouble(`val`: Double) = TODO("writeDouble")
-
-    override fun writeFloat(`val`: Float) = TODO("writeFloat")
 }
 
 
@@ -243,7 +255,13 @@ class ObjectInputStreamAdapter(
 
     override fun readChar(): Char = readContext.readInt().toChar()
 
+    override fun readShort(): Short = readContext.readShort()
+
     override fun readLong(): Long = readContext.readLong()
+
+    override fun readFloat(): Float = readContext.readFloat()
+
+    override fun readDouble(): Double = readContext.readDouble()
 
     override fun readBoolean(): Boolean = readContext.readBoolean()
 
@@ -272,17 +290,11 @@ class ObjectInputStreamAdapter(
 
     override fun readFully(buf: ByteArray, off: Int, len: Int) = TODO("readFully")
 
-    override fun readDouble(): Double = TODO("readDouble")
-
     override fun readUnshared(): Any = TODO("readUnshared")
-
-    override fun readShort(): Short = TODO("readShort")
 
     override fun readUnsignedShort(): Int = TODO("readUnsignedShort")
 
     override fun readUnsignedByte(): Int = TODO("readUnsignedByte")
-
-    override fun readFloat(): Float = TODO("readFloat")
 
     override fun readFields(): GetField = TODO("readFields")
 
