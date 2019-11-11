@@ -64,19 +64,19 @@ class PathUtilTest extends Specification {
         }
 
         where:
-        prefix              | path                    | offset | result
-        "hello/world"       | "hello/other"           | 0      | 0
-        "hello/world"       | "/var/hello/other"      | 5      | 0
-        "hello/world"       | "/var/hello/world"      | 5      | 0
-        "hello/world"       | "/var/hello\\world"      | 5      | 0
-        "hello/world"       | "/var/hello/world/next" | 5      | 0
-        "hello/world"       | "/var/hello1/other"     | 5      | -1
-        "hello1/world"      | "/var/hello/other"      | 5      | 1
-        "hello/world/some"  | "/var/hello/other"      | 5      | 0
-        "hello/world"       | "/var/hello1/other"     | 5      | -1
-        "bbc/some"          | "/var/abc/other"        | 5      | 1
-        "/hello/world/some" | "/var/hello/other"      | 0      | -1
-        "/hello/world/some" | "/var/hello/other"      | 4      | 0
+        prefix             | path                    | offset | result
+        "hello/world"      | "hello/other"           | 0      | 0
+        "hello/world"      | "/var/hello/other"      | 5      | 0
+        "hello/world"      | "/var/hello/world"      | 5      | 0
+        "hello/world"      | "/var/hello\\world"     | 5      | 0
+        "hello/world"      | "/var/hello/world/next" | 5      | 0
+        "hello/world"      | "/var/hello1/other"     | 5      | -1
+        "hello1/world"     | "/var/hello/other"      | 5      | 1
+        "hello/world/some" | "/var/hello/other"      | 5      | 0
+        "hello/world"      | "/var/hello1/other"     | 5      | -1
+        "bbc/some"         | "/var/abc/other"        | 5      | 1
+        "hello/world/some" | "/var/hello/other"      | 1      | -1
+        "hello/world/some" | "/var/hello/other"      | 5      | 0
     }
 
     def "size of common prefix of #prefix with #path at offset #offset is #result"() {

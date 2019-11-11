@@ -20,7 +20,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
-abstract class AbstractCaseSensitivyTest extends Specification{
+abstract class AbstractCaseSensitivityTest extends Specification{
 
     abstract CaseSensitivity getCaseSensitivity()
 

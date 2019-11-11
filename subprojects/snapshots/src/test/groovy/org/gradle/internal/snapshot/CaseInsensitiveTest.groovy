@@ -20,7 +20,7 @@ package org.gradle.internal.snapshot
 import spock.lang.Unroll
 
 @Unroll
-class CaseInsensitiveTest extends AbstractCaseSensitivyTest {
+class CaseInsensitiveTest extends AbstractCaseSensitivityTest {
 
     @Override
     CaseSensitivity getCaseSensitivity() {

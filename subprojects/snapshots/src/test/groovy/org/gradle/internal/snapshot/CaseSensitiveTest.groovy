@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot
 
-class CaseSensitiveTest extends AbstractCaseSensitivyTest {
+class CaseSensitiveTest extends AbstractCaseSensitivityTest {
 
     def "finds right entry in sorted list with only case differences"() {
         def children = ["bAd", "BaD", "Bad"]
