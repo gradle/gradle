@@ -32,3 +32,4 @@ BUILD SUCCESSFUL in 1s
 ====
 
 For more information, see link:{userManualPath}/java_library_plugin.html[Java Library Plugin reference chapter].
+You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_library[Build Init Plugin].
