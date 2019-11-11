@@ -37,6 +37,7 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
 import org.gradle.gradlebuild.java.AvailableJavaInstallationsPlugin
 import org.gradle.gradlebuild.java.JavaInstallation
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
@@ -201,11 +202,18 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     }
 
     private
+    fun Test.addOsAsInputs() {
+        // https://github.com/gradle/gradle-private/issues/2831
+        inputs.property("operatingSystem", "${OperatingSystem.current().name} ${System.getProperty("os.arch")}")
+    }
+
+    private
     fun Project.configureTests() {
         tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
 
             configureJvmForTest()
+            addOsAsInputs()
 
             doFirst {
                 if (BuildEnvironment.isCiServer) {
