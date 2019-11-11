@@ -255,8 +255,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     }
 
     private boolean isMainSourceSet(SourceSet sourceSet) {
-        SourceSet mainSourceSet = javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        return mainSourceSet.equals(sourceSet);
+        return sourceSet.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
 }

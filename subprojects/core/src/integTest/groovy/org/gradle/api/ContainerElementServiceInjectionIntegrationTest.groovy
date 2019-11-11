@@ -68,7 +68,7 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
         expect:
         fails()
         failure.assertHasCause("Could not create an instance of type Bean.")
-        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of interface Unknown, or no service of type interface Unknown")
+        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of type Unknown, or no service of type Unknown")
     }
 
     def "container element can receive services through getter method"() {

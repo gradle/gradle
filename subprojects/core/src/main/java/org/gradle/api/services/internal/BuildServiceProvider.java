@@ -21,6 +21,7 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
 import org.gradle.internal.instantiation.InstantiationScheme;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 
 import javax.annotation.Nullable;
@@ -30,16 +31,18 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     private final String name;
     private final Class<T> implementationType;
     private final InstantiationScheme instantiationScheme;
+    private final IsolatableFactory isolatableFactory;
     private final Class<P> parametersType;
     private final P parameters;
     private Try<T> instance;
 
-    public BuildServiceProvider(String name, Class<T> implementationType, Class<P> parametersType, P parameters, InstantiationScheme instantiationScheme) {
+    public BuildServiceProvider(String name, Class<T> implementationType, Class<P> parametersType, @Nullable P parameters, InstantiationScheme instantiationScheme, IsolatableFactory isolatableFactory) {
         this.name = name;
         this.implementationType = implementationType;
         this.parametersType = parametersType;
         this.parameters = parameters;
         this.instantiationScheme = instantiationScheme;
+        this.isolatableFactory = isolatableFactory;
     }
 
     public String getName() {
@@ -50,6 +53,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         return implementationType;
     }
 
+    @Nullable
     public P getParameters() {
         return parameters;
     }
@@ -78,7 +82,11 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
             if (instance == null) {
                 // TODO - extract a ServiceLookup implementation to reuse
                 DefaultServiceRegistry services = new DefaultServiceRegistry();
-                services.add(parametersType, parameters);
+                // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
+                P isolatedParameters = isolatableFactory.isolate(parameters).isolate();
+                if (isolatedParameters != null) {
+                    services.add(parametersType, isolatedParameters);
+                }
                 try {
                     instance = Try.successful(instantiationScheme.withServices(services).instantiator().newInstance(implementationType));
                 } catch (Exception e) {

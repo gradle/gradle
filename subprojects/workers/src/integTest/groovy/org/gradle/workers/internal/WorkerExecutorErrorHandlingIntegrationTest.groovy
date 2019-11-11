@@ -21,6 +21,7 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.workers.IsolationMode
+import org.gradle.workers.WorkParameters
 import org.gradle.workers.fixtures.WorkerExecutorFixture
 import spock.lang.Unroll
 
@@ -308,7 +309,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         fails("runInWorker")
 
         then:
-        failure.assertHasCause("Could not create worker parameters: must use a sub-type of WorkParameters as parameter type. Use WorkParameters.None for executions without parameters.")
+        failure.assertHasCause("Could not create the parameters for BadWorkAction: must use a sub-type of WorkParameters as the parameters type. Use WorkParameters.None as the parameters type for implementations that do not take parameters.")
     }
 
     String getUnrecognizedOptionError() {

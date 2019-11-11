@@ -18,16 +18,19 @@ package org.gradle.api.services.internal
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager()
-    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager)
+    def isolatableFactory = new DefaultValueSnapshotter(null, TestUtil.managedFactoryRegistry())
+    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory)
 
     def setup() {
         ServiceImpl.reset()
@@ -35,7 +38,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can lazily create service instance"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {}
 
         then:
         ServiceImpl.instances.empty
@@ -57,7 +60,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "service provider always has value present"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {}
 
         then:
         provider.present
@@ -66,7 +69,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "wraps and memoizes service instantiation failure"() {
         when:
-        def provider = registry.maybeRegister("service", BrokenServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", BrokenServiceImpl) {}
 
         then:
         noExceptionThrown()
@@ -91,7 +94,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can locate registration by name"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {}
         def registration = registry.registrations.getByName("service")
 
         then:
@@ -101,8 +104,8 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "reuses registration with same name"() {
         when:
-        def provider1 = registry.maybeRegister("service", ServiceImpl) {}
-        def provider2 = registry.maybeRegister("service", ServiceImpl) {}
+        def provider1 = registry.registerIfAbsent("service", ServiceImpl) {}
+        def provider2 = registry.registerIfAbsent("service", ServiceImpl) {}
 
         then:
         provider1.is(provider2)
@@ -110,7 +113,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can provide parameters to the service"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {
             it.parameters.prop = "value"
         }
         def service = provider.get()
@@ -119,14 +122,33 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value"
     }
 
+    def "does not run configuration action when the service does not take parameters"() {
+        def action = Mock(Action)
+
+        when:
+        def provider = registry.registerIfAbsent("service", NoParamsServiceImpl, action)
+
+        then:
+        0 * action._
+
+        when:
+        def service = provider.get()
+
+        then:
+        service != null
+    }
+
     def "can tweak parameters via the registration"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {
+        def initialParameters
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {
             it.parameters.prop = "value 1"
+            initialParameters = it.parameters
         }
         def parameters = registry.registrations.getByName("service").parameters
 
         then:
+        parameters.is(initialParameters)
         parameters.prop == "value 1"
 
         when:
@@ -137,10 +159,39 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value 2"
     }
 
+    def "registration for service with no parameters is visible"() {
+        when:
+        registry.registerIfAbsent("service", NoParamsServiceImpl) {}
+
+        then:
+        registry.registrations.getByName("service") != null
+    }
+
+    def "parameters are isolated when the service is instantiated"() {
+        given:
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {
+            it.parameters.prop = "value 1"
+        }
+        def parameters = registry.registrations.getByName("service").parameters
+        def service = provider.get()
+
+        when:
+        parameters.prop = "ignore me 1"
+
+        then:
+        service.prop == "value 1"
+
+        when:
+        service.parameters.prop = "ignore me 2"
+
+        then:
+        parameters.prop == "ignore me 1"
+    }
+
     def "stops service at end of build if it implements AutoCloseable"() {
-        def provider1 = registry.maybeRegister("one", ServiceImpl) {}
-        def provider2 = registry.maybeRegister("two", StoppableServiceImpl) {}
-        def provider3 = registry.maybeRegister("three", StoppableServiceImpl) {}
+        def provider1 = registry.registerIfAbsent("one", ServiceImpl) {}
+        def provider2 = registry.registerIfAbsent("two", StoppableServiceImpl) {}
+        def provider3 = registry.registerIfAbsent("three", StoppableServiceImpl) {}
 
         when:
         def notStoppable = provider1.get()
@@ -158,7 +209,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "does not attempt to stop an unused service at the end of build"() {
-        registry.maybeRegister("service", ServiceImpl) {}
+        registry.registerIfAbsent("service", ServiceImpl) {}
 
         when:
         buildFinished()
@@ -168,7 +219,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "reports failure to stop service"() {
-        def provider = registry.maybeRegister("service", BrokenStopServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", BrokenStopServiceImpl) {}
         provider.get()
 
         when:
@@ -211,6 +262,10 @@ class DefaultBuildServicesRegistryTest extends Specification {
         void close() {
             instances.remove(this)
         }
+    }
+
+    static abstract class NoParamsServiceImpl implements BuildService<BuildServiceParameters.None> {
+
     }
 
     static abstract class BrokenServiceImpl implements BuildService<Params> {

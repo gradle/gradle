@@ -91,7 +91,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Unable to determine constructor argument #2: null value is not assignable to boolean"
+        e.cause.message == "Unable to determine constructor argument #2: null value is not assignable to type boolean."
     }
 
     def "fails when null value is provided for primitive parameter and services expected"() {
@@ -101,7 +101,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Unable to determine constructor argument #1: null value is not assignable to int"
+        e.cause.message == "Unable to determine constructor argument #1: null value is not assignable to type int."
     }
 
     def "fails when parameters do not match constructor"() {
@@ -111,7 +111,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Unable to determine constructor argument #2: value 'b' not assignable to class java.lang.Number"
+        e.cause.message == "Unable to determine constructor argument #2: value 'b' not assignable to type Number."
     }
 
     def "fails when no constructors match parameters"() {
@@ -121,7 +121,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "No constructors of class $HasConstructors.name match parameters: ['a', 'b']"
+        e.cause.message == "No constructors of type DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors match parameters: ['a', 'b']"
     }
 
     def "fails when no constructors are ambiguous"() {
@@ -131,7 +131,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Multiple constructors of class $HasConstructors.name match parameters: ['a']"
+        e.cause.message == "Multiple constructors of type DependencyInjectionUsingLenientConstructorSelectorTest.HasConstructors match parameters: ['a']"
     }
 
     def "fails on non-static inner class when outer type not provided as first parameter"() {
@@ -147,7 +147,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Class ${NonStatic.name} is a non-static inner class."
+        e.cause.message == "Class DependencyInjectionUsingLenientConstructorSelectorTest.NonStatic is a non-static inner class."
     }
 
     def "fails on non-static inner class when outer type not provided as first parameter when type takes constructor params"() {
@@ -166,7 +166,7 @@ class DependencyInjectionUsingLenientConstructorSelectorTest extends Specificati
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Class ${NonStaticWithParams.name} is a non-static inner class."
+        e.cause.message == "Class DependencyInjectionUsingLenientConstructorSelectorTest.NonStaticWithParams is a non-static inner class."
     }
 
     static class HasDefaultConstructor {

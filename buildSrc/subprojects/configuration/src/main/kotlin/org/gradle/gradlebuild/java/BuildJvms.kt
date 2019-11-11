@@ -14,12 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.fixtures
+package org.gradle.gradlebuild.java
 
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.api.provider.Provider
 
-class EnterprisePluginFixture {
-    static void applyEnterprisePlugin(File settingsFile) {
-        settingsFile.text = "plugins { id('${AutoAppliedGradleEnterprisePlugin.ID}') version('${AutoAppliedGradleEnterprisePlugin.VERSION}') }\n\n" + settingsFile.text
-    }
+
+/**
+ * Provides access to the different JVMs that are used to build, compile and test.
+ */
+open class BuildJvms(val javaInstallations: Provider<AvailableJavaInstallations>) {
+    val buildJvm = javaInstallations.map { it.currentJavaInstallation }
+
+    val compileJvm = javaInstallations.map { it.javaInstallationForCompilation }
+
+    val testJvm = javaInstallations.map { it.javaInstallationForTest }
 }

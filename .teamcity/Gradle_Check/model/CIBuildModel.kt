@@ -57,7 +57,8 @@ data class CIBuildModel(
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(4, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)),
+                TestCoverage(4, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
+                TestCoverage(20, TestType.instant, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor)),
             performanceTests = listOf(PerformanceTestType.test),
             omitsSlowProjects = true),
         Stage(StageNames.READY_FOR_NIGHTLY,
@@ -404,6 +405,7 @@ enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean 
     allVersionsCrossVersion(false, true, true, 240),
     parallel(false, true, false),
     noDaemon(false, true, false, 240),
+    instant(false, true, false),
     soak(false, false, false),
     forceRealizeDependencyManagement(false, true, false)
 }
@@ -413,7 +415,7 @@ enum class PerformanceTestType(val taskId: String, val displayName: String, val 
     slow("SlowPerformanceTest", "Slow Performance Regression Test", 420, "defaults", uuid = "PerformanceExperimentCoordinator"),
     experiment("PerformanceExperiment", "Performance Experiment", 420, "defaults", uuid = "PerformanceExperimentOnlyCoordinator"),
     flakinessDetection("FlakinessDetection", "Performance Test Flakiness Detection", 600, "flakiness-detection-commit"),
-    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "3.5.1,4.10.2,5.6.2,last", "--checks none");
+    historical("HistoricalPerformanceTest", "Historical Performance Test", 2280, "3.5.1,4.10.3,5.6.4,last", "--checks none");
 
     fun asId(model: CIBuildModel): String =
         "${model.projectPrefix}Performance${name.capitalize()}Coordinator"

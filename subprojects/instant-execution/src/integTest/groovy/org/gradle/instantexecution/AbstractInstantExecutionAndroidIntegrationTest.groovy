@@ -17,12 +17,11 @@
 package org.gradle.instantexecution
 
 import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.EnterprisePluginFixture
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapRepositoryDefinition
-
 
 /**
  * Base Android / Instant execution integration test.
@@ -91,6 +90,6 @@ abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractIn
 
     void copyRemoteProject(String remoteProject) {
         new TestFile(new File("build/$remoteProject")).copyTo(testDirectory)
-        EnterprisePluginFixture.applyEnterprisePlugin(settingsFile)
+        GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(settingsFile)
     }
 }
