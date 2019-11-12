@@ -57,7 +57,7 @@ class PathUtilTest extends Specification {
     def "can compare size of common prefix"() {
         expect:
         CaseSensitivity.values().each {
-            assert Integer.signum(it.compareWithCommonPrefix(prefix, path, offset)) == result
+            assert Integer.signum(PathUtil.compareWithCommonPrefix(prefix, path, offset, it)) == result
         }
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
@@ -118,7 +118,7 @@ class PathUtilTest extends Specification {
     def "separator is smaller than every other character"() {
         expect:
         CaseSensitivity.values().each {
-            assert Integer.signum(it.compareWithCommonPrefix(prefix, path, offset)) == result
+            assert Integer.signum(PathUtil.compareWithCommonPrefix(prefix, path, offset, it)) == result
         }
 
         where:
@@ -129,7 +129,7 @@ class PathUtilTest extends Specification {
     def "can compare to child of this"() {
         expect:
         CaseSensitivity.values().each {
-            assert Integer.signum(it.compareToChildOfOrThis(prefix, path, offset)) == result
+            assert Integer.signum(PathUtil.compareToChildOfOrThis(prefix, path, offset, it)) == result
         }
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
@@ -156,8 +156,8 @@ class PathUtilTest extends Specification {
         expect:
         (Character.MIN_VALUE..Character.MAX_VALUE).each { currentChar ->
             CaseSensitivity.values().each {
-                assert it.compareChars(currentChar as char, currentChar as char) == 0
-                assert it.equalChars(currentChar as char, currentChar as char)
+                assert compareChars(currentChar as char, currentChar as char, it == CaseSensitivity.CASE_SENSITIVE) == 0
+                assert equalChars(currentChar as char, currentChar as char, it == CaseSensitivity.CASE_SENSITIVE)
             }
         }
     }
@@ -167,10 +167,11 @@ class PathUtilTest extends Specification {
         def backslash = '\\' as char
         expect:
         CaseSensitivity.values().each {
-            assert it.compareChars(slash, backslash) == 0
-            assert it.compareChars(backslash, slash) == 0
-            assert it.equalChars(slash, backslash)
-            assert it.equalChars(backslash, slash)
+            def caseSensitive = it == CaseSensitivity.CASE_SENSITIVE
+            assert compareChars(slash, backslash, caseSensitive) == 0
+            assert compareChars(backslash, slash, caseSensitive) == 0
+            assert equalChars(slash, backslash, caseSensitive)
+            assert equalChars(backslash, slash, caseSensitive)
         }
     }
 
@@ -179,10 +180,11 @@ class PathUtilTest extends Specification {
         def char2 = right as char
         expect:
         CaseSensitivity.values().each {
-            assert it.compareChars(char1, char2) == result
-            assert it.compareChars(char2, char1) == -result
-            assert it.equalChars(char1, char2) == (result == 0)
-            assert it.equalChars(char2, char1) == (result == 0)
+            def caseSensitive = it == CaseSensitivity.CASE_SENSITIVE
+            assert compareChars(char1, char2, caseSensitive) == result
+            assert compareChars(char2, char1, caseSensitive) == -result
+            assert equalChars(char1, char2, caseSensitive) == (result == 0)
+            assert equalChars(char2, char1, caseSensitive) == (result == 0)
         }
 
         where:

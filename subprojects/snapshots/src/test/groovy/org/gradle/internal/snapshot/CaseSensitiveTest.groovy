@@ -23,12 +23,12 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
 
     def "finds right entry in sorted list with only case differences"() {
         def children = ["bAd", "BaD", "Bad"]
-        children.sort(CaseSensitivity.CASE_SENSITIVE.pathComparator)
+        children.sort(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
         expect:
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i]
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                CaseSensitivity.CASE_SENSITIVE.compareToChildOfOrThis(child, searchedChild, 0)
+                PathUtil.compareToChildOfOrThis(child, searchedChild, 0, CaseSensitivity.CASE_SENSITIVE)
             }
             assert foundIndex == i
         }
@@ -36,20 +36,20 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
 
     def "finds right entry in sorted list with only case differences in prefix"() {
         def children = ["bAd/aB", "BaD/Bb", "Bad/cC"]
-        children.sort(CaseSensitivity.CASE_SENSITIVE.pathComparator)
+        children.sort(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
         expect:
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i].substring(0, 3)
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                CaseSensitivity.CASE_SENSITIVE.compareWithCommonPrefix(child, searchedChild, 0)
+                PathUtil.compareWithCommonPrefix(child, searchedChild, 0, CaseSensitivity.CASE_SENSITIVE)
             }
             assert foundIndex == i
         }
     }
 
     def "children #children are sorted the same with path sensitive and path insensitive compare"() {
-        def caseInsensitiveSorted = children.toSorted(CaseSensitivity.CASE_INSENSITIVE.pathComparator)
-        def caseSensitiveSorted = children.toSorted(CaseSensitivity.CASE_SENSITIVE.pathComparator)
+        def caseInsensitiveSorted = children.toSorted(PathUtil.getPathComparator(CaseSensitivity.CASE_INSENSITIVE))
+        def caseSensitiveSorted = children.toSorted(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
         expect:
         caseInsensitiveSorted == caseSensitiveSorted
 

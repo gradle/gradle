@@ -28,7 +28,7 @@ abstract class AbstractCaseSensitivityTest extends Specification{
         def children = spec.children
         expect:
         SearchUtil.binarySearch(children) { child ->
-            caseSensitivity.compareToChildOfOrThis(child, spec.searchedPrefix, 0)
+            PathUtil.compareToChildOfOrThis(child, spec.searchedPrefix, 0, caseSensitivity)
         } == spec.expectedIndex
 
         where:
@@ -38,7 +38,7 @@ abstract class AbstractCaseSensitivityTest extends Specification{
     def "path #spec.searchedPrefix has common prefix with #spec.expectedIndex in #spec.children"() {
         expect:
         SearchUtil.binarySearch(spec.children) { child ->
-            caseSensitivity.compareWithCommonPrefix(child, spec.searchedPrefix, 0)
+            PathUtil.compareWithCommonPrefix(child, spec.searchedPrefix, 0, caseSensitivity)
         } == spec.expectedIndex
         spec.children.each { child ->
             def childIndex = spec.children.indexOf(child)
@@ -64,7 +64,7 @@ abstract class AbstractCaseSensitivityTest extends Specification{
         ["Bad/mine", "c/other", "AB/second"],
         ["Bad/mine", "cA/other", "AB/second"],
         ["c", "b/something", "a/very/long/suffix"]
-    ]*.toSorted(CaseSensitivity.CASE_SENSITIVE.pathComparator)
+    ]*.toSorted(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
 
     static final List<CaseSensitivityTestSpec> SAME_OR_CHILD = CHILDREN_LISTS.collectMany { children ->
         children.collectMany { child ->

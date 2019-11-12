@@ -46,7 +46,7 @@ public class SnapshotUtil {
                 }
                 return noChildFoundResult.get();
             default:
-                int foundChild = SearchUtil.binarySearch(children, child -> caseSensitivity.compareToChildOfOrThis(child.getPathToParent(), filePath, offset));
+                int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset, caseSensitivity));
                 return foundChild >= 0
                     ? getSnapshotFromChild(filePath, offset, children.get(foundChild), caseSensitivity)
                     : noChildFoundResult.get();
@@ -90,7 +90,7 @@ public class SnapshotUtil {
                 boolean emptyCommonPrefix = commonPrefixLength == 0;
                 FileSystemNode newChild = emptyCommonPrefix ? child : child.withPathToParent(prefix.substring(commonPrefixLength + 1));
                 FileSystemNode sibling = snapshot.withPathToParent(emptyCommonPrefix ? path.substring(offset) : path.substring(offset + commonPrefixLength + 1));
-                ImmutableList<FileSystemNode> newChildren = caseSensitivity.getPathComparator().compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
+                ImmutableList<FileSystemNode> newChildren = PathUtil.getPathComparator(caseSensitivity).compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
                 boolean isDirectory = isRegularFileOrDirectory(child) || isRegularFileOrDirectory(snapshot);
@@ -141,7 +141,7 @@ public class SnapshotUtil {
     public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, CaseSensitivity caseSensitivity, ChildHandler<T> childHandler) {
         int childIndex = SearchUtil.binarySearch(
             children,
-            candidate -> caseSensitivity.compareWithCommonPrefix(candidate.getPathToParent(), path, offset)
+            candidate -> PathUtil.compareWithCommonPrefix(candidate.getPathToParent(), path, offset, caseSensitivity)
         );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(childIndex);
