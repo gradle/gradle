@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot;
 
 import java.util.Comparator;
-import java.util.function.IntSupplier;
 import java.util.function.IntUnaryOperator;
 
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
@@ -35,9 +34,9 @@ public enum CaseSensitivity {
         }
 
         @Override
-        protected int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, PathSeparatorCompareResult pathSeparatorCompareResult) {
+        protected int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2) {
             return previousCombinedValue == 0
-                ? pathSeparatorCompareResult.andThenCompare(() -> charInPath1 - charInPath2)
+                ? PathUtil.compareChars(charInPath1, charInPath2, true)
                 : previousCombinedValue;
         }
     },
@@ -53,7 +52,7 @@ public enum CaseSensitivity {
         }
 
         @Override
-        protected int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, PathSeparatorCompareResult pathSeparatorCompareResult) {
+        protected int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2) {
             return 0;
         }
     };
@@ -85,13 +84,12 @@ public enum CaseSensitivity {
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
-            PathSeparatorCompareResult pathSeparatorCompareResult = compareSeparators(charInPath1, charInPath2);
-            int comparedChars = pathSeparatorCompareResult.andThenCompare(() -> compareIgnoringCase(charInPath1, charInPath2));
+            int comparedChars = PathUtil.compareChars(charInPath1, charInPath2, false);
             if (comparedChars != 0) {
                 return comparedChars;
             }
-            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, pathSeparatorCompareResult);
-            if (pathSeparatorCompareResult == PathSeparatorCompareResult.BOTH_ARE_SEPARATORS) {
+            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2);
+            if (isFileSeparator(charInPath1)) {
                 if (pos > 0) {
                     return accumulatedValue;
                 }
@@ -140,70 +138,17 @@ public enum CaseSensitivity {
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = prefix.charAt(pos);
             char charInPath2 = path.charAt(pos + offset);
-            PathSeparatorCompareResult pathSeparatorCompareResult = compareSeparators(charInPath1, charInPath2);
-            int comparedChars = pathSeparatorCompareResult.andThenCompare(() -> compareIgnoringCase(charInPath1, charInPath2));
+            int comparedChars = PathUtil.compareChars(charInPath1, charInPath2, false);
             if (comparedChars != 0) {
                 return comparedChars;
             }
-            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, pathSeparatorCompareResult);
-            if (accumulatedValue != 0 && pathSeparatorCompareResult == PathSeparatorCompareResult.BOTH_ARE_SEPARATORS) {
+            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2);
+            if (accumulatedValue != 0 && isFileSeparator(charInPath1)) {
                 return accumulatedValue;
             }
         }
         return andThenCompare.applyAsInt(accumulatedValue);
     }
 
-    protected abstract int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, PathSeparatorCompareResult pathSeparatorCompareResult);
-
-    private static int compareIgnoringCase(char char1, char char2) {
-        if (char1 == char2) {
-            return 0;
-        }
-        int uppercaseCompare = Character.toUpperCase(char1) - Character.toUpperCase(char2);
-        if (uppercaseCompare != 0) {
-            return uppercaseCompare;
-        }
-        return Character.toLowerCase(char1) - Character.toLowerCase(char2);
-    }
-
-    private static PathSeparatorCompareResult compareSeparators(char left, char right) {
-        if (isFileSeparator(left)) {
-            return isFileSeparator(right)
-                ? PathSeparatorCompareResult.BOTH_ARE_SEPARATORS
-                : PathSeparatorCompareResult.LEFT_IS_SEPARATOR;
-        } else {
-            return isFileSeparator(right)
-                ? PathSeparatorCompareResult.RIGHT_IS_SEPARATOR
-                : PathSeparatorCompareResult.NONE_IS_SEPARATOR;
-        }
-    }
-
-    private enum PathSeparatorCompareResult {
-        LEFT_IS_SEPARATOR {
-            @Override
-            public int andThenCompare(IntSupplier furtherComparison) {
-                return -1;
-            }
-        },
-        RIGHT_IS_SEPARATOR {
-            @Override
-            public int andThenCompare(IntSupplier furtherComparison) {
-                return 1;
-            }
-        },
-        BOTH_ARE_SEPARATORS {
-            @Override
-            public int andThenCompare(IntSupplier furtherComparison) {
-                return 0;
-            }
-        },
-        NONE_IS_SEPARATOR {
-            @Override
-            public int andThenCompare(IntSupplier furtherComparison) {
-                return furtherComparison.getAsInt();
-            }
-        };
-
-        public abstract int andThenCompare(IntSupplier furtherComparison);
-    }
+    protected abstract int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2);
 }
