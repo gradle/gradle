@@ -36,10 +36,10 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         setupTest(vfsSpec)
 
         when:
-        def invalidated = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
         then:
-        invalidated.children == childrenWithSelectedChildRemoved()
-        isSameNodeType(invalidated)
+        resultRoot.children == childrenWithSelectedChildRemoved()
+        isSameNodeType(resultRoot)
         interaction { noMoreInteractions() }
 
         where:
@@ -51,10 +51,10 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         def invalidatedChild = mockNode(selectedChild.pathToParent)
 
         when:
-        def invalidated = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
         then:
-        invalidated.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
-        isSameNodeType(invalidated)
+        resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
+        isSameNodeType(resultRoot)
         interaction {
             invalidateDescendantOfSelectedChild(vfsFixture, invalidatedChild)
             noMoreInteractions()
@@ -68,10 +68,10 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         setupTest(vfsSpec)
 
         when:
-        def invalidated = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
         then:
-        invalidated.children == childrenWithSelectedChildRemoved()
-        isSameNodeType(invalidated)
+        resultRoot.children == childrenWithSelectedChildRemoved()
+        isSameNodeType(resultRoot)
         interaction {
             invalidateDescendantOfSelectedChild(vfsFixture, null)
             noMoreInteractions()
