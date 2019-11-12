@@ -34,7 +34,7 @@ class IgnoreWithInstantExecutionExtension extends AbstractAnnotationDrivenExtens
     @Override
     void visitFeatureAnnotation(IgnoreWithInstantExecution annotation, FeatureInfo feature) {
         if (GradleContextualExecuter.isInstant()) {
-            feature.skipped = true
+            // feature.skipped = true
         }
     }
 }
