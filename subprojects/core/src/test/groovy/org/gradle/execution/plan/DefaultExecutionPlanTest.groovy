@@ -18,16 +18,13 @@ package org.gradle.execution.plan
 
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.WorkNodeAction
-import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.resources.ResourceLockState
-import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.util.TextUtil
 import spock.lang.Issue
@@ -39,15 +36,12 @@ import static org.gradle.util.WrapUtil.toList
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
-    def sharedResourceLeaseRegistry = Mock(SharedResourceLeaseRegistry)
-    def buildServiceRegistry = Mock(BuildServiceRegistryInternal)
 
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver, buildServiceRegistry, sharedResourceLeaseRegistry)
+        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver)
         _ * workerLease.tryLock() >> true
-        _ * buildServiceRegistry.services >> []
     }
 
     def "schedules tasks in dependency order"() {
@@ -217,7 +211,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     def "cyclic should run after ordering is ignored in complex task graph"() {
         given:
 
-        Task e = createTask("e")
+        Task e = task("e")
         Task x = task("x", dependsOn: [e])
         Task f = task("f", dependsOn: [x])
         Task a = task("a", shouldRunAfter: [x])
@@ -516,7 +510,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         Task a = task("a")
         Task b = task("b")
         Task c = task("c")
-        Task d = createTask("d")
+        Task d = task("d")
         Task e = task("e", dependsOn: [a, d])
         Task f = task("f", dependsOn: [e])
         Task g = task("g", dependsOn: [c, f])
@@ -548,7 +542,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     }
 
     def "should run after ordering is ignored if it is at the end of a circular reference"() {
-        Task a = createTask("a")
+        Task a = task("a")
         Task b = task("b", dependsOn: [a])
         Task c = task("c", dependsOn: [b])
         relationships(a, shouldRunAfter: [c])
@@ -860,34 +854,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         return node
     }
 
-    def "task cannot require a shared resource which has not been defined"() {
-        given:
-        Task a = task('a', resources: ['resource': 1])
-
-        when:
-        addToGraphAndPopulate([a])
-
-        then:
-        def ex = thrown(InvalidUserDataException)
-        ex.message == "The task :a requires the shared resource 'resource' but no such shared resource exists."
-    }
-
-    def "task cannot require more leases than shared resource maximum leases"() {
-        given:
-        def leases = Stub(BuildServiceRegistryInternal.ServiceLeases)
-        _ * leases.leases >> 5
-        buildServiceRegistry.findByName('resource') >> leases
-
-        Task a = task('a', resources: ['resource': 10])
-
-        when:
-        addToGraphAndPopulate([a])
-
-        then:
-        def ex = thrown(InvalidUserDataException)
-        ex.message == "The task :a requires 10 leases from shared resource 'resource' but maximum leases is 5"
-    }
-
     private void addToGraphAndPopulate(List tasks) {
         executionPlan.addEntryTasks(tasks)
         executionPlan.determineExecutionPlan()
@@ -944,9 +910,6 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         if (options.failure) {
             failure(task, options.failure)
         }
-        if (options.resources) {
-            task.getSharedResources() >> options.resources
-        }
         task.getDidWork() >> (options.containsKey('didWork') ? options.didWork : true)
         return task
     }
@@ -956,6 +919,7 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
         mustRunAfter(task, options.mustRunAfter ?: [])
         shouldRunAfter(task, options.shouldRunAfter ?: [])
         finalizedBy(task, options.finalizedBy ?: [])
+        task.getSharedResources() >> (options.resources ?: [])
     }
 
     private TaskInternal filteredTask(final String name) {

@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import groovy.lang.Closure;
@@ -52,6 +53,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
+import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
@@ -67,6 +69,8 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.logging.compatbridge.LoggingManagerInternalCompatibilityBridge;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.SharedResource;
 import org.gradle.internal.scripts.ScriptOrigin;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -965,7 +969,22 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     @Override
-    public Map<String, Integer> getSharedResources() {
-        return sharedResources;
+    public List<ResourceLock> getSharedResources() {
+        ImmutableList.Builder<ResourceLock> locks = ImmutableList.builder();
+        BuildServiceRegistryInternal serviceRegistry = getServices().get(BuildServiceRegistryInternal.class);
+        for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
+            SharedResource resource = serviceRegistry.findByName(entry.getKey());
+
+            if (resource == null) {
+                throw new InvalidUserDataException("Task " + getIdentityPath() + " requires the shared resource '" + entry.getKey() + "' but no such shared resource exists.");
+            }
+            if (resource.getMaxUsages() > 0) {
+                if (resource.getMaxUsages() < entry.getValue()) {
+                    throw new InvalidUserDataException("The task " + getIdentityPath() + " requires " + entry.getValue() + " leases from shared resource '" + entry.getKey() + "' but maximum leases is " + resource.getMaxUsages());
+                }
+                locks.add(resource.getResourceLock(entry.getValue()));
+            }
+        }
+        return locks.build();
     }
 }
