@@ -15,6 +15,6 @@ subprojects {
 
 project(":app") {
     dependencies {
-        implementation(project(":library"))
+        "implementation"(project(":library"))
     }
 }
