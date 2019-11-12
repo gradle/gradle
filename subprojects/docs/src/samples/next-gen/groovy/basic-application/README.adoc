@@ -35,3 +35,4 @@ BUILD SUCCESSFUL in 1s
 ====
 
 For more information, see link:{userManualPath}/application_plugin.html[Application Plugin reference chapter].
+You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:groovy_application[Build Init Plugin].
