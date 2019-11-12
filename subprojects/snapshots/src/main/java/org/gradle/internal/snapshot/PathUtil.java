@@ -56,6 +56,13 @@ public class PathUtil {
     private static final Comparator<String> CASE_SENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, CASE_SENSITIVE);
     private static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, CASE_INSENSITIVE);
 
+    public static int compareFileNames(String name1, String name2) {
+        int caseInsensitiveComparison = name1.compareToIgnoreCase(name2);
+        return caseInsensitiveComparison != 0
+            ? caseInsensitiveComparison
+            : name1.compareTo(name2);
+    }
+
     public static Comparator<String> getPathComparator(CaseSensitivity caseSensitivity) {
         switch (caseSensitivity) {
             case CASE_SENSITIVE:

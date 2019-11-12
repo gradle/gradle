@@ -57,6 +57,23 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
         children << CHILDREN_LISTS
     }
 
+    def "children names #children are sorted the same with path sensitive and name only comparison"() {
+        def nameSorted = children.toSorted(PathUtil.&compareFileNames)
+        def caseSensitiveSorted = children.toSorted(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
+        expect:
+        nameSorted == caseSensitiveSorted
+
+        where:
+        children << [
+            ["bAdA", "BaDb"],
+            ["bAdA", "BaDb", "Badc"],
+            ["bad", "c", "ab"],
+            ["Bad", "c", "aB"],
+            ["Bad", "c", "AB"],
+            ["Bad", "cA", "AB"]
+        ]
+    }
+
     @Override
     CaseSensitivity getCaseSensitivity() {
         return CaseSensitivity.CASE_SENSITIVE
