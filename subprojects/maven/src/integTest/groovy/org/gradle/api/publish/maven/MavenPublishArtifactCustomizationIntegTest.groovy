@@ -23,16 +23,11 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
     def "can attach custom artifacts"() {
         given:
         createBuildScripts("""
-            file("customFile.foo") << 'some foo'
-            file("customFile.bar") << 'some bar'
-
             publications {
                 mavenCustom(MavenPublication) {
                     artifact "customFile.txt"
                     artifact customJar
                     artifact regularFileTask.outputFile
-                    artifact provider { file("customFile.foo") }
-                    artifact provider { "customFile.bar" }
                 }
             }
 """)
@@ -42,7 +37,7 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
         then:
         def module = mavenRepo.module("group", "projectText", "1.0")
         module.assertPublished()
-        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0.foo", "projectText-1.0.bar", "projectText-1.0-customjar.jar", "projectText-1.0.reg")
+        module.assertArtifactsPublished("projectText-1.0.pom", "projectText-1.0.txt", "projectText-1.0-customjar.jar", "projectText-1.0.reg")
 
         and:
         resolveArtifacts(module) {
@@ -52,24 +47,6 @@ class MavenPublishArtifactCustomizationIntegTest extends AbstractMavenPublishInt
             }
             withoutModuleMetadata {
                 expectFiles "projectText-1.0.txt"
-            }
-        }
-        resolveArtifacts(module) {
-            ext = 'foo'
-            withModuleMetadata {
-                noComponentPublished()
-            }
-            withoutModuleMetadata {
-                expectFiles "projectText-1.0.foo"
-            }
-        }
-        resolveArtifacts(module) {
-            ext = 'bar'
-            withModuleMetadata {
-                noComponentPublished()
-            }
-            withoutModuleMetadata {
-                expectFiles "projectText-1.0.bar"
             }
         }
         resolveArtifacts(module) {

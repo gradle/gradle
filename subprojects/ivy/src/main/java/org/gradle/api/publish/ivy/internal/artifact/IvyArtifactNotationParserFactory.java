@@ -18,7 +18,6 @@ package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
@@ -105,7 +104,7 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         public void convert(Object notation, NotationConvertResult<? super IvyArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
             IvyArtifact ivyArtifact = instantiator.newInstance(FileBasedIvyArtifact.class, file, publicationIdentity);
-            if (dependsOnTask(notation)) {
+            if (notation instanceof TaskDependencyContainer) {
                 ivyArtifact.builtBy(notation);
             }
             result.converted(ivyArtifact);
@@ -115,14 +114,6 @@ public class IvyArtifactNotationParserFactory implements Factory<NotationParser<
         public void describe(DiagnosticsVisitor visitor) {
             fileResolverNotationParser.describe(visitor);
         }
-    }
-
-    private boolean dependsOnTask(Object notation) {
-        if (notation instanceof ProviderInternal) {
-            ProviderInternal<?> provider = (ProviderInternal<?>) notation;
-            return provider.isContentProducedByTask() || provider.isValueProducedByTask();
-        }
-        return notation instanceof TaskDependencyContainer;
     }
 
     private class IvyArtifactMapNotationConverter extends MapNotationConverter<IvyArtifact> {
