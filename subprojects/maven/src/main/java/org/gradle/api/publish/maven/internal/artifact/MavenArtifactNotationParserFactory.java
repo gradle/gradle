@@ -18,6 +18,7 @@ package org.gradle.api.publish.maven.internal.artifact;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
@@ -104,7 +105,7 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         public void convert(Object notation, NotationConvertResult<? super MavenArtifact> result) throws TypeConversionException {
             File file = fileResolverNotationParser.parseNotation(notation);
             MavenArtifact mavenArtifact = instantiator.newInstance(FileBasedMavenArtifact.class, file);
-            if (notation instanceof TaskDependencyContainer) {
+            if (dependsOnTask(notation)) {
                 mavenArtifact.builtBy(notation);
             }
             result.converted(mavenArtifact);
@@ -114,6 +115,14 @@ public class MavenArtifactNotationParserFactory implements Factory<NotationParse
         public void describe(DiagnosticsVisitor visitor) {
             fileResolverNotationParser.describe(visitor);
         }
+    }
+
+    private boolean dependsOnTask(Object notation) {
+        if (notation instanceof ProviderInternal) {
+            ProviderInternal<?> provider = (ProviderInternal<?>) notation;
+            return provider.isContentProducedByTask() || provider.isValueProducedByTask();
+        }
+        return notation instanceof TaskDependencyContainer;
     }
 
     private class MavenArtifactMapNotationConverter extends MapNotationConverter<MavenArtifact> {
