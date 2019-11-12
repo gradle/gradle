@@ -27,7 +27,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.execution.SharedResourceContainer;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
@@ -84,7 +83,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private Path identityPath;
     private ClassLoaderScope classLoaderScope;
     private BuildType buildType = BuildType.NONE;
-    private SharedResourceContainer sharedResourceContainer;
     private ClassLoaderScope baseProjectClassLoaderScope;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
@@ -94,7 +92,6 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         this.crossProjectConfigurator = services.get(CrossProjectConfigurator.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
-        sharedResourceContainer = services.get(SharedResourceContainer.class);
 
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
@@ -541,13 +538,5 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     @Override
     public void setBuildType(BuildType buildType) {
         this.buildType = buildType;
-    }
-
-    public SharedResourceContainer getSharedResources() {
-        return sharedResourceContainer;
-    }
-
-    public void sharedResources(Action<? super SharedResourceContainer> action) {
-        action.execute(sharedResourceContainer);
     }
 }

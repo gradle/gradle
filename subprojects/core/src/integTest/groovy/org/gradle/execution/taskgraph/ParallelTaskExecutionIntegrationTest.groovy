@@ -406,8 +406,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         buildFile << """
-            gradle.sharedResources {
-                exclusive
+            gradle.sharedServices.registerIfAbsent("exclusive", BuildService) {
+                maxParallelUsages = 1
             }
             
             aPing.requiresResource('exclusive')
@@ -426,10 +426,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         buildFile << """
-            gradle.sharedResources {
-                resource {
-                    leases = 2
-                }
+            gradle.sharedServices.registerIfAbsent("resource", BuildService) {
+                maxParallelUsages = 2
             }
             
             aPing.requiresResource('resource')
@@ -447,10 +445,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(3)
 
         buildFile << """
-            gradle.sharedResources {
-                resource {
-                    leases = 2
-                }
+            gradle.sharedServices.registerIfAbsent("resource", BuildService) {
+                maxParallelUsages = 2
             }
             
             aPing.requiresResource('resource')

@@ -20,6 +20,22 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
 
+import javax.annotation.Nullable;
+
 public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters);
+
+    @Nullable
+    ServiceLeases findByName(String name);
+
+    Iterable<? extends ServiceLeases> getServices();
+
+    interface ServiceLeases {
+        String getName();
+
+        /**
+         * Returns <= 0 for unlimited
+         */
+        int getLeases();
+    }
 }
