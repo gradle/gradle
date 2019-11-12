@@ -32,12 +32,12 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
     }
 
     def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
-        def vfsFixture = fixture(vfsSpec)
+        setupTest(vfsSpec)
         def metadataSnapshot = createNodeFromFixture(vfsFixture)
         when:
-        def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
+        def invalidated = metadataSnapshot.invalidate(absolutePath, offset).get()
         then:
-        invalidated.children == vfsFixture.childrenWithSelectedChildRemoved()
+        invalidated.children == childrenWithSelectedChildRemoved()
         isSameNodeType(invalidated)
         interaction { noMoreInteractions() }
 
@@ -46,10 +46,10 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
     }
 
     def "invalidating the only child by #vfsSpec.absolutePath removes the node (#vfsSpec)"() {
-        def vfsFixture = fixture(vfsSpec)
+        setupTest(vfsSpec)
         def metadataSnapshot = createNodeFromFixture(vfsFixture)
         when:
-        def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset)
+        def invalidated = metadataSnapshot.invalidate(absolutePath, offset)
         then:
         !invalidated.present
         interaction { noMoreInteractions() }
@@ -59,13 +59,13 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
     }
 
     def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
-        def vfsFixture = fixture(vfsSpec)
+        setupTest(vfsSpec)
         def metadataSnapshot = createNodeFromFixture(vfsFixture)
-        def invalidatedChild = mockNode(vfsFixture.selectedChild.pathToParent)
+        def invalidatedChild = mockNode(selectedChild.pathToParent)
         when:
-        def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
+        def invalidated = metadataSnapshot.invalidate(absolutePath, offset).get()
         then:
-        invalidated.children == vfsFixture.childrenWithSelectedChildReplacedBy(invalidatedChild)
+        invalidated.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(invalidated)
         interaction {
             invalidateDescendantOfSelectedChild(vfsFixture, invalidatedChild)
@@ -77,12 +77,12 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
     }
 
     def "invalidate #vfsSpec.absolutePath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
-        def vfsFixture = fixture(vfsSpec)
+        setupTest(vfsSpec)
         def metadataSnapshot = createNodeFromFixture(vfsFixture)
         when:
-        def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
+        def invalidated = metadataSnapshot.invalidate(absolutePath, offset).get()
         then:
-        invalidated.children == vfsFixture.childrenWithSelectedChildRemoved()
+        invalidated.children == childrenWithSelectedChildRemoved()
         isSameNodeType(invalidated)
         interaction {
             invalidateDescendantOfSelectedChild(vfsFixture, null)
@@ -94,10 +94,10 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
     }
 
     def "invalidate #vfsSpec.absolutePath removes the child #vfsSpec.selectedChildPath and the node with it (#vfsSpec)"() {
-        def vfsFixture = fixture(vfsSpec)
+        setupTest(vfsSpec)
         def metadataSnapshot = createNodeFromFixture(vfsFixture)
         when:
-        def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset)
+        def invalidated = metadataSnapshot.invalidate(absolutePath, offset)
         then:
         !invalidated.present
         interaction {
