@@ -128,7 +128,7 @@ public class WorkersServices extends AbstractPluginServiceRegistry {
                     workerExecutionQueueFactory,
                     classLoaderStructureProvider,
                     actionExecutionSpecFactory,
-                    instantiatorFactory.injectAndDecorateLenient(serviceRegistry),
+                    instantiatorFactory.decorateLenient(serviceRegistry),
                     projectLayout.getProjectDirectory().getAsFile());
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;

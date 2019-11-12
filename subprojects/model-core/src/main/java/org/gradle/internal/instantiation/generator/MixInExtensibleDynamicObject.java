@@ -37,7 +37,7 @@ public class MixInExtensibleDynamicObject extends ExtensibleDynamicObject {
 
     private static InstanceGenerator instantiator(ServiceLookup services) {
         InstantiatorFactory instantiatorFactory = (InstantiatorFactory) services.get(InstantiatorFactory.class);
-        return instantiatorFactory.injectAndDecorateLenient(services);
+        return instantiatorFactory.decorateLenient(services);
     }
 
     private static AbstractDynamicObject wrap(Object delegateObject, Class<?> publicType, DynamicObject dynamicObject) {
