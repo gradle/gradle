@@ -1,4 +1,4 @@
-= {sample-displayName} Sample
+= Groovy Components with Spock Tests Sample
 
 ifndef::env-github[]
 [.download]
