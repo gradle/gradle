@@ -96,11 +96,12 @@ public class PathUtil {
     public static int sizeOfCommonPrefix(String path1, String path2, int offset, CaseSensitivity caseSensitivity) {
         int pos = 0;
         int lastSeparator = 0;
+        boolean caseSensitive = caseSensitivity == CaseSensitivity.CASE_SENSITIVE;
         int maxPos = Math.min(path1.length(), path2.length() - offset);
         for (; pos < maxPos; pos++) {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
-            if (!caseSensitivity.equalChars(charInPath1, charInPath2)) {
+            if (!equalChars(charInPath1, charInPath2, caseSensitive)) {
                 break;
             }
             if (isFileSeparator(charInPath1)) {

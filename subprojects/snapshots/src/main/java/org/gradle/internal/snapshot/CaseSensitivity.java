@@ -32,13 +32,6 @@ public enum CaseSensitivity {
         public int compareChars(char char1, char char2) {
             return PathUtil.compareChars(char1, char2, true);
         }
-
-        @Override
-        protected int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2) {
-            return previousCombinedValue == 0
-                ? PathUtil.compareChars(charInPath1, charInPath2, true)
-                : previousCombinedValue;
-        }
     },
     CASE_INSENSITIVE {
         @Override
@@ -49,11 +42,6 @@ public enum CaseSensitivity {
         @Override
         public int compareChars(char char1, char char2) {
             return PathUtil.compareChars(char1, char2, false);
-        }
-
-        @Override
-        protected int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2) {
-            return 0;
         }
     };
 
@@ -88,7 +76,7 @@ public enum CaseSensitivity {
             if (comparedChars != 0) {
                 return comparedChars;
             }
-            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2);
+            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, this == CASE_SENSITIVE);
             if (isFileSeparator(charInPath1)) {
                 if (pos > 0) {
                     return accumulatedValue;
@@ -142,7 +130,7 @@ public enum CaseSensitivity {
             if (comparedChars != 0) {
                 return comparedChars;
             }
-            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2);
+            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, this == CASE_SENSITIVE);
             if (accumulatedValue != 0 && isFileSeparator(charInPath1)) {
                 return accumulatedValue;
             }
@@ -150,5 +138,12 @@ public enum CaseSensitivity {
         return andThenCompare.applyAsInt(accumulatedValue);
     }
 
-    protected abstract int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2);
+    private static int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
+        if (!caseSensitive) {
+            return 0;
+        }
+        return previousCombinedValue == 0
+            ? PathUtil.compareChars(charInPath1, charInPath2, true)
+            : previousCombinedValue;
+    }
 }
