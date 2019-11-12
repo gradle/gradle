@@ -19,12 +19,14 @@ package org.gradle.internal.snapshot
 import javax.annotation.Nullable
 
 class VirtualFileSystemTestFixture {
-    List<FileSystemNode> children
-    String absolutePath
-    int offset
-    FileSystemNode selectedChild
+    final FileSystemNode initialRoot
+    final List<FileSystemNode> children
+    final String absolutePath
+    final int offset
+    final FileSystemNode selectedChild
 
-    VirtualFileSystemTestFixture(List<FileSystemNode> children, String absolutePath, int offset, @Nullable FileSystemNode selectedChild) {
+    VirtualFileSystemTestFixture(FileSystemNode initialRoot, List<FileSystemNode> children, String absolutePath, int offset, @Nullable FileSystemNode selectedChild) {
+        this.initialRoot = initialRoot
         this.children = children
         this.absolutePath = absolutePath
         this.offset = offset

@@ -28,15 +28,15 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     @Delegate VirtualFileSystemTestFixture vfsFixture
 
-    abstract T createNodeFromFixture(VirtualFileSystemTestFixture fixture);
+    abstract protected T createInitialRootNode(String pathToParent, List<FileSystemNode> children);
 
-    abstract boolean isSameNodeType(FileSystemNode node)
+    abstract protected boolean isSameNodeType(FileSystemNode node)
 
     def "invalidate child with no common pathToParent has no effect (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def metadataSnapshot = createNodeFromFixture(vfsFixture)
+
         expect:
-        metadataSnapshot.invalidate(absolutePath, offset).get() == metadataSnapshot
+        initialRoot.invalidate(absolutePath, offset).get() is initialRoot
 
         where:
         vfsSpec << NO_COMMON_PREFIX + COMMON_PREFIX
@@ -44,12 +44,11 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "store #fileType child with common prefix adds a new child with the shared prefix of type Directory (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def currentNode = createNodeFromFixture(vfsFixture)
         def newPathToParent = absolutePath.substring(offset)
         def snapshot = mockSnapshot(newPathToParent)
 
         when:
-        def stored = currentNode.store(absolutePath, offset, snapshot)
+        def stored = initialRoot.store(absolutePath, offset, snapshot)
         AbstractIncompleteSnapshotWithChildren newChild = getNodeWithIndexOfSelectedChild(stored.children)
         then:
         stored.children == childrenWithSelectedChildReplacedBy(newChild)
@@ -69,12 +68,11 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "store Missing child with common prefix adds a new child with the shared prefix with unknown metadata (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def currentNode = createNodeFromFixture(vfsFixture)
         def newPathToParent = absolutePath.substring(offset)
         def snapshot = mockSnapshot(newPathToParent)
 
         when:
-        def stored = currentNode.store(absolutePath, offset, snapshot)
+        def stored = initialRoot.store(absolutePath, offset, snapshot)
         AbstractIncompleteSnapshotWithChildren newChild = getNodeWithIndexOfSelectedChild(stored.children)
         then:
         stored.children == childrenWithSelectedChildReplacedBy(newChild)
@@ -92,7 +90,6 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "store child with no common prefix adds it (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def initialRoot = createNodeFromFixture(vfsFixture)
         def newPathToParent = absolutePath.substring(offset)
         def snapshot = mockSnapshot(newPathToParent)
         def newChild = mockSnapshot(newPathToParent)
@@ -111,13 +108,12 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "store parent #vfsSpec.absolutePath replaces child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def currentNode = createNodeFromFixture(vfsFixture)
         def newPathToParent = absolutePath.substring(offset)
         def snapshot = mockSnapshot(newPathToParent)
         def parent = mockSnapshot(newPathToParent)
 
         when:
-        def stored = currentNode.store(absolutePath, offset, snapshot)
+        def stored = initialRoot.store(absolutePath, offset, snapshot)
         then:
         stored.children == childrenWithSelectedChildReplacedBy(parent)
         isSameNodeType(stored)
@@ -130,13 +126,12 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "storing a complete snapshot with same path #vfsSpec.absolutePath does replace child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def partialDirectorySnapshot = createNodeFromFixture(vfsFixture)
         def newPathToParent = absolutePath.substring(offset)
         def snapshot = mockSnapshot(CompleteFileSystemLocationSnapshot, newPathToParent)
         def snapshotWithParent = mockSnapshot(CompleteFileSystemLocationSnapshot, newPathToParent)
 
         when:
-        def stored = partialDirectorySnapshot.store(absolutePath, offset, snapshot)
+        def stored = initialRoot.store(absolutePath, offset, snapshot)
         then:
         stored.children == childrenWithSelectedChildReplacedBy(snapshotWithParent)
         isSameNodeType(stored)
@@ -149,12 +144,11 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "storing a metadata snapshot with same path #vfsSpec.absolutePath does not replace a complete snapshot (#vfsSpec)"() {
         setupTest(vfsSpec, { mockSnapshot(CompleteFileSystemLocationSnapshot, it) })
-        def partialDirectorySnapshot = createNodeFromFixture(vfsFixture)
         def newPathToParent = absolutePath.substring(offset)
         def snapshot = mockSnapshot(newPathToParent)
 
         when:
-        def stored = partialDirectorySnapshot.store(absolutePath, offset, snapshot)
+        def stored = initialRoot.store(absolutePath, offset, snapshot)
         then:
         stored.children == children
         isSameNodeType(stored)
@@ -169,12 +163,11 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "storing a metadata snapshot with same path #vfsSpec.absolutePath does replace a metadata snapshot (#vfsSpec)"() {
         setupTest(vfsSpec, { mockSnapshot(MetadataSnapshot, it) })
-        def partialDirectorySnapshot = createNodeFromFixture(vfsFixture)
         def newPathToParent = absolutePath.substring(offset)
         def newSnapshot = mockSnapshot(newPathToParent)
 
         when:
-        def stored = partialDirectorySnapshot.store(absolutePath, offset, newSnapshot)
+        def stored = initialRoot.store(absolutePath, offset, newSnapshot)
         then:
         isSameNodeType(stored)
         stored.children == childrenWithSelectedChildReplacedBy(newSnapshot)
@@ -190,7 +183,6 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "storing the child #vfsSpec.absolutePath of #vfsSpec.selectedChildPath updates the child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def initialRoot = createNodeFromFixture(vfsFixture)
         def snapshotToStore = mockSnapshot(selectedChild.pathToParent)
         def updatedChildNode = mockNode(selectedChild.pathToParent)
 
@@ -215,10 +207,9 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "querying the snapshot for non-existing child #vfsSpec.absolutePath finds nothings (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def partialDirectorySnapshot = createNodeFromFixture(vfsFixture)
 
         when:
-        def result = partialDirectorySnapshot.getSnapshot(absolutePath, offset)
+        def result = initialRoot.getSnapshot(absolutePath, offset)
         then:
         !result.present
         interaction { noMoreInteractions() }
@@ -229,10 +220,9 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "querying the snapshot for existing child #vfsSpec.absolutePath returns the snapshot for the child (#vfsSpec)"() {
         setupTest(vfsSpec, { mockSnapshot(MetadataSnapshot, it) })
-        def partialDirectorySnapshot = createNodeFromFixture(vfsFixture)
 
         when:
-        def result = partialDirectorySnapshot.getSnapshot(absolutePath, offset)
+        def result = initialRoot.getSnapshot(absolutePath, offset)
         then:
         result.get() == selectedChild
         interaction {
@@ -246,10 +236,9 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "querying the snapshot for existing child #vfsSpec.absolutePath without snapshot returns empty (#vfsSpec)"() {
         setupTest(vfsSpec, { mockSnapshot(MetadataSnapshot, it) })
-        def partialDirectorySnapshot = createNodeFromFixture(vfsFixture)
 
         when:
-        def result = partialDirectorySnapshot.getSnapshot(absolutePath, offset)
+        def result = initialRoot.getSnapshot(absolutePath, offset)
         then:
         !result.present
         interaction {
@@ -263,11 +252,10 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "querying the snapshot for descendant of child #vfsSpec.selectedChildPath queries the child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def partialDirectorySnapshot = createNodeFromFixture(vfsFixture)
         def descendantSnapshot = mockSnapshot(absolutePath.substring(selectedChild.pathToParent.length() + 1))
 
         when:
-        def result = partialDirectorySnapshot.getSnapshot(absolutePath, offset)
+        def result = initialRoot.getSnapshot(absolutePath, offset)
         then:
         result.get() == descendantSnapshot
         interaction {
@@ -281,10 +269,9 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "querying the snapshot for non-existing descendant of child #vfsSpec.selectedChildPath returns empty (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def partialDirectorySnapshot = createNodeFromFixture(vfsFixture)
 
         when:
-        def result = partialDirectorySnapshot.getSnapshot(absolutePath, offset)
+        def result = initialRoot.getSnapshot(absolutePath, offset)
         then:
         !result.present
         interaction {
@@ -395,7 +382,9 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     void setupTest(VirtualFileSystemTestSpec spec, SelectedChildCreator selectedChildCreator = null) {
         def children = createChildren(spec.childPaths, spec.selectedChildPath, selectedChildCreator)
+        def initialRoot = createInitialRootNode("path/to/parent", children)
         vfsFixture = new VirtualFileSystemTestFixture(
+            initialRoot,
             children,
             spec.absolutePath,
             spec.offset,

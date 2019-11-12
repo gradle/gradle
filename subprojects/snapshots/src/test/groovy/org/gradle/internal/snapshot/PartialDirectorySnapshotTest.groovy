@@ -23,20 +23,20 @@ import spock.lang.Unroll
 class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<PartialDirectorySnapshot> {
 
     @Override
-    PartialDirectorySnapshot createNodeFromFixture(VirtualFileSystemTestFixture fixture) {
-        return new PartialDirectorySnapshot("some/path/to/parent", fixture.children)
+    protected PartialDirectorySnapshot createInitialRootNode(String pathToParent, List<FileSystemNode> children) {
+        return new PartialDirectorySnapshot(pathToParent, children)
     }
 
     @Override
-    boolean isSameNodeType(FileSystemNode node) {
+    protected boolean isSameNodeType(FileSystemNode node) {
         node instanceof MetadataSnapshot && node.type == FileType.Directory
     }
 
     def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def metadataSnapshot = createNodeFromFixture(vfsFixture)
+
         when:
-        def invalidated = metadataSnapshot.invalidate(absolutePath, offset).get()
+        def invalidated = initialRoot.invalidate(absolutePath, offset).get()
         then:
         invalidated.children == childrenWithSelectedChildRemoved()
         isSameNodeType(invalidated)
@@ -48,10 +48,10 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
 
     def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def metadataSnapshot = createNodeFromFixture(vfsFixture)
         def invalidatedChild = mockNode(selectedChild.pathToParent)
+
         when:
-        def invalidated = metadataSnapshot.invalidate(absolutePath, offset).get()
+        def invalidated = initialRoot.invalidate(absolutePath, offset).get()
         then:
         invalidated.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(invalidated)
@@ -66,9 +66,9 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
 
     def "invalidate #vfsSpec.absolutePath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def metadataSnapshot = createNodeFromFixture(vfsFixture)
+
         when:
-        def invalidated = metadataSnapshot.invalidate(absolutePath, offset).get()
+        def invalidated = initialRoot.invalidate(absolutePath, offset).get()
         then:
         invalidated.children == childrenWithSelectedChildRemoved()
         isSameNodeType(invalidated)
