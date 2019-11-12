@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.internal.Actions;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
@@ -54,14 +53,14 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
     }
 
     private PublishArtifact pushArtifact(Configuration configuration, Object notation, Action<? super ConfigurablePublishArtifact> configureAction) {
-        warnIfConfigurationIsDeprecated((DeprecatableConfiguration) configuration);
+        warnIfConfigurationIsDeprecated(configuration);
         ConfigurablePublishArtifact publishArtifact = publishArtifactFactory.parseNotation(notation);
         configuration.getArtifacts().add(publishArtifact);
         configureAction.execute(publishArtifact);
         return publishArtifact;
     }
 
-    private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration configuration) {
+    private void warnIfConfigurationIsDeprecated(Configuration configuration) {
         if (configuration.isFullyDeprecated()) {
             DeprecationLogger.nagUserOfReplacedConfiguration(configuration.getName(), DeprecationLogger.ConfigurationDeprecationType.ARTIFACT_DECLARATION,
                 GUtil.flattenElements(configuration.getDeclarationAlternatives(), configuration.getConsumptionAlternatives()));

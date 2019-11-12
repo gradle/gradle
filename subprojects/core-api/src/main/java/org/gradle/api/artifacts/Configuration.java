@@ -18,6 +18,7 @@ package org.gradle.api.artifacts;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -26,6 +27,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -539,4 +541,48 @@ public interface Configuration extends FileCollection, HasConfigurableAttributes
      */
     boolean isCanBeResolved();
 
+    /**
+     * This method can be used to determine if a configuration of a Gradle core plugin is deprecated
+     * for declaring dependencies. If it is the case, the method returns a list, if not it returns 'null'.
+     *
+     * @return configurations that should be used to declare dependencies instead of this configuration or 'null'
+     * @since 6.1
+     */
+    @Incubating
+    @Nullable
+    List<String> getDeclarationAlternatives();
+
+    /**
+     * This method can be used to determine if a configuration of a Gradle core plugin is deprecated
+     * for consumption (i.e., {@link #isCanBeConsumed()} will return false in the future.
+     * If it is the case, the method returns a list, if not it returns 'null'.
+     *
+     * @return configurations that should be used for consumption instead of this configuration or 'null'
+     * @since 6.1
+     */
+    @Incubating
+    @Nullable
+    List<String> getConsumptionAlternatives();
+
+    /**
+     * This method can be used to determine if a configuration of a Gradle core plugin is deprecated
+     * for resolution (i.e., {@link #isCanBeResolved()} will return false in the future}.
+     * If it is the case, the method returns a list, if not it returns 'null'.
+     *
+     * @return configurations that should be used for resolution instead of this configuration or 'null'
+     * @since 6.1
+     */
+    @Incubating
+    @Nullable
+    List<String> getResolutionAlternatives();
+
+    /**
+     * If this is a Gradle core plugin configuration: Is all functionality either deprecated or
+     * disabled (via {@link #setCanBeConsumed(boolean)} ()} and/or {@link #setCanBeResolved(boolean)})?
+     *
+     * @return true, if all functionality of the configuration is either deprecated or disabled
+     * @since 6.1
+     */
+    @Incubating
+    boolean isFullyDeprecated();
 }

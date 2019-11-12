@@ -36,7 +36,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
@@ -149,7 +148,7 @@ public class JsonProjectDependencyRenderer {
     private List<Configuration> getNonDeprecatedConfigurations(Project project) {
         List<Configuration> filteredConfigurations = new ArrayList<Configuration>();
         for (Configuration configuration : project.getConfigurations()) {
-            if (!((DeprecatableConfiguration) configuration).isFullyDeprecated()) {
+            if (!configuration.isFullyDeprecated()) {
                 filteredConfigurations.add(configuration);
             }
         }
@@ -157,7 +156,7 @@ public class JsonProjectDependencyRenderer {
     }
 
     private boolean canBeResolved(Configuration configuration) {
-        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
+        boolean isDeprecatedForResolving = configuration.getResolutionAlternatives() != null;
         return configuration.isCanBeResolved() && !isDeprecatedForResolving;
     }
 

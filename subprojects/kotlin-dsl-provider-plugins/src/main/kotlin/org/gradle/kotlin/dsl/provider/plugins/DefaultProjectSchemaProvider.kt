@@ -28,7 +28,6 @@ import org.gradle.api.reflect.TypeOf
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.internal.deprecation.DeprecatableConfiguration
 import org.gradle.kotlin.dsl.accessors.ConfigurationEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchema
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
@@ -247,7 +246,7 @@ fun accessibleConfigurationsOf(project: Project) =
 
 
 private
-fun toConfigurationEntry(configuration: Configuration) = (configuration as DeprecatableConfiguration).run {
+fun toConfigurationEntry(configuration: Configuration) = configuration.run {
     ConfigurationEntry(name, declarationAlternatives ?: listOf())
 }
 

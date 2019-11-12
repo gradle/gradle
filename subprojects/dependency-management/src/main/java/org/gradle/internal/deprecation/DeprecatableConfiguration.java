@@ -18,36 +18,7 @@ package org.gradle.internal.deprecation;
 
 import org.gradle.api.artifacts.Configuration;
 
-import javax.annotation.Nullable;
-import java.util.List;
-
 public interface DeprecatableConfiguration extends Configuration {
-
-    /**
-     * @return configurations that should be used to declare dependencies instead of this configuration.
-     *         Returns 'null' if this configuration is not deprecated for declaration.
-     */
-    @Nullable
-    List<String> getDeclarationAlternatives();
-
-    /**
-     * @return configurations that should be used to consume a component instead of consuming this configuration.
-     *         Returns 'null' if this configuration is not deprecated for consumption.
-     */
-    @Nullable
-    List<String> getConsumptionAlternatives();
-
-    /**
-     * @return configurations that should be used to consume a component instead of consuming this configuration.
-     *         Returns 'null' if this configuration is not deprecated for resolution.
-     */
-    @Nullable
-    List<String> getResolutionAlternatives();
-
-    /**
-     * @return true, if all functionality of the configuration is either disabled or deprecated
-     */
-    boolean isFullyDeprecated();
 
     /**
      * Allows plugins to deprecate a configuration that will be removed in the next major Gradle version.

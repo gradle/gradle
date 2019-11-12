@@ -28,7 +28,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableModuleResult;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.UnresolvableConfigurationResult;
 import org.gradle.initialization.StartParameterBuildOptions;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
@@ -101,7 +100,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     }
 
     private boolean canBeResolved(Configuration configuration) {
-        boolean isDeprecatedForResolving = ((DeprecatableConfiguration) configuration).getResolutionAlternatives() != null;
+        boolean isDeprecatedForResolving = configuration.getResolutionAlternatives() != null;
         return configuration.isCanBeResolved() && !isDeprecatedForResolving;
     }
 

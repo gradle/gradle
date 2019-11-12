@@ -23,7 +23,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer;
-import org.gradle.internal.deprecation.DeprecatableConfiguration;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -105,9 +104,9 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
     }
 
     private Set<Configuration> getNonDeprecatedTaskConfigurations() {
-        Set<Configuration> filteredConfigurations = new HashSet<Configuration>();
+        Set<Configuration> filteredConfigurations = new HashSet<>();
         for (Configuration configuration : getTaskConfigurations()) {
-            if (!((DeprecatableConfiguration) configuration).isFullyDeprecated()) {
+            if (!configuration.isFullyDeprecated()) {
                 filteredConfigurations.add(configuration);
             }
         }
