@@ -27,7 +27,8 @@ import java.util.function.Supplier;
 public class SnapshotUtil {
 
     public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, String filePath, int offset, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
-        switch (children.size()) {
+        int numberOfChildren = children.size();
+        switch (numberOfChildren) {
             case 0:
                 return noChildFoundResult.get();
             case 1:
@@ -46,10 +47,19 @@ public class SnapshotUtil {
                 }
                 return noChildFoundResult.get();
             default:
-                int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset, caseSensitivity));
-                return foundChild >= 0
-                    ? getSnapshotFromChild(filePath, offset, children.get(foundChild), caseSensitivity)
-                    : noChildFoundResult.get();
+                if (numberOfChildren < 10) {
+                    for (FileSystemNode currentChild : children) {
+                        if (PathUtil.isChildOfOrThis(filePath, offset, currentChild.getPathToParent(), caseSensitivity)) {
+                            return getSnapshotFromChild(filePath, offset, currentChild, caseSensitivity);
+                        }
+                    }
+                    return noChildFoundResult.get();
+                } else {
+                    int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset, caseSensitivity));
+                    return foundChild >= 0
+                        ? getSnapshotFromChild(filePath, offset, children.get(foundChild), caseSensitivity)
+                        : noChildFoundResult.get();
+                }
         }
     }
 
