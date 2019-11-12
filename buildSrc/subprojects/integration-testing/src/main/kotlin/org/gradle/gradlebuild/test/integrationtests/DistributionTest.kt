@@ -40,12 +40,6 @@ import java.util.concurrent.Callable
  */
 open class DistributionTest : Test() {
 
-    @get:Input
-    val operatingSystem by lazy {
-        // the version currently differs between our dev infrastructure, so we only track the name and the architecture
-        "${OperatingSystem.current().name} ${System.getProperty("os.arch")}"
-    }
-
     @Internal
     val binaryDistributions = BinaryDistributions(project.objects)
 
