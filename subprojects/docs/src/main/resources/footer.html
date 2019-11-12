@@ -124,6 +124,14 @@
         }, false);
     });
 
+    // HACK: Add another relative layers to href for all samples
+    var pathname = window.location.pathname;
+    if (!pathname.endsWith("samples/index.html") && !pathname.endsWith("samples/") && pathname.lastIndexOf("samples/") > -1) {
+        [].forEach.call(document.querySelectorAll(".docs-navigation a[href^='../']"), function (link) {
+            link.setAttribute("href", "../" + link.getAttribute("href"));
+        });
+    }
+
     function postProcessCodeBlocks() {
         // Assumptions:
         //  1) All siblings that are marked with class="multi-language-sample" should be grouped
