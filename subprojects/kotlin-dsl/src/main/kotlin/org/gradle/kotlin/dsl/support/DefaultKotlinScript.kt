@@ -81,7 +81,11 @@ open class DefaultKotlinScript internal constructor(
         fileOperations.configurableFiles(paths).also(configuration::execute)
 
     override fun fileTree(baseDir: Any): ConfigurableFileTree =
-        fileOperations.fileTree(baseDir)
+        @Suppress("unchecked_cast")
+        when (baseDir) {
+            is Map<*, *> -> fileOperations.fileTree(baseDir as Map<String, *>)
+            else -> fileOperations.fileTree(baseDir)
+        }
 
     override fun fileTree(baseDir: Any, configuration: Action<ConfigurableFileTree>): ConfigurableFileTree =
         fileOperations.fileTree(baseDir).also(configuration::execute)
