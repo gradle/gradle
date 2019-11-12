@@ -92,6 +92,15 @@ class DefaultBuildServicesRegistryTest extends Specification {
         BrokenServiceImpl.attempts == 1
     }
 
+    def "service has no max parallel usages by default"() {
+        expect:
+        registry.registerIfAbsent("service", ServiceImpl) {
+            assert !it.maxParallelUsages.present
+        }
+        def registration = registry.registrations.getByName("service")
+        !registration.maxParallelUsages.present
+    }
+
     def "can locate registration by name"() {
         when:
         def provider = registry.registerIfAbsent("service", ServiceImpl) {}
@@ -122,14 +131,14 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value"
     }
 
-    def "does not run configuration action when the service does not take parameters"() {
+    def "service can take no parameters"() {
         def action = Mock(Action)
 
         when:
         def provider = registry.registerIfAbsent("service", NoParamsServiceImpl, action)
 
         then:
-        0 * action._
+        1 * action.execute(_)
 
         when:
         def service = provider.get()
@@ -159,9 +168,37 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value 2"
     }
 
+    def "can tweak max parallel usage via the registration"() {
+        when:
+        registry.registerIfAbsent("service", BuildService) {
+            it.maxParallelUsages = 42
+        }
+        def registration = registry.registrations.getByName("service")
+
+        then:
+        registration.maxParallelUsages.get() == 42
+    }
+
     def "registration for service with no parameters is visible"() {
         when:
         registry.registerIfAbsent("service", NoParamsServiceImpl) {}
+
+        then:
+        registry.registrations.getByName("service") != null
+    }
+
+    def "can use base service type to create a service with no state"() {
+        when:
+        def provider = registry.registerIfAbsent("service", BuildService) {}
+        def service = provider.get()
+
+        then:
+        service instanceof BuildService
+    }
+
+    def "registration for service with no state is visible"() {
+        when:
+        registry.registerIfAbsent("service", BuildService) {}
 
         then:
         registry.registrations.getByName("service") != null

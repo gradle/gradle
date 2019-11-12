@@ -22,10 +22,10 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.WorkNodeAction
+import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.composite.internal.IncludedBuildTaskGraph
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockState
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
@@ -39,14 +39,15 @@ import static org.gradle.util.WrapUtil.toList
 class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
     DefaultExecutionPlan executionPlan
     def workerLease = Mock(WorkerLeaseRegistry.WorkerLease)
+    def sharedResourceLeaseRegistry = Mock(SharedResourceLeaseRegistry)
+    def buildServiceRegistry = Mock(BuildServiceRegistryInternal)
 
     def setup() {
         def taskNodeFactory = new TaskNodeFactory(thisBuild, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        def coordinationService = new DefaultResourceLockCoordinationService()
-        def sharedResourceLeaseRegistry = new SharedResourceLeaseRegistry(coordinationService)
-        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
+        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver, buildServiceRegistry, sharedResourceLeaseRegistry)
         _ * workerLease.tryLock() >> true
+        _ * buildServiceRegistry.services >> []
     }
 
     def "schedules tasks in dependency order"() {
@@ -873,11 +874,9 @@ class DefaultExecutionPlanTest extends AbstractExecutionPlanSpec {
 
     def "task cannot require more leases than shared resource maximum leases"() {
         given:
-        thisBuild.sharedResources {
-            resource {
-                leases = 5
-            }
-        }
+        def leases = Stub(BuildServiceRegistryInternal.ServiceLeases)
+        _ * leases.leases >> 5
+        buildServiceRegistry.findByName('resource') >> leases
 
         Task a = task('a', resources: ['resource': 10])
 

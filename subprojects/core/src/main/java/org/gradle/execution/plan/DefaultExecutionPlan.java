@@ -31,10 +31,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.execution.SharedResource;
-import org.gradle.api.execution.SharedResourceContainer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Pair;
@@ -45,7 +44,6 @@ import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.resources.ResourceLockState;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.work.WorkerLeaseRegistry;
-import org.gradle.invocation.DefaultGradle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,17 +89,17 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     private boolean maybeNodesReady;
     private final SharedResourceLeaseRegistry sharedResourceLeaseRegistry;
     private final Map<Node, List<ResourceLock>> sharedResourceLocks = Maps.newIdentityHashMap();
-    private final SharedResourceContainer sharedResourceContainer;
+    private final BuildServiceRegistryInternal serviceRegistry;
     private final GradleInternal gradle;
 
     private boolean buildCancelled;
 
-    public DefaultExecutionPlan(GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
+    public DefaultExecutionPlan(GradleInternal gradle, TaskNodeFactory taskNodeFactory, TaskDependencyResolver dependencyResolver, BuildServiceRegistryInternal buildServiceRegistry, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
         this.gradle = gradle;
         this.taskNodeFactory = taskNodeFactory;
         this.dependencyResolver = dependencyResolver;
         this.sharedResourceLeaseRegistry = sharedResourceLeaseRegistry;
-        this.sharedResourceContainer = ((DefaultGradle)gradle).getSharedResources();
+        this.serviceRegistry = buildServiceRegistry;
     }
 
     @Override
@@ -334,17 +332,18 @@ public class DefaultExecutionPlan implements ExecutionPlan {
                     if (sharedResources != null && !sharedResources.isEmpty()) {
                         List<ResourceLock> locks = Lists.newArrayList();
                         for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
-                            SharedResource resource = sharedResourceContainer.findByName(entry.getKey());
+                            BuildServiceRegistryInternal.ServiceLeases resource = serviceRegistry.findByName(entry.getKey());
 
                             if (resource == null) {
                                 throw new InvalidUserDataException("The task " + node + " requires the shared resource '" + entry.getKey() + "' but no such shared resource exists.");
                             }
+                            if (resource.getLeases() > 0) {
+                                if (resource.getLeases() < entry.getValue()) {
+                                    throw new InvalidUserDataException("The task " + node + " requires " + entry.getValue() + " leases from shared resource '" + entry.getKey() + "' but maximum leases is " + resource.getLeases());
+                                }
 
-                            if (resource.getLeases() < entry.getValue()) {
-                                throw new InvalidUserDataException("The task " + node + " requires " + entry.getValue() + " leases from shared resource '" + entry.getKey() + "' but maximum leases is " + resource.getLeases());
+                                locks.add(sharedResourceLeaseRegistry.getResourceLock(entry.getKey(), entry.getValue()));
                             }
-
-                            locks.add(sharedResourceLeaseRegistry.getResourceLock(entry.getKey(), entry.getValue()));
                         }
 
                         sharedResourceLocks.put(node, locks);
@@ -642,8 +641,8 @@ public class DefaultExecutionPlan implements ExecutionPlan {
     }
 
     private void registerSharedResources() {
-        for (SharedResource sharedResource : sharedResourceContainer) {
-            sharedResourceLeaseRegistry.registerSharedResource(sharedResource.getName(), sharedResource.getLeases());
+        for (BuildServiceRegistryInternal.ServiceLeases service : serviceRegistry.getServices()) {
+            sharedResourceLeaseRegistry.registerSharedResource(service.getName(), service.getLeases());
         }
     }
 

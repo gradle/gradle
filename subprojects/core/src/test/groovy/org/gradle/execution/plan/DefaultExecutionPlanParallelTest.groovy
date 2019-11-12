@@ -21,6 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.Destroys
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -30,7 +31,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.file.TestFile
@@ -51,9 +51,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * lease.tryLock() >> true
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        def coordinationService = new DefaultResourceLockCoordinationService()
-        def sharedResourceLeaseRegistry = new SharedResourceLeaseRegistry(coordinationService)
-        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
+        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver, Stub(BuildServiceRegistryInternal), Stub(SharedResourceLeaseRegistry))
     }
 
     TaskInternal task(Map<String, ?> options = [:], String name) {
