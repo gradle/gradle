@@ -32,7 +32,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskState;
@@ -55,7 +54,6 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockState;
-import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
@@ -104,8 +102,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
-        BuildServiceRegistryInternal buildServiceRegistry,
-        SharedResourceLeaseRegistry sharedResourceLeaseRegistry,
         ProjectStateRegistry projectStateRegistry,
         ServiceRegistry globalServices
     ) {
@@ -119,7 +115,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.taskListeners = taskListeners;
         this.projectStateRegistry = projectStateRegistry;
         this.globalServices = globalServices;
-        this.executionPlan = new DefaultExecutionPlan(gradleInternal, taskNodeFactory, dependencyResolver, buildServiceRegistry, sharedResourceLeaseRegistry);
+        this.executionPlan = new DefaultExecutionPlan(gradleInternal, taskNodeFactory, dependencyResolver);
     }
 
     @Override

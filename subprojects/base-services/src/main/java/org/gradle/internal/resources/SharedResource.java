@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.services.internal;
+package org.gradle.internal.resources;
 
-import org.gradle.api.services.BuildService;
-import org.gradle.api.services.BuildServiceParameters;
-import org.gradle.api.services.BuildServiceRegistry;
-import org.gradle.internal.resources.SharedResource;
+public interface SharedResource {
+    /**
+     * @return The maximum usage, or -1 when there is no limit.
+     */
+    int getMaxUsages();
 
-import javax.annotation.Nullable;
-
-public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
-    BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters);
-
-    @Nullable
-    SharedResource findByName(String name);
+    ResourceLock getResourceLock(int usages);
 }

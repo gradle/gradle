@@ -33,24 +33,32 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.resources.SharedResource;
+import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
+    private final Map<String, ServiceBackedSharedResource> wrappers = new HashMap<>();
     private final InstantiatorFactory instantiatorFactory;
     private final ListenerManager listenerManager;
     private final IsolatableFactory isolatableFactory;
+    private final SharedResourceLeaseRegistry leaseRegistry;
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme = new IsolationScheme<>(BuildService.class, BuildServiceParameters.class, BuildServiceParameters.None.class);
     private final Instantiator paramsInstantiator;
     private final Instantiator specInstantiator;
 
-    public DefaultBuildServicesRegistry(DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory) {
+    public DefaultBuildServicesRegistry(DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory, SharedResourceLeaseRegistry leaseRegistry) {
         this.registrations = Cast.uncheckedCast(factory.newNamedDomainObjectSet(BuildServiceRegistration.class));
         this.instantiatorFactory = instantiatorFactory;
         this.listenerManager = listenerManager;
         this.isolatableFactory = isolatableFactory;
+        this.leaseRegistry = leaseRegistry;
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
     }
@@ -62,13 +70,22 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
 
     @Nullable
     @Override
-    public ServiceLeases findByName(String name) {
-        return (ServiceLeases) registrations.findByName(name);
-    }
+    public SharedResource findByName(String name) {
+        return wrappers.computeIfAbsent(name, n -> {
+            BuildServiceRegistration<?, ?> registration = registrations.findByName(name);
+            if (registration == null) {
+                return null;
+            }
 
-    @Override
-    public Iterable<? extends ServiceLeases> getServices() {
-        return registrations.withType(DefaultServiceRegistration.class);
+            // Prevent further changes to registration
+            registration.getMaxParallelUsages().finalizeValue();
+            int maxUsages = registration.getMaxParallelUsages().getOrElse(-1);
+
+            if (maxUsages > 0) {
+                leaseRegistry.registerSharedResource(name, maxUsages);
+            }
+            return new ServiceBackedSharedResource(name, maxUsages, leaseRegistry);
+        });
     }
 
     @Override
@@ -126,7 +143,29 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return provider;
     }
 
-    public static abstract class DefaultServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> implements BuildServiceRegistration<T, P>, ServiceLeases {
+    private static class ServiceBackedSharedResource implements SharedResource {
+        private final String name;
+        private final int maxUsages;
+        private final SharedResourceLeaseRegistry leaseRegistry;
+
+        public ServiceBackedSharedResource(String name, int maxUsages, SharedResourceLeaseRegistry leaseRegistry) {
+            this.name = name;
+            this.maxUsages = maxUsages;
+            this.leaseRegistry = leaseRegistry;
+        }
+
+        @Override
+        public int getMaxUsages() {
+            return maxUsages;
+        }
+
+        @Override
+        public ResourceLock getResourceLock(int usages) {
+            return leaseRegistry.getResourceLock(name, usages);
+        }
+    }
+
+    public static abstract class DefaultServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> implements BuildServiceRegistration<T, P> {
         private final String name;
         private final P parameters;
         private final BuildServiceProvider<T, P> provider;
@@ -150,11 +189,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         @Override
         public Provider<T> getService() {
             return provider;
-        }
-
-        @Override
-        public int getLeases() {
-            return getMaxParallelUsages().getOrElse(-1);
         }
     }
 

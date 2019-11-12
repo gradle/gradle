@@ -29,10 +29,13 @@ import org.gradle.composite.internal.IncludedBuildTaskGraph;
 import org.gradle.composite.internal.IncludedBuildTaskResource.State;
 import org.gradle.internal.Actions;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.resources.ResourceLock;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -103,6 +106,12 @@ public class TaskNodeFactory {
         public Project getOwningProject() {
             // Ignore, as the node in the other build's execution graph takes care of this
             return null;
+        }
+
+        @Override
+        public List<ResourceLock> getResourcesToLock() {
+            // Ignore, as the node in the other build's execution graph will take care of this
+            return Collections.emptyList();
         }
 
         @Override

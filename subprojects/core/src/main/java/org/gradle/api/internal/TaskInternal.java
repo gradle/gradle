@@ -25,13 +25,13 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
@@ -102,5 +102,5 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * <p>Gets the shared resources required by this task.</p>
      */
     @Internal
-    Map<String, Integer> getSharedResources();
+    List<? extends ResourceLock> getSharedResources();
 }

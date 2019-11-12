@@ -23,6 +23,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -30,7 +31,8 @@ import spock.lang.Specification
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     def isolatableFactory = new DefaultValueSnapshotter(null, TestUtil.managedFactoryRegistry())
-    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory)
+    def leaseRegistry = Stub(SharedResourceLeaseRegistry)
+    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)
 
     def setup() {
         ServiceImpl.reset()
@@ -266,6 +268,37 @@ class DefaultBuildServicesRegistryTest extends Specification {
         def e = thrown(GradleException)
         e.message == "Failed to stop service 'service'."
         e.cause.is(BrokenStopServiceImpl.failure)
+    }
+
+    def "can locate resource corresponding to service registration"() {
+        when:
+        registry.registerIfAbsent("service", BuildService) {
+            it.maxParallelUsages = 42
+        }
+        registry.registerIfAbsent("no-max", ServiceImpl) {}
+
+        then:
+        registry.findByName("unknown") == null
+        registry.findByName("service").maxUsages == 42
+        registry.findByName("no-max").maxUsages == -1
+    }
+
+    def "cannot change max parallel usages once resource has been located"() {
+        given:
+        registry.registerIfAbsent("service", ServiceImpl) {}
+        def registration = registry.registrations.findByName("service")
+        registration.maxParallelUsages = 42
+        registry.findByName("service")
+
+        when:
+        registration.maxParallelUsages = 4
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "The value for property 'maxParallelUsages' is final and cannot be changed any further."
+
+        and:
+        registry.findByName("service").maxUsages == 42
     }
 
     private buildFinished() {
