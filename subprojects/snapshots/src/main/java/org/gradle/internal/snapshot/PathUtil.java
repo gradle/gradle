@@ -143,6 +143,7 @@ public class PathUtil {
      * which does not check for negative indices or integer overflow.
      */
     public static boolean isChildOfOrThis(String filePath, int offset, String prefix, CaseSensitivity caseSensitivity) {
+        boolean caseSensitive = caseSensitivity == CaseSensitivity.CASE_SENSITIVE;
         int prefixLength = prefix.length();
         if (prefixLength == 0) {
             return true;
@@ -153,7 +154,7 @@ public class PathUtil {
             return false;
         }
         for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-            if (!caseSensitivity.equalChars(prefix.charAt(i), filePath.charAt(j))) {
+            if (!equalChars(prefix.charAt(i), filePath.charAt(j), caseSensitive)) {
                 return false;
             }
         }
