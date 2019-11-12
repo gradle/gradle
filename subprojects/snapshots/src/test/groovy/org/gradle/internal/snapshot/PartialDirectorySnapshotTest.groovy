@@ -38,7 +38,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         when:
         def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
         then:
-        invalidated.children == vfsFixture.withSelectedChildRemoved
+        invalidated.children == vfsFixture.childrenWithSelectedChildRemoved()
         isSameNodeType(invalidated)
         interaction { noMoreInteractions() }
 
@@ -49,11 +49,11 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
     def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
         def vfsFixture = fixture(vfsSpec)
         def metadataSnapshot = createNodeFromFixture(vfsFixture)
-        def invalidatedChild = mockChild(vfsFixture.selectedChild.pathToParent)
+        def invalidatedChild = mockNode(vfsFixture.selectedChild.pathToParent)
         when:
         def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
         then:
-        invalidated.children == vfsFixture.withSelectedChildReplacedBy(invalidatedChild)
+        invalidated.children == vfsFixture.childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(invalidated)
         interaction {
             invalidateDescendantOfSelectedChild(vfsFixture, invalidatedChild)
@@ -70,7 +70,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         when:
         def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
         then:
-        invalidated.children == vfsFixture.withSelectedChildRemoved
+        invalidated.children == vfsFixture.childrenWithSelectedChildRemoved()
         isSameNodeType(invalidated)
         interaction {
             invalidateDescendantOfSelectedChild(vfsFixture, null)

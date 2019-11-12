@@ -28,7 +28,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
 
     @Override
     boolean isSameNodeType(FileSystemNode node) {
-        return !(node instanceof MetadataSnapshot)
+        return node instanceof UnknownSnapshot
     }
 
     def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -37,7 +37,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         when:
         def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
         then:
-        invalidated.children == vfsFixture.withSelectedChildRemoved
+        invalidated.children == vfsFixture.childrenWithSelectedChildRemoved()
         isSameNodeType(invalidated)
         interaction { noMoreInteractions() }
 
@@ -61,11 +61,11 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
     def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
         def vfsFixture = fixture(vfsSpec)
         def metadataSnapshot = createNodeFromFixture(vfsFixture)
-        def invalidatedChild = mockChild(vfsFixture.selectedChild.pathToParent)
+        def invalidatedChild = mockNode(vfsFixture.selectedChild.pathToParent)
         when:
         def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
         then:
-        invalidated.children == vfsFixture.withSelectedChildReplacedBy(invalidatedChild)
+        invalidated.children == vfsFixture.childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(invalidated)
         interaction {
             invalidateDescendantOfSelectedChild(vfsFixture, invalidatedChild)
@@ -82,7 +82,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         when:
         def invalidated = metadataSnapshot.invalidate(vfsFixture.absolutePath, vfsFixture.offset).get()
         then:
-        invalidated.children == vfsFixture.withSelectedChildRemoved
+        invalidated.children == vfsFixture.childrenWithSelectedChildRemoved()
         isSameNodeType(invalidated)
         interaction {
             invalidateDescendantOfSelectedChild(vfsFixture, null)

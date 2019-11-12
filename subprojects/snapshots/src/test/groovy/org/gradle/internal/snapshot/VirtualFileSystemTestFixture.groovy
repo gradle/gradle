@@ -23,35 +23,26 @@ class VirtualFileSystemTestFixture {
     String absolutePath
     int offset
     FileSystemNode selectedChild
-    private final MockCreator mockCreator
 
-    VirtualFileSystemTestFixture(List<FileSystemNode> children, String absolutePath, int offset, @Nullable FileSystemNode selectedChild, MockCreator mockCreator) {
-        this.mockCreator = mockCreator
+    VirtualFileSystemTestFixture(List<FileSystemNode> children, String absolutePath, int offset, @Nullable FileSystemNode selectedChild) {
         this.children = children
         this.absolutePath = absolutePath
         this.offset = offset
         this.selectedChild = selectedChild
     }
 
-    List<FileSystemNode> getWithSelectedChildRemoved() {
-        children.findAll { it != selectedChild }
-    }
-
-    def <T extends FileSystemNode> VirtualFileSystemTestFixture withSelectedChildAs(Class<T> nodeType) {
-        def metadataChild = mockCreator.create(nodeType, selectedChild.pathToParent)
-        children[children.indexOf(selectedChild)] = metadataChild
-        selectedChild = metadataChild
-        return this
-    }
-
-    List<FileSystemNode> withSelectedChildReplacedBy(FileSystemNode replacement) {
+    List<FileSystemNode> childrenWithSelectedChildReplacedBy(FileSystemNode replacement) {
         children.collect { it == selectedChild ? replacement : it }
     }
 
-    List<FileSystemNode> withNewChild(FileSystemNode newChild) {
+    List<FileSystemNode> childrenWithAdditionalChild(FileSystemNode newChild) {
         List<FileSystemNode> newChildren = new ArrayList<>(children)
         newChildren.add(insertionPoint, newChild)
         return newChildren
+    }
+
+    List<FileSystemNode> childrenWithSelectedChildRemoved() {
+        children.findAll { it != selectedChild }
     }
 
     FileSystemNode getNodeWithIndexOfSelectedChild(List<FileSystemNode> newChildren) {
@@ -69,9 +60,5 @@ class VirtualFileSystemTestFixture {
 
     String getCommonPrefix() {
         return selectedChild.pathToParent.substring(0, PathUtil.sizeOfCommonPrefix(selectedChild.pathToParent, absolutePath, offset))
-    }
-
-    interface MockCreator {
-        def <T extends FileSystemNode> T create(Class<T> type, String pathToParent)
     }
 }
