@@ -197,7 +197,7 @@ public class DependencyGraphBuilder {
     }
 
     private void registerCapabilities(final ResolveState resolveState, final NodeState node) {
-        node.forEachCapability(new Action<Capability>() {
+        node.forEachCapability(capabilitiesConflictHandler, new Action<Capability>() {
             @Override
             public void execute(Capability capability) {
                 // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
