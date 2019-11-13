@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.JavaCompile",
+            "member": "Method org.gradle.api.tasks.compile.JavaCompile.getSources()",
+            "acceptation": "The return type was wrong and the method AndroidJavaCompile.getSources() was not picked up as expected",
+            "changes": [
+                "Method return type has changed"
+            ]
+        }
+    ]
 }
