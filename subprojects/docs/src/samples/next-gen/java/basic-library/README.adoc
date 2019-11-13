@@ -1,4 +1,4 @@
-= {sample-displayName} Sample
+= Java Basic Library Sample
 
 ifndef::env-github[]
 [.download]
