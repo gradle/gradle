@@ -55,6 +55,7 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     String status = "integration"
     MetadataPublish metadataPublish = MetadataPublish.ALL
     boolean writeGradleMetadataRedirection = false
+    private boolean withExtraChecksums = true
 
     int publishCount = 1
     XmlTransformer transformer = new XmlTransformer()
@@ -244,6 +245,18 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     IvyModule withoutGradleMetadataRedirection() {
         writeGradleMetadataRedirection = false
         return this
+    }
+
+    @Override
+    IvyModule withoutExtraChecksums() {
+        withExtraChecksums = false
+        this
+    }
+
+    @Override
+    IvyModule withExtraChecksums() {
+        withExtraChecksums = true
+        this
     }
 
     IvyFileModule nonTransitive(String config) {
@@ -581,7 +594,10 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     void assertArtifactsPublished(String... names) {
         def expectedArtifacts = [] as Set
         for (name in names) {
-            expectedArtifacts.addAll([name, "${name}.sha1", "${name}.sha256", "${name}.sha512"])
+            expectedArtifacts.addAll([name, "${name}.sha1"])
+            if (withExtraChecksums) {
+                expectedArtifacts.addAll(["${name}.sha256", "${name}.sha512"])
+            }
         }
 
         List<String> publishedArtifacts = moduleDir.list().sort()

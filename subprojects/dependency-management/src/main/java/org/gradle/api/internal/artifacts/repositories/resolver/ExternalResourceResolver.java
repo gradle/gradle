@@ -319,8 +319,10 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private void publishChecksums(ExternalResourceName destination, File content) {
         publishChecksum(destination, content, "sha1", 40);
 
-        publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
-        publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+        if (!ExternalResourceResolver.disableExtraChecksums()) {
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+        }
     }
 
     private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
@@ -584,4 +586,9 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             result.listed(versions);
         }
     }
+
+    public static boolean disableExtraChecksums() {
+        return Boolean.getBoolean("org.gradle.internal.publish.checksums.insecure");
+    }
+
 }

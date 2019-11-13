@@ -276,6 +276,11 @@ Publication of SHA256 and SHA512 files is _not_ supported by the deprecated `mav
 
 In addition, the Gradle Module Metadata file also includes SHA256 and SHA512 checksums on referenced artifacts.
 
+Since 6.0.1, if your external repository doesn't support SHA256 and/or SHA512 checksums, it is possible to disable upload of those checksums:
+
+- add `-Dorg.gradle.internal.publish.checksums.insecure` to the CLI or
+- add `org.gradle.internal.publish.checksums.insecure=true` to your `gradle.properties` file
+
 ### Support for in-memory signing with subkeys
 
 Gradle now supports [in-memory signing](userguide/signing_plugin.html#sec:in-memory-keys) with subkeys.
