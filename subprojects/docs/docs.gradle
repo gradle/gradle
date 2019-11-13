@@ -617,6 +617,19 @@ samples {
         }
     }
 
+    springBoot {
+        sampleDirectory = file("src/samples/next-gen/spring-boot")
+        description = "Demonstrate a simple Spring Boot application in Gradle"
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/spring-boot")
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
+    }
+
     javaBasicApplication {
         sampleDirectory = file("src/samples/next-gen/java/basic-application")
         description = "Demonstrate how to build a basic Java application"
