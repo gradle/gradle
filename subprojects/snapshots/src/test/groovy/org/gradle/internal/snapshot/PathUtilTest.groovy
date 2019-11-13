@@ -19,8 +19,8 @@ package org.gradle.internal.snapshot
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
-import static org.gradle.internal.snapshot.PathUtil.compareInsensitiveSameChars
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getFileName
 import static org.gradle.internal.snapshot.PathUtil.isChildOfOrThis
@@ -157,7 +157,7 @@ class PathUtilTest extends Specification {
         expect:
         (Character.MIN_VALUE..Character.MAX_VALUE).each { currentChar ->
             assert compareCharsIgnoringCase(currentChar as char, currentChar as char) == 0
-            assert compareInsensitiveSameChars(currentChar as char, currentChar as char) == 0
+            assert compareChars(currentChar as char, currentChar as char) == 0
             CaseSensitivity.values().each {
                 assert equalChars(currentChar as char, currentChar as char, it == CaseSensitivity.CASE_SENSITIVE)
             }
@@ -170,8 +170,8 @@ class PathUtilTest extends Specification {
         expect:
         compareCharsIgnoringCase(slash, backslash) == 0
         compareCharsIgnoringCase(backslash, slash) == 0
-        compareInsensitiveSameChars(slash, backslash) == 0
-        compareInsensitiveSameChars(backslash, slash) == 0
+        compareChars(slash, backslash) == 0
+        compareChars(backslash, slash) == 0
         CaseSensitivity.values().each {
             def caseSensitive = it == CaseSensitivity.CASE_SENSITIVE
             assert equalChars(slash, backslash, caseSensitive)
@@ -185,8 +185,8 @@ class PathUtilTest extends Specification {
         expect:
         compareCharsIgnoringCase(char1, char2) == result
         compareCharsIgnoringCase(char2, char1) == -result
-        compareInsensitiveSameChars(char1, char2) == result
-        compareInsensitiveSameChars(char2, char1) == -result
+        compareChars(char1, char2) == result
+        compareChars(char2, char1) == -result
         CaseSensitivity.values().each {
             def caseSensitive = it == CaseSensitivity.CASE_SENSITIVE
             assert equalChars(char1, char2, caseSensitive) == (result == 0)
@@ -213,8 +213,8 @@ class PathUtilTest extends Specification {
         expect:
         compareCharsIgnoringCase(char1, char2) == caseInsensitiveResult
         compareCharsIgnoringCase(char2, char1) == -caseInsensitiveResult
-        compareInsensitiveSameChars(char1, char2) == Character.compare(char1, char2)
-        compareInsensitiveSameChars(char2, char1) == Character.compare(char2, char1)
+        compareChars(char1, char2) == Character.compare(char1, char2)
+        compareChars(char2, char1) == Character.compare(char2, char1)
         !equalChars(char1, char2, true)
         equalChars(char1, char2, false) == (caseInsensitiveResult == 0)
         !equalChars(char2, char1, true)
@@ -232,5 +232,21 @@ class PathUtilTest extends Specification {
         'Y'  | 'z'   | -1
         'Y'  | 'Z'   | -1
         'y'  | 'Z'   | -1
+    }
+
+    def "#left and #right are equal ignoring case"() {
+        char char1 = left as char
+        char char2 = right as char
+        expect:
+        equalChars(char2, char1, false)
+        equalChars(char1, char2, false)
+        compareCharsIgnoringCase(char1, char2) == 0
+        compareCharsIgnoringCase(char2, char1) == 0
+
+        where:
+        left     | right
+        '\u1e9e' | 'ß'
+        '\u03a3' | '\u03c2'
+        '\u03a3' | '\u03c3'
     }
 }

@@ -102,7 +102,7 @@ public class PathUtil {
     }
 
     @VisibleForTesting
-    static int compareInsensitiveSameChars(char char1, char char2) {
+    static int compareChars(char char1, char char2) {
         if (char1 == char2) {
             return 0;
         }
@@ -126,7 +126,7 @@ public class PathUtil {
         if (caseSensitive) {
             return false;
         } else {
-            return Character.toUpperCase(char1) == Character.toUpperCase(char2) &&
+            return Character.toUpperCase(char1) == Character.toUpperCase(char2) ||
                 Character.toLowerCase(char1) == Character.toLowerCase(char2);
         }
     }
@@ -247,7 +247,7 @@ public class PathUtil {
             return 0;
         }
         return previousCombinedValue == 0
-            ? compareInsensitiveSameChars(charInPath1, charInPath2)
+            ? compareChars(charInPath1, charInPath2)
             : previousCombinedValue;
     }
 

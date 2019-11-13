@@ -72,7 +72,9 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
             ["Bad", "c", "aB"],
             ["Bad", "c", "AB"],
             ["Bad", "cA", "AB"],
-            ["cpuid.h", "cross-stdarg.h", "emmintrin.h", "f16cintrin.h", "float.h", "iso646.h", "ISO_Fortran_binding.h", "lwpintrin.h", "lzcntintrin.h", "mm3dnow.h", "mm_malloc.h", "mmintrin.h", "movdirintrin.h", "mwaitxintrin.h", "nmmintrin.h", "omp.h", "openacc.h", "pconfigintrin.h", "stddef.h", "stdfix.h", "stdint-gcc.h", "stdint.h", "stdnoreturn.h", "tbmintrin.h", "tgmath.h", "tmmintrin.h", "unwind.h", ]
+            ["cpuid.h", "cross-stdarg.h", "emmintrin.h", "f16cintrin.h", "float.h", "iso646.h", "ISO_Fortran_binding.h", "lwpintrin.h", "lzcntintrin.h", "mm3dnow.h", "mm_malloc.h", "mmintrin.h", "movdirintrin.h", "mwaitxintrin.h", "nmmintrin.h", "omp.h", "openacc.h", "pconfigintrin.h", "stddef.h", "stdfix.h", "stdint-gcc.h", "stdint.h", "stdnoreturn.h", "tbmintrin.h", "tgmath.h", "tmmintrin.h", "unwind.h"],
+            ["SS", "ß", "ßa", "ss", "sa", "sb", "st", "ßß"]
+
         ]
     }
 
