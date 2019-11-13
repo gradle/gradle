@@ -108,8 +108,8 @@ public class JavaCompile extends AbstractCompile {
      */
     @Deprecated
     @Internal
-    protected FileCollection getSources() {
-        return ImmutableFileCollection.of();
+    protected FileTree getSources() {
+        return ImmutableFileCollection.of().getAsFileTree();
     }
 
     /**
