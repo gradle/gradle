@@ -18,17 +18,21 @@ package org.gradle.internal.snapshot
 
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.PathUtil.compareToChildOfOrThis
+import static org.gradle.internal.snapshot.PathUtil.compareWithCommonPrefix
+import static org.gradle.internal.snapshot.PathUtil.getPathComparator
+
 @Unroll
-class CaseSensitiveTest extends AbstractCaseSensitivityTest {
+class CaseSensitivePathUtilTest extends AbstractCasePathUtilTest {
 
     def "finds right entry in sorted list with only case differences"() {
         def children = ["bAd", "BaD", "Bad"]
-        children.sort(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
+        children.sort(getPathComparator(CaseSensitivity.CASE_SENSITIVE))
         expect:
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i]
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                PathUtil.compareToChildOfOrThis(child, searchedChild, 0, CaseSensitivity.CASE_SENSITIVE)
+                compareToChildOfOrThis(child, searchedChild, 0, CaseSensitivity.CASE_SENSITIVE)
             }
             assert foundIndex == i
         }
@@ -36,20 +40,20 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
 
     def "finds right entry in sorted list with only case differences in prefix"() {
         def children = ["bAd/aB", "BaD/Bb", "Bad/cC"]
-        children.sort(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
+        children.sort(getPathComparator(CaseSensitivity.CASE_SENSITIVE))
         expect:
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i].substring(0, 3)
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                PathUtil.compareWithCommonPrefix(child, searchedChild, 0, CaseSensitivity.CASE_SENSITIVE)
+                compareWithCommonPrefix(child, searchedChild, 0, CaseSensitivity.CASE_SENSITIVE)
             }
             assert foundIndex == i
         }
     }
 
     def "children #children are sorted the same with path sensitive and path insensitive compare"() {
-        def caseInsensitiveSorted = children.toSorted(PathUtil.getPathComparator(CaseSensitivity.CASE_INSENSITIVE))
-        def caseSensitiveSorted = children.toSorted(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
+        def caseInsensitiveSorted = children.toSorted(getPathComparator(CaseSensitivity.CASE_INSENSITIVE))
+        def caseSensitiveSorted = children.toSorted(getPathComparator(CaseSensitivity.CASE_SENSITIVE))
         expect:
         caseInsensitiveSorted == caseSensitiveSorted
 
@@ -59,7 +63,7 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
 
     def "children names #children are sorted the same with path sensitive and name only comparison"() {
         def nameSorted = children.toSorted(PathUtil.&compareFileNames)
-        def caseSensitiveSorted = children.toSorted(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
+        def caseSensitiveSorted = children.toSorted(getPathComparator(CaseSensitivity.CASE_SENSITIVE))
 
         expect:
         nameSorted == caseSensitiveSorted
