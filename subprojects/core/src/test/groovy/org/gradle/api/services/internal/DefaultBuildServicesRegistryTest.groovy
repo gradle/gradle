@@ -272,23 +272,22 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can locate resource corresponding to service registration"() {
         when:
-        registry.registerIfAbsent("service", BuildService) {
+        def service1 = registry.registerIfAbsent("service", BuildService) {
             it.maxParallelUsages = 42
         }
-        registry.registerIfAbsent("no-max", ServiceImpl) {}
+        def service2 = registry.registerIfAbsent("no-max", ServiceImpl) {}
 
         then:
-        registry.findByName("unknown") == null
-        registry.findByName("service").maxUsages == 42
-        registry.findByName("no-max").maxUsages == -1
+        registry.forService(service1).maxUsages == 42
+        registry.forService(service2).maxUsages == -1
     }
 
     def "cannot change max parallel usages once resource has been located"() {
         given:
-        registry.registerIfAbsent("service", ServiceImpl) {}
+        def service = registry.registerIfAbsent("service", ServiceImpl) {}
         def registration = registry.registrations.findByName("service")
         registration.maxParallelUsages = 42
-        registry.findByName("service")
+        registry.forService(service)
 
         when:
         registration.maxParallelUsages = 4
@@ -298,7 +297,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
         e.message == "The value for property 'maxParallelUsages' is final and cannot be changed any further."
 
         and:
-        registry.findByName("service").maxUsages == 42
+        registry.forService(service).maxUsages == 42
     }
 
     private buildFinished() {
