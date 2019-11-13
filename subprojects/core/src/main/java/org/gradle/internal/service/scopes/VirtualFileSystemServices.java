@@ -146,7 +146,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 Stat stat,
                 StringInterner stringInterner
             ) {
-                DefaultVirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
+                VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
                 listenerManager.addListener(new RootBuildLifecycleListener() {
                     @Override
                     public void afterStart(GradleInternal gradle) {
@@ -164,7 +164,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                             virtualFileSystem.invalidateAll();
                         }
                     }
-
                 });
                 return virtualFileSystem;
             }
@@ -230,6 +229,17 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     () -> isRetentionEnabled(startParameter.getSystemPropertiesArgs())
                 );
 
+                listenerManager.addListener(new RootBuildLifecycleListener() {
+                    @Override
+                    public void afterStart(GradleInternal gradle) {
+                        // Note: this never fires as we are registering it too late
+                    }
+
+                    @Override
+                    public void beforeComplete(GradleInternal gradle) {
+                        buildSessionsScopedVirtualFileSystem.invalidateAll();
+                    }
+                });
                 listenerManager.addListener(new OutputChangeListener() {
                     @Override
                     public void beforeOutputChange() {
