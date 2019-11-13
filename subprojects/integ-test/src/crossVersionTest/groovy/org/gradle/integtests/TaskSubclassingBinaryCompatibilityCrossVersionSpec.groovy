@@ -43,6 +43,7 @@ import org.gradle.plugins.ide.idea.GenerateIdeaProject
 import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
+import org.junit.Assume
 import spock.lang.Issue
 
 /**
@@ -214,6 +215,8 @@ apply plugin: SomePlugin
 
     @Issue("https://github.com/gradle/gradle/issues/11330")
     def "a subclass of JavaCompile with getSources receives the correct incremental changes"() {
+        // There is no use to make the test work pre-5.0, since the regression was introduced in 6.0
+        Assume.assumeTrue(previous.version.baseVersion >= GradleVersion.version("5.0"))
         given:
         file("producer/build.gradle") << """
             apply plugin: 'java'
@@ -255,7 +258,7 @@ apply plugin: SomePlugin
             
             apply plugin: 'java'
     
-            tasks.register("myJavaCompile", MyCompileTask) {
+            task myJavaCompile(type: MyCompileTask) {
                 def sourceSet = sourceSets.main
                 def sourceDirectorySet = sourceSet.java
                 addSource(sourceDirectorySet)
