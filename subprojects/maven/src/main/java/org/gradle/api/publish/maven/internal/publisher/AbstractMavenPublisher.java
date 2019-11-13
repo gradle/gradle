@@ -21,6 +21,7 @@ import org.apache.maven.artifact.repository.metadata.Versioning;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Reader;
 import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
 import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.Factory;
@@ -257,9 +258,10 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         private void publishChecksums(ExternalResourceName destination, File content) {
             publishChecksum(destination, content, "sha1", 40);
             publishChecksum(destination, content, "md5", 32);
-
-            publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
-            publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+            if (!ExternalResourceResolver.disableExtraChecksums()) {
+                publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
+                publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+            }
         }
 
         private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
@@ -295,4 +297,5 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
             });
         }
     }
+
 }

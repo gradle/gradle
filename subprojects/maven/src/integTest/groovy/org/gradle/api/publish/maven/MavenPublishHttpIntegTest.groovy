@@ -54,10 +54,16 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         settingsFile << 'rootProject.name = "publish"'
     }
 
-    def "can publish to an unauthenticated http repo"() {
+    @Unroll
+    def "can publish to an unauthenticated http repo (with extra checksums = #extraChecksums)"() {
         given:
         buildFile << publicationBuild(version, group, mavenRemoteRepo.uri)
-        expectModulePublish(module)
+
+        if (!extraChecksums) {
+            executer.withArgument("-Dorg.gradle.internal.publish.checksums.insecure=true")
+            module.withoutExtraChecksums()
+        }
+        expectModulePublish(module, extraChecksums)
 
         when:
         succeeds 'publish'
@@ -74,6 +80,9 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         module.rootMetaData.verifyChecksums()
         module.rootMetaData.versions == ["2"]
         module.moduleMetadata.verifyChecksums()
+
+        where:
+        extraChecksums << [true, false]
     }
 
     def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
@@ -352,12 +361,12 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         """
     }
 
-    private void expectModulePublish(MavenHttpModule module) {
-        module.artifact.expectPublish()
+    private void expectModulePublish(MavenHttpModule module, boolean extraChecksums = true) {
+        module.artifact.expectPublish(extraChecksums)
         module.rootMetaData.expectGetMissing()
-        module.rootMetaData.expectPublish()
-        module.pom.expectPublish()
-        module.moduleMetadata.expectPublish()
+        module.rootMetaData.expectPublish(extraChecksums)
+        module.pom.expectPublish(extraChecksums)
+        module.moduleMetadata.expectPublish(extraChecksums)
     }
 
     private void expectModulePublishViaRedirect(MavenHttpModule module, URI targetServerUri, HttpServer httpServer, PasswordCredentials credentials = null) {
