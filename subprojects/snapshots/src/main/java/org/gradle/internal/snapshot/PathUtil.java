@@ -75,7 +75,7 @@ public class PathUtil {
     }
 
     @VisibleForTesting
-    static int compareChars(char char1, char char2, boolean caseSensitive) {
+    static int compareCharsIgnoringCase(char char1, char char2) {
         if (char1 == char2) {
             return 0;
         }
@@ -85,19 +85,34 @@ public class PathUtil {
                 : -1
             : isFileSeparator(char2)
                 ? 1
-                : compareDifferentChars(char1, char2, caseSensitive);
+                : compareDifferentCharsIgnoringCase(char1, char2);
     }
 
-    private static int compareDifferentChars(char char1, char char2, boolean caseSensitive) {
-        int uppercaseCompare = Character.toUpperCase(char1) - Character.toUpperCase(char2);
-        if (uppercaseCompare != 0) {
-            return uppercaseCompare;
+    private static int compareDifferentCharsIgnoringCase(char char1, char char2) {
+        char insensitiveChar1 = Character.toUpperCase(char1);
+        char insensitiveChar2 = Character.toUpperCase(char2);
+        if (insensitiveChar1 != insensitiveChar2) {
+            insensitiveChar1 = Character.toLowerCase(insensitiveChar1);
+            insensitiveChar2 = Character.toLowerCase(insensitiveChar2);
+            if (insensitiveChar1 != insensitiveChar2) {
+                return insensitiveChar1 - insensitiveChar2;
+            }
         }
-        int lowerCaseCompare = Character.toLowerCase(char1) - Character.toLowerCase(char2);
-        if (!caseSensitive || lowerCaseCompare != 0) {
-            return lowerCaseCompare;
+        return 0;
+    }
+
+    @VisibleForTesting
+    static int compareInsensitiveSameChars(char char1, char char2) {
+        if (char1 == char2) {
+            return 0;
         }
-        return char1 - char2;
+        return isFileSeparator(char1)
+            ? isFileSeparator(char2)
+                ? 0
+                : -1
+            : isFileSeparator(char2)
+                ? 1
+                : char1 - char2;
     }
 
     @VisibleForTesting
@@ -161,7 +176,7 @@ public class PathUtil {
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
-            int comparedChars = PathUtil.compareChars(charInPath1, charInPath2, false);
+            int comparedChars = compareCharsIgnoringCase(charInPath1, charInPath2);
             if (comparedChars != 0) {
                 return comparedChars;
             }
@@ -215,7 +230,7 @@ public class PathUtil {
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = prefix.charAt(pos);
             char charInPath2 = path.charAt(pos + offset);
-            int comparedChars = PathUtil.compareChars(charInPath1, charInPath2, false);
+            int comparedChars = compareCharsIgnoringCase(charInPath1, charInPath2);
             if (comparedChars != 0) {
                 return comparedChars;
             }
@@ -232,7 +247,7 @@ public class PathUtil {
             return 0;
         }
         return previousCombinedValue == 0
-            ? PathUtil.compareChars(charInPath1, charInPath2, true)
+            ? compareInsensitiveSameChars(charInPath1, charInPath2)
             : previousCombinedValue;
     }
 

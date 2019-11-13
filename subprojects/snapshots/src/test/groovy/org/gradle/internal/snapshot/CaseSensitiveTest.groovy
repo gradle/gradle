@@ -60,6 +60,7 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
     def "children names #children are sorted the same with path sensitive and name only comparison"() {
         def nameSorted = children.toSorted(PathUtil.&compareFileNames)
         def caseSensitiveSorted = children.toSorted(PathUtil.getPathComparator(CaseSensitivity.CASE_SENSITIVE))
+
         expect:
         nameSorted == caseSensitiveSorted
 
@@ -70,7 +71,8 @@ class CaseSensitiveTest extends AbstractCaseSensitivityTest {
             ["bad", "c", "ab"],
             ["Bad", "c", "aB"],
             ["Bad", "c", "AB"],
-            ["Bad", "cA", "AB"]
+            ["Bad", "cA", "AB"],
+            ["cpuid.h", "cross-stdarg.h", "emmintrin.h", "f16cintrin.h", "float.h", "iso646.h", "ISO_Fortran_binding.h", "lwpintrin.h", "lzcntintrin.h", "mm3dnow.h", "mm_malloc.h", "mmintrin.h", "movdirintrin.h", "mwaitxintrin.h", "nmmintrin.h", "omp.h", "openacc.h", "pconfigintrin.h", "stddef.h", "stdfix.h", "stdint-gcc.h", "stdint.h", "stdnoreturn.h", "tbmintrin.h", "tgmath.h", "tmmintrin.h", "unwind.h", ]
         ]
     }
 
