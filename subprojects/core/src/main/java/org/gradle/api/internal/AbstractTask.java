@@ -958,6 +958,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         });
     }
 
+    public Set<Provider<? extends BuildService<?>>> getRequiredServices() {
+        if (requiredServices == null) {
+            return Collections.emptySet();
+        }
+        return requiredServices;
+    }
+
     @Override
     public List<ResourceLock> getSharedResources() {
         if (requiredServices == null) {
