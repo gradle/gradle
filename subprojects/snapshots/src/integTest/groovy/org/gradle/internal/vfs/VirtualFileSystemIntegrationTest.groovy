@@ -18,9 +18,9 @@ package org.gradle.internal.vfs
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-import static org.gradle.internal.vfs.VirtualFileSystem.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY
-import static org.gradle.internal.vfs.VirtualFileSystem.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
-import static org.gradle.internal.vfs.VirtualFileSystem.VFS_RETENTION_ENABLED_PROPERTY
+import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY
+import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
+import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 class VirtualFileSystemIntegrationTest extends AbstractIntegrationSpec {
 

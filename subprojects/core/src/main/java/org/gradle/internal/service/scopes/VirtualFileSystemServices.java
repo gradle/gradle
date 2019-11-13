@@ -16,6 +16,8 @@
 
 package org.gradle.internal.service.scopes;
 
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
@@ -73,11 +75,53 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.RoutingVirtualFileSystem;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
+    /**
+     * System property to enable feature preview for partial invalidation.
+     */
+    public static final String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
+
+    /**
+     * System property to enable feature preview for retaining VFS state between builds.
+     */
+    public static final String VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
+
+    /**
+     * When retention is enabled, this system property can be used to pass a comma-separated
+     * list of file paths that have changed since the last build.
+     *
+     * @see #VFS_RETENTION_ENABLED_PROPERTY
+     */
+    public static final String VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY = "org.gradle.unsafe.vfs.changes";
+
+    public static boolean isPartialInvalidationEnabled(Map<String, String> systemPropertiesArgs) {
+        return getSystemProperty(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs) != null;
+    }
+
+    public static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {
+        return getSystemProperty(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs) != null;
+    }
+
+    public static Iterable<String> getChangedPathsSinceLastBuild(Map<String, String> systemPropertiesArgs) {
+        String changeList = getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, systemPropertiesArgs);
+        if (changeList == null) {
+            return ImmutableSet.of();
+        }
+        return Splitter.on(',')
+            .omitEmptyStrings()
+            .split(changeList);
+    }
+
+    @Nullable
+    private static String getSystemProperty(String systemProperty, Map<String, String> systemPropertiesArgs) {
+        return System.getProperty(systemProperty, systemPropertiesArgs.get(systemProperty));
+    }
+
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
@@ -107,8 +151,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     @Override
                     public void afterStart(GradleInternal gradle) {
                         Map<String, String> systemPropertiesArgs = gradle.getStartParameter().getSystemPropertiesArgs();
-                        if (VirtualFileSystem.isRetentionEnabled(systemPropertiesArgs)) {
-                            virtualFileSystem.update(VirtualFileSystem.getChangedPathsSinceLastBuild(systemPropertiesArgs), () -> {});
+                        if (isRetentionEnabled(systemPropertiesArgs)) {
+                            virtualFileSystem.update(getChangedPathsSinceLastBuild(systemPropertiesArgs), () -> {});
                         } else {
                             virtualFileSystem.invalidateAll();
                         }
@@ -116,7 +160,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
                     @Override
                     public void beforeComplete(GradleInternal gradle) {
-                        if (!VirtualFileSystem.isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
+                        if (!isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
                             virtualFileSystem.invalidateAll();
                         }
                     }
@@ -183,7 +227,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     wellKnownFileLocations,
                     gradleUserHomeVirtualFileSystem,
                     buildSessionsScopedVirtualFileSystem,
-                    () -> VirtualFileSystem.isRetentionEnabled(startParameter.getSystemPropertiesArgs())
+                    () -> isRetentionEnabled(startParameter.getSystemPropertiesArgs())
                 );
 
                 listenerManager.addListener(new OutputChangeListener() {

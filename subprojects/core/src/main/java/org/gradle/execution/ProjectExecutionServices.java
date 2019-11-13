@@ -68,7 +68,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
@@ -141,7 +141,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildScanPlugin.isBuildScanPluginApplied()
                 ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
                 : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
-            VirtualFileSystem.isPartialInvalidationEnabled(startParameter.getSystemPropertiesArgs())
+            VirtualFileSystemServices.isPartialInvalidationEnabled(startParameter.getSystemPropertiesArgs())
                 ? ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL
                 : ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE,
             taskSnapshotter,

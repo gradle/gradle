@@ -16,14 +16,10 @@
 
 package org.gradle.internal.vfs;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
-import javax.annotation.Nullable;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -71,45 +67,4 @@ public interface VirtualFileSystem {
      */
     void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot);
 
-    /**
-     * System property to enable feature preview for partial invalidation.
-     */
-    String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
-
-    static boolean isPartialInvalidationEnabled(Map<String, String> systemPropertiesArgs) {
-        return getProperty(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs) != null;
-    }
-
-    /**
-     * System property to enable feature preview for retaining VFS state between builds.
-     */
-    String VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
-
-    static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {
-        return getProperty(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs) != null;
-    }
-
-    /**
-     * When retention is enabled, this system property can be used to pass a comma-separated
-     * list of file paths that have changed since the last build.
-     *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
-     */
-    String VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY = "org.gradle.unsafe.vfs.changes";
-
-    static Iterable<String> getChangedPathsSinceLastBuild(Map<String, String> systemPropertiesArgs) {
-        String property = getProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, systemPropertiesArgs);
-        if (property == null) {
-            return ImmutableSet.of();
-        }
-        return Splitter.on(',')
-            .omitEmptyStrings()
-            .split(property);
-    }
-
-    @Nullable
-    // private
-    static String getProperty(String property, Map<String, String> systemPropertiesArgs) {
-        return System.getProperty(property, systemPropertiesArgs.get(property));
-    }
 }
