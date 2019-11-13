@@ -130,12 +130,13 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
                                     EmptySourceTaskSkipper emptySourceTaskSkipper
     ) {
 
-        boolean buildCacheEnabled = buildCacheController.isEnabled();
-        boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
-
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            buildCacheEnabled,
-            scanPluginApplied,
+            buildCacheController.isEnabled()
+                ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
+                : ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
+            buildScanPlugin.isBuildScanPluginApplied()
+                ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
+                : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
             taskSnapshotter,
             executionHistoryStore,
             buildOperationExecutor,

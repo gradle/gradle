@@ -109,8 +109,16 @@ import static org.gradle.internal.work.AsyncWorkTracker.ProjectLockRetention.REL
 public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecuteActionsTaskExecuter.class);
 
-    private final boolean buildCacheEnabled;
-    private final boolean scanPluginApplied;
+    public enum BuildCacheState {
+        ENABLED, DISABLED
+    }
+
+    public enum ScanPluginState {
+        APPLIED, NOT_APPLIED
+    }
+
+    private final BuildCacheState buildCacheState;
+    private final ScanPluginState scanPluginState;
     private final TaskSnapshotter taskSnapshotter;
     private final ExecutionHistoryStore executionHistoryStore;
     private final BuildOperationExecutor buildOperationExecutor;
@@ -127,8 +135,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final boolean fineGrainedInvalidationEnabled = Boolean.getBoolean("org.gradle.experimental.fine.grained.invalidation");
 
     public ExecuteActionsTaskExecuter(
-        boolean buildCacheEnabled,
-        boolean scanPluginApplied,
+        BuildCacheState buildCacheState,
+        ScanPluginState scanPluginState,
         TaskSnapshotter taskSnapshotter,
         ExecutionHistoryStore executionHistoryStore,
         BuildOperationExecutor buildOperationExecutor,
@@ -143,8 +151,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         EmptySourceTaskSkipper emptySourceTaskSkipper,
         FileCollectionFactory fileCollectionFactory
     ) {
-        this.buildCacheEnabled = buildCacheEnabled;
-        this.scanPluginApplied = scanPluginApplied;
+        this.buildCacheState = buildCacheState;
+        this.scanPluginState = scanPluginState;
         this.taskSnapshotter = taskSnapshotter;
         this.executionHistoryStore = executionHistoryStore;
         this.buildOperationExecutor = buildOperationExecutor;
@@ -453,7 +461,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         public void markLegacySnapshottingInputsStarted() {
             // Note: this operation should be added only if the scan plugin is applied, but SnapshotTaskInputsOperationIntegrationTest
             //   expects it to be added also when the build cache is enabled (but not the scan plugin)
-            if (buildCacheEnabled || scanPluginApplied) {
+            if (buildCacheState == BuildCacheState.ENABLED || scanPluginState == ScanPluginState.APPLIED) {
                 ExecutingBuildOperation operation = buildOperationExecutor.start(BuildOperationDescriptor
                     .displayName("Snapshot task inputs for " + task.getIdentityPath())
                     .name("Snapshot task inputs")
