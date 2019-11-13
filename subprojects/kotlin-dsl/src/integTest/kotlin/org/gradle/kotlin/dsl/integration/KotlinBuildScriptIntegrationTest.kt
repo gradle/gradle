@@ -219,8 +219,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
         val fileTreeFromMap = """
             fileTree(mapOf("dir" to ".", "include" to listOf("*.txt")))
-                .map { it.name }
-                .joinToString()
+                .joinToString { it.name }
         """
 
         withFile("foo.txt")
