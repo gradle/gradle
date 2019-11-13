@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.attributes.DefaultImmutableAttributesFactory;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInspector;
@@ -205,11 +206,11 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         });
         listenerManager.addListener(new RootBuildLifecycleListener() {
             @Override
-            public void afterStart() {
+            public void afterStart(GradleInternal gradle) {
             }
 
             @Override
-            public void beforeComplete() {
+            public void beforeComplete(GradleInternal gradle) {
                 routingVirtualFileSystem.invalidateAll();
             }
         });

@@ -78,7 +78,7 @@ class DefaultRootBuildStateTest extends Specification {
         result == '<result>'
 
         then:
-        1 * lifecycleListener.afterStart()
+        1 * lifecycleListener.afterStart(_ as GradleInternal)
 
         then:
         1 * action.transform(!null) >> { BuildController controller ->
@@ -86,7 +86,7 @@ class DefaultRootBuildStateTest extends Specification {
         }
 
         then:
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
 
     def "can have null result"() {
@@ -162,7 +162,7 @@ class DefaultRootBuildStateTest extends Specification {
 
         and:
         1 * action.transform(!null) >> { BuildController controller -> throw failure }
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
 
     def "forwards build failure and cleans up"() {
@@ -180,7 +180,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * action.transform(!null) >> { BuildController controller ->
             controller.run()
         }
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
 
     def "forwards configure failure and cleans up"() {
@@ -198,7 +198,7 @@ class DefaultRootBuildStateTest extends Specification {
         1 * action.transform(!null) >> { BuildController controller ->
             controller.configure()
         }
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
 
     def "cannot run after configuration failure"() {
@@ -219,6 +219,6 @@ class DefaultRootBuildStateTest extends Specification {
             }
             controller.run()
         }
-        1 * lifecycleListener.beforeComplete()
+        1 * lifecycleListener.beforeComplete(_ as GradleInternal)
     }
 }
