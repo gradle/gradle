@@ -20,6 +20,7 @@ import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
@@ -53,6 +54,7 @@ import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHashe
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
@@ -100,6 +102,7 @@ import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
@@ -160,8 +163,33 @@ public class GradleUserHomeScopeServices {
         return new DefaultWellKnownFileLocations(fileStores);
     }
 
-    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat) {
-        return new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
+    VirtualFileSystem createVirtualFileSystem(
+        FileHasher hasher,
+        ListenerManager listenerManager,
+        Stat stat,
+        StringInterner stringInterner
+    ) {
+        DefaultVirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
+        listenerManager.addListener(new RootBuildLifecycleListener() {
+            @Override
+            public void afterStart(GradleInternal gradle) {
+                Map<String, String> systemPropertiesArgs = gradle.getStartParameter().getSystemPropertiesArgs();
+                if (VirtualFileSystem.isRetentionEnabled(systemPropertiesArgs)) {
+                    virtualFileSystem.update(VirtualFileSystem.getChangedPathsSinceLastBuild(systemPropertiesArgs), () -> {});
+                } else {
+                    virtualFileSystem.invalidateAll();
+                }
+            }
+
+            @Override
+            public void beforeComplete(GradleInternal gradle) {
+                if (!VirtualFileSystem.isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
+                    virtualFileSystem.invalidateAll();
+                }
+            }
+
+        });
+        return virtualFileSystem;
     }
 
     GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
