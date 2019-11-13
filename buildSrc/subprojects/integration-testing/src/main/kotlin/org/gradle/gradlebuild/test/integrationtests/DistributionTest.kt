@@ -30,7 +30,6 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
