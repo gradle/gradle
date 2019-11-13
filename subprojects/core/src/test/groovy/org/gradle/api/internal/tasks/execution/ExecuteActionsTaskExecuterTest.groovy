@@ -165,6 +165,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def executer = new ExecuteActionsTaskExecuter(
         ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
         ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
+        ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE,
         taskSnapshotter,
         executionHistoryStore,
         buildOperationExecutorForTaskExecution,

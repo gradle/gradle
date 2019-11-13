@@ -74,6 +74,8 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 import java.util.List;
 
 public class ProjectExecutionServices extends DefaultServiceRegistry {
+    public static final String VFS_PARTIAL_INVALIDATION_ENABLED = "org.gradle.unsafe.vfs.partial-invalidation";
+
     public ProjectExecutionServices(ProjectInternal project) {
         super("Configured project services for '" + project.getPath() + "'", project.getServices());
     }
@@ -137,6 +139,9 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildScanPlugin.isBuildScanPluginApplied()
                 ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
                 : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
+            System.getProperty(VFS_PARTIAL_INVALIDATION_ENABLED) != null
+                ? ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL
+                : ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE,
             taskSnapshotter,
             executionHistoryStore,
             buildOperationExecutor,
