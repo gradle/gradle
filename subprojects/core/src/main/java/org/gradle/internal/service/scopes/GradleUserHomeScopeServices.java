@@ -53,7 +53,6 @@ import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHashe
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
@@ -62,7 +61,6 @@ import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -162,29 +160,8 @@ public class GradleUserHomeScopeServices {
         return new DefaultWellKnownFileLocations(fileStores);
     }
 
-    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat, ListenerManager listenerManager) {
-        VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
-        listenerManager.addListener(new OutputChangeListener() {
-            @Override
-            public void beforeOutputChange() {
-            }
-
-            @Override
-            public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                virtualFileSystem.update(affectedOutputPaths, () -> {});
-            }
-        });
-        listenerManager.addListener(new RootBuildLifecycleListener() {
-            @Override
-            public void afterStart() {
-            }
-
-            @Override
-            public void beforeComplete() {
-                virtualFileSystem.invalidateAll();
-            }
-        });
-        return virtualFileSystem;
+    VirtualFileSystem createVirtualFileSystem(FileHasher hasher, StringInterner stringInterner, Stat stat) {
+        return new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
     }
 
     GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {

@@ -183,13 +183,14 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     VirtualFileSystem createVirtualFileSystem(
         FileHasher hasher,
-        StringInterner stringInterner,
+        ListenerManager listenerManager,
         Stat stat,
+        StringInterner stringInterner,
         VirtualFileSystem gradleUserHomeVirtualFileSystem,
-        WellKnownFileLocations wellKnownFileLocations,
-        ListenerManager listenerManager
+        WellKnownFileLocations wellKnownFileLocations
     ) {
         VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
+        RoutingVirtualFileSystem routingVirtualFileSystem = new RoutingVirtualFileSystem(wellKnownFileLocations, gradleUserHomeVirtualFileSystem, buildSessionsScopedVirtualFileSystem);
 
         listenerManager.addListener(new OutputChangeListener() {
             @Override
@@ -199,7 +200,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
             @Override
             public void beforeOutputChange(Iterable<String> affectedOutputPaths) {
-                buildSessionsScopedVirtualFileSystem.update(affectedOutputPaths, () -> {});
+                routingVirtualFileSystem.update(affectedOutputPaths, () -> {});
             }
         });
         listenerManager.addListener(new RootBuildLifecycleListener() {
@@ -209,11 +210,11 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
             @Override
             public void beforeComplete() {
-                buildSessionsScopedVirtualFileSystem.invalidateAll();
+                routingVirtualFileSystem.invalidateAll();
             }
         });
 
-        return new RoutingVirtualFileSystem(wellKnownFileLocations, gradleUserHomeVirtualFileSystem, buildSessionsScopedVirtualFileSystem);
+        return routingVirtualFileSystem;
     }
 
     GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
