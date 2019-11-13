@@ -445,7 +445,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     private void addDependencyConstraint(DefaultProjectDependencyConstraint dependency, Set<MavenDependency> dependencies) {
-        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency.projectDependency);
+        ProjectDependency projectDependency = dependency.getProjectDependency();
+        ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
         dependencies.add(new DefaultMavenDependency(identifier.getGroup(), identifier.getName(), identifier.getVersion()));
     }
 

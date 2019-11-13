@@ -443,8 +443,6 @@ public class GradleModuleMetadataWriter {
             if (variantVersionMappingStrategy != null) {
                 ModuleVersionIdentifier resolved = variantVersionMappingStrategy.maybeResolveVersion(identifier.getGroup(), identifier.getName());
                 if (resolved != null) {
-                    // vlsi: this looks like a bug. It causes identifier.getVersion() == resolvedVersion below
-                    // So either one of the variables should be removed or the below two lines should be swapped
                     identifier = resolved;
                     resolvedVersion = identifier.getVersion();
                 }
@@ -537,11 +535,11 @@ public class GradleModuleMetadataWriter {
         jsonWriter.beginObject();
         String group;
         String module;
-        // vlsi: please review. I've no idea what I'm doing here
         String resolvedVersion = null;
         if (dependencyConstraint instanceof DefaultProjectDependencyConstraint) {
             DefaultProjectDependencyConstraint dependency = (DefaultProjectDependencyConstraint) dependencyConstraint;
-            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, dependency.projectDependency);
+            ProjectDependency projectDependency = dependency.getProjectDependency();
+            ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(ModuleVersionIdentifier.class, projectDependency);
             group = identifier.getGroup();
             module = identifier.getName();
             resolvedVersion = identifier.getVersion();

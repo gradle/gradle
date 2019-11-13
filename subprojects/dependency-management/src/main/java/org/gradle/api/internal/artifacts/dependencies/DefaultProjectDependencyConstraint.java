@@ -33,12 +33,16 @@ import java.util.Collections;
  * platforms.
  */
 public class DefaultProjectDependencyConstraint implements DependencyConstraintInternal {
-    public final ProjectDependency projectDependency;
+    private final ProjectDependency projectDependency;
     private String reason;
     private boolean force;
 
     public DefaultProjectDependencyConstraint(ProjectDependency projectDependency) {
         this.projectDependency = projectDependency;
+    }
+
+    public ProjectDependency getProjectDependency() {
+        return projectDependency;
     }
 
     @Override
