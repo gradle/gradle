@@ -16,16 +16,14 @@
 
 package org.gradle.api.services.internal;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.resources.SharedResource;
 
-import javax.annotation.Nullable;
-
 public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters);
 
-    @Nullable
-    SharedResource findByName(String name);
+    SharedResource forService(Provider<? extends BuildService<?>> service);
 }

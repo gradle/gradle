@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -53,6 +52,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
@@ -87,8 +88,9 @@ import java.io.File;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
@@ -143,7 +145,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String toStringValue;
 
-    private Map<String, Integer> sharedResources = Maps.newHashMap();
+    private Set<Provider<? extends BuildService<?>>> requiredServices;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -946,43 +948,27 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return timeout;
     }
 
-    public void requiresResource(String name) {
-        taskMutator.mutate("Task.requiresResource(String)", new Runnable() {
-            @Override
-            public void run() {
-                sharedResources.putIfAbsent(name, 1);
+    @Override
+    public void usesService(Provider<? extends BuildService<?>> service) {
+        taskMutator.mutate("Task.requiresResource(String)", () -> {
+            if (requiredServices == null) {
+                requiredServices = new HashSet<>();
             }
-        });
-    }
-
-    public void requiresResource(String name, int leases) {
-        taskMutator.mutate("Task.requiresResource(String, int)", new Runnable() {
-            @Override
-            public void run() {
-                if (leases <= 0) {
-                    throw new InvalidUserDataException("Required number of leases must be greater than zero.");
-                }
-
-                sharedResources.put(name, leases);
-            }
+            requiredServices.add(service);
         });
     }
 
     @Override
     public List<ResourceLock> getSharedResources() {
+        if (requiredServices == null) {
+            return Collections.emptyList();
+        }
         ImmutableList.Builder<ResourceLock> locks = ImmutableList.builder();
         BuildServiceRegistryInternal serviceRegistry = getServices().get(BuildServiceRegistryInternal.class);
-        for (Map.Entry<String, Integer> entry : sharedResources.entrySet()) {
-            SharedResource resource = serviceRegistry.findByName(entry.getKey());
-
-            if (resource == null) {
-                throw new InvalidUserDataException("Task " + getIdentityPath() + " requires the shared resource '" + entry.getKey() + "' but no such shared resource exists.");
-            }
+        for (Provider<? extends BuildService<?>> service : requiredServices) {
+            SharedResource resource = serviceRegistry.forService(service);
             if (resource.getMaxUsages() > 0) {
-                if (resource.getMaxUsages() < entry.getValue()) {
-                    throw new InvalidUserDataException("The task " + getIdentityPath() + " requires " + entry.getValue() + " leases from shared resource '" + entry.getKey() + "' but maximum leases is " + resource.getMaxUsages());
-                }
-                locks.add(resource.getResourceLock(entry.getValue()));
+                locks.add(resource.getResourceLock(1));
             }
         }
         return locks.build();

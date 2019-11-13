@@ -406,12 +406,12 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         buildFile << """
-            gradle.sharedServices.registerIfAbsent("exclusive", BuildService) {
+            def service = gradle.sharedServices.registerIfAbsent("exclusive", BuildService) {
                 maxParallelUsages = 1
             }
             
-            aPing.requiresResource('exclusive')
-            bPing.requiresResource('exclusive')
+            aPing.usesService(service)
+            bPing.usesService(service)
         """
 
         expect:
@@ -426,12 +426,12 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(2)
 
         buildFile << """
-            gradle.sharedServices.registerIfAbsent("resource", BuildService) {
+            def service = gradle.sharedServices.registerIfAbsent("resource", BuildService) {
                 maxParallelUsages = 2
             }
             
-            aPing.requiresResource('resource')
-            bPing.requiresResource('resource')
+            aPing.usesService(service)
+            bPing.usesService(service)
         """
 
         expect:
@@ -445,13 +445,13 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         withParallelThreads(3)
 
         buildFile << """
-            gradle.sharedServices.registerIfAbsent("resource", BuildService) {
+            def service = gradle.sharedServices.registerIfAbsent("resource", BuildService) {
                 maxParallelUsages = 2
             }
             
-            aPing.requiresResource('resource')
-            bPing.requiresResource('resource')
-            cPing.requiresResource('resource')
+            aPing.usesService(service)
+            bPing.usesService(service)
+            cPing.usesService(service)
         """
 
         expect:

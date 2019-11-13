@@ -39,12 +39,10 @@ import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.function.Supplier;
 
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal {
     private final NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations;
-    private final Map<String, ServiceBackedSharedResource> wrappers = new HashMap<>();
     private final InstantiatorFactory instantiatorFactory;
     private final ListenerManager listenerManager;
     private final IsolatableFactory isolatableFactory;
@@ -68,23 +66,22 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return registrations;
     }
 
-    @Nullable
     @Override
-    public SharedResource findByName(String name) {
-        return wrappers.computeIfAbsent(name, n -> {
-            BuildServiceRegistration<?, ?> registration = registrations.findByName(name);
-            if (registration == null) {
-                return null;
-            }
-
+    public SharedResource forService(Provider<? extends BuildService<?>> service) {
+        if (!(service instanceof BuildServiceProvider)) {
+            throw new IllegalArgumentException("The given provider is not a build service provider.");
+        }
+        BuildServiceProvider<?, ?> provider = (BuildServiceProvider<?, ?>) service;
+        DefaultServiceRegistration<?, ?> registration = (DefaultServiceRegistration<?, ?>) registrations.getByName(provider.getName());
+        return registration.asSharedResource(() -> {
             // Prevent further changes to registration
             registration.getMaxParallelUsages().finalizeValue();
             int maxUsages = registration.getMaxParallelUsages().getOrElse(-1);
 
             if (maxUsages > 0) {
-                leaseRegistry.registerSharedResource(name, maxUsages);
+                leaseRegistry.registerSharedResource(provider.getName(), maxUsages);
             }
-            return new ServiceBackedSharedResource(name, maxUsages, leaseRegistry);
+            return new ServiceBackedSharedResource(provider.getName(), maxUsages, leaseRegistry);
         });
     }
 
@@ -169,6 +166,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         private final String name;
         private final P parameters;
         private final BuildServiceProvider<T, P> provider;
+        private SharedResource resourceWrapper;
 
         public DefaultServiceRegistration(String name, P parameters, BuildServiceProvider<T, P> provider) {
             this.name = name;
@@ -189,6 +187,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         @Override
         public Provider<T> getService() {
             return provider;
+        }
+
+        public SharedResource asSharedResource(Supplier<SharedResource> factory) {
+            if (resourceWrapper == null) {
+                resourceWrapper = factory.get();
+            }
+            return resourceWrapper;
         }
     }
 
