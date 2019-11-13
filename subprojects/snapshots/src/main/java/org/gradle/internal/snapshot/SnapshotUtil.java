@@ -33,23 +33,23 @@ public class SnapshotUtil {
                 return noChildFoundResult.get();
             case 1:
                 FileSystemNode onlyChild = children.get(0);
-                return PathUtil.isChildOfOrThis(filePath, offset, onlyChild.getPathToParent(), caseSensitivity)
+                return PathUtil.isChildOfOrThis(onlyChild.getPathToParent(), filePath, offset, caseSensitivity)
                     ? getSnapshotFromChild(filePath, offset, onlyChild, caseSensitivity)
                     : noChildFoundResult.get();
             case 2:
                 FileSystemNode firstChild = children.get(0);
                 FileSystemNode secondChild = children.get(1);
-                if (PathUtil.isChildOfOrThis(filePath, offset, firstChild.getPathToParent(), caseSensitivity)) {
+                if (PathUtil.isChildOfOrThis(firstChild.getPathToParent(), filePath, offset, caseSensitivity)) {
                     return getSnapshotFromChild(filePath, offset, firstChild, caseSensitivity);
                 }
-                if (PathUtil.isChildOfOrThis(filePath, offset, secondChild.getPathToParent(), caseSensitivity)) {
+                if (PathUtil.isChildOfOrThis(secondChild.getPathToParent(), filePath, offset, caseSensitivity)) {
                     return getSnapshotFromChild(filePath, offset, secondChild, caseSensitivity);
                 }
                 return noChildFoundResult.get();
             default:
                 if (numberOfChildren < 10) {
                     for (FileSystemNode currentChild : children) {
-                        if (PathUtil.isChildOfOrThis(filePath, offset, currentChild.getPathToParent(), caseSensitivity)) {
+                        if (PathUtil.isChildOfOrThis(currentChild.getPathToParent(), filePath, offset, caseSensitivity)) {
                             return getSnapshotFromChild(filePath, offset, currentChild, caseSensitivity);
                         }
                     }

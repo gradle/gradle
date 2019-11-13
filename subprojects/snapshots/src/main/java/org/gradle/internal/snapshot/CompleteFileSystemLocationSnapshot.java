@@ -30,6 +30,11 @@ import java.util.Comparator;
  */
 public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, FileSystemNode, MetadataSnapshot {
 
+    /**
+     * The comparator of direct children of a file system location.
+     *
+     * The comparison is stable with respect to case sensitivity, so the order of the children is stable across operating systems.
+     */
     Comparator<CompleteFileSystemLocationSnapshot> BY_NAME = Comparator.comparing(CompleteFileSystemLocationSnapshot::getName, PathUtil::compareFileNames);
 
     /**

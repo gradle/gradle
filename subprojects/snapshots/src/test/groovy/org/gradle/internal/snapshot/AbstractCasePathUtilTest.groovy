@@ -89,7 +89,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "#prefix is child of or this of #path at offset #offset: #result"() {
         expect:
-        isChildOfOrThis(path, offset, prefix, caseSensitivity)
+        isChildOfOrThis(prefix, path, offset, caseSensitivity)
         sizeOfCommonPrefix(prefix, path, offset, caseSensitivity) == prefix.length()
 
         where:

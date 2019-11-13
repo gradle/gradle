@@ -25,6 +25,23 @@ import java.util.function.IntUnaryOperator;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
+/**
+ * Methods for dealing with paths on the file system.
+ *
+ * There are methods for checking equality and for comparing two paths.
+ * All methods for equality and comparing need to be called with the correct case-sensitivity according to the underlying file system.
+ *
+ * For comparing, the order is defined in a way that if a list of paths is sorted on a case-insensitive file system it is also sorted on a case-sensitive file system.
+ * We do this so the order of the children of directory snapshots is stable across builds.
+ *
+ * The order is as follows:
+ * - The comparison is per segment of the path.
+ * - If the segments are different with respect to case-insensitive comparison, the result from case-insensitive comparison is used.
+ * - If one segment is a prefix of the other comparing case-insensitive, then the shorter segment is smaller.
+ * - Finally, if both segments are the same ignoring case and have the same length, the case-sensitive comparison is used.
+ *
+ * For all methods operating on a list of paths, the paths must not have a common, non-trivial prefix.
+ */
 public class PathUtil {
 
     /**
@@ -49,13 +66,22 @@ public class PathUtil {
      */
     private static final char OTHER_SEPARATOR = IS_WINDOWS_SEPARATOR ? UNIX_SEPARATOR : WINDOWS_SEPARATOR;
 
+    private static final Comparator<String> CASE_SENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, CASE_SENSITIVE);
+    private static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, CASE_INSENSITIVE);
+
+    /**
+     * Whether the given char is a file separator.
+     * Both Unix and Windows file separators are detected, no matter the current operating system.
+     */
     public static boolean isFileSeparator(char toCheck) {
         return toCheck == SYSTEM_SEPARATOR || toCheck == OTHER_SEPARATOR;
     }
 
-    private static final Comparator<String> CASE_SENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, CASE_SENSITIVE);
-    private static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, CASE_INSENSITIVE);
-
+    /**
+     * Compares two file names with the order defined here: {@link PathUtil}.
+     *
+     * File names do not contain file separators, so the methods on {@link String} can be used for the comparison.
+     */
     public static int compareFileNames(String name1, String name2) {
         int caseInsensitiveComparison = name1.compareToIgnoreCase(name2);
         return caseInsensitiveComparison != 0
@@ -63,6 +89,11 @@ public class PathUtil {
             : name1.compareTo(name2);
     }
 
+    /**
+     * Returns a comparator for paths for the given case sensitivity.
+     *
+     * When the two paths are different ignoring the case, then the result of the comparison is the same for both comparators.
+     */
     public static Comparator<String> getPathComparator(CaseSensitivity caseSensitivity) {
         switch (caseSensitivity) {
             case CASE_SENSITIVE:
@@ -132,7 +163,9 @@ public class PathUtil {
     }
 
     /**
-     * Does not include the separator char.
+     * Returns the size of the common prefix of a path and a sub-path of another path starting at on offset.
+     *
+     * The size of the common prefix does not include the last line separator.
      */
     public static int sizeOfCommonPrefix(String path1, String path2, int offset, CaseSensitivity caseSensitivity) {
         int pos = 0;
@@ -168,7 +201,7 @@ public class PathUtil {
      *
      * The paths must not start with a separator, taking into account the offset
      *
-     * @return 0 when the two paths have the same prefix, and the comparison of the first prefix if not.
+     * @return 0 when the two paths have a common prefix, and the comparison of the first prefix if not.
      */
     public static int compareWithCommonPrefix(String path1, String path2, int offset, CaseSensitivity caseSensitivity) {
         int maxPos = Math.min(path1.length(), path2.length() - offset);
@@ -197,8 +230,10 @@ public class PathUtil {
     }
 
     /**
-     * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
-     * which does not check for negative indices or integer overflow.
+     * Determines whether a path starting at an offset has the given prefix,
+     * and returns the comparison of the different prefixes if it isn't.
+     *
+     * Similar to {@link #isChildOfOrThis}, only that it returns whether the filePath is bigger or smaller than the current prefix.
      */
     public static int compareToChildOfOrThis(String prefix, String filePath, int offset, CaseSensitivity caseSensitivity) {
         int pathLength = filePath.length();
@@ -213,7 +248,7 @@ public class PathUtil {
                 : -1);
     }
 
-    public static int comparePaths(String prefix, String path, int offset, CaseSensitivity caseSensitivity) {
+    private static int comparePaths(String prefix, String path, int offset, CaseSensitivity caseSensitivity) {
         int maxPos = Math.min(prefix.length(), path.length() - offset);
         return comparePrefixes(prefix, path, offset, maxPos, caseSensitivity == CASE_SENSITIVE,
             accumulatedValue -> {
@@ -269,10 +304,9 @@ public class PathUtil {
     }
 
     /**
-     * This uses an optimized version of {@link String#regionMatches(int, String, int, int)}
-     * which does not check for negative indices or integer overflow.
+     * Checks whether the filePath starting at the offset has the given prefix.
      */
-    public static boolean isChildOfOrThis(String filePath, int offset, String prefix, CaseSensitivity caseSensitivity) {
+    public static boolean isChildOfOrThis(String prefix, String filePath, int offset, CaseSensitivity caseSensitivity) {
         boolean caseSensitive = caseSensitivity == CASE_SENSITIVE;
         int prefixLength = prefix.length();
         if (prefixLength == 0) {
