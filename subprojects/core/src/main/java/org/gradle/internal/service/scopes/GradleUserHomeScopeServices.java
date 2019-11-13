@@ -16,29 +16,16 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.CachingFileHasher;
-import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
-import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
-import org.gradle.api.internal.changedetection.state.ResourceFilter;
-import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
-import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
 import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CrossBuildInMemoryCacheFactory;
@@ -54,7 +41,6 @@ import org.gradle.groovy.scripts.internal.RegistryAwareClassLoaderHierarchyHashe
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.GradleUserHomeDirProvider;
-import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
@@ -67,32 +53,18 @@ import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
-import org.gradle.internal.file.Stat;
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter;
-import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
-import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
-import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
-import org.gradle.internal.fingerprint.impl.DefaultGenericFileTreeSnapshotter;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.remote.MessagingServer;
-import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory;
@@ -102,7 +74,6 @@ import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Defines the shared services scoped to a particular Gradle user home directory. These services are reused across multiple builds and operations.
@@ -127,20 +98,10 @@ public class GradleUserHomeScopeServices {
         return parent.createChild();
     }
 
-    CrossBuildFileHashCache createCrossBuildFileHashCache(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
-        return new CrossBuildFileHashCache(null, cacheRepository, inMemoryCacheDecoratorFactory);
-    }
-
     GlobalScopeFileTimeStampInspector createFileTimestampInspector(CacheScopeMapping cacheScopeMapping, ListenerManager listenerManager) {
         GlobalScopeFileTimeStampInspector timeStampInspector = new GlobalScopeFileTimeStampInspector(cacheScopeMapping);
         listenerManager.addListener(timeStampInspector);
         return timeStampInspector;
-    }
-
-    FileHasher createCachingFileHasher(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector, StreamHasher streamHasher) {
-        CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
-        fileTimeStampInspector.attach(fileHasher);
-        return fileHasher;
     }
 
     ScriptSourceHasher createScriptSourceHasher() {
@@ -157,63 +118,6 @@ public class GradleUserHomeScopeServices {
 
     ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher(ClassLoaderRegistry registry, HashingClassLoaderFactory classLoaderFactory) {
         return new RegistryAwareClassLoaderHierarchyHasher(registry, classLoaderFactory);
-    }
-
-    WellKnownFileLocations createFileCategorizer(List<CachedJarFileStore> fileStores) {
-        return new DefaultWellKnownFileLocations(fileStores);
-    }
-
-    VirtualFileSystem createVirtualFileSystem(
-        FileHasher hasher,
-        ListenerManager listenerManager,
-        Stat stat,
-        StringInterner stringInterner
-    ) {
-        DefaultVirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
-        listenerManager.addListener(new RootBuildLifecycleListener() {
-            @Override
-            public void afterStart(GradleInternal gradle) {
-                Map<String, String> systemPropertiesArgs = gradle.getStartParameter().getSystemPropertiesArgs();
-                if (VirtualFileSystem.isRetentionEnabled(systemPropertiesArgs)) {
-                    virtualFileSystem.update(VirtualFileSystem.getChangedPathsSinceLastBuild(systemPropertiesArgs), () -> {});
-                } else {
-                    virtualFileSystem.invalidateAll();
-                }
-            }
-
-            @Override
-            public void beforeComplete(GradleInternal gradle) {
-                if (!VirtualFileSystem.isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
-                    virtualFileSystem.invalidateAll();
-                }
-            }
-
-        });
-        return virtualFileSystem;
-    }
-
-    GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
-        return new DefaultGenericFileTreeSnapshotter(hasher, stringInterner);
-    }
-
-    FileCollectionSnapshotter createFileCollectionSnapshotter(VirtualFileSystem virtualFileSystem, GenericFileTreeSnapshotter genericFileTreeSnapshotter, Stat stat) {
-        return new DefaultFileCollectionSnapshotter(virtualFileSystem, genericFileTreeSnapshotter, stat);
-    }
-
-    ResourceSnapshotterCacheService createResourceSnapshotterCacheService(CrossBuildFileHashCache store) {
-        PersistentIndexedCache<HashCode, HashCode> resourceHashesCache = store.createCache(
-            PersistentIndexedCacheParameters.of("resourceHashesCache", HashCode.class, new HashCodeSerializer()),
-            400000,
-            true);
-        return new DefaultResourceSnapshotterCacheService(resourceHashesCache);
-    }
-
-    ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, FileCollectionSnapshotter fileCollectionSnapshotter, StringInterner stringInterner) {
-        return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, fileCollectionSnapshotter, ResourceFilter.FILTER_NOTHING, stringInterner);
-    }
-
-    ClasspathHasher createClasspathHasher(ClasspathFingerprinter fingerprinter, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultClasspathHasher(fingerprinter, fileCollectionFactory);
     }
 
     HashingClassLoaderFactory createClassLoaderFactory(ClasspathHasher classpathHasher) {
