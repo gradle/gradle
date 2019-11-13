@@ -81,6 +81,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         synchronized (this) {
             if (instance == null) {
                 // TODO - extract a ServiceLookup implementation to reuse
+                // TODO - extract some shared infrastructure to take care of instantiaton (eg which services are visible, strict vs lenient, decorated or not?)
                 DefaultServiceRegistry services = new DefaultServiceRegistry();
                 // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
                 P isolatedParameters = isolatableFactory.isolate(parameters).isolate();

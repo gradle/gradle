@@ -99,7 +99,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             return Cast.uncheckedCast(existing.getService());
         }
 
-        // TODO - extract some shared infrastructure for this
+        // TODO - extract some shared infrastructure to take care of parameter instantation (eg strict vs lenient, which services are visible)
         Class<P> parameterType = isolationScheme.parameterTypeFor(implementationType);
         P parameters;
         if (parameterType != null) {
@@ -108,6 +108,8 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
             // TODO - should either provider a non-null empty parameters in this case or fail whenever the parameters are queried in the service, the spec and the registration
             parameters = null;
         }
+
+        // TODO - should defer execution of the action, to match behaviour for other container `register()` methods.
 
         DefaultServiceSpec<P> spec = specInstantiator.newInstance(DefaultServiceSpec.class, parameters);
         configureAction.execute(spec);
@@ -119,12 +121,11 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters) {
+    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters, int maxUsages) {
         if (registrations.findByName(name) != null) {
             throw new IllegalArgumentException("Service '%s' has already been registered.");
         }
-        // TODO - should serialize max parallel usages for instant execution
-        return doRegister(name, implementationType, isolationScheme.parameterTypeFor(implementationType), parameters, null);
+        return doRegister(name, implementationType, isolationScheme.parameterTypeFor(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(String name, Class<T> implementationType, Class<P> parameterType, P parameters, @Nullable Integer maxParallelUsages) {
@@ -135,7 +136,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         registrations.add(registration);
 
         // TODO - should stop the service after last usage (ie after the last task that uses it) instead of at the end of the build
-        // TODO - should reuse service across build invocations, until the parameters change
+        // TODO - should reuse service across build invocations, until the parameters change (which contradicts the previous item)
         listenerManager.addListener(new ServiceCleanupListener(provider));
         return provider;
     }
