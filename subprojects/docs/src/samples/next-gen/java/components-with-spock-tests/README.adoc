@@ -1,4 +1,4 @@
-= {sample-displayName} Sample
+= Java Components with Spock Tests Sample
 
 ifndef::env-github[]
 [.download]

@@ -1,4 +1,4 @@
-= {sample-displayName} Sample
+= Groovy Basic Library Sample
 
 ifndef::env-github[]
 [.download]
