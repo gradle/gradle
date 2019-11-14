@@ -87,7 +87,7 @@ public class DefaultMavenLocalArtifactRepository extends DefaultMavenArtifactRep
     }
 
     @Override
-    protected DefaultMavenPomMetadataSource getPomMetadataSource(MavenMetadataLoader mavenMetadataLoader, FileResourceRepository fileResourceRepository) {
+    protected DefaultMavenPomMetadataSource createPomMetadataSource(MavenMetadataLoader mavenMetadataLoader, FileResourceRepository fileResourceRepository) {
         return new MavenLocalPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader);
     }
 

@@ -293,7 +293,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
             sources.add(gradleModuleMetadataSource);
         }
         if (metadataSources.mavenPom) {
-            DefaultMavenPomMetadataSource pomMetadataSource = getPomMetadataSource(mavenMetadataLoader, fileResourceRepository);
+            DefaultMavenPomMetadataSource pomMetadataSource = createPomMetadataSource(mavenMetadataLoader, fileResourceRepository);
             if (metadataSources.ignoreGradleMetadataRedirection) {
                 sources.add(pomMetadataSource);
             } else {
@@ -306,7 +306,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         return new DefaultImmutableMetadataSources(sources.build());
     }
 
-    protected DefaultMavenPomMetadataSource getPomMetadataSource(MavenMetadataLoader mavenMetadataLoader, FileResourceRepository fileResourceRepository) {
+    protected DefaultMavenPomMetadataSource createPomMetadataSource(MavenMetadataLoader mavenMetadataLoader, FileResourceRepository fileResourceRepository) {
         return new DefaultMavenPomMetadataSource(MavenMetadataArtifactProvider.INSTANCE, getPomParser(), fileResourceRepository, getMetadataValidationServices(), mavenMetadataLoader);
     }
 
