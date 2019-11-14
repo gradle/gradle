@@ -124,7 +124,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     @Nullable
     private static String getSystemProperty(String systemProperty, Map<String, String> systemPropertiesArgs) {
-        return System.getProperty(systemProperty, systemPropertiesArgs.get(systemProperty));
+        return systemPropertiesArgs.getOrDefault(systemProperty, System.getProperty(systemProperty));
     }
 
     @Override
