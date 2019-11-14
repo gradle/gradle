@@ -88,6 +88,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     /**
      * System property to enable feature preview for retaining VFS state between builds.
+     *
+     * Also enables partial VFS invalidation.
+     *
+     * @see #VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
      */
     public static final String VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
 
@@ -100,7 +104,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     public static final String VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY = "org.gradle.unsafe.vfs.changes";
 
     public static boolean isPartialInvalidationEnabled(Map<String, String> systemPropertiesArgs) {
-        return getSystemProperty(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs) != null;
+        return getSystemProperty(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs) != null
+            || isRetentionEnabled(systemPropertiesArgs);
     }
 
     public static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {

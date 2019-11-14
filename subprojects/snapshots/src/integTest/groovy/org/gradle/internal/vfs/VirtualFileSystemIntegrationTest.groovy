@@ -19,7 +19,6 @@ package org.gradle.internal.vfs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY
-import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 class VirtualFileSystemIntegrationTest extends AbstractIntegrationSpec {
@@ -27,7 +26,6 @@ class VirtualFileSystemIntegrationTest extends AbstractIntegrationSpec {
     def "long-lived VFS keeps file system information between builds"() {
         executer.beforeExecute {
             executer.withArguments(
-                "-D${VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY}",
                 "-D${VFS_RETENTION_ENABLED_PROPERTY}"
             )
         }
