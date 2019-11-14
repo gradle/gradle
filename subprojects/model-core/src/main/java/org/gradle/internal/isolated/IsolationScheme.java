@@ -41,6 +41,9 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
      */
     @Nullable
     public <T extends IMPLEMENTATION, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
+        if (implementationType == interfaceType) {
+            return null;
+        }
         ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(interfaceType).getType();
         Class<P> parametersType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
         if (parametersType == paramsType) {

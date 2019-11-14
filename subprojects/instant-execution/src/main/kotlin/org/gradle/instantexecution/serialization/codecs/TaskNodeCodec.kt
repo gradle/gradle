@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -30,6 +31,8 @@ import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildService
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
@@ -80,7 +83,7 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeTask(task: Task) {
+    suspend fun WriteContext.writeTask(task: TaskInternal) {
         val taskType = GeneratedSubclasses.unpack(task.javaClass)
         writeClass(taskType)
         writeString(task.project.path)
@@ -91,6 +94,7 @@ class TaskNodeCodec(
                 writeStateOf(task)
                 writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
             }
+            writeRegisteredServicesOf(task)
         }
     }
 
@@ -107,9 +111,22 @@ class TaskNodeCodec(
                 readStateOf(task)
                 readRegisteredPropertiesOf(task)
             }
+            readRegisteredServicesOf(task)
         }
 
         return task
+    }
+
+    private
+    suspend fun WriteContext.writeRegisteredServicesOf(task: TaskInternal) {
+        writeCollection(task.requiredServices)
+    }
+
+    private
+    suspend fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
+        readCollection {
+            task.usesService(read() as Provider<out BuildService<*>>)
+        }
     }
 
     /**
@@ -366,4 +383,4 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 private
 fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
-    getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass)
+    getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass) as TaskInternal

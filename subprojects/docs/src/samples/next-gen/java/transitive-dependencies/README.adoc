@@ -1,4 +1,4 @@
-= {sample-displayName} Sample
+= Java Transitive Dependencies Sample
 
 ifndef::env-github[]
 [.download]

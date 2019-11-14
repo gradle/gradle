@@ -242,11 +242,10 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         TaskDependencyResolver dependencyResolver,
         ListenerBroadcast<TaskExecutionListener> taskListeners,
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
-        SharedResourceLeaseRegistry sharedResourceRegistry,
         ProjectStateRegistry projectStateRegistry,
         ServiceRegistry gradleScopedServices
     ) {
-        return new DefaultTaskExecutionGraph(planExecutor, nodeExecutors, buildOperationExecutor, listenerBuildOperationDecorator, coordinationService, gradleInternal, taskNodeFactory, dependencyResolver, graphListeners, taskListeners, sharedResourceRegistry, projectStateRegistry, gradleScopedServices);
+        return new DefaultTaskExecutionGraph(planExecutor, nodeExecutors, buildOperationExecutor, listenerBuildOperationDecorator, coordinationService, gradleInternal, taskNodeFactory, dependencyResolver, graphListeners, taskListeners, projectStateRegistry, gradleScopedServices);
     }
 
     ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
@@ -278,8 +277,8 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new SplitFileContentCacheFactory(globalCacheFactory, localCacheFactory, wellKnownFileLocations);
     }
 
-    BuildServiceRegistryInternal createSharedServiceRegistry(Instantiator instantiator, DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory) {
-        return instantiator.newInstance(DefaultBuildServicesRegistry.class, factory, instantiatorFactory, services, listenerManager, isolatableFactory);
+    BuildServiceRegistryInternal createSharedServiceRegistry(Instantiator instantiator, DomainObjectCollectionFactory factory, InstantiatorFactory instantiatorFactory, ServiceRegistry services, ListenerManager listenerManager, IsolatableFactory isolatableFactory, SharedResourceLeaseRegistry sharedResourceLeaseRegistry) {
+        return instantiator.newInstance(DefaultBuildServicesRegistry.class, factory, instantiatorFactory, services, listenerManager, isolatableFactory, sharedResourceLeaseRegistry);
     }
 
     protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
