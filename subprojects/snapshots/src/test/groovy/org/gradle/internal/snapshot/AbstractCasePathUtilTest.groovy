@@ -22,11 +22,11 @@ import spock.lang.Unroll
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
-import static org.gradle.internal.snapshot.PathUtil.compareToChildOfOrThis
+import static org.gradle.internal.snapshot.PathUtil.compareToPrefix
 import static org.gradle.internal.snapshot.PathUtil.compareWithCommonPrefix
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
-import static org.gradle.internal.snapshot.PathUtil.isChildOfOrThis
+import static org.gradle.internal.snapshot.PathUtil.isPrefix
 import static org.gradle.internal.snapshot.PathUtil.sizeOfCommonPrefix
 
 @Unroll
@@ -90,7 +90,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "#prefix is child of or this of #path at offset #offset: #result"() {
         expect:
-        isChildOfOrThis(prefix, path, offset, caseSensitivity)
+        isPrefix(prefix, path, offset, caseSensitivity)
         sizeOfCommonPrefix(prefix, path, offset, caseSensitivity) == prefix.length()
 
         where:
@@ -111,7 +111,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "can compare to child of this"() {
         expect:
-        Integer.signum(compareToChildOfOrThis(prefix, path, offset, caseSensitivity)) == result
+        Integer.signum(compareToPrefix(prefix, path, offset, caseSensitivity)) == result
         if (result) {
             assert Integer.signum(prefix <=> path.substring(offset)) == result
         }
@@ -147,7 +147,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
         expect:
         SearchUtil.binarySearch(children) { child ->
-            compareToChildOfOrThis(child, spec.searchedPrefix, 0, caseSensitivity)
+            compareToPrefix(child, spec.searchedPrefix, 0, caseSensitivity)
         } == spec.expectedIndex
 
         where:

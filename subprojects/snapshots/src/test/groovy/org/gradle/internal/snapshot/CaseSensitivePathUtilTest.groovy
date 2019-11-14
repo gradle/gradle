@@ -19,7 +19,7 @@ package org.gradle.internal.snapshot
 import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
-import static org.gradle.internal.snapshot.PathUtil.compareToChildOfOrThis
+import static org.gradle.internal.snapshot.PathUtil.compareToPrefix
 import static org.gradle.internal.snapshot.PathUtil.compareWithCommonPrefix
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
 
@@ -33,7 +33,7 @@ class CaseSensitivePathUtilTest extends AbstractCasePathUtilTest {
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i]
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                compareToChildOfOrThis(child, searchedChild, 0, CASE_SENSITIVE)
+                compareToPrefix(child, searchedChild, 0, CASE_SENSITIVE)
             }
             assert foundIndex == i
         }

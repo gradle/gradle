@@ -61,7 +61,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         String normalizedPath = normalizeRoot(absolutePath);
         int offset = determineOffset(absolutePath);
         String pathToParent = rootNode.getPathToParent();
-        if (!PathUtil.isChildOfOrThis(pathToParent, normalizedPath, offset, caseSensitivity)) {
+        if (!PathUtil.isPrefix(pathToParent, normalizedPath, offset, caseSensitivity)) {
             return Optional.empty();
         }
         return rootNode.getSnapshot(normalizedPath, pathToParent.length() + offset + PathUtil.descendantChildOffset(pathToParent), caseSensitivity);

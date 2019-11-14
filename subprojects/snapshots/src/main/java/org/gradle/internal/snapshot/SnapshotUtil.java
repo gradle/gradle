@@ -27,8 +27,8 @@ import java.util.function.Supplier;
 public class SnapshotUtil {
     /**
      * If a node has fewer children, we use a linear search for the child.
-     * We use this limit since {@link PathUtil#compareToChildOfOrThis(String, String, int, CaseSensitivity)}
-     * is about twice as slow as {@link PathUtil#isChildOfOrThis(String, String, int, CaseSensitivity)},
+     * We use this limit since {@link PathUtil#compareToPrefix(String, String, int, CaseSensitivity)}
+     * is about twice as slow as {@link PathUtil#isPrefix(String, String, int, CaseSensitivity)},
      * so comparing the searched path to all of the children is actually faster than doing a binary search.
      */
     private static final int MINIMUM_CHILD_NUMBER_FOR_BINARY_SEARCH = 10;
@@ -40,29 +40,29 @@ public class SnapshotUtil {
                 return noChildFoundResult.get();
             case 1:
                 FileSystemNode onlyChild = children.get(0);
-                return PathUtil.isChildOfOrThis(onlyChild.getPathToParent(), filePath, offset, caseSensitivity)
+                return PathUtil.isPrefix(onlyChild.getPathToParent(), filePath, offset, caseSensitivity)
                     ? getSnapshotFromChild(filePath, offset, onlyChild, caseSensitivity)
                     : noChildFoundResult.get();
             case 2:
                 FileSystemNode firstChild = children.get(0);
                 FileSystemNode secondChild = children.get(1);
-                if (PathUtil.isChildOfOrThis(firstChild.getPathToParent(), filePath, offset, caseSensitivity)) {
+                if (PathUtil.isPrefix(firstChild.getPathToParent(), filePath, offset, caseSensitivity)) {
                     return getSnapshotFromChild(filePath, offset, firstChild, caseSensitivity);
                 }
-                if (PathUtil.isChildOfOrThis(secondChild.getPathToParent(), filePath, offset, caseSensitivity)) {
+                if (PathUtil.isPrefix(secondChild.getPathToParent(), filePath, offset, caseSensitivity)) {
                     return getSnapshotFromChild(filePath, offset, secondChild, caseSensitivity);
                 }
                 return noChildFoundResult.get();
             default:
                 if (numberOfChildren < MINIMUM_CHILD_NUMBER_FOR_BINARY_SEARCH) {
                     for (FileSystemNode currentChild : children) {
-                        if (PathUtil.isChildOfOrThis(currentChild.getPathToParent(), filePath, offset, caseSensitivity)) {
+                        if (PathUtil.isPrefix(currentChild.getPathToParent(), filePath, offset, caseSensitivity)) {
                             return getSnapshotFromChild(filePath, offset, currentChild, caseSensitivity);
                         }
                     }
                     return noChildFoundResult.get();
                 } else {
-                    int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToChildOfOrThis(child.getPathToParent(), filePath, offset, caseSensitivity));
+                    int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToPrefix(child.getPathToParent(), filePath, offset, caseSensitivity));
                     return foundChild >= 0
                         ? getSnapshotFromChild(filePath, offset, children.get(foundChild), caseSensitivity)
                         : noChildFoundResult.get();
