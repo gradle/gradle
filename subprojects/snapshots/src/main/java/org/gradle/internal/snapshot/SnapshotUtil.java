@@ -25,6 +25,13 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class SnapshotUtil {
+    /**
+     * If a node has fewer children, we use a linear search for the child.
+     * We use this limit since {@link PathUtil#compareToChildOfOrThis(String, String, int, CaseSensitivity)}
+     * is about twice as slow as {@link PathUtil#isChildOfOrThis(String, String, int, CaseSensitivity)},
+     * so comparing the searched path to all of the children is actually faster than doing a binary search.
+     */
+    private static final int MINIMUM_CHILD_NUMBER_FOR_BINARY_SEARCH = 10;
 
     public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, String filePath, int offset, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
         int numberOfChildren = children.size();
@@ -47,7 +54,7 @@ public class SnapshotUtil {
                 }
                 return noChildFoundResult.get();
             default:
-                if (numberOfChildren < 10) {
+                if (numberOfChildren < MINIMUM_CHILD_NUMBER_FOR_BINARY_SEARCH) {
                     for (FileSystemNode currentChild : children) {
                         if (PathUtil.isChildOfOrThis(currentChild.getPathToParent(), filePath, offset, caseSensitivity)) {
                             return getSnapshotFromChild(filePath, offset, currentChild, caseSensitivity);
