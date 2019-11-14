@@ -28,7 +28,7 @@ class SnapshotUtilTest extends Specification {
         def child = mockChild(pathToParent)
 
         when:
-        def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, absolutePath, offset, CASE_SENSITIVE)
+        def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, new OffsetRelativePath(absolutePath, offset), CASE_SENSITIVE)
         then:
         foundSnapshot.present
         1 * child.snapshot >> Optional.of(Mock(MetadataSnapshot))
@@ -42,12 +42,13 @@ class SnapshotUtilTest extends Specification {
 
     def "getSnapshotFromChild queries child when queried at the path in child"() {
         def child = mockChild(pathToParent)
+        def relativePath = new OffsetRelativePath(absolutePath, offset)
 
         when:
-        def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, absolutePath, offset, CASE_SENSITIVE)
+        def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, relativePath, CASE_SENSITIVE)
         then:
         foundSnapshot.present
-        1 * child.getSnapshot(absolutePath, offset + pathToParent.length() + childOffset, CASE_SENSITIVE) >> Optional.of(Mock(MetadataSnapshot))
+        1 * child.getSnapshot(relativePath.withNewOffset(pathToParent.length() + childOffset), CASE_SENSITIVE) >> Optional.of(Mock(MetadataSnapshot))
 
         where:
         absolutePath                    | offset                     | pathToParent | childOffset
@@ -61,12 +62,13 @@ class SnapshotUtilTest extends Specification {
         def child = mockChild(pathToParent)
         def snapshot = Mock(MetadataSnapshot)
         def updatedChild = mockChild(pathToParent)
+        def relativePath = new OffsetRelativePath(absolutePath, offset)
 
         when:
-        def resultRoot = SnapshotUtil.storeSingleChild(child, absolutePath, offset, CASE_SENSITIVE, snapshot)
+        def resultRoot = SnapshotUtil.storeSingleChild(child, relativePath, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.is updatedChild
-        1 * child.store(absolutePath, offset + pathToParent.length() + childOffset, CASE_SENSITIVE, snapshot) >> updatedChild
+        1 * child.store(relativePath.withNewOffset(pathToParent.length() + childOffset), CASE_SENSITIVE, snapshot) >> updatedChild
 
         where:
         absolutePath                    | offset                     | pathToParent | childOffset
@@ -79,12 +81,13 @@ class SnapshotUtilTest extends Specification {
     def "invalidateSingleChild uses offset #childOffset for path #absolutePath in child #pathToParent"() {
         def child = mockChild(pathToParent)
         def invalidatedChild = mockChild(pathToParent)
+        def relativePath = new OffsetRelativePath(absolutePath, offset)
 
         when:
-        def resultRoot = SnapshotUtil.invalidateSingleChild(child, absolutePath, offset, CASE_SENSITIVE).get()
+        def resultRoot = SnapshotUtil.invalidateSingleChild(child, relativePath, CASE_SENSITIVE).get()
         then:
         resultRoot.is invalidatedChild
-        1 * child.invalidate(absolutePath, offset + pathToParent.length() + childOffset, CASE_SENSITIVE) >> Optional.of(invalidatedChild)
+        1 * child.invalidate(relativePath.withNewOffset(pathToParent.length() + childOffset), CASE_SENSITIVE) >> Optional.of(invalidatedChild)
 
         where:
         absolutePath                    | offset                     | pathToParent | childOffset

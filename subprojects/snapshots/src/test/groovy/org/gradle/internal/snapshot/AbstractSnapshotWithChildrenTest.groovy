@@ -26,8 +26,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
     NODE initialRoot
     List<CHILD> children
-    String absolutePath
-    int offset
+    OffsetRelativePath relativePath
 
     /**
      * The child, if any, which has a common prefix with the selected path, i.e. (absolutePath/offset).
@@ -41,8 +40,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     void setupTest(VirtualFileSystemTestSpec spec) {
         this.children = createChildren(spec.childPaths)
         this.initialRoot = createInitialRootNode("path/to/parent", children)
-        this.absolutePath = spec.absolutePath
-        this.offset = spec.offset
+        this.relativePath = new OffsetRelativePath(spec.absolutePath, spec.offset)
         this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
     }
 
@@ -74,18 +72,18 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
 
     private int getInsertionPoint() {
         int childIndex = SearchUtil.binarySearch(children) {
-            candidate -> PathUtil.compareFirstSegment(absolutePath, offset, candidate.pathToParent, CASE_SENSITIVE)
+            candidate -> relativePath.compareFirstSegment(candidate.pathToParent, CASE_SENSITIVE)
         }
         assert childIndex < 0
         return -childIndex - 1
     }
 
     String getCommonPrefix() {
-        return selectedChild.pathToParent.substring(0, PathUtil.lengthOfCommonPrefix(selectedChild.pathToParent, absolutePath, offset, CASE_SENSITIVE))
+        return selectedChild.pathToParent.substring(0, relativePath.lengthOfCommonPrefix(selectedChild.pathToParent, CASE_SENSITIVE))
     }
 
     String getPathFromCommonPrefix() {
-        return absolutePath.substring(offset + commonPrefix.length() + 1)
+        return relativePath.withNewOffset(commonPrefix.length() + 1).asString
     }
 
     String getSelectedChildPathFromCommonPrefix() {
@@ -93,13 +91,13 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
-        def descendantOffset = offset + selectedChild.pathToParent.length() + 1
-        1 * selectedChild.getSnapshot(absolutePath, descendantOffset, CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
+        def descendantOffset = selectedChild.pathToParent.length() + 1
+        1 * selectedChild.getSnapshot(relativePath.withNewOffset(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
     }
 
     def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {
-        def descendantOffset = offset + selectedChild.pathToParent.length() + 1
-        1 * selectedChild.invalidate(absolutePath, descendantOffset, CASE_SENSITIVE) >> Optional.ofNullable(invalidatedChild)
+        def descendantOffset = selectedChild.pathToParent.length() + 1
+        1 * selectedChild.invalidate(relativePath.withNewOffset(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(invalidatedChild)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")

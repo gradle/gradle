@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
-import org.gradle.internal.snapshot.PathUtil;
+import org.gradle.internal.snapshot.OffsetRelativePath;
 
 import java.util.Optional;
 
@@ -36,9 +36,8 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     private final CaseSensitivity caseSensitivity;
 
     public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot, CaseSensitivity caseSensitivity) {
-        String normalizedPath = normalizeRoot(absolutePath);
-        int offset = determineOffset(absolutePath);
-        return new DefaultFileHierarchySet(snapshot.asFileSystemNode(offset == 0 ? normalizedPath : normalizedPath.substring(offset)), caseSensitivity);
+        OffsetRelativePath relativePath = getRelativePath(absolutePath);
+        return new DefaultFileHierarchySet(snapshot.asFileSystemNode(relativePath.getAsString()), caseSensitivity);
     }
 
     private DefaultFileHierarchySet(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
@@ -59,27 +58,31 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
 
     @Override
     public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
-        String normalizedPath = normalizeRoot(absolutePath);
-        int offset = determineOffset(absolutePath);
+        OffsetRelativePath relativePath = getRelativePath(absolutePath);
         String pathToParent = rootNode.getPathToParent();
-        if (!PathUtil.hasPrefix(pathToParent, normalizedPath, offset, caseSensitivity)) {
+        if (!relativePath.hasPrefix(pathToParent, caseSensitivity)) {
             return Optional.empty();
         }
-        return getSnapshotFromChild(rootNode, normalizedPath, offset, caseSensitivity);
+        return getSnapshotFromChild(rootNode, relativePath, caseSensitivity);
     }
 
     @Override
     public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
-        String normalizedPath = normalizeRoot(absolutePath);
-        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), caseSensitivity, snapshot), caseSensitivity);
+        OffsetRelativePath relativePath = getRelativePath(absolutePath);
+        return new DefaultFileHierarchySet(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot), caseSensitivity);
     }
 
     @Override
     public FileHierarchySet invalidate(String absolutePath) {
-        String normalizedPath = normalizeRoot(absolutePath);
-        return invalidateSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), caseSensitivity)
+        OffsetRelativePath relativePath = getRelativePath(absolutePath);
+        return invalidateSingleChild(rootNode, relativePath, caseSensitivity)
             .<FileHierarchySet>map(newRootNode -> new DefaultFileHierarchySet(newRootNode, caseSensitivity))
             .orElse(empty());
+    }
+
+    private static OffsetRelativePath getRelativePath(String absolutePath) {
+        String normalizedRoot = normalizeRoot(absolutePath);
+        return new OffsetRelativePath(normalizedRoot, determineOffset(normalizedRoot));
     }
 
     private static int determineOffset(String absolutePath) {
