@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 public class SnapshotUtil {
     /**
      * If a node has fewer children, we use a linear search for the child.
-     * We use this limit since {@link PathUtil#compareToPrefix(String, String, int, CaseSensitivity)}
+     * We use this limit since {@link PathUtil#compareWithCommonPrefix(String, String, int, CaseSensitivity)}
      * is about twice as slow as {@link PathUtil#hasPrefix(String, String, int, CaseSensitivity)},
      * so comparing the searched path to all of the children is actually faster than doing a binary search.
      */
@@ -62,8 +62,8 @@ public class SnapshotUtil {
                     }
                     return noChildFoundResult.get();
                 } else {
-                    int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareToPrefix(child.getPathToParent(), filePath, offset, caseSensitivity));
-                    return foundChild >= 0
+                    int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareWithCommonPrefix(child.getPathToParent(), filePath, offset, caseSensitivity));
+                    return (foundChild >= 0 && PathUtil.hasPrefix(children.get(foundChild).getPathToParent(), filePath, offset, caseSensitivity))
                         ? getSnapshotFromChild(filePath, offset, children.get(foundChild), caseSensitivity)
                         : noChildFoundResult.get();
                 }

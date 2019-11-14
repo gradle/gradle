@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 
 import java.io.File;
 import java.util.Comparator;
-import java.util.function.IntUnaryOperator;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -77,8 +76,8 @@ public class PathUtil {
      */
     private static final char OTHER_SEPARATOR = IS_WINDOWS_SEPARATOR ? UNIX_SEPARATOR : WINDOWS_SEPARATOR;
 
-    private static final Comparator<String> CASE_SENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, CASE_SENSITIVE);
-    private static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, 0, CASE_INSENSITIVE);
+    private static final Comparator<String> CASE_SENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, CASE_SENSITIVE);
+    private static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = (path1, path2) -> comparePaths(path1, path2, CASE_INSENSITIVE);
 
     /**
      * Whether the given char is a file separator.
@@ -279,61 +278,25 @@ public class PathUtil {
         return endOfThisSegment == pathLength || isFileSeparator(absolutePath.charAt(endOfThisSegment));
     }
 
-    /**
-     * Determines whether a relative path has the given prefix,
-     * and returns the comparison of prefix and the path if it has not.
-     *
-     * Similar to {@link #hasPrefix}, only that it returns whether the path is bigger or smaller than the prefix.
-     *
-     * Examples:
-     *   some/start == some/start/subpath
-     *   some/start == some/start
-     *   some/a     < some/start
-     *   some/b     > some/a
-     *
-     * @param prefix prefix to compare to
-     * @param absolutePath + offset: the relative path tested for whether it has the prefix
-     */
-    public static int compareToPrefix(String prefix, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
-        int pathLength = absolutePath.length();
-        int prefixLength = prefix.length();
-        int endOfThisSegment = prefixLength + offset;
-        if (pathLength < endOfThisSegment) {
-            return comparePaths(prefix, absolutePath, offset, caseSensitivity);
-        }
-        return comparePathRegions(prefix, absolutePath, offset, prefixLength, caseSensitivity == CASE_SENSITIVE,
-            accumulatedValue -> endOfThisSegment == pathLength || isFileSeparator(absolutePath.charAt(endOfThisSegment))
-                ? accumulatedValue
-                : -1);
-    }
-
-    private static int comparePaths(String relativePath, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
-        int maxPos = Math.min(relativePath.length(), absolutePath.length() - offset);
-        return comparePathRegions(relativePath, absolutePath, offset, maxPos, caseSensitivity == CASE_SENSITIVE,
-            accumulatedValue -> {
-                int lengthCompare = Integer.compare(relativePath.length(), absolutePath.length() - offset);
-                return lengthCompare != 0
-                    ? lengthCompare
-                    : accumulatedValue;
-            }
-        );
-    }
-
-    private static int comparePathRegions(String relativePath, String absolutePath, int offset, int maxPos, boolean caseSensitive, IntUnaryOperator andThenCompare) {
+    private static int comparePaths(String relativePath, String absolutePath, CaseSensitivity caseSensitivity) {
+        int maxPos = Math.min(relativePath.length(), absolutePath.length());
         int accumulatedValue = 0;
         for (int pos = 0; pos < maxPos; pos++) {
             char charInPath1 = relativePath.charAt(pos);
-            char charInPath2 = absolutePath.charAt(pos + offset);
+            char charInPath2 = absolutePath.charAt(pos);
             int comparedChars = compareCharsIgnoringCase(charInPath1, charInPath2);
             if (comparedChars != 0) {
                 return comparedChars;
             }
-            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, caseSensitive);
+            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, caseSensitivity == CASE_SENSITIVE);
             if (accumulatedValue != 0 && isFileSeparator(charInPath1)) {
                 return accumulatedValue;
             }
         }
-        return andThenCompare.applyAsInt(accumulatedValue);
+        int lengthCompare = Integer.compare(relativePath.length(), absolutePath.length());
+        return lengthCompare != 0
+            ? lengthCompare
+            : accumulatedValue;
     }
 
     private static int computeCombinedCompare(int previousCombinedValue, char charInPath1, char charInPath2, boolean caseSensitive) {
