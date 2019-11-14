@@ -37,23 +37,37 @@ public abstract class SearchUtil {
      *         and only if the key is found.
      */
     public static <T> int binarySearch(List<T> sortedElements, SearchForComparator<T> searchForComparator) {
-        int low = 0;
-        int high = sortedElements.size() - 1;
+        int size = sortedElements.size();
+        switch (size) {
+            case 0:
+                return -1;
+            case 1:
+                T onlyElement = sortedElements.get(0);
+                int comparedToSearch = searchForComparator.compare(onlyElement);
+                return comparedToSearch == 0
+                    ? 0
+                    : comparedToSearch < 0
+                        ? -2
+                        : -1;
+            default:
+                int low = 0;
+                int high = size - 1;
 
-        while (low <= high) {
-            int mid = (low + high) >>> 1;
-            T midVal = sortedElements.get(mid);
-            int cmp = searchForComparator.compare(midVal);
+                while (low <= high) {
+                    int mid = (low + high) >>> 1;
+                    T midVal = sortedElements.get(mid);
+                    int cmp = searchForComparator.compare(midVal);
 
-            if (cmp < 0) {
-                low = mid + 1;
-            } else if (cmp > 0) {
-                high = mid - 1;
-            } else {
-                return mid; // key found
-            }
+                    if (cmp < 0) {
+                        low = mid + 1;
+                    } else if (cmp > 0) {
+                        high = mid - 1;
+                    } else {
+                        return mid; // key found
+                    }
+                }
+                return -(low + 1);  // key not found
         }
-        return -(low + 1);  // key not found
     }
 
     public interface SearchForComparator<T> {
