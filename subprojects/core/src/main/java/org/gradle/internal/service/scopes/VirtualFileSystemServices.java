@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
@@ -79,6 +78,8 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     /**
@@ -117,9 +118,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         if (changeList == null) {
             return ImmutableSet.of();
         }
-        return Splitter.on(',')
-            .omitEmptyStrings()
-            .split(changeList);
+        return Stream.of(changeList.split(","))
+            .filter(path -> !path.isEmpty())
+            .map(path -> new File(path).getAbsolutePath())
+            .collect(Collectors.toList());
     }
 
     @Nullable
