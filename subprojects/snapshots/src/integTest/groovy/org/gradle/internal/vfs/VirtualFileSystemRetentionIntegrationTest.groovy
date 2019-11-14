@@ -23,13 +23,6 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_R
 
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
 
-    @Override
-    def setup() {
-        executer.beforeExecute {
-            executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
-        }
-    }
-
     def "source file changes are recognized after change is injected"() {
         buildFile << """
             apply plugin: "application"
@@ -41,21 +34,21 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        run "run"
+        withRetentionRun "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        run "run"
+        withRetentionRun "run"
         then:
         outputContains "Hello World!"
         skipped(":compileJava", ":processResources", ":classes")
         executedAndNotSkipped ":run"
 
         when:
-        run "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${mainSourceFile.absolutePath}"
+        withRetentionRun "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${mainSourceFile.absolutePath}"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -70,18 +63,18 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        run "hello"
+        withRetentionRun "hello"
         then:
         outputContains "Hello from original task!"
 
         when:
         taskSourceFile.text = taskWithGreeting("Hello from modified task!")
-        run "hello"
+        withRetentionRun "hello"
         then:
         outputContains "Hello from original task!"
 
         when:
-        run "hello", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${taskSourceFile.absolutePath}"
+        withRetentionRun "hello", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${taskSourceFile.absolutePath}"
         then:
         outputContains "Hello from modified task!"
     }
@@ -91,7 +84,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildFile.text = """
             println "Hello from the build!"
         """
-        run "help"
+        withRetentionRun "help"
         then:
         outputContains "Hello from the build!"
 
@@ -99,7 +92,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildFile.text = """
             println "Hello from the modified build!"
         """
-        run "help"
+        withRetentionRun "help"
         then:
         outputContains "Hello from the modified build!"
     }
@@ -109,7 +102,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         settingsFile.text = """
             println "Hello from settings!"
         """
-        run "help"
+        withRetentionRun "help"
         then:
         outputContains "Hello from settings!"
 
@@ -117,9 +110,66 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         settingsFile.text = """
             println "Hello from modified settings!"
         """
-        run "help"
+        withRetentionRun "help"
         then:
         outputContains "Hello from modified settings!"
+    }
+
+    def "source file changes are recognized when retention has just been enabled"() {
+        buildFile << """
+            apply plugin: "application"
+            
+            application.mainClassName = "Main"
+        """
+
+        def mainSourceFile = file("src/main/java/Main.java")
+        mainSourceFile.text = sourceFileWithGreeting("Hello World!")
+
+        when:
+        withoutRetentionRun "run"
+        then:
+        outputContains "Hello World!"
+        executedAndNotSkipped ":compileJava", ":classes", ":run"
+
+        when:
+        mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
+        withRetentionRun "run"
+        then:
+        outputContains "Hello VFS!"
+        executedAndNotSkipped ":compileJava", ":classes", ":run"
+    }
+
+    def "source file changes are recognized when retention has just been disabled"() {
+        buildFile << """
+            apply plugin: "application"
+            
+            application.mainClassName = "Main"
+        """
+
+        def mainSourceFile = file("src/main/java/Main.java")
+        mainSourceFile.text = sourceFileWithGreeting("Hello World!")
+
+        when:
+        withRetentionRun "run"
+        then:
+        outputContains "Hello World!"
+        executedAndNotSkipped ":compileJava", ":classes", ":run"
+
+        when:
+        mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
+        withoutRetentionRun "run"
+        then:
+        outputContains "Hello VFS!"
+        executedAndNotSkipped ":compileJava", ":classes", ":run"
+    }
+
+    private void withRetentionRun(String... tasks) {
+        executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
+        run tasks
+    }
+
+    private void withoutRetentionRun(String... tasks) {
+        run tasks
     }
 
     private static String sourceFileWithGreeting(String greeting) {
