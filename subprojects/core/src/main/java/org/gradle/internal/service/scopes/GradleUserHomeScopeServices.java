@@ -88,6 +88,7 @@ import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -169,7 +170,7 @@ public class GradleUserHomeScopeServices {
         FileSystem fileSystem,
         ListenerManager listenerManager
     ) {
-        VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, fileSystem.isCaseSensitive(), DirectoryScanner.getDefaultExcludes());
+        VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, DirectoryScanner.getDefaultExcludes());
         listenerManager.addListener(new OutputChangeListener() {
             @Override
             public void beforeOutputChange() {

@@ -50,11 +50,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
-    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, boolean caseSensitive, String... defaultExcludes) {
+    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, String... defaultExcludes) {
         this.stat = stat;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
         this.hasher = hasher;
-        this.root = new AtomicReference<>(DefaultFileHierarchySet.empty(caseSensitive ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE));
+        this.root = new AtomicReference<>(DefaultFileHierarchySet.empty(caseSensitivity));
     }
 
     @Override
