@@ -126,7 +126,7 @@ public class PathUtil {
             insensitiveChar1 = Character.toLowerCase(insensitiveChar1);
             insensitiveChar2 = Character.toLowerCase(insensitiveChar2);
             if (insensitiveChar1 != insensitiveChar2) {
-                return insensitiveChar1 - insensitiveChar2;
+                return Character.compare(insensitiveChar1, insensitiveChar2);
             }
         }
         return 0;
@@ -143,7 +143,7 @@ public class PathUtil {
                 : -1
             : isFileSeparator(char2)
                 ? 1
-                : char1 - char2;
+                : Character.compare(char1, char2);
     }
 
     @VisibleForTesting
