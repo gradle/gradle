@@ -26,15 +26,15 @@ class IgnoreWithInstantExecutionExtension extends AbstractAnnotationDrivenExtens
 
     @Override
     void visitSpecAnnotation(IgnoreWithInstantExecution annotation, SpecInfo spec) {
-        spec.features.each { feature ->
-            visitFeatureAnnotation(annotation, feature)
+        if (GradleContextualExecuter.isInstant()) {
+            spec.skipped = true
         }
     }
 
     @Override
     void visitFeatureAnnotation(IgnoreWithInstantExecution annotation, FeatureInfo feature) {
         if (GradleContextualExecuter.isInstant()) {
-            // feature.skipped = true
+            feature.skipped = true
         }
     }
 }
