@@ -59,12 +59,6 @@ class AbstractIntegrationSpec extends Specification {
     @Rule
     final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    @Rule
-    public final IgnoreWithInstantExecutionRule ignoreWithInstantExecution = new IgnoreWithInstantExecutionRule();
-
-    @Rule
-    public final FailsWithInstantExecutionRule failsWithInstantExecution = new FailsWithInstantExecutionRule();
-
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     GradleExecuter executer = createExecuter()
 
