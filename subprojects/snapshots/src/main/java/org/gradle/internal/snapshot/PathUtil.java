@@ -31,7 +31,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
  * There are methods for checking equality and for comparing two paths.
  * All methods for equality and comparing need to be called with the correct case-sensitivity according to the underlying file system.
  *
- * For comparing, the order is defined in a way that if a list of paths is sorted on a case-insensitive file system it is also sorted on a case-sensitive file system.
+ * For comparing, a list of paths is sorted in the same order on a case-insensitive and a case-sensitive file system.
  * We do this so the order of the children of directory snapshots is stable across builds.
  *
  * The order is as follows:
