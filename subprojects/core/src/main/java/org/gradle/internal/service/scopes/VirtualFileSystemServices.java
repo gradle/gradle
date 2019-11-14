@@ -82,12 +82,12 @@ import java.util.Map;
 
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     /**
-     * System property to enable feature preview for partial invalidation.
+     * System property to enable partial invalidation.
      */
     public static final String VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.partial-invalidation";
 
     /**
-     * System property to enable feature preview for retaining VFS state between builds.
+     * System property to enable retaining VFS state between builds.
      *
      * Also enables partial VFS invalidation.
      *
