@@ -32,7 +32,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: 'java-library'
-            
+
             allprojects {
                 repositories {
                     maven { url "${mavenHttpRepo.uri}" }
@@ -506,6 +506,44 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         'runtime' | 'runtime'
     }
 
+    def "Can handle a published platform dependency that is resolved to a local platform project"() {
+        given:
+        file("src/main/java/SomeClass.java") << "public class SomeClass {}"
+        platformModule('')
+        mavenHttpRepo.module("org.test", "platform", "1.9").withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }.publish()
+        def moduleA = mavenHttpRepo.module("org.test", "b", "1.9").withModuleMetadata().withVariant("runtime") {
+            dependsOn("org.test", "platform", "1.9", null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+        }.withVariant("api") {
+            dependsOn("org.test", "platform", "1.9", null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+        }.publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                implementation platform(project(":platform"))
+                implementation "org.test:b:1.9"
+            }
+        """
+
+
+        moduleA.pom.expectGet()
+        moduleA.moduleMetadata.expectGet()
+        moduleA.artifact.expectGet()
+
+        then:
+        succeeds ":compileJava"
+    }
+
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)
         resolve.expectDefaultConfiguration("compile")
@@ -520,7 +558,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             plugins {
                 id 'java-platform'
             }
-            
+
             dependencies {
                 $dependencies
             }
