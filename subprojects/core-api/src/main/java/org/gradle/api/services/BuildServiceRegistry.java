@@ -45,7 +45,4 @@ public interface BuildServiceRegistry {
      * @return A {@link Provider} that will create the service instance when queried.
      */
     <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction);
-
-    // TODO - remove this once the Gradle build has been updated to a new nightly
-    <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> maybeRegister(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction);
 }
