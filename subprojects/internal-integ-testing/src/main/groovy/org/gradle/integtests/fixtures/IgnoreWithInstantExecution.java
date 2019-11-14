@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * Another example is partially failing unrolled tests.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target(ElementType.METHOD)
 @ExtensionAnnotation(IgnoreWithInstantExecutionExtension.class)
 public @interface IgnoreWithInstantExecution {
 }

@@ -19,17 +19,9 @@ package org.gradle.integtests.fixtures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.model.FeatureInfo
-import org.spockframework.runtime.model.SpecInfo
 
 
 class IgnoreWithInstantExecutionExtension extends AbstractAnnotationDrivenExtension<IgnoreWithInstantExecution> {
-
-    @Override
-    void visitSpecAnnotation(IgnoreWithInstantExecution annotation, SpecInfo spec) {
-        spec.features.each { feature ->
-            visitFeatureAnnotation(annotation, feature)
-        }
-    }
 
     @Override
     void visitFeatureAnnotation(IgnoreWithInstantExecution annotation, FeatureInfo feature) {

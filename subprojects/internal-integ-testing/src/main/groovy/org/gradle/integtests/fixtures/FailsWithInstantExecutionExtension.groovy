@@ -21,17 +21,9 @@ import org.spockframework.runtime.extension.AbstractAnnotationDrivenExtension
 import org.spockframework.runtime.extension.IMethodInterceptor
 import org.spockframework.runtime.extension.IMethodInvocation
 import org.spockframework.runtime.model.FeatureInfo
-import org.spockframework.runtime.model.SpecInfo
 
 
 class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtension<FailsWithInstantExecution> {
-
-    @Override
-    void visitSpecAnnotation(FailsWithInstantExecution annotation, SpecInfo spec) {
-        spec.features.each { feature ->
-            visitFeatureAnnotation(annotation, feature)
-        }
-    }
 
     @Override
     void visitFeatureAnnotation(FailsWithInstantExecution annotation, FeatureInfo feature) {

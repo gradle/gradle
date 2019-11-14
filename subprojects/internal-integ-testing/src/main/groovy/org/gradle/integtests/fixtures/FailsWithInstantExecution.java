@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * Assert that this test fails when run with instant execution enabled.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target(ElementType.METHOD)
 @ExtensionAnnotation(FailsWithInstantExecutionExtension.class)
 public @interface FailsWithInstantExecution {
 }
