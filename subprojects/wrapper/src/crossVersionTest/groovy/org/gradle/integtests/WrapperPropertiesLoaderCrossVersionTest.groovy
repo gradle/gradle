@@ -37,23 +37,29 @@ class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpe
 
         requireOwnGradleUserHomeDir()
 
-        settingsFile << 'includeBuild "includedBuild"'
+        settingsFile << '''
+            includeBuild 'includedBuild'
+            println("system_property_available in settings.gradle:          ${System.getProperty('system_property_available', 'false')} ")
+        '''
         buildFile << '''
-            println("system_property_available in root:                    ${System.getProperty('system_property_available', 'false')} ")
-            println("project_property_available in root:                   ${project.findProperty('project_property_available') ?: 'false'} ")
+            println("system_property_available in root:                     ${System.getProperty('system_property_available', 'false')} ")
+            println("project_property_available in root:                    ${project.findProperty('project_property_available') ?: 'false'} ")
             task hello { }
         '''
         file('buildSrc/build.gradle') << '''
-            println("system_property_available in buildSrc:                ${System.getProperty('system_property_available', 'false')} ")
-            println("project_property_available in buildSrc:               ${project.findProperty('project_property_available') ?: 'false'} ")
+            println("system_property_available in buildSrc:                 ${System.getProperty('system_property_available', 'false')} ")
+            println("project_property_available in buildSrc:                ${project.findProperty('project_property_available') ?: 'false'} ")
         '''
         file('includedBuild/build.gradle') << '''
-            println("system_property_available in includedBuild root:      ${System.getProperty('system_property_available', 'false')} ")
-            println("project_property_available in includedBuild root:     ${project.findProperty('project_property_available') ?: 'false'} ")
+            println("system_property_available in included root:            ${System.getProperty('system_property_available', 'false')} ")
+            println("project_property_available in included root:           ${project.findProperty('project_property_available') ?: 'false'} ")
+        '''
+        file('includedBuild/settings.gradle') << '''
+            println("system_property_available in included settings.gradle: ${System.getProperty('system_property_available', 'false')} ")
         '''
         file('includedBuild/buildSrc/build.gradle') << '''
-            println("system_property_available in includedBuild buildSrc:  ${System.getProperty('system_property_available', 'false')} ")
-            println("project_property_available in includedBuild buildSrc: ${project.findProperty('project_property_available') ?: 'false'} ")
+            println("system_property_available in included buildSrc:        ${System.getProperty('system_property_available', 'false')} ")
+            println("project_property_available in included buildSrc:       ${project.findProperty('project_property_available') ?: 'false'} ")
         '''
         file('gradle.properties') << '''
             systemProp.system_property_available=true
@@ -67,15 +73,17 @@ class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpe
         String output =  executer.usingExecutable('gradlew').withTasks('hello').run().output
 
         then:
-        output.contains('system_property_available in buildSrc:                true')
-        output.contains('system_property_available in buildSrc:                true')
-        output.contains('project_property_available in buildSrc:               false')
-        output.contains('system_property_available in includedBuild buildSrc:  true')
-        output.contains('project_property_available in includedBuild buildSrc: false')
-        output.contains('system_property_available in includedBuild root:      true')
-        output.contains('project_property_available in includedBuild root:     false')
-        output.contains('system_property_available in root:                    true')
-        output.contains('project_property_available in root:                   true')
+        output.contains('system_property_available in buildSrc:                 true')
+        output.contains('system_property_available in buildSrc:                 true')
+        output.contains('project_property_available in buildSrc:                false')
+        output.contains('system_property_available in included buildSrc:        true')
+        output.contains('project_property_available in included buildSrc:       false')
+        output.contains('system_property_available in included root:            true')
+        output.contains('project_property_available in included root:           false')
+        output.contains('system_property_available in root:                     true')
+        output.contains('project_property_available in root:                    true')
+        output.contains('system_property_available in settings.gradle:          true')
+        output.contains('system_property_available in included settings.gradle: true')
 
         cleanup:
         cleanupDaemons(executer, executionVersion)
