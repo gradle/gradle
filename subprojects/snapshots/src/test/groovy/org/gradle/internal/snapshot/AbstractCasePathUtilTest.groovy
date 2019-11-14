@@ -137,7 +137,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
         (Character.MIN_VALUE..Character.MAX_VALUE).each { currentChar ->
             assert compareCharsIgnoringCase(currentChar as char, currentChar as char) == 0
             assert compareChars(currentChar as char, currentChar as char) == 0
-            assert equalChars(currentChar as char, currentChar as char, caseSensitivity == CaseSensitivity.CASE_SENSITIVE)
+            assert equalChars(currentChar as char, currentChar as char, caseSensitivity)
         }
     }
 
@@ -156,29 +156,27 @@ abstract class AbstractCasePathUtilTest extends Specification{
     def "path separators are equal"() {
         def slash = '/' as char
         def backslash = '\\' as char
-        def caseSensitive = caseSensitivity == CaseSensitivity.CASE_SENSITIVE
 
         expect:
         compareCharsIgnoringCase(slash, backslash) == 0
         compareCharsIgnoringCase(backslash, slash) == 0
         compareChars(slash, backslash) == 0
         compareChars(backslash, slash) == 0
-        equalChars(slash, backslash, caseSensitive)
-        equalChars(backslash, slash, caseSensitive)
+        equalChars(slash, backslash, caseSensitivity)
+        equalChars(backslash, slash, caseSensitivity)
     }
 
     def "can compare path separator chars correctly (#left - #right = #result)"() {
         def char1 = left as char
         def char2 = right as char
-        def caseSensitive = caseSensitivity == CaseSensitivity.CASE_SENSITIVE
 
         expect:
         compareCharsIgnoringCase(char1, char2) == result
         compareCharsIgnoringCase(char2, char1) == -result
         compareChars(char1, char2) == result
         compareChars(char2, char1) == -result
-        equalChars(char1, char2, caseSensitive) == (result == 0)
-        equalChars(char2, char1, caseSensitive) == (result == 0)
+        equalChars(char1, char2, caseSensitivity) == (result == 0)
+        equalChars(char2, char1, caseSensitivity) == (result == 0)
 
         where:
         left | right | result

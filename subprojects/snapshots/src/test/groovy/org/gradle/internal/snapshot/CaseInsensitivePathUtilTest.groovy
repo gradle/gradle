@@ -29,8 +29,8 @@ class CaseInsensitivePathUtilTest extends AbstractCasePathUtilTest {
         char char1 = left as char
         char char2 = right as char
         expect:
-        equalChars(char2, char1, false)
-        equalChars(char1, char2, false)
+        equalChars(char2, char1, CaseSensitivity.CASE_INSENSITIVE)
+        equalChars(char1, char2, CaseSensitivity.CASE_INSENSITIVE)
         compareCharsIgnoringCase(char1, char2) == 0
         compareCharsIgnoringCase(char2, char1) == 0
 
@@ -51,10 +51,10 @@ class CaseInsensitivePathUtilTest extends AbstractCasePathUtilTest {
         compareCharsIgnoringCase(char2, char1) == -caseInsensitiveResult
         compareChars(char1, char2) == Character.compare(char1, char2)
         compareChars(char2, char1) == Character.compare(char2, char1)
-        !equalChars(char1, char2, true)
-        equalChars(char1, char2, false) == (caseInsensitiveResult == 0)
-        !equalChars(char2, char1, true)
-        equalChars(char2, char1, false) == (caseInsensitiveResult == 0)
+        !equalChars(char1, char2, CaseSensitivity.CASE_SENSITIVE)
+        equalChars(char1, char2, CaseSensitivity.CASE_INSENSITIVE) == (caseInsensitiveResult == 0)
+        !equalChars(char2, char1, CaseSensitivity.CASE_SENSITIVE)
+        equalChars(char2, char1, CaseSensitivity.CASE_INSENSITIVE) == (caseInsensitiveResult == 0)
 
         where:
         left | right | result

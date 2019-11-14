@@ -147,14 +147,14 @@ public class PathUtil {
     }
 
     @VisibleForTesting
-    static boolean equalChars(char char1, char char2, boolean caseSensitive) {
+    static boolean equalChars(char char1, char char2, CaseSensitivity caseSensitivity) {
         if (char1 == char2) {
             return true;
         }
         if (isFileSeparator(char1) && isFileSeparator(char2)) {
             return true;
         }
-        if (caseSensitive) {
+        if (caseSensitivity == CASE_SENSITIVE) {
             return false;
         } else {
             return Character.toUpperCase(char1) == Character.toUpperCase(char2) ||
@@ -170,12 +170,11 @@ public class PathUtil {
     public static int sizeOfCommonPrefix(String path1, String path2, int offset, CaseSensitivity caseSensitivity) {
         int pos = 0;
         int lastSeparator = 0;
-        boolean caseSensitive = caseSensitivity == CASE_SENSITIVE;
         int maxPos = Math.min(path1.length(), path2.length() - offset);
         for (; pos < maxPos; pos++) {
             char charInPath1 = path1.charAt(pos);
             char charInPath2 = path2.charAt(pos + offset);
-            if (!equalChars(charInPath1, charInPath2, caseSensitive)) {
+            if (!equalChars(charInPath1, charInPath2, caseSensitivity)) {
                 break;
             }
             if (isFileSeparator(charInPath1)) {
@@ -307,7 +306,6 @@ public class PathUtil {
      * Checks whether the filePath starting at the offset has the given prefix.
      */
     public static boolean isChildOfOrThis(String prefix, String filePath, int offset, CaseSensitivity caseSensitivity) {
-        boolean caseSensitive = caseSensitivity == CASE_SENSITIVE;
         int prefixLength = prefix.length();
         if (prefixLength == 0) {
             return true;
@@ -318,7 +316,7 @@ public class PathUtil {
             return false;
         }
         for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-            if (!equalChars(prefix.charAt(i), filePath.charAt(j), caseSensitive)) {
+            if (!equalChars(prefix.charAt(i), filePath.charAt(j), caseSensitivity)) {
                 return false;
             }
         }
