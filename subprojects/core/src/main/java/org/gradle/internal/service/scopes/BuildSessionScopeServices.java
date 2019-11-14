@@ -95,7 +95,6 @@ import org.gradle.internal.scopeids.id.WorkspaceScopeId;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -108,6 +107,9 @@ import org.gradle.process.internal.ExecFactory;
 
 import java.io.File;
 import java.util.List;
+
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 /**
  * Contains the services for a single build session, which could be a single build or multiple builds when in continuous mode.
@@ -191,7 +193,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         WellKnownFileLocations wellKnownFileLocations,
         ListenerManager listenerManager
     ) {
-        VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, fileSystem.isCaseSensitive() ? CaseSensitivity.CASE_SENSITIVE : CaseSensitivity.CASE_INSENSITIVE, DirectoryScanner.getDefaultExcludes());
+        VirtualFileSystem buildSessionsScopedVirtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE, DirectoryScanner.getDefaultExcludes());
 
         listenerManager.addListener(new OutputChangeListener() {
             @Override

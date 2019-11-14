@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.AbstractIncompleteSnapshotWithChildren
-import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileMetadata
@@ -37,10 +36,12 @@ import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 class DefaultFileHierarchySetTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
-    private static final FileHierarchySet EMPTY = DefaultFileHierarchySet.empty(CaseSensitivity.CASE_SENSITIVE)
+    private static final FileHierarchySet EMPTY = DefaultFileHierarchySet.empty(CASE_SENSITIVE)
 
     DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner())
 

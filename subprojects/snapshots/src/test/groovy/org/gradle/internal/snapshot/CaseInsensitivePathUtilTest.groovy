@@ -18,6 +18,8 @@ package org.gradle.internal.snapshot
 
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
 import static org.gradle.internal.snapshot.PathUtil.equalChars
@@ -29,8 +31,8 @@ class CaseInsensitivePathUtilTest extends AbstractCasePathUtilTest {
         char char1 = left as char
         char char2 = right as char
         expect:
-        equalChars(char2, char1, CaseSensitivity.CASE_INSENSITIVE)
-        equalChars(char1, char2, CaseSensitivity.CASE_INSENSITIVE)
+        equalChars(char2, char1, CASE_INSENSITIVE)
+        equalChars(char1, char2, CASE_INSENSITIVE)
         compareCharsIgnoringCase(char1, char2) == 0
         compareCharsIgnoringCase(char2, char1) == 0
 
@@ -51,10 +53,10 @@ class CaseInsensitivePathUtilTest extends AbstractCasePathUtilTest {
         compareCharsIgnoringCase(char2, char1) == -caseInsensitiveResult
         compareChars(char1, char2) == Character.compare(char1, char2)
         compareChars(char2, char1) == Character.compare(char2, char1)
-        !equalChars(char1, char2, CaseSensitivity.CASE_SENSITIVE)
-        equalChars(char1, char2, CaseSensitivity.CASE_INSENSITIVE) == (caseInsensitiveResult == 0)
-        !equalChars(char2, char1, CaseSensitivity.CASE_SENSITIVE)
-        equalChars(char2, char1, CaseSensitivity.CASE_INSENSITIVE) == (caseInsensitiveResult == 0)
+        !equalChars(char1, char2, CASE_SENSITIVE)
+        equalChars(char1, char2, CASE_INSENSITIVE) == (caseInsensitiveResult == 0)
+        !equalChars(char2, char1, CASE_SENSITIVE)
+        equalChars(char2, char1, CASE_INSENSITIVE) == (caseInsensitiveResult == 0)
 
         where:
         left | right | result
@@ -72,6 +74,6 @@ class CaseInsensitivePathUtilTest extends AbstractCasePathUtilTest {
 
     @Override
     CaseSensitivity getCaseSensitivity() {
-        return CaseSensitivity.CASE_INSENSITIVE
+        return CASE_INSENSITIVE
     }
 }

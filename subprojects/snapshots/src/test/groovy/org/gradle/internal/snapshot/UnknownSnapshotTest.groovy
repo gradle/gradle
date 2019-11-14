@@ -21,12 +21,14 @@ import org.spockframework.mock.IDefaultResponse
 import org.spockframework.mock.IMockInvocation
 import spock.lang.Specification
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 class UnknownSnapshotTest extends Specification {
     def "returns empty when queried at root"() {
         def node = new UnknownSnapshot("some/prefix", createChildren("myFile.txt"))
 
         when:
-        def snapshot = node.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1, CaseSensitivity.CASE_SENSITIVE)
+        def snapshot = node.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1, CASE_SENSITIVE)
         then:
         !snapshot.present
         0 * _
@@ -41,10 +43,10 @@ class UnknownSnapshotTest extends Specification {
         def result = Mock(MetadataSnapshot)
 
         when:
-        def snapshot = node.getSnapshot(relativePath, 0, CaseSensitivity.CASE_SENSITIVE)
+        def snapshot = node.getSnapshot(relativePath, 0, CASE_SENSITIVE)
         then:
         snapshot.get() == result
-        _ * first.getSnapshot(relativePath, first.pathToParent.length() + 1, CaseSensitivity.CASE_SENSITIVE) >> Optional.of(result)
+        _ * first.getSnapshot(relativePath, first.pathToParent.length() + 1, CASE_SENSITIVE) >> Optional.of(result)
 
         where:
         childNames << [["first", "second", "third"]]
@@ -58,7 +60,7 @@ class UnknownSnapshotTest extends Specification {
         def relativePath = "${first.pathToParent}1/someString"
 
         when:
-        def snapshot = node.getSnapshot(relativePath, 0, CaseSensitivity.CASE_SENSITIVE)
+        def snapshot = node.getSnapshot(relativePath, 0, CASE_SENSITIVE)
         then:
         !snapshot.present
         0 * _.getSnapshot(_)
@@ -74,7 +76,7 @@ class UnknownSnapshotTest extends Specification {
         def relativePath = "first/outside"
 
         when:
-        def result = node.invalidate(relativePath, 0, CaseSensitivity.CASE_SENSITIVE)
+        def result = node.invalidate(relativePath, 0, CASE_SENSITIVE)
         then:
         0 * _.invalidate(_)
         result.get() == node
@@ -91,7 +93,7 @@ class UnknownSnapshotTest extends Specification {
         def relativePath = childToInvalidate.pathToParent
 
         when:
-        def result = node.invalidate(relativePath, 0, CaseSensitivity.CASE_SENSITIVE)
+        def result = node.invalidate(relativePath, 0, CASE_SENSITIVE)
         then:
         0 * _.invalidate(_)
         !result.present
@@ -107,20 +109,20 @@ class UnknownSnapshotTest extends Specification {
         def remainingChildren = children.findAll { it != childToInvalidate }
 
         when:
-        def result = node.invalidate(relativePath, 0, CaseSensitivity.CASE_SENSITIVE).get()
+        def result = node.invalidate(relativePath, 0, CASE_SENSITIVE).get()
         remainingChildren.each {
-            assert result.getSnapshot(it.pathToParent, 0, CaseSensitivity.CASE_SENSITIVE).get() == snapshot
+            assert result.getSnapshot(it.pathToParent, 0, CASE_SENSITIVE).get() == snapshot
         }
         then:
         0 * _.invalidate(_)
         interaction {
             remainingChildren.each {
-                _ * it.getSnapshot(it.pathToParent, it.pathToParent.length() + 1, CaseSensitivity.CASE_SENSITIVE) >> Optional.of(snapshot)
+                _ * it.getSnapshot(it.pathToParent, it.pathToParent.length() + 1, CASE_SENSITIVE) >> Optional.of(snapshot)
             }
         }
 
         when:
-        def removedSnapshot = result.getSnapshot(childToInvalidate.pathToParent, 0, CaseSensitivity.CASE_SENSITIVE)
+        def removedSnapshot = result.getSnapshot(childToInvalidate.pathToParent, 0, CASE_SENSITIVE)
         then:
         0 * _.getSnapshot(_)
         !removedSnapshot.present
@@ -137,12 +139,12 @@ class UnknownSnapshotTest extends Specification {
         def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPathToParent(childWithChildToInvalidate.pathToParent))
 
         when:
-        def result = node.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", 0, CaseSensitivity.CASE_SENSITIVE).get()
+        def result = node.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", 0, CASE_SENSITIVE).get()
 
         then:
-        1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", childWithChildToInvalidate.pathToParent.length() + 1, CaseSensitivity.CASE_SENSITIVE) >> Optional.of(invalidatedChild)
+        1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", childWithChildToInvalidate.pathToParent.length() + 1, CASE_SENSITIVE) >> Optional.of(invalidatedChild)
         0 * _.invalidate(_)
-        !result.getSnapshot(invalidatedChild.pathToParent, 0, CaseSensitivity.CASE_SENSITIVE).present
+        !result.getSnapshot(invalidatedChild.pathToParent, 0, CASE_SENSITIVE).present
 
 
         where:

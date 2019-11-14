@@ -25,7 +25,6 @@ import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
@@ -40,6 +39,8 @@ import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.function.Predicate
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 @CleanupTestDirectory
 abstract class AbstractVirtualFileSystemTest extends Specification {
     @Rule
@@ -47,7 +48,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
-    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat, CaseSensitivity.CASE_SENSITIVE)
+    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat, CASE_SENSITIVE)
 
     void allowFileSystemAccess(boolean allow) {
         fileHasher.allowHashing(allow)

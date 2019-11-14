@@ -19,6 +19,7 @@ package org.gradle.internal.snapshot
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
 import static org.gradle.internal.snapshot.PathUtil.compareToChildOfOrThis
@@ -220,7 +221,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
         ["Bad/mine", "c/other", "AB/second"],
         ["Bad/mine", "cA/other", "AB/second"],
         ["c", "b/something", "a/very/long/suffix"]
-    ]*.toSorted(getPathComparator(CaseSensitivity.CASE_SENSITIVE))
+    ]*.toSorted(getPathComparator(CASE_SENSITIVE))
 
     static final List<CaseSensitivityTestSpec> SAME_OR_CHILD = CHILDREN_LISTS.collectMany { children ->
         children.collectMany { child ->
