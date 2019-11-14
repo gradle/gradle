@@ -23,7 +23,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import spock.lang.Issue
 
-@ToolingApiVersion('>=6.0')
+@ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=6.0')
 class ToolingApiPropertiesLoaderCrossVersionSpec extends ToolingApiSpecification{
 
