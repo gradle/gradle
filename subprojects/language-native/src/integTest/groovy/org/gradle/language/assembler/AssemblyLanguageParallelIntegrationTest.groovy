@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 class AssemblyLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
     HelloWorldApp app = new AssemblerWithCHelloWorldApp(toolChain)
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "can execute assembler tasks in parallel"() {
         given:
         withComponentForApp()

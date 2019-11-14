@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import spock.lang.Unroll
 
 class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegrationSpec {
@@ -38,7 +38,7 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can override @Internal with @#inputType.simpleName"() {
         buildFile << """
             class InternalBaseTask extends BaseTask {
@@ -72,7 +72,7 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
 
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can override @#inputType.simpleName with @Internal"() {
         buildFile << """
             class InputBaseTask extends BaseTask {

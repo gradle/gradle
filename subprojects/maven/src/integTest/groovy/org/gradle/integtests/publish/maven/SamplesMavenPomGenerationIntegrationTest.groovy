@@ -21,7 +21,6 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
@@ -106,7 +105,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "write new pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

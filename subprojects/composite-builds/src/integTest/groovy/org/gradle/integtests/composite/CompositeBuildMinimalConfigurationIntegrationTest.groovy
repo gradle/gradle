@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
@@ -99,7 +98,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "configures included build only once when #action"() {
         given:
         dependency "org.test:buildB:1.0"

@@ -19,7 +19,6 @@ package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -58,7 +57,7 @@ credentials {
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -195,7 +194,7 @@ uploadArchives {
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     public void usesFirstConfiguredPatternForPublication() {
         given:
         server.start()
@@ -238,7 +237,7 @@ uploadArchives {
 
     @Requires(FIX_TO_WORK_ON_JAVA9)
     @Issue('provide a different large jar')
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     public void "can publish large artifact (tools.jar) to authenticated repository"() {
         given:
         server.start()

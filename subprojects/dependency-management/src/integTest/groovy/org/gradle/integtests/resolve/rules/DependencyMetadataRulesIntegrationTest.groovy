@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests.resolve.rules
 
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
@@ -754,7 +754,7 @@ class DependencyMetadataRulesIntegrationTest extends AbstractModuleDependencyRes
         }
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "resolving one configuration does not influence the result of resolving another configuration."() {
         given:
         repository {

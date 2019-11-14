@@ -17,7 +17,7 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
@@ -39,7 +39,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/iterateDependencies")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can iterate over dependencies assigned to a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -104,7 +104,7 @@ commons-codec:commons-codec:1.7""")
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can accessing a module's metadata artifact with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

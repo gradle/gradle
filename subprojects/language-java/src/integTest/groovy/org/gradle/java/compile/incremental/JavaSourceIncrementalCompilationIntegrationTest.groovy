@@ -19,7 +19,6 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -33,7 +32,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "change to #retention retention annotation class recompiles #desc"() {
         def annotationClass = file("src/main/${language.name}/SomeAnnotation.${language.name}") << """
             import java.lang.annotation.*;

@@ -17,7 +17,6 @@
 package org.gradle.nativeplatform.test
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.language.LanguageTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -137,7 +136,6 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
     def "fails when target machines are specified on the test component that do not match those on the main component"() {
         Assume.assumeFalse(componentUnderTestDsl == null)
 

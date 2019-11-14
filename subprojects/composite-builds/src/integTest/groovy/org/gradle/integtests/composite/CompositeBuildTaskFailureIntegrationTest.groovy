@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -113,7 +112,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "build fails when tasks in multiple builds fails"() {
         given:
         server.start()

@@ -47,7 +47,7 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
     def "shows test class execution #description test class name in work-in-progress area of console for single project build"() {
         given:
         buildFile << testableJavaProject(testDependency(), MAX_WORKERS)
@@ -76,7 +76,7 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
     def "shows test class execution #description test class name in work-in-progress area of console for multi-project build"() {
         given:
         settingsFile << "include 'project1', 'project2'"

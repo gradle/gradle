@@ -35,7 +35,37 @@ import java.lang.annotation.Target;
  * Another example is partially failing unrolled tests.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.METHOD, ElementType.TYPE})
 @ExtensionAnnotation(IgnoreWithInstantExecutionExtension.class)
 public @interface IgnoreWithInstantExecution {
+
+    Reason value();
+
+    /**
+     * Reason for ignoring a test with instant execution.
+     */
+    enum Reason {
+
+        /**
+         * Use this reason on tests in super classes that fail on some subclasses.
+         * Spock doesn't allow to override test methods and annotate them.
+         */
+        FAILS_IN_SUBCLASS,
+
+        /**
+         * Use this reason on tests that intermittently fail with instant execution.
+         */
+        FLAKY,
+
+        /**
+         * Use this reason on tests that take a long time to fail, slowing down the CI feedback.
+         * Use sparingly, only in dramatic cases.
+         */
+        LONG_TIMEOUT,
+
+        /**
+         * Use this reason if you don't know what is happening and want to postpone the investigation.
+         */
+        REQUIRES_INVESTIGATION
+    }
 }

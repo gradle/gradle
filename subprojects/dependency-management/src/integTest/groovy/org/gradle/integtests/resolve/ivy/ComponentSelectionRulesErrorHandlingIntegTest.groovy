@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
@@ -221,7 +221,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "reports missing module when component selection rule requires meta-data"() {
         buildFile << """
 configurations {
@@ -273,7 +273,7 @@ Required by:
         succeeds ":checkDeps"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "reports broken module when component selection rule requires meta-data"() {
         buildFile << """
 configurations {

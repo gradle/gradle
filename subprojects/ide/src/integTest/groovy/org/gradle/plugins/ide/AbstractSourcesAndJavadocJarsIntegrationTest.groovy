@@ -16,7 +16,6 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.http.*
 import org.junit.Rule
 
@@ -91,7 +90,7 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "ignores broken source or javadoc artifacts in maven repository"() {
         def repo = mavenHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -133,7 +132,7 @@ dependencies {
         succeeds "resolve"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "sources and javadoc jars from ivy repositories are resolved, attached and cached"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")
@@ -218,7 +217,7 @@ dependencies {
         ideFileContainsEntry("foo-api-1.0.jar", ["foo-sources-1.0.jar", "foo-api-sources-1.0.jar"], ["foo-javadoc-1.0.jar", "foo-api-javadoc-1.0.jar"])
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "ignores missing sources and javadoc jars in ivy repositories"() {
         def repo = ivyHttpRepo
         final module = repo.module("some", "module", "1.0")
@@ -236,7 +235,7 @@ dependencies {
         ideFileContainsNoSourcesAndJavadocEntry()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "ignores broken source or javadoc artifacts in ivy repository"() {
         def repo = ivyHttpRepo
         def module = repo.module("some", "module", "1.0")

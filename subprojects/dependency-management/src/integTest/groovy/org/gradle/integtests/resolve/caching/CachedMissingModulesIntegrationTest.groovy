@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
@@ -59,7 +58,7 @@ task showMissing { doLast { println configurations.missing.files } }
         succeeds('showMissing')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "caches missing changing module when module found in another repository"() {
         given:
         def repo1 = ivyHttpRepo("repo1")
@@ -237,7 +236,7 @@ Required by:
         run 'retrieve'
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "previously cached empty version list is ignored when no result can be found"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

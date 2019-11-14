@@ -18,11 +18,10 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import spock.lang.Unroll
 
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     public void "reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -82,7 +81,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     public void "reports and recovers from multiple missing modules"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -139,7 +138,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     public void "reports and recovers from multiple missing transitive modules"() {
         settingsFile << "include 'child1'"
 
@@ -222,7 +221,7 @@ Required by:
         succeeds('showMissing')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     void "reports and recovers from failed POM download"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()

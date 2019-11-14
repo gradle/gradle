@@ -17,7 +17,6 @@ package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -111,7 +110,6 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
 
     // Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @IgnoreWithInstantExecution
     def "can apply script via https"() {
         applyTrustStore()
 
@@ -182,7 +180,7 @@ class HttpScriptPluginIntegrationSpec extends AbstractIntegrationSpec {
         succeeds()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "does not cache URIs with query parts"() {
         when:
         def queryString = 'p=foo;a=blob_plain;f=bar;hb=foo/bar/foo'
@@ -362,7 +360,7 @@ task check {
         "initscript"  | "init.gradle"     | "init-script-plugin.gradle"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "will only request resource once for build invocation"() {
         given:
         def scriptName = "script-once.gradle"
@@ -398,7 +396,7 @@ task check {
         output.count('loaded external script') == 4
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "will refresh cached value on subsequent build invocation"() {
         given:
         def scriptName = "script-cached.gradle"

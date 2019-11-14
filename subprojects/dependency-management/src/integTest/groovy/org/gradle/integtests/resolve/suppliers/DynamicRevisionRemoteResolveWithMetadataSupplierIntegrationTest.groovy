@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.suppliers
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
@@ -87,7 +86,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         !output.contains('Metadata rule call count: 2')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "re-executing in subsequent build requires no GET request"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -126,7 +125,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "publishing new integration version incurs get status file of new integration version only"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -186,7 +185,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+":  ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match versions 2.3, 2.2"]
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "publishing new release version incurs get status file of new release version only"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -246,7 +245,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": "group:projectB:2.3"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can use --offline to use cached result after remote failure"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier(buildFile, false)
@@ -295,7 +294,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can recover from --offline mode"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -402,7 +401,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         failure.assertHasCause("No cached resource '${server.uri}/repo/group/projectB/2.2/status-offline.txt' available for offline mode.")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "reports and recovers from remote failure"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -455,7 +454,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can inject configuration into metadata provider"() {
         given:
         buildFile << """
@@ -509,7 +508,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         succeeds 'checkDeps'
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "handles and recovers from errors in a custom metadata provider"() {
         given:
         buildFile << """
@@ -638,7 +637,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
             "group:projectB:latest.release": "group:projectB:3.3"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can use a single remote request to get status of multiple components"() {
         given:
         buildFile << """import org.gradle.api.artifacts.CacheableRule
@@ -1051,7 +1050,7 @@ group:projectB:2.2;release
         outputContains "Found result for rule [DefaultConfigurableRule{rule=class MP, ruleParams=[]}] and key group:projectB:1.1"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "changing the implementation of a rule invalidates the cache"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
 
@@ -1110,7 +1109,7 @@ group:projectB:2.2;release
 
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "caching is repository aware"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
         executer.requireIsolatedDaemons() // because we're going to --stop
@@ -1199,7 +1198,7 @@ group:projectB:2.2;release
 
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "cross-build caching is resilient to failure"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
         executer.requireIsolatedDaemons() // because we're going to --stop

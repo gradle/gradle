@@ -17,7 +17,6 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.TestParticipant
 import org.junit.Rule
@@ -34,7 +33,7 @@ class PlayReloadWaitingIntegrationTest extends AbstractPlayReloadIntegrationTest
         addPendingChangesHook()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "waits for app request before building changes"() {
         given:
         def hooksFile = file('hooks.gradle') << """

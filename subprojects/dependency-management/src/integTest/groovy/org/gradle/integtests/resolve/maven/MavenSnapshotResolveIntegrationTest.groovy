@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
@@ -235,7 +234,7 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0-SNAPSHOT-tests.jar').assertHasNotChangedSince(snapshotA);
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "will detect changed snapshot artifacts when pom has not changed"() {
         buildFile << """
 repositories {
@@ -342,7 +341,7 @@ task retrieve(type: Sync) {
         run 'retrieve'
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
         given:
         buildFile << """
@@ -414,7 +413,7 @@ task retrieve(type: Sync) {
     }
 
     @Issue("gradle/gradle#3019")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "should honour changing module cache expiry for subsequent snapshot resolutions in the same build"() {
         given:
         buildFile << """
@@ -478,7 +477,7 @@ task resolveStaleThenFresh {
         file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
         buildFile << """
 repositories {
@@ -642,7 +641,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
     }
 
     @Issue("GRADLE-3017")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "resolves changed metadata in snapshot dependency"() {
         given:
         def projectB1 = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
@@ -941,7 +940,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "applies conflict resolution when unique snapshot is referenced by timestamp"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

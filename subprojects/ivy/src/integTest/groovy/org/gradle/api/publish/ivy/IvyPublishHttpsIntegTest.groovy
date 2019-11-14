@@ -19,7 +19,6 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -46,7 +45,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         module = ivyRemoteRepo.module('org.gradle', 'publish', '2').allowAll()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "publish with server certificate"() {
         given:
         keyStore.enableSslWithServerCert(server)
@@ -61,7 +60,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         verifyPublications()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "publish with server and client certificate"() {
         given:
         keyStore.enableSslWithServerAndClientCerts(server)

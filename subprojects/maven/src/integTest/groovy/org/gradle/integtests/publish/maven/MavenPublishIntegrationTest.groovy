@@ -18,7 +18,6 @@ package org.gradle.integtests.publish.maven
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -319,7 +318,7 @@ uploadArchives {
         }
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can publish multiple deployments with attached artifacts"() {
         given:
         server.start()
@@ -383,7 +382,7 @@ uploadArchives {
         succeeds 'uploadArchives'
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can publish to an unauthenticated HTTP repository"() {
         given:
         server.start()
@@ -450,7 +449,7 @@ uploadArchives {
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can publish to an authenticated HTTP repository using #authScheme auth"() {
         given:
         def credentials = new DefaultPasswordCredentials('testuser', 'password')
@@ -769,7 +768,7 @@ uploadArchives {
     }
 
     @Issue("gradle/gradle#1641")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can publish a new version of a module already present in the target repository"() {
         given:
         server.start()

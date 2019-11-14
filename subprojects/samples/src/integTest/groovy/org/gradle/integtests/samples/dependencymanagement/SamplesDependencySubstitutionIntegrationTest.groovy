@@ -17,7 +17,7 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
@@ -35,7 +35,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can run sample with all external dependencies with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -56,7 +56,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can run sample with some internal projects with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 

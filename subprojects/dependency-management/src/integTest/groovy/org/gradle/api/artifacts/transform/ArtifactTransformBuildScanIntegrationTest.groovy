@@ -17,8 +17,8 @@
 package org.gradle.api.artifacts.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 
 class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec {
     def fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
@@ -32,7 +32,7 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
         fixture.publishDummyPluginNow()
     }
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "transform works with build scan"() {
         given:
         buildFile << """

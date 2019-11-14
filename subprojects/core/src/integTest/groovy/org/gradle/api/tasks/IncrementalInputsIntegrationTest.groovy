@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.work.Incremental
 import spock.lang.Issue
@@ -483,7 +482,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         outputDir.assertIsEmptyDir()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "outputs are cleaned out on rebuild (output type: #type)"() {
         file("buildSrc").deleteDir()
         buildFile.text = """

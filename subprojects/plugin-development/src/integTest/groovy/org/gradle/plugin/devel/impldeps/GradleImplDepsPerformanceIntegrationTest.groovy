@@ -22,7 +22,7 @@ import org.gradle.testing.internal.util.RetryUtil
 
 class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FLAKY)
     def "Gradle API JAR is generated in an acceptable time frame"() {
         requireOwnGradleUserHomeDir()
         buildFile << """

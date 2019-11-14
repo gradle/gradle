@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -371,7 +370,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         failure.assertHasCause("Failed to transform bad-c.jar to match attributes {artifactType=size}")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "only one transformer execution per workspace"() {
 
         settingsFile << """
@@ -420,7 +419,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "only one process can run immutable transforms at the same time"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->

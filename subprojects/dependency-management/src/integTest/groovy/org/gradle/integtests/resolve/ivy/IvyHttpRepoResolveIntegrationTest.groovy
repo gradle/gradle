@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.api.credentials.PasswordCredentials
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -114,7 +113,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         succeeds 'listJars'
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     void "skip subsequent Ivy repositories on timeout and recovers for later resolution"() {
         given:
         executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")

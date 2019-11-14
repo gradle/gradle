@@ -17,7 +17,6 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -49,7 +48,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         server.stop()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "publish with server certificate"() {
         given:
         keyStore.enableSslWithServerCert(server)
@@ -64,7 +63,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         verifyPublications()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "publish with server and client certificate"() {
         given:
         keyStore.enableSslWithServerAndClientCerts(server)

@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import spock.lang.Unroll
 
 class LockingInteractionsIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -498,7 +497,7 @@ task resolve {
         succeeds 'resolve', '--include-build', 'composite'
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "avoids HTTP requests for dynamic version when lock exists"() {
         def foo10 = mavenHttpRepo.module('org', 'foo', '1.0').publish()
         mavenHttpRepo.module('org', 'foo', '1.1').publish()

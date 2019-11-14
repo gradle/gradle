@@ -16,7 +16,6 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -24,7 +23,6 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @IgnoreWithInstantExecution
     def "binaries have the right platform type"() {
         given:
         makeSingleProject()
@@ -43,7 +41,6 @@ abstract class AbstractNativeLanguageComponentIntegrationTest extends AbstractIn
         succeeds "verifyBinariesPlatformType"
     }
 
-    @IgnoreWithInstantExecution
     def "binaries have the right tool chain type"() {
         given:
         makeSingleProject()

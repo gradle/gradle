@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.http
 
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -59,7 +58,6 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         }
     }
 
-    @IgnoreWithInstantExecution
     def "resolves module artifacts via HTTP redirect"() {
         given:
         buildFile << configurationWithIvyDependencyAndExpectedArtifact('group:projectA:1.0', 'projectA-1.0.jar')
@@ -82,7 +80,6 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         optionallyExpectDeprecation()
     }
 
-    @IgnoreWithInstantExecution
     def "prints last redirect location in case of failure"() {
         given:
         buildFile << configurationWithIvyDependencyAndExpectedArtifact('group:projectA:1.0', 'projectA-1.0.jar')
@@ -103,7 +100,6 @@ abstract class AbstractRedirectResolveIntegrationTest extends AbstractHttpDepend
         failureCauseContains("Could not GET '${backingServer.uri}/redirected/group/projectA/1.0/ivy-1.0.xml'")
     }
 
-    @IgnoreWithInstantExecution
     def "prints last redirect location in case of timeout"() {
         given:
         buildFile << configurationWithIvyDependencyAndExpectedArtifact('group:projectA:1.0', 'projectA-1.0.jar')

@@ -18,7 +18,6 @@ package org.gradle.integtests.publish.ivy
 
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Unroll
 
@@ -26,7 +25,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
     IvyJavaModule javaLibrary = javaLibrary(ivyRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can publish java-library with dependencies (runtime last)"() {
         given:
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -106,7 +105,7 @@ class IvyPublishResolvedVersionsJavaIntegTest extends AbstractIvyPublishIntegTes
     }
 
     @Unroll("can publish java-library with dependencies (#runtimeMapping, #apiMapping)")
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can publish java-library with dependencies (runtime first)"() {
         given:
         javaLibrary(ivyRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()

@@ -74,7 +74,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         }
     }
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FLAKY)
     def "no task is re-executed when inputs are unchanged"() {
         when:
         withBuildCache().run "jar"

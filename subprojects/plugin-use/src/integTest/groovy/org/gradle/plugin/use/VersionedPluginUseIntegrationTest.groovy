@@ -16,7 +16,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
@@ -37,7 +37,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         publishPlugin("2.0")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can specify plugin version"() {
         when:
         buildScript "plugins { id '$PLUGIN_ID' version '1.0' }"
@@ -46,7 +46,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('1.0')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can specify plugin version using gradle properties"() {
         when:
         file("gradle.properties") << "myPluginVersion=2.0"
@@ -60,7 +60,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('2.0')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can specify plugin version using command-line project property"() {
         when:
         buildScript """
@@ -75,7 +75,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('2.0')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can specify plugin version using buildSrc"() {
         when:
         file("buildSrc/src/main/java/MyVersions.java") << """
@@ -94,7 +94,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('2.0')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can specify plugin version using buildSrc constant"() {
         when:
         file("buildSrc/src/main/java/MyVersions.java") << """
@@ -112,7 +112,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('2.0')
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can use different plugin versions in sibling projects"() {
         when:
         settingsFile << "include 'p1', 'p2'"

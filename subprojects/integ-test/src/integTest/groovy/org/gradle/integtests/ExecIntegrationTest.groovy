@@ -19,7 +19,6 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
@@ -30,7 +29,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def 'can execute java with #task'() {
         given:
         buildFile << """
@@ -87,7 +86,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def 'can execute commands with #task'() {
         given:
         buildFile << """

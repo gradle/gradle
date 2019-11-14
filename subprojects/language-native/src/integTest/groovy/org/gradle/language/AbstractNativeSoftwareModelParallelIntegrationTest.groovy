@@ -26,7 +26,7 @@ import spock.lang.IgnoreIf
 abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends AbstractNativeParallelIntegrationTest {
     abstract HelloWorldApp getApp()
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "can execute link executable tasks in parallel"() {
         given:
         withComponentForApp()
@@ -39,7 +39,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("linkMainExecutable")
     }
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "can execute link shared library tasks in parallel"() {
         given:
         withComponentsForAppAndSharedLib()
@@ -52,7 +52,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("linkMainLibSharedLibrary")
     }
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "can execute create static library tasks in parallel"() {
         given:
         withComponentsForAppAndStaticLib()
@@ -65,7 +65,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("createMainLibStaticLibrary")
     }
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "can execute compile tasks in parallel"() {
         given:
         withComponentForApp()
@@ -78,7 +78,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("compileMainExecutableMain${app.sourceType.capitalize()}")
     }
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "can execute install task in parallel"() {
         given:
         withComponentForApp()

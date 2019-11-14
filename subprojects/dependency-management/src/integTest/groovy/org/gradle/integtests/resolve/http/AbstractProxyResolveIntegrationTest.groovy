@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -58,7 +57,6 @@ task listJars {
 """
     }
 
-    @IgnoreWithInstantExecution
     def "uses configured proxy to access remote repository"() {
         given:
         proxyServer.start()
@@ -110,7 +108,6 @@ repositories {
         failure.assertThatCause(CoreMatchers.containsString("Connection refused"))
     }
 
-    @IgnoreWithInstantExecution
     def "uses authenticated proxy to access remote repository"() {
         given:
         def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']
@@ -163,7 +160,6 @@ repositories {
         failure.assertThatCause(CoreMatchers.containsString("Proxy Authentication Required"))
     }
 
-    @IgnoreWithInstantExecution
     def "uses configured proxy to access remote repository when both https.proxy and http.proxy are specified"() {
         given:
         proxyServer.start()
@@ -188,7 +184,6 @@ repositories {
         proxyServer.requestCount == (tunnel ? 1 : 2)
     }
 
-    @IgnoreWithInstantExecution
     def "can resolve from repo with other proxy scheme configured"() {
         given:
         proxyServer.start()
@@ -213,7 +208,6 @@ repositories {
     }
 
     @Unroll
-    @IgnoreWithInstantExecution
     def "passes target credentials to #authScheme authenticated server via proxy"() {
         given:
         def (proxyUserName, proxyPassword) = ['proxyUser', 'proxyPassword']

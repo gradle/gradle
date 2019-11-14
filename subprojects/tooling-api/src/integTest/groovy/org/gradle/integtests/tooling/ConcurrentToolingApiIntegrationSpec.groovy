@@ -17,7 +17,6 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.initialization.BuildCancellationToken
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
@@ -84,7 +83,6 @@ class ConcurrentToolingApiIntegrationSpec extends Specification {
         temporaryFolder.file(s)
     }
 
-    @IgnoreWithInstantExecution
     def "handles different target gradle versions concurrently"() {
         given:
         def last = new ReleasedVersionDistributions().getMostRecentRelease()

@@ -17,7 +17,6 @@
 package org.gradle.integtests.samples.bestpractices
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
@@ -68,7 +67,7 @@ generateDocs - Generates the HTML documentation for this project.""")
 
     @Unroll
     @UsesSample('userguide/bestPractices/logicDuringConfiguration')
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can execute logic during execution phase with #dsl dsl"() {
         executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
 

@@ -20,7 +20,6 @@ import org.gradle.initialization.RunNestedBuildBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Unroll
@@ -251,7 +250,7 @@ println "build script code source: " + getClass().protectionDomain.codeSource.lo
     @Rule
     BlockingHttpServer barrier = new BlockingHttpServer()
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "can run multiple GradleBuild tasks concurrently"() {
         barrier.start()
 

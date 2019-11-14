@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
@@ -661,7 +660,7 @@ task checkRelease {
         "true"            | "false"             | "Boolean"       | "true"                              | "false"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "reports and recovers from failure to locate module"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata()
 
@@ -709,7 +708,7 @@ Required by:
         }
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "reports and recovers from failure to download module metadata"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
 
@@ -753,7 +752,7 @@ dependencies {
         }
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "reports failure to parse module metadata"() {
         def m = mavenHttpRepo.module("test", "a", "1.2").withModuleMetadata().publish()
         m.moduleMetadata.file.text = 'not-really-json'

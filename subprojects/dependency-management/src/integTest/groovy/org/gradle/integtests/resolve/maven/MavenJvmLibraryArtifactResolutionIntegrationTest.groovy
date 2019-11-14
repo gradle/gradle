@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenRepository
 import spock.lang.Unroll
@@ -208,7 +207,7 @@ if (project.hasProperty('nocache')) {
         "when snapshot pom changes"   | "-Pnocache"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 

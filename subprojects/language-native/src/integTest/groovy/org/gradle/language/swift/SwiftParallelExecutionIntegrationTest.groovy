@@ -34,7 +34,7 @@ class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegr
          """
     }
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "link task is executed in parallel"() {
         createTaskThatRunsInParallelUsingCustomToolchainWith("linkDebug")
 
@@ -45,7 +45,7 @@ class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegr
         assertTaskIsParallel("linkDebug")
     }
 
-    @IgnoreWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
     def "compile task is executed in parallel"() {
         createTaskThatRunsInParallelUsingCustomToolchainWith("compileDebugSwift")
 

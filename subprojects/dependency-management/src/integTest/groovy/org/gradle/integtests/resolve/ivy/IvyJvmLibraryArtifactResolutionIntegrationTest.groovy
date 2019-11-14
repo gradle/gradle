@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.resolve.JvmLibraryArtifactResolveTestFixture
 import org.gradle.test.fixtures.ivy.IvyRepository
 import spock.lang.Unroll
@@ -261,7 +260,7 @@ if (project.hasProperty('nocache')) {
         "when ivy descriptor changes" | "-Pnocache"
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "reports failure to resolve artifacts of non-existing component"() {
         fixture.expectComponentNotFound().prepare()
 

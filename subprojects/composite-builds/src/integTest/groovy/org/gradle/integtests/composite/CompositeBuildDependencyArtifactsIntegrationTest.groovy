@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -670,7 +669,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "builds artifacts and reports failures for dependency on multiple subprojects where one fails"() {
         given:
         server.start()

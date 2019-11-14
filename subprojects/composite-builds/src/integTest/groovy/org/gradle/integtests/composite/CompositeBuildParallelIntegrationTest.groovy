@@ -18,7 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -75,7 +74,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         execute(buildA, "jar", "--max-workers=1")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "constructs included build artifacts in parallel"() {
         given:
         server.start()
@@ -101,7 +100,7 @@ class CompositeBuildParallelIntegrationTest extends AbstractCompositeBuildIntegr
         execute(buildA, "jar", "--max-workers=4")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "constructs included build artifacts in parallel with multi-project included build"() {
         given:
         def maxWorkers = 4

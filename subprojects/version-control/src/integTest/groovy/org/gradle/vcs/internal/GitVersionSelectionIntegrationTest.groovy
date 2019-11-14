@@ -18,7 +18,6 @@ package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -71,7 +70,7 @@ class GitVersionSelectionIntegrationTest extends AbstractIntegrationSpec {
         fixture.prepare()
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "selects and builds from master for latest.integration selector"() {
         given:
         buildFile << """

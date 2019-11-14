@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.test.fixtures.HttpRepository
 
 abstract class ComponentMetadataRulesChangingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -96,7 +96,7 @@ task resolve {
         version << ["1.0", "[1.0,2.0]"]
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "rule can make a component changing"() {
         buildFile <<
 """
@@ -161,7 +161,7 @@ dependencies.components.all(ChangingFalseRule)
         artifact.assertContentsHaveNotChangedSince(snapshot)
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "rule cannot make a dependency non-changing"() {
         buildFile <<
 """

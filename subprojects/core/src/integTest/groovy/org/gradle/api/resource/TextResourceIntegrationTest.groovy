@@ -17,7 +17,6 @@ package org.gradle.api.resource
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -116,7 +115,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":generateConfigFile", ":generateConfigZip", ":archiveEntryText")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "uri backed text resource over http"() {
         given:
         def uuid = UUID.randomUUID()
@@ -151,7 +150,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
 
     // Remove when https://bugs.openjdk.java.net/browse/JDK-8219658 is fixed in JDK 12
     @Requires(TestPrecondition.JDK11_OR_EARLIER)
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "uri backed text resource over https"() {
         given:
         def uuid = UUID.randomUUID()
@@ -183,7 +182,7 @@ class TextResourceIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksSkipped(":uriText")
     }
 
-    @IgnoreWithInstantExecution
+    @FailsWithInstantExecution
     def "does not emit warning with insecure option"() {
         given:
         def uuid = UUID.randomUUID()
