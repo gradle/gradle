@@ -29,6 +29,7 @@ import spock.lang.Shared
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
+import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.assertThat
 
@@ -51,7 +52,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this if you added or removed dependencies.
      */
     int getThirdPartyLibJarsCount() {
-        184
+        185
     }
 
     int getLibJarsCount() {
@@ -164,6 +165,24 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         // Jars that must not be shipped
         assert !contentsDir.file("lib/tools.jar").exists()
         assert !contentsDir.file("lib/plugins/tools.jar").exists()
+    }
+
+    protected void assertDocsExist(TestFile contentsDir, String version) {
+        // Javadoc
+        contentsDir.file('docs/javadoc/index.html').assertIsFile()
+        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
+        contentsDir.file('docs/javadoc/org/gradle/api/Project.html').assertIsFile()
+
+        // Userguide
+        contentsDir.file('docs/userguide/userguide.html').assertIsFile()
+        contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
+        contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
+        contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
+        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
+
+        // DSL reference
+        contentsDir.file('docs/dsl/index.html').assertIsFile()
+        contentsDir.file('docs/dsl/index.html').assertContents(containsString("<title>Gradle DSL Version ${version}</title>"))
     }
 
     protected void assertIsGradleJar(TestFile jar) {

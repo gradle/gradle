@@ -19,8 +19,6 @@ package org.gradle
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Shared
 
-import static org.hamcrest.CoreMatchers.containsString
-
 class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Shared String version = buildContext.distZipVersion.version
@@ -45,21 +43,6 @@ class AllDistributionIntegrationSpec extends DistributionIntegrationSpec {
         // Samples
         contentsDir.file('samples').assertDoesNotExist()
 
-        // Javadoc
-        contentsDir.file('docs/javadoc/index.html').assertIsFile()
-        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
-        contentsDir.file('docs/javadoc/org/gradle/api/Project.html').assertIsFile()
-
-        // Userguide
-        contentsDir.file('docs/userguide/userguide.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide.html').assertContents(containsString("Gradle User Manual</h1>"))
-        contentsDir.file('docs/userguide/userguide_single.html').assertIsFile()
-        contentsDir.file('docs/userguide/userguide_single.html').assertContents(containsString("<h1>Gradle User Manual: Version ${version}</h1>"))
-//        contentsDir.file('docs/userguide/userguide.pdf').assertIsFile()
-
-        // DSL reference
-        contentsDir.file('docs/dsl/index.html').assertIsFile()
-        contentsDir.file('docs/dsl/index.html').assertContents(containsString("<title>Gradle DSL Version ${version}</title>"))
+        assertDocsExist(contentsDir, version)
     }
-
 }

@@ -30,17 +30,23 @@ import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
 
 
 private
 suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
-    if (value.isValueProducedByTask && value is AbstractMappingProvider<*, *>) {
+    if (value.isValueProducedByTask && value is AbstractMappingProvider<*, *> || value is BuildServiceProvider<*, *>) {
         // Need to serialize the transformation and its source, as the value is not available until execution time
         writeBoolean(true)
         BeanCodec().run { encode(value) }
@@ -81,6 +87,31 @@ ProviderCodec : Codec<ProviderInternal<*>> {
     }
 
     override suspend fun ReadContext.decode() = readProvider()
+}
+
+
+class
+BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInternal) : Codec<BuildServiceProvider<*, *>> {
+    override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
+        encodePreservingIdentityOf(sharedIdentities, value) {
+            writeString(value.getName())
+            writeClass(value.getImplementationType())
+            write(value.getParameters())
+            writeInt(serviceRegistry.forService(value).maxUsages)
+        }
+    }
+
+    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? {
+        return decodePreservingIdentity(sharedIdentities) { id ->
+            val name = readString()
+            val implementationType = readClass() as Class<BuildService<*>>
+            val parameters = read() as BuildServiceParameters?
+            val maxUsages = readInt()
+            val provider = serviceRegistry.register(name, implementationType, parameters, maxUsages)
+            sharedIdentities.putInstance(id, provider)
+            provider
+        }
+    }
 }
 
 

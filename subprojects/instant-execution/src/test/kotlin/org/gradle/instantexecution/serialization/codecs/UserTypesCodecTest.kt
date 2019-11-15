@@ -296,7 +296,8 @@ class UserTypesCodecTest {
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),
-        transformListener = mock()
+        transformListener = mock(),
+        buildServiceRegistry = mock()
     )
 
     @Test

@@ -24,6 +24,7 @@ import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -31,15 +32,18 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     private final WellKnownFileLocations gradleUserHomeFileLocations;
     private final VirtualFileSystem gradleUserHomeVirtualFileSystem;
     private final VirtualFileSystem buildScopedVirtualFileSystem;
+    private final BooleanSupplier vfsRetained;
 
     public RoutingVirtualFileSystem(
         WellKnownFileLocations gradleUserHomeLocations,
         VirtualFileSystem gradleUserHomeVirtualFileSystem,
-        VirtualFileSystem buildScopedVirtualFileSystem
+        VirtualFileSystem buildScopedVirtualFileSystem,
+        BooleanSupplier vfsRetained
     ) {
         this.gradleUserHomeFileLocations = gradleUserHomeLocations;
         this.gradleUserHomeVirtualFileSystem = gradleUserHomeVirtualFileSystem;
         this.buildScopedVirtualFileSystem = buildScopedVirtualFileSystem;
+        this.vfsRetained = vfsRetained;
     }
 
     @Override
@@ -62,16 +66,20 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
         if (Iterables.isEmpty(locations)) {
             return;
         }
-        Iterable<String> immutableLocations = Iterables.filter(locations, gradleUserHomeFileLocations::isImmutable);
-        int immutableLocationsSize = Iterables.size(immutableLocations);
-        if (immutableLocationsSize == 0) {
-            buildScopedVirtualFileSystem.update(locations, action);
-        } else if (immutableLocationsSize == Iterables.size(locations)) {
+        if (vfsRetained.getAsBoolean()) {
             gradleUserHomeVirtualFileSystem.update(locations, action);
         } else {
-            Iterable<String> mutableLocations = Iterables.filter(locations, location -> !gradleUserHomeFileLocations.isImmutable(location));
-            gradleUserHomeVirtualFileSystem.update(immutableLocations, action);
-            buildScopedVirtualFileSystem.update(mutableLocations, action);
+            Iterable<String> immutableLocations = Iterables.filter(locations, gradleUserHomeFileLocations::isImmutable);
+            int immutableLocationsSize = Iterables.size(immutableLocations);
+            if (immutableLocationsSize == 0) {
+                buildScopedVirtualFileSystem.update(locations, action);
+            } else if (immutableLocationsSize == Iterables.size(locations)) {
+                gradleUserHomeVirtualFileSystem.update(locations, action);
+            } else {
+                Iterable<String> mutableLocations = Iterables.filter(locations, location -> !gradleUserHomeFileLocations.isImmutable(location));
+                gradleUserHomeVirtualFileSystem.update(immutableLocations, action);
+                buildScopedVirtualFileSystem.update(mutableLocations, action);
+            }
         }
     }
 
@@ -87,8 +95,10 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     }
 
     private VirtualFileSystem getVirtualFileSystemFor(String location) {
-        return gradleUserHomeFileLocations.isImmutable(location)
+        return vfsRetained.getAsBoolean()
             ? gradleUserHomeVirtualFileSystem
-            : buildScopedVirtualFileSystem;
+            : gradleUserHomeFileLocations.isImmutable(location)
+                ? gradleUserHomeVirtualFileSystem
+                : buildScopedVirtualFileSystem;
     }
 }

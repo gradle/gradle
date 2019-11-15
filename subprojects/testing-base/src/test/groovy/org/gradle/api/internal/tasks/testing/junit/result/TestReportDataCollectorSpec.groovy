@@ -102,6 +102,21 @@ class TestReportDataCollectorSpec extends Specification {
         0 * writer._
     }
 
+    def "writes test outputs for failed suite"() {
+        def suite = new DefaultTestSuiteDescriptor("1", "Suite")
+        def failure = new RuntimeException("failure")
+        def result = new DefaultTestResult(FAILURE, 0, 0, 0, 0, 0, [failure])
+
+        when:
+        collector.beforeSuite(suite)
+        collector.onOutput(suite, new DefaultTestOutputEvent(StdOut, "suite-out"))
+        collector.afterSuite(suite, result)
+
+        then:
+        1 * writer.onOutput(_, _, new DefaultTestOutputEvent(StdOut, "suite-out"))
+        0 * writer._
+    }
+
     def "collects failures for test"() {
         def test = new DefaultTestDescriptor("1.1.1", "FooTest", "testMethod")
         def failure1 = new RuntimeException("failure1")

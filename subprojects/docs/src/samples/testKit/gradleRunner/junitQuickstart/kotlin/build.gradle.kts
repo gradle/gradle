@@ -1,5 +1,5 @@
 plugins {
-    java
+    `kotlin-dsl`
 }
 
 // tag::declare-gradle-testkit-dependency[]

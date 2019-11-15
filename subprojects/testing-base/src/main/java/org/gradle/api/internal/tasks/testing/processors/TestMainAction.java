@@ -79,10 +79,5 @@ public class TestMainAction implements Runnable {
         public String toString() {
             return getName();
         }
-
-        @Override
-        public boolean isRoot() {
-            return true;
-        }
     }
 }

@@ -36,7 +36,7 @@ public abstract class TaskReportContainer<T extends Report> extends DefaultRepor
 
     private static InstanceGenerator locateInstantiator(Task task) {
         ServiceRegistry projectServices = ((ProjectInternal) task.getProject()).getServices();
-        return projectServices.get(InstantiatorFactory.class).injectAndDecorateLenient(projectServices);
+        return projectServices.get(InstantiatorFactory.class).decorateLenient(projectServices);
     }
 
     @Internal

@@ -88,16 +88,15 @@ class PartialEvaluator(
                     )
                 }
 
-            else -> Static(CloseTargetScope)
+            else -> Static(defaultStageTransition())
         }
 
     private
     fun reduceBuildscriptProgram(program: Program.Buildscript): Static =
-
         Static(
             SetupEmbeddedKotlin,
             Eval(fragmentHolderSourceFor(program)),
-            CloseTargetScope
+            defaultStageTransition()
         )
 
     private
@@ -138,11 +137,19 @@ class PartialEvaluator(
                 }
             }
 
-            else -> Static(
-                CloseTargetScope,
-                Eval(program.source)
-            )
+            else -> {
+                Static(
+                    defaultStageTransition(),
+                    Eval(program.source)
+                )
+            }
         }
+
+    private
+    fun defaultStageTransition(): ResidualProgram.Instruction = when (programKind) {
+        ProgramKind.TopLevel -> ApplyDefaultPluginRequests
+        else -> CloseTargetScope
+    }
 
     private
     fun reduceStagedProgram(program: Program.Staged): Dynamic =
@@ -191,7 +198,7 @@ class PartialEvaluator(
         return Static(
             SetupEmbeddedKotlin,
             Eval(fragmentHolderSourceFor(program)),
-            CloseTargetScope
+            ApplyDefaultPluginRequests
         )
     }
 }

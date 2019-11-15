@@ -324,7 +324,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
-        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of int, or no service of type int")
+        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of type int, or no service of type int")
 
         where:
         description   | script
@@ -344,7 +344,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of class java.lang.String, or no service of type class java.lang.String")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type String, or no service of type String")
 
         where:
         description   | script
@@ -435,7 +435,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'MyTask'.")
-        failure.assertHasCause("Class MyPlugin\$MyTask is a non-static inner class.")
+        failure.assertHasCause("Class MyPlugin.MyTask is a non-static inner class.")
     }
 
     @Requires(KOTLIN_SCRIPT)

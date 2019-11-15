@@ -29,10 +29,6 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
 
     BehindFlagFeatureRunner(Class<?> target, Map<String, Feature> features, boolean executeAllPermutations) {
         super(target, executeAllPermutations)
-        features.each { systemProperty, description ->
-            // Ensure that the system property is propagated to forked Gradle executions
-            AbstractGradleExecuter.propagateSystemProperty(systemProperty)
-        }
         this.features = features
     }
 
@@ -101,6 +97,8 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         @Override
         protected void before() {
             featureValues.each { sysProp, value ->
+                // Ensure that the system property is propagated to forked Gradle executions
+                AbstractGradleExecuter.propagateSystemProperty(sysProp)
                 System.setProperty(sysProp, value)
             }
         }
@@ -108,6 +106,8 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         @Override
         protected void after() {
             featureValues.each { sysProp, value ->
+                // Stop propagating this system property
+                AbstractGradleExecuter.doNotPropagateSystemProperty(sysProp)
                 System.properties.remove(sysProp)
             }
         }

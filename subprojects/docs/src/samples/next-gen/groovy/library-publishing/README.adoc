@@ -1,9 +1,12 @@
-= Groovy Library Publication Sample
+= Groovy Library Publishing Sample
 
 ifndef::env-github[]
-- link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[Download Kotlin DSL ZIP]
+[.download]
+- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
 endif::[]
+
+NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
 This sample shows how a Groovy library can be publish with Gradle.
 
@@ -33,14 +36,25 @@ build/publishing-repository/
                 │   ├── library-publishing-1.0.2.jar
                 │   ├── library-publishing-1.0.2.jar.md5
                 │   ├── library-publishing-1.0.2.jar.sha1
+                │   ├── library-publishing-1.0.2.jar.sha256
+                │   ├── library-publishing-1.0.2.jar.sha512
+                │   ├── library-publishing-1.0.2.module
+                │   ├── library-publishing-1.0.2.module.md5
+                │   ├── library-publishing-1.0.2.module.sha1
+                │   ├── library-publishing-1.0.2.module.sha256
+                │   ├── library-publishing-1.0.2.module.sha512
                 │   ├── library-publishing-1.0.2.pom
                 │   ├── library-publishing-1.0.2.pom.md5
-                │   └── library-publishing-1.0.2.pom.sha1
+                │   ├── library-publishing-1.0.2.pom.sha1
+                │   ├── library-publishing-1.0.2.pom.sha256
+                │   └── library-publishing-1.0.2.pom.sha512
                 ├── maven-metadata.xml
                 ├── maven-metadata.xml.md5
-                └── maven-metadata.xml.sha1
+                ├── maven-metadata.xml.sha1
+                ├── maven-metadata.xml.sha256
+                └── maven-metadata.xml.sha512
 
-5 directories, 9 files
+5 directories, 20 files
 ----
 =====
 ====

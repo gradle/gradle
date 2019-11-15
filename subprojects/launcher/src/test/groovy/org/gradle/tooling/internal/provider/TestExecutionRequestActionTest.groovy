@@ -28,7 +28,10 @@ class TestExecutionRequestActionTest extends Specification {
 
     def "maps testClasses to internalJvmTestRequests if empty"(){
         given:
-        consumerRequestWithClassNamesOnly();
+        1 * executionRequest.getTestExecutionDescriptors() >> []
+        1 * executionRequest.getInternalJvmTestRequests(_) >> []
+        1 * executionRequest.getTaskAndTests(_) >> [:]
+        1 * executionRequest.getTestClassNames() >> ["org.acme.Foo"]
 
         when:
         def executionRequestAction = TestExecutionRequestAction.create(buildClientSubscriptions, startParameter, executionRequest);
@@ -36,12 +39,5 @@ class TestExecutionRequestActionTest extends Specification {
         executionRequestAction.getTestClassNames() == ["org.acme.Foo"] as Set
         executionRequestAction.getInternalJvmTestRequests().collect { [clazz:it.className, method:it.methodName]} == [[clazz:"org.acme.Foo", method:null]]
 
-    }
-
-    def consumerRequestWithClassNamesOnly() {
-        1 * executionRequest.getTestExecutionDescriptors() >> []
-        1 * executionRequest.getInternalJvmTestRequests(_) >> []
-        1 * executionRequest.getTestClassNames() >> ["org.acme.Foo"]
-        executionRequest
     }
 }

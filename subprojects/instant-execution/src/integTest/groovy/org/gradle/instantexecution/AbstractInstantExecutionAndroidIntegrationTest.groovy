@@ -18,10 +18,10 @@ package org.gradle.instantexecution
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.android.AndroidHome
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.kotlinEapRepositoryDefinition
-
 
 /**
  * Base Android / Instant execution integration test.
@@ -90,13 +90,6 @@ abstract class AbstractInstantExecutionAndroidIntegrationTest extends AbstractIn
 
     void copyRemoteProject(String remoteProject) {
         new TestFile(new File("build/$remoteProject")).copyTo(testDirectory)
-        updateScanPlugin()
-    }
-
-    private void updateScanPlugin() {
-        // Plugin is no longer compatible
-        buildFile.text -= 'apply plugin: "com.gradle.build-scan"'
-        buildFile.text -= "id 'com.gradle.build-scan' version '2.1' apply false"
-        settingsFile.text = "plugins { id 'com.gradle.enterprise' version '3.0' }\n\n" + settingsFile.text
+        GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(settingsFile)
     }
 }

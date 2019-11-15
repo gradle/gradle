@@ -15,13 +15,10 @@
  */
 package org.gradle.internal.remote.internal.inet;
 
-import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -39,45 +36,6 @@ public class InetAddressFactory {
     private InetAddress wildcardBindingAddress;
     private InetAddresses inetAddresses;
     private boolean initialized;
-    private String hostName;
-
-    public String getHostname() {
-        if (hostName == null) {
-            synchronized (lock) {
-                // Work around https://bugs.openjdk.java.net/browse/JDK-8143378 on macOS
-                // See also https://stackoverflow.com/a/39698914
-                if (hostName == null && OperatingSystem.current() == OperatingSystem.MAC_OS) {
-                    ProcessBuilder builder = new ProcessBuilder("hostname");
-                    try {
-                        Process process = builder.start();
-                        int result = process.waitFor();
-                        if (result == 0) {
-                            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                            try {
-                                String line = reader.readLine();
-                                if (line != null) {
-                                    hostName = line;
-                                }
-                            } finally {
-                                reader.close();
-                            }
-                        }
-                    } catch (Exception e) {
-                        logger.debug("Couldn't resolve hostname by running hostname, falling back to using JDK", e);
-                    }
-                }
-
-                if (hostName == null) {
-                    try {
-                        hostName = InetAddress.getLocalHost().getHostName();
-                    } catch (UnknownHostException e) {
-                        hostName = getCommunicationAddresses().get(0).toString();
-                    }
-                }
-            }
-        }
-        return hostName;
-    }
 
     /**
      * Determines if the IP address can be used for communication with this machine

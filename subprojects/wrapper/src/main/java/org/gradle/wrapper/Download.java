@@ -114,8 +114,12 @@ public class Download implements IDownload {
      * @param uri Original URI
      * @return a new URI with no user info
      */
-    static URI safeUri(URI uri) throws URISyntaxException {
-        return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+    static URI safeUri(URI uri) {
+        try {
+            return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to parse URI", e);
+        }
     }
 
     private void addBasicAuthentication(URI address, URLConnection connection) throws IOException {

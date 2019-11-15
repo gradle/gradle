@@ -229,6 +229,7 @@ class DefaultInstantExecution internal constructor(
             isolatableFactory = service(),
             valueSnapshotter = service(),
             fileCollectionFingerprinterRegistry = service(),
+            buildServiceRegistry = service(),
             isolatableSerializerRegistry = service(),
             actionScheme = service(),
             parameterScheme = service(),
@@ -325,7 +326,7 @@ class DefaultInstantExecution internal constructor(
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean
-        get() = systemProperty(SystemProperties.isEnabled) != null && !host.currentBuild.buildSrc
+        get() = systemProperty(SystemProperties.isEnabled)?.toBoolean() ?: false && !host.currentBuild.buildSrc
 
     private
     fun maxProblems(): Int =

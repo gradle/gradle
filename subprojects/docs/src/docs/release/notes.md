@@ -8,19 +8,10 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-[Mark Nordhoff](https://github.com/MarkNordhoff)
-
-## Improvements for plugin authors
-
-### New managed property types
-
-TBD - Managed properties of type `DomainObjectSet<T>` now supported.
-
-### New factory methods
-
-TBD - `ObjectFactory` has a method to create `ExtensiblePolymorphicDomainObjectContainer` instances.
-TBD - `ObjectFactory` has a method to create `NamedDomainObjectSet` instances.
-TBD - `ObjectFactory` has a method to create `NamedDomainObjectList` instances.
+[Mark Nordhoff](https://github.com/MarkNordhoff),
+[Kazuki Matsuda](https://github.com/kazuki-ma),
+[Emmanuel Guérin](https://github.com/emmanuelguerin),
+and [Nicholas Gates](https://github.com/gatesn).
 
 ## Upgrade Instructions
 
@@ -33,6 +24,24 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+
+## Features for Gradle tooling providers
+
+### `TestLauncher` can select specific methods
+
+The `TestLauncher` interface in the Tooling API is capable of launching tests by specifying the name of the test classes or methods. If there are multiple test tasks contain those test classes/methods, then all tasks are executed. This is not ideal for IDEs: developers usually want to execute only one test variant at the time. To overcome this, Gradle 6.1 introduces the `withTaskAndTestClasses()` and `withTaskAndTestMethods()` methods.
+
+## Improvements for plugin authors
+
+### New managed property types
+
+TBD - Managed properties of type `DomainObjectSet<T>` now supported.
+
+### New factory methods
+
+TBD - `ObjectFactory` has a method to create `ExtensiblePolymorphicDomainObjectContainer` instances.
+TBD - `ObjectFactory` has a method to create `NamedDomainObjectSet` instances.
+TBD - `ObjectFactory` has a method to create `NamedDomainObjectList` instances.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

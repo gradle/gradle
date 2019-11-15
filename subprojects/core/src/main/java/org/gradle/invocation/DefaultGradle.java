@@ -27,7 +27,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.execution.SharedResourceContainer;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
@@ -42,6 +41,7 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -67,7 +67,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
 
-public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
+public abstract class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private SettingsInternal settings;
     private ProjectInternal rootProject;
     private ProjectInternal defaultProject;
@@ -83,7 +83,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private Path identityPath;
     private ClassLoaderScope classLoaderScope;
     private BuildType buildType = BuildType.NONE;
-    private SharedResourceContainer sharedResourceContainer;
     private ClassLoaderScope baseProjectClassLoaderScope;
 
     public DefaultGradle(GradleInternal parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
@@ -93,7 +92,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         this.crossProjectConfigurator = services.get(CrossProjectConfigurator.class);
         buildListenerBroadcast = getListenerManager().createAnonymousBroadcaster(BuildListener.class);
         projectEvaluationListenerBroadcast = getListenerManager().createAnonymousBroadcaster(ProjectEvaluationListener.class);
-        sharedResourceContainer = services.get(SharedResourceContainer.class);
 
         buildListenerBroadcast.add(new InternalBuildAdapter() {
             @Override
@@ -420,6 +418,9 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
         return this;
     }
 
+    @Override @Inject
+    public abstract BuildServiceRegistry getSharedServices();
+
     @Override
     public Collection<IncludedBuild> getIncludedBuilds() {
         if (includedBuilds == null) {
@@ -537,13 +538,5 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     @Override
     public void setBuildType(BuildType buildType) {
         this.buildType = buildType;
-    }
-
-    public SharedResourceContainer getSharedResources() {
-        return sharedResourceContainer;
-    }
-
-    public void sharedResources(Action<? super SharedResourceContainer> action) {
-        action.execute(sharedResourceContainer);
     }
 }

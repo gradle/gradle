@@ -78,6 +78,11 @@ buildTypes {
         tasks("parallelIntegTest")
     }
 
+    // Run the integration tests using instant execution
+    create("instantTest") {
+        tasks("instantIntegTest")
+    }
+
     create("performanceTests") {
         tasks("performance:performanceTest")
     }
@@ -172,7 +177,6 @@ allprojects {
 }
 
 apply(plugin = "gradlebuild.cleanup")
-apply(plugin = "gradlebuild.available-java-installations")
 apply(plugin = "gradlebuild.buildscan")
 apply(from = "gradle/versioning.gradle")
 apply(from = "gradle/dependencies.gradle")

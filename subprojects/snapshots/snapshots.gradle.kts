@@ -33,6 +33,7 @@ dependencies {
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
     testImplementation(project(":native"))
+    testImplementation(project(":persistentCache"))
     testImplementation(library("ant"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))

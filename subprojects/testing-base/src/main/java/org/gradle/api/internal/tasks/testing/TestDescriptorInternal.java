@@ -41,9 +41,4 @@ public interface TestDescriptorInternal extends TestDescriptor {
      * @return the class name for display.
      */
     String getClassDisplayName();
-
-    /**
-     * Whether or not this is the test execution root test suite.
-     */
-    boolean isRoot();
 }

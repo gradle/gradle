@@ -1,9 +1,12 @@
-= Testing Java Components with Spock Framework Sample
+= Java Components with Spock Tests Sample
 
 ifndef::env-github[]
-- link:{zip-base-file-name}-groovy-dsl.zip[Download Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[Download Kotlin DSL ZIP]
+[.download]
+- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
 endif::[]
+
+NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
 This sample shows how to test Java projects using Spock Framework in Gradle.
 
@@ -51,3 +54,4 @@ BUILD SUCCESSFUL in 5s
 ====
 
 For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].
+You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_application[Build Init Plugin].

@@ -17,6 +17,8 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
@@ -50,9 +52,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
         expect:
         expectDeprecationWarnings(result,
-            "Property 'excludeListProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Property 'inputFiles' is declared without normalization specified. Properties of cacheable work must declare their normalization via @PathSensitive, @Classpath or @CompileClasspath. Defaulting to PathSensitivity.ABSOLUTE. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Property 'packageNameSupplier' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
             "The configuration :detachedConfiguration1 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
             "The configuration :detachedConfiguration10 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
             "The configuration :detachedConfiguration11 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
@@ -68,13 +67,6 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
             "The configuration :detachedConfiguration7 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
             "The configuration :detachedConfiguration8 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
             "The configuration :detachedConfiguration9 was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See https://docs.gradle.org/${GradleVersion.current().version}/userguide/viewing_debugging_dependencies.html#sub:resolving-unsafe-configuration-resolution-errors for more details. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Type 'DependencyTask': field 'configurations' without corresponding getter has been annotated with @Input. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Type 'DependencyTask': field 'outputDir' without corresponding getter has been annotated with @OutputDirectory. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Type 'DependencyTask': field 'outputFile' without corresponding getter has been annotated with @OutputFile. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Type 'LicensesTask': field 'dependenciesJson' without corresponding getter has been annotated with @InputFile. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Type 'LicensesTask': field 'licenses' without corresponding getter has been annotated with @OutputFile. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Type 'LicensesTask': field 'licensesMetadata' without corresponding getter has been annotated with @OutputFile. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            "Type 'LicensesTask': field 'outputDir' without corresponding getter has been annotated with @OutputDirectory. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
         )
     }
 
@@ -92,22 +84,37 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         verify(relocatedResult, EXPECTED_RESULTS)
     }
 
+    def "incremental Java compilation works for Santa Tracker"() {
+        def checkoutDir = temporaryFolder.createDir ("checkout")
+        setupCopyOfSantaTracker(checkoutDir)
+
+        def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
+        def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
+        def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
+        def nonAbiChangeMutator = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
+
+        when:
+        def result = buildLocation(checkoutDir)
+        def md5Before = compiledClassFile.md5Hash
+        then:
+        result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
+
+        when:
+        nonAbiChangeMutator.beforeBuild()
+        buildLocation(checkoutDir)
+        def md5After = compiledClassFile.md5Hash
+        then:
+        result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
+        md5After != md5Before
+    }
+
     private void setupCopyOfSantaTracker(TestFile targetDir) {
         copyRemoteProject("santaTracker", targetDir)
-
-        def settingsFile = targetDir.file("settings.gradle")
-        settingsFile.text = """
-            gradleEnterprise {
-                buildScan {
-                    server = "https://e.grdev.net/"
-                    captureTaskInputFiles = true
-                }
-            }
-        """ + settingsFile.text
+        GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(targetDir.file("settings.gradle"))
     }
 
     private BuildResult buildLocation(File projectDir) {
-        runner("assembleDebug", "--scan")
+        runner("assembleDebug")
             .withProjectDir(projectDir)
             .withTestKitDir(homeDir)
             .forwardOutput()
@@ -552,12 +559,10 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
         ':santa-tracker:extractDeepLinksDebug': FROM_CACHE,
         ':santa-tracker:generateDebugAssets': UP_TO_DATE,
         ':santa-tracker:generateDebugBuildConfig': FROM_CACHE,
-        ':santa-tracker:generateDebugFeatureMetadata': SUCCESS,
+        ':santa-tracker:generateDebugFeatureMetadata': FROM_CACHE,
         ':santa-tracker:generateDebugFeatureTransitiveDeps': FROM_CACHE,
         ':santa-tracker:generateDebugResValues': FROM_CACHE,
         ':santa-tracker:generateDebugResources': SUCCESS,
-        ':santa-tracker:generateLicenses': SUCCESS,
-        ':santa-tracker:getDependencies': SUCCESS,
         ':santa-tracker:handleDebugMicroApk': SUCCESS,
         ':santa-tracker:javaPreCompileDebug': FROM_CACHE,
         ':santa-tracker:kaptDebugKotlin': SUCCESS,

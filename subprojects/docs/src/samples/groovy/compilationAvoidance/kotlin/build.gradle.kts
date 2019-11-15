@@ -31,7 +31,7 @@ project(":astTransformationConsumer") {
         astTransformation(project(":astTransformation"))
     }
     tasks.withType<GroovyCompile>().configureEach {
-        astTranformationClasspath.from(astTransformation)
+        astTransformationClasspath.from(astTransformation)
     }
 // end::groovy-compilation-avoidance[]
 }

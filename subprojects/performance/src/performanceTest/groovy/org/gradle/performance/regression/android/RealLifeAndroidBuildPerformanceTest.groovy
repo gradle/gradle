@@ -16,12 +16,12 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
-import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -33,6 +33,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
 
     def setup() {
         runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
+        runner.targetVersions = ["6.1-20191105125831+0000"]
+        // AGP 3.6 requires 5.6.1+
+        // The enterprise plugin requires Gradle 6.0
+        runner.minimumBaseVersion = "6.0"
     }
 
     @Unroll
@@ -43,12 +47,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        runner.minimumBaseVersion = "5.6.1" // AGP 3.6 requires 5.6.1+
-        runner.targetVersions = ["6.1-20191105125831+0000"]
-        if (testProject == SANTA_TRACKER_KOTLIN) {
-            runner.targetVersions = ["5.6.1"]
-        }
-        updateScanPlugin(testProject)
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -77,12 +76,10 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         runner.warmUpRuns = warmUpRuns
         runner.cleanTasks = ["clean"]
         runner.runs = runs
-        runner.minimumBaseVersion = "5.4"
-        runner.targetVersions = ["5.7-20190807220120+0000"]
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
         }
-        updateScanPlugin(testProject)
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -102,9 +99,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configureForAbiChange(runner)
         runner.args = ['-Dorg.gradle.parallel=true']
-        runner.minimumBaseVersion = "5.4"
-        runner.targetVersions = ["6.0-20190823180744+0000"]
-        updateScanPlugin(testProject)
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -121,9 +116,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configureForNonAbiChange(runner)
         runner.args = ['-Dorg.gradle.parallel=true']
-        runner.minimumBaseVersion = "5.4"
-        runner.targetVersions = ["6.0-20190823180744+0000"]
-        updateScanPlugin(testProject)
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -135,33 +128,14 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         testProject << [SANTA_TRACKER_KOTLIN]
     }
 
-    void updateScanPlugin(AndroidTestProject testProject) {
-        if (testProject != SANTA_TRACKER_KOTLIN) {
-            return
-        }
-
+    void applyEnterprisePlugin() {
         runner.addBuildMutator { invocationSettings ->
             new BuildMutator() {
                 @Override
                 void beforeScenario() {
-                    def buildDir = new TestFile(invocationSettings.projectDir)
-                    def buildFile = buildDir.file("build.gradle")
-                    buildFile.text -= """plugins {
-    id 'com.gradle.build-scan' version '2.1' apply false
-}
-
-if (!hasProperty("disableBuildScan")) {
-    apply plugin: "com.gradle.build-scan"
-    buildScan {
-        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-        termsOfServiceAgree = 'yes'
-        captureTaskInputFiles = true
-    }
-}
-"""
+                    GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(new File(invocationSettings.projectDir, "settings.gradle"))
                 }
             }
         }
-
     }
 }

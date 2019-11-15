@@ -27,6 +27,8 @@ import org.gradle.tooling.internal.protocol.test.InternalTestExecutionRequest;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class TestExecutionRequest implements InternalTestExecutionRequest {
@@ -34,16 +36,22 @@ public class TestExecutionRequest implements InternalTestExecutionRequest {
     private final Collection<String> testClassNames;
     private final Collection<InternalJvmTestRequest> internalJvmTestRequests;
     private final InternalDebugOptions debugOptions;
+    private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
 
-    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors, Collection<String> testClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions) {
+    public TestExecutionRequest(Iterable<TestOperationDescriptor> operationDescriptors, Collection<String> testClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> testTasks) {
         this.testDescriptors = adaptDescriptors(operationDescriptors);
         this.testClassNames = testClassNames;
         this.internalJvmTestRequests = internalJvmTestRequests;
         this.debugOptions = debugOptions;
+        this.taskAndTests = testTasks;
     }
 
     public InternalDebugOptions getDebugOptions() {
         return debugOptions;
+    }
+
+    public Map<String, List<InternalJvmTestRequest>>  getTaskAndTests() {
+        return taskAndTests;
     }
 
     @Override

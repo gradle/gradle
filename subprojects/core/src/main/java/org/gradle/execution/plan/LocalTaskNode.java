@@ -36,11 +36,13 @@ import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.resources.ResourceDeadlockException;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -52,6 +54,7 @@ public class LocalTaskNode extends TaskNode {
     private final Map<File, String> canonicalizedFileCache;
     private ImmutableActionSet<Task> postAction = ImmutableActionSet.empty();
     private boolean isolated;
+    private List<? extends ResourceLock> resourceLocks;
 
     public LocalTaskNode(TaskInternal task, Map<File, String> canonicalizedFileCache) {
         this.task = task;
@@ -81,6 +84,14 @@ public class LocalTaskNode extends TaskNode {
     public Project getOwningProject() {
         // Task requires its owning project's execution services
         return task.getProject();
+    }
+
+    @Override
+    public List<? extends ResourceLock> getResourcesToLock() {
+        if (resourceLocks == null) {
+            resourceLocks = task.getSharedResources();
+        }
+        return resourceLocks;
     }
 
     @Override
