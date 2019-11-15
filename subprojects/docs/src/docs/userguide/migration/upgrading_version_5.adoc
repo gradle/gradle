@@ -330,6 +330,16 @@ repositories {
 With Kotlin IntelliJ plugin versions prior to 1.3.50, Kotlin DSL scripts will be wrongly highlighted when the _Gradle JVM_ is set to a version different from the one in _Project SDK_.
 Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kotlin DSL script highlighting behavior.
 
+==== Kotlin DSL script base types no longer extend `Project`, `Settings` or `Gradle`
+
+In previous versions, Kotlin DSL scripts were compiled to classes that implemented one of the three core Gradle configuration interfaces in order to implicitly expose their APIs to scripts. `org.gradle.api.Project` for project scripts, `org.gradle.api.initialization.Settings` for settings scripts and `org.gradle.api.invocation.Gradle` for init scripts.
+
+Having the script instance implement the core Gradle interface of the model object it was supposed to configure was convenient because it made the model object API immediately available to the body of the script but it was also a lie that could cause all sorts of trouble whenever the script itself was used in place of the model object, a project script **was not** a proper `Project` instance just because it implemented the core `Project` interface and the same was true for settings and init scripts.
+
+In 6.0 all Kotlin DSL scripts are compiled to classes that implement the newly introduced `org.gradle.kotlin.dsl.KotlinScript` interface and the corresponding model objects are now available as _implicit receivers_ in the body of the scripts. In other words, a project script behaves as if the body of the script is enclosed within a `with(project) { ... }` block, a settings script as if the body of the script is enclosed within a `with(settings) { ... }` block and an init script as if the body of the script is enclosed within a `with(gradle) { ... }` block. This implies the corresponding model object is also available as a property in the body of the script, the `project` property for project scripts, the `settings` property for settings scripts and the `gradle` property for init scripts.
+
+As part of the change, the `SettingsScriptApi` interface is no longer implemented by settings scripts and the `InitScriptApi` interface is no longer implemented by init scripts. They should be replaced with the corresponding model object interfaces, `Settings` and `Gradle`.
+
 ==== Miscellaneous
 
 ==== Javadoc and Groovydoc don't include timestamps by default
