@@ -11,7 +11,8 @@ Include only their name, impactful features should be called out separately belo
 [Mark Nordhoff](https://github.com/MarkNordhoff),
 [Kazuki Matsuda](https://github.com/kazuki-ma),
 [Emmanuel Guérin](https://github.com/emmanuelguerin),
-and [Nicholas Gates](https://github.com/gatesn).
+[Nicholas Gates](https://github.com/gatesn),
+and [Johnny Lim](https://github.com/izeye).
 
 ## Upgrade Instructions
 
