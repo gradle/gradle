@@ -61,7 +61,7 @@ public class DefaultDomainObjectCollectionFactory implements DomainObjectCollect
 
     @Override
     public <T> NamedDomainObjectContainer<T> newNamedDomainObjectContainer(Class<T> elementType) {
-        return container(elementType, instantiatorFactory.injectAndDecorateLenient(servicesToInject));
+        return container(elementType, instantiatorFactory.decorateLenient(servicesToInject));
     }
 
     private <T> NamedDomainObjectContainer<T> container(Class<T> elementType, InstanceGenerator elementInstantiator) {

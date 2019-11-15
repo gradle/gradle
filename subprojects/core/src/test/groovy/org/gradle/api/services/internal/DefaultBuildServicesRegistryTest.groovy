@@ -23,6 +23,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -30,7 +31,8 @@ import spock.lang.Specification
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager()
     def isolatableFactory = new DefaultValueSnapshotter(null, TestUtil.managedFactoryRegistry())
-    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory)
+    def leaseRegistry = Stub(SharedResourceLeaseRegistry)
+    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)
 
     def setup() {
         ServiceImpl.reset()
@@ -92,6 +94,15 @@ class DefaultBuildServicesRegistryTest extends Specification {
         BrokenServiceImpl.attempts == 1
     }
 
+    def "service has no max parallel usages by default"() {
+        expect:
+        registry.registerIfAbsent("service", ServiceImpl) {
+            assert !it.maxParallelUsages.present
+        }
+        def registration = registry.registrations.getByName("service")
+        !registration.maxParallelUsages.present
+    }
+
     def "can locate registration by name"() {
         when:
         def provider = registry.registerIfAbsent("service", ServiceImpl) {}
@@ -122,14 +133,14 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value"
     }
 
-    def "does not run configuration action when the service does not take parameters"() {
+    def "service can take no parameters"() {
         def action = Mock(Action)
 
         when:
         def provider = registry.registerIfAbsent("service", NoParamsServiceImpl, action)
 
         then:
-        0 * action._
+        1 * action.execute(_)
 
         when:
         def service = provider.get()
@@ -159,9 +170,37 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value 2"
     }
 
+    def "can tweak max parallel usage via the registration"() {
+        when:
+        registry.registerIfAbsent("service", BuildService) {
+            it.maxParallelUsages = 42
+        }
+        def registration = registry.registrations.getByName("service")
+
+        then:
+        registration.maxParallelUsages.get() == 42
+    }
+
     def "registration for service with no parameters is visible"() {
         when:
         registry.registerIfAbsent("service", NoParamsServiceImpl) {}
+
+        then:
+        registry.registrations.getByName("service") != null
+    }
+
+    def "can use base service type to create a service with no state"() {
+        when:
+        def provider = registry.registerIfAbsent("service", BuildService) {}
+        def service = provider.get()
+
+        then:
+        service instanceof BuildService
+    }
+
+    def "registration for service with no state is visible"() {
+        when:
+        registry.registerIfAbsent("service", BuildService) {}
 
         then:
         registry.registrations.getByName("service") != null
@@ -229,6 +268,36 @@ class DefaultBuildServicesRegistryTest extends Specification {
         def e = thrown(GradleException)
         e.message == "Failed to stop service 'service'."
         e.cause.is(BrokenStopServiceImpl.failure)
+    }
+
+    def "can locate resource corresponding to service registration"() {
+        when:
+        def service1 = registry.registerIfAbsent("service", BuildService) {
+            it.maxParallelUsages = 42
+        }
+        def service2 = registry.registerIfAbsent("no-max", ServiceImpl) {}
+
+        then:
+        registry.forService(service1).maxUsages == 42
+        registry.forService(service2).maxUsages == -1
+    }
+
+    def "cannot change max parallel usages once resource has been located"() {
+        given:
+        def service = registry.registerIfAbsent("service", ServiceImpl) {}
+        def registration = registry.registrations.findByName("service")
+        registration.maxParallelUsages = 42
+        registry.forService(service)
+
+        when:
+        registration.maxParallelUsages = 4
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "The value for property 'maxParallelUsages' is final and cannot be changed any further."
+
+        and:
+        registry.forService(service).maxUsages == 42
     }
 
     private buildFinished() {

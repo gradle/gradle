@@ -1,4 +1,4 @@
-= {sample-displayName} Sample
+= Java Components with JUnit 4 Tests Sample
 
 ifndef::env-github[]
 [.download]

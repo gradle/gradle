@@ -55,6 +55,9 @@ dependencies {
     smokeTestImplementation(project(":persistentCache"))
     smokeTestImplementation(library("commons_io"))
     smokeTestImplementation(library("jgit"))
+    smokeTestImplementation(library("gradleProfiler")) {
+        because("Using build mutators to change a Java file")
+    }
     smokeTestImplementation(testLibrary("spock"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra

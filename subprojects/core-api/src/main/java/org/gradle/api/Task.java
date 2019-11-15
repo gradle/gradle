@@ -24,6 +24,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -750,4 +751,13 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Optional
     @Incubating
     Property<Duration> getTimeout();
+
+    /**
+     * Registers a {@link BuildService} that is used by this task.
+     *
+     * @param service The service provider.
+     * @since 6.1
+     */
+    @Incubating
+    void usesService(Provider<? extends BuildService<?>> service);
 }

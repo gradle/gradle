@@ -1,4 +1,4 @@
-= {sample-displayName} Sample
+= Groovy Transitive Dependencies Sample
 
 ifndef::env-github[]
 [.download]

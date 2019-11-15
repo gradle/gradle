@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCacheLockingManager;
@@ -61,11 +62,11 @@ public class DependencyManagementGradleUserHomeScopeServices {
         ImmutableCachingTransformationWorkspaceProvider cachingWorkspaceProvider = new ImmutableCachingTransformationWorkspaceProvider(immutableTransformationWorkspaceProvider);
         listenerManager.addListener(new RootBuildLifecycleListener() {
             @Override
-            public void afterStart() {
+            public void afterStart(GradleInternal gradle) {
             }
 
             @Override
-            public void beforeComplete() {
+            public void beforeComplete(GradleInternal gradle) {
                 cachingWorkspaceProvider.clearInMemoryCache();
             }
         });

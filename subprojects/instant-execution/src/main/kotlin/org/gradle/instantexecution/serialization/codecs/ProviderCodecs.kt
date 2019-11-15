@@ -97,6 +97,7 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
             writeString(value.getName())
             writeClass(value.getImplementationType())
             write(value.getParameters())
+            writeInt(serviceRegistry.forService(value).maxUsages)
         }
     }
 
@@ -105,7 +106,8 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
             val name = readString()
             val implementationType = readClass() as Class<BuildService<*>>
             val parameters = read() as BuildServiceParameters?
-            val provider = serviceRegistry.register(name, implementationType, parameters)
+            val maxUsages = readInt()
+            val provider = serviceRegistry.register(name, implementationType, parameters, maxUsages)
             sharedIdentities.putInstance(id, provider)
             provider
         }

@@ -22,16 +22,19 @@ import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resources.ResourceLock;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
 import org.gradle.util.Path;
 
 import java.io.File;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
@@ -98,9 +101,12 @@ public interface TaskInternal extends Task, Configurable<Task> {
     @Deprecated
     void replaceLogger(Logger logger);
 
+    @Internal
+    Set<Provider<? extends BuildService<?>>> getRequiredServices();
+
     /**
      * <p>Gets the shared resources required by this task.</p>
      */
     @Internal
-    Map<String, Integer> getSharedResources();
+    List<? extends ResourceLock> getSharedResources();
 }

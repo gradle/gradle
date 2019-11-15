@@ -25,8 +25,10 @@ class IsolationSchemeTest extends Specification {
         expect:
         scheme.parameterTypeFor(DirectUsage) == CustomParams
         scheme.parameterTypeFor(IndirectUsage) == CustomParams
-        scheme.parameterTypeFor(NoParams) == null
         scheme.parameterTypeFor(ParameterizedType) == CustomParams
+
+        scheme.parameterTypeFor(NoParams) == null
+        scheme.parameterTypeFor(SomeAction) == null
     }
 
     def "fails when base parameters type is used"() {
