@@ -16,8 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import java.util.Optional;
-
 public abstract class AbstractFileSystemNode implements FileSystemNode {
 
     private final String pathToParent;
@@ -26,24 +24,8 @@ public abstract class AbstractFileSystemNode implements FileSystemNode {
         this.pathToParent = pathToParent;
     }
 
-    /**
-     * Returns metadata about this node if available.
-     */
-    protected abstract Optional<MetadataSnapshot> getMetadata();
-
-    protected abstract Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset);
-
     @Override
     public String getPathToParent() {
         return pathToParent;
-    }
-
-    @Override
-    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
-        return SnapshotUtil.thisOrGet(
-            getMetadata().orElse(null),
-            absolutePath, offset,
-            () -> getChildMetadata(absolutePath, offset)
-        );
     }
 }

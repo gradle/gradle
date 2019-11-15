@@ -76,7 +76,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(set, tmpDir.file("dir"))
         !snapshotPresent(set, tmpDir.file("dir12"))
         !snapshotPresent(set, tmpDir.file("common/dir21"))
-        flatten(set) == [parent.path, "1:common", "2:dir2", "2:dir3", "3:child", "1:dir1"]
+        flatten(set) == [parent.path, "1:common", "2:dir2", "3:child", "2:dir3", "3:child", "1:dir1", "2:child"]
     }
 
     def "creates from files where one file is ancestor of the others"() {
@@ -95,7 +95,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(set, tmpDir.file("dir"))
         !snapshotPresent(set, tmpDir.file("dir12"))
         !snapshotPresent(set, tmpDir.file("dir21"))
-        flatten(set) == [dir1.path]
+        flatten(set) == [dir1.path, "1:child", "1:dir2", "2:child", "3:some", "4:nested", "5:structure"]
     }
 
     def "can add dir to empty set"() {
@@ -134,7 +134,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s1, tooFew)
         !snapshotPresent(s1, tooMany)
         assertPartialDirectorySnapshot(s1, parent)
-        flatten(s1) == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s1) == [parent.path, "1:dir1", "2:child1", "1:dir2"]
 
         def s2 = updateDir(single, dir1)
         assertDirectorySnapshot(s2, dir1)
@@ -144,7 +144,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s2, tooFew)
         !snapshotPresent(s2, tooMany)
         !snapshotPresent(s2, parent)
-        flatten(s2) == [dir1.path]
+        flatten(s2) == [dir1.path, "1:child1"]
 
         def s3 = updateDir(single, child)
         assertDirectorySnapshot(s3, dir1)
@@ -154,7 +154,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s3, tooFew)
         !snapshotPresent(s3, tooMany)
         !snapshotPresent(s3, parent)
-        flatten(s3) == [dir1.path]
+        flatten(s3) == [dir1.path, "1:child1"]
 
         def s4 = updateDir(single, parent)
         assertDirectorySnapshot(s4, dir1)
@@ -162,7 +162,7 @@ class DefaultFileHierarchySetTest extends Specification {
         assertDirectorySnapshot(s4, dir2)
         assertDirectorySnapshot(s4, dir3)
         assertDirectorySnapshot(s4, parent)
-        flatten(s4) == [parent.path]
+        flatten(s4) == [parent.path, "1:dir", "1:dir1", "2:child1", "1:dir12", "1:dir2", "1:dir3"]
 
         def s5 = updateDir(single, tooFew)
         assertDirectorySnapshot(s5, dir1)
@@ -171,7 +171,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s5, dir2)
         !snapshotPresent(s5, tooMany)
         assertPartialDirectorySnapshot(s5, parent)
-        flatten(s5) == [parent.path, "1:dir", "1:dir1"]
+        flatten(s5) == [parent.path, "1:dir", "1:dir1", "2:child1"]
 
         def s6 = updateDir(single, tooMany)
         assertDirectorySnapshot(s6, dir1)
@@ -180,7 +180,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s6, dir2)
         !snapshotPresent(s6, tooFew)
         assertPartialDirectorySnapshot(s6, parent)
-        flatten(s6) == [parent.path, "1:dir1", "1:dir12"]
+        flatten(s6) == [parent.path, "1:dir1", "2:child1", "1:dir12"]
     }
 
     def "can add dir to multi set"() {
@@ -201,7 +201,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s1, dir3)
         !snapshotPresent(s1, other)
         assertPartialDirectorySnapshot(s1, parent)
-        flatten(s1) == [parent.path, "1:dir1", "1:dir2", "1:dir3"]
+        flatten(s1) == [parent.path, "1:dir1", "2:child1", "1:dir2", "1:dir3"]
 
         def s2 = updateDir(multi, dir2)
         snapshotPresent(s2, dir1)
@@ -210,7 +210,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !snapshotPresent(s2, dir3)
         !snapshotPresent(s2, other)
         assertPartialDirectorySnapshot(s2, parent)
-        flatten(s2) == [parent.path, "1:dir1", "1:dir2"]
+        flatten(s2) == [parent.path, "1:dir1", "2:child1", "1:dir2"]
 
         def s3 = updateDir(multi, child)
         snapshotPresent(s3, dir1)
@@ -227,7 +227,7 @@ class DefaultFileHierarchySetTest extends Specification {
         snapshotPresent(s4, dir2)
         snapshotPresent(s4, other)
         assertPartialDirectorySnapshot(s2, parent)
-        flatten(s4) == [parent.path]
+        flatten(s4) == [parent.path, "1:dir1", "2:child1", "1:dir2", "1:dir3", "1:dir4"]
     }
 
     def "splits and merges prefixes as directories are added"() {
@@ -259,7 +259,7 @@ class DefaultFileHierarchySetTest extends Specification {
         flatten(s6) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5", "3:and", "4:more", "1:dir6"]
 
         def s7 = updateDir(s3, parent)
-        flatten(s7) == [parent.path]
+        flatten(s7) == [parent.path, "1:dir1", "2:dir2", "3:dir3", "3:dir4", "2:dir5", "3:and", "4:more", "1:dir6"]
     }
 
     def "can add directory snapshot in between to forking points"() {
@@ -467,19 +467,21 @@ class DefaultFileHierarchySetTest extends Specification {
         def set = FileHierarchySet.EMPTY
             .update(firstPath, directorySnapshotForPath(firstPath))
             .update(secondPath, directorySnapshotForPath(secondPath))
-            .update("/other/fuckup", directorySnapshotForPath("/other/fuckup"))
+            .update("/other/just-checking", directorySnapshotForPath("/other/just-checking"))
 
         expect:
-        set.getMetadata(firstPath).present
-        set.getMetadata(secondPath).present
-        !set.getMetadata("/").present
+        set.getSnapshot(firstPath).present
+        set.getSnapshot(secondPath).present
+        set.getMetadata("/").get().type == FileType.Directory
+        !set.getSnapshot("/").present
 
         when:
         def invalidated = set.invalidate(firstPath)
         then:
         !invalidated.getMetadata(firstPath).present
         invalidated.getMetadata(secondPath).present
-        !set.getMetadata("/").present
+        set.getMetadata("/").get().type == FileType.Directory
+        !set.getSnapshot("/").present
     }
 
     def "can update the root path"() {
@@ -512,7 +514,8 @@ class DefaultFileHierarchySetTest extends Specification {
             .update("/", rootDirectorySnapshot())
             .invalidate("/root.txt")
         then:
-        !set.getMetadata("/").present
+        set.getMetadata("/").get().type == FileType.Directory
+        !set.getSnapshot("/").present
         !set.getMetadata("/root.txt").present
         set.getMetadata("/other.txt").get().type == FileType.RegularFile
     }
@@ -683,10 +686,11 @@ class DefaultFileHierarchySetTest extends Specification {
             prefixes.add(depth + ":" + node.getPathToParent().replace(File.separatorChar, (char) '/'))
         }
         List<? extends FileSystemNode> children
-        if (node instanceof CompleteDirectorySnapshot) {
-            children = node.children
-        } else if (node instanceof AbstractIncompleteSnapshotWithChildren) {
-            children = node.children
+        def unpackedNode = (node.getSnapshot().filter { it instanceof CompleteFileSystemLocationSnapshot }.orElse(node))
+        if (unpackedNode instanceof CompleteDirectorySnapshot) {
+            children = unpackedNode.children
+        } else if (unpackedNode instanceof AbstractIncompleteSnapshotWithChildren) {
+            children = unpackedNode.children
         } else {
             children = []
         }

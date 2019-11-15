@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.file.FileType;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,15 +26,10 @@ import java.util.Optional;
  *
  * May include some of its children.
  */
-public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren implements MetadataSnapshot {
+public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren {
 
     public PartialDirectorySnapshot(String pathToParent, List<? extends FileSystemNode> children) {
         super(pathToParent, children);
-    }
-
-    @Override
-    protected Optional<MetadataSnapshot> getMetadata() {
-        return Optional.of(this);
     }
 
     @Override
@@ -49,12 +43,12 @@ public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChil
     }
 
     @Override
-    protected FileSystemNode withIncompleteChildren() {
-        return this;
+    public Optional<MetadataSnapshot> getSnapshot() {
+        return Optional.of(MetadataSnapshot.DIRECTORY);
     }
 
     @Override
-    public FileType getType() {
-        return FileType.Directory;
+    protected FileSystemNode withIncompleteChildren() {
+        return this;
     }
 }

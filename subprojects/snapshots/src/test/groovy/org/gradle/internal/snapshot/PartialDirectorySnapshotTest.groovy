@@ -29,7 +29,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
 
     @Override
     protected boolean isSameNodeType(FileSystemNode node) {
-        node instanceof MetadataSnapshot && node.type == FileType.Directory
+        node instanceof PartialDirectorySnapshot
     }
 
     def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -81,13 +81,10 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         vfsSpec << DESCENDANT_PATH
     }
 
-    def "returns Directory when queried at root"() {
+    def "returns Directory for snapshot"() {
         def node = new PartialDirectorySnapshot("some/prefix", [])
 
-        when:
-        def snapshot = node.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1).get()
-        then:
-        snapshot.type == FileType.Directory
-        0 * _
+        expect:
+        node.getSnapshot().get().type == FileType.Directory
     }
 }

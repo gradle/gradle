@@ -109,13 +109,10 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         vfsSpec << DESCENDANT_PATH.findAll { it.childPaths.size() == 1 }
     }
 
-    def "returns empty when queried at root"() {
+    def "returns empty for snapshot"() {
         def node = new UnknownSnapshot("some/prefix", createChildren(["myFile.txt"]))
 
-        when:
-        def snapshot = node.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1)
-        then:
-        !snapshot.present
-        0 * _
+        expect:
+        !node.getSnapshot().present
     }
 }

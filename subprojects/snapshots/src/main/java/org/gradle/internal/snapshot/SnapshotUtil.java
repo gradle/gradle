@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -53,7 +52,10 @@ public class SnapshotUtil {
         }
     }
 
-    private static Optional<MetadataSnapshot> getSnapshotFromChild(String filePath, int offset, FileSystemNode child) {
+    public static Optional<MetadataSnapshot> getSnapshotFromChild(String filePath, int offset, FileSystemNode child) {
+        if (filePath.length() - offset == child.getPathToParent().length()) {
+            return child.getSnapshot();
+        }
         return child.getSnapshot(filePath, offset + child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent()));
     }
 
@@ -69,17 +71,17 @@ public class SnapshotUtil {
 
             @Override
             public FileSystemNode handleParent() {
-                return snapshot.withPathToParent(path.substring(offset));
+                return snapshot.asFileSystemNode(path.substring(offset));
             }
 
             @Override
             public FileSystemNode handleSame() {
                 return snapshot instanceof CompleteFileSystemLocationSnapshot
-                    ? snapshot.withPathToParent(child.getPathToParent())
-                    : child.getSnapshot(path, path.length() + 1)
+                    ? snapshot.asFileSystemNode(child.getPathToParent())
+                    : child.getSnapshot()
                         .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
-                        .map(FileSystemNode.class::cast)
-                        .orElseGet(() -> snapshot.withPathToParent(child.getPathToParent()));
+                        .map(it -> child)
+                        .orElseGet(() -> snapshot.asFileSystemNode(child.getPathToParent()));
             }
 
             @Override
@@ -88,18 +90,18 @@ public class SnapshotUtil {
                 String commonPrefix = prefix.substring(0, commonPrefixLength);
                 boolean emptyCommonPrefix = commonPrefixLength == 0;
                 FileSystemNode newChild = emptyCommonPrefix ? child : child.withPathToParent(prefix.substring(commonPrefixLength + 1));
-                FileSystemNode sibling = snapshot.withPathToParent(emptyCommonPrefix ? path.substring(offset) : path.substring(offset + commonPrefixLength + 1));
+                FileSystemNode sibling = snapshot.asFileSystemNode(emptyCommonPrefix ? path.substring(offset) : path.substring(offset + commonPrefixLength + 1));
                 ImmutableList<FileSystemNode> newChildren = PathUtil.pathComparator().compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
-                boolean isDirectory = isRegularFileOrDirectory(child) || isRegularFileOrDirectory(snapshot);
+                boolean isDirectory = child.getSnapshot().filter(SnapshotUtil::isRegularFileOrDirectory).isPresent() || isRegularFileOrDirectory(snapshot);
                 return isDirectory ? new PartialDirectorySnapshot(commonPrefix, newChildren) : new UnknownSnapshot(commonPrefix, newChildren);
             }
         });
     }
 
-    private static boolean isRegularFileOrDirectory(FileSystemNode node) {
-        return (node instanceof MetadataSnapshot) && ((MetadataSnapshot) node).getType() != FileType.Missing;
+    private static boolean isRegularFileOrDirectory(MetadataSnapshot metadataSnapshot) {
+        return metadataSnapshot.getType() != FileType.Missing;
     }
 
     public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, String path, int offset) {
@@ -124,13 +126,6 @@ public class SnapshotUtil {
                 return Optional.of(child);
             }
         });
-    }
-
-    public static Optional<MetadataSnapshot> thisOrGet(@Nullable MetadataSnapshot current, String filePath, int offset, Supplier<Optional<MetadataSnapshot>> supplier) {
-        if (filePath.length() + 1 == offset) {
-            return Optional.ofNullable(current);
-        }
-        return supplier.get();
     }
 
     public static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {

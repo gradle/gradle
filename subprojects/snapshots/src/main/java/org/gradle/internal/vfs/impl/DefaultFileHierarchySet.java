@@ -24,6 +24,7 @@ import org.gradle.internal.snapshot.PathUtil;
 import java.util.Optional;
 
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
+import static org.gradle.internal.snapshot.SnapshotUtil.getSnapshotFromChild;
 import static org.gradle.internal.snapshot.SnapshotUtil.invalidateSingleChild;
 import static org.gradle.internal.snapshot.SnapshotUtil.storeSingleChild;
 
@@ -34,7 +35,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot) {
         String normalizedPath = normalizeRoot(absolutePath);
         int offset = determineOffset(absolutePath);
-        return new DefaultFileHierarchySet(snapshot.withPathToParent(offset == 0 ? normalizedPath : normalizedPath.substring(offset)));
+        return new DefaultFileHierarchySet(snapshot.asFileSystemNode(offset == 0 ? normalizedPath : normalizedPath.substring(offset)));
     }
 
     private DefaultFileHierarchySet(FileSystemNode rootNode) {
@@ -49,7 +50,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         if (!PathUtil.isChildOfOrThis(normalizedPath, offset, pathToParent)) {
             return Optional.empty();
         }
-        return rootNode.getSnapshot(normalizedPath, pathToParent.length() + offset + PathUtil.descendantChildOffset(pathToParent));
+        return getSnapshotFromChild(normalizedPath, offset, rootNode);
     }
 
     @Override

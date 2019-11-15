@@ -16,14 +16,30 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
 
 /**
  * A snapshot where we know the metadata (i.e. the type).
  */
-public interface MetadataSnapshot extends FileSystemNode {
+public interface MetadataSnapshot {
+
+    MetadataSnapshot DIRECTORY = new MetadataSnapshot() {
+        @Override
+        public FileType getType() {
+            return FileType.Directory;
+        }
+
+        @Override
+        public FileSystemNode asFileSystemNode(String pathToParent) {
+            return new PartialDirectorySnapshot(pathToParent, ImmutableList.of());
+        }
+    };
+
     /**
      * The type of the file.
      */
     FileType getType();
+
+    FileSystemNode asFileSystemNode(String pathToParent);
 }
