@@ -34,21 +34,21 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withRetentionRun "run"
+        withRetention().run "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withRetentionRun "run"
+        withRetention().run "run"
         then:
         outputContains "Hello World!"
         skipped(":compileJava", ":processResources", ":classes")
         executedAndNotSkipped ":run"
 
         when:
-        withRetentionRun "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${mainSourceFile.absolutePath}"
+        withRetention().run "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${mainSourceFile.absolutePath}"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -63,18 +63,18 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        withRetentionRun "hello"
+        withRetention().run "hello"
         then:
         outputContains "Hello from original task!"
 
         when:
         taskSourceFile.text = taskWithGreeting("Hello from modified task!")
-        withRetentionRun "hello"
+        withRetention().run "hello"
         then:
         outputContains "Hello from original task!"
 
         when:
-        withRetentionRun "hello", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${taskSourceFile.absolutePath}"
+        withRetention().run "hello", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${taskSourceFile.absolutePath}"
         then:
         outputContains "Hello from modified task!"
     }
@@ -84,7 +84,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildFile.text = """
             println "Hello from the build!"
         """
-        withRetentionRun "help"
+        withRetention().run "help"
         then:
         outputContains "Hello from the build!"
 
@@ -92,7 +92,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildFile.text = """
             println "Hello from the modified build!"
         """
-        withRetentionRun "help"
+        withRetention().run "help"
         then:
         outputContains "Hello from the modified build!"
     }
@@ -102,7 +102,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         settingsFile.text = """
             println "Hello from settings!"
         """
-        withRetentionRun "help"
+        withRetention().run "help"
         then:
         outputContains "Hello from settings!"
 
@@ -110,7 +110,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         settingsFile.text = """
             println "Hello from modified settings!"
         """
-        withRetentionRun "help"
+        withRetention().run "help"
         then:
         outputContains "Hello from modified settings!"
     }
@@ -126,14 +126,14 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withoutRetentionRun "run"
+        run "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withRetentionRun "run"
+        withRetention().run "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
@@ -150,26 +150,22 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
-        withRetentionRun "run"
+        withRetention().run "run"
         then:
         outputContains "Hello World!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        withoutRetentionRun "run"
+        run "run"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
-    private void withRetentionRun(String... tasks) {
+    private def withRetention() {
         executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
-        run tasks
-    }
-
-    private void withoutRetentionRun(String... tasks) {
-        run tasks
+        this
     }
 
     private static String sourceFileWithGreeting(String greeting) {
