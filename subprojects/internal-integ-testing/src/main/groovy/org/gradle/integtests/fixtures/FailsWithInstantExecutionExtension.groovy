@@ -59,7 +59,6 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
         @Override
         void beforeFeature(FeatureInfo featureInfo) {
             if (feature == featureInfo) {
-                println("before feature ${feature.name}")
                 feature.featureMethod.interceptors.add(0, featureInterceptor)
             }
         }
@@ -67,7 +66,6 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
         @Override
         void beforeIteration(IterationInfo iteration) {
             if (feature == iteration.feature) {
-                println("before iteration ${iteration.name}")
                 feature.iterationInterceptors.add(0, iterationInterceptor)
             }
         }
@@ -75,7 +73,6 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
         @Override
         void afterFeature(FeatureInfo featureInfo) {
             if (feature == featureInfo) {
-                println("after feature ${feature.name}")
                 def failures = featureInterceptor.failures + iterationInterceptor.failures
                 if (failures.empty) {
                     throw new UnexpectedSuccessException()
@@ -95,7 +92,6 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
 
         @Override
         void intercept(IMethodInvocation invocation) throws Throwable {
-            println("> intercepting ${invocation.feature.name}")
             try {
                 invocation.proceed()
             } catch (Throwable ex) {
