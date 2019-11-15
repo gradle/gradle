@@ -19,6 +19,7 @@ package org.gradle.integtests.language
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -53,7 +54,7 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
 """
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
     def "builds jar"() {
         when:
         run "mainJar"

@@ -61,7 +61,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         NONE          | statusForReusedOutput
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
     def "single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectSkipped"() {
         given:
         file("src/data1").createDir()
