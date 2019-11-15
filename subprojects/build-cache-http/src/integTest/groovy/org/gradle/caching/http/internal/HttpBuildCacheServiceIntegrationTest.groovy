@@ -53,6 +53,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
     }
 
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FLAKY)
     def "no task is re-executed when inputs are unchanged"() {
         when:
         withBuildCache().run "jar"
