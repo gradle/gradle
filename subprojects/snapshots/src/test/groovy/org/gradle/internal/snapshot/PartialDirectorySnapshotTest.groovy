@@ -56,7 +56,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
         interaction {
-            invalidateDescendantOfSelectedChild(vfsFixture, invalidatedChild)
+            invalidateDescendantOfSelectedChild(invalidatedChild)
             noMoreInteractions()
         }
 
@@ -73,7 +73,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
         interaction {
-            invalidateDescendantOfSelectedChild(vfsFixture, null)
+            invalidateDescendantOfSelectedChild(null)
             noMoreInteractions()
         }
 

@@ -26,7 +26,11 @@ import java.util.stream.Collectors
 @Unroll
 abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNode> extends Specification {
 
-    @Delegate VirtualFileSystemTestFixture vfsFixture
+    FileSystemNode initialRoot
+    List<FileSystemNode> children
+    String absolutePath
+    int offset
+    FileSystemNode selectedChild
 
     abstract protected T createInitialRootNode(String pathToParent, List<FileSystemNode> children);
 
@@ -62,8 +66,8 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
         where:
         vfsSpecWithFileType << [COMMON_PREFIX, [FileType.RegularFile, FileType.Directory]].combinations()
-        vfsSpec = vfsSpecWithFileType[0]
-        fileType = vfsSpecWithFileType[1]
+        vfsSpec = vfsSpecWithFileType[0] as VirtualFileSystemTestSpec
+        fileType = vfsSpecWithFileType[1] as FileType
     }
 
     def "store Missing child with common prefix adds a new child with the shared prefix with unknown metadata (#vfsSpec)"() {
@@ -153,7 +157,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         resultRoot.children == children
         isSameNodeType(resultRoot)
         interaction {
-            getSelectedChildSnapshot(vfsFixture)
+            getSelectedChildSnapshot()
             noMoreInteractions()
         }
 
@@ -172,7 +176,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         isSameNodeType(resultRoot)
         resultRoot.children == childrenWithSelectedChildReplacedBy(newSnapshot)
         interaction {
-            getSelectedChildSnapshot(vfsFixture)
+            getSelectedChildSnapshot()
             1 * newSnapshot.withPathToParent(newPathToParent) >> newSnapshot
             noMoreInteractions()
         }
@@ -192,7 +196,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         initialRoot.class == resultRoot.class
         resultRoot.children == childrenWithSelectedChildReplacedBy(updatedChildNode)
         interaction {
-            storeDescendantOfSelectedChild(vfsFixture, snapshotToStore, updatedChildNode)
+            storeDescendantOfSelectedChild(snapshotToStore, updatedChildNode)
             noMoreInteractions()
         }
 
@@ -200,9 +204,9 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << DESCENDANT_PATH
     }
 
-    def storeDescendantOfSelectedChild(VirtualFileSystemTestFixture fixture, MetadataSnapshot snapshot, FileSystemNode updatedChild) {
-        def descendantOffset = fixture.offset + fixture.selectedChild.pathToParent.length() + 1
-        1 * fixture.selectedChild.store(fixture.absolutePath, descendantOffset, snapshot) >> updatedChild
+    def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
+        def descendantOffset = offset + selectedChild.pathToParent.length() + 1
+        1 * selectedChild.store(absolutePath, descendantOffset, snapshot) >> updatedChild
     }
 
     def "querying the snapshot for non-existing child #vfsSpec.absolutePath finds nothings (#vfsSpec)"() {
@@ -226,7 +230,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         then:
         resultRoot.get() == selectedChild
         interaction {
-            getSelectedChildSnapshot(vfsFixture)
+            getSelectedChildSnapshot()
             noMoreInteractions()
         }
 
@@ -242,7 +246,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         then:
         !resultRoot.present
         interaction {
-            getSelectedChildSnapshot(vfsFixture, null)
+            getSelectedChildSnapshot(null)
             noMoreInteractions()
         }
 
@@ -259,7 +263,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         then:
         resultRoot.get() == descendantSnapshot
         interaction {
-            getDescendantSnapshotOfSelectedChild(vfsFixture, descendantSnapshot)
+            getDescendantSnapshotOfSelectedChild(descendantSnapshot)
             noMoreInteractions()
         }
 
@@ -275,7 +279,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         then:
         !resultRoot.present
         interaction {
-            getDescendantSnapshotOfSelectedChild(vfsFixture, null)
+            getDescendantSnapshotOfSelectedChild(null)
             noMoreInteractions()
         }
 
@@ -330,18 +334,18 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         }
     }
 
-    def getSelectedChildSnapshot(VirtualFileSystemTestFixture fixture, @Nullable foundSnapshot = fixture.selectedChild) {
-        1 * fixture.selectedChild.getSnapshot(fixture.absolutePath, fixture.absolutePath.length() + 1) >> Optional.ofNullable(foundSnapshot)
+    def getSelectedChildSnapshot(@Nullable FileSystemNode foundSnapshot = selectedChild) {
+        1 * selectedChild.getSnapshot(absolutePath, absolutePath.length() + 1) >> Optional.ofNullable(foundSnapshot)
     }
 
-    def getDescendantSnapshotOfSelectedChild(VirtualFileSystemTestFixture fixture, @Nullable MetadataSnapshot foundSnapshot) {
-        def descendantOffset = fixture.offset + fixture.selectedChild.pathToParent.length() + 1
-        1 * fixture.selectedChild.getSnapshot(fixture.absolutePath, descendantOffset) >> Optional.ofNullable(foundSnapshot)
+    def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
+        def descendantOffset = offset + selectedChild.pathToParent.length() + 1
+        1 * selectedChild.getSnapshot(absolutePath, descendantOffset) >> Optional.ofNullable(foundSnapshot)
     }
 
-    def invalidateDescendantOfSelectedChild(VirtualFileSystemTestFixture fixture, @Nullable FileSystemNode invalidatedChild) {
-        def descendantOffset = fixture.offset + fixture.selectedChild.pathToParent.length() + 1
-        1 * fixture.selectedChild.invalidate(fixture.absolutePath, descendantOffset) >> Optional.ofNullable(invalidatedChild)
+    def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {
+        def descendantOffset = offset + selectedChild.pathToParent.length() + 1
+        1 * selectedChild.invalidate(absolutePath, descendantOffset) >> Optional.ofNullable(invalidatedChild)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
@@ -383,13 +387,11 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
     void setupTest(VirtualFileSystemTestSpec spec, SelectedChildCreator selectedChildCreator = null) {
         def children = createChildren(spec.childPaths, spec.selectedChildPath, selectedChildCreator)
         def initialRoot = createInitialRootNode("path/to/parent", children)
-        vfsFixture = new VirtualFileSystemTestFixture(
-            initialRoot,
-            children,
-            spec.absolutePath,
-            spec.offset,
-            children.find { it.pathToParent == spec.selectedChildPath }
-        )
+        this.initialRoot = initialRoot
+        this.children = children
+        this.absolutePath = spec.absolutePath
+        this.offset = spec.offset
+        this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
     }
 
     List<FileSystemNode> createChildren(List<String> pathsToParent, @Nullable String selectedChildPath = null, @Nullable SelectedChildCreator selectedChildCreator = null) {
@@ -404,5 +406,36 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     interface SelectedChildCreator {
         FileSystemNode createSelectedChild(String pathToParent)
+    }
+
+    List<FileSystemNode> childrenWithSelectedChildReplacedBy(FileSystemNode replacement) {
+        children.collect { it == selectedChild ? replacement : it }
+    }
+
+    List<FileSystemNode> childrenWithAdditionalChild(FileSystemNode newChild) {
+        List<FileSystemNode> newChildren = new ArrayList<>(children)
+        newChildren.add(insertionPoint, newChild)
+        return newChildren
+    }
+
+    List<FileSystemNode> childrenWithSelectedChildRemoved() {
+        children.findAll { it != selectedChild }
+    }
+
+    FileSystemNode getNodeWithIndexOfSelectedChild(List<FileSystemNode> newChildren) {
+        int index = children.indexOf(selectedChild)
+        return newChildren[index]
+    }
+
+    private int getInsertionPoint() {
+        int childIndex = SearchUtil.binarySearch(children) {
+            candidate -> PathUtil.compareWithCommonPrefix(candidate.pathToParent, absolutePath, offset)
+        }
+        assert childIndex < 0
+        return -childIndex - 1
+    }
+
+    String getCommonPrefix() {
+        return selectedChild.pathToParent.substring(0, PathUtil.sizeOfCommonPrefix(selectedChild.pathToParent, absolutePath, offset))
     }
 }

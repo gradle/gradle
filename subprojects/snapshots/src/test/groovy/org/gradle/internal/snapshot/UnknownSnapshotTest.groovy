@@ -68,7 +68,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
         interaction {
-            invalidateDescendantOfSelectedChild(vfsFixture, invalidatedChild)
+            invalidateDescendantOfSelectedChild(invalidatedChild)
             noMoreInteractions()
         }
 
@@ -85,7 +85,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
         interaction {
-            invalidateDescendantOfSelectedChild(vfsFixture, null)
+            invalidateDescendantOfSelectedChild(null)
             noMoreInteractions()
         }
 
@@ -101,7 +101,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         then:
         !resultRoot.present
         interaction {
-            invalidateDescendantOfSelectedChild(vfsFixture, null)
+            invalidateDescendantOfSelectedChild(null)
             noMoreInteractions()
         }
 
