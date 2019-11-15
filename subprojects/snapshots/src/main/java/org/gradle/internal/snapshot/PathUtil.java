@@ -228,6 +228,7 @@ public class PathUtil {
      *     some/path     >  some1/other
      *     some/same     == some/same/more
      *     some/one/alma == some/two/bela
+     *     a/some        <  b/other
      *
      * @return 0 if the two paths have a common prefix, and the comparison of the first segment of each path if not.
      */
