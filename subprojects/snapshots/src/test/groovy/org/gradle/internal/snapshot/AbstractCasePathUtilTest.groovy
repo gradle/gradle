@@ -44,27 +44,27 @@ abstract class AbstractCasePathUtilTest extends Specification{
         '/root/some' | '/root/other' | 0      | 5
     }
 
-    def "can compare size of common prefix"() {
+    def "can compare by common prefix"() {
         expect:
-        Integer.signum(compareWithCommonPrefix(prefix, path, offset, caseSensitivity)) == result
+        Integer.signum(compareWithCommonPrefix(path1, offset, path2, caseSensitivity)) == result
         if (result) {
-            assert Integer.signum(prefix <=> path.substring(offset)) == result
+            assert Integer.signum(path1.substring(offset) <=> path2) == result
         }
 
         where:
-        prefix             | path                    | offset | result
-        "hello/world"      | "hello/other"           | 0      | 0
-        "hello/world"      | "/var/hello/other"      | 5      | 0
-        "hello/world"      | "/var/hello/world"      | 5      | 0
-        "hello/world"      | "/var/hello\\world"     | 5      | 0
-        "hello/world"      | "/var/hello/world/next" | 5      | 0
-        "hello/world"      | "/var/hello1/other"     | 5      | -1
-        "hello1/world"     | "/var/hello/other"      | 5      | 1
-        "hello/world/some" | "/var/hello/other"      | 5      | 0
-        "hello/world"      | "/var/hello1/other"     | 5      | -1
-        "bbc/some"         | "/var/abc/other"        | 5      | 1
-        "hello/world/some" | "/var/hello/other"      | 1      | -1
-        "hello/world/some" | "/var/hello/other"      | 5      | 0
+        path1                   | offset | path2              | result
+        "hello/other"           | 0      | "hello/world"      | 0
+        "/var/hello/other"      | 5      | "hello/world"      | 0
+        "/var/hello/world"      | 5      | "hello/world"      | 0
+        "/var/hello\\world"     | 5      | "hello/world"      | 0
+        "/var/hello/world/next" | 5      | "hello/world"      | 0
+        "/var/hello1/other"     | 5      | "hello/world"      | 1
+        "/var/hello/other"      | 5      | "hello1/world"     | -1
+        "/var/hello/other"      | 5      | "hello/world/some" | 0
+        "/var/hello1/other"     | 5      | "hello/world"      | 1
+        "/var/abc/other"        | 5      | "bbc/some"         | -1
+        "/var/hello/other"      | 1      | "hello/world/some" | 1
+        "/var/hello/other"      | 5      | "hello/world/some" | 0
     }
 
     def "size of common prefix of #prefix with #path at offset #offset is #result"() {
@@ -101,11 +101,11 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "separator is smaller than every other character"() {
         expect:
-        Integer.signum(compareWithCommonPrefix(prefix, path, offset, caseSensitivity)) == result
+        Integer.signum(compareWithCommonPrefix(path1, offset, path2, caseSensitivity)) == result
 
         where:
-        prefix              | path                    | offset | result
-        "hello/world"       | "/var/hello-other"      | 5      | -1
+        path1              | offset | path2         | result
+        "/var/hello/world" | 5      | "hello-other" | -1
     }
 
     def "equal chars are equal"() {
@@ -158,7 +158,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
     def "path #spec.searchedPrefix has common prefix with #spec.expectedIndex in #spec.children"() {
         expect:
         SearchUtil.binarySearch(spec.children) { child ->
-            compareWithCommonPrefix(child, spec.searchedPrefix, 0, caseSensitivity)
+            compareWithCommonPrefix(spec.searchedPrefix, 0, child, caseSensitivity)
         } == spec.expectedIndex
         spec.children.each { child ->
             def childIndex = spec.children.indexOf(child)

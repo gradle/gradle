@@ -27,7 +27,7 @@ import java.util.function.Supplier;
 public class SnapshotUtil {
     /**
      * If a node has fewer children, we use a linear search for the child.
-     * We use this limit since {@link PathUtil#compareWithCommonPrefix(String, String, int, CaseSensitivity)}
+     * We use this limit since {@link PathUtil#compareWithCommonPrefix(String, int, String, CaseSensitivity)}
      * is about twice as slow as {@link PathUtil#hasPrefix(String, String, int, CaseSensitivity)},
      * so comparing the searched path to all of the children is actually faster than doing a binary search.
      */
@@ -62,7 +62,7 @@ public class SnapshotUtil {
                     }
                     return noChildFoundResult.get();
                 } else {
-                    int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareWithCommonPrefix(child.getPathToParent(), filePath, offset, caseSensitivity));
+                    int foundChild = SearchUtil.binarySearch(children, child -> PathUtil.compareWithCommonPrefix(filePath, offset, child.getPathToParent(), caseSensitivity));
                     return (foundChild >= 0 && PathUtil.hasPrefix(children.get(foundChild).getPathToParent(), filePath, offset, caseSensitivity))
                         ? getSnapshotFromChild(filePath, offset, children.get(foundChild), caseSensitivity)
                         : noChildFoundResult.get();
@@ -158,7 +158,7 @@ public class SnapshotUtil {
     public static <T> T handleChildren(List<? extends FileSystemNode> children, String path, int offset, CaseSensitivity caseSensitivity, ChildHandler<T> childHandler) {
         int childIndex = SearchUtil.binarySearch(
             children,
-            candidate -> PathUtil.compareWithCommonPrefix(candidate.getPathToParent(), path, offset, caseSensitivity)
+            candidate -> PathUtil.compareWithCommonPrefix(path, offset, candidate.getPathToParent(), caseSensitivity)
         );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(childIndex);

@@ -22,11 +22,11 @@ import java.util.List;
 public abstract class SearchUtil {
 
     /**
-     * Does a binary search for an element determined by the return value of a comparator.
+     * Does a binary search for an element determined by a {@link Comparable}.
      *
      * See {@link java.util.Collections#binarySearch(List, Object, Comparator)}.
-     * @param sortedElements {@link java.util.RandomAccess} list, sorted compatible with the comparator
-     * @param searchForComparator determines which element to search for.
+     * @param sortedElements {@link java.util.RandomAccess} list, sorted compatible with the comparable.
+     * @param key determines which element to search for.
      * @return the index of the search key, if it is contained in the list;
      *         otherwise, <code>(-(<i>insertion point</i>) - 1)</code>.  The
      *         <i>insertion point</i> is defined as the point at which the
@@ -36,19 +36,19 @@ public abstract class SearchUtil {
      *         that this guarantees that the return value will be &gt;= 0 if
      *         and only if the key is found.
      */
-    public static <T> int binarySearch(List<T> sortedElements, SearchForComparator<T> searchForComparator) {
+    public static <T> int binarySearch(List<T> sortedElements, Comparable<T> key) {
         int size = sortedElements.size();
         switch (size) {
             case 0:
                 return -1;
             case 1:
                 T onlyElement = sortedElements.get(0);
-                int comparedToSearch = searchForComparator.compare(onlyElement);
+                int comparedToSearch = key.compareTo(onlyElement);
                 return comparedToSearch == 0
                     ? 0
                     : comparedToSearch < 0
-                        ? -2
-                        : -1;
+                        ? -1
+                        : -2;
             default:
                 int low = 0;
                 int high = size - 1;
@@ -56,11 +56,11 @@ public abstract class SearchUtil {
                 while (low <= high) {
                     int mid = (low + high) >>> 1;
                     T midVal = sortedElements.get(mid);
-                    int cmp = searchForComparator.compare(midVal);
+                    int cmp = key.compareTo(midVal);
 
-                    if (cmp < 0) {
+                    if (cmp > 0) {
                         low = mid + 1;
-                    } else if (cmp > 0) {
+                    } else if (cmp < 0) {
                         high = mid - 1;
                     } else {
                         return mid; // key found
@@ -69,17 +69,4 @@ public abstract class SearchUtil {
                 return -(low + 1);  // key not found
         }
     }
-
-    public interface SearchForComparator<T> {
-        /**
-         * Compares what is searched for to a candidate.
-         *
-         * Returns a negative integer, zero, or a positive integer if the candidate is less than, equal to, or greater than the searched for value.
-         *
-         * If there would be an element to search for, then this method is equivalent to
-         * {@code candidate.compareTo(elementToSearchFor)}
-         */
-        int compare(T candidate);
-    }
-
 }

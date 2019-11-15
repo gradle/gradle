@@ -24,7 +24,7 @@ class SearchUtilTest extends Specification {
 
     def "search for #searchedChild in #sortedChildren is #expectedResult"() {
         expect:
-        SearchUtil.binarySearch(children) { it -> it.compareTo(searchedChild)} == expectedResult
+        SearchUtil.binarySearch(children, searchedChild) == expectedResult
 
         where:
         children | searchedChild

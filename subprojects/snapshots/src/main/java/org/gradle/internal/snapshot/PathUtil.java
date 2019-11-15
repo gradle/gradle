@@ -231,12 +231,12 @@ public class PathUtil {
      *
      * @return 0 if the two paths have a common prefix, and the comparison of the first segment of each path if not.
      */
-    public static int compareWithCommonPrefix(String relativePath, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+    public static int compareWithCommonPrefix(String absolutePath, int offset, String relativePath, CaseSensitivity caseSensitivity) {
         int maxPos = Math.min(relativePath.length(), absolutePath.length() - offset);
         int accumulatedValue = 0;
         for (int pos = 0; pos < maxPos; pos++) {
-            char charInPath1 = relativePath.charAt(pos);
-            char charInPath2 = absolutePath.charAt(pos + offset);
+            char charInPath1 = absolutePath.charAt(pos + offset);
+            char charInPath2 = relativePath.charAt(pos);
             int comparedChars = compareCharsIgnoringCase(charInPath1, charInPath2);
             if (comparedChars != 0) {
                 return comparedChars;
@@ -248,13 +248,13 @@ public class PathUtil {
                 }
             }
         }
-        if (relativePath.length() == absolutePath.length() - offset) {
+        if (absolutePath.length() - offset == relativePath.length()) {
             return accumulatedValue;
         }
-        if (relativePath.length() > absolutePath.length() - offset) {
-            return isFileSeparator(relativePath.charAt(maxPos)) ? accumulatedValue : 1;
+        if (absolutePath.length() - offset > relativePath.length()) {
+            return isFileSeparator(absolutePath.charAt(maxPos + offset)) ? accumulatedValue : 1;
         }
-        return isFileSeparator(absolutePath.charAt(maxPos + offset)) ? accumulatedValue : -1;
+        return isFileSeparator(relativePath.charAt(maxPos)) ? accumulatedValue : -1;
     }
 
     /**
@@ -278,12 +278,12 @@ public class PathUtil {
         return endOfThisSegment == pathLength || isFileSeparator(absolutePath.charAt(endOfThisSegment));
     }
 
-    private static int comparePaths(String relativePath, String absolutePath, CaseSensitivity caseSensitivity) {
-        int maxPos = Math.min(relativePath.length(), absolutePath.length());
+    private static int comparePaths(String relativePath1, String relativePath2, CaseSensitivity caseSensitivity) {
+        int maxPos = Math.min(relativePath1.length(), relativePath2.length());
         int accumulatedValue = 0;
         for (int pos = 0; pos < maxPos; pos++) {
-            char charInPath1 = relativePath.charAt(pos);
-            char charInPath2 = absolutePath.charAt(pos);
+            char charInPath1 = relativePath1.charAt(pos);
+            char charInPath2 = relativePath2.charAt(pos);
             int comparedChars = compareCharsIgnoringCase(charInPath1, charInPath2);
             if (comparedChars != 0) {
                 return comparedChars;
@@ -293,7 +293,7 @@ public class PathUtil {
                 return accumulatedValue;
             }
         }
-        int lengthCompare = Integer.compare(relativePath.length(), absolutePath.length());
+        int lengthCompare = Integer.compare(relativePath1.length(), relativePath2.length());
         return lengthCompare != 0
             ? lengthCompare
             : accumulatedValue;
