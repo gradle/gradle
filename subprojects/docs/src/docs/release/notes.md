@@ -278,8 +278,8 @@ In addition, the Gradle Module Metadata file also includes SHA256 and SHA512 che
 
 Since 6.0.1, if your external repository doesn't support SHA256 and/or SHA512 checksums, it is possible to disable upload of those checksums:
 
-- add `-Dorg.gradle.internal.publish.checksums.insecure` to the CLI or
-- add `org.gradle.internal.publish.checksums.insecure=true` to your `gradle.properties` file
+- add `-Dorg.gradle.internal.publish.checksums.insecure=true` to the CLI or
+- add `systemProp.org.gradle.internal.publish.checksums.insecure=true` to your `gradle.properties` file
 
 ### Support for in-memory signing with subkeys
 
