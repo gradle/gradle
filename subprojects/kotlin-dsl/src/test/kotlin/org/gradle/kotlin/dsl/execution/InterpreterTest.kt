@@ -33,6 +33,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.kotlin.dsl.fixtures.DummyCompiledScript
 
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
@@ -147,9 +148,9 @@ class InterpreterTest : TestWithTempFiles() {
 
                 val newLocation = relocate(location)
 
-                classLoaderFor(newLocation)
+                DummyCompiledScript(classLoaderFor(newLocation)
                     .also { classLoaders += it }
-                    .loadClass(className)
+                    .loadClass(className))
             }
         }
 
@@ -189,7 +190,7 @@ class InterpreterTest : TestWithTempFiles() {
                     null)
 
                 verify(host).cache(
-                    classLoaders[0].loadClass("Program"),
+                    DummyCompiledScript(classLoaders[0].loadClass("Program")),
                     stage1ProgramId)
 
                 val stage2ProgramId =
@@ -211,7 +212,7 @@ class InterpreterTest : TestWithTempFiles() {
                     null)
 
                 verify(host).cache(
-                    classLoaders[1].loadClass("Program"),
+                    DummyCompiledScript(classLoaders[1].loadClass("Program")),
                     stage2ProgramId)
             }
         } finally {

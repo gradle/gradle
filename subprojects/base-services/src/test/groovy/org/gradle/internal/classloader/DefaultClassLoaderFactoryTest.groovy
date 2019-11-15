@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.classloader
 
+
+import org.gradle.internal.classpath.DefaultClassPath
 import spock.lang.Specification
 
 class DefaultClassLoaderFactoryTest extends Specification {
@@ -52,7 +54,7 @@ class DefaultClassLoaderFactoryTest extends Specification {
         assert ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory")
 
         when:
-        def cl = new URLClassLoader(classpath.collect { it.toURL() } as URL[], factory.createFilteringClassLoader(getClass().classLoader, new FilteringClassLoader.Spec()))
+        def cl = new URLClassLoader(classpath.asURLArray, factory.createFilteringClassLoader(getClass().classLoader, new FilteringClassLoader.Spec()))
         def c = cl.loadClass(DefaultClassLoaderFactoryTestHelper.name)
 
         then:
@@ -67,7 +69,7 @@ class DefaultClassLoaderFactoryTest extends Specification {
     }
 
     def getClasspath() {
-        return [ClasspathUtil.getClasspathForClass(DefaultClassLoaderFactoryTestHelper)]
+        return DefaultClassPath.of(ClasspathUtil.getClasspathForClass(DefaultClassLoaderFactoryTestHelper))
     }
 }
 

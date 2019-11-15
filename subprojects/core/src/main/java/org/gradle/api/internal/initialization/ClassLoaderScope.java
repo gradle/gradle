@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.Transformer;
+import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.ClassPath;
+
+import java.util.function.Function;
 
 /**
  * Represents a particular node in the ClassLoader graph.
@@ -100,9 +102,9 @@ public interface ClassLoaderScope {
     ClassLoaderScope lock();
 
     /**
-     * Locks this scope, using the given factory to create the local ClassLoader.
+     * Locks this scope, using the given factory to create the local ClassLoader. The factory takes a parent ClassLoader and classpath and produces a ClassLoader
      */
-    ClassLoaderScope lock(Transformer<ClassLoader, ClassLoader> localClassLoaderFactory);
+    ClassLoaderScope lock(Function<Pair<ClassPath, ClassLoader>, ClassLoader> localClassLoaderFactory);
 
     boolean isLocked();
 
