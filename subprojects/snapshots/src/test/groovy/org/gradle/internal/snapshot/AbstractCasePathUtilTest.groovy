@@ -26,8 +26,8 @@ import static org.gradle.internal.snapshot.PathUtil.compareToPrefix
 import static org.gradle.internal.snapshot.PathUtil.compareWithCommonPrefix
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
-import static org.gradle.internal.snapshot.PathUtil.isPrefix
-import static org.gradle.internal.snapshot.PathUtil.sizeOfCommonPrefix
+import static org.gradle.internal.snapshot.PathUtil.hasPrefix
+import static org.gradle.internal.snapshot.PathUtil.lengthOfCommonPrefix
 
 @Unroll
 abstract class AbstractCasePathUtilTest extends Specification{
@@ -36,7 +36,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "common prefix of #prefix and #path at #offset is #result"() {
         expect:
-        sizeOfCommonPrefix(prefix, path, offset, caseSensitivity) == result
+        lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == result
 
         where:
         prefix       | path          | offset | result
@@ -70,7 +70,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "size of common prefix of #prefix with #path at offset #offset is #result"() {
         expect:
-        sizeOfCommonPrefix(prefix, path, offset, caseSensitivity) == result
+        lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == result
 
         where:
         prefix              | path                    | offset | result
@@ -90,8 +90,8 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "#prefix is child of or this of #path at offset #offset: #result"() {
         expect:
-        isPrefix(prefix, path, offset, caseSensitivity)
-        sizeOfCommonPrefix(prefix, path, offset, caseSensitivity) == prefix.length()
+        hasPrefix(prefix, path, offset, caseSensitivity)
+        lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == prefix.length()
 
         where:
         prefix         | path                       | offset | result
@@ -199,7 +199,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
         } == spec.expectedIndex
         spec.children.each { child ->
             def childIndex = spec.children.indexOf(child)
-            def sizeOfCommonPrefix = sizeOfCommonPrefix(spec.searchedPrefix, child, 0, caseSensitivity)
+            def sizeOfCommonPrefix = lengthOfCommonPrefix(spec.searchedPrefix, child, 0, caseSensitivity)
             if (childIndex == spec.expectedIndex) {
                 assert sizeOfCommonPrefix > 0
             } else {

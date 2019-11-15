@@ -31,21 +31,27 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
  * There are methods for checking equality and for comparing two paths.
  * All methods for equality and comparing need to be called with the correct case-sensitivity according to the underlying file system.
  *
+ * A segment of a path is the part between two file separators.
+ * For example, the path some/long/path has the segments some, long and path.
+ *
  * For comparing, a list of paths is sorted in the same order on a case-insensitive and a case-sensitive file system.
  * We do this so the order of the children of directory snapshots is stable across builds.
  *
  * The order is as follows:
  * - The comparison is per segment of the path.
  * - If the segments are different with respect to case-insensitive comparison, the result from case-insensitive comparison is used.
- * - If one segment is a prefix of the other comparing case-insensitive, then the shorter segment is smaller.
+ * - If one segment starts with the other segment comparing case-insensitive, then the shorter segment is smaller.
  * - Finally, if both segments are the same ignoring case and have the same length, the case-sensitive comparison is used.
  *
- * For all methods operating on a list of paths, the paths must not have a common, non-trivial prefix.
+ * For all methods operating on a list of paths, the paths must not start with a common segment.
+ * For example, ["some", "some1/other", "other/foo"] is allowed, but ["some/foo", "some/bar", "other/foo"] is not.
  *
  * Most of the methods take an absolutePath and an offset within the path.
+ * The offset should always point to the first character of a segment of the absolute path, i.e. not including the file separator.
  * This is a performance optimization so that we don't need to call {@link String#substring(int)} to obtain a relative path from an absolute path.
  * The absolutePath argument of the method is supposed to be an absolute path and the offset determines the relative path to the examined location.
  * For example, filePath = /some/foo/bar with offset 6 determines the relative path foo/bar from the location /some.
+ * TODO: There should be a separate type for capturing the relative path defined by an absolute path and offset.
  */
 public class PathUtil {
 
@@ -168,11 +174,17 @@ public class PathUtil {
     }
 
     /**
-     * Returns the size of the common prefix of a path and a sub-path of another path starting at on offset.
+     * Returns the length of the common prefix of a path and a sub-path of another path starting at on offset.
      *
-     * The size of the common prefix does not include the last line separator.
+     * The length of the common prefix does not include the last line separator.
+     *
+     * Examples:
+     * lengthOfCommonPrefix("some/path", "some/other") == 4
+     * lengthOfCommonPrefix("some/path", "some1/other") == 0
+     * lengthOfCommonPrefix("some/longer/path", "some/longer/other") == 11
+     * lengthOfCommonPrefix("some/longer", "some/longer/path") == 11
      */
-    public static int sizeOfCommonPrefix(String relativePath, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+    public static int lengthOfCommonPrefix(String relativePath, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
         int pos = 0;
         int lastSeparator = 0;
         int maxPos = Math.min(relativePath.length(), absolutePath.length() - offset);
@@ -203,16 +215,20 @@ public class PathUtil {
     /**
      * Compares based on the first segment of two paths.
      *
-     * Similar to {@link #sizeOfCommonPrefix(String, String, int, CaseSensitivity)},
-     * only that this methods compares the first segment of the paths if there is no common prefix.
+     * A segment of a path is the part between two file separators.
+     * For example, the path some/long/path has the segments some, long and path.
+     *
+     * Similar to {@link #lengthOfCommonPrefix(String, String, int, CaseSensitivity)},
+     * only that this method compares the first segment of the paths if there is no common prefix.
      *
      * The paths must not start with a separator, taking into account the offset
      *
      * For example, this method returns:
-     *     some/path == some/other
-     *     some1/path < some2/other
-     *     some/path > some1/other
-     *     some/same == some/same/more
+     *     some/path     == some/other
+     *     some1/path    <  some2/other
+     *     some/path     >  some1/other
+     *     some/same     == some/same/more
+     *     some/one/alma == some/two/bela
      *
      * @return 0 if the two paths have a common prefix, and the comparison of the first segment of each path if not.
      */
@@ -245,7 +261,7 @@ public class PathUtil {
     /**
      * Checks whether the relative path given by the absolute path and the offset has the given prefix.
      */
-    public static boolean isPrefix(String prefix, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+    public static boolean hasPrefix(String prefix, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
         int prefixLength = prefix.length();
         if (prefixLength == 0) {
             return true;
@@ -267,7 +283,7 @@ public class PathUtil {
      * Determines whether a relative path has the given prefix,
      * and returns the comparison of prefix and the path if it has not.
      *
-     * Similar to {@link #isPrefix}, only that it returns whether the path is bigger or smaller than the prefix.
+     * Similar to {@link #hasPrefix}, only that it returns whether the path is bigger or smaller than the prefix.
      *
      * Examples:
      *   some/start == some/start/subpath
