@@ -30,14 +30,13 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
 
     @Override
     void visitSpec(SpecInfo spec) {
-        if (!GradleContextualExecuter.isInstant()) {
-            return
+        if (GradleContextualExecuter.isInstant()) {
+            spec.allFeatures
+                .findAll { it.featureMethod.reflection.getAnnotation(FailsWithInstantExecution) != null }
+                .each { feature ->
+                    spec.addListener(new CatchFeatureFailuresRunListener(feature))
+                }
         }
-        // This listener/interceptor gymnastic is required because of the ordering
-        // of spock hooks when combining extensions, junit rules, unrolled tests and class hierarchies
-        spec.allFeatures
-            .findAll { it.featureMethod.reflection.getAnnotation(FailsWithInstantExecution) != null }
-            .each { feature -> spec.addListener(new RunListener(feature)) }
     }
 
     @Override
@@ -45,48 +44,72 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
         // This override is required to satisfy spock's zealous runtime checks
     }
 
-    private static class RunListener extends AbstractRunListener {
+    private static class CatchFeatureFailuresRunListener extends AbstractRunListener {
 
-        private final MethodInterceptor featureInterceptor = new MethodInterceptor()
-        private final MethodInterceptor iterationInterceptor = new MethodInterceptor()
+        private final RecordFailuresInterceptor failuresInterceptor = new RecordFailuresInterceptor()
 
         private final FeatureInfo feature
 
-        RunListener(FeatureInfo feature) {
+        CatchFeatureFailuresRunListener(FeatureInfo feature) {
             this.feature = feature
         }
 
         @Override
+        void beforeSpec(SpecInfo spec) {
+            if (!spec.setupMethods.empty) {
+                def setupInterceptor = new FeatureFilterInterceptor(feature, failuresInterceptor)
+                spec.setupMethods*.interceptors*.add(0, setupInterceptor)
+            }
+        }
+
+        @Override
         void beforeFeature(FeatureInfo featureInfo) {
-            if (feature == featureInfo) {
-                feature.featureMethod.interceptors.add(0, featureInterceptor)
+            if (featureInfo == feature) {
+                featureInfo.featureMethod.interceptors.add(0, failuresInterceptor)
             }
         }
 
         @Override
         void beforeIteration(IterationInfo iteration) {
-            if (feature == iteration.feature) {
-                feature.iterationInterceptors.add(0, iterationInterceptor)
+            if (iteration.feature == feature) {
+                iteration.feature.iterationInterceptors.add(0, failuresInterceptor)
             }
         }
 
         @Override
         void afterFeature(FeatureInfo featureInfo) {
-            if (feature == featureInfo) {
-                def failures = featureInterceptor.failures + iterationInterceptor.failures
-                if (failures.empty) {
+            if (featureInfo == feature) {
+                if (failuresInterceptor.failures.empty) {
                     throw new UnexpectedSuccessException()
                 } else {
                     System.err.println("Failed with instant execution as expected:")
-                    failures.each {
-                        it.printStackTrace()
-                    }
+                    failuresInterceptor.failures*.printStackTrace()
                 }
             }
         }
     }
 
-    private static class MethodInterceptor implements IMethodInterceptor {
+    private static class FeatureFilterInterceptor implements IMethodInterceptor {
+
+        private final FeatureInfo feature
+        private final IMethodInterceptor next
+
+        FeatureFilterInterceptor(FeatureInfo feature, IMethodInterceptor next) {
+            this.feature = feature
+            this.next = next
+        }
+
+        @Override
+        void intercept(IMethodInvocation invocation) throws Throwable {
+            if (invocation.feature == feature) {
+                next.intercept(invocation)
+            } else {
+                invocation.proceed()
+            }
+        }
+    }
+
+    private static class RecordFailuresInterceptor implements IMethodInterceptor {
 
         List<Throwable> failures = []
 
