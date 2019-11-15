@@ -11,13 +11,8 @@ Include only their name, impactful features should be called out separately belo
 [Mark Nordhoff](https://github.com/MarkNordhoff),
 [Kazuki Matsuda](https://github.com/kazuki-ma),
 [Emmanuel Guérin](https://github.com/emmanuelguerin),
-and [Nicholas Gates](https://github.com/gatesn).
-
-## Features for Gradle tooling providers
-
-### `TestLauncher` can select specific methods
-
-The `TestLauncher` interface in the Tooling API is capable of launching tests by specifying the name of the test classes or methods. If there are multiple test tasks contain those test classes/methods, then all tasks are executed. This is not ideal for IDEs: developers usually want to execute only one test variant at the time. To overcome this, Gradle 6.1 introduces the `withTaskAndTestClasses()` and `withTaskAndTestMethods()` methods.
+[Nicholas Gates](https://github.com/gatesn),
+and [Johnny Lim](https://github.com/izeye).
 
 ## Upgrade Instructions
 
@@ -30,6 +25,12 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+
+## Features for Gradle tooling providers
+
+### `TestLauncher` can select specific methods
+
+The `TestLauncher` interface in the Tooling API is capable of launching tests by specifying the name of the test classes or methods. If there are multiple test tasks contain those test classes/methods, then all tasks are executed. This is not ideal for IDEs: developers usually want to execute only one test variant at the time. To overcome this, Gradle 6.1 introduces the `withTaskAndTestClasses()` and `withTaskAndTestMethods()` methods.
 
 ## Improvements for plugin authors
 

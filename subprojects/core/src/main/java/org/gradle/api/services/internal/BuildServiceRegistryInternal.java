@@ -16,10 +16,17 @@
 
 package org.gradle.api.services.internal;
 
+import org.gradle.api.provider.Provider;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistry;
+import org.gradle.internal.resources.SharedResource;
 
 public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
-    BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters);
+    /**
+     * @param maxUsages Same semantics as {@link SharedResource#getMaxUsages()}.
+     */
+    BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters, int maxUsages);
+
+    SharedResource forService(Provider<? extends BuildService<?>> service);
 }

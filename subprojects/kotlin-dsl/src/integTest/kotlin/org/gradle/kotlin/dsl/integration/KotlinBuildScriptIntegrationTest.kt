@@ -4,6 +4,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
+import org.gradle.kotlin.dsl.fixtures.equalToMultiLineString
 
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
@@ -210,6 +211,40 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
                 STRING
                 ACTION
             """)
+        )
+    }
+
+    @Test
+    fun `can create fileTree from map for backward compatibility`() {
+
+        val fileTreeFromMap = """
+            fileTree(mapOf("dir" to ".", "include" to listOf("*.txt")))
+                .joinToString { it.name }
+        """
+
+        withFile("foo.txt")
+
+        val initScript = withFile("init.gradle.kts", """
+            println("INIT: " + $fileTreeFromMap)
+        """)
+
+        withSettings("""
+            println("SETTINGS: " + $fileTreeFromMap)
+        """)
+
+        withBuildScript("""
+            task("test") {
+                doLast { println("PROJECT: " + $fileTreeFromMap) }
+            }
+        """)
+
+        assertThat(
+            build("test", "-q", "-I", initScript.absolutePath).output.trim(),
+            equalToMultiLineString("""
+                INIT: foo.txt
+                SETTINGS: foo.txt
+                PROJECT: foo.txt
+            """.replaceIndent())
         )
     }
 }

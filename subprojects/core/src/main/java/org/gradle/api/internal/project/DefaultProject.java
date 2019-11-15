@@ -242,7 +242,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         services = serviceRegistryFactory.createFor(this);
         taskContainer = services.get(TaskContainerInternal.class);
 
-        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).injectAndDecorateLenient(services));
+        extensibleDynamicObject = new ExtensibleDynamicObject(this, Project.class, services.get(InstantiatorFactory.class).decorateLenient(services));
         if (parent != null) {
             extensibleDynamicObject.setParent(parent.getInheritedScope());
         }

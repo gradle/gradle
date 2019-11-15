@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
+import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.BuildResult
@@ -81,6 +82,30 @@ class AndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
 
         expect:
         verify(relocatedResult, EXPECTED_RESULTS)
+    }
+
+    def "incremental Java compilation works for Santa Tracker"() {
+        def checkoutDir = temporaryFolder.createDir ("checkout")
+        setupCopyOfSantaTracker(checkoutDir)
+
+        def pathToClass = "com/google/android/apps/santatracker/tracker/ui/BottomSheetBehavior"
+        def fileToChange = checkoutDir.file("tracker/src/main/java/${pathToClass}.java")
+        def compiledClassFile = checkoutDir.file("tracker/build/intermediates/javac/debug/classes/${pathToClass}.class")
+        def nonAbiChangeMutator = new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
+
+        when:
+        def result = buildLocation(checkoutDir)
+        def md5Before = compiledClassFile.md5Hash
+        then:
+        result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
+
+        when:
+        nonAbiChangeMutator.beforeBuild()
+        buildLocation(checkoutDir)
+        def md5After = compiledClassFile.md5Hash
+        then:
+        result.task(":tracker:compileDebugJavaWithJavac").outcome == SUCCESS
+        md5After != md5Before
     }
 
     private void setupCopyOfSantaTracker(TestFile targetDir) {

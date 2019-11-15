@@ -30,7 +30,6 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
@@ -39,12 +38,6 @@ import java.util.concurrent.Callable
  * Base class for all tests that check the end-to-end behavior of a Gradle distribution.
  */
 open class DistributionTest : Test() {
-
-    @get:Input
-    val operatingSystem by lazy {
-        // the version currently differs between our dev infrastructure, so we only track the name and the architecture
-        "${OperatingSystem.current().name} ${System.getProperty("os.arch")}"
-    }
 
     @Internal
     val binaryDistributions = BinaryDistributions(project.objects)

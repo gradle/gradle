@@ -77,6 +77,65 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
     }
 
+    def "implicit capability conflict is detected if implicit capability is discovered late"() {
+        given:
+        repository {
+            'cglib:cglib:3.2.5'()
+            'cglib:cglib-nodep:3.2.5'()
+            'org:lib:1.0' {
+                dependsOn 'cglib:cglib:3.2.5'
+            }
+        }
+
+        buildFile << """
+            class CapabilityRule implements ComponentMetadataRule {
+
+                @Override
+                void execute(ComponentMetadataContext context) {
+                    def details = context.details
+                    details.allVariants {
+                         withCapabilities {
+                             addCapability('cglib', 'cglib', details.id.version)
+                         }
+                     }
+                }
+            }
+
+            dependencies {
+               conf "cglib:cglib-nodep:3.2.5"
+               conf "org:lib:1.0"
+
+               components {
+                  withModule('cglib:cglib-nodep', CapabilityRule)
+               }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'cglib:cglib-nodep:3.2.5' {
+                expectGetMetadata()
+            }
+            'cglib:cglib:3.2.5' {
+                expectGetMetadata()
+            }
+            'org:lib:1.0' {
+                expectGetMetadata()
+            }
+        }
+        fails ':checkDeps'
+
+        then:
+        def variant = 'runtime'
+        if (!isGradleMetadataPublished() && useIvy()) {
+            variant = 'default'
+        }
+        failure.assertHasCause("""Module 'cglib:cglib-nodep' has been rejected:
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib:3.2.5($variant)]""")
+        failure.assertHasCause("""Module 'cglib:cglib' has been rejected:
+   Cannot select module with conflict on capability 'cglib:cglib:3.2.5' also provided by [cglib:cglib-nodep:3.2.5($variant)]""")
+    }
+
     @Unroll
     def "can detect conflict with capability in different versions (#rule)"() {
         given:

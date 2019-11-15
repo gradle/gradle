@@ -144,7 +144,7 @@ class IsolatableSerializerRegistryTest extends Specification {
     }
 
     def "can serialize/deserialize generated Managed values"() {
-        def instantiator = instantiatorFactory.injectAndDecorate(services)
+        def instantiator = instantiatorFactory.decorate(services)
         def managedValue1 = instantiator.newInstance(TestManagedTypes.ManagedThing)
         def managedValue2 = instantiator.newInstance(TestManagedTypes.ManagedThing)
 

@@ -100,6 +100,13 @@ class CyclicBarrierRequestHandler implements TrackingHttpHandler, WaitPreconditi
             received.add(httpExchange.getRequestMethod() + " /" + path);
             pending.remove(handler);
             if (pending.isEmpty()) {
+                // Delay releasing the requests, to make sure nothing else happens concurrently
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+                System.out.println(String.format("[%d] signaling completion to other threads", id));
                 condition.signalAll();
             }
 

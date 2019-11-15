@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.execution;
+package org.gradle.internal.resources;
 
-import org.gradle.api.Incubating;
-import org.gradle.api.NamedDomainObjectContainer;
+public interface SharedResource {
+    /**
+     * @return The maximum usage, or -1 when there is no limit.
+     */
+    int getMaxUsages();
 
-/**
- * A container of {@link SharedResource}s.
- *
- * @since 6.0
- */
-@Incubating
-public interface SharedResourceContainer extends NamedDomainObjectContainer<SharedResource> {
+    ResourceLock getResourceLock(int usages);
 }
