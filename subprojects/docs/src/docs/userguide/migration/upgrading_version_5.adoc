@@ -244,6 +244,17 @@ This means, if you are publishing libraries with Gradle and using the <<publishi
 
 The traditional metadata file will contain a marker so that Gradle knows that there is additional metadata to consume.
 
+==== Gradle Module Metadata has stricter validation
+
+The following rules are verified when publishing Gradle Module Metadata:
+
+* Variant names must be unique,
+* Each variant must have at least <<variant_attributes.adoc#,one attribute>>,
+* Two variants cannot have the <<variant_model.adoc#,exact same attributes and capabilities>>,
+* If there are dependencies, at least one, across all variants, must have carry <<rich_versions.adoc#,version information>>.
+
+These are documented in the link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification] as well.
+
 ==== Maven or Ivy repositories are no longer queried for artifacts without metadata by default
 
 If Gradle fails to locate the metadata file (`.pom` or `ivy.xml`) of a module in a repository defined in the `repositories { }` section, it now assumes that the module does not exist in that repository.
