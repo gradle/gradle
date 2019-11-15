@@ -42,8 +42,19 @@ Some plugins will break with this new version of Gradle, for example because the
 
 The usage of the `compile` and `runtime` configurations in the Java ecosystem plugins has been discouraged since https://docs.gradle.org/3.4/release-notes.html#the-java-library-plugin[Gradle 3.4].
 
-These configurations are used for compiling and running code from the `main` source set. Other sources sets create similar configurations (e.g. `testCompile` and `testRuntime` for the `test` source set), should not be used either.
-The `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations should be used to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.  See <<java_library_plugin.adoc#sec:java_library_configurations_graph, the relationship of these configurations>>.
+These configurations are used for compiling and running code from the `main` source set.
+Other sources sets create similar configurations (e.g. `testCompile` and `testRuntime` for the `test` source set), should not be used either.
+The `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations should be used to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.
+See <<java_library_plugin.adoc#sec:java_library_configurations_graph, the relationship of these configurations>>.
+
+==== Legacy publication system is deprecated and replaced with the `*-publish` plugins
+
+The `uploadArchives` task and the `maven` plugin are deprecated.
+
+Users should migrate to the <<publishing_setup.adoc#,publishing system>> of Gradle by using either the <<publishing_maven.adoc#,`maven-publish`>> or <<publishing_ivy.adoc#,`ivy-publish`>> plugins.
+These plugins have been stable since Gradle 4.8.
+
+The publishing system is also the only way to ensure the publication of <<publishing_gradle_module_metadata.adoc#,Gradle Module Metadata>>.
 
 ==== Problems with tasks emit deprecation warnings
 
