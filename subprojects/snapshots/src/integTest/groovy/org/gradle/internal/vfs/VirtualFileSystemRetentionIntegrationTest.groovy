@@ -17,12 +17,14 @@
 package org.gradle.internal.vfs
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
 
+    @FailsWithInstantExecution
     def "source file changes are recognized after change is injected"() {
         buildFile << """
             apply plugin: "application"
@@ -54,6 +56,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
+    @FailsWithInstantExecution
     def "buildSrc changes are recognized after change is injected"() {
         def taskSourceFile = file("buildSrc/src/main/java/PrinterTask.java")
         taskSourceFile.text = taskWithGreeting("Hello from original task!")
@@ -79,6 +82,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputContains "Hello from modified task!"
     }
 
+    @FailsWithInstantExecution
     def "build script changes get recognized"() {
         when:
         buildFile.text = """
@@ -97,6 +101,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputContains "Hello from the modified build!"
     }
 
+    @FailsWithInstantExecution
     def "settings script changes get recognized"() {
         when:
         settingsFile.text = """
@@ -115,6 +120,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputContains "Hello from modified settings!"
     }
 
+    @FailsWithInstantExecution
     def "source file changes are recognized when retention has just been enabled"() {
         buildFile << """
             apply plugin: "application"
@@ -139,6 +145,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
+    @FailsWithInstantExecution
     def "source file changes are recognized when retention has just been disabled"() {
         buildFile << """
             apply plugin: "application"

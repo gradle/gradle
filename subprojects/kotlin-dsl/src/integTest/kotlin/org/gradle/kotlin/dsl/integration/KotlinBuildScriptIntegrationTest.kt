@@ -218,6 +218,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @FailsWithInstantExecution
     fun `can create fileTree from map for backward compatibility`() {
 
         val fileTreeFromMap = """
