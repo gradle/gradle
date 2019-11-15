@@ -198,11 +198,11 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             expectNoDeprecationWarnings(result)
         }
 
-        when:
+        when: 'abi change on library'
         writeActivity(library, libPackage, libraryActivity, true)
         result = runner('build', '-x', 'lint').build()
 
-        then:
+        then: 'dependent sources are recompiled'
         result.task(':library:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
         result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
