@@ -139,6 +139,11 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
         resolvers.add(conflictResolver);
     }
 
+    @Override
+    public boolean hasSeenCapability(Capability capability) {
+        return capabilityWithoutVersionToNodes.containsKey(((CapabilityInternal) capability).getCapabilityId());
+    }
+
     public static CapabilitiesConflictHandler.Candidate candidate(NodeState node, Capability capability, Collection<NodeState> implicitCapabilityProviders) {
         return new Candidate(node, capability, implicitCapabilityProviders);
     }

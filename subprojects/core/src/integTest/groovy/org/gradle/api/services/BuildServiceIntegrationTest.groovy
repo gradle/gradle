@@ -23,7 +23,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
         buildFile << """
-            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
@@ -76,7 +76,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "tasks can use mapped value of service"() {
         serviceImplementation()
         buildFile << """
-            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
@@ -124,7 +124,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
-            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
@@ -170,7 +170,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service used at configuration and execution time can be used with instant execution"() {
         serviceImplementation()
         buildFile << """
-            def provider = gradle.sharedServices.maybeRegister("counter", CountingService) {
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
@@ -224,7 +224,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class CounterPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    def provider = project.gradle.sharedServices.maybeRegister("counter", CountingService) {
+                    def provider = project.gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                         parameters.initial = 10
                     }
                     project.tasks.register("count") {
@@ -276,10 +276,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             }
             apply plugin: CounterConventionPlugin
 
-            def counter1 = project.gradle.sharedServices.maybeRegister("counter1", CountingService) {
+            def counter1 = project.gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 0
             }
-            def counter2 = project.gradle.sharedServices.maybeRegister("counter2", CountingService) {
+            def counter2 = project.gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
             task count {
@@ -315,13 +315,101 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 16")
     }
 
+    def "service parameters are isolated when the service is instantiated"() {
+        serviceImplementation()
+        buildFile << """
+            def params
+            
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                params = parameters
+                parameters.initial = 10
+            }
+            
+            assert params.initial.get() == 10
+            params.initial = 12
+            
+            task first {
+                doFirst {
+                    params.initial = 15 // should have an effect
+                    provider.get().reset()
+                    params.initial = 1234 // should be ignored. Ideally should fail too
+                }
+            }
+
+            task second {
+                dependsOn first
+                doFirst {
+                    provider.get().increment()
+                    params.initial = 456 // should be ignored
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 15")
+        outputContains("service: value is 15")
+        outputContains("service: value is 16")
+        outputContains("service: closed with value 16")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 15")
+        outputContains("service: value is 15")
+        outputContains("service: value is 16")
+        outputContains("service: closed with value 16")
+    }
+
+    def "service can take no parameters"() {
+        noParametersServiceImplementation()
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {}
+            
+            task first {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+
+            task second {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: value is 1")
+        outputContains("service: value is 2")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 3
+        outputContains("service: created with value = 0")
+        outputContains("service: value is 1")
+        outputContains("service: value is 2")
+    }
+
     def "service is stopped even if build fails"() {
         serviceImplementation()
         buildFile << """
-            def counter1 = project.gradle.sharedServices.maybeRegister("counter1", CountingService) {
+            def counter1 = project.gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 0
             }
-            def counter2 = project.gradle.sharedServices.maybeRegister("counter2", CountingService) {
+            def counter2 = project.gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
             task count {
@@ -354,10 +442,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "reports failure to create the service instance"() {
         brokenServiceImplementation()
         buildFile << """
-            def provider1 = gradle.sharedServices.maybeRegister("counter1", CountingService) {
+            def provider1 = gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 10
             }
-            def provider2 = gradle.sharedServices.maybeRegister("counter2", CountingService) {
+            def provider2 = gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
             
@@ -406,10 +494,10 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "reports failure to stop the service instance"() {
         brokenStopServiceImplementation()
         buildFile << """
-            def provider1 = gradle.sharedServices.maybeRegister("counter1", CountingService) {
+            def provider1 = gradle.sharedServices.registerIfAbsent("counter1", CountingService) {
                 parameters.initial = 10
             }
-            def provider2 = gradle.sharedServices.maybeRegister("counter2", CountingService) {
+            def provider2 = gradle.sharedServices.registerIfAbsent("counter2", CountingService) {
                 parameters.initial = 10
             }
             
@@ -453,6 +541,14 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                     println("service: created with value = \${value}")
                 }
                 
+                synchronized int getInitialValue() { return parameters.initial.get() }
+
+                // Service must be thread-safe
+                synchronized void reset() {
+                    value = parameters.initial.get()
+                    println("service: value is \${value}")
+                }
+                
                 // Service must be thread-safe
                 synchronized int increment() {
                     value++
@@ -462,6 +558,26 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
                 
                 void close() {
                     println("service: closed with value \${value}")
+                }
+            } 
+        """
+    }
+
+    def noParametersServiceImplementation() {
+        buildFile << """
+            abstract class CountingService implements BuildService<${BuildServiceParameters.name}.None> {
+                int value
+                
+                CountingService() {
+                    value = 0
+                    println("service: created with value = \${value}")
+                }
+                
+                // Service must be thread-safe
+                synchronized int increment() {
+                    value++
+                    println("service: value is \${value}")
+                    return value
                 }
             } 
         """

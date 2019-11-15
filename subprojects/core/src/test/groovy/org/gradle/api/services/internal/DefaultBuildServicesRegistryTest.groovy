@@ -18,16 +18,21 @@ package org.gradle.api.services.internal
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.resources.SharedResourceLeaseRegistry
+import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultBuildServicesRegistryTest extends Specification {
     def listenerManager = new DefaultListenerManager()
-    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager)
+    def isolatableFactory = new DefaultValueSnapshotter(null, TestUtil.managedFactoryRegistry())
+    def leaseRegistry = Stub(SharedResourceLeaseRegistry)
+    def registry = new DefaultBuildServicesRegistry(TestUtil.domainObjectCollectionFactory(), TestUtil.instantiatorFactory(), TestUtil.services(), listenerManager, isolatableFactory, leaseRegistry)
 
     def setup() {
         ServiceImpl.reset()
@@ -35,7 +40,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can lazily create service instance"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {}
 
         then:
         ServiceImpl.instances.empty
@@ -57,7 +62,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "service provider always has value present"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {}
 
         then:
         provider.present
@@ -66,7 +71,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "wraps and memoizes service instantiation failure"() {
         when:
-        def provider = registry.maybeRegister("service", BrokenServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", BrokenServiceImpl) {}
 
         then:
         noExceptionThrown()
@@ -89,9 +94,18 @@ class DefaultBuildServicesRegistryTest extends Specification {
         BrokenServiceImpl.attempts == 1
     }
 
+    def "service has no max parallel usages by default"() {
+        expect:
+        registry.registerIfAbsent("service", ServiceImpl) {
+            assert !it.maxParallelUsages.present
+        }
+        def registration = registry.registrations.getByName("service")
+        !registration.maxParallelUsages.present
+    }
+
     def "can locate registration by name"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {}
         def registration = registry.registrations.getByName("service")
 
         then:
@@ -101,8 +115,8 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "reuses registration with same name"() {
         when:
-        def provider1 = registry.maybeRegister("service", ServiceImpl) {}
-        def provider2 = registry.maybeRegister("service", ServiceImpl) {}
+        def provider1 = registry.registerIfAbsent("service", ServiceImpl) {}
+        def provider2 = registry.registerIfAbsent("service", ServiceImpl) {}
 
         then:
         provider1.is(provider2)
@@ -110,7 +124,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
 
     def "can provide parameters to the service"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {
             it.parameters.prop = "value"
         }
         def service = provider.get()
@@ -119,14 +133,33 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value"
     }
 
+    def "service can take no parameters"() {
+        def action = Mock(Action)
+
+        when:
+        def provider = registry.registerIfAbsent("service", NoParamsServiceImpl, action)
+
+        then:
+        1 * action.execute(_)
+
+        when:
+        def service = provider.get()
+
+        then:
+        service != null
+    }
+
     def "can tweak parameters via the registration"() {
         when:
-        def provider = registry.maybeRegister("service", ServiceImpl) {
+        def initialParameters
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {
             it.parameters.prop = "value 1"
+            initialParameters = it.parameters
         }
         def parameters = registry.registrations.getByName("service").parameters
 
         then:
+        parameters.is(initialParameters)
         parameters.prop == "value 1"
 
         when:
@@ -137,10 +170,67 @@ class DefaultBuildServicesRegistryTest extends Specification {
         service.prop == "value 2"
     }
 
+    def "can tweak max parallel usage via the registration"() {
+        when:
+        registry.registerIfAbsent("service", BuildService) {
+            it.maxParallelUsages = 42
+        }
+        def registration = registry.registrations.getByName("service")
+
+        then:
+        registration.maxParallelUsages.get() == 42
+    }
+
+    def "registration for service with no parameters is visible"() {
+        when:
+        registry.registerIfAbsent("service", NoParamsServiceImpl) {}
+
+        then:
+        registry.registrations.getByName("service") != null
+    }
+
+    def "can use base service type to create a service with no state"() {
+        when:
+        def provider = registry.registerIfAbsent("service", BuildService) {}
+        def service = provider.get()
+
+        then:
+        service instanceof BuildService
+    }
+
+    def "registration for service with no state is visible"() {
+        when:
+        registry.registerIfAbsent("service", BuildService) {}
+
+        then:
+        registry.registrations.getByName("service") != null
+    }
+
+    def "parameters are isolated when the service is instantiated"() {
+        given:
+        def provider = registry.registerIfAbsent("service", ServiceImpl) {
+            it.parameters.prop = "value 1"
+        }
+        def parameters = registry.registrations.getByName("service").parameters
+        def service = provider.get()
+
+        when:
+        parameters.prop = "ignore me 1"
+
+        then:
+        service.prop == "value 1"
+
+        when:
+        service.parameters.prop = "ignore me 2"
+
+        then:
+        parameters.prop == "ignore me 1"
+    }
+
     def "stops service at end of build if it implements AutoCloseable"() {
-        def provider1 = registry.maybeRegister("one", ServiceImpl) {}
-        def provider2 = registry.maybeRegister("two", StoppableServiceImpl) {}
-        def provider3 = registry.maybeRegister("three", StoppableServiceImpl) {}
+        def provider1 = registry.registerIfAbsent("one", ServiceImpl) {}
+        def provider2 = registry.registerIfAbsent("two", StoppableServiceImpl) {}
+        def provider3 = registry.registerIfAbsent("three", StoppableServiceImpl) {}
 
         when:
         def notStoppable = provider1.get()
@@ -158,7 +248,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "does not attempt to stop an unused service at the end of build"() {
-        registry.maybeRegister("service", ServiceImpl) {}
+        registry.registerIfAbsent("service", ServiceImpl) {}
 
         when:
         buildFinished()
@@ -168,7 +258,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
 
     def "reports failure to stop service"() {
-        def provider = registry.maybeRegister("service", BrokenStopServiceImpl) {}
+        def provider = registry.registerIfAbsent("service", BrokenStopServiceImpl) {}
         provider.get()
 
         when:
@@ -178,6 +268,36 @@ class DefaultBuildServicesRegistryTest extends Specification {
         def e = thrown(GradleException)
         e.message == "Failed to stop service 'service'."
         e.cause.is(BrokenStopServiceImpl.failure)
+    }
+
+    def "can locate resource corresponding to service registration"() {
+        when:
+        def service1 = registry.registerIfAbsent("service", BuildService) {
+            it.maxParallelUsages = 42
+        }
+        def service2 = registry.registerIfAbsent("no-max", ServiceImpl) {}
+
+        then:
+        registry.forService(service1).maxUsages == 42
+        registry.forService(service2).maxUsages == -1
+    }
+
+    def "cannot change max parallel usages once resource has been located"() {
+        given:
+        def service = registry.registerIfAbsent("service", ServiceImpl) {}
+        def registration = registry.registrations.findByName("service")
+        registration.maxParallelUsages = 42
+        registry.forService(service)
+
+        when:
+        registration.maxParallelUsages = 4
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "The value for property 'maxParallelUsages' is final and cannot be changed any further."
+
+        and:
+        registry.forService(service).maxUsages == 42
     }
 
     private buildFinished() {
@@ -211,6 +331,10 @@ class DefaultBuildServicesRegistryTest extends Specification {
         void close() {
             instances.remove(this)
         }
+    }
+
+    static abstract class NoParamsServiceImpl implements BuildService<BuildServiceParameters.None> {
+
     }
 
     static abstract class BrokenServiceImpl implements BuildService<Params> {

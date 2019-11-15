@@ -1,4 +1,4 @@
-= {sample-displayName} Sample
+= Java Components with Spock Tests Sample
 
 ifndef::env-github[]
 [.download]
@@ -54,3 +54,4 @@ BUILD SUCCESSFUL in 5s
 ====
 
 For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].
+You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_application[Build Init Plugin].

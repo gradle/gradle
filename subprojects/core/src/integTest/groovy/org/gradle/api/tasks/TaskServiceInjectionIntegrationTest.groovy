@@ -163,7 +163,7 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
-        failure.assertHasCause("The constructor for class CustomTask should be annotated with @Inject.")
+        failure.assertHasCause("The constructor for type CustomTask should be annotated with @Inject.")
     }
 
     def "task creation fails when service getter is not public or protected"() {

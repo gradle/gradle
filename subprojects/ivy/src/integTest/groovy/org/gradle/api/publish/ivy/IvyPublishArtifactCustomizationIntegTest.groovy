@@ -27,12 +27,17 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
     void "can publish custom artifacts"() {
         given:
         createBuildScripts("""
+            file("customFile.foo") << 'some foo'
+            file("customFile.bar") << 'some bar'
+
             publications {
                 ivy(IvyPublication) {
                     artifact "customFile.txt"
                     artifact customDocsTask.outputFile
                     artifact regularFileTask.outputFile
                     artifact customJar
+                    artifact provider { file("customFile.foo") }
+                    artifact provider { "customFile.bar" }
                 }
             }
 """, """
@@ -48,7 +53,8 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
+        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt",  "ivyPublish-2.4.foo", "ivyPublish-2.4.bar", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
+        result.assertTasksExecuted(":customDocsTask", ":customJar", ":regularFileTask", ":generateDescriptorFileForIvyPublication", ":publishIvyPublicationToIvyRepository", ":publish")
 
         and:
         def ivy = module.parsedIvy
@@ -56,11 +62,13 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.expectArtifact('ivyPublish', 'html').hasType("html").hasConf(null)
         ivy.expectArtifact('ivyPublish', 'jar').hasType("jar").hasConf(null)
         ivy.expectArtifact('ivyPublish', 'reg').hasType("reg").hasConf(null)
+        ivy.expectArtifact('ivyPublish', 'foo').hasType("foo").hasConf(null)
+        ivy.expectArtifact('ivyPublish', 'bar').hasType("bar").hasConf(null)
 
         and:
         resolveArtifacts(module) {
             withoutModuleMetadata {
-                expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt"
+                expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt",  "ivyPublish-2.4.foo", "ivyPublish-2.4.bar"
             }
             withModuleMetadata {
                 noComponentPublished()

@@ -18,6 +18,7 @@ package org.gradle.api.services;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Property;
 
 /**
  * A set of parameters that defines a service registration.
@@ -36,4 +37,10 @@ public interface BuildServiceSpec<P extends BuildServiceParameters> {
      * Runs the given action to configure the parameters.
      */
     void parameters(Action<? super P> configureAction);
+
+    /**
+     * Specifies the maximum number of tasks that can use this service in parallel. Setting this to 1 means that the service will be used by a single task at a time.
+     * When this property has no value defined, then any number of tasks may use this service iin parallel. This is the default.
+     */
+    Property<Integer> getMaxParallelUsages();
 }

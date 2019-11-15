@@ -1967,7 +1967,7 @@ Found the following transforms:
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'root'.")
-        failure.assertHasCause("Cannot register artifact transform Custom with parameters [<custom>]")
+        failure.assertHasCause("Could not register artifact transform Custom (from {usage=any} to {usage=any})")
         failure.assertHasCause("Could not serialize value of type 'CustomType'")
     }
 

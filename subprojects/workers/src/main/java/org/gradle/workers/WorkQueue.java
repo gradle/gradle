@@ -36,10 +36,8 @@ public interface WorkQueue {
      * Work submitted using {@link WorkerExecutor#processIsolation()} will execute in an idle daemon that meets the requirements set
      * in the {@link ProcessWorkerSpec}.  If no idle daemons are available, a new daemon will be started.  Any errors
      * will be thrown from {@link #await()} or from the surrounding task action if {@link #await()} is not used.
-     *
-     *
      */
-    <T extends WorkParameters> void submit(Class<? extends WorkAction<T>> workActionClass, Action<T> parameterAction);
+    <T extends WorkParameters> void submit(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction);
 
     /**
      * Blocks until all work associated with this queue is complete.  Note that when using this method inside

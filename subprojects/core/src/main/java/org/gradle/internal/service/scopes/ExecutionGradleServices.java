@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.execution.SharedResourceContainer;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.DefaultExecutionHistoryCacheAccess;
 import org.gradle.api.invocation.Gradle;
@@ -26,7 +25,6 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.caching.internal.command.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
-import org.gradle.execution.DefaultSharedResourceContainer;
 import org.gradle.execution.plan.DefaultPlanExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
@@ -70,7 +68,6 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.fingerprint.overlap.OverlappingOutputDetector;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.resources.SharedResourceLeaseRegistry;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
@@ -170,10 +167,6 @@ public class ExecutionGradleServices {
             new ExecuteStep<>(
         ))))))))))))))))))))));
         // @formatter:on
-    }
-
-    SharedResourceContainer createSharedResourceContainer(Instantiator instantiator) {
-        return new DefaultSharedResourceContainer(instantiator);
     }
 
     SharedResourceLeaseRegistry createSharedResourceLeaseRegistry(ResourceLockCoordinationService coordinationService) {

@@ -413,7 +413,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(PrivateBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Class " + PrivateBean.class.getName() + " is private."));
+            assertThat(e.getMessage(), equalTo("Class AsmBackedClassGeneratorTest.PrivateBean is private."));
         }
     }
 
@@ -423,7 +423,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(FinalBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Class " + FinalBean.class.getName() + " is final."));
+            assertThat(e.getMessage(), equalTo("Class AsmBackedClassGeneratorTest.FinalBean is final."));
         }
     }
 
@@ -433,7 +433,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractMethodBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractMethodBean.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractMethodBean."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractMethodBean.implementMe()."));
         }
     }
@@ -444,7 +444,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractGetterBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractGetterBean.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractGetterBean."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractGetterBean.getThing()."));
         }
     }
@@ -455,7 +455,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractSetterBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractSetterBean.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetterBean."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetterBean.setThing()."));
         }
     }
@@ -466,7 +466,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractSetMethodBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractSetMethodBean.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetMethodBean."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetMethodBean.thing()."));
         }
     }
@@ -478,7 +478,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(GetterBeanInterface.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for interface " + GetterBeanInterface.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.GetterBeanInterface."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanInterface.getThing()."));
         }
     }
@@ -489,7 +489,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(SetterBeanInterface.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for interface " + SetterBeanInterface.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.SetterBeanInterface."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method SetterBeanInterface.setThing()."));
         }
     }

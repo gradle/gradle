@@ -418,7 +418,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Could not create an instance of type MakeGreen$Parameters.')
-        failure.assertHasCause('Could not generate a decorated class for interface MakeGreen$Parameters.')
+        failure.assertHasCause('Could not generate a decorated class for type MakeGreen.Parameters.')
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method Parameters.getBad().")
 
         where:
@@ -733,7 +733,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("Cannot register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
@@ -770,7 +770,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("Cannot register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property MakeGreen.getDependencies() of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
 
         where:
@@ -869,7 +869,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         fails('broken')
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not create task of type 'MyTask'.")
-        failure.assertHasCause("Could not generate a decorated class for class MyTask.")
+        failure.assertHasCause("Could not generate a decorated class for type MyTask.")
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")
 
         where:

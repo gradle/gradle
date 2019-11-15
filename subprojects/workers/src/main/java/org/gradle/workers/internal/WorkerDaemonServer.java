@@ -147,7 +147,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
         }
 
         protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
-            return instantiatorFactory.injectAndDecorateLenient(this);
+            return instantiatorFactory.decorateLenient(this);
         }
 
         protected ExecFactory createExecFactory(org.gradle.process.internal.ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {

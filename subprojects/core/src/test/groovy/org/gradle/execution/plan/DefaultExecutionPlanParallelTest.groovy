@@ -30,8 +30,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.composite.internal.IncludedBuildTaskGraph
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.resources.DefaultResourceLockCoordinationService
-import org.gradle.internal.resources.SharedResourceLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
@@ -51,9 +49,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * lease.tryLock() >> true
         def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(IncludedBuildTaskGraph))
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        def coordinationService = new DefaultResourceLockCoordinationService()
-        def sharedResourceLeaseRegistry = new SharedResourceLeaseRegistry(coordinationService)
-        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver, sharedResourceLeaseRegistry)
+        executionPlan = new DefaultExecutionPlan(thisBuild, taskNodeFactory, dependencyResolver)
     }
 
     TaskInternal task(Map<String, ?> options = [:], String name) {
@@ -62,6 +58,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         _ * task.finalizedBy >> taskDependencyResolvingTo(task, options.finalizedBy ?: [])
         _ * task.shouldRunAfter >> taskDependencyResolvingTo(task, [])
         _ * task.mustRunAfter >> taskDependencyResolvingTo(task, options.mustRunAfter ?: [])
+        _ * task.sharedResources >> (options.resources ?: [])
         return task
     }
 

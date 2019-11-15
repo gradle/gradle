@@ -45,7 +45,12 @@ class RoutingVirtualFileSystemTest extends Specification {
         cacheDir = tmpDir.createDir("cache")
         def fileStore = Stub(CachedJarFileStore)
         fileStore.fileStoreRoots >> [cacheDir]
-        routingVirtualFileSystem = new RoutingVirtualFileSystem(new DefaultWellKnownFileLocations([fileStore]), gradleUserHomeVirtualFileSystem, buildSessionScopedVirtualFileSystem)
+        routingVirtualFileSystem = new RoutingVirtualFileSystem(
+            new DefaultWellKnownFileLocations([fileStore]),
+            gradleUserHomeVirtualFileSystem,
+            buildSessionScopedVirtualFileSystem,
+            { false }
+        )
     }
 
     def "routes method to the right underlying virtual file system"() {

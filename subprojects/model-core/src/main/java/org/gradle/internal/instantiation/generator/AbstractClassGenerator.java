@@ -218,7 +218,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw e;
         } catch (Throwable e) {
             TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Could not generate a decorated class for ");
+            formatter.node("Could not generate a decorated class for type ");
             formatter.appendType(type);
             formatter.append(".");
             throw new ClassGenerationException(formatter.toString(), e);

@@ -110,12 +110,17 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
+    public InstantiationScheme decorateLenientScheme() {
+        return decoratingLenientScheme;
+    }
+
+    @Override
     public InstanceGenerator decorateLenient() {
         return decoratingLenientScheme.instantiator();
     }
 
     @Override
-    public InstanceGenerator injectAndDecorateLenient(ServiceLookup services) {
+    public InstanceGenerator decorateLenient(ServiceLookup services) {
         return decoratingLenientScheme.withServices(services).instantiator();
     }
 
@@ -125,7 +130,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     }
 
     @Override
-    public InstanceGenerator injectAndDecorate(ServiceLookup services) {
+    public InstanceGenerator decorate(ServiceLookup services) {
         return decoratingScheme.withServices(services).instantiator();
     }
 

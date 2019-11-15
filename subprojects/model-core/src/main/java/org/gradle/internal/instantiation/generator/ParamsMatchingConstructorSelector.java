@@ -86,7 +86,7 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
                     match = constructor;
                 } else if (parameterTypes.length == match.getParameterTypes().length) {
                     TreeFormatter formatter = new TreeFormatter();
-                    formatter.node("Multiple constructors of ");
+                    formatter.node("Multiple constructors of type ");
                     formatter.appendType(type);
                     formatter.append(" match parameters: ");
                     formatter.appendValues(params);
@@ -99,7 +99,7 @@ class ParamsMatchingConstructorSelector implements ConstructorSelector {
         }
 
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("No constructors of ");
+        formatter.node("No constructors of type ");
         formatter.appendType(type);
         formatter.append(" match parameters: ");
         formatter.appendValues(params);

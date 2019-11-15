@@ -68,12 +68,14 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.scan.config.BuildScanPluginApplied;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 
 import java.util.List;
 
 public class ProjectExecutionServices extends DefaultServiceRegistry {
+
     public ProjectExecutionServices(ProjectInternal project) {
         super("Configured project services for '" + project.getPath() + "'", project.getServices());
     }
@@ -104,38 +106,44 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         );
     }
 
-    TaskExecuter createTaskExecuter(TaskExecutionModeResolver repository,
-                                    BuildCacheController buildCacheController,
-                                    TaskActionListener actionListener,
-                                    OutputChangeListener outputChangeListener,
-                                    ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                    TaskSnapshotter taskSnapshotter,
-                                    FileCollectionFingerprinterRegistry fingerprinterRegistry,
-                                    BuildOperationExecutor buildOperationExecutor,
-                                    AsyncWorkTracker asyncWorkTracker,
-                                    BuildOutputCleanupRegistry cleanupRegistry,
-                                    ExecutionHistoryStore executionHistoryStore,
-                                    OutputFilesRepository outputFilesRepository,
-                                    BuildScanPluginApplied buildScanPlugin,
-                                    FileCollectionFactory fileCollectionFactory,
-                                    PropertyWalker propertyWalker,
-                                    TaskExecutionGraphInternal taskExecutionGraph,
-                                    TaskExecutionListener taskExecutionListener,
-                                    TaskListenerInternal taskListenerInternal,
-                                    TaskCacheabilityResolver taskCacheabilityResolver,
-                                    WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
-                                    Deleter deleter,
-                                    ListenerManager listenerManager,
-                                    ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
-                                    EmptySourceTaskSkipper emptySourceTaskSkipper
+    TaskExecuter createTaskExecuter(
+        AsyncWorkTracker asyncWorkTracker,
+        BuildCacheController buildCacheController,
+        BuildOperationExecutor buildOperationExecutor,
+        BuildOutputCleanupRegistry cleanupRegistry,
+        BuildScanPluginApplied buildScanPlugin,
+        ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+        Deleter deleter,
+        EmptySourceTaskSkipper emptySourceTaskSkipper,
+        ExecutionHistoryStore executionHistoryStore,
+        FileCollectionFactory fileCollectionFactory,
+        FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        ListenerManager listenerManager,
+        OutputChangeListener outputChangeListener,
+        OutputFilesRepository outputFilesRepository,
+        PropertyWalker propertyWalker,
+        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
+        StartParameter startParameter,
+        TaskActionListener actionListener,
+        TaskCacheabilityResolver taskCacheabilityResolver,
+        TaskExecutionGraphInternal taskExecutionGraph,
+        TaskExecutionListener taskExecutionListener,
+        TaskExecutionModeResolver repository,
+        TaskListenerInternal taskListenerInternal,
+        TaskSnapshotter taskSnapshotter,
+        WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor
     ) {
 
-        boolean buildCacheEnabled = buildCacheController.isEnabled();
-        boolean scanPluginApplied = buildScanPlugin.isBuildScanPluginApplied();
-
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
-            buildCacheEnabled,
-            scanPluginApplied,
+            buildCacheController.isEnabled()
+                ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
+                : ExecuteActionsTaskExecuter.BuildCacheState.DISABLED,
+            buildScanPlugin.isBuildScanPluginApplied()
+                ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
+                : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
+            VirtualFileSystemServices.isPartialInvalidationEnabled(startParameter.getSystemPropertiesArgs())
+                ? ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL
+                : ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE,
             taskSnapshotter,
             executionHistoryStore,
             buildOperationExecutor,
