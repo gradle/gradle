@@ -43,6 +43,7 @@ public class CrossBuildInMemoryCachingScriptClassCache {
         HashCode hash = source.getResource().getContentHash();
         if (cached != null) {
             if (hash.equals(cached.hash)) {
+                cached.compiledScript.onReuse();
                 return Cast.uncheckedCast(cached.compiledScript);
             }
         }

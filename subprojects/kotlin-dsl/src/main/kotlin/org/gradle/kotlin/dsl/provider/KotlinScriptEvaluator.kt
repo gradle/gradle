@@ -47,6 +47,7 @@ import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
 import org.gradle.kotlin.dsl.accessors.pluginSpecBuildersClassPath
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
+import org.gradle.kotlin.dsl.execution.CompiledScript
 
 import org.gradle.kotlin.dsl.execution.EvalOption
 import org.gradle.kotlin.dsl.execution.EvalOptions
@@ -205,10 +206,10 @@ class StandardKotlinScriptEvaluator(
 
         override fun cachedClassFor(
             programId: ProgramId
-        ): Class<*>? = classloadingCache.get(programId)
+        ): CompiledScript? = classloadingCache.get(programId)
 
         override fun cache(
-            specializedProgram: Class<*>,
+            specializedProgram: CompiledScript,
             programId: ProgramId
         ) {
             classloadingCache.put(
@@ -264,16 +265,47 @@ class StandardKotlinScriptEvaluator(
             location: File,
             className: String,
             accessorsClassPath: ClassPath?
-        ): Class<*> =
-            classLoaderScope
+        ): CompiledScript =
+            ScopeBackedCompiledScript(classLoaderScope, childScopeId, location, className, accessorsClassPath)
+
+        override val implicitImports: List<String>
+            get() = this@StandardKotlinScriptEvaluator.implicitImports.list
+    }
+
+    private
+    inner class ScopeBackedCompiledScript(
+        private val classLoaderScope: ClassLoaderScope,
+        private val childScopeId: String,
+        private val location: File,
+        private val className: String,
+        private val accessorsClassPath: ClassPath?
+    ) : CompiledScript {
+        private
+        var loadedClass: Class<*>? = null
+
+        override val programFor: Class<*>
+            get() {
+                if (loadedClass == null) {
+                    loadedClass = prepareClassLoader().loadClass(className)
+                }
+                return loadedClass!!
+            }
+
+        override fun onReuse() {
+            loadedClass?.let {
+                // Recreate the script scope and ClassLoader, so that things that use scopes are notified that the scope exists
+                prepareClassLoader()
+            }
+        }
+
+        private
+        fun prepareClassLoader(): ClassLoader {
+            return classLoaderScope
                 .createChild(childScopeId)
                 .local(DefaultClassPath.of(location))
                 .apply { accessorsClassPath?.let(::local) }
                 .lock()
                 .localClassLoader
-                .loadClass(className)
-
-        override val implicitImports: List<String>
-            get() = this@StandardKotlinScriptEvaluator.implicitImports.list
+        }
     }
 }

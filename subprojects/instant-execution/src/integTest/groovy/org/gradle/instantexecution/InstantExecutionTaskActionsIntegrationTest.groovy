@@ -30,21 +30,38 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
                     println("LAST")
                 }
             }
+            tasks.register("other") {
+                doFirst {
+                    println("OTHER")
+                }
+            }
         """
 
         when:
         instantRun "some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
         instantRun "some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when:
+        instantRun "some", "other"
+
+        then:
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":other").assertOutputContains("OTHER")
+
+        when:
+        instantRun "some", "other"
+
+        then:
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":other").assertOutputContains("OTHER")
     }
 
     def "task can have doFirst/doLast anonymous script actions"() {
@@ -63,21 +80,40 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
                     }
                 })
             }
+            tasks.register("other") {
+                doFirst(new Action<Task>() {
+                    void execute(task) {
+                        println("OTHER")
+                    }
+                })
+            }
         """
 
         when:
         instantRun "some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
         instantRun "some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when:
+        instantRun "some", "other"
+
+        then:
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":other").assertOutputContains("OTHER")
+
+        when:
+        instantRun "some", "other"
+
+        then:
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":other").assertOutputContains("OTHER")
     }
 
     def "task can have doFirst/doLast kotlin script lambdas"() {
@@ -92,21 +128,39 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
                     println("LAST")
                 }
             }
+
+            tasks.register("other") {
+                doFirst {
+                    println("OTHER")
+                }
+            }
         """
 
         when:
         instantRun "some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
         instantRun "some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when:
+        instantRun "some", "other"
+
+        then:
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":other").assertOutputContains("OTHER")
+
+        when:
+        instantRun "some", "other"
+
+        then:
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":other").assertOutputContains("OTHER")
     }
 
     def "name conflicts of types declared in groovy scripts"() {
