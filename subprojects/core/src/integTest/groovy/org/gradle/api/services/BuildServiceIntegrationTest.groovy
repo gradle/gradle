@@ -17,7 +17,7 @@
 package org.gradle.api.services
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 
 class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is created once per build on first use and stopped at the end of the build"() {
@@ -120,7 +120,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
         outputContains("service: closed with value 12")
     }
 
-    @FailsWithInstantExecution
+    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.UNSUPPORTED)
     def "service can be used at configuration and execution time"() {
         serviceImplementation()
         buildFile << """
