@@ -91,7 +91,11 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
                     throw new UnexpectedSuccessException()
                 } else {
                     System.err.println("Failed with instant execution as expected:")
-                    failuresInterceptor.failures*.printStackTrace()
+                    if (failuresInterceptor.failures.size() == 1) {
+                        failuresInterceptor.failures.first().printStackTrace()
+                    } else {
+                        new ExpectedFailureException(failuresInterceptor.failures).printStackTrace()
+                    }
                 }
             }
         }
@@ -134,6 +138,13 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
     static class UnexpectedSuccessException extends Exception {
         UnexpectedSuccessException() {
             super("Expected to fail with instant execution, but succeeded!")
+        }
+    }
+
+    static class ExpectedFailureException extends Exception {
+        ExpectedFailureException(List<Throwable> failures) {
+            super("Expected failure with instant execution")
+            failures.each { addSuppressed(it) }
         }
     }
 }
