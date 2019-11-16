@@ -16,7 +16,7 @@
 
 package org.gradle.language.assembler
 
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.language.AbstractNativeSoftwareModelParallelIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.AssemblerWithCHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
@@ -25,7 +25,7 @@ import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 class AssemblyLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelParallelIntegrationTest {
     HelloWorldApp app = new AssemblerWithCHelloWorldApp(toolChain)
 
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.REQUIRES_INVESTIGATION)
+    @FailsWithInstantExecution
     def "can execute assembler tasks in parallel"() {
         given:
         withComponentForApp()
