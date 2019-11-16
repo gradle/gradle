@@ -44,6 +44,13 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
         // This override is required to satisfy spock's zealous runtime checks
     }
 
+    /**
+     * Spock spec listener that registers failure collecting method interceptors for the given feature.
+     *
+     * Registration happens as late as possible and to the utmost position in the stack in order to catch
+     * failures without being sensible to re-ordering spock extensions nor to the place of spock features
+     * in specs inheritance hierarchies.
+     */
     private static class CatchFeatureFailuresRunListener extends AbstractRunListener {
 
         private final RecordFailuresInterceptor failuresInterceptor = new RecordFailuresInterceptor()
@@ -56,9 +63,10 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
 
         @Override
         void beforeSpec(SpecInfo spec) {
-            if (!spec.setupMethods.empty) {
-                def setupInterceptor = new FeatureFilterInterceptor(feature, failuresInterceptor)
-                spec.setupMethods*.interceptors*.add(0, setupInterceptor)
+            def fixturesInterceptor = new FeatureFilterInterceptor(feature, failuresInterceptor)
+            spec.specsTopToBottom*.each { s ->
+                s.setupMethods*.interceptors*.add(0, fixturesInterceptor)
+                s.cleanupMethods*.interceptors*.add(0, fixturesInterceptor)
             }
         }
 
