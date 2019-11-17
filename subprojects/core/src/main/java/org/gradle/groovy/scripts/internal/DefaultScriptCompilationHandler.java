@@ -303,6 +303,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final HashCode sourceHashCode;
         private final M metadata;
         private Class<? extends T> scriptClass;
+        private ClassLoaderScope scope;
 
         public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoaderScope targetScope, ScriptSource source, HashCode sourceHashCode, M metadata) {
             this.isEmpty = isEmpty;
@@ -334,7 +335,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         public void onReuse() {
             if (scriptClass != null) {
                 // Recreate the script scope and ClassLoader, so that things that use scopes are notified that the scope exists
-                getClassLoader();
+                scope.onReuse();
+                assert scriptClass.getClassLoader() == scope.getLocalClassLoader();
             }
         }
 
@@ -345,7 +347,8 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     throw new UnsupportedOperationException("Cannot load script that does nothing.");
                 }
                 try {
-                    ClassLoader loader = getClassLoader();
+                    scope = prepareClassLoaderScope();
+                    ClassLoader loader = scope.getLocalClassLoader();
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
@@ -358,12 +361,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             return scriptClass;
         }
 
-        private ClassLoader getClassLoader() {
+        private ClassLoaderScope prepareClassLoaderScope() {
             ClassPath scriptClassPath = DefaultClassPath.of(scriptCacheDir);
-            ClassLoaderScope scriptScope = targetScope.createChild("groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName())
+            String scopeName = "groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName();
+            return targetScope.createChild(scopeName)
                 .local(scriptClassPath)
                 .lock(spec -> new ScriptClassLoader(source, spec.right, spec.left, sourceHashCode));
-            return scriptScope.getLocalClassLoader();
         }
     }
 

@@ -130,9 +130,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
                 effectiveLocalClassLoader = new CachingClassLoader(localClassLoader);
             }
 
-            export = null;
             exportLoaders = null;
-            local = null;
         }
     }
 
@@ -258,5 +256,19 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     protected void localClasspathAdded(ClassPath classPath) {
         listener.localClasspathAdded(id, classPath);
+    }
+
+    @Override
+    public void onReuse() {
+        parent.onReuse();
+        listener.childScopeCreated(parent.getId(), id);
+        if (!export.isEmpty()) {
+            listener.exportClasspathAdded(id, export);
+            listener.classloaderCreated(this.id, id.exportId(), effectiveExportClassLoader);
+        }
+        if (!local.isEmpty()) {
+            listener.localClasspathAdded(id, local);
+            listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader);
+        }
     }
 }
