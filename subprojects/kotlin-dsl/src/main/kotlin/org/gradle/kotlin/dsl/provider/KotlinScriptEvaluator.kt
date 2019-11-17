@@ -282,30 +282,31 @@ class StandardKotlinScriptEvaluator(
     ) : CompiledScript {
         private
         var loadedClass: Class<*>? = null
+        var scope: ClassLoaderScope? = null
 
         override val programFor: Class<*>
             get() {
                 if (loadedClass == null) {
-                    loadedClass = prepareClassLoader().loadClass(className)
+                    scope = prepareClassLoaderScope().also {
+                        loadedClass = it.localClassLoader.loadClass(className)
+                    }
                 }
                 return loadedClass!!
             }
 
         override fun onReuse() {
-            loadedClass?.let {
+            scope?.let {
                 // Recreate the script scope and ClassLoader, so that things that use scopes are notified that the scope exists
-                prepareClassLoader()
+                it.onReuse()
+                require(loadedClass!!.classLoader == it.localClassLoader)
             }
         }
 
         private
-        fun prepareClassLoader(): ClassLoader {
-            return classLoaderScope
-                .createChild(childScopeId)
-                .local(DefaultClassPath.of(location))
-                .apply { accessorsClassPath?.let(::local) }
-                .lock()
-                .localClassLoader
-        }
+        fun prepareClassLoaderScope() = classLoaderScope
+            .createChild(childScopeId)
+            .local(DefaultClassPath.of(location))
+            .apply { accessorsClassPath?.let(::local) }
+            .lock()
     }
 }

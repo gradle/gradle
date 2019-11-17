@@ -90,16 +90,25 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     }
 
     override fun localClasspathAdded(scopeId: ClassLoaderScopeId, localClassPath: ClassPath) {
-        scopeSpecs.getValue(scopeId).localClassPath += localClassPath
+        val spec = scopeSpecs[scopeId]
+        if (spec != null) {
+            spec.localClassPath += localClassPath
+        }
     }
 
     override fun exportClasspathAdded(scopeId: ClassLoaderScopeId, exportClassPath: ClassPath) {
-        scopeSpecs.getValue(scopeId).exportClassPath += exportClassPath
+        val spec = scopeSpecs[scopeId]
+        if (spec != null) {
+            spec.exportClassPath += exportClassPath
+        }
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader) {
-        val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
-        loaders[classLoader] = Pair(scopeSpecs.getValue(scopeId), ClassLoaderRole(local))
+        val spec = scopeSpecs[scopeId]
+        if (spec != null) {
+            val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
+            loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
+        }
     }
 }
 

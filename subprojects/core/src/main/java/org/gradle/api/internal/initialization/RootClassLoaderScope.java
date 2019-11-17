@@ -89,4 +89,8 @@ public class RootClassLoaderScope extends AbstractClassLoaderScope {
         return true;
     }
 
+    @Override
+    public void onReuse() {
+        // Nothing to do
+    }
 }
