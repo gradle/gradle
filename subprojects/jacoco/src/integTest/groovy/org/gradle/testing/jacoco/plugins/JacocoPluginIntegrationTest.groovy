@@ -143,7 +143,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         runAndFail("test")
 
         then:
-        errorOutput.contains("JaCoCo destination file must not be null if output type is configured to FILE")
+        errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
     }
 }
 
