@@ -136,7 +136,7 @@ public class JacocoPluginExtension {
                     // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
                     File coverageFile = extension.getDestinationFile();
                     if (coverageFile == null) {
-                        throw new GradleException("JaCoCo destination file must not be null if output type is configured to FILE");
+                        throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
                     }
                     fileOperations.delete(coverageFile);
                 }
