@@ -48,7 +48,12 @@ public class DependencyMapNotationConverter<T> extends MapNotationConverter<T> {
                          @MapKey("branch") @Nullable String branch) {
         T dependency;
         if (configuration == null) {
-            dependency = instantiator.newInstance(resultingType, group, name, version);
+            if (branch == null) {
+                dependency = instantiator.newInstance(resultingType, group, name, version);
+            }
+            else {
+                dependency = instantiator.newInstance(resultingType, group, name, version, null, branch);
+            }
         } else if (branch == null) {
             dependency = instantiator.newInstance(resultingType, group, name, version, configuration);
         } else {
