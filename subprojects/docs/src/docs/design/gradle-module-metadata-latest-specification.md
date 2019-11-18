@@ -71,7 +71,7 @@ The following statements must hold for the variants:
 - Variant name must be unique per module
 - Each variant must have at least one attribute
 - Two variants cannot have the same attributes and capabilities
-- If there is at least one dependency in any variant, at least one must have version information
+- If there is at least one dependency in any variant, at least one must carry version information
 
 ### `attributes` value
 
