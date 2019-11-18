@@ -17,10 +17,14 @@
 package org.gradle.internal.vfs
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
+// The whole test makes no sense if there isn't a daemon to retain the state.
+@IgnoreIf({ GradleContextualExecuter.noDaemon })
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
 
     def "source file changes are recognized after change is injected"() {
