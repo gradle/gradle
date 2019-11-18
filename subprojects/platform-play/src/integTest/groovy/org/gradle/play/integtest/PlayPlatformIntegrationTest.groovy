@@ -45,6 +45,7 @@ public class PlayPlatformIntegrationTest extends AbstractIntegrationSpec {
 
     @Requires(TestPrecondition.JDK8)
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can build play app binary for specified platform on JDK8 [#platform]"() {
         given:
         executer.noDeprecationChecks()
