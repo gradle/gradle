@@ -23,6 +23,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -43,16 +44,17 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultVirtualFileSystem implements VirtualFileSystem {
-    private final AtomicReference<FileHierarchySet> root = new AtomicReference<>(FileHierarchySet.EMPTY);
+    private final AtomicReference<FileHierarchySet> root;
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
-    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, String... defaultExcludes) {
+    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, String... defaultExcludes) {
         this.stat = stat;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
         this.hasher = hasher;
+        this.root = new AtomicReference<>(DefaultFileHierarchySet.empty(caseSensitivity));
     }
 
     @Override
@@ -168,7 +170,7 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
 
     @Override
     public void invalidateAll() {
-        root.updateAndGet(root -> FileHierarchySet.EMPTY);
+        root.updateAndGet(FileHierarchySet::empty);
     }
 
     @Override

@@ -34,13 +34,13 @@ public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode imple
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
-        return snapshot.invalidate(absolutePath, offset).map(splitSnapshot -> splitSnapshot.withPathToParent(getPathToParent()));
+    public Optional<FileSystemNode> invalidate(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+        return snapshot.invalidate(absolutePath, offset, caseSensitivity).map(splitSnapshot -> splitSnapshot.withPathToParent(getPathToParent()));
     }
 
     @Override
-    public FileSystemNode store(String absolutePath, int offset, MetadataSnapshot newSnapshot) {
-        return snapshot.store(absolutePath, offset, newSnapshot).withPathToParent(getPathToParent());
+    public FileSystemNode store(String absolutePath, int offset, CaseSensitivity caseSensitivity, MetadataSnapshot newSnapshot) {
+        return snapshot.store(absolutePath, offset, caseSensitivity, newSnapshot).withPathToParent(getPathToParent());
     }
 
     @Override
@@ -49,8 +49,8 @@ public class PathCompressingSnapshotWrapper extends AbstractFileSystemNode imple
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset) {
-        return snapshot.getSnapshot(absolutePath, offset);
+    protected Optional<MetadataSnapshot> getChildMetadata(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+        return snapshot.getSnapshot(absolutePath, offset, caseSensitivity);
     }
 
     @Override

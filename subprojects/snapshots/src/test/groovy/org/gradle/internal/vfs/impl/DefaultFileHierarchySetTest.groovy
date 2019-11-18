@@ -36,8 +36,12 @@ import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 class DefaultFileHierarchySetTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    private static final FileHierarchySet EMPTY = DefaultFileHierarchySet.empty(CASE_SENSITIVE)
 
     DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner())
 
@@ -99,7 +103,7 @@ class DefaultFileHierarchySetTest extends Specification {
     }
 
     def "can add dir to empty set"() {
-        def empty = FileHierarchySet.EMPTY
+        def empty = EMPTY
         def dir1 = tmpDir.createDir("dir1")
         def dir2 = tmpDir.createDir("dir2")
 
@@ -428,7 +432,7 @@ class DefaultFileHierarchySetTest extends Specification {
         Assume.assumeTrue("Root is only defined for the file separator '/'", File.separator == '/')
 
         when:
-        def set = FileHierarchySet.EMPTY.update("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
+        def set = EMPTY.update("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
         then:
         set.getMetadata("/root.txt").get().type == FileType.RegularFile
 
@@ -464,7 +468,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def firstPath = "/var/log"
         def secondPath = "/usr/bin"
 
-        def set = FileHierarchySet.EMPTY
+        def set = EMPTY
             .update(firstPath, directorySnapshotForPath(firstPath))
             .update(secondPath, directorySnapshotForPath(secondPath))
             .update("/other/fuckup", directorySnapshotForPath("/other/fuckup"))
@@ -484,7 +488,7 @@ class DefaultFileHierarchySetTest extends Specification {
 
     def "can update the root path"() {
         when:
-        def set = FileHierarchySet.EMPTY
+        def set = EMPTY
             .update("/", rootDirectorySnapshot())
         then:
         set.getMetadata("/").present
@@ -492,7 +496,7 @@ class DefaultFileHierarchySetTest extends Specification {
         assertMissingFileSnapshot(set, new File("some/other/path"))
 
         when:
-        set = FileHierarchySet.EMPTY
+        set = EMPTY
             .update("/some/path", directorySnapshotForPath("/some/path"))
             .update("/", rootDirectorySnapshot())
         then:
@@ -501,14 +505,14 @@ class DefaultFileHierarchySetTest extends Specification {
         assertMissingFileSnapshot(set, new File("some/path"))
 
         when:
-        set = FileHierarchySet.EMPTY
+        set = EMPTY
             .update("/firstPath", directorySnapshotForPath("/firstPath"))
             .update("/secondPath", directorySnapshotForPath("/secondPath"))
         then:
-        set.invalidate("/") == FileHierarchySet.EMPTY
+        set.invalidate("/") == EMPTY
 
         when:
-        set = FileHierarchySet.EMPTY
+        set = EMPTY
             .update("/", rootDirectorySnapshot())
             .invalidate("/root.txt")
         then:
@@ -522,7 +526,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def secondPath = "D:\\Users\\bin"
         def thirdPath = "E:\\Some\\other"
 
-        def set = FileHierarchySet.EMPTY
+        def set = EMPTY
             .update(firstPath, directorySnapshotForPath(firstPath))
             .update(secondPath, directorySnapshotForPath(secondPath))
             .update(thirdPath, directorySnapshotForPath(thirdPath))
@@ -556,7 +560,7 @@ class DefaultFileHierarchySetTest extends Specification {
         def secondPath = "\\\\server\\whatever"
         def thirdPath = "\\\\otherServer\\whatever"
 
-        def set = FileHierarchySet.EMPTY
+        def set = EMPTY
             .update(firstPath, directorySnapshotForPath(firstPath))
             .update(secondPath, directorySnapshotForPath(secondPath))
             .update(thirdPath, directorySnapshotForPath(thirdPath))
@@ -652,11 +656,11 @@ class DefaultFileHierarchySetTest extends Specification {
     }
 
     private FileHierarchySet fileHierarchySet(File location) {
-        FileHierarchySet.EMPTY.update(location.absolutePath, location.directory ? snapshotDir(location) : snapshotFile(location))
+        EMPTY.update(location.absolutePath, location.directory ? snapshotDir(location) : snapshotFile(location))
     }
 
     private FileHierarchySet fileHierarchySet(Iterable<? extends File> locations) {
-        FileHierarchySet set = FileHierarchySet.EMPTY
+        FileHierarchySet set = EMPTY
         for (File location : locations) {
             set = set.update(location.absolutePath, location.directory ? snapshotDir(location) : snapshotFile(location))
         }

@@ -83,6 +83,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
+
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
 
@@ -156,9 +159,16 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 FileHasher hasher,
                 ListenerManager listenerManager,
                 Stat stat,
+                FileSystem fileSystem,
                 StringInterner stringInterner
             ) {
-                VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, DirectoryScanner.getDefaultExcludes());
+                VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(
+                    hasher,
+                    stringInterner,
+                    stat,
+                    fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                    DirectoryScanner.getDefaultExcludes()
+                );
                 listenerManager.addListener(new RootBuildLifecycleListener() {
                     @Override
                     public void afterStart(GradleInternal gradle) {
@@ -228,6 +238,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 ListenerManager listenerManager,
                 StartParameter startParameter,
                 Stat stat,
+                FileSystem fileSystem,
                 StringInterner stringInterner,
                 VirtualFileSystem gradleUserHomeVirtualFileSystem,
                 WellKnownFileLocations wellKnownFileLocations
@@ -236,6 +247,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     hasher,
                     stringInterner,
                     stat,
+                    fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
                     DirectoryScanner.getDefaultExcludes()
                 );
                 RoutingVirtualFileSystem routingVirtualFileSystem = new RoutingVirtualFileSystem(
