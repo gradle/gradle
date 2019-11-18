@@ -66,11 +66,6 @@ public @interface IgnoreWithInstantExecution {
          * Use this reason on tests that take a long time to fail, slowing down the CI feedback.
          * Use sparingly, only in dramatic cases.
          */
-        LONG_TIMEOUT,
-
-        /**
-         * Use this reason if you don't know what is happening and want to postpone the investigation.
-         */
-        REQUIRES_INVESTIGATION
+        LONG_TIMEOUT
     }
 }
