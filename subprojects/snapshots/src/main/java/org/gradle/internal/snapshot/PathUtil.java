@@ -232,7 +232,7 @@ public class PathUtil {
      *
      * @return 0 if the two paths have a common prefix, and the comparison of the first segment of each path if not.
      */
-    public static int compareWithCommonPrefix(String absolutePath, int offset, String relativePath, CaseSensitivity caseSensitivity) {
+    public static int compareFirstSegment(String absolutePath, int offset, String relativePath, CaseSensitivity caseSensitivity) {
         int maxPos = Math.min(relativePath.length(), absolutePath.length() - offset);
         int accumulatedValue = 0;
         for (int pos = 0; pos < maxPos; pos++) {

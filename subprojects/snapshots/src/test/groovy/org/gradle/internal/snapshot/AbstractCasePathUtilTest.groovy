@@ -22,7 +22,7 @@ import spock.lang.Unroll
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
-import static org.gradle.internal.snapshot.PathUtil.compareWithCommonPrefix
+import static org.gradle.internal.snapshot.PathUtil.compareFirstSegment
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
 import static org.gradle.internal.snapshot.PathUtil.hasPrefix
@@ -33,7 +33,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     abstract CaseSensitivity getCaseSensitivity()
 
-    def "common prefix of #prefix and #path at #offset is #result"() {
+    def "length of common prefix of #prefix and #path at #offset is #result"() {
         expect:
         lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == result
 
@@ -44,9 +44,9 @@ abstract class AbstractCasePathUtilTest extends Specification{
         '/root/some' | '/root/other' | 0      | 5
     }
 
-    def "can compare by common prefix"() {
+    def "can compare by first segment"() {
         expect:
-        Integer.signum(compareWithCommonPrefix(path1, offset, path2, caseSensitivity)) == result
+        Integer.signum(compareFirstSegment(path1, offset, path2, caseSensitivity)) == result
         if (result) {
             assert Integer.signum(path1.substring(offset) <=> path2) == result
         }
@@ -87,7 +87,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
         "/hello/world/some" | "/var/hello/other"      | 4      | 6
     }
 
-    def "#prefix is child of or this of #path at offset #offset: #result"() {
+    def "#prefix is prefix of #path at offset #offset: #result"() {
         expect:
         hasPrefix(prefix, path, offset, caseSensitivity)
         lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == prefix.length()
@@ -101,7 +101,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "separator is smaller than every other character"() {
         expect:
-        Integer.signum(compareWithCommonPrefix(path1, offset, path2, caseSensitivity)) == result
+        Integer.signum(compareFirstSegment(path1, offset, path2, caseSensitivity)) == result
 
         where:
         path1              | offset | path2         | result
@@ -158,15 +158,15 @@ abstract class AbstractCasePathUtilTest extends Specification{
     def "path #spec.searchedPrefix has common prefix with #spec.expectedIndex in #spec.children"() {
         expect:
         SearchUtil.binarySearch(spec.children) { child ->
-            compareWithCommonPrefix(spec.searchedPrefix, 0, child, caseSensitivity)
+            compareFirstSegment(spec.searchedPrefix, 0, child, caseSensitivity)
         } == spec.expectedIndex
         spec.children.each { child ->
             def childIndex = spec.children.indexOf(child)
-            def sizeOfCommonPrefix = lengthOfCommonPrefix(spec.searchedPrefix, child, 0, caseSensitivity)
+            def lengthOfCommonPrefix = lengthOfCommonPrefix(spec.searchedPrefix, child, 0, caseSensitivity)
             if (childIndex == spec.expectedIndex) {
-                assert sizeOfCommonPrefix > 0
+                assert lengthOfCommonPrefix > 0
             } else {
-                assert sizeOfCommonPrefix == 0
+                assert lengthOfCommonPrefix == 0
             }
         }
 
