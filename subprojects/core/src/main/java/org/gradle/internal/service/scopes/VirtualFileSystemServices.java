@@ -162,7 +162,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 FileSystem fileSystem,
                 StringInterner stringInterner
             ) {
-                VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(hasher, stringInterner, stat, fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE, DirectoryScanner.getDefaultExcludes());
+                VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(
+                    hasher,
+                    stringInterner,
+                    stat,
+                    fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                    DirectoryScanner.getDefaultExcludes()
+                );
                 listenerManager.addListener(new RootBuildLifecycleListener() {
                     @Override
                     public void afterStart(GradleInternal gradle) {

@@ -67,7 +67,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
         "/var/hello/other"      | 5      | "hello/world/some" | 0
     }
 
-    def "size of common prefix of #prefix with #path at offset #offset is #result"() {
+    def "length of common prefix of #prefix with #path at offset #offset is #result"() {
         expect:
         lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == result
 
