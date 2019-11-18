@@ -18,6 +18,7 @@ package org.gradle.performance.regression.buildcache
 
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.gradle.internal.hash.Hashing
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.GradleInvocationSpec
@@ -223,7 +224,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         def startTime = System.currentTimeMillis()
         int count = 0
         dir.eachFile { File cacheArchiveFile ->
-            if (cacheArchiveFile.name ==~ /[a-z0-9]{32}/) {
+            if (cacheArchiveFile.name ==~ /[a-z0-9]{${Hashing.defaultFunction().hexDigits}}/) {
                 def tempFile = temporaryFolder.file("re-tar-temp")
                 tempFile.withOutputStream { outputStream ->
                     def tarOutput = new TarArchiveOutputStream(new GZIPOutputStream(outputStream))
