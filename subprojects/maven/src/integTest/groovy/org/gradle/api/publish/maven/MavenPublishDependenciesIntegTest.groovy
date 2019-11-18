@@ -80,6 +80,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
 
             dependencies {
                 api $dependencyNotation
+                api 'group:projectB:1.0'
             }
 
             publishing {
@@ -99,7 +100,7 @@ class MavenPublishDependenciesIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         repoModule.assertPublished()
-        repoModule.assertApiDependencies("group:projectA:")
+        repoModule.assertApiDependencies("group:projectA:", "group:projectB:1.0")
         def dependency = repoModule.parsedPom.scopes.compile.dependencies.get("group:projectA:")
         dependency.groupId == "group"
         dependency.artifactId == "projectA"
