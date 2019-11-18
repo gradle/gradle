@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.javascript.rhino
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
@@ -47,6 +48,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         file("deps/rhino-${RhinoExtension.DEFAULT_RHINO_DEPENDENCY_VERSION}.jar").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can run rhino exec task"() {
         given:
         file("some.js") << """
@@ -84,6 +86,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         fails "rhino"
     }
 
+    @ToBeFixedForInstantExecution
     def "can use older rhino version"() {
         given:
         buildFile << """

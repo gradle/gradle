@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 /**
  * Tests aspects of model rule binding validation such as when/why validation is run.
@@ -25,6 +26,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  */
 class ModelRuleBindingValidationIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "model rule that does not bind specified for project not used in the build does not fail the build"() {
         when:
         settingsFile << """

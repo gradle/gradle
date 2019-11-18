@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 import static org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser.FORMAT_VERSION
@@ -29,6 +30,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         settingsFile << "rootProject.name = 'test'"
     }
 
+    @ToBeFixedForInstantExecution
     def "uses the module metadata when configured as source and pom is not present"() {
         mavenRepo.module("test", "a", "1.2").withNoPom().withModuleMetadata().publish()
 
@@ -195,6 +197,7 @@ task checkRelease {
         succeeds("checkRelease")
     }
 
+    @ToBeFixedForInstantExecution
     def "variant can define files whose names are different to their maven contention location"() {
         def a = mavenRepo.module("test", "a", "1.2")
             .withModuleMetadata()
@@ -242,6 +245,7 @@ task checkDebug {
         succeeds("checkDebug")
     }
 
+    @ToBeFixedForInstantExecution
     def "variant can define files whose names and locations do not match maven convention"() {
         def a = mavenRepo.module("test", "a", "1.2")
             .withModuleMetadata()

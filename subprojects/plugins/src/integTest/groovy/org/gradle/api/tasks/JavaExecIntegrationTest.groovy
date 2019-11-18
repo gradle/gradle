@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
@@ -66,6 +67,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "java exec is not incremental by default"() {
         when:
         run "run"
@@ -80,6 +82,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
+    @ToBeFixedForInstantExecution
     def 'arguments passed via command line take precedence and is not incremental by default'() {
         when:
         run("run", "--args", "2 '3' \"4\"")
@@ -105,6 +108,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue(["GRADLE-1483", "GRADLE-3528"])
+    @ToBeFixedForInstantExecution
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << """
@@ -133,6 +137,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":run"
     }
 
+    @ToBeFixedForInstantExecution
     def 'arguments passed via command line matter in incremental check'() {
         given:
         buildFile << """
@@ -163,6 +168,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         assertOutputFileIs("2\n")
     }
 
+    @ToBeFixedForInstantExecution
     def "arguments can be passed by using argument providers"() {
         given:
         def inputFile = file("input.txt")

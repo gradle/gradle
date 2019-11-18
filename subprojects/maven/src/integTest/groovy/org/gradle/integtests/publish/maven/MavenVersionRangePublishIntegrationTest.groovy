@@ -17,6 +17,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -28,6 +29,7 @@ class MavenVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
         using m2 //uploadArchives leaks into local ~/.m2
     }
 
+    @ToBeFixedForInstantExecution
     public void "version range is mapped to maven syntax in published pom file"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "
@@ -73,6 +75,7 @@ uploadArchives {
 
     @Issue("GRADLE-3233")
     @Unroll
+    @ToBeFixedForInstantExecution
     def "publishes POM dependency with #versionType version for Gradle dependency with null version"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

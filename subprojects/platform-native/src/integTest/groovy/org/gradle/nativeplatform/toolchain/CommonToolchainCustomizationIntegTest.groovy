@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
@@ -23,6 +24,7 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
 
     def helloWorldApp = new CppHelloWorldApp()
 
+    @ToBeFixedForInstantExecution
     def "can add action to tool chain that modifies tool arguments prior to execution"() {
         when:
         helloWorldApp.executable.writeSources(file("src/main"))

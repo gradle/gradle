@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse
+
+
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.test.fixtures.server.http.HttpArtifact
 

@@ -15,7 +15,9 @@
  */
 
 package org.gradle.integtests.publish.maven
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
@@ -26,6 +28,7 @@ class MavenSettingsPublishIntegrationTest extends AbstractIntegrationSpec {
     public final HttpServer server = new HttpServer()
 
     @Issue("GRADLE-2681")
+    @ToBeFixedForInstantExecution
     def "gradle ignores maven mirror configuration for uploading archives"() {
         given:
 

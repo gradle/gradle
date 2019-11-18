@@ -240,7 +240,6 @@ class DefaultFileWatcherFactoryTest extends AbstractFileWatcherTest {
         thrownInWatchExecution == null
     }
 
-
     def "watcher will stop if listener throws and error is forwarded"() {
         when:
         def onErrorStatus = this.<Pair<Boolean, Throwable>> blockingVar()

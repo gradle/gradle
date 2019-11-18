@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.work.InputChanges
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -52,6 +53,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skipped":copy"
     }
 
+    @ToBeFixedForInstantExecution
     def "task with type declared in build script is not up-to-date after build script change"() {
         file("input.txt") << "input"
 
@@ -79,6 +81,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         then: skipped":copy"
     }
 
+    @ToBeFixedForInstantExecution
     def "task with action declared in build script is not up-to-date after build script change"() {
         file("input.txt") << "input"
         buildFile << """
@@ -112,6 +115,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2936")
+    @ToBeFixedForInstantExecution
     def "task declared in buildSrc is not up-to-date after its source is changed"() {
         file("input.txt") << "input"
 
@@ -145,6 +149,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1910")
+    @ToBeFixedForInstantExecution
     def "task declared in buildSrc is not up-to-date after dependencies change"() {
         file("input.txt") << "input"
 

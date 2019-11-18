@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -72,6 +73,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         }
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "no task is re-executed when inputs are unchanged"() {
         when:
         withBuildCache().run "jar"
@@ -88,6 +90,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "cached tasks are executed with #rerunMethod"() {
         expect:
         cacheDir.listFiles() as List == []
@@ -121,6 +124,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         rerunMethod << ["--rerun-tasks", "-PupToDateWhenFalse=true"]
     }
 
+    @ToBeFixedForInstantExecution
     def "task results don't get stored when pushing is disabled"() {
         settingsFile << """
             buildCache {
@@ -144,6 +148,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         executedAndNotSkipped ":compileJava", ":jar"
     }
 
+    @ToBeFixedForInstantExecution
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
@@ -276,6 +281,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
+    @ToBeFixedForInstantExecution
     def "can load twice from the cache with no changes"() {
         given:
         buildFile << """
@@ -302,6 +308,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         skipped ':compileJava'
     }
 
+    @ToBeFixedForInstantExecution
     def "outputs loaded from the cache are snapshotted as outputs"() {
         buildFile << """ 
             apply plugin: 'base'
@@ -362,6 +369,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         outputFile.text == "input text"
     }
 
+    @ToBeFixedForInstantExecution
     def "no caching happens when local cache is disabled"() {
         settingsFile << """
             buildCache {
@@ -384,6 +392,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         noneSkipped()
     }
 
+    @ToBeFixedForInstantExecution
     def "task with custom actions gets logged"() {
         when:
         withBuildCache().run "compileJava", "--info"
@@ -458,6 +467,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         noneSkipped()
     }
 
+    @ToBeFixedForInstantExecution
     def "order of resources on classpath does not affect how we calculate the cache key"() {
         buildFile << """
             apply plugin: 'base'

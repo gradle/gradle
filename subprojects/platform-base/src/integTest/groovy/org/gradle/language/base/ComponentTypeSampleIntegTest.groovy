@@ -17,12 +17,14 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
 class ComponentTypeSampleIntegTest extends AbstractIntegrationSpec {
     @Rule Sample componentTypeSample = new Sample(temporaryFolder, "customModel/componentType")
 
+    @ToBeFixedForInstantExecution
     def "can create custom component with binaries"() {
         given:
         sample componentTypeSample

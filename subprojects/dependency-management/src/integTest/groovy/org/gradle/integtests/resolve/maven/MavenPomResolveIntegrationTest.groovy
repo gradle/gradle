@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class MavenPomResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -64,6 +65,7 @@ task retrieve(type: Sync) {
 
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2861")
+    @ToBeFixedForInstantExecution
     def "can handle pom with unspecified properties in dependency management"() {
         given:
         def parent = mavenHttpRepo.module('group', 'parent', '1.0').publish()

@@ -16,6 +16,7 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -35,6 +36,7 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can run the application using run task with #dsl dsl"() {
         when:
         executer.inDirectory(sample.dir.file(dsl))
@@ -48,6 +50,7 @@ class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can build and run the installed application with #dsl dsl"() {
         when:
         def dslDir = sample.dir.file(dsl)

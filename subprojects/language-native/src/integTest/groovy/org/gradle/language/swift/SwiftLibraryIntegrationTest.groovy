@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -28,6 +29,7 @@ import static org.gradle.util.Matchers.containsText
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "skip compile and link tasks when no source"() {
         given:
         buildFile << """
@@ -41,6 +43,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         result.assertTasksSkipped(":compileDebugSwift", ":linkDebug", ":assemble")
     }
 
+    @ToBeFixedForInstantExecution
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -57,6 +60,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         failure.assertThatCause(containsText("Swift compiler failed while compiling swift file(s)"))
     }
 
+    @ToBeFixedForInstantExecution
     def "can build debug and release variants of library"() {
         given:
         def lib = new SwiftLib()
@@ -86,6 +90,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/release/${lib.moduleName}").assertHasStrippedDebugSymbolsFor(lib.sourceFileNames)
     }
 
+    @ToBeFixedForInstantExecution
     def "can use link file as task dependency"() {
         given:
         def lib = new SwiftLib()
@@ -107,6 +112,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can use runtime file as task dependency"() {
         given:
         def lib = new SwiftLib()
@@ -128,6 +134,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can use objects as task dependency"() {
         given:
         def lib = new SwiftLib()
@@ -150,6 +157,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     def "build logic can change source layout convention"() {
         given:
         def lib = new SwiftLib()
@@ -172,6 +180,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "build logic can add individual source files"() {
         given:
         def lib = new SwiftLib()
@@ -197,6 +206,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "build logic can change buildDir"() {
         given:
         def lib = new SwiftLib()
@@ -219,6 +229,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("output/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "build logic can change task output locations"() {
         given:
         def lib = new SwiftLib()
@@ -244,6 +255,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         file("build/some-lib/main.bin").assertIsFile()
     }
 
+    @ToBeFixedForInstantExecution
     def "can define public library"() {
         given:
         def lib = new SwiftLib()
@@ -262,6 +274,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can compile and link against another library"() {
         settingsFile << "include 'hello', 'log'"
         def app = new SwiftAppWithLibraries()
@@ -297,6 +310,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("log/build/lib/main/release/Log").assertHasDebugSymbolsFor(app.logLibrary.sourceFileNames)
     }
 
+    @ToBeFixedForInstantExecution
     def "can change default module name and successfully link against library"() {
         settingsFile << "include 'lib1', 'lib2'"
         def app = new SwiftAppWithLibraries()
@@ -329,6 +343,7 @@ class SwiftLibraryIntegrationTest extends AbstractInstalledToolChainIntegrationS
         sharedLibrary("lib2/build/lib/main/debug/Log").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "doesn't have implicit _main symbols declared in the object file of single file Swift library"() {
         given:
         def lib = new SwiftSingleFileLib()

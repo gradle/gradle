@@ -16,12 +16,14 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithCppLibrary
 import org.gradle.vcs.fixtures.GitFileRepository
 
 class SwiftDependenciesCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
     def app = new SwiftAppWithCppLibrary()
 
+    @ToBeFixedForInstantExecution
     def "can depend on both swift and cpp libraries from VCS"() {
         given:
         settingsFile << """

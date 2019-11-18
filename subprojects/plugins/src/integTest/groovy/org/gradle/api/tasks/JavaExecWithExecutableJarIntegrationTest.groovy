@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
@@ -63,6 +64,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1346")
+    @ToBeFixedForInstantExecution
     def "can run JavaExec with an executable jar"() {
 
         buildFile << """
@@ -99,6 +101,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1346")
+    @ToBeFixedForInstantExecution
     def "helpful message when jar is not executable"() {
 
         when:

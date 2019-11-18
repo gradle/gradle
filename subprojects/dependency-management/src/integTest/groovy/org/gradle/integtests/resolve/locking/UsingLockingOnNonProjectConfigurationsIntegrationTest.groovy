@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
@@ -62,6 +63,7 @@ buildscript {
         outputDoesNotContain('org.foo:foo-plugin:1.1')
     }
 
+    @ToBeFixedForInstantExecution
     def 'locks build script classpath combined with plugins'() {
         given:
         addPlugin()
@@ -108,6 +110,7 @@ plugins {
         outputDoesNotContain('org.foo:foo-plugin:1.1')
     }
 
+    @ToBeFixedForInstantExecution
     def 'creates lock file for build script classpath'() {
         given:
         addPlugin()
@@ -176,6 +179,7 @@ buildscript {
         failureCauseContains('Did not resolve \'org.foo:foo-plugin:1.0\' which is part of the dependency lock state')
     }
 
+    @ToBeFixedForInstantExecution
     def 'same name buildscript and project configurations result in different lock files'() {
         given:
         def lockFile = new LockfileFixture(testDirectory: testDirectory)

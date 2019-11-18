@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class IvyCustomStatusLatestVersionIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -66,6 +67,7 @@ task retrieve(type: Sync) {
         "platin" | "1.0"
     }
 
+    @ToBeFixedForInstantExecution
     def "uses status provided by component metadata rule for latest.xyz"() {
         given:
         buildFile << """
@@ -127,6 +129,7 @@ task retrieve(type: Sync) {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3216")
+    @ToBeFixedForInstantExecution
     def "uses changing provided by component metadata rule for latest.xyz"() {
         given:
         buildFile << """
@@ -212,6 +215,7 @@ task retrieve(type: Sync) {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3216")
+    @ToBeFixedForInstantExecution
     def "handles changing module with latest.release"() {
         given:
         buildFile << """

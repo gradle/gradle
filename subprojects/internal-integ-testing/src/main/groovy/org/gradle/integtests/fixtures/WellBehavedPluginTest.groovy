@@ -40,6 +40,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         return "assemble"
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
@@ -48,6 +49,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         succeeds mainTask
     }
 
+    @ToBeFixedForInstantExecution
     def "plugin does not force creation of build dir during configuration"() {
         given:
         applyPlugin()
@@ -59,6 +61,7 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         !file("build").exists()
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "plugin can build with empty project"() {
         given:
         applyPlugin()

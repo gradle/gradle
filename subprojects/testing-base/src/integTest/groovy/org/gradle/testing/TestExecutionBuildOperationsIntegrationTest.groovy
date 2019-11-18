@@ -16,6 +16,8 @@
 
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -48,6 +50,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertJunit(rootTestOp, operations)
     }
 
+    @ToBeFixedForInstantExecution
     def "emitsBuildOperationsForTestNgTests"() {
         given:
         executer.withRepositoryMirrors()
@@ -90,6 +93,7 @@ class TestExecutionBuildOperationsIntegrationTest extends AbstractIntegrationSpe
         assertJunit(rootTestOp, this.operations)
     }
 
+    @ToBeFixedForInstantExecution
     def "emits test operations as expected for composite builds"() {
         given:
         resources.maybeCopy('TestExecutionBuildOperationsIntegrationTest')

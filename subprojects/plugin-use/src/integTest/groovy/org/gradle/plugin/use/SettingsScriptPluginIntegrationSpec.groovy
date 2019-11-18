@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.use
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Unroll
 
@@ -40,6 +41,7 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "settings script with a plugins block - #settingScriptExtension"() {
         given:
         doConfigureSettingsPlugin()
@@ -108,6 +110,7 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can use apply false on settings - #settingScriptExtension"() {
         given:
         doConfigureSettingsPlugin()
@@ -132,6 +135,7 @@ settings.gradle.beforeProject { org.gradle.api.Project project ->
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "plugin management block can be used to configure the version of plugins used in settings - #settingScriptExtension"() {
         given:
         doConfigureSettingsPlugin()
@@ -172,6 +176,7 @@ pluginManagement {
         '.gradle'              | false
     }
 
+    @ToBeFixedForInstantExecution
     def "settings plugin can contribute to plugin management"() {
         when:
         pluginBuilder.addSettingsPlugin("settings.pluginManagement.plugins.id('com.test').version('1.0')", "com.test-settings")

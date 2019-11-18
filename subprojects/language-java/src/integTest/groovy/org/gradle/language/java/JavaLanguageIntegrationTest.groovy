@@ -17,6 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIntegrationTest
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
@@ -28,6 +29,7 @@ import org.gradle.util.TestPrecondition
 class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     TestJvmComponent app = new TestJavaComponent()
 
+    @ToBeFixedForInstantExecution
     def "reports failure to compile bad java sources"() {
         when:
         def badApp = new BadJavaComponent()
@@ -50,6 +52,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "target should produce in the correct bytecode"() {
         when:
         app.sources*.writeToDir(file("src/myLib/java"))
@@ -73,6 +76,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
+    @ToBeFixedForInstantExecution
     def "multiple targets should produce in the correct bytecode"() {
         when:
         app.writeSources(file("src/myLib"))
@@ -123,6 +127,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @ToBeFixedForInstantExecution
     def "builds all buildable and skips non-buildable platforms when assembling"() {
         def current = DefaultJavaPlatform.current()
         when:
@@ -147,6 +152,7 @@ class JavaLanguageIntegrationTest extends AbstractJvmLanguageIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @ToBeFixedForInstantExecution
     def "too high JDK target should produce reasonable error message"() {
         when:
         app.sources*.writeToDir(file("src/myLib/java"))

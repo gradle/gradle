@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -25,6 +26,7 @@ class EclipseMultiModuleIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @ToBeFixedForInstantExecution
     void dealsWithDuplicatedModuleNames() {
       /*
       This is the multi-module project structure the integration test works with:
@@ -106,6 +108,7 @@ project(':services:utilities') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectName() {
         //use case from the mailing list
         def settingsFile = file("master/settings.gradle")
@@ -147,6 +150,7 @@ project(':api') {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void shouldCreateCorrectClasspathEvenIfUserReconfiguresTheProjectNameAndRootProjectDoesNotApplyEclipsePlugin() {
         def settingsFile = file("master/settings.gradle") << "include 'api', 'shared:model'"
 

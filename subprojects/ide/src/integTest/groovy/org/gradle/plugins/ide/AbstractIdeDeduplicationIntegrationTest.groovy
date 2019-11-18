@@ -16,8 +16,11 @@
 
 package org.gradle.plugins.ide
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjectIntegrationTest {
 
+    @ToBeFixedForInstantExecution
     def "unique project names are not deduplicated"() {
         given:
         project("root") {
@@ -40,6 +43,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foobar/app") == "app"
     }
 
+    @ToBeFixedForInstantExecution
     def "deduplicates duplicate ide project names"() {
         given:
         project("root") {
@@ -62,6 +66,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
+    @ToBeFixedForInstantExecution
     def "dedups child project with same name as parent project"() {
         given:
         project("root") {
@@ -80,6 +85,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
 
     }
 
+    @ToBeFixedForInstantExecution
     def "handles calculated name matches existing project name"() {
         given:
         project("root") {
@@ -105,6 +111,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("baz/bar") == "baz-bar"
     }
 
+    @ToBeFixedForInstantExecution
     def "dedups projects with different nested level"() {
         given:
         project("root") {
@@ -127,6 +134,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("services/bar/app") == "bar-app"
     }
 
+    @ToBeFixedForInstantExecution
     def "dedups root project name"() {
         given:
         project("app") {
@@ -141,7 +149,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("app") == "app-app"
     }
 
-
+    @ToBeFixedForInstantExecution
     def "deduplication works on deduplicated parent module name"() {
         given:
         project("root") {
@@ -168,6 +176,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foo/services/rest") == "foo-services-rest"
     }
 
+    @ToBeFixedForInstantExecution
     def "allows deduplication with parent not part of the target list"() {
         given:
         project("root") {
@@ -194,6 +203,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("foo/services/rest") == "foo-services-rest"
     }
 
+    @ToBeFixedForInstantExecution
     def "allows deduplication when root project does not apply IDE plugin"() {
         given:
         project("root", false) {
@@ -215,6 +225,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
+    @ToBeFixedForInstantExecution
     def "removes duplicate words from project dedup prefix"() {
         given:
         project("root"){
@@ -251,6 +262,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("impl/myproject/myproject-foo/app") == "impl-myproject-foo-app"
     }
 
+    @ToBeFixedForInstantExecution
     def "will use configured module name"() {
         given:
         project("root") {
@@ -274,6 +286,7 @@ abstract class AbstractIdeDeduplicationIntegrationTest extends AbstractIdeProjec
         projectName("bar/app") == "bar-app"
     }
 
+    @ToBeFixedForInstantExecution
     def "will not de-duplicate module that conflicts with configured module name"() {
         given:
         project("root") {

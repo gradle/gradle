@@ -17,6 +17,7 @@
 package org.gradle.plugin.repository
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.ivy.IvyFileRepository
@@ -57,6 +58,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
           }
         """
     }
+    @ToBeFixedForInstantExecution
     def 'setting different version in resolutionStrategy will affect plugin choice'() {
         given:
         publishTestPlugin()
@@ -85,6 +87,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
+    @ToBeFixedForInstantExecution
     def 'when no version is specified, resolution fails'() {
         given:
         publishTestPlugin()
@@ -113,6 +116,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failure.assertHasDescription("Plugin [id: 'org.example.plugin'] was not found")
     }
 
+    @ToBeFixedForInstantExecution
     def 'when invalid version is specified, resolution fails'() {
         given:
         publishTestPlugin()
@@ -141,6 +145,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failure.assertHasDescription("Plugin [id: 'org.example.plugin', version: '+'] was not found")
     }
 
+    @ToBeFixedForInstantExecution
     def 'when invalid artifact version is specified, resolution fails'() {
         given:
         publishTestPlugin()
@@ -169,6 +174,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failure.assertHasDescription("Plugin [id: 'org.example.plugin', version: '1.2', artifact: 'org.example.plugin:plugin:+'] was not found")
     }
 
+    @ToBeFixedForInstantExecution
     def 'can specify an artifact to use'() {
         given:
         publishTestPlugin()
@@ -197,6 +203,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
+    @ToBeFixedForInstantExecution
     def 'rules are executed in declaration order'() {
         given:
         publishTestPlugin()
@@ -230,6 +237,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("I'm here")
     }
 
+    @ToBeFixedForInstantExecution
     def 'Build fails when a rule throws an exception'() {
         given:
         publishTestPlugin()
@@ -255,6 +263,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         failureCauseContains("Boom")
     }
 
+    @ToBeFixedForInstantExecution
     def "Can specify repo in init script."() {
         given:
         publishTestPlugin()
@@ -355,6 +364,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
         output.contains("Hello World!")
     }
 
+    @ToBeFixedForInstantExecution
     def "Able to specify ivy resolution patterns"() {
         given:
         def repo = new IvyFileRepository(file("ivy-repo"), true, '[organisation]/[module]/[revision]', '[module]-[revision].ivy', '[artifact]-[revision](-[classifier]).[ext]')

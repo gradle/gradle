@@ -18,6 +18,7 @@ package org.gradle.integtests
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.CachingTextResource
 import org.gradle.internal.resource.UriTextResource
@@ -90,6 +91,7 @@ class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     public void "caches incremental build state"() {
         createLargeBuildScript()
         testBuild("hello1", "Hello 1")

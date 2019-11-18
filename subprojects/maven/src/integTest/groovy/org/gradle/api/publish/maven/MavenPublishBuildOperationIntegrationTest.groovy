@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.internal.resource.ExternalResourceReadBuildOperationType
 import org.gradle.internal.resource.ExternalResourceWriteBuildOperationType
@@ -28,6 +29,7 @@ class MavenPublishBuildOperationIntegrationTest extends AbstractMavenPublishInte
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
     def repo = new MavenHttpRepository(server, mavenRepo)
 
+    @ToBeFixedForInstantExecution
     def "generates build operation events while publishing"() {
         server.start()
 

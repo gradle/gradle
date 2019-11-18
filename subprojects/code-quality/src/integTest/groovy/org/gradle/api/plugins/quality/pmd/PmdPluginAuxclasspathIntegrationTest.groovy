@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
@@ -69,6 +70,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         file("rule-using/src/main/java/org/gradle/ruleusing/Class1.java") << analyzedCode()
     }
 
+    @ToBeFixedForInstantExecution
     def "auxclasspath configured for rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
@@ -80,6 +82,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
             assertContents(containsText("auxclasspath configured"))
     }
 
+    @ToBeFixedForInstantExecution
     def "auxclasspath not configured properly for rule-using project"() {
         Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 

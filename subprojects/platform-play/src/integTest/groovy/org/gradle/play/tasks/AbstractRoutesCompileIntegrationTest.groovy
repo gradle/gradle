@@ -17,6 +17,7 @@
 
 package org.gradle.play.tasks
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -112,6 +113,7 @@ object Application extends Controller {
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles on changed routes file input"() {
         given:
         TestFile templateFile = withRoutesTemplate()
@@ -163,6 +165,7 @@ GET     /newroute                          ${controllers()}.Application.index()
         file(destinationDirPath, getReverseRoutesFileName('', ''))
     }
 
+    @ToBeFixedForInstantExecution
     def "compiles additional routes file and cleans up output on removal"() {
         when:
         withRoutesTemplate()

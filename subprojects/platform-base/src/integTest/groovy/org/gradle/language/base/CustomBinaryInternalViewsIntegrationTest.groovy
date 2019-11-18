@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -236,6 +237,7 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause "Factory registration for 'SampleBinarySpec' is invalid because the implementation type 'DefaultSampleBinarySpec' does not implement internal view 'NotImplementedInternalView', implementation type was registered by RegisterBinaryRules#registerBinary(TypeBuilder<SampleBinarySpec>), internal view was registered by RegisterBinaryRules#registerInternalView(TypeBuilder<SampleBinarySpec>)"
     }
 
+    @ToBeFixedForInstantExecution
     def "can register managed internal view for JarBinarySpec"() {
         buildFile << """
             @Managed

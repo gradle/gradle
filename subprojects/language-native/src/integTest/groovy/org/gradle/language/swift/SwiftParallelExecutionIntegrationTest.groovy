@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.AbstractNativeParallelIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -33,6 +34,7 @@ class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegr
          """
     }
 
+    @ToBeFixedForInstantExecution
     def "link task is executed in parallel"() {
         createTaskThatRunsInParallelUsingCustomToolchainWith("linkDebug")
 
@@ -43,6 +45,7 @@ class SwiftParallelExecutionIntegrationTest extends AbstractNativeParallelIntegr
         assertTaskIsParallel("linkDebug")
     }
 
+    @ToBeFixedForInstantExecution
     def "compile task is executed in parallel"() {
         createTaskThatRunsInParallelUsingCustomToolchainWith("compileDebugSwift")
 

@@ -15,8 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "generates default JRE container paths recognized by Eclipse"(String version, String expectedContainer) {
         settingsFile << "rootProject.name = 'java'"
         buildFile << """
@@ -46,6 +49,7 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         '1.10'  | 'JavaSE-10'
     }
 
+    @ToBeFixedForInstantExecution
     def "generated JDT preferences have correct compiler version"(String version, String expectedVersion) {
         settingsFile << "rootProject.name = 'java'"
         buildFile << """
@@ -76,6 +80,7 @@ class EclipseJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
         '1.10'  | '10'
     }
 
+    @ToBeFixedForInstantExecution
     def "generated JDT preferences have correct target platform version"(String version, String expectedVersion) {
         settingsFile << "rootProject.name = 'java'"
         buildFile << """

@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest.external
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.play.integtest.fixtures.external.AbstractMultiVersionPlayExternalContinuousBuildIntegrationTest
 import org.gradle.play.integtest.fixtures.external.BasicPlayApp
 import org.gradle.play.integtest.fixtures.external.PlayApp
@@ -25,6 +26,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
     RunningPlayApp runningApp = new RunningPlayApp(testDirectory)
     PlayApp playApp = new BasicPlayApp(versionNumber)
 
+    @ToBeFixedForInstantExecution
     def "build does not block when running play app with continuous build" () {
         when: "the build runs until it enters continuous build"
         succeeds("runPlay")
@@ -33,6 +35,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         appIsRunningAndDeployed()
     }
 
+    @ToBeFixedForInstantExecution
     def "can run play app multiple times with continuous build" () {
         when:
         succeeds("runPlay")
@@ -59,6 +62,7 @@ class PlayExternalContinuousBuildIntegrationTest extends AbstractMultiVersionPla
         succeeds()
     }
 
+    @ToBeFixedForInstantExecution
     def "build failure prior to launch does not prevent launch on subsequent build" () {
         executer.withStackTraceChecksDisabled()
         def original = file("app/controllers/Application.scala").text

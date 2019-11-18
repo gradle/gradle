@@ -1,5 +1,6 @@
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
@@ -19,6 +20,7 @@ import java.io.StringWriter
 class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
         withSettings("""
@@ -94,6 +96,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
         })
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can use Kotlin 1 dot 3 language features`() {
 
         withBuildScript("""
@@ -215,6 +218,7 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can create fileTree from map for backward compatibility`() {
 
         val fileTreeFromMap = """

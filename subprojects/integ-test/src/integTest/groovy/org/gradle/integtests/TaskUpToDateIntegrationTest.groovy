@@ -20,6 +20,7 @@ package org.gradle.integtests
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -27,6 +28,7 @@ import spock.lang.Unroll
 class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
+    @ToBeFixedForInstantExecution
     def "order of #annotation marks task not up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -66,6 +68,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
+    @ToBeFixedForInstantExecution
     def "hash set output files marks task up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -128,6 +131,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
+    @ToBeFixedForInstantExecution
     def "output files changed from #before to #after marks task #upToDateString"() {
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -227,6 +231,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":customTask"
     }
 
+    @ToBeFixedForInstantExecution
     def "task stays up-to-date when filtered-out output is changed"() {
         file("build").mkdirs()
         buildFile << """
@@ -272,6 +277,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped ":customTask"
     }
 
+    @ToBeFixedForInstantExecution
     def "changes to inputs that are excluded by default leave task up-to-date"() {
         def inputDir = file("inputDir").createDir()
         inputDir.file('inputFile.txt').text = "input file"
@@ -376,6 +382,7 @@ import org.gradle.api.tasks.TaskAction
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6592")
+    @ToBeFixedForInstantExecution
     def "missing directory is ignored"() {
         buildFile << """
             class TaskWithInputDir extends DefaultTask {

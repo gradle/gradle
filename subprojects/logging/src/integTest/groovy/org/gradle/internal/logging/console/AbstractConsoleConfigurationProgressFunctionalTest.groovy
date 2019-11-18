@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -67,6 +68,7 @@ abstract class AbstractConsoleConfigurationProgressFunctionalTest extends Abstra
         gradle.waitForFinish()
     }
 
+    @ToBeFixedForInstantExecution
     def "shows work in progress with included build"() {
         settingsFile << """
             includeBuild "child"

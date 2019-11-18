@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 
 abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
@@ -25,6 +26,7 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
     private static final String BYE_WORLD_MESSAGE = 'Bye world'
     private static final String AGGREGATE_TASK_NAME = 'all'
 
+    @ToBeFixedForInstantExecution
     def "can group task output from external build invoked executed by GradleBuild in same directory"() {
         given:
         def externalBuildScriptPath = 'other.gradle'
@@ -40,6 +42,7 @@ abstract class AbstractConsoleGradleBuildGroupedTaskFunctionalTest extends Abstr
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
+    @ToBeFixedForInstantExecution
     def "can group task output from external build invoked executed by GradleBuild in different directory"() {
         given:
         def externalBuildScriptPath = 'external/other.gradle'

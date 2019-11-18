@@ -17,13 +17,15 @@ package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.cache.internal.DefaultCacheScopeMapping
-import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 
 import java.nio.file.Files
 
 class CacheResolveIntegrationTest extends AbstractHttpDependencyResolutionTest implements CachingIntegrationFixture {
 
+    @ToBeFixedForInstantExecution
     void "cache handles manual deletion of cached artifacts"() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -117,6 +119,7 @@ project('b') {
         file('b/build/testproject-1.0.jar').assertIsCopyOf(module2.jarFile)
     }
 
+    @ToBeFixedForInstantExecution
     def 'dependency cache can be relocated'() {
         given:
         def module = ivyHttpRepo.module('group', 'projectA', '1.2').publish()

@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.artifactreuse
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Ignore
 
 class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -51,6 +52,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "does not re-download maven artifact downloaded from a different maven repository when sha1 matches"() {
         when:
         def projectBModuleRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -71,6 +73,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'mavenRepository2'
     }
 
+    @ToBeFixedForInstantExecution
     def "does not re-download ivy artifact downloaded from a different ivy repository when sha1 matches"() {
         when:
         def projectBRepo1 = ivyRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -91,6 +94,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'ivyRepository2'
     }
 
+    @ToBeFixedForInstantExecution
     def "does not re-download ivy artifact downloaded from a maven repository when sha1 matches"() {
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -110,6 +114,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'ivyRepository1'
     }
 
+    @ToBeFixedForInstantExecution
     def "does not re-download maven artifact downloaded from a ivy repository when sha1 matches"() {
         when:
         def projectBRepo1 = ivyRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -145,6 +150,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'mavenRepository2'
     }
 
+    @ToBeFixedForInstantExecution
     def "does re-download maven artifact downloaded from a different URI when sha1 not found"() {
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()
@@ -167,6 +173,7 @@ class AliasedArtifactResolutionIntegrationTest extends AbstractHttpDependencyRes
         succeedsWith 'mavenRepository2'
     }
 
+    @ToBeFixedForInstantExecution
     def "does re-download maven artifact downloaded from a different URI when sha1 does not match"() {
         when:
         def projectBRepo1 = mavenRepo1.module('org.name', 'projectB', '1.0').publish()

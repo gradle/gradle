@@ -17,9 +17,11 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 public class TestNGPreserveOrderNotSupportedIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "run tests using TestNG version not supporting preserveOrder"() {
         given:
         buildFile << """

@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.HostPlatform
@@ -26,6 +27,7 @@ import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 import org.junit.Assume
 
 class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec implements HostPlatform {
+    @ToBeFixedForInstantExecution
     def "user receives reasonable error message when no tool chains are available"() {
         given:
         buildFile << """
@@ -81,6 +83,7 @@ class CppMissingToolchainIntegrationTest extends AbstractIntegrationSpec impleme
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can build with Clang when gcc is available but g++ is not available"() {
         def gcc = AvailableToolChains.getToolChain(ToolChainRequirement.GCC)
         Assume.assumeTrue(gcc != null)
