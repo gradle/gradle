@@ -289,6 +289,7 @@ class TestCapability implements Capability {
   - Variant 'api' must declare at least one attribute."""
     }
 
+    @ToBeFixedForInstantExecution
     def "fails to produce Gradle metadata if no dependencies have version information"() {
         given:
         settingsFile.text = """
