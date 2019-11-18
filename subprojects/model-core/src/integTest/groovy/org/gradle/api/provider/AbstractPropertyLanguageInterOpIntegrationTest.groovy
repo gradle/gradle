@@ -19,7 +19,7 @@ package org.gradle.api.provider
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -115,7 +115,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {1=true, 2=false}")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define property in language plugin and set value from Groovy DSL"() {
         pluginDefinesTask()
 
@@ -159,7 +159,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {3=true}")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define property in language plugin and set value from Kotlin DSL"() {
         pluginDefinesTask()
 

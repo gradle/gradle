@@ -15,7 +15,7 @@
  */
 package org.gradle.nativeplatform.toolchain
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppCompilerDetectingTestApp
 
@@ -31,7 +31,7 @@ class NativeToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChain
         initScript.text = ""
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can discover tool chain in environment"() {
         given:
         toolChain.initialiseEnvironment()
@@ -68,7 +68,7 @@ model {
         toolChain.resetEnvironment()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses correct tool chain when explicitly configured"() {
         given:
         buildFile << """

@@ -17,7 +17,7 @@
 package org.gradle.ide.visualstudio
 
 import org.gradle.ide.visualstudio.fixtures.AbstractVisualStudioIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 
 import static org.apache.commons.io.FileUtils.copyFile
@@ -61,7 +61,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when source files are added"() {
         app.writeSources(file("src/main"))
 
@@ -92,7 +92,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         skipped getComponentTasks("main")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when header files are added"() {
         app.writeSources(file("src/main"))
 
@@ -123,7 +123,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         skipped getComponentTasks("main")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when output file locations change"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         app.writeSources(file("src/main"))
@@ -199,7 +199,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         skipped getComponentTasks("main")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when a new variant is introduced"() {
         assumeFalse(toolChain.meets(WINDOWS_GCC))
         app.writeSources(file("src/main"))
@@ -241,7 +241,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
         skipped getComponentTasks("main")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "visual studio tasks re-execute when compiler macros change"() {
         app.writeSources(file("src/main"))
 

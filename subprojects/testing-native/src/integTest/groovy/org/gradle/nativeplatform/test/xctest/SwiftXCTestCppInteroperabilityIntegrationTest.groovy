@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.swift.AbstractSwiftMixedLanguageIntegrationTest
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
@@ -34,7 +34,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can depend on a #linkage.toLowerCase() c++ library"() {
         given:
         def cppGreeter = new CppGreeterFunction()
@@ -78,7 +78,7 @@ class SwiftXCTestCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLa
         linkage << [SHARED, STATIC]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can specify a test dependency on a library with a dependency on a c++ library"() {
         def cppGreeter = new CppGreeterFunction()
         def lib = new SwiftLibWithCppDep(cppGreeter)

@@ -17,7 +17,7 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.TestPrecondition
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
@@ -37,7 +37,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         badCode()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "allows configuring tool dependencies explicitly"() {
         def testDependency = 'net.sourceforge.pmd:pmd:5.1.1'
         expect: //defaults exist and can be inspected

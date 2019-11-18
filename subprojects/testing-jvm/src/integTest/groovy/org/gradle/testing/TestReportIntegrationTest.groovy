@@ -30,7 +30,7 @@ import static org.junit.Assume.assumeTrue
 class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "report includes results of most recent invocation"() {
         given:
         buildFile << """
@@ -72,7 +72,7 @@ public class LoggingTest {
     }
 
     @UsesSample("testing/testReport/groovy")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can generate report for subprojects"() {
         given:
         sample sample
@@ -86,7 +86,7 @@ public class LoggingTest {
         htmlReport.testClass("org.gradle.sample.UtilTest").assertTestCount(1, 0, 0).assertTestPassed("ok").assertStdout(equalTo("hello from UtilTest.\n"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "merges report with duplicated classes and methods"() {
         given:
         ignoreWhenJupiter()
@@ -184,7 +184,7 @@ public class SubClassTests extends SuperClassTests {
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-2821")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "test report task can handle test tasks that did not run tests"() {
         given:
         buildScript """
@@ -237,7 +237,7 @@ public class SubClassTests extends SuperClassTests {
         succeeds "testReport"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "test report task is skipped when there are no results"() {
         given:
         buildScript """
@@ -295,7 +295,7 @@ public class SubClassTests extends SuperClassTests {
         "html" | "build/reports/tests"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "results or reports are linked to in error output"() {
         given:
         buildScript """
@@ -333,7 +333,7 @@ public class SubClassTests extends SuperClassTests {
         failure.assertHasNoCause("See the")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "output per test case flag invalidates outputs"() {
         when:
         buildScript """

@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.sourceset
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
@@ -26,7 +26,7 @@ import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
 // TODO: Sad day tests
 class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "source dependency on source set of same type"() {
         def app = new CHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -56,7 +56,7 @@ model {
         executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "source dependency on source set of headers"() {
         def app = new CHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -84,7 +84,7 @@ model {
         executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "source dependency on source set of different type"() {
         def app = new CppCallingCHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -115,7 +115,7 @@ model {
         executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "source files in depended-on source set are not included"() {
         given:
         def app = new CHelloWorldApp()
@@ -143,7 +143,7 @@ model {
         succeeds "mainExecutable"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "binary depending on source set has no effect"() {
         given:
         def app = new CHelloWorldApp()

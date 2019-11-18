@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.tasks
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativeBinaryFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -51,7 +51,7 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
         """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "strips symbols from binary"() {
         when:
         succeeds ":stripSymbolsDebug"
@@ -62,7 +62,7 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
         binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "strip is skipped when there are no changes"() {
         when:
         succeeds ":stripSymbolsDebug"
@@ -78,7 +78,7 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
         binary("build/stripped").assertDoesNotHaveDebugSymbolsFor(withoutHeaders(app.original))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "strip is re-executed when changes are made"() {
         when:
         succeeds ":stripSymbolsDebug"

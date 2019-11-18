@@ -16,7 +16,7 @@
 package org.gradle.api.plugins.quality.codenarc
 
 import org.gradle.api.plugins.quality.CodeNarcPlugin
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import spock.lang.Unroll
 
@@ -74,7 +74,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'assertTaskForEachSourceSet'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "adds codenarc tasks from each source sets to check lifecycle task"() {
         given:
         buildFile << '''
@@ -143,7 +143,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'assertHasCustomizedSettings'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can customize which tasks are added to check lifecycle task"() {
         given:
         buildFile << '''
@@ -188,7 +188,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "allows configuring tool dependencies explicitly via #method"(String method, String buildScriptSnippet) {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "codenarc")

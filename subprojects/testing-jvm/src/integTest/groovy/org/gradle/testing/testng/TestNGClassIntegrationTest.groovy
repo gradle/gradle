@@ -20,7 +20,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestClassDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestMethodDescriptor
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor
 import org.gradle.api.tasks.testing.TestDescriptor
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.TestNGCoverage
@@ -76,7 +76,7 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "test class events references correct suite as parent"() {
         given:
         def testNgSuite = file("src/test/resources/testng.xml")
@@ -138,7 +138,7 @@ class TestNGClassIntegrationTest extends MultiVersionIntegrationSpec {
         containsEvent(FINISHED, DefaultTestSuiteDescriptor, 'TestSuite > FullTest')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "synthesized events for broken configuration methods reference test class descriptors"() {
         given:
         file("src/test/java/org/company/TestWithBrokenSetupMethod.java") << """

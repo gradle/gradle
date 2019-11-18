@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
@@ -652,7 +652,7 @@ The following types/formats are supported:
         file("out.txt").text == "b"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "input file collection containing mapped task output property implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFileProperties()
         taskTypeWithInputFileCollection()
@@ -844,7 +844,7 @@ The following types/formats are supported:
         file("out.txt").text == "22"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "ad hoc input property with value of mapped task output implies dependency on the task"() {
         taskTypeWithOutputFileProperty()
         buildFile << """

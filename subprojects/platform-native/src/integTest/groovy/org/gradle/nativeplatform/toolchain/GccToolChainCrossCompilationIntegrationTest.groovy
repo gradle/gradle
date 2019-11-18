@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -51,7 +51,7 @@ model {
         helloWorldApp.library.writeSources(file("src/hello"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses naming scheme of target platform when cross-compiling"() {
         // TODO - use linux as the target when running on windows
         buildFile << """

@@ -16,7 +16,7 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 
@@ -27,7 +27,7 @@ abstract class AbstractNativeUnitTestComponentDependenciesIntegrationTest extend
         """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define implementation dependencies on production component"() {
         given:
         settingsFile << 'include "lib"'

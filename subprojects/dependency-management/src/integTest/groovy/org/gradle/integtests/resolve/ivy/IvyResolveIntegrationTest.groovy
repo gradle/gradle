@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -84,7 +84,7 @@ task check {
         succeeds "check"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dependency includes only the artifacts of the default configuration"() {
         given:
         server.start()

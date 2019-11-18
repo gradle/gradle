@@ -17,12 +17,12 @@
 package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class ScalaIncrementalCompileIntegrationTest extends AbstractIntegrationSpec {
     @Issue("gradle/gradle#8421")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "incremental compiler detects change in package"() {
         settingsFile << """
             include 'lib'

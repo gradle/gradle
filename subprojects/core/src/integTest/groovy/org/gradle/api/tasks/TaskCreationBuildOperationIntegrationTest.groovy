@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.RegisterTaskBuildOperationType
 import org.gradle.api.specs.Spec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.operations.BuildOperationType
@@ -186,7 +186,7 @@ class TaskCreationBuildOperationIntegrationTest extends AbstractIntegrationSpec 
         buildOperations.none(RealizeTaskBuildOperationType, not(withPath(':', ':foo')))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "registration and realization ops have correct paths"() {
         given:
         def createTasks = {

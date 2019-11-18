@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.attributes
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -35,7 +35,7 @@ class ClasspathDependenciesAttributesIntegrationTest extends AbstractModuleDepen
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'module metadata fetched through a settings useModule properly derives variants and subsequent project use of the dependency has access to derived variants'() {
         given:
         def module = mavenRepo.module('test', 'dep', '1.0').publish()
@@ -105,7 +105,7 @@ task printDeps {
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'module metadata fetched through a settings useModule properly uses Java ecosystem'() {
         given:
 

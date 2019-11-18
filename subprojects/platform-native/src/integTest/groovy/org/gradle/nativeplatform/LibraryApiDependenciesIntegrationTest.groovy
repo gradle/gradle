@@ -15,7 +15,7 @@
  */
 package org.gradle.nativeplatform
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
@@ -44,7 +44,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use api linkage via #notationName notation"() {
         given:
         def app = new CppHelloWorldApp()
@@ -85,7 +85,7 @@ model {
         "map"        | "library: 'helloApi', linkage: 'api'"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "executable compiles using functions defined in header-only utility library"() {
         given:
         file("src/util/headers/util.h") << """
@@ -119,7 +119,7 @@ model {
         installation("build/install/main").exec().out == "Hello from the utility library"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "executable compiles using functions defined in utility library with build type variants"() {
         given:
         file("src/util/debug/util.h") << """
@@ -169,7 +169,7 @@ model {
         installation("build/install/main/release").exec().out == "Hello from the release library"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can choose alternative library implementation of api"() {
         given:
         def app = new CppHelloWorldApp()
@@ -205,7 +205,7 @@ model {
         installation("build/install/main").exec().out == app.alternateLibraryOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use api linkage for component graph with library dependency cycle"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
@@ -244,7 +244,7 @@ model {
         installation("build/install/main").exec().out == app.englishOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile but not link when executable depends on api of library required for linking"() {
         given:
         def app = new CppHelloWorldApp()

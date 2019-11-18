@@ -17,7 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.Requires
@@ -167,7 +167,7 @@ task("dumpKotlinBuildScriptModelClassPath") {
         outputContains("gradle-kotlin-dsl!")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can use Kotlin lambda as path notation'() {
         given:
         buildFile << """
@@ -200,7 +200,7 @@ task("dumpKotlinBuildScriptModelClassPath") {
         outputContains '[foo, bar, baz, bazar]'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can use Kotlin lambda as input property'() {
         given:
         buildFile << """

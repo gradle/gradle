@@ -17,7 +17,7 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -330,7 +330,7 @@ public class StaticInnerTest {
 
     @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "re-executes test when #key is changed"() {
         given:
         buildScriptWithJupiterDependencies("""

@@ -18,7 +18,7 @@ package org.gradle.java.fixtures
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.GradleModuleMetadata
 import org.gradle.test.fixtures.file.TestFile
@@ -257,7 +257,7 @@ hamcrest-core-1.3.jar
         )
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish test fixtures"() {
         buildFile << """
             apply plugin: 'maven-publish'
@@ -314,7 +314,7 @@ hamcrest-core-1.3.jar
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can deactivate test fixture publishing"() {
         buildFile << """
             apply plugin: 'maven-publish'
@@ -364,7 +364,7 @@ hamcrest-core-1.3.jar
         gmm.variants.size() == 2
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can consume test fixtures of an external module"() {
         mavenRepo.module("com.acme", "external-module", "1.3")
             .variant("testFixturesApiElements", ['org.gradle.usage': 'java-api', 'org.gradle.libraryelements': 'jar']) {

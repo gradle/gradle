@@ -17,7 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -252,7 +252,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/10549")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "mustRunAfter is respected for finalizer without direct dependency"() {
         settingsFile << """
             include 'a'

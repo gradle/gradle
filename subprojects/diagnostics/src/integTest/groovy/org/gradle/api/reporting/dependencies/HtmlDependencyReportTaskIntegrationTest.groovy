@@ -17,7 +17,7 @@ package org.gradle.api.reporting.dependencies
 
 import groovy.json.JsonSlurper
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 import spock.lang.Issue
@@ -30,7 +30,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "renders graph"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -98,7 +98,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[1].dependencies[0].children.empty
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "already rendered dependencies are marked as such"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -136,7 +136,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies[1].children[0].children.empty
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "non-resolved dependencies are marked as such"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").dependsOn("foo", "qix", "1.0").publish()
@@ -170,7 +170,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies[1].resolvable == 'FAILED'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "conflicting dependencies are marked as such"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -201,7 +201,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         json.project.configurations[0].dependencies[1].name == "foo:bar:2.0"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generates report for multiple projects"() {
         given:
         file("settings.gradle") << """
@@ -226,7 +226,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         jsonB.project.name == "b"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "copies necessary css, images and js files"() {
         given:
         file("build.gradle") << """
@@ -251,7 +251,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/project/dependencies/root.js").assertExists();
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generates index.html file"() {
         given:
         file("settings.gradle") << """
@@ -289,7 +289,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         projectB[1].text() == ""
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "renders insights graphs"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -371,7 +371,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         bazInsight[1].children[0].children.empty
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't add insight for dependency with same prefix"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -401,7 +401,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2979")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "renders a mix of project and external dependencies"() {
         given:
         mavenRepo.module("foo", "bar", "1.0").publish()
@@ -528,7 +528,7 @@ rootProject.name = 'root'
         compileClasspathConfiguration.dependencies[3].children[0].children[0].children.empty
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "does not fail if a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
@@ -565,7 +565,7 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "treats a configuration that is deprecated for resolving as not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
 
@@ -599,7 +599,7 @@ rootProject.name = 'root'
         apiConfiguration.dependencies[0].children.empty
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "excludes fully deprecated configurations"() {
         executer.expectDeprecationWarning()
         mavenRepo.module("foo", "foo", '1.0').publish()

@@ -18,7 +18,7 @@ package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -71,7 +71,7 @@ class BuildEnvironmentIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-1762")
     @Requires(TestPrecondition.SET_ENV_VARIABLE)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build uses environment variables from where the build was launched"() {
         file('build.gradle') << "println System.getenv('foo')"
 
@@ -132,7 +132,7 @@ assert classesDir.directory
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "java home from environment should be used to run build"() {
         def alternateJavaHome = AvailableJavaHomes.differentJdk.javaHome
 

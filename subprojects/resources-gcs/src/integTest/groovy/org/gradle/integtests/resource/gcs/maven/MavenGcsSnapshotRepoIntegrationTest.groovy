@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resource.gcs.AbstractGcsDependencyResolutionTest
 import org.gradle.integtests.resource.gcs.fixtures.MavenGcsModule
 
@@ -130,7 +130,7 @@ task retrieve(type: Sync) {
         file("libs/test-${artifactVersion}.jar").assertIsCopyOf(module.artifactFile)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should list a dynamic snapshot module when maven root metadata is missing but artifact metadata source is enabled"() {
         setup:
         module.publish()

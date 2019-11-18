@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -36,7 +36,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
         includedBuilds << buildB
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not run task when dependency in another build fails"() {
         given:
         dependency("org.test:buildB:1.0")
@@ -68,7 +68,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5714")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build fails when finalizer task in included build that is not a dependency of any other task fails"() {
         given:
         dependency("org.test:buildB:1.0")
@@ -112,7 +112,7 @@ class CompositeBuildTaskFailureIntegrationTest extends AbstractCompositeBuildInt
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build fails when tasks in multiple builds fails"() {
         given:
         server.start()

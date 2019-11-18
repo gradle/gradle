@@ -17,7 +17,7 @@
 package org.gradle.internal.logging
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.UsesSample
@@ -150,25 +150,25 @@ class LoggingIntegrationTest extends AbstractIntegrationTest {
     }}
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void quietLogging() {
         checkOutput(this.&run, logOutput.quiet)
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void lifecycleLogging() {
         checkOutput(this.&run, logOutput.lifecycle)
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void infoLogging() {
         checkOutput(this.&run, logOutput.info)
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void debugLogging() {
         checkOutput(this.&run, logOutput.debug)
     }

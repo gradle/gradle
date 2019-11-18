@@ -16,14 +16,14 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaPlatformModule
 
 class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
     MavenJavaPlatformModule javaPlatform = javaPlatform(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-platform with no dependencies"() {
         createBuildScripts("""
             publishing {
@@ -48,7 +48,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
         resolveRuntimeArtifacts(javaPlatform) { noFiles() }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-platform with constraints"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -91,7 +91,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define a platform with local projects"() {
         given:
 
@@ -137,7 +137,7 @@ class MavenPublishJavaPlatformIntegTest extends AbstractMavenPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-platform with resolved versions"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()

@@ -16,12 +16,12 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJavaIntegTest {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with a feature"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -89,7 +89,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can group dependencies by feature"() {
         mavenRepo.module('org', 'optionaldep-g1', '1.0').publish()
         mavenRepo.module('org', 'optionaldep1-g2', '1.0').publish()
@@ -173,7 +173,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
     }
 
     @Unroll("publish java-library with feature with additional artifact #id (#optionalFeatureFileName)")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "publish java-library with feature with additional artifact"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -277,7 +277,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with a feature from a configuration with more than one outgoing variant"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 
@@ -358,7 +358,7 @@ class MavenPublishFeaturesJavaIntegTest extends AbstractMavenPublishFeaturesJava
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with a feature from a configuration with more than one outgoing variant and filter out variants"() {
         mavenRepo.module('org', 'optionaldep', '1.0').withModuleMetadata().publish()
 

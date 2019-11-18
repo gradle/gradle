@@ -19,7 +19,7 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -56,7 +56,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "multiModule"() {
         when:
         run 'init'
@@ -115,7 +115,7 @@ Root project 'webinar-parent'
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "flatmultimodule"() {
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -148,7 +148,7 @@ Root project 'webinar-parent'
 """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "singleModule"() {
         when:
         run 'init'
@@ -184,7 +184,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         assert text.contains(publishingBlock)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "singleModule with explicit project dir"() {
         setup:
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
@@ -205,7 +205,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         failure.assertHasCause("There were failing tests.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'sourcesJar'() {
         when: 'build is initialized'
         run 'init'
@@ -247,7 +247,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         file('build/libs/util-2.5-tests.jar').exists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'javadocJar'() {
         when: 'build is initialized'
         run 'init'
@@ -372,7 +372,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
     }
 
     @Issue("GRADLE-2819")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "multiModuleWithRemoteParent"() {
         setup:
         withSharedResources()

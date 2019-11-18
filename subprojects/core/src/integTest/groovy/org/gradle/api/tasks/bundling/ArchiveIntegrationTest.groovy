@@ -17,7 +17,7 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
@@ -34,7 +34,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 @TestReproducibleArchives
 class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def canCopyFromAZip() {
         given:
         createZip('test.zip') {
@@ -76,7 +76,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('build/test.tar').assertDoesNotExist()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def canCopyFromATar() {
         given:
         createTar('test.tar') {
@@ -102,7 +102,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "handles gzip compressed tars"() {
         given:
         TestFile tar = file('tar-contents')
@@ -128,7 +128,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3310")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "handles gzip compressed tars from resources.gzip"() {
         given:
         TestFile tar = file('tar-contents')
@@ -153,7 +153,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "allows user to provide a custom resource for the tarTree"() {
         given:
         TestFile tar = file('tar-contents')
@@ -183,7 +183,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "handles bzip2 compressed tars"() {
         given:
         TestFile tar = file('tar-contents')
@@ -209,7 +209,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3310")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "handles bzip2 compressed tars from resources.bzip2"() {
         given:
         TestFile tar = file('tar-contents')
@@ -254,7 +254,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         run 'myTar'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can choose compression method for tarTree"() {
         given:
         TestFile tar = file('tar-contents')
@@ -281,7 +281,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "tarTreeFailsGracefully"() {
         given:
         file('content/some-file.txt').text = "Content"
@@ -622,7 +622,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def canMergeArchivesIntoAnotherZip() {
         given:
         createZip('test.zip') {
@@ -668,7 +668,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9673")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can extract #archiveFile with exclusions"() {
         given:
         "$archive"(archiveFile) {
@@ -813,7 +813,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle#1108")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can copy files into a different root with includeEmptyDirs=#includeEmptyDirs"() {
         Assume.assumeFalse("This test case is not implemented when includeEmptyDirs=true", includeEmptyDirs)
 

@@ -18,7 +18,7 @@ package org.gradle.plugin.repository
 
 import com.google.common.base.Splitter
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -89,7 +89,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "#repoType repositories are queried in declaration order"() {
         given:
         publishPlugins(repoType)
@@ -111,7 +111,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Tries next #repoType repository if first didn't match"() {
         given:
         publishPlugins(repoType)
@@ -133,7 +133,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Order of plugin requests does not affect order of #repoType repositories queried"() {
         given:
         publishPlugins(repoType)
@@ -156,7 +156,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Resolution failures for #repoType are reported in declaration order"() {
         given:
         publishPlugins(repoType)
@@ -188,7 +188,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Does not fall through to plugin portal if custom #repoType repos are defined"(String repoType) {
         given:
         publishPlugins(repoType)
@@ -215,7 +215,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Requires(TestPrecondition.ONLINE)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Can opt-in to plugin portal"() {
         given:
         publishPlugins(MAVEN)
@@ -242,7 +242,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
 
     @Issue("GRADLE-3502")
     @Requires(TestPrecondition.ONLINE)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Plugin Portal provides transitive dependencies for other plugins"() {
         given:
         publishPlugins(MAVEN)
@@ -275,7 +275,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
     }
 
     @Issue("gradle/gradle#3210")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "all plugin repositories are considered when resolving plugins transitive dependencies"() {
         given:
         requireOwnGradleUserHomeDir()

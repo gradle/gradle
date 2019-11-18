@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.alignment
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -825,7 +825,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -892,7 +892,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "published platform can be found in a different repository"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk

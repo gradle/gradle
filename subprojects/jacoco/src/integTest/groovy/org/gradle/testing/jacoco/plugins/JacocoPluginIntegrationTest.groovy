@@ -19,7 +19,7 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import org.gradle.testing.jacoco.plugins.fixtures.JavaProjectUnderTest
 
@@ -32,7 +32,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         javaProjectUnderTest.writeBuildScript().writeSourceFiles()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not add jvmArgs if jacoco is disabled"() {
         buildFile << """
             test {
@@ -66,7 +66,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'doCheck'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dependencies report shows default jacoco dependencies"() {
         when:
         succeeds("dependencies", "--configuration", "jacocoAgent")
@@ -79,7 +79,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains "org.jacoco:org.jacoco.ant:"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "allows configuring tool dependencies explicitly"() {
         when:
         buildFile << """
@@ -100,7 +100,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "jacoco report is incremental"() {
         def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/jacoco-resources")
 
@@ -134,7 +134,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         return new JacocoReportFixture(file(basedir))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reports miss configuration of destination file"() {
         given:
         buildFile << """

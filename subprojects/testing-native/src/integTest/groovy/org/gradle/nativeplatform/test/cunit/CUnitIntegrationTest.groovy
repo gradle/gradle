@@ -18,7 +18,7 @@ package org.gradle.nativeplatform.test.cunit
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -89,7 +89,7 @@ model {
         return OperatingSystem.current().getStaticLibraryName("cunit")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can build and run cunit test suite"() {
         given:
         useConventionalSourceLocations()
@@ -111,7 +111,7 @@ model {
         testResults.checkAssertions(3, 3, 0)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "assemble does not build or run tests"() {
         given:
         useConventionalSourceLocations()
@@ -126,7 +126,7 @@ model {
     }
 
     @Issue("GRADLE-3225")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can build and run cunit test suite with C and C++"() {
         given:
         useConventionalSourceLocations()
@@ -142,7 +142,7 @@ model {
             ":linkHelloTestCUnitExe", ":helloTestCUnitExe", ":runHelloTestCUnitExe"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure via testSuite component"() {
         given:
         useConventionalSourceLocations()
@@ -235,7 +235,7 @@ model {
         )
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can supply cCompiler macro to cunit sources"() {
         given:
         useConventionalSourceLocations()
@@ -259,7 +259,7 @@ model {
         testResults.checkAssertions(1, 1, 0)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure location of cunit test sources"() {
         given:
         useStandardConfig()
@@ -286,7 +286,7 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure location of cunit test sources before component is declared"() {
         given:
         app.library.writeSources(file("src/hello"))
@@ -313,7 +313,7 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "variant-dependent sources are included in test binary"() {
         given:
         app.library.headerFiles*.writeToDir(file("src/hello"))
@@ -354,7 +354,7 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure variant-dependent test sources"() {
         given:
         useStandardConfig()
@@ -385,7 +385,7 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()
@@ -400,7 +400,7 @@ model {
         skipped ":helloTestCUnitExe", ":runHelloTestCUnitExe"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can build and run cunit failing test suite"() {
         when:
         useStandardConfig()
@@ -426,7 +426,7 @@ model {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build does not break for failing tests if ignoreFailures is true"() {
         when:
         useStandardConfig()
@@ -447,7 +447,7 @@ tasks.withType(RunTestExecutable) {
         file("build/test-results/helloTest/CUnitAutomated-Listing.xml").assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "test suite not skipped after failing run"() {
         given:
         useStandardConfig()
@@ -461,7 +461,7 @@ tasks.withType(RunTestExecutable) {
         executedAndNotSkipped ":runHelloTestCUnitExe"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "creates visual studio solution and project for cunit test suite"() {
         given:
         useStandardConfig()
@@ -495,7 +495,7 @@ tasks.withType(RunTestExecutable) {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "non-buildable binaries are not attached to check task"() {
         given:
         useConventionalSourceLocations()
@@ -526,7 +526,7 @@ model {
         executedAndNotSkipped ":runHelloTestCUnitExe"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cunit run task is properly wired to binaries check tasks and lifecycle check task"() {
         given:
         useStandardConfig()

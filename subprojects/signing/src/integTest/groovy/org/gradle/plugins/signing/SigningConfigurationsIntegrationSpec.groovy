@@ -15,14 +15,14 @@
  */
 package org.gradle.plugins.signing
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 import java.nio.file.Files
 
 class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "signing configurations"() {
         given:
         buildFile << """
@@ -52,7 +52,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @Issue("gradle/gradle#4980")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "removing signature file causes sign task to re-execute"() {
         given:
         buildFile << """
@@ -83,7 +83,7 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         file("build", "libs", "sign-1.0.jar.asc").text
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "duplicated inputs are handled"() {
         given:
         buildFile << """

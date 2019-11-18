@@ -17,11 +17,11 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 public class CachedChangingModulesIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can cache and refresh unique versioned maven artifacts with a classifier"() {
         given:
         def repo = mavenHttpRepo("repo")
@@ -93,7 +93,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
         run 'retrieve'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can cache and refresh non unique versioned maven artifacts with a classifier"() {
         given:
         def repo = mavenHttpRepo("repo")
@@ -164,7 +164,7 @@ public class CachedChangingModulesIntegrationTest extends AbstractHttpDependency
         run 'retrieve'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can cache and refresh ivy changing artifacts with a classifier"() {
         given:
         def repo = ivyHttpRepo("repo")

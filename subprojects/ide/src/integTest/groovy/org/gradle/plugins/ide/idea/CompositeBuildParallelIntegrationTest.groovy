@@ -17,7 +17,7 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -27,7 +27,7 @@ import spock.lang.IgnoreIf
 class CompositeBuildParallelIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "builds IDE metadata artifacts in parallel"() {
         given:
         server.start()

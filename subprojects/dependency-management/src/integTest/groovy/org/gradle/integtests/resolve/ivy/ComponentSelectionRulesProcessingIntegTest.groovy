@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -231,7 +231,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         // because of the IvyModuleDescriptor rule
         @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
     )
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "component metadata is requested only once for rules that do require it" () {
         buildFile << """
             dependencies {
@@ -287,7 +287,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         // because of branch
         @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
     ])
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "changed component metadata becomes visible when module is refreshed" () {
 
         def commonBuildFile = buildFile.text + """

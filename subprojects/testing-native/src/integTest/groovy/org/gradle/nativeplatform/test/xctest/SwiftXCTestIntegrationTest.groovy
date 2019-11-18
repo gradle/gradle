@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.language.swift.SwiftTaskNames
@@ -51,7 +51,7 @@ apply plugin: 'xctest'
         Assume.assumeFalse(OperatingSystem.current().isMacOsX() && toolChain.version.major == 3)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fails when test cases fail"() {
         given:
         def testBundle = new SwiftFailingXCTestBundle()
@@ -68,7 +68,7 @@ apply plugin: 'xctest'
         testBundle.assertTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "succeeds when test cases pass"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -84,7 +84,7 @@ apply plugin: 'xctest'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not execute removed test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestRemoveDiscoveryBundle()
@@ -111,7 +111,7 @@ apply plugin: 'xctest'
         testBundle.getFooTestSuite().getTestCount()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "executes added test suite and case"() {
         given:
         def testBundle = new IncrementalSwiftXCTestAddDiscoveryBundle()
@@ -137,7 +137,7 @@ apply plugin: 'xctest'
         testBundle.assertAlternateTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build logic can change source layout convention"() {
         given:
         def lib = new SwiftLibWithXCTest()
@@ -167,7 +167,7 @@ apply plugin: 'xctest'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can specify a test dependency on another library"() {
         def lib = new SwiftLib()
         def test = new SwiftLibTest(lib, lib.greeter, lib.sum, lib.multiply)
@@ -212,7 +212,7 @@ dependencies {
         result.assertTasksSkipped(":assemble")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "skips test tasks when no source is available for Swift library"() {
         given:
         buildFile << "apply plugin: 'swift-library'"
@@ -225,7 +225,7 @@ dependencies {
         result.assertTasksSkipped(tasks.debug.compile, tasks.test.allToInstall, ":xcTest", ":test")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "skips test tasks when no source is available for Swift application"() {
         given:
         buildFile << """
@@ -240,7 +240,7 @@ apply plugin: 'swift-application'
         result.assertTasksSkipped(tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ":xcTest", ":test")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can test public and internal features of a Swift application with a single source file"() {
         given:
         def main = new SwiftSingleFileApp()
@@ -261,7 +261,7 @@ apply plugin: 'swift-application'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can test features of a Swift application using a single test source file"() {
         given:
         def app = new SwiftAppWithSingleXCTestSuite()
@@ -280,7 +280,7 @@ apply plugin: 'swift-application'
         app.assertTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can test features of a single file Swift library using a single test source file"() {
         given:
         def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
@@ -301,7 +301,7 @@ apply plugin: 'swift-library'
         lib.assertTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "relinks when main sources change in ABI compatible way"() {
         given:
         def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
@@ -326,7 +326,7 @@ apply plugin: 'swift-library'
         result.assertTasksNotSkipped(tasks.debug.compile, tasks.test.link, tasks.test.install, ":xcTest", ":test")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "recompiles when main sources change in non-ABI compatible way"() {
         given:
         def lib = new SwiftSingleFileLibWithSingleXCTestSuite()
@@ -356,7 +356,7 @@ apply plugin: 'swift-library'
         result.assertTasksNotSkipped(tasks.test.compile, tasks.test.link, tasks.test.install, ":xcTest", ":test")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build passes when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -394,7 +394,7 @@ apply plugin: 'swift-library'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build still fails when tests have unicode characters"() {
         given:
         def test = new XCTestSourceElement("app") {
@@ -432,7 +432,7 @@ apply plugin: 'swift-library'
         test.assertTestCasesRan(testExecutionResult)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can build xctest bundle which transitively dependencies on other Swift libraries'() {
         given:
         def app = new SwiftAppWithLibraries()
@@ -479,7 +479,7 @@ apply plugin: 'swift-library'
                 tasks.debug.compile, tasks.test.relocate, tasks.test.allToInstall, ':xcTest', ':test')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can run xctest in swift package manager layout'() {
         given:
         def app = new SwiftAppWithLibraries()
@@ -540,7 +540,7 @@ apply plugin: 'swift-library'
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use broken test filter [#testFilter]"() {
         given:
         def lib = new SwiftLibWithXCTest()

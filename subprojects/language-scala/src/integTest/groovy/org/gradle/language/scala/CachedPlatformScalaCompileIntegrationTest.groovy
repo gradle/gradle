@@ -17,7 +17,7 @@
 package org.gradle.language.scala
 
 import org.gradle.api.tasks.compile.AbstractCachedCompileIntegrationTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 
 class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
@@ -35,7 +35,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "joint Java and Scala compilation cannot be cached due to overlapping outputs"() {
         given:
         buildScript """
@@ -83,7 +83,7 @@ class CachedPlatformScalaCompileIntegrationTest extends AbstractCachedCompileInt
             "\n  Gradle does not know how file 'build")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "incremental compilation works with caching"() {
         def warmupDir = testDirectory.file('warmupCache')
         setupProjectInDirectory(warmupDir)

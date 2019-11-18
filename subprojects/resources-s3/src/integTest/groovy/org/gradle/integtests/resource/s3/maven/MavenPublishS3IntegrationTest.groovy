@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.s3.maven
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.s3.fixtures.MavenS3Repository
 import org.gradle.integtests.resource.s3.fixtures.S3Artifact
@@ -36,7 +36,7 @@ class MavenPublishS3IntegrationTest extends AbstractMavenPublishIntegTest {
         .withArgument("-Daws.secretKey=someSecret");
     }
 
-    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can publish to a S3 Maven repository"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
@@ -82,7 +82,7 @@ publishing {
     }
 
 
-    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can publish to a S3 Maven repository with IAM"() {
         given:
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")

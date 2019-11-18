@@ -18,7 +18,7 @@ package org.gradle.api.tasks.outputorigin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.junit.Rule
@@ -45,7 +45,7 @@ class BuildCacheOutputOriginIntegrationTest extends AbstractIntegrationSpec impl
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "exposes origin build id when reusing cached outputs"() {
         given:
         buildScript """

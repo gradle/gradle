@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 
 abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
@@ -46,7 +46,7 @@ abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringC
 """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reuses compiler daemons across continuous build instances" () {
         def inputFileName = sourceFileName
         def inputFile = file(inputFileName).createFile()

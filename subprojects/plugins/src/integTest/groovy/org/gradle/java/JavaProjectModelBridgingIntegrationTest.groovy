@@ -17,10 +17,10 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class JavaProjectModelBridgingIntegrationTest extends AbstractIntegrationSpec {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Java plugin source sets are visible in the software model as binaries and source sets"() {
         buildFile << '''
 plugins {

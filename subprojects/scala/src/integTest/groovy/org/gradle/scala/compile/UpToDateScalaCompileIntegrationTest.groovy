@@ -18,7 +18,7 @@ package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -35,7 +35,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "compile is out of date when changing the #changedVersion version"() {
         buildScript(scalaProjectBuildScript(defaultZincVersion, defaultScalaVersion))
 
@@ -68,7 +68,7 @@ class UpToDateScalaCompileIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_1_9) })
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)

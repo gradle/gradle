@@ -17,11 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ManagedTypeImplementationClassCachingSpec extends AbstractIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "managed type implementation class is generated once for each type and reused"() {
         when:
         buildScript '''

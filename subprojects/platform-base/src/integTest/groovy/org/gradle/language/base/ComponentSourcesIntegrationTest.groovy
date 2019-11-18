@@ -17,7 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationTest {
 
@@ -47,7 +47,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can reference sources container for a component in a rule"() {
         given:
         withMainSourceSet()
@@ -124,7 +124,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can reference sources container elements in a rule"() {
         given:
         withMainSourceSet()
@@ -148,7 +148,7 @@ class ComponentSourcesIntegrationTest extends AbstractComponentModelIntegrationT
         output.contains "sources display name: Custom source 'main:someLang'"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can reference sources container elements using specialized type in a rule"() {
         given:
         withMainSourceSet()

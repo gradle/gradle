@@ -15,7 +15,7 @@
  */
 package org.gradle.language.rc
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -29,7 +29,7 @@ class WindowsResourcesUnsupportedIntegrationTest extends AbstractInstalledToolCh
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "resource files are ignored on unsupported platforms"() {
         given:
         buildFile << """

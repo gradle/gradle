@@ -16,10 +16,10 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 abstract class AbstractNativeProductionComponentDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define different implementation dependencies on each binary"() {
         given:
         settingsFile << 'include "lib"'
@@ -47,7 +47,7 @@ abstract class AbstractNativeProductionComponentDependenciesIntegrationTest exte
         result.assertTasksExecuted(assembleReleaseTasks, ':assembleRelease')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define an included build implementation dependency on a binary"() {
         settingsFile << 'includeBuild "lib"'
         makeComponentWithIncludedBuildLibrary()

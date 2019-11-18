@@ -18,7 +18,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ivy.IvyJavaModule
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -36,7 +36,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "can publish jar and descriptor to ivy repository"() {
         requiresExternalDependencies = true
         given:
@@ -75,7 +75,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#ivyConfiguration' configuration with '#plugin' plugin")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "maps dependencies in the correct Ivy configuration"() {
         if (deprecatedConfiguration) {
             executer.expectDeprecationWarning()
@@ -143,7 +143,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "ignores extra artifacts added to configurations"() {
         given:
         createBuildScripts("""
@@ -174,7 +174,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublishedAsJavaModule()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "can publish additional artifacts for java project"() {
         requiresExternalDependencies = true
         given:
@@ -229,7 +229,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("GRADLE-3514")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "generated ivy descriptor includes dependency exclusions"() {
         requiresExternalDependencies = true
 
@@ -321,7 +321,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4356, https://github.com/gradle/gradle/issues/5035")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "generated ivy descriptor includes configuration exclusions"() {
         def exclusion = { name -> "$name-group:$name-module" }
         def exclusions = { conf -> javaLibrary.parsedIvy.exclusions.findAll { it.conf == conf }.collect { it.org + ":" + it.module } }
@@ -377,7 +377,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "defaultDependencies are included in published ivy descriptor"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
@@ -416,7 +416,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertApiDependencies("org.test:default-dependency:1.1")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "dependency mutations are included in published ivy descriptor"() {
         given:
         settingsFile << "rootProject.name = 'publishTest'"
@@ -462,7 +462,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertApiDependencies('org.test:dep1:X', 'org.test:dep2:X')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with strict and prefer dependencies"() {
         requiresExternalDependencies = true
 
@@ -530,7 +530,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependency constraints"() {
         requiresExternalDependencies = true
         given:
@@ -615,7 +615,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies without version"() {
         requiresExternalDependencies = true
         given:
@@ -681,7 +681,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies without version and using versionMapping"() {
         requiresExternalDependencies = true
         given:
@@ -744,7 +744,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Unroll("'#requestedVersion' end up in '#expectedVersion' resolved version and '#requestedVersion' revConstraint")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with revConstraint"() {
         requiresExternalDependencies = true
         given:
@@ -813,7 +813,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies with version using versionMapping and not adding revConstraints"() {
         requiresExternalDependencies = true
         given:
@@ -869,7 +869,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with rejected versions"() {
         requiresExternalDependencies = true
 
@@ -942,7 +942,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with capabilities"() {
         given:
         createBuildScripts("""
@@ -980,7 +980,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can ignore publication warnings"() {
         given:
         def silenceMethod = "suppressIvyMetadataWarningsFor"
@@ -1011,7 +1011,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can ignore all publication warnings by variant name"() {
         given:
         def silenceMethod = "suppressIvyMetadataWarningsFor"
@@ -1041,7 +1041,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can ignore all publication warnings"() {
         given:
         createBuildScripts("""
@@ -1069,7 +1069,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         javaLibrary.assertPublished()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies/constraints with attributes"() {
         given:
         settingsFile << "include 'utils'\n"
@@ -1155,7 +1155,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Issue("gradle/gradle#5450")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't fail with NPE if no component is attached to a publication"() {
         createBuildScripts("""
         publishing {
@@ -1176,7 +1176,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
@@ -1206,7 +1206,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish feature variants (optional: #optional)"() {
         given:
         createBuildScripts """
@@ -1249,7 +1249,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         optional << [true, false]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "an optional feature variant can repeat a dependency from a main variant"() {
         given:
         createBuildScripts("""
@@ -1280,7 +1280,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "a component's variant can be modified before publishing"() {
         given:
         createBuildScripts """

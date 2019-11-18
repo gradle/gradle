@@ -18,13 +18,13 @@ package org.gradle.buildinit.plugins.internal
 
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 
 class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
     final wrapper = new WrapperTestFixture(testDirectory)
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can apply wrapper plugin dynamically"() {
         when:
         run 'tasks'
@@ -46,7 +46,7 @@ class WrapperPluginAutoApplyActionIntegTest extends AbstractIntegrationSpec {
         taskName << ["wrapp"]//, "wrap", "w"]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "wrapper plugin not applied on subprojects"() {
         setup:
         settingsFile << "include 'moduleA'"

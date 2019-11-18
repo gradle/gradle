@@ -20,7 +20,7 @@ import org.gradle.api.logging.configuration.ShowStacktrace
 import org.gradle.caching.internal.controller.DefaultBuildCacheController
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -131,7 +131,7 @@ class CachedTaskExecutionErrorHandlingIntegrationTest extends AbstractIntegratio
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "remote cache is disabled after first #failEvent error for the current build"() {
         // Need to do it like this because stacktraces are always enabled for integration tests
         settingsFile << """

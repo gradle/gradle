@@ -17,7 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -38,7 +38,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'recompiles only the Swift source files that have changed'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -69,7 +69,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledFile(main)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'adding a new file only compiles new file'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -94,7 +94,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledFile(newFile)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'adding a new file that overlaps with an existing type fails'() {
         given:
         def app = new SwiftApp()
@@ -114,7 +114,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4_OR_OLDER)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'removing a file rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -135,7 +135,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'removing an isolated file does not rebuild anything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -155,7 +155,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.deletedClasses("multiply")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'changing compiler arguments rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -179,7 +179,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'changing macros rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -203,7 +203,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
         outputs.recompiledClasses('main', 'sum', 'greeter', 'multiply')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'changes to an unused dependency rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -252,7 +252,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'changing Swift language level rebuilds everything'() {
         given:
         def outputs = new CompilationOutputsFixture(file("build/obj/main/debug"), [ ".o" ])
@@ -285,7 +285,7 @@ class SwiftIncrementalCompileIntegrationTest extends AbstractInstalledToolChainI
 
     // This isn't quite right, we really want to assert something like "has both swiftc3 and swiftc4"
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'changing Swift tool chain rebuilds everything'() {
         given:
         def swiftc3 = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_3)

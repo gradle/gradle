@@ -16,12 +16,12 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.internal.util.RetryUtil
 
 class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "Gradle API JAR is generated in an acceptable time frame"() {
         requireOwnGradleUserHomeDir()
         buildFile << """
@@ -42,7 +42,7 @@ class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegra
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "TestKit JAR is generated in an acceptable time frame"() {
         requireOwnGradleUserHomeDir()
         buildFile << """

@@ -17,7 +17,7 @@
 package org.gradle.groovy
 
 import org.apache.commons.lang.StringEscapeUtils
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.test.fixtures.file.TestFile
@@ -67,7 +67,7 @@ class GroovyDocIntegrationTest extends MultiVersionIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3349")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "changes to overview causes groovydoc to be out of date"() {
         File overviewFile = file("overview.html")
         String escapedOverviewPath = StringEscapeUtils.escapeJava(overviewFile.absolutePath)

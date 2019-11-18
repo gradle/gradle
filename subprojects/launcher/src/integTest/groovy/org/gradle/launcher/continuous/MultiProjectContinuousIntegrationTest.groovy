@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Ignore
 
 class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
@@ -134,7 +134,7 @@ class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousInte
     }
 
     // here to put more stress on parallel execution
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reasonable sized multi-project"() {
         given:
         def extraProjectNames = (0..100).collect { "project$it" }

@@ -16,7 +16,7 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
@@ -33,7 +33,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can run resolveConfiguration sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -51,7 +51,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can run reject sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -67,7 +67,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can run metadata rules sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -84,7 +84,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can run targeted rule sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

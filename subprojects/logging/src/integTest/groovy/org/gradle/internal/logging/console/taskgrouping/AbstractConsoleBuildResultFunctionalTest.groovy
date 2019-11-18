@@ -18,7 +18,7 @@ package org.gradle.internal.logging.console.taskgrouping
 
 import org.fusesource.jansi.Ansi
 import org.gradle.api.logging.LogLevel
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import org.gradle.integtests.fixtures.executer.LogContent
 import spock.lang.Unroll
@@ -27,7 +27,7 @@ abstract class AbstractConsoleBuildResultFunctionalTest extends AbstractConsoleG
     protected final StyledOutput buildFailed = styled(Ansi.Color.RED, Ansi.Attribute.INTENSITY_BOLD).text('BUILD FAILED').off()
     protected final StyledOutput buildSuccessful = styled(Ansi.Color.GREEN, Ansi.Attribute.INTENSITY_BOLD).text('BUILD SUCCESSFUL').off()
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "outcome for successful build is logged with appropriate styling"() {
         given:
         buildFile << """

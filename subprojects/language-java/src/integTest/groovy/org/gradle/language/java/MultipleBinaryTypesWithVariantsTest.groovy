@@ -16,7 +16,7 @@
 
 package org.gradle.language.java
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
@@ -25,7 +25,7 @@ import static org.gradle.util.Matchers.containsText
 class MultipleBinaryTypesWithVariantsTest extends VariantAwareDependencyResolutionSpec {
 
     @Unroll("Component A(#binaryTypeA) fails resolving on B(#binaryTypeB) because of incompatible variant types")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "binaries have the same variant dimension names but incompatible types"() {
         given:
         applyJavaPlugin(buildFile)

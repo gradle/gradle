@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 
 abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends AbstractConsoleGroupedTaskFunctionalTest {
@@ -63,7 +63,7 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
         file("$PROJECT_B_NAME/src/main/java/MyClass.java") << javaSourceFile()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can group task output in composite build"() {
         when:
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withTasks('compileJava').run()
@@ -73,7 +73,7 @@ abstract class AbstractConsoleCompositeBuildGroupedTaskFunctionalTest extends Ab
         result.groupedOutput.task(':byeWorld').output == BYE_WORLD_MESSAGE
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not execute task actions when dry run specified on composite build"() {
         when:
         def result = executer.inDirectory(file(PROJECT_B_NAME)).withArgument("--dry-run").withTasks('compileJava').run()

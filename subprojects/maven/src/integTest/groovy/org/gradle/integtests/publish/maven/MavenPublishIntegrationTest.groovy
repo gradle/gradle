@@ -17,7 +17,7 @@ package org.gradle.integtests.publish.maven
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.credentials.DefaultPasswordCredentials
 import org.gradle.test.fixtures.maven.MavenLocalRepository
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -41,7 +41,7 @@ class MavenPublishIntegrationTest extends AbstractIntegrationSpec {
         using m2
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish a project with dependency in mapped and unmapped configuration"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -72,7 +72,7 @@ uploadArchives {
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "upload status is logged on on info level"() {
         given:
         def resourceFile = file("src/main/resources/testfile.properties")
@@ -104,7 +104,7 @@ uploadArchives {
     }
 
     @Issue("GRADLE-2456")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void generatesSHA1FileWithLeadingZeros() {
         given:
         def module = mavenRepo.module("org.gradle", "publish", "2").withoutExtraChecksums()
@@ -139,7 +139,7 @@ uploadArchives {
         shaOneFile.text == "00e14c6ef59816760e2c9b5a57157e8ac9de4012"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish a project with no main artifact"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -173,7 +173,7 @@ uploadArchives {
         module.assertArtifactsPublished('root-1.0.pom', 'root-1.0-source.jar')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can replace artifacts with same coordinates"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -216,7 +216,7 @@ uploadArchives {
         module.getArtifactFile().assertIsCopyOf(replacements.file('root-1.0.jar'))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish a project with metadata artifacts"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -269,7 +269,7 @@ uploadArchives {
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish a snapshot version"() {
         buildFile << """
 apply plugin: 'java'
@@ -318,7 +318,7 @@ uploadArchives {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish multiple deployments with attached artifacts"() {
         given:
         server.start()
@@ -382,7 +382,7 @@ uploadArchives {
         succeeds 'uploadArchives'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish to an unauthenticated HTTP repository"() {
         given:
         server.start()
@@ -422,7 +422,7 @@ uploadArchives {
         server.expectPut("$path/${name}.sha1", moduleDir.file("${name}.sha1"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish to custom maven local repo defined in settings.xml"() {
         given:
         def localM2Repo = m2.mavenRepo()
@@ -449,7 +449,7 @@ uploadArchives {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish to an authenticated HTTP repository using #authScheme auth"() {
         given:
         def credentials = new DefaultPasswordCredentials('testuser', 'password')
@@ -498,7 +498,7 @@ uploadArchives {
     }
 
     @Issue('GRADLE-3272')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish to custom maven local repo defined with system property"() {
         given:
         def localM2Repo = m2.mavenRepo()
@@ -525,7 +525,7 @@ uploadArchives {
     }
 
     @Issue('GRADLE-1574')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish pom with wildcard exclusions for non-transitive dependencies"() {
         given:
         def localM2Repo = m2.mavenRepo()
@@ -554,7 +554,7 @@ uploadArchives {
         exclusions.size() == 1 && exclusions[0].groupId=='*' && exclusions[0].artifactId=='*'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dependencies de-duplication uses a 0 priority for unmapped configurations"() {
         given:
         def localM2Repo = m2.mavenRepo()
@@ -601,7 +601,7 @@ uploadArchives {
         pom.scopes.test == null
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dependency de-duplication takes custom configuration to scope mapping into account"() {
         given:
         def localM2Repo = m2.mavenRepo()
@@ -650,7 +650,7 @@ uploadArchives {
     }
 
     @Issue('GRADLE-3494')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dependencies de-duplication handles null versions"() {
         given:
         def localM2Repo = m2.mavenRepo()
@@ -691,7 +691,7 @@ uploadArchives {
     }
 
     @Issue('GRADLE-3496')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dependencies are de-duplicated using the higher version on the same scope and exclusions from the higher version"() {
         given:
         def localM2Repo = m2.mavenRepo()
@@ -731,7 +731,7 @@ uploadArchives {
         pom.scopes.test == null
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fails gracefully if trying to publish a directory with Maven"() {
 
         given:
@@ -768,7 +768,7 @@ uploadArchives {
     }
 
     @Issue("gradle/gradle#1641")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish a new version of a module already present in the target repository"() {
         given:
         server.start()

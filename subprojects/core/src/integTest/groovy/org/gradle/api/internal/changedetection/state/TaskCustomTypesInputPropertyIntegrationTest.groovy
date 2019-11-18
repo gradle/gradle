@@ -17,7 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.Actions
 import spock.lang.Unroll
 
@@ -86,7 +86,7 @@ public class SomeTask extends DefaultTask {
 """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take an input with custom type and task action defined in the build script"() {
         buildFile << """
 task someTask {
@@ -160,7 +160,7 @@ task someOtherTask
         skipped(":someTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take an input with custom type defined in a build script plugin"() {
         def otherScript = file("other.gradle")
         otherScript << """
@@ -222,7 +222,7 @@ apply from: 'other.gradle'
         skipped(":someTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take an input with custom type and task type defined in buildSrc"() {
         def typeSource = file("buildSrc/src/main/java/CustomType.java")
         typeSource << customSerializableType()
@@ -288,7 +288,7 @@ task someOtherTask
         skipped(":someTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use null value for task input property"() {
         buildFile << customSerializableType()
         buildFile << customTaskType()
@@ -310,7 +310,7 @@ task someTask(type: SomeTask) {
         skipped(":someTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use custom type with non-deterministic serialized form"() {
         file("buildSrc/src/main/java/CustomType.java") << customSerializableTypeWithNonDeterministicSerializedForm()
         buildFile << """
@@ -357,7 +357,7 @@ task someTask {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take as input a collection of custom types from various sources"() {
         def buildSrcType = file("buildSrc/src/main/java/CustomType.java")
         buildSrcType << customSerializableType()

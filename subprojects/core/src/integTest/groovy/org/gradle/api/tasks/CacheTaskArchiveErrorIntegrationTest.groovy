@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -124,7 +124,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheFiles().empty
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "corrupt archive loaded from local cache is purged"() {
         when:
         file("input.txt") << "data"
@@ -164,7 +164,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "corrupted cache artifact metadata provides useful error message"() {
         when:
         buildFile << """

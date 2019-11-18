@@ -17,11 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rule can provide a managed model element backed by an abstract class"() {
         when:
         buildScript '''
@@ -57,7 +57,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
         output.contains("name: foo")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "managed type implemented as abstract class can have generative getters"() {
         when:
         buildScript '''
@@ -100,7 +100,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
         output.contains("name: Alan Turing")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "managed type implemented as abstract class can have a custom toString() implementation"() {
         when:
         buildScript '''
@@ -140,7 +140,7 @@ class AbstractClassBackedManagedTypeIntegrationTest extends AbstractIntegrationS
         output.contains("element: custom string representation")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "calling setters from custom toString() implementation is not allowed"() {
         when:
         buildFile << '''

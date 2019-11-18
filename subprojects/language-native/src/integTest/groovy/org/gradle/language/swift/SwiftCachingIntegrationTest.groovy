@@ -17,7 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -57,7 +57,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
         app.application.writeToProject(project)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'compilation can be cached'() {
         setupProject()
         def allCompileTasks = ['', ':hello', ':log'].collect { compileTask(it, buildType) } as String[]
@@ -80,7 +80,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "compilation task is relocatable (#buildType)"() {
         def originalLocation = file('original-location')
         def newLocation = file('new-location')
@@ -113,7 +113,7 @@ class SwiftCachingIntegrationTest extends AbstractInstalledToolChainIntegrationS
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "downstream compilation can use cached artifacts (#buildType)"() {
         def originalLocation = file('original-location')
         def newLocation = file('new-location')

@@ -17,10 +17,10 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generates configuration files for a web project"() {
         file('src/main/java').mkdirs()
         file('src/main/resources').mkdirs()

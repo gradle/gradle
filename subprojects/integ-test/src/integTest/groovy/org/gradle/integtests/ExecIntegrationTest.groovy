@@ -18,7 +18,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import spock.lang.Issue
@@ -29,7 +29,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can execute java with #task'() {
         given:
         buildFile << """
@@ -86,7 +86,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can execute commands with #task'() {
         given:
         buildFile << """
@@ -164,7 +164,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3528")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << '''
@@ -204,7 +204,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(":run")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "arguments can be passed by using argument providers"() {
         given:
         buildFile << '''

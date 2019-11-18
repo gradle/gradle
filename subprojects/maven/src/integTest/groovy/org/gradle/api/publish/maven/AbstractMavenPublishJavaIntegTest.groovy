@@ -18,7 +18,7 @@ package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import org.gradle.test.fixtures.maven.MavenFileModule
@@ -36,7 +36,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
     abstract List<String> features()
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with no dependencies"() {
         createBuildScripts("""
             publishing {
@@ -61,7 +61,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         resolveRuntimeArtifacts(javaLibrary) { expectFiles "publishTest-1.9.jar" }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -110,7 +110,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies and excludes"() {
         requiresExternalDependencies = true
 
@@ -178,7 +178,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with strict dependencies"() {
         requiresExternalDependencies = true
 
@@ -245,7 +245,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependency constraints"() {
         requiresExternalDependencies = true
 
@@ -333,7 +333,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with rejected versions"() {
         requiresExternalDependencies = true
 
@@ -409,7 +409,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies without version"() {
         requiresExternalDependencies = true
 
@@ -465,7 +465,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
     }
 
     @Unroll('can publish java-library with dependencies with maven incompatible version notation: #version')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies with maven incompatible version notation: #version"() {
 
         given:
@@ -513,7 +513,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
         version << ['1.+', 'latest.milestone']
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with attached artifacts"() {
         given:
         createBuildScripts("""
@@ -551,7 +551,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
     }
 
     @Unroll("'#gradleConfiguration' dependencies end up in '#mavenScope' scope with '#plugin' plugin")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "maps dependencies in the correct Maven scope"() {
         if (deprecatedConfiguration) {
             executer.expectDeprecationWarning()
@@ -608,7 +608,7 @@ abstract class AbstractMavenPublishJavaIntegTest extends AbstractMavenPublishInt
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with capabilities"() {
         given:
         createBuildScripts("""
@@ -658,7 +658,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not warn for the default capability if it was declared explicitly"() {
         given:
         createBuildScripts("""
@@ -703,7 +703,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can ignore publication warnings"() {
         given:
         def silenceMethod = "suppressPomMetadataWarningsFor"
@@ -734,7 +734,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         javaLibrary.assertPublished()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can ignore all publication warnings"() {
         given:
         createBuildScripts("""
@@ -761,7 +761,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5034, https://github.com/gradle/gradle/issues/5035")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "configuration exclusions are published in generated POM and Gradle metadata"() {
         given:
         createBuildScripts("""
@@ -851,7 +851,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies/constraints with attributes"() {
         given:
         settingsFile << "include 'utils'\n"
@@ -936,7 +936,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Issue("gradle/gradle#5450")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't fail with NPE if no component is attached to a publication"() {
         createBuildScripts("""
         publishing {
@@ -957,7 +957,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can publish java library with a #config dependency on a published BOM platform"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bom", "1.0")).hasPackaging('pom').dependencyConstraint(mavenRepo.module('org.test', 'bar', '1.1')).withModuleMetadata().publish()
@@ -1068,7 +1068,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can publish a java library using a virtual platform by ignoring it explicitly'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -1119,7 +1119,7 @@ Maven publication 'maven' pom metadata warnings (silence with 'suppressPomMetada
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'can publish java library with a #config dependency on a java-platform subproject"'() {
         given:
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -1191,7 +1191,7 @@ include(':platform')
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         createBuildScripts("""
@@ -1238,7 +1238,7 @@ include(':platform')
         failure.assertHasCause("Variant for configuration annotationProcessor does not exist in component java")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fails if trying to publish a component with all variants filtered"() {
         createBuildScripts("""
             publishing {

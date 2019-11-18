@@ -26,15 +26,15 @@ import org.spockframework.runtime.model.IterationInfo
 import org.spockframework.runtime.model.SpecInfo
 
 
-class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtension<FailsWithInstantExecution> {
+class ToBeFixedForInstantExecutionExtension extends AbstractAnnotationDrivenExtension<ToBeFixedForInstantExecution> {
 
     @Override
     void visitSpec(SpecInfo spec) {
         if (GradleContextualExecuter.isInstant()) {
             spec.allFeatures.each { feature ->
-                def annotation = feature.featureMethod.reflection.getAnnotation(FailsWithInstantExecution)
+                def annotation = feature.featureMethod.reflection.getAnnotation(ToBeFixedForInstantExecution)
                 if (annotation != null) {
-                    if (annotation.value() == FailsWithInstantExecution.Skip.DO_NOT_SKIP) {
+                    if (annotation.value() == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
                         spec.addListener(new CatchFeatureFailuresRunListener(feature))
                     } else {
                         feature.skipped = true
@@ -45,7 +45,7 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
     }
 
     @Override
-    void visitFeatureAnnotation(FailsWithInstantExecution annotation, FeatureInfo feature) {
+    void visitFeatureAnnotation(ToBeFixedForInstantExecution annotation, FeatureInfo feature) {
         // This override is required to satisfy spock's zealous runtime checks
     }
 

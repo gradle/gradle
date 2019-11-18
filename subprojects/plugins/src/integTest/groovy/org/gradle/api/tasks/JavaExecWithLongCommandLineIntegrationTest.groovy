@@ -17,7 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.process.internal.util.LongCommandLineDetectionUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -85,7 +85,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not suggest long command line failures when execution fails on non-Windows system"() {
         buildFile << """
             extraClasspath.from('${veryLongFileName}')
@@ -107,7 +107,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not suggest long command line failures when execution fails for short command line"() {
         buildFile << """
             run.executable 'does-not-exist'
@@ -128,7 +128,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         failure.assertHasNoCause("could not be started because the command line exceed operating system limits.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "succeeds with long classpath"() {
         buildFile << """
             extraClasspath.from('${veryLongFileName}')

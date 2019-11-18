@@ -17,7 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -157,7 +157,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(settingsHash, *buildHashes)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cache size increases when build file changes"() {
         given:
         root {
@@ -253,7 +253,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(4)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "caches scripts applied from remote locations"() {
         server.start()
 
@@ -277,7 +277,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(buildHash, sharedHash)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "caches scripts applied from remote locations when remote script changes"() {
         server.start()
 
@@ -358,7 +358,7 @@ task fastTask { }
         hasCachedScripts(*hasRemapped('build'))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build script is recompiled when project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
@@ -394,7 +394,7 @@ task fastTask { }
         getCompileClasspath(coreHash, 'proj').length == 2
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build script is recompiled when parent project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
@@ -587,7 +587,7 @@ task fastTask { }
         noExceptionThrown()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "same applied script is compiled once for different projects with different classpath"() {
         root {
             'common.gradle'('println "poke"')

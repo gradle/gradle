@@ -15,7 +15,7 @@
  */
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -45,7 +45,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds('test')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def executesTestsWhenSourceChanges() {
         given:
         succeeds('test')
@@ -67,7 +67,7 @@ class IncrementalTestIntegrationTest extends MultiVersionIntegrationSpec {
         succeeds('test').assertTasksNotSkipped()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def executesTestsWhenTestFrameworkChanges() {
         given:
         succeeds('test')

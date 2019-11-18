@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.maven
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.integtests.resource.gcs.fixtures.GcsArtifact
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
@@ -38,7 +38,7 @@ class MavenPublishGcsIntegrationTest extends AbstractMavenPublishIntegTest {
         executer.withArgument("-D${GCS_DISABLE_AUTH_PROPERTY}=true")
     }
 
-    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_TO_CLEANUP)
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can publish to a Gcs Maven repository"() {
         given:
         def mavenRepo = new MavenGcsRepository(server, file("repo"), "/maven", "testGcsBucket")

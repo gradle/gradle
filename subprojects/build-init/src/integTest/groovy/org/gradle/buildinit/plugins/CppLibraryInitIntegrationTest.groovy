@@ -17,7 +17,7 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.SharedLibraryFixture
 import spock.lang.Unroll
@@ -28,7 +28,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     public static final String SAMPLE_LIB_TEST_CLASS = "hello_test.cpp"
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "creates sample source if no source present with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'cpp-library', '--dsl', scriptDsl.id)
@@ -59,7 +59,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "creates sample source if project name is specified with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'cpp-library', '--project-name', 'greeting', '--dsl', scriptDsl.id)
@@ -91,7 +91,7 @@ class CppLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
 
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "source generation is skipped when cpp sources detected with #scriptDsl build scripts"() {
         setup:
         targetDir.file("src/main/cpp/hola.cpp") << """

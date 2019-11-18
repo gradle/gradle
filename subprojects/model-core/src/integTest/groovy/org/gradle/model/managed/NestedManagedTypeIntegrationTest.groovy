@@ -17,11 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class NestedManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rule can provide a managed model tree"() {
         when:
         buildScript '''
@@ -94,7 +94,7 @@ class NestedManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         output.contains("platform name: windows 8.1")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rule can apply defaults to a nested managed model element"() {
         when:
         buildScript '''

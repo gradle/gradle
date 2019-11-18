@@ -16,7 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -68,7 +68,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['build', 'check']
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define 'default' and 'archives' configurations prior to applying plugin"() {
         buildFile << """
             configurations {

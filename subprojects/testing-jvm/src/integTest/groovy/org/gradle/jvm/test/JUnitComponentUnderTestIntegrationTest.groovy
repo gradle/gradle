@@ -17,11 +17,11 @@
 package org.gradle.jvm.test
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can test a JVM library that declares an external dependency"() {
         given:
         applyJUnitPlugin()
@@ -40,7 +40,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         notExecuted 'createGreeterJar' // runtime jar of the component under test doesn't need to be built
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can test a JVM library that declares an API dependency"() {
         given:
         applyJUnitPlugin()
@@ -56,7 +56,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         executedAndNotSkipped ':compileGreeterJarGreeterJava', ':greeterApiJar', ':compileSuperGreeterJarSuperGreeterJava', ':createGreeterJar', ':compileMyTestSuperGreeterJarBinaryMyTestJava', ':myTestSuperGreeterJarBinaryTest'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can test a JVM library that declares an API"() {
         given:
         applyJUnitPlugin()
@@ -83,7 +83,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
             .assertTestsExecuted('testGreetingPrefix')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "tests are not re-executed when sources of components under test haven't changed"() {
         given:
         applyJUnitPlugin()
@@ -110,7 +110,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "updating sources of the component under test should re-execute the tests"() {
         given:
         applyJUnitPlugin()
@@ -142,7 +142,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
             .assertTestsExecuted('testGreeting')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "tests should be listed when calling tasks"() {
         given:
         applyJUnitPlugin()
@@ -157,7 +157,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         outputContains 'myTestGreeterJarBinaryTest - Runs test suite \'myTest:greeterJarBinary\'.'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "one test suite binary is created for each variant of component under test"() {
         given:
         applyJUnitPlugin()
@@ -190,7 +190,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "junit test run task is properly wired to binaries check tasks and lifecycle check task"() {
         given:
         applyJUnitPlugin()

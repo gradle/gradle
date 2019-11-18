@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 
 class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
@@ -45,7 +45,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         output.contains("$projectPath cached: false")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "classloader is cached"() {
         given:
         addIsCachedCheck()
@@ -71,7 +71,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isNotCached()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "refreshes when buildSrc changes"() {
         addIsCachedCheck()
         file("buildSrc/src/main/groovy/Foo.groovy") << "class Foo {}"
@@ -118,7 +118,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "caches subproject classloader"() {
         settingsFile << "include 'foo'"
         addIsCachedCheck()
@@ -132,7 +132,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached(":foo")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses cached subproject classloader when parent changes"() {
         settingsFile << "include 'foo'"
         addIsCachedCheck()
@@ -148,7 +148,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached(":foo")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "refreshes when buildscript classpath gets new dependency"() {
         addIsCachedCheck()
         createJarWithProperties("foo.jar")
@@ -168,7 +168,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "refreshes when root project buildscript classpath changes"() {
         settingsFile << "include 'foo'"
         addIsCachedCheck()
@@ -204,7 +204,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached(":foo")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "refreshes when jar is removed from buildscript classpath"() {
         addIsCachedCheck()
         createJarWithProperties("foo.jar")
@@ -227,7 +227,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "refreshes when dir is removed from buildscript classpath"() {
         addIsCachedCheck()
         createJarWithProperties("lib/foo.jar")
@@ -250,7 +250,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "refreshes when buildscript when jar dependency replaced with dir"() {
         addIsCachedCheck()
         createJarWithProperties("foo.jar")
@@ -270,7 +270,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         notCached
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "refreshes when buildscript when dir dependency replaced with jar"() {
         addIsCachedCheck()
         assert file("foo.jar").mkdirs()
@@ -290,7 +290,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         notCached
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reuse classloader when init script changed"() {
         addIsCachedCheck()
 
@@ -311,7 +311,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         output.contains "init y"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reuse classloader when settings script changed"() {
         addIsCachedCheck()
 
@@ -340,7 +340,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         !output.contains("settings y")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "changing non root buildsript classpath does affect child projects"() {
         when:
         settingsFile << "include 'a', 'a:a'"

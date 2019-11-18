@@ -16,7 +16,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -24,7 +24,7 @@ import spock.lang.Unroll
 import static org.hamcrest.core.StringContains.containsString
 
 class IvyLocalPublishIntegrationTest extends AbstractIntegrationSpec {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def canPublishToLocalFileRepository() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
@@ -52,7 +52,7 @@ uploadArchives {
     }
 
     @Issue("GRADLE-2456")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def generatesSHA1FileWithLeadingZeros() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
@@ -170,7 +170,7 @@ task ivyXml(type: Upload) {
         ]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "succeeds if trying to publish a file without extension"() {
         def module = ivyRepo.module("org.gradle", "publish", "2")
         settingsFile << 'rootProject.name = "publish"'

@@ -18,7 +18,7 @@ package org.gradle.integtests.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 import java.util.regex.Pattern
@@ -43,7 +43,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         }"""
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "creates default source sets"() {
         when:
         buildFile << """
@@ -82,7 +82,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         !file("build").exists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure additional language source sets for library"() {
         when:
         buildFile << """

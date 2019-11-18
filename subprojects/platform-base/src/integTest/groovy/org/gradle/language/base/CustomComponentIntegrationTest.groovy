@@ -18,7 +18,7 @@ package org.gradle.language.base
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.GeneralComponentSpec
@@ -113,7 +113,7 @@ class CustomComponentIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can view a component as a ModelElement"() {
         buildFile << """
             @Managed

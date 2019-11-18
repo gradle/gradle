@@ -18,7 +18,7 @@ package org.gradle.groovy.scripts
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.scripts.CompileScriptBuildOperationType
 
 class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrationSpec {
@@ -31,7 +31,7 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "captures script compilation build operations"() {
         given:
         settingsFile << "println 'settings.gradle'"

@@ -17,7 +17,7 @@
 package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 
@@ -137,7 +137,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(containsText("Could not find method someMethod()"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "methods defined in a build script are visible to scripts applied to sub projects"() {
         given:
         settingsFile << "include 'sub'"
@@ -199,7 +199,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         failure.assertThatCause(containsText("unable to resolve class Foo"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "script plugin buildscript does not affect client"() {
         given:
         def jar = file("plugin.jar")
@@ -250,7 +250,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in sub"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "script plugin cannot access classes added by buildscript in applying script"() {
         given:
         def jar = file("plugin.jar")
@@ -286,7 +286,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in script"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "second level script plugin cannot access classes added by buildscript in applying script"() {
         given:
         def jar = file("plugin.jar")
@@ -326,7 +326,7 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "not in script"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Can apply a script plugin to the buildscript block"() {
         given:
         def jar = file("plugin.jar")

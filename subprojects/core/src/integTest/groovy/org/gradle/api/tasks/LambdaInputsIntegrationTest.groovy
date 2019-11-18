@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -26,7 +26,7 @@ import spock.lang.Issue
 
 class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "implementation of nested property in Groovy build script is tracked"() {
         setupTaskClassWithActionProperty()
         buildFile << """
@@ -77,7 +77,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task with nested property defined by Java lambda is never up-to-date"() {
         setupTaskClassWithActionProperty()
         def originalClassName = "LambdaActionOriginal"
@@ -113,7 +113,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "caching is disabled for task with nested property defined by Java lambda"() {
         setupTaskClassWithActionProperty()
         file("buildSrc/src/main/java/LambdaAction.java") << classWithLambda("LambdaAction", lambdaWritingFile("ACTION", "original"))
@@ -184,13 +184,13 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task with Java lambda actions is never up-to-date"() {
         file("buildSrc/src/main/java/LambdaActionOriginal.java") << classWithLambda("LambdaActionOriginal", lambdaPrintingString("ACTION", "From Lambda: original"))
         file("buildSrc/src/main/java/LambdaActionChanged.java") << classWithLambda("LambdaActionChanged", lambdaPrintingString("ACTION", "From Lambda: changed"))
 
         setupCustomTask()
-        
+
         def script = """
             task myTask(type: CustomTask)
         """
@@ -223,7 +223,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Dir
 
     @Issue("https://github.com/gradle/gradle/issues/5510")
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "caching is disabled for task with Java lambda action"() {
         file("buildSrc/src/main/java/LambdaAction.java") << classWithLambda("LambdaAction", lambdaPrintingString("ACTION", "From Lambda: original"))
 

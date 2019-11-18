@@ -18,7 +18,7 @@ package org.gradle.java.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import spock.lang.Issue
 
@@ -92,7 +92,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't recompile when private element of implementation class changes"() {
         given:
         buildFile << """
@@ -203,7 +203,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":a:${language.compileTaskName}", ":b:${language.compileTaskName}"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't recompile when comments and whitespace of implementation class changes"() {
         given:
         buildFile << """
@@ -245,7 +245,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't recompile when implementation class code changes"() {
         given:
         buildFile << """
@@ -288,7 +288,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't recompile when initializer, static initializer or constructor is changed"() {
         given:
         buildFile << """
@@ -333,7 +333,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "recompiles when type of implementation class changes"() {
         given:
         buildFile << """
@@ -433,7 +433,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
-    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "recompiles when generic type signatures of implementation class changes"() {
         given:
         buildFile << """
@@ -503,7 +503,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't recompile when implementation resource is changed in various ways"() {
         given:
         buildFile << """
@@ -555,7 +555,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "doesn't recompile when empty directories are changed in various ways"() {
         given:
         buildFile << """
@@ -713,7 +713,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
     }
 
     @Issue("gradle/gradle#1913")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "detects changes in compile classpath"() {
         given:
         buildFile << """
@@ -755,7 +755,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         failure.assertHasCause('Compilation failed; see the compiler error output for details.')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "detects changes in compile classpath order"() {
         given:
         // Same class is defined in both project `a` and `b` but with a different ABI

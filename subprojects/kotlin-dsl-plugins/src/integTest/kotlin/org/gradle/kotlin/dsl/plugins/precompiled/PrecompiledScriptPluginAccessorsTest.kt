@@ -24,7 +24,7 @@ import com.nhaarman.mockito_kotlin.mock
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginManager
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.bytecode.InternalName
@@ -60,7 +60,7 @@ import java.io.File
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `fails the build with help message for plugin spec with version`() {
 
         withDefaultSettings().appendText("""
@@ -84,7 +84,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use type-safe accessors with same name but different meaning in sibling plugins`() {
 
         val externalPlugins = withExternalPlugins()
@@ -143,7 +143,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     """
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use type-safe accessors for the Kotlin Gradle plugin extensions`() {
 
         withKotlinDslPlugin().appendText("""
@@ -168,7 +168,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use type-safe accessors for plugins applied by sibling plugin`() {
 
         withKotlinDslPlugin()
@@ -189,7 +189,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use type-safe accessors from scripts with same name but different ids`() {
 
         val externalPlugins = withExternalPlugins()
@@ -244,7 +244,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can apply sibling plugin whether it has a plugins block or not`() {
 
         withKotlinDslPlugin()
@@ -269,7 +269,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can apply sibling plugin from another package`() {
 
         withKotlinDslPlugin()
@@ -291,7 +291,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `generated type-safe accessors are internal`() {
 
         givenPrecompiledKotlinScript("java-project.gradle.kts", """
@@ -348,7 +348,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use core plugin spec builders`() {
 
         givenPrecompiledKotlinScript("java-project.gradle.kts", """
@@ -373,7 +373,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use plugin spec builders for plugins in the implementation classpath`() {
 
         // given:
@@ -406,7 +406,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use plugin specs with jruby-gradle-plugin`() {
 
         withKotlinDslPlugin().appendText("""
@@ -428,7 +428,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `plugin application errors are reported but don't cause the build to fail`() {
 
         // given:
@@ -462,14 +462,14 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use plugin spec builders in multi-project builds with local and external plugins`() {
 
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage(null)
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     fun `can use plugin spec builders in multi-project builds with local and external plugins sharing package name`() {
 
         testPluginSpecBuildersInMultiProjectBuildWithPluginsFromPackage("p")

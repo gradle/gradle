@@ -15,14 +15,14 @@
  */
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.Test
 import spock.lang.Issue
 
 class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
     @Test
     @Issue("GRADLE-1415")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void canUseSelfResolvingFiles() {
         def buildFile = """
 apply plugin: "war"
@@ -46,7 +46,7 @@ dependencies {
 
     @Test
     @Issue("GRADLE-2526")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void overwritesDependentModules() {
         generateEclipseFilesForWebProject()
         def projectModules = parseComponentFile(project: "web")
@@ -66,7 +66,7 @@ dependencies {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void respectsDependencySubstitutionRules() {
         //given
         mavenRepo.module("gradle", "foo").publish()

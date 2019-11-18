@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionTest {
@@ -279,7 +279,7 @@ include 'consumer', 'producer'
         succeeds("resolve")
 
     }
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use defaultDependencies in a composite build"() {
         buildTestFixture.withBuildInSubDir()
         mavenRepo.module("org", "explicit-dependency", "3.4").publish()

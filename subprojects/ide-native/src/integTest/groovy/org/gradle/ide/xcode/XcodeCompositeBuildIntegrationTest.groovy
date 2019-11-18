@@ -17,7 +17,7 @@
 package org.gradle.ide.xcode
 
 import org.gradle.ide.xcode.fixtures.AbstractXcodeIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -25,7 +25,7 @@ import org.gradle.util.TestPrecondition
 @Requires(TestPrecondition.XCODE)
 class XcodeCompositeBuildIntegrationTest extends AbstractXcodeIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "creates workspace with Xcode project for each project in build"() {
         given:
         settingsFile << """

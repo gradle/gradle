@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
@@ -92,7 +92,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
      * of the daemon is different than the session id of the client.
      */
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "session id of daemon is different from daemon client"() {
         given:
         withGetSidProject()

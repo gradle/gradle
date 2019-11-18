@@ -18,7 +18,7 @@ package org.gradle.plugin.repository
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -69,7 +69,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can resolve plugin from #pathType #repoType repo"() {
         given:
         publishTestPlugin(repoType)
@@ -97,7 +97,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can access classes from plugin from #repoType repo"() {
         given:
         publishTestPlugin(repoType)
@@ -124,7 +124,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can apply plugin from #repoType repo to subprojects"() {
         given:
         publishTestPlugin(repoType)
@@ -152,7 +152,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "custom #repoType repo is not mentioned in plugin resolution errors if none is defined"() {
         given:
         publishTestPlugin(repoType)
@@ -174,7 +174,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
 
     @Unroll
     @Requires(TestPrecondition.ONLINE)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Fails gracefully if a plugin is not found in #repoType repo"() {
         given:
         publishTestPlugin(repoType)
@@ -205,7 +205,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Works with subprojects and relative #repoType repo specification."() {
         given:
         publishTestPlugin(repoType)
@@ -261,7 +261,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         output.contains('from plugin')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can resolve plugins even if buildscript block contains wrong repo with same name"() {
         given:
         publishTestPlugin(MAVEN)
@@ -288,7 +288,7 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
         output.contains("from plugin")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "Does not fall through to Plugin Portal if custom repo is defined"() {
         given:
         publishTestPlugin(MAVEN)

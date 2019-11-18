@@ -16,7 +16,7 @@
 
 package org.gradle.api.plugins.quality.checkstyle
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -45,7 +45,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         writeConfigFile()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "analyze good code"() {
         goodCode()
 
@@ -62,7 +62,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/test.html").assertContents(containsClass("org.gradle.TestClass2"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "supports fallback when configDirectory does not exist"() {
         goodCode()
         buildFile << """
@@ -89,7 +89,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
 
     @ToBeImplemented
     @Issue("GRADLE-3432")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "analyze bad resources"() {
         defaultLanguage('en')
         writeConfigFileForResources()
@@ -104,7 +104,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         // file("build/reports/checkstyle/main.html").assertContents(containsLine(containsString("bad.properties")))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "analyze bad code"() {
         defaultLanguage('en')
         badCode()
@@ -121,7 +121,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can suppress console output"() {
         def message = "Name 'class1' must match pattern"
 
@@ -146,7 +146,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can ignore failures"() {
         badCode()
         buildFile << """
@@ -169,7 +169,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can ignore maximum number of errors"() {
         badCode()
         buildFile << """
@@ -193,7 +193,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsClass("org.gradle.class2"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can fail on maximum number of warnings"() {
         given:
         writeConfigFileWithWarnings()
@@ -220,7 +220,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "is incremental"() {
         given:
         goodCode()
@@ -242,7 +242,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         executedAndNotSkipped(":checkstyleMain")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure reporting"() {
         given:
         goodCode()
@@ -261,7 +261,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("bar.html").exists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure the html report with a custom stylesheet"() {
         given:
         goodCode()
@@ -281,7 +281,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @Issue("GRADLE-3490")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "do not output XML report when only HTML report is enabled"() {
         given:
         goodCode()
@@ -303,7 +303,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         !file("build/tmp/checkstyleMain/main.xml").exists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "changes to files in configDirectory make the task out-of-date"() {
         given:
         goodCode()
@@ -321,7 +321,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         executedAndNotSkipped(":checkstyleMain")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can change built-in config_loc"() {
         given:
         goodCode()
@@ -348,7 +348,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         skipped(":checkstyleMain")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "behaves if config_loc is already defined"() {
         given:
         goodCode()
@@ -372,7 +372,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         defaultLanguage('en')

@@ -17,7 +17,7 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -25,7 +25,7 @@ import static org.hamcrest.CoreMatchers.containsString
 class ModelDslRuleDetectionIntegrationSpec extends AbstractIntegrationSpec {
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rules are detected when model path is a straight property reference chain - #path"() {
         given:
         def normalisedPath = path.replace('"', '').replaceAll("'", "")

@@ -17,12 +17,12 @@
 package org.gradle.jvm.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not create library or binaries when not configured"() {
         when:
         buildFile << '''
@@ -48,7 +48,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         !file("build").exists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "defines jvm library and binary model objects and lifecycle task"() {
         when:
         buildFile << '''
@@ -173,7 +173,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         file("build/bin/myJvmLibJar.bin").assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can specify additional builder tasks for binary"() {
         given:
         buildFile << '''
@@ -208,7 +208,7 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Constructing Jar 'myJvmLib:jar'")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define multiple jvm libraries in single project"() {
         when:
         buildFile << '''

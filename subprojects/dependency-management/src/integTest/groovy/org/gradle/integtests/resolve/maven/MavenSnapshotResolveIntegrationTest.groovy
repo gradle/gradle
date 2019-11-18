@@ -16,7 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
@@ -234,7 +234,7 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0-SNAPSHOT-tests.jar').assertHasNotChangedSince(snapshotA);
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "will detect changed snapshot artifacts when pom has not changed"() {
         buildFile << """
 repositories {
@@ -341,7 +341,7 @@ task retrieve(type: Sync) {
         run 'retrieve'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
         given:
         buildFile << """
@@ -413,7 +413,7 @@ task retrieve(type: Sync) {
     }
 
     @Issue("gradle/gradle#3019")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should honour changing module cache expiry for subsequent snapshot resolutions in the same build"() {
         given:
         buildFile << """
@@ -477,7 +477,7 @@ task resolveStaleThenFresh {
         file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
         buildFile << """
 repositories {
@@ -570,7 +570,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "avoid redownload unchanged artifact when no checksum available"() {
         given:
         buildFile << """
@@ -641,7 +641,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
     }
 
     @Issue("GRADLE-3017")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "resolves changed metadata in snapshot dependency"() {
         given:
         def projectB1 = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
@@ -716,7 +716,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reports and recovers from missing snapshot"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT")
@@ -765,7 +765,7 @@ Required by:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reports missing unique snapshot artifact"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
@@ -812,7 +812,7 @@ Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reports and recovers from broken maven-metadata.xml"() {
         given:
         def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
@@ -940,7 +940,7 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "applies conflict resolution when unique snapshot is referenced by timestamp"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -1012,7 +1012,7 @@ dependencies {
         file('libs').assertHasDescendants("projectA-1.0.jar")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

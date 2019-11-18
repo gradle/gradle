@@ -17,11 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rule can provide a managed model element backed by an abstract class that implements interfaces"() {
         when:
         buildScript '''
@@ -61,7 +61,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         output.contains("name: foo")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rule can provide a managed model element backed by an abstract class that extends other classes"() {
         when:
         buildScript '''
@@ -101,7 +101,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         output.contains("name: foo")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "managed model interface can extend other interface"() {
         when:
         buildScript '''
@@ -144,7 +144,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         output.contains("name: name, value: value")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can depend on managed super type as input and subject"() {
         when:
         buildScript '''
@@ -188,7 +188,7 @@ class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         output.contains("name: superclass")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "two managed types can extend the same parent"() {
         when:
         buildScript '''

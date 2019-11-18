@@ -16,7 +16,7 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 
 public class MixedNativeAndJvmProjectIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can combine legacy java and cpp plugins in a single project"() {
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
@@ -60,7 +60,7 @@ model {
         succeeds "checkBinaries"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can combine jvm and native components in the same project"() {
         buildFile << """
 plugins {
@@ -102,7 +102,7 @@ model {
     }
 
     @RequiresInstalledToolChain
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build mixed components in one project"() {
         given:
         file("src/jvmLib/java/org/gradle/test/Test.java") << """

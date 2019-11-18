@@ -17,7 +17,7 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
@@ -38,7 +38,7 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/definingUsingConfigurations/custom")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can declare and resolve custom configuration"() {
         setup:
         executer.inDirectory(sample.dir.file(dsl))

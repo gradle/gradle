@@ -19,7 +19,7 @@
 package org.gradle.integtests.resolve.caching
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 
 class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -121,7 +121,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractHttpDepen
         failure.assertResolutionFailure(":impl:conf").assertHasCause("Could not find org:lib:1.0")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cache expires at the end of build"() {
         given:
         ivyRepo.module("org", "dependency").publish()

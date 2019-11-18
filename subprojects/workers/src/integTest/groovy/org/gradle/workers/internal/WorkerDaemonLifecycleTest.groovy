@@ -16,7 +16,7 @@
 
 package org.gradle.workers.internal
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -135,7 +135,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "worker daemons are not reused when classpath changes"() {
         fixture.withWorkActionClassInBuildScript()
         buildFile << """
@@ -172,7 +172,7 @@ class WorkerDaemonLifecycleTest extends AbstractDaemonWorkerExecutorIntegrationS
         assertDifferentDaemonsWereUsed("runInWorker1", "runInWorker2")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "worker daemons are not reused when they fail unexpectedly"() {
         workerExecutorThatCanFailUnexpectedly.writeToBuildFile()
         buildFile << """

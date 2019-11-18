@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.strict
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -196,7 +196,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
    Constraint path ':test:unspecified' --> 'org:platform-b:1.0' --> 'org:foo:{strictly 2.0}'"""
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "a module from which strict versions are endorsed can itself be influenced by strict versions endorsed form elsewhere"() {
         given:
         repository {

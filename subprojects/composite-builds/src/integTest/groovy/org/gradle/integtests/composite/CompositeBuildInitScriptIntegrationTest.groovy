@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 /**
@@ -42,7 +42,7 @@ allprojects { project ->
         includedBuilds << buildB
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "passes init-script arg to included build"() {
         given:
         [buildA, buildB].each {
@@ -59,7 +59,7 @@ allprojects { project ->
         executed ":buildB:jar"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses conventional init-script in included build"() {
 
         given:

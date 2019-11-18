@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import spock.lang.Ignore
 import spock.lang.Unroll
@@ -70,7 +70,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "using compressed files as inputs - #source - readonly #readonly"() {
         given:
         def packDir = file("pack").createDir()

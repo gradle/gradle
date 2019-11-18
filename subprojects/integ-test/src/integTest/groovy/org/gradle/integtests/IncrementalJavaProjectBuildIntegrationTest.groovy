@@ -16,14 +16,14 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
 class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest {
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void removesStaleResources() {
         file('build.gradle') << 'apply plugin: \'java\''
         file('src/main/resources/org/gradle/resource.txt').createFile()
@@ -39,7 +39,7 @@ class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void doesNotRebuildJarIfSourceHasNotChanged() {
         // Use own home dir so we don't blast the shared one when we run with -C rebuild
         executer.requireOwnGradleUserHomeDir()

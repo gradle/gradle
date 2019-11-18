@@ -16,7 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 
 
@@ -122,7 +122,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         succeeds("log", "other")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "listener added to task receives logging for log level"() {
         buildFile << """
             def output = new CollectingListener()

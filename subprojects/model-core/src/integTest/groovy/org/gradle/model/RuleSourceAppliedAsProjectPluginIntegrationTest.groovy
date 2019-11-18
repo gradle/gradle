@@ -17,7 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class RuleSourceAppliedAsProjectPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -393,7 +393,7 @@ model {
         output.contains "value: configured"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rule can depend on a concrete task type"() {
         when:
         buildScript '''

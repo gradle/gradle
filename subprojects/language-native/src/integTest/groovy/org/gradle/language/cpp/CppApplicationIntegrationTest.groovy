@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppApp
@@ -60,7 +60,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         return new CppApp()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "skip compile, link and install tasks when no source"() {
         given:
         buildFile << """
@@ -74,7 +74,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         result.assertTasksSkipped(tasks.debug.allToInstall, ':assemble')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -95,7 +95,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "sources are compiled and linked with with C++ tools"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppCompilerDetectingTestApp()
@@ -116,7 +116,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/debug").exec().out == app.expectedOutput(toolChain)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can build debug and release variants of executable"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppAppWithOptionalFeature()
@@ -148,7 +148,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use executable file as task dependency"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -171,7 +171,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         executable("build/exe/main/debug/app").assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use objects as task dependency"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -195,7 +195,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         objectFiles(app.main)*.assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use installDirectory as task dependency"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -218,7 +218,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "ignores non-C++ source files in source directory"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -244,7 +244,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build logic can change source layout convention"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -273,7 +273,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build logic can add individual source files"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -306,7 +306,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build logic can change buildDir"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -330,7 +330,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("output/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build logic can define the base name"() {
         def app = new CppApp()
 
@@ -352,7 +352,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build logic can change task output locations"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppApp()
@@ -379,7 +379,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("build/some-app").exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against a library"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
@@ -410,7 +410,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against a library when specifying multiple target machines"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
@@ -514,7 +514,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         failure.assertHasErrorOutput("Required org.gradle.native.architecture '${currentArchitecture}' and found incompatible value 'foo'.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can directly depend on generated sources on includePath"() {
         settingsFile << "rootProject.name = 'app'"
 
@@ -555,7 +555,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         succeeds "compileDebug"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against a library with explicit target machine defined"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
@@ -635,7 +635,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
           - Required org.gradle.native.optimized 'false' but no value provided."""
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against a static library"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
@@ -668,7 +668,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against a library with both linkages defined"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibrary()
@@ -701,7 +701,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.assertIncludesLibraries("hello")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against a library with debug and release variants"() {
         settingsFile << "include 'app', 'hello'"
         def app = new CppAppWithLibraryAndOptionalFeature()
@@ -748,7 +748,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation("app/build/install/main/debug").exec().out == app.withFeatureDisabled().expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against library with api and implementation dependencies"() {
         settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
         def app = new CppAppWithLibrariesWithApiDependencies()
@@ -793,7 +793,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against a static library with api and implementation dependencies"() {
         settingsFile << "include 'app', 'deck', 'card', 'shuffle'"
         def app = new CppAppWithLibrariesWithApiDependencies()
@@ -841,7 +841,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         installation.exec().out == app.expectedOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "honors changes to library buildDir"() {
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
@@ -883,7 +883,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "honors changes to library output locations"() {
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
@@ -931,7 +931,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         file("app/build/install/main/debug/lib/lib1_debug.dll").assertIsFile()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "honors changes to library public header location"() {
         settingsFile << "include 'app', 'lib1', 'lib2'"
         def app = new CppAppWithLibraries()
@@ -980,7 +980,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/lib2").file.assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "multiple components can share the same source directory"() {
         settingsFile << "include 'app', 'greeter', 'logger'"
         def app = new CppAppWithLibraries()
@@ -1030,7 +1030,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         sharedLibrary("app/build/install/main/debug/lib/logger").file.assertExists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link against libraries in included builds"() {
         settingsFile << """
             rootProject.name = 'app'
@@ -1077,7 +1077,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "system headers are not evaluated when compiler warnings are enabled"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new CppCompilerDetectingTestApp()
@@ -1106,7 +1106,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/950")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can handle candidate header directory which happens to match an existing file"() {
         def app = new CppApp()
 

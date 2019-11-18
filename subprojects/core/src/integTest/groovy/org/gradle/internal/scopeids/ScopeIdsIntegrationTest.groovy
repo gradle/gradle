@@ -17,7 +17,7 @@
 package org.gradle.internal.scopeids
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.gradle.internal.scan.scopeids.BuildScanScopeIds
 import org.gradle.util.TextUtil
@@ -43,7 +43,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.lastBuildPaths() == [":", ":buildSrc"]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "composite participants inherit the same ids"() {
         when:
         settingsFile << """
@@ -71,7 +71,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.lastBuildPaths() == [":", ":a", ":a:buildSrc", ":b", ":b:buildSrc"]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "gradle-build builds with different root does not inherit workspace id"() {
         given:
         // GradleBuild launched builds with a different root dir
@@ -93,7 +93,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         ids[":"].workspace != ids[":other"].workspace
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "gradle-build builds with different gradle user home does not inherit user id"() {
         given:
         scopeIds.disableConsistentUserIdCheck = true
@@ -115,7 +115,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         ids[":"].user != ids[buildPaths[1]].user
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "gradle-build with same root and user dir inherits all"() {
         when:
         settingsFile << "rootProject.name = 'root'"
@@ -141,7 +141,7 @@ class ScopeIdsIntegrationTest extends AbstractIntegrationSpec {
         scopeIds.userIds.unique().size() == 1
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "changing gradle user home changes user id"() {
         when:
         file("build.gradle") << ""

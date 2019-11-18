@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.IgnoreIf
@@ -30,7 +30,7 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
     def project2 = javaLibrary(mavenRepo.module("org.gradle.test", "project2", "2.0"))
     def project3 = javaLibrary(mavenRepo.module("org.gradle.test", "project3", "3.0"))
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "project dependency correctly reflected in POM"() {
         createBuildScripts()
 
@@ -41,7 +41,7 @@ class MavenPublishMultiProjectIntegTest extends AbstractMavenPublishIntegTest {
         projectsCorrectlyPublished()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "project dependencies reference publication identity of dependent project"() {
         def project3 = javaLibrary(mavenRepo.module("changed.group", "changed-artifact-id", "changed"))
 
@@ -108,7 +108,7 @@ Found the following publications in project ':project3':
   - Maven publication 'extra' with coordinates extra.group:extra:extra"""
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "referenced project can have additional non-component publications"() {
         createBuildScripts("""
 project(":project3") {
@@ -128,7 +128,7 @@ project(":project3") {
         succeeds "publish"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "referenced project can have multiple additional publications that contain a child of some other publication"() {
         createBuildScripts("""
 // TODO - replace this with a public API when available
@@ -167,7 +167,7 @@ project(":project3") {
         project1.assertApiDependencies("org.gradle.test:project2:2.0", "custom:custom3:456")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "maven-publish plugin does not take archivesBaseName into account when publishing"() {
         createBuildScripts("""
 project(":project2") {
@@ -182,7 +182,7 @@ project(":project2") {
         projectsCorrectlyPublished()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "maven-publish plugin does not take mavenDeployer.pom.artifactId into account when publishing"() {
         executer.expectDeprecationWarning()
 
@@ -222,7 +222,7 @@ project(":project2") {
         return true
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "maven-publish plugin uses target project name for project dependency when target project does not have maven-publish plugin applied"() {
         executer.expectDeprecationWarning()
 
@@ -274,7 +274,7 @@ project(":project2") {
 
     @Issue("https://github.com/gradle/gradle-native/issues/867")
     @IgnoreIf({ GradleContextualExecuter.parallel })
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can resolve non-build dependencies while projects are configured in parallel"() {
         def parallelProjectCount = 20
         using m2
@@ -329,7 +329,7 @@ project(":project2") {
     }
 
     @Issue("GRADLE-3366")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "project dependency excludes are correctly reflected in pom when using maven-publish plugin"() {
         given:
         settingsFile << """
@@ -403,7 +403,7 @@ project(":project2") {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "publish and resolve java-library with dependency on java-platform (named #platformName)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()

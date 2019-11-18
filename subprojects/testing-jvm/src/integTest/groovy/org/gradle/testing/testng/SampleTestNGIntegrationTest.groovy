@@ -17,7 +17,7 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.UsesSample
@@ -35,7 +35,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test @UsesSample('testing/testng/suitexmlbuilder')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void suiteXmlBuilder() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
@@ -46,7 +46,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test @UsesSample('testing/testng/java-passing')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void javaPassing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 

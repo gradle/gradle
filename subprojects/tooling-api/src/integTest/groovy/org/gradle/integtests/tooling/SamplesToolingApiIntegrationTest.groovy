@@ -16,7 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.IntegrationTestHint
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
@@ -32,7 +32,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @UsesSample('toolingApi/eclipse')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use tooling API to build Eclipse model"() {
         tweakProject()
 
@@ -45,7 +45,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/runBuild/groovy')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use tooling API to run tasks"() {
         tweakProject()
 
@@ -57,7 +57,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/idea')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use tooling API to build IDEA model"() {
         tweakProject()
 
@@ -69,7 +69,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/model')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use tooling API to build general model"() {
         tweakProject()
 
@@ -82,7 +82,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @UsesSample('toolingApi/customModel')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use tooling API to register custom model"() {
         tweakPluginProject(sample.dir.file('plugin'))
         tweakProject(sample.dir.file('tooling'))

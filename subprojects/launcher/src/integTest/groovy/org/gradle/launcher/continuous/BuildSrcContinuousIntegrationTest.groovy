@@ -16,7 +16,7 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
 
@@ -31,7 +31,7 @@ class BuildSrcContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
         succeeds("help")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can build and reload a project with buildSrc when buildSrc changes"() {
         when:
         buildScript """

@@ -17,7 +17,7 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -145,7 +145,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "input reference can be used as expression statement - #syntax"() {
         when:
         buildScript """
@@ -207,7 +207,7 @@ tasks configured
         ]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "path for dollar var expression ends with first non-property reference"() {
         when:
         buildScript '''
@@ -266,7 +266,7 @@ tasks configured
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dollar method is only detected with no explicit receiver - #code"() {
         when:
         buildScript """
@@ -300,7 +300,7 @@ tasks configured
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dollar var is only detected with no explicit receiver - #code"() {
         when:
         buildScript """
@@ -428,7 +428,7 @@ cl.call()
         failure.assertThatCause(containsString("Model element name ' bar' has illegal first character ' ' (names must start with an ASCII letter or underscore)."))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "location and suggestions are provided for unbound rule subject specified using a name"() {
         given:
         buildScript '''
@@ -477,7 +477,7 @@ cl.call()
 ''')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "location and suggestions are provided for unbound rule inputs specified using a name"() {
         given:
         buildScript '''
@@ -521,7 +521,7 @@ cl.call()
     }
 
     // This is temporary. Will be closed once more progress on DSL has been made
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can access project and script from rule"() {
         when:
         buildScript """

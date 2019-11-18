@@ -19,7 +19,7 @@ package org.gradle.integtests.resolve.transform
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationType
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.file.FileType
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -218,7 +218,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "applies transforms to artifacts from local projects matching on implicit format attribute"() {
         given:
         buildFile << """
@@ -276,7 +276,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "applies transforms to artifacts from local projects, files and external dependencies"() {
         def dependency = mavenRepo.module("test", "test-dependency", "1.3").publish()
         dependency.artifactFile.text = "dependency"
@@ -357,7 +357,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 7
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "applies transforms to artifacts from local projects matching on explicit format attribute"() {
         given:
         buildFile << """
@@ -415,7 +415,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not apply transform to variants with requested implicit format attribute"() {
         given:
         buildFile << """
@@ -465,7 +465,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not apply transforms to artifacts from local projects matching requested format attribute"() {
         given:
         buildFile << """
@@ -516,7 +516,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "applies transforms to artifacts from local projects matching on some variant attributes"() {
         given:
         buildFile << """
@@ -621,7 +621,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "applies chain of transforms to artifacts from local projects matching on some variant attributes"() {
         given:
         buildFile << """
@@ -751,7 +751,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         output.count("Transforming") == 0
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "transforms can be applied to multiple files with the same name"() {
         given:
         buildFile << """
@@ -1290,7 +1290,7 @@ Found the following transforms:
         output.count("Transforming") == 0
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "transforms are created as required and a new instance created for each file"() {
         given:
         buildFile << """
@@ -1378,7 +1378,7 @@ Found the following transforms:
         outputContains("files: [jar1.jar.txt, jar2.jar.txt]")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when a transform throws exception and continues with other inputs"() {
         given:
         buildFile << """
@@ -1427,7 +1427,7 @@ Found the following transforms:
         outputContains("files: [b.jar]")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when a transform input cannot be downloaded and proceeds with other inputs"() {
         def m1 = ivyHttpRepo.module("test", "test", "1.3")
             .artifact(type: 'jar', name: 'test-api')
@@ -1517,7 +1517,7 @@ Found the following transforms:
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when null is registered via outputs.#method"() {
         given:
         buildFile << """
@@ -1550,7 +1550,7 @@ Found the following transforms:
         method << ['dir', 'file']
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when transform returns a non-existing file"() {
         given:
         buildFile << """
@@ -1587,7 +1587,7 @@ Found the following transforms:
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when transform registers a #type output via #method"() {
         given:
         buildFile << """
@@ -1694,7 +1694,7 @@ Found the following transforms:
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "directories are not created for output #method which is part of the input"() {
         given:
         buildFile << """
@@ -1741,7 +1741,7 @@ Found the following transforms:
         method << ["file", "dir"]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when transform returns a file that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -1774,7 +1774,7 @@ Found the following transforms:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when transform registers an output that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -1815,7 +1815,7 @@ Found the following transforms:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "user gets a reasonable error message when transform cannot be instantiated"() {
         given:
         buildFile << """
@@ -1848,7 +1848,7 @@ Found the following transforms:
         failure.assertHasCause("broken")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "collects multiple failures"() {
         def m1 = mavenHttpRepo.module("test", "a", "1.3").publish()
         def m2 = mavenHttpRepo.module("test", "broken", "2.0").publish()
@@ -1972,7 +1972,7 @@ Found the following transforms:
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
         mavenRepo.module("test", "a", "1.3").publish()
         settingsFile << "include 'lib'"
@@ -2093,7 +2093,7 @@ Found the following transforms:
         outputContains("ids: [out-foo.txt (test:test:1.3), out-bar.txt (test:test:1.3)]")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "transform runs only once even when variant is consumed from multiple projects"() {
         given:
         settingsFile << """
@@ -2241,7 +2241,7 @@ Found the following transforms:
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "notifies transform listeners and build operation listeners on failed execution"() {
         def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
@@ -2302,7 +2302,7 @@ Found the following transforms:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6156")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "stops resolving dependencies of task when artifact transforms are encountered"() {
         given:
         buildFile << """

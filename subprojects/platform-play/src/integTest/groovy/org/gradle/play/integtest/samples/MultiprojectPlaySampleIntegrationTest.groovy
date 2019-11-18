@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.samples
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.junit.Rule
@@ -51,7 +51,7 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
         return new File(playSample.dir, "modules/${module}/public/${asset}")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can run module subproject independently" () {
         when:
         executer.usingInitScript(initScript)

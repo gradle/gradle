@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependencyResolutionTest {
@@ -311,7 +311,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         failure.assertHasCause("Could not get resource '${module.pom.uri}'")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not download anything when task dependencies are calculated for configuration that is used as a task input"() {
         def module = mavenHttpRepo.module("test", "test", "1.0").publish()
         buildFile << """
@@ -354,7 +354,7 @@ class ConfigurationBuildDependenciesIntegrationTest extends AbstractHttpDependen
         executed ":child:jar", ":useCompileConfiguration"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not download artifacts when task dependencies are calculated for configuration that is used as a task input when using fluid dependencies"() {
         def module = mavenHttpRepo.module("test", "test", "1.0").publish()
         makeFluid(true)

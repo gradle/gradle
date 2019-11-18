@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.platforms
 
 import org.gradle.api.JavaVersion
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -33,7 +33,7 @@ import static org.gradle.util.TextUtil.escapeString
     ]
 )
 class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "publishes a platform with native alignment"() {
         settingsFile << """
             rootProject.name = 'root'

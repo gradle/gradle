@@ -17,7 +17,7 @@ package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec {
 
@@ -55,7 +55,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can request non-core plugin already applied to parent project"() {
 
         given:
@@ -84,7 +84,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can request non-core plugin already applied to grand-parent project"() {
 
         given:
@@ -115,7 +115,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a:b'")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can request non-core plugin already requested on parent project but not applied"() {
 
         given:
@@ -144,7 +144,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can request non-core plugin already on the classpath when a plugin resolution strategy sets a version"() {
 
         given:
@@ -174,7 +174,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can request plugin from TestKit injected classpath"() {
 
         given:
@@ -191,7 +191,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         succeeds "test"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cannot request plugin version of plugin already requested on parent project"() {
 
         given:
@@ -239,7 +239,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         failureHasCause("Plugin request for plugin already on the classpath must not include a version")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cannot request plugin version of plugin from TestKit injected classpath"() {
 
         given:

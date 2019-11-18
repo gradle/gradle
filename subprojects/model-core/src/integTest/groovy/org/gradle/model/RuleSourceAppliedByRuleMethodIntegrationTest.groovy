@@ -17,7 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.base.LanguageSourceSet
 
 class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSpec {
@@ -247,7 +247,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         output.contains("p1 = default")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "elements referenced by @RuleInput property are treated as implicit input of rules on RuleSource"() {
         buildFile << '''
             @Managed
@@ -326,7 +326,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         output.contains("thingC = thing c from rule")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "element referenced by @RuleTarget property is treated as target of RuleSource"() {
         buildFile << '''
             @Managed
@@ -495,7 +495,7 @@ class RuleSourceAppliedByRuleMethodIntegrationTest extends AbstractIntegrationSp
         failure.assertHasCause("broken")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "@Rules method is not executed when target is not required"() {
         buildFile << '''
             class MyPlugin extends RuleSource {

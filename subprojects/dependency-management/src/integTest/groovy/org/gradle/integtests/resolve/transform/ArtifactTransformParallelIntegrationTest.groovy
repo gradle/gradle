@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -129,7 +129,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming test3-3.3.jar to test3-3.3.jar.txt")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "transformations are applied in parallel for project artifacts"() {
         given:
         settingsFile << """
@@ -333,7 +333,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         outputContains("Transforming b.jar to b.jar.txt")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "failures are collected from transformations applied parallel"() {
         given:
         buildFile << """
@@ -370,7 +370,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         failure.assertHasCause("Failed to transform bad-c.jar to match attributes {artifactType=size}")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "only one transformer execution per workspace"() {
 
         settingsFile << """
@@ -419,7 +419,7 @@ class ArtifactTransformParallelIntegrationTest extends AbstractDependencyResolut
         handle.waitForFinish()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "only one process can run immutable transforms at the same time"() {
         given:
         List<BuildTestFile> builds = (1..3).collect { idx ->

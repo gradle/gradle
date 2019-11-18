@@ -17,7 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
@@ -64,7 +64,7 @@ class JavaAnnotationProcessingCompileAvoidanceIntegrationTest extends AbstractIn
         '''
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not rebuild project when upstream project has not changed, only rebuilt"() {
         given:
         succeeds(":a:assemble")

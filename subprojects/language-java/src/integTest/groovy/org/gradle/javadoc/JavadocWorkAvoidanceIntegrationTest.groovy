@@ -17,7 +17,7 @@
 package org.gradle.javadoc
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -60,7 +60,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
         '''
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not regenerate javadoc when the upstream jar is just rebuilt without changes"() {
         given:
         succeeds(":a:javadoc")
@@ -170,7 +170,7 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             ":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "duplicates in an upstream jar are not ignored"() {
         given:
         file("a/build.gradle") << '''

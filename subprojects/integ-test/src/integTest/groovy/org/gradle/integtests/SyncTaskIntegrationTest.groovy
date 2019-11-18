@@ -17,7 +17,7 @@ package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -397,7 +397,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "change in case of input file will sync properly"() {
         given:
         def uppercaseFile = file('FILE.TXT')
@@ -428,7 +428,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9586")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "change in case of input folder will sync properly"() {
         given:
         def uppercaseDir = file('DIR')

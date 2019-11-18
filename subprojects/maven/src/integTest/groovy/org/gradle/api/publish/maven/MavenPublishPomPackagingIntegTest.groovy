@@ -16,14 +16,14 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import spock.lang.Issue
 
 class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses 'pom' packaging when no artifact is unclassified"() {
         given:
         createBuildScripts """
@@ -41,7 +41,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertArtifactsPublished("publishTest-1.9-custom.txt", "publishTest-1.9.pom")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses 'pom' packaging where multiple artifacts are unclassified"() {
         given:
         createBuildScripts """
@@ -60,7 +60,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertArtifactsPublished("publishTest-1.9.txt", "publishTest-1.9.rtf", "publishTest-1.9.pom")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses extension of single unclassified artifact as pom packaging"() {
         given:
         createBuildScripts """
@@ -77,7 +77,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3211")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can specify packaging when no artifact is unclassified"() {
         given:
         createBuildScripts """
@@ -98,7 +98,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3211")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can set packaging to the extension of an unclassified artifact"() {
         given:
         createBuildScripts """
@@ -119,7 +119,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-3211")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can override packaging with single unclassified artifact"() {
         given:
         createBuildScripts """
@@ -139,7 +139,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertArtifactsPublished("publishTest-1.9.txt", "publishTest-1.9.pom")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can specify packaging for known jar packaging without changing artifact extension"() {
         given:
         createBuildScripts """
@@ -159,7 +159,7 @@ class MavenPublishPomPackagingIntegTest extends AbstractMavenPublishIntegTest {
         mavenModule.assertArtifactsPublished("publishTest-1.9.jar", "publishTest-1.9.pom")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can specify packaging with multiple unclassified artifacts"() {
         given:
         createBuildScripts """

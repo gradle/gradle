@@ -22,7 +22,7 @@ import org.gradle.api.tasks.OutputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import javax.annotation.Nullable
@@ -245,7 +245,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor UNKNOWN, "Cacheability was not determined"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cacheability for a cacheable task that's up-to-date"() {
         buildFile << """
             task cacheable(type: Cacheable)
@@ -263,7 +263,7 @@ class TaskCacheabilityReasonIntegrationTest extends AbstractIntegrationSpec impl
         assertCachingDisabledFor null, null
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cacheability for a non-cacheable task that's up-to-date"() {
         buildFile << """
             task notcacheable(type: NotCacheable)

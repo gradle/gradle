@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.api.logging.configuration.ConsoleOutput
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import spock.lang.Unroll
 
@@ -145,7 +145,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not show transformation headers when there is no output for #type console"() {
         consoleType = type
 
@@ -159,7 +159,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does show transformation headers when there is output for #type console"() {
         consoleType = type
 
@@ -172,7 +172,7 @@ class TransformationLoggingIntegrationTest extends AbstractConsoleGroupedTaskFun
         type << TESTED_CONSOLE_TYPES
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "each step is logged separately"() {
         consoleType = ConsoleOutput.Plain
 

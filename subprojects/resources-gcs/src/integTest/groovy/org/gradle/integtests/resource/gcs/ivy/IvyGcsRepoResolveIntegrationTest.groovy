@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resource.gcs.ivy
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.resolve.ivy.AbstractIvyRemoteRepoResolveIntegrationTest
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
@@ -44,7 +44,7 @@ class IvyGcsRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInteg
         result = executer.withTasks(*tasks).run()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cannot add invalid authentication types for gcs repo"() {
         given:
         def remoteIvyRepo = server.getRemoteIvyRepo()

@@ -20,7 +20,7 @@ import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDepe
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Unroll
 
@@ -141,7 +141,7 @@ class ResolveConfigurationRepositoriesBuildOperationIntegrationTest extends Abst
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "repositories shared across repository container types are stable"() {
         setup:
         publishTestPlugin('plugin', 'org.example.plugin', 'org.example.plugin:plugin:1.0')

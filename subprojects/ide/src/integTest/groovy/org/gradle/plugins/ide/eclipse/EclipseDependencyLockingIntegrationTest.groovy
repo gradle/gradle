@@ -16,13 +16,13 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.Test
 
 class EclipseDependencyLockingIntegrationTest extends AbstractEclipseIntegrationTest {
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "does not break when lockfile is out of date"() {
         //given
         def mvnRepo = maven(file("repo"))
@@ -59,7 +59,7 @@ dependencies {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "does not break when extra dependency not in lockfile is defined"() {
         //given
         def mvnRepo = maven(file("repo"))

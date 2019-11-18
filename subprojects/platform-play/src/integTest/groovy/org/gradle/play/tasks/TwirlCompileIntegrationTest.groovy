@@ -16,7 +16,7 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.play.integtest.fixtures.PlayMultiVersionIntegrationTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.VersionNumber
@@ -68,7 +68,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         "html" | 'HtmlFormat'       | '@(username: String) <html> <body> <h1>Hello @username</h1> </body> </html>'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile custom Twirl templates"() {
         given:
         twirlTemplate("test.scala.csv") << """
@@ -109,7 +109,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         result.assertTasksNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can specify additional imports for a Twirl template"() {
         given:
         withTwirlTemplate()
@@ -163,7 +163,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         generatedFile.assertContents(containsString("import my.pkg.MyClass"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "runs compiler incrementally"() {
         when:
         withTwirlTemplate("input1.scala.html")
@@ -198,7 +198,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         destinationDir.assertHasDescendants("html/input1.template.scala")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "removes stale output files in incremental compile"(){
         given:
         withTwirlTemplate("input1.scala.html")
@@ -247,7 +247,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
             .containsDescendants("views/html/index.class", "templates/html/other.class", "html/extra.class")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can build twirl source set with default Java imports" () {
         withTwirlJavaSourceSets()
         withTemplateSourceExpectingJavaImports(file("twirlJava", "javaTemplate.scala.html"))
@@ -283,7 +283,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
             .containsDescendants("html/javaTemplate.class", "views/html/index.class")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "twirl source sets default to Scala imports" () {
         withTemplateSource(file("app", "views", "index.scala.html"))
         validateThatPlayJavaDependencyIsNotAdded()

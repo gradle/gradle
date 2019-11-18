@@ -16,7 +16,7 @@
 package org.gradle.nativeplatform
 
 import org.gradle.api.reporting.model.ModelReportOutput
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
@@ -34,7 +34,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
         settingsFile << "rootProject.name = 'test'"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "skips building executable binary with no source"() {
         given:
         buildFile << """
@@ -53,7 +53,7 @@ model {
         executable("build/binaries/mainExecutable/main").assertDoesNotExist()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "assemble task constructs all buildable binaries"() {
         given:
         new CHelloWorldApp().writeSources(file("src/main"))
@@ -92,7 +92,7 @@ model {
         executable("build/exe/main/unknown/main").assertDoesNotExist()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "assemble task produces sensible error when there are no buildable binaries" () {
         buildFile << """
 apply plugin: 'c'
@@ -140,7 +140,7 @@ model {
               - Don't know how to build for platform 'unknown'.""")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "assemble executable from component with multiple language source sets"() {
         given:
         useMixedSources()
@@ -175,7 +175,7 @@ model {
         executable("build/exe/main/main").exec().out == helloWorldApp.englishOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "assemble executable binary directly from language source sets"() {
         given:
         useMixedSources()
@@ -253,7 +253,7 @@ model {
         helloWorldApp.writeSources(file("src/test"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build fails when link executable fails"() {
         given:
         buildFile << """
@@ -278,7 +278,7 @@ model {
         failure.assertThatCause(containsText("Linker failed while linking ${exeName}"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build fails when link library fails"() {
         given:
         buildFile << """
@@ -312,7 +312,7 @@ model {
         failure.assertThatCause(containsText("Linker failed while linking ${libName}"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build fails when create static library fails"() {
         given:
         buildFile << """
@@ -347,7 +347,7 @@ model {
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "installed executable receives command-line parameters"() {
         buildFile << """
 apply plugin: 'c'

@@ -16,7 +16,7 @@
 
 package org.gradle.plugins.ide.idea
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.junit.Rule
@@ -27,7 +27,7 @@ class ConfigurationHooksIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void triggersBeforeAndWhenConfigurationHooks() {
 
         //this test is a bit peculiar as it has assertions inside the gradle script
@@ -70,7 +70,7 @@ tasks.idea {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void whenHooksApplyChangesToGeneratedFile() {
         //when
         runIdeaTask '''

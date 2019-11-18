@@ -16,7 +16,7 @@
 
 package org.gradle.language.assembler
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -67,7 +67,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
 
     // TODO wolfs: ignored for now, see https://github.com/gradle/gradle/issues/11263
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does not re-execute build with no change"() {
         when:
         run "mainExecutable"
@@ -77,7 +77,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reassembles binary with assembler option change"() {
         when:
         buildFile << """
@@ -106,7 +106,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
     }
 
     @Requires([TestPrecondition.NOT_WINDOWS, TestPrecondition.CAN_INSTALL_EXECUTABLE])
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reassembles binary with target platform change"() {
         when:
         buildFile.text = buildFile.text.replace("i386", "x86-64")
@@ -119,7 +119,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         // Need to have valid x86-64 sources, so that we can verify the output: currently we're producing a binary that won't work on x86-64
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cleans up stale object files when source file renamed"() {
         def oldObjFile = objectFileFor(asmSourceFile, "build/objs/hello/shared/helloAsm")
         def newObjFile = objectFileFor(file('src/hello/asm/changed_sum.s'), "build/objs/hello/shared/helloAsm")
@@ -138,7 +138,7 @@ class AssemblyLanguageIncrementalBuildIntegrationTest extends AbstractInstalledT
         newObjFile.file
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reassembles binary with source comment change"() {
         when:
         asmSourceFile << "# A comment at the end of the file\n"

@@ -17,10 +17,10 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ManagedTypeDslIntegrationTest extends AbstractIntegrationSpec {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure a child of a managed type using a nested closure syntax"() {
         buildFile << '''
 @Managed interface Person extends Named {
@@ -59,7 +59,7 @@ model {
         output.contains("barry lives in Melbourne")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use convenience methods to configure property of scalar type"() {
         buildFile << '''
 @Managed interface Thing {

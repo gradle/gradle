@@ -17,7 +17,7 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.GUtil
 
@@ -37,7 +37,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         """
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "has default conventions"() {
         buildFile << """
             task assertHasTestKit() {
@@ -53,7 +53,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         result.assertTaskExecuted(":pluginDescriptors")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "wires creation of plugin under test metadata into build lifecycle"() {
         given:
         def module = mavenRepo.module('org.gradle.test', 'a', '1.3').publish()
@@ -69,7 +69,7 @@ class JavaGradlePluginPluginTestKitSetupIntegrationTest extends AbstractIntegrat
         assertHasImplementationClasspath(pluginMetadata, expectedClasspath)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can configure plugin and test source set by extension"() {
         given:
         buildFile << """

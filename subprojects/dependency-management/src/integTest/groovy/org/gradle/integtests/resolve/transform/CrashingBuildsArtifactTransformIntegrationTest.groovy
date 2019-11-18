@@ -17,10 +17,10 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CrashingBuildsArtifactTransformIntegrationTest extends AbstractDependencyResolutionTest {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cleans up cached output after build process crashes during transform"() {
         given:
         buildFile << """

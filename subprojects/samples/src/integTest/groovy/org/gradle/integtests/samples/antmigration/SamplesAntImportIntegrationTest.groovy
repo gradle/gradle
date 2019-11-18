@@ -17,7 +17,7 @@
 package org.gradle.integtests.samples.antmigration
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
@@ -34,7 +34,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("userguide/antMigration/importBuild")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can import an Ant build and reconfigure its tasks (#dsl)"() {
         given: "A sample project with an Ant build"
         def dslDir = sample.dir.file(dsl)
@@ -75,7 +75,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("userguide/antMigration/fileDeps")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can use task properties to link tasks (#dsl)"() {
         given: "A sample Java project"
         def dslDir = sample.dir.file(dsl)
@@ -93,7 +93,7 @@ class SamplesAntImportIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("userguide/antMigration/multiProject")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can link projects in a multi-project build via task dependencies (#dsl)"() {
         given: "A sample multi-project build"
         def dslDir = sample.dir.file(dsl)

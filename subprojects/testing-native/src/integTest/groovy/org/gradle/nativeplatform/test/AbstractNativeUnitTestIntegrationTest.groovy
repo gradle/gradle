@@ -16,7 +16,7 @@
 
 package org.gradle.nativeplatform.test
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.LanguageTaskNames
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -27,7 +27,7 @@ import spock.lang.Unroll
 import static org.gradle.nativeplatform.MachineArchitecture.*
 
 abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements LanguageTaskNames {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "does nothing when no source files are present"() {
         given:
         makeSingleProject()
@@ -41,7 +41,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "runs tests when #task lifecycle task executes"() {
         given:
         makeSingleProject()
@@ -63,7 +63,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
 
     @Unroll
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "runs tests when #task lifecycle task executes and target machines are specified on the component under test"() {
         Assume.assumeFalse(componentUnderTestDsl == null)
 
@@ -89,7 +89,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
 
     @Unroll
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "runs tests when #task lifecycle task executes and target machines are specified on both main component and test component"() {
         Assume.assumeFalse(componentUnderTestDsl == null)
 
@@ -114,7 +114,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "runs tests when #task lifecycle task executes and target machines are specified on the test component only"() {
         given:
         makeSingleProject()
@@ -153,7 +153,7 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         failure.assertHasCause("The target machine ${currentOsFamilyName}:${otherArchitecture} was specified for the unit test, but this target machine was not specified on the component under test.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "skips test tasks as up-to-date when nothing changes between invocation"() {
         given:
         makeSingleProject()

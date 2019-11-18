@@ -16,7 +16,7 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.gradle.integtests.fixtures.FailsWithInstantExecution;
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution;
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.junit.Ignore;
@@ -27,7 +27,7 @@ import static org.junit.Assert.fail;
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void providesADefaultBuildForBuildSrcProject() {
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
         testFile("build.gradle").writelns("new BuildClass()");
@@ -35,7 +35,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void canExtendTheDefaultBuildForBuildSrcProject() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile("org/gradle/test/DepClass.java").writelns(
@@ -53,7 +53,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void buildSrcProjectCanReferToSourceOutsideBuildSrcDir() {
         testFile("gradle/src/BuildClass.java").writelns("public class BuildClass { }");
         testFile("buildSrc/build.gradle").writelns(
@@ -73,7 +73,7 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void gradleImplementationClassesDoNotLeakOntoBuildScriptClassPathWhenUsingBuildSrc() {
         testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
 

@@ -19,7 +19,7 @@ package org.gradle.internal.operations.logging
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.operations.LogEventBuildOperationProgressDetails
 import org.gradle.internal.logging.events.operations.ProgressStartBuildOperationProgressDetails
@@ -49,7 +49,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
 
     def operations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "captures output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()
@@ -234,7 +234,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked(':buildSrc')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "captures output from composite builds"() {
         given:
         configureNestedBuild()
@@ -252,7 +252,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         assertNestedTaskOutputTracked()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "captures output from GradleBuild task builds"() {
         given:
         configureNestedBuild()

@@ -18,7 +18,7 @@ package org.gradle.javadoc
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
     @NotYetImplemented
@@ -59,7 +59,7 @@ class JavadocFileEncodingIntegrationTest extends AbstractIntegrationSpec {
 
     // Simplified version of the above.
     @NotYetImplemented
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "file.encoding impacts task implementation"() {
         buildFile << """
             class WriteString extends DefaultTask {

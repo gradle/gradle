@@ -18,7 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -232,7 +232,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         file("out.txt").text == "in.txt"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task @InputFiles file collection closure is called once only when task executes"() {
         taskTypeWithInputFileCollection()
         buildFile << """
@@ -253,7 +253,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         output.count("calculating value") == 2 // once for task dependency calculation, once for task execution
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task @InputFiles file collection provider is called once only when task executes"() {
         taskTypeWithInputFileCollection()
         buildFile << """

@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.rules
 
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -53,7 +53,7 @@ task resolve {
         new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can access Ivy metadata"() {
         given:
         repository {
@@ -201,7 +201,7 @@ resolve.doLast { assert IvyRule.ruleInvoked }
         identifier << Identifier.all
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rule that doesn't initially access Ivy metadata can be changed to get access at any time"() {
         given:
         repository {
@@ -263,7 +263,7 @@ resolve.doLast { assert ruleInvoked }
         succeeds 'resolve'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "changed Ivy metadata becomes visible once module is refreshed"() {
         def baseScript = buildFile.text
 

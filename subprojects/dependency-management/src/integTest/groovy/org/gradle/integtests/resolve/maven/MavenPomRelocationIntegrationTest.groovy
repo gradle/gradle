@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -110,7 +110,7 @@ class MavenPomRelocationIntegrationTest extends AbstractHttpDependencyResolution
         file("compileClasspath").assertHasDescendants("artifactC-1.0.jar")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fails to resolve module if published artifact does not exist with relocated coordinates"() {
         given:
         def original = publishPomWithRelocation('groupA', 'artifactA', 'notExist', 'notExist')

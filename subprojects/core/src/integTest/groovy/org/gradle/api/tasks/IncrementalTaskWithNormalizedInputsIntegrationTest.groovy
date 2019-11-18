@@ -18,7 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.TextUtil
 import org.gradle.work.InputChanges
 import spock.lang.Issue
@@ -30,7 +30,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
     private static final String INCREMENTAL_TASK_NAME = "incrementalTask"
 
     @Issue("https://github.com/gradle/gradle/issues/9320")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "incremental task with NAME_ONLY input (matching file names and content) detects changed input (type: #taskChangeType.simpleName)"() {
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
         def modifiedInput = inputs[1]
@@ -58,7 +58,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9320")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "incremental task with NAME_ONLY input (matching file names and content) detects moved files (type: #taskChangeType.simpleName)"() {
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
         def movableInput = inputs[1]
@@ -84,7 +84,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9320")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "incremental task with NAME_ONLY inputs (matching file names and content) detects deleted file (type: #taskChangeType.simpleName)"() {
         def inputs = folderNames().collect { file("${it}/input.txt").createFile() }
 

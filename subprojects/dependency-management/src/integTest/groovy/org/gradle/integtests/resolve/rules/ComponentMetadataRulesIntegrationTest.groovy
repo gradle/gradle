@@ -15,7 +15,7 @@
  */
 package org.gradle.integtests.resolve.rules
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -124,7 +124,7 @@ dependencies {
         succeeds 'resolve'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "changes made by a rule are not cached"() {
         repository {
             'org.test:projectA:1.0'()
@@ -337,7 +337,7 @@ dependencies {
     @RequiredFeatures(
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     )
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "rule that accepts IvyModuleDescriptor isn't invoked for Maven component"() {
         given:
         repository {

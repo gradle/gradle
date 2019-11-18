@@ -17,7 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
@@ -28,7 +28,7 @@ import static org.gradle.util.TextUtil.normaliseLineSeparators
 class JavaLanguageDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can resolve #scope level dependency on local library"() {
         given:
         applyJavaPlugin(buildFile)
@@ -55,7 +55,7 @@ model {
         scope << DependencyScope.values()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define a dependency on the same library"() {
         given:
         applyJavaPlugin(buildFile)
@@ -131,7 +131,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should fail if library doesn't exist (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
@@ -165,7 +165,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can resolve #scope level dependency on a different project library"() {
         given:
         applyJavaPlugin(buildFile)
@@ -215,7 +215,7 @@ model {
         scope << DependencyScope.values()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should fail if project doesn't exist"() {
         given:
         applyJavaPlugin(buildFile)
@@ -262,7 +262,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should fail if project exists but not library (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
@@ -313,7 +313,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should display the list of candidate libraries in case a library is not found (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
@@ -365,7 +365,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can resolve #scope level dependencies on a different projects"() {
         given:
         applyJavaPlugin(buildFile)
@@ -424,7 +424,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should fail and display the list of candidate libraries in case a library is required but multiple candidates available (#scope)"() {
         given:
         applyJavaPlugin(buildFile)
@@ -475,7 +475,7 @@ model {
         scope << DependencyScope.values()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should fail and display a sensible error message if target project doesn't define any library"() {
         given:
         applyJavaPlugin(buildFile)
@@ -515,7 +515,7 @@ model {
         failure.assertHasCause("Project ':dep' doesn't define any library.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should fail and display a sensible error message if target project doesn't use new model"() {
         given:
         applyJavaPlugin(buildFile)
@@ -556,7 +556,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "compile classpath for #mainScope dependency #excludesOrIncludes transitive #libScope dependency"() {
         given:
         applyJavaPlugin(buildFile)
@@ -640,7 +640,7 @@ model {
         excludesOrIncludes = libScope == DependencyScope.API ? 'includes' : 'excludes'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dependency resolution should be limited to the scope of the API of a single project"() {
         given: "project 'a' depending on project 'b' depending itself on project 'c' but 'c' doesn't exist"
         applyJavaPlugin(buildFile)
@@ -736,7 +736,7 @@ model {
         failure.assertHasCause(/Project ':c' not found./)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "classpath for sourceset excludes transitive sourceset jar if no explicit library name is used"() {
         given:
         applyJavaPlugin(buildFile)
@@ -817,7 +817,7 @@ model {
         executedAndNotSkipped ':c:mainApiJar', ':b:mainApiJar'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fails if a dependency does not provide any JarBinarySpec"() {
         given:
         applyJavaPlugin(buildFile)
@@ -859,7 +859,7 @@ model {
         failure.assertHasCause("Project ':' contains a library named 'zdep' but it doesn't have any binary of type JvmBinarySpec")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "successfully selects a JVM library if no library name is provided and 2 components are available"() {
         given:
         applyJavaPlugin(buildFile)
@@ -909,7 +909,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should choose appropriate Java variants for #scope level dependency"() {
         given:
         applyJavaPlugin(buildFile)
@@ -958,7 +958,7 @@ model {
         scope << DependencyScope.values()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should fail because multiple binaries match for the same variant"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1023,7 +1023,7 @@ model {
         ))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should display reasonable error messages in case of multiple binaries available or no compatible variant is found"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1101,7 +1101,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should choose matching variants from #scope level dependency"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1149,7 +1149,7 @@ model {
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should not choose higher version than available"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1201,7 +1201,7 @@ model {
         succeeds 'mainJava8Jar'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should display candidate platforms if no one matches"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1245,7 +1245,7 @@ model {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "should display candidate platforms if no one matches and multiple binaries are defined"() {
         given:
         applyJavaPlugin(buildFile)
@@ -1304,7 +1304,7 @@ model {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "collects all errors if there's more than one resolution failure for #scope level dependencies"() {
         given:
         applyJavaPlugin(buildFile)

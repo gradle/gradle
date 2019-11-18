@@ -16,11 +16,11 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class IvyChangingModuleRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "detects changed module descriptor when flagged as changing"() {
         given:
         buildFile << """
@@ -81,7 +81,7 @@ task retrieve(type: Copy) {
         file('build').assertHasDescendants('projectA-1.1.jar', 'other-1.1.jar', 'projectB-2.0.jar')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can mark a module as changing after first retrieval"() {
         given:
         buildFile << """
@@ -130,7 +130,7 @@ task retrieve(type: Copy) {
         file('build/projectA-1.1.jar').assertHasChangedSince(jarSnapshot)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "detects changed artifact when flagged as changing"() {
         given:
         buildFile << """
@@ -188,7 +188,7 @@ task retrieve(type: Copy) {
         changedJarFile.assertIsCopyOf(module.jarFile)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "caches changing module descriptor and artifacts until cache expiry"() {
         given:
         buildFile << """
@@ -264,7 +264,7 @@ task retrieve(type: Copy) {
         jarFile.assertIsCopyOf(module.jarFile)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "avoid redownload unchanged artifact when no checksum available"() {
         given:
         buildFile << """

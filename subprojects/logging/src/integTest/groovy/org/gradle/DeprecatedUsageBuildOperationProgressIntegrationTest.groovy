@@ -16,7 +16,7 @@
 
 package org.gradle
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
@@ -177,7 +177,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         buildSrcDeprecations.details.stackTrace[0].lineNumber == 2
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "emits deprecation warnings as build operation progress events for composite builds"() {
         file('included/settings.gradle') << "rootProject.name = 'included'"
         file('included/build.gradle') << """

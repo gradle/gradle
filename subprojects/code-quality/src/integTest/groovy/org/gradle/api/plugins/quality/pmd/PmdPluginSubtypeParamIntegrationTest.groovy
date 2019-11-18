@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.VersionNumber
 
 import static org.junit.Assume.assumeTrue
@@ -68,7 +68,7 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
         file("src/main/java/org/gradle/ruleusing/JsonHttpLayout.java") << jsonHttpLayoutCode()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "unused code rule not triggered when passing subtype parameter"() {
         assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 

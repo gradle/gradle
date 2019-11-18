@@ -18,7 +18,7 @@ package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
@@ -33,7 +33,7 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
         outputs.recompiledClasses(recompiledClasses)
     }
 
-    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def 'rebuild all after loading from cache'() {
         given:
         def a = source "class A {}"
@@ -58,7 +58,7 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
         outputContains('unable to get source-classes mapping relationship')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'only recompile affected classes when multiple class in one groovy file'() {
         given:
         def a = file('src/main/groovy/org/gradle/A.groovy')
@@ -81,7 +81,7 @@ class A2{}
         outputs.deletedClasses('A2')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'only recompile removed packages'() {
         given:
         file('src/main/groovy/org/gradle/Org.groovy') << 'package org.gradle; class Org {}'
@@ -154,7 +154,7 @@ class A2{}
                 'Change the configuration of your sources or disable incremental Groovy compilation.')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'clear class source mapping file on full recompilation'() {
         given:
         source('class A { }')
@@ -172,7 +172,7 @@ class A2{}
         !file('build/tmp/compileGroovy/source-classes-mapping.txt').text.contains('MyClass')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def 'merge old class source mappings if no recompilation required'() {
         given:
         File a =source('class A { }')

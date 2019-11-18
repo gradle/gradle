@@ -20,7 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
@@ -49,7 +49,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         withProcessor(helperProcessor)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generated files are recompiled when annotated file changes"() {
         given:
         def a = java "@Helper class A {}"
@@ -65,7 +65,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "annotated files are not recompiled on unrelated changes"() {
         given:
         java "@Helper class A {}"
@@ -81,7 +81,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledClasses("Unrelated")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "classes depending on generated file are recompiled when source file changes"() {
         given:
         def a = java "@Helper class A {}"
@@ -131,7 +131,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.deletedFiles("A", "AHelper", "AHelperResource.txt")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generated files are deleted when annotated file is deleted"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -154,7 +154,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         !file("build/generated/sources/annotationProcessor/java/main/AHelperResource.txt").exists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generated files and classes are deleted when processor is removed"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -193,7 +193,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles("A", "AHelper", "AHelperResource.txt")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "all files are recompiled if compiler does not support incremental annotation processing"() {
         given:
         buildFile << """
@@ -263,7 +263,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputs.recompiledFiles('A', "AHelper", "AHelperResource.txt", "Unrelated")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "processors must provide an originating element for each source element"() {
         given:
         withProcessor(new NonIncrementalProcessorFixture().providingNoOriginatingElements().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
@@ -280,7 +280,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated type 'AThing' must have exactly one originating element, but had 0.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "processors must provide an originating element for each resource"() {
         given:
         withProcessor(new ResourceGeneratingProcessorFixture().providingNoOriginatingElements().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
@@ -297,7 +297,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated resource 'A.txt in SOURCE_OUTPUT' must have exactly one originating element, but had 0.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "processors cannot provide multiple originating elements for types"() {
         given:
         withProcessor(new ServiceRegistryProcessorFixture().withDeclaredType(IncrementalAnnotationProcessorType.ISOLATING))
@@ -316,7 +316,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated type 'ServiceRegistry' must have exactly one originating element, but had 2.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "processors cannot provide multiple originating elements for resources"() {
         given:
         def proc = new ServiceRegistryProcessorFixture()
@@ -337,7 +337,7 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         outputContains("Full recompilation is required because the generated resource 'ServiceRegistryResource.txt in CLASS_OUTPUT' must have exactly one originating element, but had 2.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "processors can generate identical resources in different locations"() {
         given:
         // Have to configure a native header output directory otherwise there will be errors; javac NPEs when files are created in NATIVE_HEADER_OUTPUT without any location set.
@@ -369,7 +369,7 @@ compileJava.options.headerOutputDirectory = file("build/headers/java/main")
     }
 
     @Issue(["https://github.com/gradle/gradle/issues/8128", "https://bugs.openjdk.java.net/browse/JDK-8162455"])
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "incremental processing doesn't trigger unmatched processor option warning"() {
         buildFile << """
             dependencies {

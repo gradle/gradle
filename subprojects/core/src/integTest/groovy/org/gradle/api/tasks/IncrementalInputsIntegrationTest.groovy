@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.work.Incremental
 import spock.lang.Issue
@@ -278,7 +278,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         succeeds("myTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "empty providers can be queried for incremental changes"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
@@ -482,7 +482,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         outputDir.assertIsEmptyDir()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "outputs are cleaned out on rebuild (output type: #type)"() {
         file("buildSrc").deleteDir()
         buildFile.text = """

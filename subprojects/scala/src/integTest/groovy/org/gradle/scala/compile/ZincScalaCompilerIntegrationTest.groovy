@@ -16,7 +16,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -166,7 +166,7 @@ compileScala.scalaCompileOptions.failOnError = false
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def compileWithSpecifiedEncoding() {
         given:
         goodCodeEncodedWith("ISO8859_7")
@@ -184,7 +184,7 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
         file("encoded.out").getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def compilesWithSpecifiedDebugSettings() {
         given:
         goodCode()
@@ -308,7 +308,7 @@ class Person(val name: String, val age: Int) {
         return new ClassFile(scalaClassFile(path))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def compilesScalaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -328,7 +328,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def compilesJavaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -348,7 +348,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
         def person = file("prj1/build/classes/scala/main/Person.class")
@@ -370,7 +370,7 @@ class Person(val name: String, val age: Int) {
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def compilesAllScalaCodeWhenForced() {
         setup:
         def person = scalaClassFile("Person.class")

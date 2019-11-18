@@ -18,7 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.ResourceGeneratingProcessorFixture
 import org.gradle.language.fixtures.ServiceRegistryProcessorFixture
@@ -40,7 +40,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         withProcessor(writingResourcesTo(StandardLocation.CLASS_OUTPUT.toString()))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generated files are recompiled when any annotated file changes"() {
         def a = java "@Service class A {}"
         java "@Service class B {}"
@@ -57,7 +57,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         serviceRegistryReferences("A", "B")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "unrelated files are not recompiled when annotated file changes"() {
         def a = java "@Service class A {}"
         java "class Unrelated {}"
@@ -72,7 +72,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.recompiledFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "annotated files are reprocessed when an unrelated file changes"() {
         java "@Service class A {}"
         def unrelated = java "class Unrelated {}"
@@ -87,7 +87,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.recompiledFiles("Unrelated", "ServiceRegistry", "ServiceRegistryResource.txt")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "annotated files are reprocessed when a new file is added"() {
         java "@Service class A {}"
         java "class Unrelated {}"
@@ -103,7 +103,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         serviceRegistryReferences("A", "B")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "annotated files are reprocessed when a file is deleted"() {
         def a = java "@Service class A {}"
         java "@Service class B {}"
@@ -122,7 +122,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         !serviceRegistryReferences("A")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "classes depending on generated file are recompiled when source file changes"() {
         given:
         def a = java "@Service class A {}"
@@ -156,7 +156,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.deletedFiles("A", "ServiceRegistry", "ServiceRegistryResource.txt")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generated files are deleted when annotated file is deleted"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -179,7 +179,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         !file("build/generated/sources/annotationProcessor/java/main/ServiceRegistryResource.txt").exists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generated files and classes are deleted when processor is removed"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))
@@ -204,7 +204,7 @@ class AggregatingIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.deletedClasses("ServiceRegistry")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "processors can generate identical resources in different locations"() {
         given:
         // Have to configure a native header output directory otherwise there will be errors; javac NPEs when files are created in NATIVE_HEADER_OUTPUT without any location set.
@@ -253,7 +253,7 @@ compileJava.options.headerOutputDirectory = file("build/headers/java/main")
         succeeds "compileJava"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "aggregating processor do not work with source retention"() {
         given:
         annotationProjectDir.file("src/main/java/Service.java").text = """

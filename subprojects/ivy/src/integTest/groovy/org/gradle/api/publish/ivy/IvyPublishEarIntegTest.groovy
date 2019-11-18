@@ -16,10 +16,10 @@
 
 package org.gradle.api.publish.ivy
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class IvyPublishEarIntegTest extends AbstractIvyPublishIntegTest {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void "can publish EAR only for mixed java and WAR and EAR project"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishEar' "

@@ -16,7 +16,7 @@
 
 package org.gradle.play.integtest.continuous
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 /**
  * Test that app requests block while a build is in progress when using `--continuous`.
@@ -28,7 +28,7 @@ class PlayContinuousBuildReloadWaitingIntegrationTest extends AbstractPlayReload
         addPendingChangesHook()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "wait for changes to be built when a request comes in during a build"() {
         file('hooks.gradle') << """
             gradle.projectsLoaded {
@@ -58,7 +58,7 @@ class PlayContinuousBuildReloadWaitingIntegrationTest extends AbstractPlayReload
         checkRoute 'hello'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "wait for pending changes to be built if a request comes in during a build and there are pending changes"() {
         when:
         succeeds("runPlayBinary")
@@ -84,7 +84,7 @@ class PlayContinuousBuildReloadWaitingIntegrationTest extends AbstractPlayReload
         checkRoute 'hello'
      }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "wait for pending changes to be built if a request comes in during a failing build and there are pending changes"() {
         when:
         succeeds("runPlayBinary")
@@ -108,7 +108,7 @@ class PlayContinuousBuildReloadWaitingIntegrationTest extends AbstractPlayReload
         checkRoute 'hello'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "wait for changes to be built when a request comes in during initial app startup and there are pending changes"() {
         given:
         // prebuild so the build doesn't timeout waiting for rebuild signal

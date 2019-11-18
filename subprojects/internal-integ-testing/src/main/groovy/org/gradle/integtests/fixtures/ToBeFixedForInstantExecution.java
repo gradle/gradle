@@ -29,8 +29,8 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-@ExtensionAnnotation(FailsWithInstantExecutionExtension.class)
-public @interface FailsWithInstantExecution {
+@ExtensionAnnotation(ToBeFixedForInstantExecutionExtension.class)
+public @interface ToBeFixedForInstantExecution {
 
     Skip value() default Skip.DO_NOT_SKIP;
 

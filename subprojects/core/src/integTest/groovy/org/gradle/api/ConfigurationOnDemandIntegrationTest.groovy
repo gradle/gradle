@@ -17,7 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
@@ -207,7 +207,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":impl:one", ":impl:two", ":impl:two:abc")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "may run implicit tasks from root"() {
         settingsFile << "include 'api', 'impl'"
 
@@ -218,7 +218,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "may run implicit tasks for subproject"() {
         settingsFile << "include 'api', 'impl'"
 
@@ -245,7 +245,7 @@ project(':api') {
         result.assertTasksExecuted(':api:foo')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "respects evaluationDependsOn"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("api/build.gradle") << """
@@ -259,7 +259,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "respects buildProjectDependencies setting"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("impl/build.gradle") << """

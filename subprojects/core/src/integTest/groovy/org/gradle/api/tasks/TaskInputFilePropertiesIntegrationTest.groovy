@@ -21,7 +21,7 @@ import org.gradle.api.internal.tasks.TaskPropertyUtils
 import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor
 import org.gradle.api.internal.tasks.properties.PropertyWalker
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -61,7 +61,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/3193")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "TaskInputs.#method shows error message when used with complex input"() {
         buildFile << """
             task dependencyTask {
@@ -87,7 +87,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "#annotation.simpleName shows error message when used with complex input"() {
         buildFile << """
             import org.gradle.api.internal.tasks.properties.GetInputFilesVisitor

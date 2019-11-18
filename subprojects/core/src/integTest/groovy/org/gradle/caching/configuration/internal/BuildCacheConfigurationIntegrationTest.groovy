@@ -17,7 +17,7 @@
 package org.gradle.caching.configuration.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
 import spock.lang.Unroll
 
@@ -192,7 +192,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         failureHasCause("Build cache type 'CustomBuildCache' has not been registered.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "emits a useful message when using the build cache"() {
         when:
         executer.withBuildCacheEnabled()
@@ -201,7 +201,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Using local directory build cache")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "command-line --no-build-cache wins over system property"() {
         file("gradle.properties") << """
             org.gradle.caching=true
@@ -213,7 +213,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("Using local directory build cache")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "command-line --build-cache wins over system property"() {
         file("gradle.properties") << """
             org.gradle.caching=false

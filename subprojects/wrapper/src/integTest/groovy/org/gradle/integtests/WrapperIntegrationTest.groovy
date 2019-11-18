@@ -16,7 +16,7 @@
 package org.gradle.integtests
 
 import groovy.io.FileType
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -24,7 +24,7 @@ import org.gradle.util.TestPrecondition
 
 class WrapperIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Requires(TestPrecondition.MAC_OS_X)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can execute from Finder"() {
         given:
         file("build.gradle") << """

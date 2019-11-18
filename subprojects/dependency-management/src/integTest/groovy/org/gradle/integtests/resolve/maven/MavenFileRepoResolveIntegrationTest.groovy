@@ -16,10 +16,10 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class MavenFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void "can resolve snapshots uncached from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2-SNAPSHOT')
@@ -57,7 +57,7 @@ task retrieve(type: Sync) {
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void "does not cache artifacts and metadata from local Maven repository"() {
         given:
         def moduleA = mavenRepo().module('group', 'projectA', '1.2')
@@ -137,7 +137,7 @@ task retrieve(type: Sync) {
         buildDir.file('projectB-9.1.jar').assertIsCopyOf(moduleB.artifactFile)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "cannot define authentication for local file repo"() {
         given:
         def repo = mavenRepo()

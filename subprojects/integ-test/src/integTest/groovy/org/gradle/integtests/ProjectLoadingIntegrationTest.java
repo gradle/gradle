@@ -16,7 +16,7 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
-import org.gradle.integtests.fixtures.FailsWithInstantExecution;
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
 import org.gradle.test.fixtures.file.TestFile;
 import org.junit.Test;
@@ -40,7 +40,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void handlesWhitespaceOnlySettingsAndBuildFiles() {
         testFile("settings.gradle").write("   \n  ");
         testFile("build.gradle").write("   ");
@@ -301,7 +301,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     public void multiProjectBuildCanHaveSettingsFileAndRootBuildFileInSubDir() {
         TestFile buildFilesDir = getTestDirectory().file("root");
         TestFile settingsFile = buildFilesDir.file("settings.gradle");

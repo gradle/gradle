@@ -22,27 +22,27 @@ import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
 /**
- * JUnit Rule supporting the {@link FailsWithInstantExecution} annotation.
+ * JUnit Rule supporting the {@link ToBeFixedForInstantExecution} annotation.
  */
-class FailsWithInstantExecutionRule implements TestRule {
+class ToBeFixedForInstantExecutionRule implements TestRule {
 
     @Override
     Statement apply(Statement base, Description description) {
-        def annotation = description.getAnnotation(FailsWithInstantExecution.class)
+        def annotation = description.getAnnotation(ToBeFixedForInstantExecution.class)
         if (!GradleContextualExecuter.isInstant() || annotation == null) {
             return base
         }
-        if (annotation.value() == FailsWithInstantExecution.Skip.DO_NOT_SKIP) {
-            return new FailsWithInstantExecutionRuleStatement(base)
+        if (annotation.value() == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
+            return new ExpectingFailureRuleStatement(base)
         }
         return new UnsupportedWithInstantExecutionRule.SkippingRuleStatement(base)
     }
 
-    private static class FailsWithInstantExecutionRuleStatement extends Statement {
+    private static class ExpectingFailureRuleStatement extends Statement {
 
         private final Statement next
 
-        private FailsWithInstantExecutionRuleStatement(Statement next) {
+        private ExpectingFailureRuleStatement(Statement next) {
             this.next = next
         }
 
@@ -50,8 +50,8 @@ class FailsWithInstantExecutionRule implements TestRule {
         void evaluate() throws Throwable {
             try {
                 next.evaluate()
-                throw new FailsWithInstantExecutionExtension.UnexpectedSuccessException()
-            } catch (FailsWithInstantExecutionExtension.UnexpectedSuccessException ex) {
+                throw new ToBeFixedForInstantExecutionExtension.UnexpectedSuccessException()
+            } catch (ToBeFixedForInstantExecutionExtension.UnexpectedSuccessException ex) {
                 throw ex
             } catch (Throwable ex) {
                 System.err.println("Failed with instant execution as expected:")

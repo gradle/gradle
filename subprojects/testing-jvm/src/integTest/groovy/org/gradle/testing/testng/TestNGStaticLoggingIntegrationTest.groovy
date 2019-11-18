@@ -17,7 +17,7 @@
 package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.testing.fixture.TestNGCoverage
 import spock.lang.Issue
@@ -37,7 +37,7 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2841")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "captures output from logging frameworks"() {
         buildFile << """
             dependencies { implementation "org.slf4j:slf4j-simple:1.7.10", "org.slf4j:slf4j-api:1.7.10" }
@@ -72,7 +72,7 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-2841")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "captures logging from System streams referenced from static initializer"() {
         file("src/test/java/FooTest.java") << """
             import org.testng.annotations.*;
@@ -97,7 +97,7 @@ class TestNGStaticLoggingIntegrationTest extends AbstractIntegrationSpec {
         testResult.testClass("FooTest").assertTestCaseStderr("foo", is("err output from test\n"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "test can generate output from multiple threads"() {
         file("src/test/java/OkTest.java") << """
 import java.util.logging.Logger;

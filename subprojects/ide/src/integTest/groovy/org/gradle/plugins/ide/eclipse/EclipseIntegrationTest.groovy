@@ -21,7 +21,7 @@ import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.JavaVersion
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
@@ -39,7 +39,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void canCreateAndDeleteMetaData() {
         when:
         File buildFile = testFile("master/build.gradle")
@@ -90,7 +90,7 @@ class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void sourceEntriesInClasspathFileAreSortedAsPerUsualConvention() {
         def expectedOrder = [
             "src/main/java",
@@ -126,7 +126,7 @@ sourceSets {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void outputDirDefaultsToEclipseDefault() {
         runEclipseTask("apply plugin: 'java'; apply plugin: 'eclipse'")
 
@@ -140,7 +140,7 @@ sourceSets {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void canHandleCircularModuleDependencies() {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         def artifact2 = mavenRepo.module("myGroup", "myArtifact2", "1.0").dependsOn("myGroup", "myArtifact1", "1.0").publish().artifactFile
@@ -162,7 +162,7 @@ dependencies {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void canConfigureTargetRuntimeName() {
 
         runEclipseTask """
@@ -183,7 +183,7 @@ eclipse {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void eclipseFilesAreWrittenWithUtf8Encoding() {
         runEclipseTask """
 apply plugin: "war"
@@ -213,7 +213,7 @@ eclipse {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void triggersBeforeAndWhenConfigurationHooks() {
         //this test is a bit peculiar as it has assertions inside the gradle script
         //couldn't find a better way of asserting on before/when configured hooks
@@ -273,7 +273,7 @@ tasks.eclipse {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void respectsPerConfigurationExcludes() {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         mavenRepo.module("myGroup", "myArtifact2", "1.0").publish()
@@ -299,7 +299,7 @@ dependencies {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void respectsPerDependencyExcludes() {
         def artifact1 = mavenRepo.module("myGroup", "myArtifact1", "1.0").dependsOn("myGroup", "myArtifact2", "1.0").publish().artifactFile
         mavenRepo.module("myGroup", "myArtifact2", "1.0").publish()
@@ -330,7 +330,7 @@ dependencies {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void addsLinkToTheProjectFile() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -353,7 +353,7 @@ eclipse.project {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void allowsConfiguringJavaVersionWithSimpleTypes() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -371,7 +371,7 @@ eclipse.jdt {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void sourceAndTargetCompatibilityDefaultIsCurrentJavaVersion() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -385,7 +385,7 @@ apply plugin: 'eclipse'
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void sourceAndTargetCompatibilityDefinedInPluginConvention() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -399,7 +399,7 @@ apply plugin: 'eclipse'
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void jdtSettingsHasPrecedenceOverJavaPluginConvention() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -419,7 +419,7 @@ eclipse {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void dslAllowsShortFormsForProject() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -442,7 +442,7 @@ eclipse.project {
     }
 
     @Test
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void dslAllowsShortForms() {
         runEclipseTask '''
 apply plugin: 'java'
@@ -463,7 +463,7 @@ eclipse {
 
     @Test
     @Issue("GRADLE-1157")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void canHandleDependencyWithoutSourceJarInFlatDirRepo() {
         def repoDir = testDirectory.createDir("repo")
         repoDir.createFile("lib-1.0.jar")
@@ -484,7 +484,7 @@ dependencies {
 
     @Test
     @Issue("GRADLE-1706") // doesn't prove that the issue is fixed because the test also passes with 1.0-milestone-4
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     void canHandleDependencyWithoutSourceJarInMavenRepo() {
         mavenRepo.module("some", "lib", "1.0").publish()
 

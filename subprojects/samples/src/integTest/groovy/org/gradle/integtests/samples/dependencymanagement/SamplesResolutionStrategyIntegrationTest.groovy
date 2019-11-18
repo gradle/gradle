@@ -17,7 +17,7 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
@@ -35,7 +35,7 @@ class SamplesResolutionStrategyIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/resolutionStrategy")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can resolve dependencies in #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

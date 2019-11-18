@@ -17,7 +17,7 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.cache.CacheRepository
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import spock.lang.Unroll
@@ -29,7 +29,7 @@ class BuildSessionServiceReuseContinuousIntegrationTest extends Java7RequiringCo
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "reuses #service across continuous builds" () {
         def triggerFileName = "trigger"
         def triggerFile = file(triggerFileName).createFile()

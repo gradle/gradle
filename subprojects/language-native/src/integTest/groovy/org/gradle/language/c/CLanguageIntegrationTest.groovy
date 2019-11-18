@@ -15,7 +15,7 @@
  */
 package org.gradle.language.c
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
@@ -31,7 +31,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CHelloWorldApp()
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "sources are compiled with C compiler"() {
         def app = new CCompilerDetectingTestApp()
 
@@ -52,7 +52,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
         executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can manually define C source sets"() {
         given:
         helloWorldApp.library.headerFiles.each { it.writeToDir(file("src/shared")) }
@@ -100,7 +100,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
         mainExecutable.exec().out == helloWorldApp.englishOutput
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses headers co-located with sources"() {
         given:
         // Write headers so they sit with sources
@@ -130,7 +130,7 @@ model {
 
     @Issue("GRADLE-2943")
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can define macro #output"() {
         given:
         buildFile << """
@@ -164,7 +164,7 @@ model {
         '"with \\\\"quote\\\\" and space"' | 'with "quote" and space'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "compiler and linker args can contain quotes and spaces"() {
         given:
         buildFile << '''
@@ -198,7 +198,7 @@ model {
         succeeds "mainExecutable"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -222,7 +222,7 @@ model {
         failure.assertThatCause(containsText("C compiler failed while compiling broken.c"))
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "build fails when multiple compilations fail"() {
         given:
         def brokenFileCount = 5
@@ -253,7 +253,7 @@ model {
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can compile and link C code using standard macOS framework"() {
         given:
         buildFile << """

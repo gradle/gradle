@@ -16,7 +16,7 @@
 
 package org.gradle.api.publish.maven
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
@@ -29,7 +29,7 @@ import static org.gradle.util.TextUtil.normaliseFileSeparators
 class MavenPublishIssuesIntegTest extends AbstractMavenPublishIntegTest {
 
     @Issue("GRADLE-2456")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generates SHA1 file with leading zeros"() {
         given:
         def module = mavenRepo.module("org.gradle", "publish", "2")
@@ -68,7 +68,7 @@ class MavenPublishIssuesIntegTest extends AbstractMavenPublishIntegTest {
     }
 
     @Issue("GRADLE-2681")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "gradle ignores maven mirror configuration for uploading archives"() {
         given:
         m2.globalSettingsFile << """
@@ -111,7 +111,7 @@ publishing {
     }
 
     @Issue("GRADLE-2837")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "project is properly configured when it is the target of a project dependency"() {
         given:
         mavenRepo.module("org.gradle", "dep", "1.1").publish()
@@ -164,7 +164,7 @@ subprojects {
     }
 
     @Issue("GRADLE-2945")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "maven-publish plugin adds excludes to pom"() {
 
         given:
@@ -219,7 +219,7 @@ subprojects {
     }
 
     @Issue("GRADLE-3318")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can reference rule-source tasks from sub-projects"() {
         given:
         using m2

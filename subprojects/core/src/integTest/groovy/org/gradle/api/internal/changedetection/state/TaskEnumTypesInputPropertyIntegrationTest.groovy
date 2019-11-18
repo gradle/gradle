@@ -17,14 +17,14 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.Actions
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3018")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take an input with enum type and task action defined in the build script"() {
         buildFile << """
 task someTask {
@@ -84,7 +84,7 @@ task someOtherTask
         skipped(":someTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take an input with enum type and task type defined in the build script"() {
         buildFile << """
 class SomeTask extends DefaultTask {
@@ -149,7 +149,7 @@ task someOtherTask
         skipped(":someTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take an input with enum type defined in the build script plugin"() {
         def otherScript = file('other.gradle')
         otherScript << """
@@ -212,7 +212,7 @@ apply from: 'other.gradle'
         skipped(":someTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take an input with enum type and task action defined in buildSrc"() {
         def enumSource = file("buildSrc/src/main/java/SomeEnum.java")
         enumSource << """
@@ -277,7 +277,7 @@ public enum SomeEnum {
         skipped(":someTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take an input with enum type and task type defined in buildSrc"() {
         def enumSource = file("buildSrc/src/main/java/SomeEnum.java")
         enumSource << """
@@ -354,7 +354,7 @@ public enum SomeEnum {
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task can take as input a collection of enum type from various sources"() {
         def buildSrcEnum = file("buildSrc/src/main/java/BuildSrcEnum.java")
         buildSrcEnum << """

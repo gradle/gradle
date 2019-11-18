@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 
 class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
@@ -79,7 +79,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         includedBuilds << buildC
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fires build listener events on included builds"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -105,7 +105,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         loggedOncePerBuild('gradle.buildFinished')
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fires build listener events for included build that provides buildscript and compile dependencies"() {
         given:
         def pluginBuild = pluginProjectBuild("pluginD")
@@ -129,7 +129,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         logged("Ignoring listeners of task graph ready event, as this build (:buildB) has already executed work.")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fires build listener events for included builds with additional discovered (compileOnly) dependencies"() {
         given:
         // BuildB will be initially evaluated with a single dependency on 'b1'.
@@ -149,7 +149,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
         verifyBuildEvents()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "buildFinished for root build is guaranteed to complete after included builds"() {
         given:
 
@@ -245,7 +245,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
                 .assertHasLineNumber(9)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "fires build finished events for all builds when other builds fail"() {
         given:
         buildA.buildFile << """

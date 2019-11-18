@@ -17,7 +17,7 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.GUtil
 
 import static org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.IMPLEMENTATION_CLASSPATH_PROP_KEY
@@ -79,7 +79,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec {
         file("build/some/other/$METADATA_FILE_NAME").exists()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "not up-to-date if pluginClasspath change"() {
         given:
         buildFile << """

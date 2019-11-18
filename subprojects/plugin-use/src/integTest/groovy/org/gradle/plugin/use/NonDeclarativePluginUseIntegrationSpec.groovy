@@ -16,7 +16,7 @@
 
 package org.gradle.plugin.use
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 
@@ -30,7 +30,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         executer.requireOwnGradleUserHomeDir()
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "non declarative plugin implementation can access core plugins and not core impl"() {
         given:
         publishPlugin """
@@ -60,7 +60,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         succeeds("pluginTask")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "plugin implementation and dependencies are visible to plugin and build script"() {
         given:
         def pluginBuilder2 = new PluginBuilder(file("plugin2"))
@@ -119,7 +119,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         output.contains 'ops = [withId 1, withId 2, withType 1, withType 2]'
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "classes from builscript and plugin block are visible in same build"() {
         given:
         def pluginBuilder2 = new PluginBuilder(file("plugin2"))
@@ -151,7 +151,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         succeeds("tasks")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
         given:
         [1, 2].each { n ->
@@ -210,7 +210,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         output.contains "buildscriptDependencies - 2"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "failure due to no plugin with id in implementation"() {
         when:
         pluginBuilder.with {
@@ -236,7 +236,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         failure.assertHasLineNumber(2)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "failure due to plugin class is unloadable"() {
         when:
         pluginBuilder.with {
@@ -258,7 +258,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         failure.assertHasLineNumber(2)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "failure due to plugin instantiation throwing"() {
         when:
         pluginBuilder.with {
@@ -281,7 +281,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         failure.assertHasLineNumber(2)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "failure due to plugin apply throwing"() {
         when:
         publishPlugin "throw new Exception('throwing plugin')"

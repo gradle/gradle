@@ -16,7 +16,7 @@
 
 package org.gradle.language
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import spock.lang.IgnoreIf
@@ -26,7 +26,7 @@ import spock.lang.IgnoreIf
 abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends AbstractNativeParallelIntegrationTest {
     abstract HelloWorldApp getApp()
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can execute link executable tasks in parallel"() {
         given:
         withComponentForApp()
@@ -39,7 +39,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("linkMainExecutable")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can execute link shared library tasks in parallel"() {
         given:
         withComponentsForAppAndSharedLib()
@@ -52,7 +52,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("linkMainLibSharedLibrary")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can execute create static library tasks in parallel"() {
         given:
         withComponentsForAppAndStaticLib()
@@ -65,7 +65,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("createMainLibStaticLibrary")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can execute compile tasks in parallel"() {
         given:
         withComponentForApp()
@@ -78,7 +78,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
         assertTaskIsParallel("compileMainExecutableMain${app.sourceType.capitalize()}")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can execute install task in parallel"() {
         given:
         withComponentForApp()

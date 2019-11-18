@@ -17,7 +17,7 @@
 package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -39,7 +39,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/maven')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "upload attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -60,7 +60,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/conditional')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "conditional signing with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -82,7 +82,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     @Unroll
     @UsesSample('signing/gnupg-signatory')
     @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "use gnupg signatory with dsl #dsl"() {
         setup:
         def projectDir = sample.dir.file(dsl)
@@ -106,7 +106,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/maven-publish')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "publish attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -144,7 +144,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/in-memory')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses in-memory PGP keys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)
@@ -166,7 +166,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/in-memory')
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "uses in-memory PGP subkeys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)

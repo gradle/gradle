@@ -18,10 +18,10 @@ package org.gradle.integtests.composite
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can nest included builds"() {
         given:
         dependency(buildA, "org.test:buildB:1.2")
@@ -51,7 +51,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         result.assertTaskExecuted(":jar")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "a nested included build is substituted into all other builds"() {
         given:
         dependency(buildA, "org.test:buildB:1.2")
@@ -93,7 +93,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         result.assertTaskExecuted(":jar")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "a build can be included by multiple other builds"() {
         given:
         dependency(buildA, "org.test:buildB:1.2")
@@ -124,7 +124,7 @@ class CompositeBuildNestingIntegrationTest extends AbstractCompositeBuildIntegra
         result.assertTaskExecuted(":jar")
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "nested build can contribute to build script classpath"() {
         def buildC = singleProjectBuild("buildC") {
             settingsFile << """

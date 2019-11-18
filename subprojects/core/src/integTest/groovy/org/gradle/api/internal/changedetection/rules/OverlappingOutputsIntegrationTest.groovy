@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Unroll
@@ -123,7 +123,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
                 ":second", file("build/overlap/second.txt")]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping output directory with first, second then first, second"() {
         def (String first, TestFile firstOutput,
              String second, TestFile secondOutput) = useOverlappingOutputDirectories()
@@ -234,7 +234,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
                  ":dirTask", file("build/overlap/dirTask.txt") ]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping output with fileTask, dirTask then fileTask, dirTask"() {
         def (String fileTask, TestFile fileTaskOutput,
              String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
@@ -258,7 +258,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         result.assertTaskNotSkipped(dirTask)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping output with fileTask, dirTask then dirTask, fileTask"() {
         def (String fileTask, TestFile fileTaskOutput,
              String dirTask, TestFile dirTaskOutput) = useOverlappingOutputFileAndDirectory()
@@ -396,7 +396,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         return [":first", ":second", file("build/overlap/AB.txt")]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping output files with first, second then first, second"() {
         def (String first, String second, TestFile sharedOutput) = useOverlappingOutputFiles()
 
@@ -499,7 +499,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
                  ":dirTask", file("build/overlap/dirTask.txt")]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping output with localStateFileTask, dirTask then localStateFileTask, dirTask"() {
         def (String localStateFileTask, TestFile localStateFileTaskOutput, TestFile localStateFileTaskState,
              String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
@@ -526,7 +526,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
         result.assertTaskNotSkipped(dirTask)
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping file output with localStateFileTask, dirTask then dirTask, localStateFileTask"() {
         def (String localStateFileTask, TestFile localStateFileTaskOutput, TestFile localStateFileTaskState,
              String dirTask, TestFile dirTaskOutput) = useOverlappingLocalStateFileAndOutputDirectory()
@@ -577,7 +577,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     @ToBeImplemented("We don't yet detect when somebody messes with a task's local state")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping output with localStateDirTask, fileTask then localStateDirTask, fileTask"() {
         def (String localStateDirTask, TestFile localStateDirTaskOutput, TestFile localStateDirTaskState,
              String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
@@ -608,7 +608,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     @ToBeImplemented("We don't yet detect when somebody messes with a task's local state")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping output with localStateDirTask, fileTask then fileTask, localStateDirTask"() {
         def (String localStateDirTask, TestFile localStateDirTaskOutput, TestFile localStateDirTaskState,
              String fileTask, TestFile fileTaskOutput) = useOverlappingLocalStateDirectoryAndOutputFile()
@@ -661,7 +661,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     // We ignore external.txt as an input because the file doesn't change after executing A
     // So when external.txt changes, we don't count that as a change in outputs.
     // @NotYetImplemented
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping directory with external process and a pre-existing file"() {
         buildFile << """
             task someTask(type: OutputDirectoryTask)
@@ -715,7 +715,7 @@ class OverlappingOutputsIntegrationTest extends AbstractIntegrationSpec implemen
     }
 
     @Unroll
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "overlapping #taskType with external process and a build-generated file"() {
         buildFile << """
             task someTask(type: $taskType)

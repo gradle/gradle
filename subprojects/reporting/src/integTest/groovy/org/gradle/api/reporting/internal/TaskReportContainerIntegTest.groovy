@@ -17,7 +17,7 @@
 package org.gradle.api.reporting.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
@@ -94,7 +94,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task not up to date when enabled set changes"() {
         expect:
         succeeds(task)
@@ -111,7 +111,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "task not up to date when enabled set changes but output files stays the same"() {
         given:
         buildFile << """

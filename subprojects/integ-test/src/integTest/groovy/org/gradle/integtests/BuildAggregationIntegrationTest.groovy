@@ -16,14 +16,14 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def canExecuteAnotherBuildFromBuild() {
         when:
         buildFile << '''
@@ -70,7 +70,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         succeeds "build"
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def reportsNestedBuildFailure() {
         when:
         file('other/settings.gradle') << "rootProject.name = 'other'"
@@ -106,7 +106,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org//browse/GRADLE-3052")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def buildTaskCanHaveInputsAndOutputs() {
         file("input") << "foo"
         settingsFile << "rootProject.name = 'proj'"

@@ -16,12 +16,12 @@
 
 package org.gradle.nativeplatform.test.xctest
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.XCTestSourceElement
 
 abstract class AbstractSwiftXCTestWithComponentIntegrationTest extends AbstractSwiftXCTestIntegrationTest {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can test public and internal features"() {
         given:
         def fixture = getPassingTestFixtureUsingPublicAndInternalFeatures()

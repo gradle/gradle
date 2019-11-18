@@ -16,10 +16,10 @@
 
 package org.gradle.plugins.ide.eclipse
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "generates configuration files for web project and java project it depends on"() {
         settingsFile << "include 'web', 'java'"
 

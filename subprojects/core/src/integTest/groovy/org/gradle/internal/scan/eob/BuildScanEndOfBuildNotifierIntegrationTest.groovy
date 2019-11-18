@@ -17,7 +17,7 @@
 package org.gradle.internal.scan.eob
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -88,7 +88,7 @@ notified
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7511")
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can observe failed build after failure in included build buildFinished action"() {
         when:
         settingsFile << """

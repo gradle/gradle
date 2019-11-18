@@ -16,13 +16,13 @@
 
 package org.gradle.language.java
 
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static JavaIntegrationTesting.applyJavaPlugin
 
 class JarBinaryTypeVariantsTest extends VariantAwareDependencyResolutionSpec {
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can depend on a component without specifying any variant dimension"() {
         given:
         applyJavaPlugin(buildFile)
@@ -66,7 +66,7 @@ model {
 
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can depend on a component with explicit flavors"() {
         given:
         applyJavaPlugin(buildFile)

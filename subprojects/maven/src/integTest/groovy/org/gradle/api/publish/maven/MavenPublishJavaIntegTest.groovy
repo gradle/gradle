@@ -17,7 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
-import org.gradle.integtests.fixtures.FailsWithInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenJavaModule
 
 class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
@@ -30,7 +30,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         [MavenJavaModule.MAIN_FEATURE]
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can publish java-library without warning when dependency with maven incompatible version and using versionMapping"() {
         given:
         createBuildScripts("""
@@ -79,7 +79,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "a component's variant can be modified before publishing"() {
         given:
         createBuildScripts """
@@ -114,7 +114,7 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishJavaIntegTest {
         }
     }
 
-    @FailsWithInstantExecution
+    @ToBeFixedForInstantExecution
     def "can ignore all publication warnings by variant name"() {
         given:
         def silenceMethod = "suppressPomMetadataWarningsFor"
