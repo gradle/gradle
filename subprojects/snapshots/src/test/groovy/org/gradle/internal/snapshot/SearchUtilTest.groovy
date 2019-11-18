@@ -19,22 +19,23 @@ package org.gradle.internal.snapshot
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.snapshot.PathUtil.getFileName
-
 @Unroll
-class PathUtilTest extends Specification {
+class SearchUtilTest extends Specification {
 
-    def "file name of '#path' is '#name'"() {
+    def "search for #searchedChild in #sortedChildren is #expectedResult"() {
         expect:
-        getFileName(path) == name
+        SearchUtil.binarySearch(children, searchedChild) == expectedResult
 
         where:
-        path                                                      | name
-        "/a/b/c"                                                  | "c"
-        "/"                                                       | ""
-        "C:${File.separator}some-name"                            | "some-name"
-        ""                                                        | ""
-        "C:${File.separator}Windows/system${File.separator}win32" | "win32"
-    }
+        children | searchedChild
+        ["a", "b", "ba", "bb", "cc"] | "b"
+        ["a", "b", "ba", "bb", "cc"] | "baa"
+        []                           | "baa"
+        ["b"]                        | "a"
+        ["a"]                        | "b"
+        ["a"]                        | "a"
 
+        sortedChildren = children.toSorted()
+        expectedResult = Collections.binarySearch(sortedChildren, searchedChild)
+    }
 }

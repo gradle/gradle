@@ -70,16 +70,16 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
         return Optional.of(
-            SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, Optional::empty)
+            SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, caseSensitivity, Optional::empty)
                 .orElseGet(() -> SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath))
         );
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
-        return SnapshotUtil.handleChildren(children, absolutePath, offset, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+        return SnapshotUtil.handleChildren(children, absolutePath, offset, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));
@@ -91,7 +91,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                 int indexForSubSegment = foundChild.getPathToParent().length();
                 Optional<FileSystemNode> invalidated = indexForSubSegment == absolutePath.length() - offset
                     ? Optional.empty()
-                    : foundChild.invalidate(absolutePath, offset + indexForSubSegment + 1);
+                    : foundChild.invalidate(absolutePath, offset + indexForSubSegment + 1, caseSensitivity);
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), getChildren(childIndex, invalidated)));
             }
 
