@@ -41,6 +41,9 @@ public abstract class AbstractIntegrationTest {
     public final IgnoreWithInstantExecutionRule ignoreWithInstantExecution = new IgnoreWithInstantExecutionRule();
 
     @Rule
+    public final UnsupportedWithInstantExecutionRule unsupportedWithInstantExecution = new UnsupportedWithInstantExecutionRule();
+
+    @Rule
     public final FailsWithInstantExecutionRule failsWithInstantExecution = new FailsWithInstantExecutionRule();
 
     public final GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext());

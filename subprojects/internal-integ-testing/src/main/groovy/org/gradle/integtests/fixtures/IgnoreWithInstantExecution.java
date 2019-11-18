@@ -47,11 +47,6 @@ public @interface IgnoreWithInstantExecution {
     enum Reason {
 
         /**
-         * Use this reason on tests that are explicitly not supported with instant execution.
-         */
-        UNSUPPORTED,
-
-        /**
          * Use this reason on tests in super classes that fail on some subclasses.
          * Spock doesn't allow to override test methods and annotate them.
          */
