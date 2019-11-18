@@ -56,8 +56,9 @@ credentials {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
     }
 
+    @Unroll
     @FailsWithInstantExecution
-    def "can publish to unauthenticated HTTP repository"() {
+    def "can publish to unauthenticated HTTP repository (extra checksums = #extraChecksums)"() {
         given:
         server.start()
         settingsFile << 'rootProject.name = "publish"'
@@ -80,19 +81,30 @@ credentials {
             }
         """
 
+        if (!extraChecksums) {
+            executer.withArgument("-Dorg.gradle.internal.publish.checksums.insecure=true")
+            module.withoutExtraChecksums()
+        }
+
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
-        module.jar.sha256.expectPut()
-        module.jar.sha512.expectPut()
+        if (extraChecksums) {
+            module.jar.sha256.expectPut()
+            module.jar.sha512.expectPut()
+        }
         module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
         module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
+        if (extraChecksums) {
+            module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
+            module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
+        }
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
-        module.moduleMetadata.sha256.expectPut()
-        module.moduleMetadata.sha512.expectPut()
+        if (extraChecksums) {
+            module.moduleMetadata.sha256.expectPut()
+            module.moduleMetadata.sha512.expectPut()
+        }
 
         when:
         succeeds 'publish'
@@ -105,6 +117,9 @@ credentials {
         progressLogging.uploadProgressLogged(module.moduleMetadata.uri)
         progressLogging.uploadProgressLogged(module.ivy.uri)
         progressLogging.uploadProgressLogged(module.jar.uri)
+
+        where:
+        extraChecksums << [true, false]
     }
 
     @FailsWithInstantExecution

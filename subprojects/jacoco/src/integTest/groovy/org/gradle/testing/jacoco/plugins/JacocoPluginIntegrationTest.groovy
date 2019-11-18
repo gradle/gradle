@@ -68,15 +68,19 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @FailsWithInstantExecution
     def "dependencies report shows default jacoco dependencies"() {
-        when: succeeds("dependencies", "--configuration", "jacocoAgent")
-        then: output.contains "org.jacoco:org.jacoco.agent:"
+        when:
+        succeeds("dependencies", "--configuration", "jacocoAgent")
+        then:
+        output.contains "org.jacoco:org.jacoco.agent:"
 
-        when: succeeds("dependencies", "--configuration", "jacocoAnt")
-        then: output.contains "org.jacoco:org.jacoco.ant:"
+        when:
+        succeeds("dependencies", "--configuration", "jacocoAnt")
+        then:
+        output.contains "org.jacoco:org.jacoco.ant:"
     }
 
     @FailsWithInstantExecution
-    void "allows configuring tool dependencies explicitly"() {
+    def "allows configuring tool dependencies explicitly"() {
         when:
         buildFile << """
             dependencies {
@@ -87,14 +91,17 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         succeeds("dependencies", "--configuration", "jacocoAgent")
-        then: output.contains "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
+        then:
+        output.contains "org.jacoco:org.jacoco.agent:0.6.0.201210061924"
 
-        when: succeeds("dependencies", "--configuration", "jacocoAnt")
-        then: output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
+        when:
+        succeeds("dependencies", "--configuration", "jacocoAnt")
+        then:
+        output.contains "org.jacoco:org.jacoco.ant:0.6.0.201210061924"
     }
 
     @FailsWithInstantExecution
-    void jacocoReportIsIncremental() {
+    def "jacoco report is incremental"() {
         def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/jacoco-resources")
 
         when:
@@ -125,6 +132,24 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
+    }
+
+    @FailsWithInstantExecution
+    def "reports miss configuration of destination file"() {
+        given:
+        buildFile << """
+            test {
+                jacoco {
+                    destinationFile = provider { null }
+                }
+            }
+        """
+
+        when:
+        runAndFail("test")
+
+        then:
+        errorOutput.contains("JaCoCo destination file must not be null if output type is FILE")
     }
 }
 

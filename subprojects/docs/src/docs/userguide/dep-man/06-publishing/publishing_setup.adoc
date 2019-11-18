@@ -44,9 +44,14 @@ For example, a publication destined for a Maven repository includes:
 * The Maven POM file will identify the primary artifact and its dependencies.
 The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
 
++
+In addition, Gradle will publish checksums for all of the above, and <<publishing_signing.adoc#,signatures>> when configured to do so.
+From Gradle 6.0 onwards, this includes `SHA256` and `SHA512` checksums.
+
 [[publishing_overview:where]]
 Where to publish::
-Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>>, which store and make available all sorts of artifact. Gradle also needs to interact with the repository, which is why you must provide the type of the repository and its location.
+Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>>, which store and make available all sorts of artifact.
+Gradle also needs to interact with the repository, which is why you must provide the type of the repository and its location.
 
 [[publishing_overview:how]]
 How to publish::

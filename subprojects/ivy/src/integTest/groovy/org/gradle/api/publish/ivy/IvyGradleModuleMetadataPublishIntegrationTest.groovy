@@ -54,7 +54,7 @@ class TestCapability implements Capability {
     allprojects {
         configurations { implementation }
     }
-    
+
     def testAttributes = project.services.get(org.gradle.api.internal.attributes.ImmutableAttributesFactory)
          .mutable()
          .attribute(Attribute.of('foo', String), 'value')
@@ -108,14 +108,14 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             comp.usages.add(new TestUsage(
                     name: 'impl',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -128,7 +128,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
         """
 
         settingsFile << "rootProject.name = 'publishTest' "
@@ -156,14 +156,14 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             comp.usages.add(new TestUsage(
                     name: 'impl',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes,
                     capabilities: [new TestCapability(group:'org.test', name: 'test', version: '1')]))
 
@@ -177,7 +177,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
         """
 
         settingsFile << "rootProject.name = 'publishTest' "
@@ -209,14 +209,14 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'impl'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'impl'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -229,7 +229,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
         """
 
         settingsFile << "rootProject.name = 'publishTest' "
@@ -261,8 +261,8 @@ class TestCapability implements Capability {
 
             comp.usages.add(new TestUsage(
                     name: 'impl',
-                    usage: objects.named(Usage, 'impl'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'impl'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -275,7 +275,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
         """
 
         settingsFile << "rootProject.name = 'publishTest' "
@@ -286,6 +286,52 @@ class TestCapability implements Capability {
         then:
         failure.assertHasCause """Invalid publication 'ivy':
   - Variant 'api' must declare at least one attribute."""
+    }
+
+    @FailsWithInstantExecution
+    def "fails to generate Gradle metadata if no dependency have a version"() {
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+        """
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            dependencies {
+                implementation("org.test:test")
+            }
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'impl',
+                    usage: objects.named(Usage, 'impl'),
+                    dependencies: configurations.implementation.allDependencies,
+                    attributes: testAttributes))
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+
+        """
+
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause """Invalid publication 'ivy':
+  - Publication only contains dependencies and/or constraints without a version. You need to"""
     }
 
     @FailsWithInstantExecution
@@ -301,8 +347,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -340,7 +386,7 @@ class TestCapability implements Capability {
         buildFile << """
             allprojects {
                 apply plugin: 'ivy-publish'
-    
+
                 group = 'group'
                 version = '1.0'
 
@@ -354,8 +400,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             dependencies {
@@ -370,12 +416,12 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
             project(':a') {
                 publishing {
                     publications {
                         ivy(IvyPublication) {
-                            organisation = 'group.a' 
+                            organisation = 'group.a'
                             module = 'lib_a'
                             revision = '4.5'
                         }
@@ -386,7 +432,7 @@ class TestCapability implements Capability {
                 publishing {
                     publications {
                         ivy(IvyPublication) {
-                            organisation = 'group.b' 
+                            organisation = 'group.b'
                             module = 'utils'
                             revision = '0.01'
                         }
@@ -419,8 +465,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             dependencies {
@@ -493,7 +539,7 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
+                    usage: objects.named(Usage, 'api'),
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: testAttributes))
@@ -545,8 +591,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             dependencies {
@@ -605,16 +651,16 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
+                    usage: objects.named(Usage, 'api'),
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: testAttributes))
 
             dependencies {
                 implementation("org:foo:1.0") {
-                   because 'version 1.0 is tested'                
+                   because 'version 1.0 is tested'
                 }
-                constraints {                
+                constraints {
                     implementation("org:bar:2.0") {
                         because 'because 2.0 is cool'
                     }
@@ -662,7 +708,7 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
+                    usage: objects.named(Usage, 'api'),
                     attributes: testAttributes,
                     capabilities: [new TestCapability(group:'org.test', name: 'test', version: '1')]))
 
@@ -703,10 +749,10 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             def attr1 = Attribute.of('custom', String)
             def attr2 = Attribute.of('nice', Boolean)
-            
+
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
+                    usage: objects.named(Usage, 'api'),
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: testAttributes))
@@ -717,7 +763,7 @@ class TestCapability implements Capability {
                       attribute(attr1, 'foo')
                    }
                 }
-                constraints {                
+                constraints {
                     implementation("org:bar:2.0") {
                         attributes {
                            attribute(attr2, true)
@@ -767,8 +813,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: testAttributes))
 
@@ -854,8 +900,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -868,7 +914,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
             generateMetadataFileForIvyPublication.enabled = $enabled
         """
 

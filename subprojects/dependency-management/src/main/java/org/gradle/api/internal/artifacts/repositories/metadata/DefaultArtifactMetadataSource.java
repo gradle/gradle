@@ -86,7 +86,7 @@ public class DefaultArtifactMetadataSource extends AbstractMetadataSource<Mutabl
         versionLister.listVersions(module, dependencyArtifact, artifactPatterns, result);
     }
 
-    private static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
+    static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
         String moduleName = dependency.getSelector().getModule();
         List<IvyArtifactName> artifacts = dependency.getArtifacts();
         if (artifacts.isEmpty()) {

@@ -17,6 +17,7 @@ package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.Named;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -134,6 +135,9 @@ public class JacocoPluginExtension {
                     // This makes the task cacheable even if multiple JVMs write to same destination file, e.g. when executing tests in parallel.
                     // The JaCoCo agent supports writing in parallel to the same file, see https://github.com/jacoco/jacoco/pull/52.
                     File coverageFile = extension.getDestinationFile();
+                    if (coverageFile == null) {
+                        throw new GradleException("JaCoCo destination file must not be null if output type is FILE");
+                    }
                     fileOperations.delete(coverageFile);
                 }
             }
