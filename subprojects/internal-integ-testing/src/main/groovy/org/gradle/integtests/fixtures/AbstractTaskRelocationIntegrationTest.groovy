@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 
 abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "task is relocatable"() {
         setupProjectInOriginalLocation()
 

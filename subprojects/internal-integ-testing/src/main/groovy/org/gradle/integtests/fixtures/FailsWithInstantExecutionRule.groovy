@@ -32,7 +32,10 @@ class FailsWithInstantExecutionRule implements TestRule {
         if (!GradleContextualExecuter.isInstant() || annotation == null) {
             return base
         }
-        return new FailsWithInstantExecutionRuleStatement(base)
+        if (annotation.value() == FailsWithInstantExecution.Skip.DO_NOT_SKIP) {
+            return new FailsWithInstantExecutionRuleStatement(base)
+        }
+        return new UnsupportedWithInstantExecutionRule.SkippingRuleStatement(base)
     }
 
     private static class FailsWithInstantExecutionRuleStatement extends Statement {

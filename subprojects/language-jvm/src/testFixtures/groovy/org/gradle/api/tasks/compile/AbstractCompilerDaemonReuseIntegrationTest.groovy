@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.file.TestFile
@@ -63,7 +62,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
         """
     }
 
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "reuses compiler daemons within a single project build"() {
         withSingleProjectSources()
 
@@ -78,7 +77,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "reuses compiler daemons within a multi-project build"() {
         withMultiProjectSources()
 
@@ -110,7 +109,7 @@ abstract class AbstractCompilerDaemonReuseIntegrationTest extends AbstractIntegr
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "starts a new daemon when different options are used"() {
         withMultiProjectSources()
         buildFile << """

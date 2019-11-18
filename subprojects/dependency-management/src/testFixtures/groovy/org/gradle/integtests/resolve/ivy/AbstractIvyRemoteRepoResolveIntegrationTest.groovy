@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.RepositoryServer
@@ -360,7 +359,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_TO_CLEANUP)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "reuses cached details when switching ivy resolve mode"() {
         given:
         buildFile << """

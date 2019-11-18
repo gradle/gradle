@@ -19,7 +19,6 @@ package org.gradle.java.compile.incremental
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import spock.lang.Unroll
 
 class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
@@ -34,7 +33,7 @@ class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIn
         outputs.recompiledClasses(recompiledClasses)
     }
 
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FLAKY)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FLAKY)
     def 'rebuild all after loading from cache'() {
         given:
         def a = source "class A {}"

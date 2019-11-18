@@ -38,9 +38,6 @@ public abstract class AbstractIntegrationTest {
     public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
 
     @Rule
-    public final IgnoreWithInstantExecutionRule ignoreWithInstantExecution = new IgnoreWithInstantExecutionRule();
-
-    @Rule
     public final UnsupportedWithInstantExecutionRule unsupportedWithInstantExecution = new UnsupportedWithInstantExecutionRule();
 
     @Rule

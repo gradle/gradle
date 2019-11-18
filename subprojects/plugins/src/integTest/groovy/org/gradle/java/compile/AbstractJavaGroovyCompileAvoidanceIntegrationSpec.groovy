@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import spock.lang.Issue
 
 abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends AbstractIntegrationSpec {
@@ -334,7 +333,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         skipped ":b:${language.compileTaskName}"
     }
 
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "recompiles when type of implementation class changes"() {
         given:
         buildFile << """
@@ -434,7 +433,7 @@ abstract class AbstractJavaGroovyCompileAvoidanceIntegrationSpec extends Abstrac
         executedAndNotSkipped ":b:${language.compileTaskName}"
     }
 
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "recompiles when generic type signatures of implementation class changes"() {
         given:
         buildFile << """

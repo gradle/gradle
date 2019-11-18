@@ -31,11 +31,16 @@ class FailsWithInstantExecutionExtension extends AbstractAnnotationDrivenExtensi
     @Override
     void visitSpec(SpecInfo spec) {
         if (GradleContextualExecuter.isInstant()) {
-            spec.allFeatures
-                .findAll { it.featureMethod.reflection.getAnnotation(FailsWithInstantExecution) != null }
-                .each { feature ->
-                    spec.addListener(new CatchFeatureFailuresRunListener(feature))
+            spec.allFeatures.each { feature ->
+                def annotation = feature.featureMethod.reflection.getAnnotation(FailsWithInstantExecution)
+                if (annotation != null) {
+                    if (annotation.value() == FailsWithInstantExecution.Skip.DO_NOT_SKIP) {
+                        spec.addListener(new CatchFeatureFailuresRunListener(feature))
+                    } else {
+                        feature.skipped = true
+                    }
                 }
+            }
         }
     }
 

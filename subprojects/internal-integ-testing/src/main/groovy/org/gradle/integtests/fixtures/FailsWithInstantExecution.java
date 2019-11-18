@@ -31,4 +31,39 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @ExtensionAnnotation(FailsWithInstantExecutionExtension.class)
 public @interface FailsWithInstantExecution {
+
+    Skip value() default Skip.DO_NOT_SKIP;
+
+    /**
+     * Reason for skipping a test with instant execution.
+     */
+    enum Skip {
+
+        /**
+         * Do not skip this test, this is the default.
+         */
+        DO_NOT_SKIP,
+
+        /**
+         * Use this reason on tests in super classes that fail on some subclasses.
+         * Spock doesn't allow to override test methods and annotate them.
+         */
+        FAILS_IN_SUBCLASS,
+
+        /**
+         * Use this reason on tests that fail <code>:verifyTestFilesCleanup</code> with instant execution.
+         */
+        FAILS_TO_CLEANUP,
+
+        /**
+         * Use this reason on tests that intermittently fail with instant execution.
+         */
+        FLAKY,
+
+        /**
+         * Use this reason on tests that take a long time to fail, slowing down the CI feedback.
+         * Use sparingly, only in dramatic cases.
+         */
+        LONG_TIMEOUT
+    }
 }

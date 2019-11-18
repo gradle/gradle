@@ -17,7 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
+import org.gradle.integtests.fixtures.FailsWithInstantExecution
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.util.Path
 import spock.lang.Unroll
@@ -59,7 +59,7 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
     abstract boolean isAutoDependencySubstitution();
 
     @Unroll
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FAILS_IN_SUBCLASS)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "project dependency (#projectDep) vs external dependency (#transitiveDep) resolves to winner (#winner), when preferProjectModules=#preferProjectModules and force=#force and depSubstitution=#depSubstitution"() {
         given:
         //required for composite builds

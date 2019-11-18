@@ -20,7 +20,6 @@ import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggi
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.FailsWithInstantExecution
-import org.gradle.integtests.fixtures.IgnoreWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -74,7 +73,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         }
     }
 
-    @IgnoreWithInstantExecution(IgnoreWithInstantExecution.Reason.FLAKY)
+    @FailsWithInstantExecution(FailsWithInstantExecution.Skip.FLAKY)
     def "no task is re-executed when inputs are unchanged"() {
         when:
         withBuildCache().run "jar"
