@@ -58,6 +58,11 @@ public @interface IgnoreWithInstantExecution {
         FAILS_IN_SUBCLASS,
 
         /**
+         * Use this reason on tests that fail <code>:verifyTestFilesCleanup</code> with instant execution.
+         */
+        FAILS_TO_CLEANUP,
+
+        /**
          * Use this reason on tests that intermittently fail with instant execution.
          */
         FLAKY,
