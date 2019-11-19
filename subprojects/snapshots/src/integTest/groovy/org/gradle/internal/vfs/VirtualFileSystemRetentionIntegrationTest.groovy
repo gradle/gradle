@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY
+import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
@@ -172,6 +173,40 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
+    }
+
+    def "incubating message is shown for retention"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        def incubatingMessage = "Virtual File System Retention is an incubating feature"
+
+        when:
+        withRetention().run("assemble")
+        then:
+        outputContains(incubatingMessage)
+
+        when:
+        run("assemble")
+        then:
+        outputDoesNotContain(incubatingMessage)
+    }
+
+    def "incubating message is shown for partial invalidation"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        def incubatingMessage = "Partial Virtual File System Invalidation is an incubating feature"
+
+        when:
+        run("assemble", "-D${VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY}")
+        then:
+        outputContains(incubatingMessage)
+
+        when:
+        run("assemble")
+        then:
+        outputDoesNotContain(incubatingMessage)
     }
 
     private def withRetention() {
