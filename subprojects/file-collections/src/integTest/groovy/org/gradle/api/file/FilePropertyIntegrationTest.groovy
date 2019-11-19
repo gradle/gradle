@@ -18,7 +18,6 @@ package org.gradle.api.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
@@ -323,7 +322,6 @@ task useDirProviderApi {
         failure.assertHasCause("Cannot set the value of extension 'custom' property 'prop' of type org.gradle.api.file.RegularFile using a provider of type org.gradle.api.file.Directory.")
     }
 
-    @ToBeFixedForInstantExecution
     def "can wire the output file of a task as input to another task using property"() {
         buildFile << """
             class FileOutputTask extends DefaultTask {
@@ -521,7 +519,6 @@ task thing {
         "outputs.dir"      | _
     }
 
-    @ToBeFixedForInstantExecution
     def "can wire the output file of an ad hoc task as input to another task using property"() {
         buildFile << """
             class MergeTask extends DefaultTask {
@@ -570,7 +567,6 @@ task thing {
         result.assertTasksNotSkipped()
     }
 
-    @ToBeFixedForInstantExecution
     def "can wire the output directory of a task as input to another task using property"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {
@@ -636,7 +632,6 @@ task thing {
         file("output/merged.txt").text == 'new-dir1'
     }
 
-    @ToBeFixedForInstantExecution
     def "can wire the output directory of an ad hoc task as input to another task using property"() {
         buildFile << """
             class MergeTask extends DefaultTask {
@@ -743,7 +738,6 @@ task thing {
         'inputs.file' | 'inputs.dir'
     }
 
-    @ToBeFixedForInstantExecution
     def "can use @Optional on properties with type Property"() {
         given:
         buildFile << """
