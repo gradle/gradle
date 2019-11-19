@@ -39,8 +39,9 @@ class FunctionalTest(model: CIBuildModel, uuid: String, name: String, descriptio
             Os.linux -> {
                 param("env.ANDROID_HOME", "/opt/android/sdk")
             }
-            // Use fewer parallel forks on macOs, since the agents are not very powerful.
             Os.macos -> {
+                param("env.ANDROID_HOME", "/opt/android/sdk")
+                // Use fewer parallel forks on macOs, since the agents are not very powerful.
                 param("maxParallelForks", "2")
             }
             Os.windows -> {
