@@ -23,7 +23,7 @@ import spock.lang.Unroll
 /**
  * Integration test Santa Tracker android app against AGP nightly.
  */
-@LeaksFileHandles
+@LeaksFileHandles("TODO: AGP (intentionally) does not get a ‘build finished’ event and so does not close some files")
 class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     def setup() {

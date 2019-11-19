@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
-@LeaksFileHandles
+@LeaksFileHandles("TODO: AGP (intentionally) does not get a ‘build finished’ event and so does not close some files")
 class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     @Rule
