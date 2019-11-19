@@ -36,6 +36,9 @@ gradlebuildJava {
 val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
 integTestTasks.configureEach {
     libsRepository.required = true
+    inputs.files(gradleInstallationForTest.gradleSamplesDir.asFileTree)
+        .withPropertyName("samplesDir")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 testFilesCleanup {
