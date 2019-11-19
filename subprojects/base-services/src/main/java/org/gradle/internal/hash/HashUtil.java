@@ -91,6 +91,10 @@ public class HashUtil {
         return createHash(inputStream, "SHA1");
     }
 
+    public static HashValue md5(File file) {
+        return createHash(file, "MD5");
+    }
+
     public static HashValue sha1(File file) {
         return createHash(file, "SHA1");
     }

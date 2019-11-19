@@ -58,6 +58,7 @@ public class StartParameterBuildOptions {
         options.add(new BuildCacheDebugLoggingOption());
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
+        options.add(new DependencyVerificationWriteOption());
         options.add(new DependencyLockingUpdateOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
@@ -305,6 +306,19 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setWriteDependencyLocks(true);
+        }
+    }
+
+    public static class DependencyVerificationWriteOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "write-verification-metadata";
+
+        public DependencyVerificationWriteOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency verification state").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setWriteDependencyVerifications(true);
         }
     }
 

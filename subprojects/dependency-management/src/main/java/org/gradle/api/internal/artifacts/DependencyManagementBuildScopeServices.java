@@ -159,9 +159,9 @@ class DependencyManagementBuildScopeServices {
 
         return new DefaultDependencyFactory(
             DependencyNotationParser.parser(instantiator, factory, classPathRegistry, fileCollectionFactory, runtimeShadedJarFactory, currentGradleInstallation, stringInterner),
-                DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner),
-                new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
-                capabilityNotationParser, projectDependencyFactory,
+            DependencyConstraintNotationParser.parser(instantiator, factory, stringInterner),
+            new ClientModuleNotationParserFactory(instantiator, stringInterner).create(),
+            capabilityNotationParser, projectDependencyFactory,
             attributesFactory);
     }
 
@@ -315,7 +315,8 @@ class DependencyManagementBuildScopeServices {
                                               ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                               RepositoryBlacklister repositoryBlacklister,
                                               VersionParser versionParser,
-                                              InstantiatorFactory instantiatorFactory) {
+                                              InstantiatorFactory instantiatorFactory,
+                                              BuildOperationExecutor buildOperationExecutor) {
         StartParameterResolutionOverride startParameterResolutionOverride = new StartParameterResolutionOverride(startParameter);
         return new ResolveIvyFactory(
             moduleRepositoryCacheProvider,
@@ -325,7 +326,9 @@ class DependencyManagementBuildScopeServices {
             moduleIdentifierFactory,
             repositoryBlacklister,
             versionParser,
-            instantiatorFactory);
+            instantiatorFactory,
+            buildOperationExecutor
+        );
     }
 
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,

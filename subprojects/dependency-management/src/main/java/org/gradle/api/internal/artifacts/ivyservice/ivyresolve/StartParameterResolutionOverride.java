@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.WriteDependencyVerificationFile;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
@@ -28,6 +30,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -39,8 +42,10 @@ import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.resource.transfer.ExternalResourceReadResponse;
+import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
@@ -65,6 +70,15 @@ public class StartParameterResolutionOverride {
             return new OfflineModuleComponentRepository(original);
         }
         return original;
+    }
+
+    DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor) {
+        File currentDir = startParameter.getCurrentDir();
+        if (startParameter.isWriteDependencyVerifications()) {
+            SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
+            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor);
+        }
+        return DependencyVerificationOverride.NO_VERIFICATION;
     }
 
     private static class OfflineModuleComponentRepository extends BaseModuleComponentRepository {
@@ -165,4 +179,5 @@ public class StartParameterResolutionOverride {
             return new ResourceException(source, String.format("No cached resource '%s' available for offline mode.", source));
         }
     }
+
 }
