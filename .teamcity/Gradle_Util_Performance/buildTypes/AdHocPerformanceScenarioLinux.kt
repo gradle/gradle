@@ -35,7 +35,7 @@ object AdHocPerformanceScenarioLinux : BuildType({
         param("env.FG_HOME_DIR", "/opt/FlameGraph")
         param("additional.gradle.parameters", "")
 
-        param("env.ANDROID_HOME", "/opt/android/sdk")
+        param("env.ANDROID_HOME", Os.linux.androidHome)
         param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
         param("env.HP_HOME_DIR", "/opt/honest-profiler")
     }

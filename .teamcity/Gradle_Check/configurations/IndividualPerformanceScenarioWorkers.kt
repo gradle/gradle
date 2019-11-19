@@ -29,7 +29,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.linu
         param("warmups", "defaults")
         param("scenario", "")
 
-        param("env.ANDROID_HOME", "/opt/android/sdk")
+        param("env.ANDROID_HOME", os.androidHome)
         param("env.PATH", "%env.PATH%:/opt/swift/4.2.3/usr/bin")
     }
 
