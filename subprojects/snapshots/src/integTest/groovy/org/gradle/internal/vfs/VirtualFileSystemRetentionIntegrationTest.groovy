@@ -192,23 +192,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputDoesNotContain(incubatingMessage)
     }
 
-    def "incubating message is shown for partial invalidation"() {
-        buildFile << """
-            apply plugin: "java"
-        """
-        def incubatingMessage = "Partial virtual file system invalidation is an incubating feature"
-
-        when:
-        run("assemble", "-D${VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY}")
-        then:
-        outputContains(incubatingMessage)
-
-        when:
-        run("assemble")
-        then:
-        outputDoesNotContain(incubatingMessage)
-    }
-
     private def withRetention() {
         executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
         this
