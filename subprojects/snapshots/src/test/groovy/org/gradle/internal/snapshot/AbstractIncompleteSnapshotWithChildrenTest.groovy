@@ -161,8 +161,8 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         then:
         resultRoot.children == children
         isSameNodeType(resultRoot)
+        1 * selectedChild.getSnapshot() >> Optional.of(Mock(CompleteFileSystemLocationSnapshot))
         interaction {
-            getSelectedChildSnapshot(Mock(CompleteFileSystemLocationSnapshot))
             noMoreInteractions()
         }
 
@@ -181,8 +181,8 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         then:
         isSameNodeType(resultRoot)
         resultRoot.children == childrenWithSelectedChildReplacedBy(newNode)
+        1 * selectedChild.getSnapshot() >> Optional.of(Mock(MetadataSnapshot))
         interaction {
-            getSelectedChildSnapshot(Mock(MetadataSnapshot))
             1 * snapshot.asFileSystemNode(newPathToParent) >> newNode
             noMoreInteractions()
         }
@@ -237,8 +237,8 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         then:
         resultRoot.get() == existingSnapshot
 
+        1 * selectedChild.getSnapshot() >> Optional.of(existingSnapshot)
         interaction {
-            getSelectedChildSnapshot(existingSnapshot)
             noMoreInteractions()
         }
 
@@ -253,8 +253,8 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
         then:
         !resultRoot.present
+        1 * selectedChild.getSnapshot() >> Optional.empty()
         interaction {
-            getSelectedChildSnapshot(null)
             noMoreInteractions()
         }
 
@@ -388,10 +388,6 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         }
     }
 
-    def getSelectedChildSnapshot(@Nullable MetadataSnapshot foundSnapshot = null) {
-        1 * selectedChild.getSnapshot() >> Optional.ofNullable(foundSnapshot)
-    }
-
     def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
         def descendantOffset = offset + selectedChild.pathToParent.length() + 1
         1 * selectedChild.getSnapshot(absolutePath, descendantOffset, CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
@@ -428,10 +424,8 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
     }
 
     void setupTest(VirtualFileSystemTestSpec spec) {
-        def children = createChildren(spec.childPaths)
-        def initialRoot = createInitialRootNode("path/to/parent", children)
-        this.initialRoot = initialRoot
-        this.children = children
+        this.children = createChildren(spec.childPaths)
+        this.initialRoot = createInitialRootNode("path/to/parent", children)
         this.absolutePath = spec.absolutePath
         this.offset = spec.offset
         this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
@@ -440,7 +434,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
     List<FileSystemNode> createChildren(List<String> pathsToParent) {
         return pathsToParent.stream()
             .sorted(PathUtil.getPathComparator(CASE_SENSITIVE))
-            .map{ childPath -> mockNode(childPath) }
+            .map { childPath -> mockNode(childPath) }
             .collect(Collectors.toList())
     }
 
