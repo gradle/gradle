@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformationNodeRegistry;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.transform.TransformationNodeRegistry;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
@@ -51,6 +55,7 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new DependencyManagementGradleServices());
     }
 
+    @SuppressWarnings("unused")
     private static class DependencyManagementGradleServices {
         ArtifactTransformListener createArtifactTransformListener(ListenerManager listenerManager) {
             return listenerManager.getBroadcaster(ArtifactTransformListener.class);
@@ -62,6 +67,17 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
 
         TransformationNodeDependencyResolver createTransformationNodeDependencyResolver() {
             return new TransformationNodeDependencyResolver();
+        }
+
+        void configure(ServiceRegistration serviceRegistration, ListenerManager listenerManager, ResolveIvyFactory resolveIvyFactory, Gradle gradle) {
+            // when we reach this code, the Gradle instance is not fully wired/configured, so we need to register
+            // the callback via listenerManager, instead of calling Gradle#buildFinished
+            listenerManager.addListener(new BuildAdapter() {
+                @Override
+                public void buildFinished(BuildResult result) {
+                    resolveIvyFactory.buildFinished(gradle);
+                }
+            });
         }
     }
 }

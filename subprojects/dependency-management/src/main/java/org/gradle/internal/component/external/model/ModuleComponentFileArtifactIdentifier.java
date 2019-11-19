@@ -18,6 +18,8 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 public class ModuleComponentFileArtifactIdentifier extends ComponentFileArtifactIdentifier implements ModuleComponentArtifactIdentifier {
     public ModuleComponentFileArtifactIdentifier(ModuleComponentIdentifier componentId, String fileName) {
@@ -27,5 +29,10 @@ public class ModuleComponentFileArtifactIdentifier extends ComponentFileArtifact
     @Override
     public ModuleComponentIdentifier getComponentIdentifier() {
         return (ModuleComponentIdentifier) super.getComponentIdentifier();
+    }
+
+    @Override
+    public IvyArtifactName getName() {
+        return DefaultIvyArtifactName.forFileName(getFileName(), null);
     }
 }

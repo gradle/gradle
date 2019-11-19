@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
  * An immutable identifier for an artifact that belongs to some module version.
@@ -33,4 +34,6 @@ public interface ModuleComponentArtifactIdentifier extends ComponentArtifactIden
      * Returns a file base name that can be used for this artifact.
      */
     String getFileName();
+
+    IvyArtifactName getName();
 }

@@ -96,6 +96,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean writeDependencyLocks;
+    private boolean writeDependencyVerifications;
     private List<String> lockedDependenciesToUpdate = emptyList();
 
     /**
@@ -249,6 +250,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.writeDependencyLocks = writeDependencyLocks;
+        p.writeDependencyVerifications = writeDependencyVerifications;
         p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
         return p;
     }
@@ -844,6 +846,30 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
         this.lockedDependenciesToUpdate = Lists.newArrayList(lockedDependenciesToUpdate);
         this.writeDependencyLocks = true;
+    }
+
+    /**
+     * Indicates if a dependency verification metadata file should be written at the
+     * end of this build.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public boolean isWriteDependencyVerifications() {
+        return writeDependencyVerifications;
+    }
+
+    /**
+     * Tells if a dependency verification metadata file should be written at the end
+     * of this build.
+     *
+     * @param writeDependencyVerifications if true, a dependency verification file will be written
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public void setWriteDependencyVerifications(boolean writeDependencyVerifications) {
+        this.writeDependencyVerifications = writeDependencyVerifications;
     }
 
     /**

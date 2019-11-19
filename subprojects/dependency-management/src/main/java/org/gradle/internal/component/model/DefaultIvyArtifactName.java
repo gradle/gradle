@@ -42,6 +42,10 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
 
     public static DefaultIvyArtifactName forFile(File file, @Nullable String classifier) {
         String fileName = file.getName();
+        return forFileName(fileName, classifier);
+    }
+
+    public static DefaultIvyArtifactName forFileName(String fileName, @Nullable String classifier) {
         String name = Files.getNameWithoutExtension(fileName);
         String extension = Files.getFileExtension(fileName);
         return new DefaultIvyArtifactName(name, extension, extension, classifier);
