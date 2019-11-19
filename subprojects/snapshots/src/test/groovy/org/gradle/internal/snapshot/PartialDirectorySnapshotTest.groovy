@@ -45,7 +45,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << PARENT_PATH + SAME_PATH
+        vfsSpec << IS_PREFIX_OF_CHILD + SAME_PATH
     }
 
     def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -63,7 +63,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         }
 
         where:
-        vfsSpec << DESCENDANT_PATH
+        vfsSpec << CHILD_IS_PREFIX
     }
 
     def "invalidate #vfsSpec.absolutePath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -80,7 +80,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         }
 
         where:
-        vfsSpec << DESCENDANT_PATH
+        vfsSpec << CHILD_IS_PREFIX
     }
 
     def "returns Directory for snapshot"() {

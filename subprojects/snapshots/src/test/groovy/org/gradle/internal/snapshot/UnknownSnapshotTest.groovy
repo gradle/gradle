@@ -44,7 +44,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << (PARENT_PATH + SAME_PATH).findAll { it.childPaths.size() > 1 }
+        vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() > 1 }
     }
 
     def "invalidating the only child by #vfsSpec.absolutePath removes the node (#vfsSpec)"() {
@@ -57,7 +57,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << (PARENT_PATH + SAME_PATH).findAll { it.childPaths.size() == 1 }
+        vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() == 1 }
     }
 
     def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -75,7 +75,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         }
 
         where:
-        vfsSpec << DESCENDANT_PATH
+        vfsSpec << CHILD_IS_PREFIX
     }
 
     def "invalidate #vfsSpec.absolutePath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -92,7 +92,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         }
 
         where:
-        vfsSpec << DESCENDANT_PATH.findAll { it.childPaths.size() > 1 }
+        vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() > 1 }
     }
 
     def "invalidate #vfsSpec.absolutePath removes the child #vfsSpec.selectedChildPath and the node with it (#vfsSpec)"() {
@@ -108,7 +108,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         }
 
         where:
-        vfsSpec << DESCENDANT_PATH.findAll { it.childPaths.size() == 1 }
+        vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() == 1 }
     }
 
     def "returns empty for snapshot"() {

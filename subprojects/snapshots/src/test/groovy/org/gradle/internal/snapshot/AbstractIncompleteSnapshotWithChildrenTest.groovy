@@ -131,7 +131,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << PARENT_PATH
+        vfsSpec << IS_PREFIX_OF_CHILD
     }
 
     def "storing a complete snapshot with same path #vfsSpec.absolutePath does replace child (#vfsSpec)"() {
@@ -207,7 +207,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         }
 
         where:
-        vfsSpec << DESCENDANT_PATH
+        vfsSpec << CHILD_IS_PREFIX
     }
 
     def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
@@ -225,7 +225,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << NO_COMMON_PREFIX + COMMON_PREFIX + PARENT_PATH
+        vfsSpec << NO_COMMON_PREFIX + COMMON_PREFIX + IS_PREFIX_OF_CHILD
     }
 
     def "querying the snapshot for existing child #vfsSpec.absolutePath returns the snapshot for the child (#vfsSpec)"() {
@@ -276,7 +276,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         }
 
         where:
-        vfsSpec << DESCENDANT_PATH
+        vfsSpec << CHILD_IS_PREFIX
     }
 
     def "querying the snapshot for non-existing descendant of child #vfsSpec.selectedChildPath returns empty (#vfsSpec)"() {
@@ -292,10 +292,13 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         }
 
         where:
-        vfsSpec << DESCENDANT_PATH
+        vfsSpec << CHILD_IS_PREFIX
     }
 
-    static final CHILD_CONSTELLATIONS = [
+    /**
+     * Different lists of relative paths of the initial children of the node under test.
+     */
+    static final INITIAL_CHILD_CONSTELLATIONS = [
         ['name'],
         ['name', 'name1'],
         ['name', 'name1', 'name12'],
@@ -308,7 +311,18 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         ['name', 'name1/some', 'name2/other/third'],
         ['aa/b1', 'ab/a1', 'name', 'name1/some', 'name2/other/third']
     ]
-    static final List<VirtualFileSystemTestSpec> NO_COMMON_PREFIX = CHILD_CONSTELLATIONS.collectMany { childPaths ->
+
+    /**
+     * The queried/updated path has no common prefix with any of the initial children of the node under test.
+     *
+     * E.g.
+     *   path: 'name0/some
+     *   children: ['name/some', 'other']
+     * or
+     *   path: 'completelyDifferent'
+     *   children: ['name/some', 'other']
+     */
+    static final List<VirtualFileSystemTestSpec> NO_COMMON_PREFIX = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.collect { childPath ->
             def firstSlash = childPath.indexOf('/')
             String newChildPath = firstSlash > -1
@@ -317,26 +331,58 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
             new VirtualFileSystemTestSpec(childPaths, newChildPath, 0, null)
         } + new VirtualFileSystemTestSpec(childPaths, 'completelyDifferent', 0, null)
     }
-    static final List<VirtualFileSystemTestSpec> COMMON_PREFIX = CHILD_CONSTELLATIONS.collectMany { childPaths ->
+
+    /**
+     * The queried/updated path has a true common prefix with one of the initial children of the node under test.
+     *
+     * E.g.
+     *   path: 'name/different'
+     *   children: ['name/some', 'other']
+     */
+    static final List<VirtualFileSystemTestSpec> COMMON_PREFIX = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.findAll { it.contains('/') } collectMany { childPath ->
             parentPaths(childPath).collect {
                 new VirtualFileSystemTestSpec(childPaths, "${it}/different", 0, childPath)
             }
         }
     }
-    static final List<VirtualFileSystemTestSpec> PARENT_PATH = CHILD_CONSTELLATIONS.collectMany { childPaths ->
+
+    /**
+     * The queried/updated path is a prefix of one of the initial children of the node under test.
+     *
+     * E.g.
+     *   path: 'name'
+     *   children: ['name/some', 'other']
+     */
+    static final List<VirtualFileSystemTestSpec> IS_PREFIX_OF_CHILD = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.findAll { it.contains('/') } collectMany { childPath ->
             parentPaths(childPath).collect { parentPath ->
                 new VirtualFileSystemTestSpec(childPaths, parentPath, 0, findPathWithParent(childPaths, parentPath))
             }
         }
     }
-    static final List<VirtualFileSystemTestSpec> SAME_PATH = CHILD_CONSTELLATIONS.collectMany { childPaths ->
+
+    /**
+     * The queried/updated path is one of the initial children of the node under test.
+     *
+     * E.g.
+     *   path: 'name/some'
+     *   children: ['name/some', 'other']
+     */
+    static final List<VirtualFileSystemTestSpec> SAME_PATH = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.collect {
             new VirtualFileSystemTestSpec(childPaths, it, 0, it)
         }
     }
-    static final List<VirtualFileSystemTestSpec> DESCENDANT_PATH = CHILD_CONSTELLATIONS.collectMany { childPaths ->
+
+    /**
+     * One of the initial children of the node under test is a prefix of the queried/updated path.
+     *
+     * E.g.
+     *   path: 'name/some/descendant'
+     *   children: ['name/some', 'other']
+     */
+    static final List<VirtualFileSystemTestSpec> CHILD_IS_PREFIX = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.collect {
             new VirtualFileSystemTestSpec(childPaths, "${it}/descendant", 0, it)
         }
