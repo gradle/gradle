@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -34,6 +35,7 @@ class SwiftToolChainDiscoveryIntegrationTest extends AbstractInstalledToolChainI
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "toolchain is not available when the discovered swift executable does not return sensible output"() {
         def scriptDir = testDirectory.createDir("scriptDir")
         def script = scriptDir.createFile("swiftc")

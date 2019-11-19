@@ -17,6 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
 
     def "publishes nothing without defined publication"() {
@@ -41,6 +43,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         ivyRepo.module('group', 'root', '1.0').assertNotPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes empty module when publication has no added component"() {
         given:
         settingsFile << "rootProject.name = 'empty-project'"
@@ -86,6 +89,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish simple jar"() {
         given:
         def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
@@ -160,6 +164,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause("Ivy publication 'ivy' cannot include multiple components")
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes to all defined repositories"() {
         given:
         def ivyRepo2 = ivy("ivy-repo-2")
@@ -191,6 +196,7 @@ class IvyPublishBasicIntegTest extends AbstractIvyPublishIntegTest {
         module2.assertPublished()
     }
 
+    @ToBeFixedForInstantExecution
     def "warns when trying to publish a transitive = false variant"() {
         given:
         def javaLibrary = javaLibrary(ivyRepo.module('group', 'root', '1.0'))

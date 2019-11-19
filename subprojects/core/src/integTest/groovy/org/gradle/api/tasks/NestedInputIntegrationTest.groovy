@@ -20,6 +20,7 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.initialization.StartParameterBuildOptions.BuildCacheDebugLoggingOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -148,6 +149,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "re-configuring #change in nested bean during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
 
@@ -186,6 +188,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "re-configuring a nested bean from #from to #to during execution time is detected"() {
         def fixture = new NestedBeanTestFixture()
 
@@ -258,6 +261,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "re-configuring a nested bean from #from to #to after the task started executing has no effect"() {
         def fixture = new NestedBeanTestFixture()
         fixture.prepareInputFiles()
@@ -500,6 +504,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         succeeds "myTask"
     }
 
+    @ToBeFixedForInstantExecution
     def "changes to nested bean implementation are detected"() {
         buildFile << """
             class TaskWithNestedInput extends DefaultTask {
@@ -574,6 +579,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause('Null is not allowed as nested property \'beans.$1\'')
     }
 
+    @ToBeFixedForInstantExecution
     def "nested iterable beans can be iterables themselves"() {
         buildFile << nestedBeanWithStringInput()
         buildFile << """
@@ -662,6 +668,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         succeeds "myTask"
     }
 
+    @ToBeFixedForInstantExecution
     def "nested Provider is unpacked"() {
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
@@ -687,6 +694,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Value of input property 'nested.input' has changed for task ':myTask'"
     }
 
+    @ToBeFixedForInstantExecution
     def "input changes for task with named nested beans"() {
         buildFile << taskWithNestedInput()
         buildFile << namedBeanClass()
@@ -713,6 +721,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Input property 'nested.name1\$0' has been removed for task ':myTask'")
     }
 
+    @ToBeFixedForInstantExecution
     def "input changes for task with nested map"() {
         buildFile << taskWithNestedInput()
         buildFile << nestedBeanWithStringInput()
@@ -765,6 +774,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
             "  Non-cacheable inputs: property 'bean' was loaded with an unknown classloader (class 'NestedBean')."
     }
 
+    @ToBeFixedForInstantExecution
     def "task with nested bean loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << taskWithNestedBeanFromCustomClassLoader()
@@ -781,6 +791,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Implementation of input property 'bean' has changed for task ':customTask'"
     }
 
+    @ToBeFixedForInstantExecution
     def "changes to nested domain object container are tracked"() {
         buildFile << taskWithNestedInput()
         buildFile << """
@@ -884,6 +895,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "implementation of nested closure in decorated bean is tracked"() {
         taskWithNestedBeanWithAction()
         buildFile << """

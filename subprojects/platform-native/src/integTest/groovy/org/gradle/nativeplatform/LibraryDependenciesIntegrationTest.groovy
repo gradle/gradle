@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
@@ -90,6 +91,7 @@ project(":other") {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can use #notationName notation to reference library in same project"() {
         given:
         def app = new CppHelloWorldApp()
@@ -123,6 +125,7 @@ model {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can use map #notationName notation to reference library dependency of binary"() {
         given:
         def app = new CppHelloWorldApp()
@@ -155,6 +158,7 @@ model {
         "map"        | "library: 'hello'"
     }
 
+    @ToBeFixedForInstantExecution
     def "can use map notation to reference static library in same project"() {
         given:
         def app = new CppHelloWorldApp()
@@ -182,6 +186,7 @@ model {
         executable("build/exe/main/main").exec().out == app.englishOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "can use map notation to reference library in different project"() {
         given:
         def app = new CppHelloWorldApp()
@@ -218,6 +223,7 @@ project(":lib") {
         installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "can use map notation to reference library in different project with configure-on-demand"() {
         given:
         def app = new CppHelloWorldApp()
@@ -255,6 +261,7 @@ project(":lib") {
         installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "can use map notation to transitively reference libraries in different projects"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
@@ -301,6 +308,7 @@ project(":greet") {
         installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "can have component graph with project dependency cycle"() {
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
@@ -343,6 +351,7 @@ project(":lib") {
         installation("exe/build/install/main").exec().out == app.englishOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "can have component graph with diamond dependency"() {
         given:
         def app = new ExeWithDiamondDependencyHelloWorldApp()
@@ -380,6 +389,7 @@ model {
         sharedLibrary("build/binaries/greetingsSharedLibrary/greetings").assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     def "can have component graph with both static and shared variants of same library"() {
         given:
         def app = new ExeWithDiamondDependencyHelloWorldApp()

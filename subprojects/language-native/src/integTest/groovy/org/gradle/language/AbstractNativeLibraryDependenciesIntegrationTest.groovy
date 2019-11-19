@@ -16,7 +16,10 @@
 
 package org.gradle.language
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 abstract class AbstractNativeLibraryDependenciesIntegrationTest extends AbstractNativeProductionComponentDependenciesIntegrationTest {
+    @ToBeFixedForInstantExecution
     def "can define api dependencies on component"() {
         given:
         settingsFile << 'include "lib"'

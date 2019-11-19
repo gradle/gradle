@@ -71,32 +71,44 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     }
 
     override fun rootScopeCreated(rootScopeId: ClassLoaderScopeId) {
-        val root = ClassLoaderScopeSpec(null, rootScopeId.name)
-        if (scopeSpecs.containsKey(rootScopeId)) {
-            throw IllegalStateException("Duplicate scope $rootScopeId")
+        // Currently, receives duplicate events from other builds in the build tree, eg the root build receives events from buildSrc
+        if (!scopeSpecs.containsKey(rootScopeId)) {
+            val root = ClassLoaderScopeSpec(null, rootScopeId.name)
+            scopeSpecs[rootScopeId] = root
         }
-        scopeSpecs[rootScopeId] = root
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
-        val parent = scopeSpecs.getValue(parentId)
-        val child = ClassLoaderScopeSpec(parent, childId.name)
-        if (!scopeSpecs.containsKey(childId)) {
-            scopeSpecs[childId] = child
+        // Currently, buildSrc does not see some of the root build scopes
+        val parent = scopeSpecs[parentId]
+        if (parent != null) {
+            if (!scopeSpecs.containsKey(childId)) {
+                val child = ClassLoaderScopeSpec(parent, childId.name)
+                scopeSpecs[childId] = child
+            }
         }
     }
 
     override fun localClasspathAdded(scopeId: ClassLoaderScopeId, localClassPath: ClassPath) {
-        scopeSpecs.getValue(scopeId).localClassPath += localClassPath
+        val spec = scopeSpecs[scopeId]
+        if (spec != null) {
+            spec.localClassPath += localClassPath
+        }
     }
 
     override fun exportClasspathAdded(scopeId: ClassLoaderScopeId, exportClassPath: ClassPath) {
-        scopeSpecs.getValue(scopeId).exportClassPath += exportClassPath
+        val spec = scopeSpecs[scopeId]
+        if (spec != null) {
+            spec.exportClassPath += exportClassPath
+        }
     }
 
     override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader) {
-        val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
-        loaders[classLoader] = Pair(scopeSpecs.getValue(scopeId), ClassLoaderRole(local))
+        val spec = scopeSpecs[scopeId]
+        if (spec != null) {
+            val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
+            loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
+        }
     }
 }
 
@@ -108,4 +120,12 @@ class ClassLoaderScopeSpec(
 ) {
     var localClassPath = ClassPath.EMPTY
     var exportClassPath = ClassPath.EMPTY
+
+    override fun toString(): String {
+        return if (parent != null) {
+            "$parent:$name"
+        } else {
+            name
+        }
+    }
 }

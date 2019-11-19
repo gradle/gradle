@@ -17,9 +17,11 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "jvm argument providers are passed to the test worker"() {
         file("src/test/java/FooTest.java") << """
             import java.io.*;

@@ -18,6 +18,7 @@ package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
@@ -32,6 +33,7 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_1_9) })
+    @ToBeFixedForInstantExecution
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)

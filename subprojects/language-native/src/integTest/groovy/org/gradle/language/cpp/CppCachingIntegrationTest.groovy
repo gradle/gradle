@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibraries
@@ -51,6 +52,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def 'compilation can be cached (#buildType)'() {
         setupProject()
 
@@ -80,6 +82,7 @@ class CppCachingIntegrationTest extends AbstractInstalledToolChainIntegrationSpe
         buildType << [debug, release]
     }
 
+    @ToBeFixedForInstantExecution
     def "compilation task is relocatable for release"() {
 
         def originalLocation = file('original-location')

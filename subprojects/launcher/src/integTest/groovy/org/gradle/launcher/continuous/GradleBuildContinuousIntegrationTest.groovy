@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class GradleBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
     def setup() {
         file("gradle-build/inputs/input.txt").text = "first"
@@ -43,6 +45,7 @@ class GradleBuildContinuousIntegrationTest extends Java7RequiringContinuousInteg
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "will rebuild on input change for GradleBuild task"() {
         def outputFile = file("gradle-build/build/output.txt")
 

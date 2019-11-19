@@ -17,11 +17,12 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ScriptExecuter
 import org.gradle.util.TextUtil
 
-
 class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "can configure using project extension"() {
         settingsFile << """
             rootProject.name = 'test'

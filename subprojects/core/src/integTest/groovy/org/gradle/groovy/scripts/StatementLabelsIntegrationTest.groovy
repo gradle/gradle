@@ -17,6 +17,7 @@
 package org.gradle.groovy.scripts
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.hamcrest.CoreMatchers
 
 class StatementLabelsIntegrationTest extends AbstractIntegrationSpec {
@@ -75,6 +76,7 @@ def foo() {
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 5: Statement labels may not be used in build scripts."))
     }
 
+    @ToBeFixedForInstantExecution
     def "use of statement label in class inside build script is allowed"() {
         buildFile << """
 class Foo {

@@ -18,6 +18,7 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -118,6 +119,7 @@ public class MyTest {
 
     @Unroll
     @Issue('https://github.com/gradle/gradle/issues/4924')
+    @ToBeFixedForInstantExecution
     def "re-executes test when #type is changed"() {
         given:
         resources.maybeCopy("JUnitCategoriesIntegrationSpec/reExecutesWhenPropertyIsChanged")

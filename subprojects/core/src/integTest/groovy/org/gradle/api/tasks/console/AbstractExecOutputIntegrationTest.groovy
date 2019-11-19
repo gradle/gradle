@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.console
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
 import spock.lang.Issue
 import spock.util.environment.OperatingSystem
@@ -53,6 +54,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         errorOutput.contains(EXPECTED_ERROR)
     }
 
+    @ToBeFixedForInstantExecution
     def "JavaExec task output is grouped with its task output"() {
         given:
         generateMainJavaFileEchoing(EXPECTED_OUTPUT, EXPECTED_ERROR)
@@ -97,6 +99,7 @@ abstract class AbstractExecOutputIntegrationTest extends AbstractConsoleGroupedT
         result.groupedOutput.task(':run').output == EXPECTED_OUTPUT
     }
 
+    @ToBeFixedForInstantExecution
     def "Exec task output is grouped with its task output"() {
         given:
         buildFile << """

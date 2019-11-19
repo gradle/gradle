@@ -16,6 +16,7 @@
 
 package org.gradle.internal.scan.config
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
@@ -30,6 +31,7 @@ class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTes
 
     private final GradleEnterprisePluginFixture fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
 
+    @ToBeFixedForInstantExecution
     def "can automatically apply plugin when --scan is provided on command-line"() {
         given:
         file("settings.gradle").delete()

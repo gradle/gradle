@@ -17,6 +17,7 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
@@ -134,6 +135,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Only managed model instances can be set as property 'operatingSystem' of class 'Platform'")
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot use value type as subject of void model rule"() {
         when:
         buildScript '''
@@ -153,6 +155,7 @@ class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("A model element of type: 'java.lang.String' can not be constructed.")
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot use unknown type as subject of void model rule"() {
         when:
         buildScript '''

@@ -18,6 +18,7 @@ package org.gradle.initialization.buildsrc
 
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer
@@ -43,6 +44,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     @Unroll("jars on buildscript classpath can change (deleteIfExists: #deleteIfExists, loopNumber: #loopNumber)")
+    @ToBeFixedForInstantExecution
     def "jars on buildscript classpath can change"() {
         given:
         buildFile << '''
@@ -163,6 +165,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         succeeds("checkUrlConnectionCaching")
     }
 
+    @ToBeFixedForInstantExecution
     def "jars with resources on buildscript classpath can change"() {
         given:
         buildFile << '''
@@ -215,6 +218,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
+    @ToBeFixedForInstantExecution
     def "cleans up unused cached JARs"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon
@@ -254,6 +258,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         jar.assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "cleans up unused versions of jars cache"() {
         given:
         requireOwnGradleUserHomeDir() // messes with caches

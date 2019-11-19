@@ -16,6 +16,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
@@ -213,6 +214,7 @@ rootProject {
         result.assertTasksExecuted(':worker', ':a:worker', ':b:worker', ':root')
     }
 
+    @ToBeFixedForInstantExecution
     def "notices changes to init scripts that do not change the file length"() {
         def initScript = file("init.gradle")
         initScript.text = "println 'counter: __'"

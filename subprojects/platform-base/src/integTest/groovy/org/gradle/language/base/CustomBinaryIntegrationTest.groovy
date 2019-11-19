@@ -17,6 +17,7 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
@@ -28,6 +29,7 @@ class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "custom binary type can be registered and created"() {
         when:
         buildWithCustomBinaryPlugin()
@@ -54,6 +56,7 @@ model {
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "custom binary type can viewed as ModelElement"() {
         when:
         buildWithCustomBinaryPlugin()
@@ -79,6 +82,7 @@ model {
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure binary defined by rule method using rule DSL"() {
         when:
         buildWithCustomBinaryPlugin()
@@ -119,6 +123,7 @@ model {
         succeeds "sampleBinary"
     }
 
+    @ToBeFixedForInstantExecution
     def "can register custom binary model without creating"() {
         when:
         buildFile << '''
@@ -150,6 +155,7 @@ model {
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "can have binary declaration and creation in separate plugins"() {
         when:
         buildFile << '''
@@ -197,6 +203,7 @@ model {
         succeeds "checkModel"
     }
 
+    @ToBeFixedForInstantExecution
     def "can define and create multiple binary types in the same plugin"() {
         when:
         buildFile << '''

@@ -15,10 +15,13 @@
  */
 
 package org.gradle.language.java
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class CustomComponentJarBinariesIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "custom component defined by plugin is built from Java source using JVM component plugin" () {
         given:
         file("src/lib1/java/Lib1.java") << "public class Lib1 {}"

@@ -16,6 +16,7 @@
 package org.gradle.testing.fixture
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -35,6 +36,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         """
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "executes single method from a test class"() {
         buildFile << """
             test {
@@ -72,6 +74,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         pattern << ['FooTest.pass', 'org.gradle.FooTest.pass']
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "executes multiple methods from a test class"() {
         buildFile << """
             test {
@@ -106,6 +109,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         result.testClass("FooTest").assertTestCount(2, 0, 0)
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "executes multiple methods from different classes"() {
         buildFile << """
             test {
@@ -147,6 +151,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "reports when no matching methods found"() {
         file("src/test/java/org/gradle/FooTest.java") << """
             package org.gradle;
@@ -170,6 +175,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         pattern << ['FooTest.missingMethod', 'org.gradle.FooTest.missingMethod']
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "adds import/export rules to report about no matching methods found"() {
         file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
@@ -188,6 +194,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         then: failure.assertHasCause("No tests found for given includes: [FooTest*](include rules) [NotImportant*](exclude rules) [FooTest.missingMethod](--tests filter)")
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "does not report when matching method has been filtered before via include/exclude"() { //current behavior, not necessarily desired
         file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
@@ -201,6 +208,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         succeeds("test", "--tests", 'FooTest.missingMethod')
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "task is out of date when --tests argument changes"() {
         file("src/test/java/FooTest.java") << """import $imports;
             public class FooTest {
@@ -224,6 +232,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "can select multiple tests from commandline #scenario"() {
         given:
         file("src/test/java/Foo1Test.java") << """import $imports;
@@ -279,6 +288,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
 
     @Issue("https://github.com/gradle/gradle/issues/1571")
     @Unroll
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "option --tests filter in combined with #includeType"() {
         given:
         buildFile << """
@@ -304,6 +314,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         "filter.includePatterns"      | "filter { includePatterns = ['*ATest*', '*CTest*'] }"
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "invoking testNameIncludePatterns does not influence include/exclude filter"() {
         given:
         buildFile << """
@@ -324,6 +335,7 @@ abstract class AbstractTestFilteringIntegrationTest extends MultiVersionIntegrat
         !output.contains('CTest!')
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "invoking filter.includePatterns not disable include/exclude filter"() {
         given:
         buildFile << """

@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.sourceset
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -76,6 +77,7 @@ model {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "library dependency of binary is available when linking all source sets"() {
         given:
         buildFile << """
@@ -101,6 +103,7 @@ model {
         installation("build/install/main").exec().out == "12\n"
     }
 
+    @ToBeFixedForInstantExecution
     def "library dependency of 1 language source set is available to another when linking"() {
         given:
         buildFile << """
@@ -125,6 +128,7 @@ model {
         installation("build/install/main").exec().out == "12\n"
     }
 
+    @ToBeFixedForInstantExecution
     def "dependencies of language source set added to binary are available when linking"() {
         given:
         buildFile << """

@@ -109,6 +109,20 @@ include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjec
 include::sample[dir="userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/producer",files="build.gradle.kts[tags=gradle_metadata_source]"]
 ====
 
+[[sub:gmm-validation]]
+== Gradle Module Metadata validation
+
+Gradle Module Metadata is validated before being published.
+
+The following rules are enforced:
+
+* Variant names must be unique,
+* Each variant must have at least <<variant_attributes.adoc#,one attribute>>,
+* Two variants cannot have the <<variant_model.adoc#,exact same attributes and capabilities>>,
+* If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#,version information>>.
+
+These rules ensure the quality of the metadata produced, and help confirm that consumption will not be problematic.
+
 [[sub:disabling-gmm-publication]]
 == Disabling Gradle Module Metadata publication
 

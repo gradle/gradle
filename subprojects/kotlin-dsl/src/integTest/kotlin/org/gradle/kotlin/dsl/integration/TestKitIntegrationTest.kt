@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -27,6 +28,7 @@ class TestKitIntegrationTest : AbstractKotlinIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    @ToBeFixedForInstantExecution
     fun `withPluginClasspath works`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

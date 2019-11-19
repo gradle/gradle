@@ -17,9 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "managed types can have cyclical managed type references"() {
         when:
         buildScript '''
@@ -64,6 +66,7 @@ class CyclicalManagedTypeIntegrationTest extends AbstractIntegrationSpec {
         output.contains("name: parent")
     }
 
+    @ToBeFixedForInstantExecution
     def "managed types can have cyclical managed type references where more than two types constitute the cycle"() {
         when:
         buildScript '''

@@ -12,6 +12,7 @@ Include only their name, impactful features should be called out separately belo
 [Kazuki Matsuda](https://github.com/kazuki-ma),
 [Emmanuel Guérin](https://github.com/emmanuelguerin),
 [Nicholas Gates](https://github.com/gatesn),
+[Bjørn Mølgård Vester](https://github.com/bjornvester),
 and [Johnny Lim](https://github.com/izeye).
 
 ## Upgrade Instructions
@@ -25,6 +26,16 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
+
+## Gradle Dependency Cache can be relocated
+
+With this release, the Gradle Dependency cache, that is the content under `$GRADLE_HOME/caches/modules-2`, can be relocated, for data cached by Gradle version 6.1 and later.
+This enables its copy from host to host, allowing to fully leverage all the cached information: artifacts downloaded and metadata parsed.
+
+Note that priming the cache and consuming it needs to use the same Gradle version for maximum effect.
+See [the documentation](userguide/dependency_resolution.html#sub:cache_copy) for details on this.
+
+This is one step in helping out ephemeral CI setups where host images can be seeded with dependency cache content, reducing the amout of downloads during the build.
 
 ## Features for Gradle tooling providers
 
@@ -49,16 +60,6 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
-
-### Gradle Dependency Cache can be relocated
-
-With this release, the Gradle Dependency cache, that is the content under `$GRADLE_HOME/caches/modules-2`, can be relocated, for data cached by Gradle version 6.1 and later.
-This enables its copy from host to host, allowing to fully leverage all the cached information: artifacts downloaded and metadata parsed.
-
-Note that priming the cache and consuming it needs to use the same Gradle version for maximum effect.
-See [the documentation](userguide/dependency_resolution.html#sub:cache_copy) for details on this.
-
-This is one step in helping out ephemeral CI setups where host images can be seeded with dependency cache content, reducing the amout of downloads during the build.
 
 <!--
 ### Example promoted

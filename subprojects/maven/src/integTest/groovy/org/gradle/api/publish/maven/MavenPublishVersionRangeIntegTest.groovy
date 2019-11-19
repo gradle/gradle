@@ -16,11 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
     def mavenModule = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
+    @ToBeFixedForInstantExecution
     void "version range is mapped to maven syntax in published pom file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
@@ -70,5 +72,4 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
             "group:projectE:[1.0]"
         )
     }
-
 }

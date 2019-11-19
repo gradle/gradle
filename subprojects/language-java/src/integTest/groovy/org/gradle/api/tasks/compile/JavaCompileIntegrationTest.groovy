@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
@@ -46,6 +47,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         javaClassFile("Foo.class").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "don't implicitly compile source files from classpath"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
@@ -80,6 +82,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
+    @ToBeFixedForInstantExecution
     def "detects change in classpath order"() {
         jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
         jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
@@ -438,6 +441,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1347")
+    @ToBeFixedForInstantExecution
     def "compile classpath snapshotting ignores non-relevant elements"() {
         def buildFileWithDependencies = { String... dependencies ->
             buildFile.text = """
@@ -837,6 +841,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
+    @ToBeFixedForInstantExecution
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.homeDir.absolutePath) + "/lib/rt.jar"
@@ -920,6 +925,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Requires(TestPrecondition.JDK8_OR_LATER)
+    @ToBeFixedForInstantExecution
     def "deletes stale header files"() {
         given:
         buildFile << """

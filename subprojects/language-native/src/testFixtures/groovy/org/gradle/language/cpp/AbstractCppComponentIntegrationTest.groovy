@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.MachineArchitecture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -23,6 +24,7 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.util.GUtil
 
 abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
+    @ToBeFixedForInstantExecution
     def "can build on current operating system family and architecture when explicitly specified"() {
         given:
         makeSingleProject()
@@ -92,6 +94,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         failure.assertHasCause("A target machine needs to be specified for the ${GUtil.toWords(componentUnderTestDsl, (char) ' ')}.")
     }
 
+    @ToBeFixedForInstantExecution
     def "can build for current machine when multiple target machines are specified"() {
         given:
         makeSingleProject()
@@ -106,6 +109,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32_AND_64)
+    @ToBeFixedForInstantExecution
     def "can build for multiple target machines"() {
         given:
         makeSingleProject()
@@ -122,6 +126,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
                 getTaskNameToAssembleDevelopmentBinaryWithArchitecture(MachineArchitecture.X86_64))
     }
 
+    @ToBeFixedForInstantExecution
     def "fails when no target architecture can be built"() {
         given:
         makeSingleProject()
@@ -136,6 +141,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         failure.assertHasCause("No tool chain is available to build C++")
     }
 
+    @ToBeFixedForInstantExecution
     def "can build current architecture when other, non-buildable architectures are specified"() {
         given:
         makeSingleProject()
@@ -170,6 +176,7 @@ abstract class AbstractCppComponentIntegrationTest extends AbstractNativeLanguag
         succeeds "verifyTargetMachineCount"
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify unbuildable architecture as a component target machine"() {
         given:
         makeSingleProject()

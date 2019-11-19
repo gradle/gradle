@@ -18,6 +18,7 @@ package org.gradle.language.groovy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TextUtil
@@ -42,6 +43,7 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         executer.requireDaemon().requireIsolatedDaemons()
     }
 
+    @ToBeFixedForInstantExecution
     def "tracks changes to the Groovy compiler JVM Java version"() {
         given:
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
@@ -69,6 +71,7 @@ class GroovyCompileJavaVersionTrackingIntegrationTest extends AbstractIntegratio
         output.contains "Value of input property 'groovyCompilerJvmVersion' has changed for task ':compileGroovy'"
     }
 
+    @ToBeFixedForInstantExecution
     def "tracks changes to the Java toolchain used for cross compilation"() {
         given:
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
