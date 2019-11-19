@@ -17,9 +17,10 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
-
+@LeaksFileHandles
 class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     @Rule
