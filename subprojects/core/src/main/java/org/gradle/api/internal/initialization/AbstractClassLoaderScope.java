@@ -19,6 +19,11 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.initialization.ClassLoaderScopeId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
+
+import javax.annotation.Nullable;
+import java.util.function.Function;
 
 /**
  * Provides common {@link #getPath} and {@link #createChild} behaviour for {@link ClassLoaderScope} implementations.
@@ -50,16 +55,31 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
     }
 
     @Override
-    public ClassLoaderScope createChild(String name) {
-        if (name == null) {
-            throw new IllegalArgumentException("'name' cannot be null");
-        }
-        ClassLoaderScopeIdentifier childId = id.child(name);
-        childScopeCreated(childId);
-        return new DefaultClassLoaderScope(childId, this, classLoaderCache, listener);
+    public ClassLoaderScope local(ClassPath classPath) {
+        return immutable();
     }
 
-    protected void childScopeCreated(ClassLoaderScopeId childId) {
-        listener.childScopeCreated(id, childId);
+    @Override
+    public ClassLoaderScope export(ClassPath classPath) {
+        return immutable();
+    }
+
+    @Override
+    public ClassLoaderScope export(ClassLoader classLoader) {
+        return immutable();
+    }
+
+    private ClassLoaderScope immutable() {
+        throw new UnsupportedOperationException(String.format("Class loader scope %s is immutable", id));
+    }
+
+    @Override
+    public ClassLoaderScope createChild(String name) {
+        return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache, listener);
+    }
+
+    @Override
+    public ClassLoaderScope createLockedChild(String name, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, Function<ClassLoader, ClassLoader> localClassLoaderFactory) {
+        return new ImmutableClassLoaderScope(id.child(name), this, localClasspath, classpathImplementationHash, localClassLoaderFactory, classLoaderCache, listener);
     }
 }

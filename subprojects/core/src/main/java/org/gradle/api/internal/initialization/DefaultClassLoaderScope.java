@@ -19,7 +19,6 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
-import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -27,7 +26,6 @@ import org.gradle.internal.classpath.ClassPath;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 
 public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
@@ -42,8 +40,6 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassPath local = ClassPath.EMPTY;
     private List<ClassLoader> ownLoaders;
 
-    private Function<Pair<ClassPath, ClassLoader>, ClassLoader> localClassLoaderFactory;
-
     // If these are not null, we are pessimistic (loaders asked for before locking)
     private MultiParentClassLoader exportingClassLoader;
     private MultiParentClassLoader localClassLoader;
@@ -55,6 +51,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     public DefaultClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassLoaderCache classLoaderCache, ClassLoaderScopeRegistryListener listener) {
         super(id, classLoaderCache, listener);
         this.parent = parent;
+        listener.childScopeCreated(parent.getId(), id);
     }
 
     private ClassLoader loader(ClassLoaderId id, ClassLoader parent, ClassPath classPath, @Nullable List<ClassLoader> additionalLoaders) {
@@ -84,13 +81,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     private ClassLoader localLoader(ClassLoaderId classLoaderId, ClassLoader parent, ClassPath classPath) {
-        if (localClassLoaderFactory == null) {
-            return this.loader(classLoaderId, parent, classPath);
-        } else {
-            ClassLoader loader = classLoaderCache.createIfAbsent(classLoaderId, classPath, parent, localClassLoaderFactory);
-            listener.classloaderCreated(id, classLoaderId, loader);
-            return loader;
-        }
+        return loader(classLoaderId, parent, classPath);
     }
 
     private void buildEffectiveLoaders() {
@@ -118,9 +109,6 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             } else { // creating before locking, have to create the most flexible setup
                 if (Boolean.getBoolean(STRICT_MODE_PROPERTY)) {
                     throw new IllegalStateException("Attempt to define scope class loader before scope is locked, scope identifier is " + id);
-                }
-                if (localClassLoaderFactory != null) {
-                    throw new UnsupportedOperationException("Not implemented");
                 }
 
                 exportingClassLoader = multiLoader(id.exportId(), parent.getExportClassLoader(), export, exportLoaders);
@@ -236,13 +224,6 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     public ClassLoaderScope lock() {
         locked = true;
         return this;
-    }
-
-    @Override
-    public ClassLoaderScope lock(Function<Pair<ClassPath, ClassLoader>, ClassLoader> localClassLoaderFactory) {
-        assertNotLocked();
-        this.localClassLoaderFactory = localClassLoaderFactory;
-        return lock();
     }
 
     @Override

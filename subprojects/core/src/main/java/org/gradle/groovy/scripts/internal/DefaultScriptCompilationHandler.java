@@ -364,9 +364,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private ClassLoaderScope prepareClassLoaderScope() {
             ClassPath scriptClassPath = DefaultClassPath.of(scriptCacheDir);
             String scopeName = "groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName();
-            return targetScope.createChild(scopeName)
-                .local(scriptClassPath)
-                .lock(spec -> new ScriptClassLoader(source, spec.right, spec.left, sourceHashCode));
+            return targetScope.createLockedChild(scopeName, scriptClassPath, sourceHashCode, parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
         }
     }
 
