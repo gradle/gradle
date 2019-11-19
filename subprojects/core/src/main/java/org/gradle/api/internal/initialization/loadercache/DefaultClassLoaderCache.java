@@ -24,7 +24,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Sets;
 import org.gradle.initialization.SessionLifecycleListener;
-import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.FilteringClassLoader;
@@ -61,13 +60,13 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash) {
         return doGet(id, classPath, parent, filterSpec, implementationHash, this::createClassLoader);
     }
 
     @Override
-    public ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<Pair<ClassPath, ClassLoader>, ClassLoader> factoryFunction) {
-        return doGet(id, classPath, parent, null, null, spec -> factoryFunction.apply(Pair.of(spec.classPath, spec.parent)));
+    public ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<ClassLoader, ClassLoader> factoryFunction, @Nullable HashCode implementationHash) {
+        return doGet(id, classPath, parent, null, implementationHash, spec -> factoryFunction.apply(spec.parent));
     }
 
     private ClassLoader doGet(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash, Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {

@@ -17,9 +17,10 @@
 package org.gradle.api.internal.initialization;
 
 import org.gradle.initialization.ClassLoaderScopeId;
-import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.hash.HashCode;
 
+import javax.annotation.Nullable;
 import java.util.function.Function;
 
 /**
@@ -97,16 +98,16 @@ public interface ClassLoaderScope {
     ClassLoaderScope createChild(String id);
 
     /**
+     * Creates a child scope that is immutable and ready to use. Uses the given factory to create the local ClassLoader if not already cached. The factory takes a parent ClassLoader produces a ClassLoader
+     */
+    ClassLoaderScope createLockedChild(String id, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory);
+
+    /**
      * Signal that no more modifications are to come, allowing the structure to be optimised if possible.
      *
      * @return this
      */
     ClassLoaderScope lock();
-
-    /**
-     * Locks this scope, using the given factory to create the local ClassLoader if not already cached. The factory takes a parent ClassLoader and classpath and produces a ClassLoader
-     */
-    ClassLoaderScope lock(Function<Pair<ClassPath, ClassLoader>, ClassLoader> localClassLoaderFactory);
 
     boolean isLocked();
 
