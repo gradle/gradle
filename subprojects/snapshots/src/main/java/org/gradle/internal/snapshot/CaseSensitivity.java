@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classloader;
+package org.gradle.internal.snapshot;
 
-import org.gradle.internal.classpath.DefaultClassPath;
-
-import java.io.File;
-import java.util.Collection;
-
-public class ClassLoaderFactoryHelperExtension {
-    public static ClassLoader createIsolatedClassLoader(ClassLoaderFactory factory, String name, Collection<File> files) {
-        return factory.createIsolatedClassLoader(name, DefaultClassPath.of(files));
-    }
+/**
+ * The case sensitivity of a file system.
+ *
+ * Note that the method for actually comparing paths with a case sensitivity are in {@link PathUtil} instead of being on this enum,
+ * since it seems that the methods can be better inlined by the JIT compiler if they are static.
+ */
+public enum CaseSensitivity {
+    CASE_SENSITIVE,
+    CASE_INSENSITIVE
 }

@@ -17,6 +17,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class IvyVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
     def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
@@ -26,6 +27,7 @@ class IvyVersionRangePublishIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
+    @ToBeFixedForInstantExecution
     public void "version range is mapped to ivy syntax in published ivy file"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "
@@ -67,6 +69,7 @@ uploadArchives {
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes Ivy dependency version for Gradle dependency with no version"() {
         given:
         settingsFile << "rootProject.name = 'publishTest' "

@@ -17,8 +17,10 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class UnmanagedElementIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "can view unmanaged element as ModelElement"() {
         given:
         buildFile << '''

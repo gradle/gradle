@@ -21,6 +21,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
@@ -35,6 +36,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Test
+    @ToBeFixedForInstantExecution
     void mergesMetadataFilesCorrectly() {
         file("master/settings.gradle") << ""
         def buildFile = file("master/build.gradle")
@@ -58,6 +60,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canCreateAndDeleteMetaData() {
         executer.withTasks('idea').run()
 
@@ -71,6 +74,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void worksWithAnEmptyProject() {
         executer.withTasks('idea').run()
 
@@ -79,6 +83,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void worksWithASubProjectThatDoesNotHaveTheIdeaPluginApplied() {
         executer.withTasks('idea').run()
 
@@ -86,6 +91,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void worksWithNonStandardLayout() {
         executer.inDirectory(testDirectory.file('root')).withTasks('idea').run()
 
@@ -95,6 +101,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void overwritesExistingDependencies() {
         executer.withTasks('idea').run()
 
@@ -102,6 +109,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void addsScalaSdkAndCompilerLibraries() {
         executer.withTasks('idea').run()
 
@@ -113,6 +121,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void addsScalaFacetAndCompilerLibraries() {
         executer.withTasks('idea').run()
 
@@ -124,6 +133,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void outputDirsDefaultToToIdeaDefaults() {
         runIdeaTask("apply plugin: 'java'; apply plugin: 'idea'")
 
@@ -132,6 +142,7 @@ apply plugin: 'idea'
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canHandleCircularModuleDependencies() {
         def repoDir = file("repo")
         def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").dependsOnModules("myArtifact2").publish().artifactFile
@@ -157,6 +168,7 @@ dependencies {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void libraryReferenceSubstitutesPathVariable() {
         def repoDir = file("repo")
         def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").publish().artifactFile
@@ -187,6 +199,7 @@ dependencies {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void onlyAddsSourceDirsThatExistOnFileSystem() {
         runIdeaTask """
 apply plugin: "java"
@@ -212,6 +225,7 @@ sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
 
 
     @Test
+    @ToBeFixedForInstantExecution
     void triggersWithXmlConfigurationHooks() {
         runIdeaTask '''
 apply plugin: 'java'
@@ -232,6 +246,7 @@ tasks.idea {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void respectsPerConfigurationExcludes() {
         def repoDir = file("repo")
         maven(repoDir).module("myGroup", "myArtifact1").dependsOnModules("myArtifact2").publish()
@@ -260,6 +275,7 @@ dependencies {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void respectsPerDependencyExcludes() {
         def repoDir = file("repo")
         maven(repoDir).module("myGroup", "myArtifact1").dependsOnModules("myArtifact2").publish()
@@ -286,6 +302,7 @@ dependencies {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void allowsCustomOutputFolders() {
         runIdeaTask """
 apply plugin: 'java'
@@ -306,6 +323,7 @@ idea.module {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void dslSupportsShortFormsForModule() {
         runTask('idea', """
 apply plugin: 'idea'
@@ -327,6 +345,7 @@ idea.module {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void dslSupportsShortFormsForProject() {
         runTask('idea', """
 apply plugin: 'idea'
@@ -366,6 +385,7 @@ apply plugin: "idea"
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void hasDefaultProjectLanguageLevelIfNoJavaPluginApplied() {
         //given
         file('build.gradle') << '''
@@ -388,6 +408,7 @@ apply plugin: "idea"
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canAddProjectLibraries() {
         runTask("idea", """
 apply plugin: 'idea'
@@ -407,6 +428,7 @@ idea.project {
 
     // We don't currently support generating an IDEA project from a software model component
     @Test
+    @ToBeFixedForInstantExecution
     void "does not explode if only ScalaLanguagePlugin is applied"() {
         runTask("idea", """
 apply plugin: 'idea'

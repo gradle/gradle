@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -26,6 +27,7 @@ import org.gradle.vcs.fixtures.GitFileRepository
 class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new SwiftAppWithLibraries()
 
+    @ToBeFixedForInstantExecution
     def "can combine swift builds in a composite"() {
         given:
         settingsFile << """
@@ -51,6 +53,7 @@ class SwiftDependenciesIntegrationTest extends AbstractInstalledToolChainIntegra
         assertAppHasOutputFor("release")
     }
 
+    @ToBeFixedForInstantExecution
     def "can depend on swift libraries from VCS"() {
         given:
         settingsFile << """

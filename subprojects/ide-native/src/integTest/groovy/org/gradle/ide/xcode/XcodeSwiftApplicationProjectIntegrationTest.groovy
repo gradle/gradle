@@ -17,6 +17,7 @@
 package org.gradle.ide.xcode
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.SwiftSourceElement
@@ -45,6 +46,7 @@ class XcodeSwiftApplicationProjectIntegrationTest extends AbstractXcodeSwiftProj
     }
 
     @Requires(TestPrecondition.XCODE)
+    @ToBeFixedForInstantExecution
     def "can create xcode project for unbuildable Swift application with library"() {
         useXcodebuildTool()
 

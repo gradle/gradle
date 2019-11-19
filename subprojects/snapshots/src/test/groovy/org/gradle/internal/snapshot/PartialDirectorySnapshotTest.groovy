@@ -19,6 +19,8 @@ package org.gradle.internal.snapshot
 import org.gradle.internal.file.FileType
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 @Unroll
 class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<PartialDirectorySnapshot> {
 
@@ -36,7 +38,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -51,7 +53,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         def invalidatedChild = mockNode(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
@@ -68,7 +70,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)

@@ -17,6 +17,7 @@ package org.gradle.api
 
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -60,6 +61,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         detectedBy << JAVA_PLUGIN_IDS + JAVA_PLUGIN_IDS.reverse()
     }
 
+    @ToBeFixedForInstantExecution
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
@@ -101,6 +103,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         run("verify")
     }
 
+    @ToBeFixedForInstantExecution
     def "plugin manager with id is fired after the plugin is applied for imperative plugins"() {
         when:
         buildFile << """
@@ -115,6 +118,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "tasks"
     }
 
+    @ToBeFixedForInstantExecution
     def "plugin manager with id is fired after the plugin is applied for hybrid plugins"() {
         when:
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
@@ -153,6 +157,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "tasks"
     }
 
+    @ToBeFixedForInstantExecution
     def "plugin manager with id is fired after the plugin is applied for rule plugins"() {
         when:
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """

@@ -17,6 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
@@ -78,15 +79,26 @@ class DefaultInstantExecution internal constructor(
             false
         }
         host.skipLoadingStateReason != null -> {
-            logger.lifecycle("Calculating task graph as instant execution cache cannot be reused due to ${host.skipLoadingStateReason}")
+            logger.log(
+                instantExecutionLogLevel,
+                "Calculating task graph as instant execution cache cannot be reused due to {}",
+                host.skipLoadingStateReason
+            )
             false
         }
         !instantExecutionStateFile.isFile -> {
-            logger.lifecycle("Calculating task graph as no instant execution cache is available for tasks: ${host.requestedTaskNames.joinToString(" ")}")
+            logger.log(
+                instantExecutionLogLevel,
+                "Calculating task graph as no instant execution cache is available for tasks: {}",
+                host.requestedTaskNames.joinToString(" ")
+            )
             false
         }
         else -> {
-            logger.lifecycle("Reusing instant execution cache. This is not guaranteed to work in any way.")
+            logger.log(
+                instantExecutionLogLevel,
+                "Reusing instant execution cache. This is not guaranteed to work in any way."
+            )
             true
         }
     }
@@ -327,6 +339,10 @@ class DefaultInstantExecution internal constructor(
     private
     val isInstantExecutionEnabled: Boolean
         get() = systemProperty(SystemProperties.isEnabled)?.toBoolean() ?: false && !host.currentBuild.buildSrc
+
+    private
+    val instantExecutionLogLevel: LogLevel
+        get() = if (systemProperty(SystemProperties.isQuiet)?.toBoolean() == true) LogLevel.INFO else LogLevel.LIFECYCLE
 
     private
     fun maxProblems(): Int =

@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
 import org.gradle.initialization.ClassLoaderScopeRegistryListener;
+import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -27,6 +27,7 @@ import org.gradle.internal.classpath.ClassPath;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
@@ -41,7 +42,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     private ClassPath local = ClassPath.EMPTY;
     private List<ClassLoader> ownLoaders;
 
-    private Transformer<ClassLoader, ClassLoader> localClassLoaderFactory;
+    private Function<Pair<ClassPath, ClassLoader>, ClassLoader> localClassLoaderFactory;
 
     // If these are not null, we are pessimistic (loaders asked for before locking)
     private MultiParentClassLoader exportingClassLoader;
@@ -86,7 +87,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         if (localClassLoaderFactory == null) {
             return this.loader(classLoaderId, parent, classPath);
         } else {
-            ClassLoader loader = classLoaderCache.put(classLoaderId, localClassLoaderFactory.transform(parent));
+            ClassLoader loader = classLoaderCache.createIfAbsent(classLoaderId, classPath, parent, localClassLoaderFactory);
             listener.classloaderCreated(id, classLoaderId, loader);
             return loader;
         }
@@ -129,9 +130,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
                 effectiveLocalClassLoader = new CachingClassLoader(localClassLoader);
             }
 
-            export = null;
             exportLoaders = null;
-            local = null;
         }
     }
 
@@ -240,7 +239,7 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
     }
 
     @Override
-    public ClassLoaderScope lock(Transformer<ClassLoader, ClassLoader> localClassLoaderFactory) {
+    public ClassLoaderScope lock(Function<Pair<ClassPath, ClassLoader>, ClassLoader> localClassLoaderFactory) {
         assertNotLocked();
         this.localClassLoaderFactory = localClassLoaderFactory;
         return lock();
@@ -257,5 +256,19 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
 
     protected void localClasspathAdded(ClassPath classPath) {
         listener.localClasspathAdded(id, classPath);
+    }
+
+    @Override
+    public void onReuse() {
+        parent.onReuse();
+        listener.childScopeCreated(parent.getId(), id);
+        if (!export.isEmpty()) {
+            listener.exportClasspathAdded(id, export);
+            listener.classloaderCreated(this.id, id.exportId(), effectiveExportClassLoader);
+        }
+        if (!local.isEmpty()) {
+            listener.localClasspathAdded(id, local);
+            listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader);
+        }
     }
 }

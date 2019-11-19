@@ -17,29 +17,23 @@
 package org.gradle.kotlin.dsl.execution
 
 import org.gradle.api.Project
-
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
-
-import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
-
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Dynamic
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
-
-import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
-import org.gradle.kotlin.dsl.support.ImplicitReceiver
+import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildscriptBlock
+import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
-
-import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
-
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
+import org.gradle.kotlin.dsl.support.ImplicitReceiver
+import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.bytecode.ACONST_NULL
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
@@ -61,26 +55,18 @@ import org.gradle.kotlin.dsl.support.bytecode.loadByteArray
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
-
 import org.gradle.kotlin.dsl.support.compileKotlinScriptToDirectory
 import org.gradle.kotlin.dsl.support.messageCollectorFor
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
-
 import org.gradle.plugin.management.internal.MultiPluginRequests
-
 import org.gradle.plugin.use.internal.PluginRequestCollector
-
 import org.jetbrains.kotlin.scripting.definitions.ScriptDefinition
-
 import org.jetbrains.org.objectweb.asm.ClassVisitor
 import org.jetbrains.org.objectweb.asm.ClassWriter
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Type
-
 import org.slf4j.Logger
-
 import java.io.File
-
 import kotlin.reflect.KClass
 
 
@@ -414,22 +400,8 @@ class ResidualProgramCompiler(
     fun ClassWriter.overrideLoadSecondStageFor() {
         publicMethod(
             name = "loadSecondStageFor",
-            desc = "(" +
-                "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;" +
-                "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
-                "Ljava/lang/String;" +
-                "Lorg/gradle/internal/hash/HashCode;" +
-                "Lorg/gradle/internal/classpath/ClassPath;" +
-                ")Ljava/lang/Class;",
-            signature = "(" +
-                "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$Host;" +
-                "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost<*>;" +
-                "Ljava/lang/String;" +
-                "Lorg/gradle/internal/hash/HashCode;" +
-                "Lorg/gradle/internal/classpath/ClassPath;" +
-                ")Ljava/lang/Class<*>;"
+            desc = loadSecondStageForDescriptor
         ) {
-
             ALOAD(Vars.ProgramHost)
             ALOAD(0)
             ALOAD(Vars.ScriptHost)
@@ -440,14 +412,7 @@ class ResidualProgramCompiler(
             ALOAD(5)
             invokeHost(
                 ExecutableProgram.Host::compileSecondStageOf.name,
-                "(" +
-                    stagedProgramType +
-                    "Lorg/gradle/kotlin/dsl/support/KotlinScriptHost;" +
-                    "Ljava/lang/String;Lorg/gradle/internal/hash/HashCode;" +
-                    "Lorg/gradle/kotlin/dsl/execution/ProgramKind;" +
-                    "Lorg/gradle/kotlin/dsl/execution/ProgramTarget;" +
-                    "Lorg/gradle/internal/classpath/ClassPath;" +
-                    ")Ljava/lang/Class;"
+                compileSecondStageOfDescriptor
             )
             ARETURN()
         }
@@ -476,7 +441,32 @@ class ResidualProgramCompiler(
     }
 
     private
-    val stagedProgramType = "Lorg/gradle/kotlin/dsl/execution/ExecutableProgram\$StagedProgram;"
+    val stagedProgram = Type.getType(ExecutableProgram.StagedProgram::class.java)
+
+    private
+    val stagedProgramType = stagedProgram.descriptor
+
+    private
+    val loadSecondStageForDescriptor = Type.getMethodDescriptor(
+        Type.getType(CompiledScript::class.java),
+        Type.getType(ExecutableProgram.Host::class.java),
+        Type.getType(KotlinScriptHost::class.java),
+        Type.getType(String::class.java),
+        Type.getType(HashCode::class.java),
+        Type.getType(ClassPath::class.java)
+    )
+
+    private
+    val compileSecondStageOfDescriptor = Type.getMethodDescriptor(
+        Type.getType(CompiledScript::class.java),
+        stagedProgram,
+        Type.getType(KotlinScriptHost::class.java),
+        Type.getType(String::class.java),
+        Type.getType(HashCode::class.java),
+        Type.getType(ProgramKind::class.java),
+        Type.getType(ProgramTarget::class.java),
+        Type.getType(ClassPath::class.java)
+    )
 
     private
     fun requiresAccessors() =

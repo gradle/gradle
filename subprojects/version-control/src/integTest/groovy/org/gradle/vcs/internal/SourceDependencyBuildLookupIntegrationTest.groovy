@@ -17,9 +17,9 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
-
 
 class SourceDependencyBuildLookupIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -55,6 +55,7 @@ class SourceDependencyBuildLookupIntegrationTest extends AbstractIntegrationSpec
         repo.createLightWeightTag("2.0")
     }
 
+    @ToBeFixedForInstantExecution
     def "source dependency builds are not visible to main build"() {
         given:
         buildFile << """

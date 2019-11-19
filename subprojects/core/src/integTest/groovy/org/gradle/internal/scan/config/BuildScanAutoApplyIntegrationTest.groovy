@@ -19,6 +19,7 @@ package org.gradle.internal.scan.config
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.VersionNumber
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -42,6 +43,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         fixture.publishDummyPlugin(executer)
     }
 
+    @ToBeFixedForInstantExecution
     def "automatically applies plugin when --scan is provided on command-line"() {
         when:
         runBuildWithScanRequest()
@@ -50,6 +52,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
+    @ToBeFixedForInstantExecution
     def "only applies once when -b used"() {
         when:
         file("other-build.gradle") << "task dummy {}"
@@ -59,6 +62,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
+    @ToBeFixedForInstantExecution
     def "does not automatically apply plugin when --scan is not provided on command-line"() {
         when:
         runBuildWithoutScanRequest()
@@ -67,6 +71,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginNotApplied()
     }
 
+    @ToBeFixedForInstantExecution
     def "does not automatically apply plugin to subprojects"() {
         when:
         settingsFile << """
@@ -81,6 +86,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
+    @ToBeFixedForInstantExecution
     def "does not apply plugin to nested builds in a composite"() {
         when:
         settingsFile << """
@@ -104,6 +110,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses #sequence version of plugin when explicit in plugins block"() {
         when:
         fixture.runtimeVersion = version
@@ -128,6 +135,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses #sequence version of plugin when added to buildscript classpath"() {
         when:
         fixture.runtimeVersion = version
@@ -158,6 +166,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses #sequence version of plugin when added to initscript classpath"() {
         when:
         fixture.runtimeVersion = version
@@ -191,6 +200,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         "newer"  | PLUGIN_NEWER_VERSION
     }
 
+    @ToBeFixedForInstantExecution
     def "does not auto-apply plugin when explicitly requested and not applied"() {
         when:
         settingsFile << """
@@ -207,6 +217,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("gradle/gradle#3250")
+    @ToBeFixedForInstantExecution
     def "automatically applies plugin when --scan is provided on command-line and a script is applied in the buildscript block"() {
         given:
         buildFile << """
@@ -223,6 +234,7 @@ class BuildScanAutoApplyIntegrationTest extends AbstractIntegrationSpec {
         pluginAppliedOnce()
     }
 
+    @ToBeFixedForInstantExecution
     def "fails well when trying to use old plugin"() {
         given:
         buildFile.text = """

@@ -26,25 +26,6 @@ import java.util.Optional;
  * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
  */
 public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
-    /**
-     * The empty hierarchy.
-     */
-    FileHierarchySet EMPTY = new FileHierarchySet() {
-        @Override
-        public Optional<MetadataSnapshot> getMetadata(String path) {
-            return Optional.empty();
-        }
-
-        @Override
-        public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
-            return DefaultFileHierarchySet.from(absolutePath, snapshot);
-        }
-
-        @Override
-        public FileHierarchySet invalidate(String path) {
-            return this;
-        }
-    };
 
     Optional<MetadataSnapshot> getMetadata(String path);
 
@@ -62,4 +43,7 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
     @CheckReturnValue
     FileHierarchySet invalidate(String path);
+
+    @CheckReturnValue
+    FileHierarchySet empty();
 }

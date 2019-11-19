@@ -16,6 +16,7 @@
 package org.gradle.api.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.TextUtil
@@ -27,6 +28,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("ivy-publish/quickstart")
+    @ToBeFixedForInstantExecution
     def "quickstart sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -48,6 +50,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("ivy-publish/java-multi-project")
+    @ToBeFixedForInstantExecution
     def "java-multi-project sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -86,6 +89,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("ivy-publish/descriptor-customization")
+    @ToBeFixedForInstantExecution
     def "descriptor-customization sample with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)
@@ -115,6 +119,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/conditional-publishing")
+    @ToBeFixedForInstantExecution
     def conditionalPublishing() {
         given:
         sample sampleProject
@@ -141,6 +146,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/conditional-publishing")
+    @ToBeFixedForInstantExecution
     def shorthandPublishToExternalRepository() {
         given:
         sample sampleProject
@@ -155,6 +161,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/conditional-publishing")
+    @ToBeFixedForInstantExecution
     def shorthandPublishToInternalRepository() {
         given:
         sample sampleProject
@@ -169,6 +176,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @UsesSample("ivy-publish/publish-artifact")
+    @ToBeFixedForInstantExecution
     def publishesRpmArtifact() {
         given:
         sample sampleProject
@@ -190,6 +198,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample("ivy-publish/distribution")
+    @ToBeFixedForInstantExecution
     def "publishes distribution archives with #dsl dsl"() {
         given:
         def sampleDir = sampleProject.dir.file(dsl)

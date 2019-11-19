@@ -123,7 +123,7 @@ class InstantExecutionReport(
 
     private
     fun logSummary() {
-        logger.lifecycle(summary())
+        logger.warn(summary())
     }
 
     private

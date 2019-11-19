@@ -17,6 +17,7 @@
 package org.gradle.api.artifacts.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 
 class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec {
@@ -31,6 +32,7 @@ class ArtifactTransformBuildScanIntegrationTest extends AbstractIntegrationSpec 
         fixture.publishDummyPluginNow()
     }
 
+    @ToBeFixedForInstantExecution
     def "transform works with build scan"() {
         given:
         buildFile << """

@@ -23,6 +23,7 @@ import org.gradle.configuration.ApplyScriptPluginBuildOperationType
 import org.gradle.configuration.internal.ExecuteListenerBuildOperationType
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import spock.lang.Unroll
 
@@ -34,6 +35,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     private static Closure addingPluginBuildOpQuery = { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def '#containerType container callbacks emit registrant when using #callbackName callback(before creation registered)'() {
         given:
         callbackScript(containerAccess, callbackName)
@@ -92,6 +94,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def '#containerName container callbacks emit registrant with #callbackName callback(after creation registered)'() {
         given:
         callbackScript(containerAccess, callbackName)
@@ -198,6 +201,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         assert registerPluginApplication.details.applicationId == registerCallbackBuildOp.details.applicationId
     }
 
+    @ToBeFixedForInstantExecution
     def "nested container callbacks emit build operation with application id"() {
         given:
         file('registration.gradle') << """
@@ -247,6 +251,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "filtered #container container callbacks emit build operation with application id for matching items only"() {
         given:
         file('script.gradle') << """
@@ -279,6 +284,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         'plugins'        | "matching {it.class.simpleName == 'FooPlugin'}"            | { name -> "apply plugin:${name.capitalize()}Plugin" }
     }
 
+    @ToBeFixedForInstantExecution
     def "container callbacks registered from lifecycle listener emit build operation with application id"() {
         given:
         file('registration.gradle') << """
@@ -322,6 +328,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         repositoriesContainerCallbackBuildOps.every { it.details.applicationId == callbackPluginApplication.details.applicationId }
     }
 
+    @ToBeFixedForInstantExecution
     def "applicationId for cross script buildscript configuration is emitted correctly"() {
         given:
         settingsFile << """
@@ -353,6 +360,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         findCallbackActionBuildOp('script repo callback').details.applicationId == settingsScriptApplicationId.details.applicationId
     }
 
+    @ToBeFixedForInstantExecution
     def "applicationIds for container callbacks registered in beforeResolve and afterResolve callbacks are emitted correctly"() {
         given:
         file('callback.gradle') << """

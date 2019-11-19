@@ -20,6 +20,7 @@ package org.gradle.integtests
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -27,6 +28,7 @@ import spock.lang.Unroll
 class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @Issue("https://issues.gradle.org/browse/GRADLE-3540")
+    @ToBeFixedForInstantExecution
     def "order of #annotation marks task not up-to-date"() {
         buildFile << """
             class MyTask extends DefaultTask {
@@ -96,6 +98,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
 
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
+    @ToBeFixedForInstantExecution
     def "optional output changed from null to non-null marks task not up-to-date"() {
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -128,6 +131,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
+    @ToBeFixedForInstantExecution
     def "output files changed from #before to #after marks task #upToDateString"() {
         buildFile << """
             class CustomTask extends DefaultTask {
@@ -191,6 +195,7 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3073")
+    @ToBeFixedForInstantExecution
     def "optional input changed from null to non-null marks task not up-to-date"() {
         file("input.txt") << "Input data"
         buildFile << """
@@ -338,6 +343,7 @@ import org.gradle.api.tasks.TaskAction
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4204")
+    @ToBeFixedForInstantExecution
     def "changing path of empty root directory makes task out of date for #inputAnnotation"() {
         buildFile << """
             class MyTask extends DefaultTask {

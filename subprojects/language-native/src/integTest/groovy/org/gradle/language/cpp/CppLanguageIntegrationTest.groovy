@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
@@ -32,6 +33,7 @@ class CppLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CppHelloWorldApp()
 
+    @ToBeFixedForInstantExecution
     def "build fails when compilation fails"() {
         given:
         buildFile << """
@@ -56,6 +58,7 @@ model {
         failure.assertThatCause(containsText("C++ compiler failed while compiling broken.cpp"))
     }
 
+    @ToBeFixedForInstantExecution
     def "finds C and C++ standard library headers"() {
         // https://github.com/gradle/gradle-native/issues/282
         Assume.assumeFalse(toolChain.id == "gcccygwin")
@@ -83,6 +86,7 @@ model {
     }
 
     @Requires(TestPrecondition.MAC_OS_X)
+    @ToBeFixedForInstantExecution
     def "can compile and link C++ code using standard macOS framework"() {
         given:
         buildFile << """
@@ -112,6 +116,7 @@ model {
         result.assertTasksNotSkipped(":compileMainSharedLibraryMainCpp", ":linkMainSharedLibrary", ":mainSharedLibrary")
     }
 
+    @ToBeFixedForInstantExecution
     def "sources are compiled with C++ compiler"() {
         def app = new CppCompilerDetectingTestApp()
 
@@ -132,6 +137,7 @@ model {
         executable("build/exe/main/main").exec().out == app.expectedOutput(toolChain)
     }
 
+    @ToBeFixedForInstantExecution
     def "can manually define C++ source sets"() {
         given:
         helloWorldApp.library.headerFiles.each { it.writeToDir(file("src/shared")) }
@@ -180,6 +186,7 @@ model {
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
+    @ToBeFixedForInstantExecution
     def "system headers are not evaluated when compiler warnings are enabled"() {
         def app = new CppCompilerDetectingTestApp()
 

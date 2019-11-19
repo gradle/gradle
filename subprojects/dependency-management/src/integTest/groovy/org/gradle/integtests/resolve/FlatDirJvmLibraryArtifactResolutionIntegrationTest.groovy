@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 package org.gradle.integtests.resolve
+
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class FlatDirJvmLibraryArtifactResolutionIntegrationTest extends AbstractDependencyResolutionTest {
     JvmLibraryArtifactResolveTestFixture fixture
@@ -28,6 +30,7 @@ repositories {
         fixture = new JvmLibraryArtifactResolveTestFixture(buildFile)
     }
 
+    @ToBeFixedForInstantExecution
     def "resolves and does not cache source and javadoc artifacts"() {
         publishModule()
         fixture.expectSourceArtifact("sources")

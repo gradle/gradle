@@ -23,6 +23,8 @@ import spock.lang.Unroll
 import javax.annotation.Nullable
 import java.util.stream.Collectors
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 @Unroll
 abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNode> extends Specification {
 
@@ -40,7 +42,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         setupTest(vfsSpec)
 
         expect:
-        initialRoot.invalidate(absolutePath, offset).get() is initialRoot
+        initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get() is initialRoot
 
         where:
         vfsSpec << NO_COMMON_PREFIX + COMMON_PREFIX
@@ -53,7 +55,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def newGrandChild = mockNode(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, snapshot)
+        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
         AbstractIncompleteSnapshotWithChildren newChild = getNodeWithIndexOfSelectedChild(resultRoot.children) as AbstractIncompleteSnapshotWithChildren
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(newChild)
@@ -79,7 +81,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def newGrandChild = mockNode(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, snapshot)
+        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
         AbstractIncompleteSnapshotWithChildren newChild = getNodeWithIndexOfSelectedChild(resultRoot.children) as AbstractIncompleteSnapshotWithChildren
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(newChild)
@@ -103,7 +105,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def newChild = mockNode()
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, snapshot)
+        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.children == childrenWithAdditionalChild(newChild)
         isSameNodeType(resultRoot)
@@ -121,7 +123,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def parent = mockNode()
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, snapshot)
+        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(parent)
         isSameNodeType(resultRoot)
@@ -139,7 +141,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def snapshotWithParent = mockNode(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, snapshot)
+        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(snapshotWithParent)
         isSameNodeType(resultRoot)
@@ -155,7 +157,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def snapshot = Mock(MetadataSnapshot)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, snapshot)
+        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.children == children
         isSameNodeType(resultRoot)
@@ -175,7 +177,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def newNode = mockNode(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, snapshot)
+        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
         then:
         isSameNodeType(resultRoot)
         resultRoot.children == childrenWithSelectedChildReplacedBy(newNode)
@@ -195,7 +197,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def updatedChildNode = mockNode(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, snapshotToStore)
+        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshotToStore)
         then:
         initialRoot.class == resultRoot.class
         resultRoot.children == childrenWithSelectedChildReplacedBy(updatedChildNode)
@@ -210,14 +212,14 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
         def descendantOffset = offset + selectedChild.pathToParent.length() + 1
-        1 * selectedChild.store(absolutePath, descendantOffset, snapshot) >> updatedChild
+        1 * selectedChild.store(absolutePath, descendantOffset, CASE_SENSITIVE, snapshot) >> updatedChild
     }
 
     def "querying the snapshot for non-existing child #vfsSpec.absolutePath finds nothings (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset)
+        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction { noMoreInteractions() }
@@ -231,7 +233,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def existingSnapshot = Mock(MetadataSnapshot)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset)
+        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
         then:
         resultRoot.get() == existingSnapshot
 
@@ -248,7 +250,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset)
+        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction {
@@ -265,7 +267,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def descendantSnapshot = Mock(MetadataSnapshot)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset)
+        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
         then:
         resultRoot.get() == descendantSnapshot
         interaction {
@@ -281,7 +283,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset)
+        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction {
@@ -346,12 +348,12 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
         def descendantOffset = offset + selectedChild.pathToParent.length() + 1
-        1 * selectedChild.getSnapshot(absolutePath, descendantOffset) >> Optional.ofNullable(foundSnapshot)
+        1 * selectedChild.getSnapshot(absolutePath, descendantOffset, CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
     }
 
     def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {
         def descendantOffset = offset + selectedChild.pathToParent.length() + 1
-        1 * selectedChild.invalidate(absolutePath, descendantOffset) >> Optional.ofNullable(invalidatedChild)
+        1 * selectedChild.invalidate(absolutePath, descendantOffset, CASE_SENSITIVE) >> Optional.ofNullable(invalidatedChild)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
@@ -361,7 +363,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
     }
 
     private static String findPathWithParent(List<String> childPaths, String parentPath) {
-        childPaths.find { PathUtil.isChildOfOrThis(it, 0, parentPath) }
+        childPaths.find { PathUtil.hasPrefix(parentPath, it, 0, CASE_SENSITIVE) }
     }
 
     private static List<String> parentPaths(String childPath) {
@@ -371,7 +373,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     static List<FileSystemNode> sortedChildren(FileSystemNode... children) {
         def childrenOfIntermediate = children as List
-        childrenOfIntermediate.sort(Comparator.comparing({ FileSystemNode node -> node.pathToParent }, PathUtil.pathComparator()))
+        childrenOfIntermediate.sort(Comparator.comparing({ FileSystemNode node -> node.pathToParent }, PathUtil.getPathComparator(CASE_SENSITIVE)))
         childrenOfIntermediate
     }
 
@@ -391,7 +393,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     List<FileSystemNode> createChildren(List<String> pathsToParent) {
         return pathsToParent.stream()
-            .sorted(PathUtil.pathComparator())
+            .sorted(PathUtil.getPathComparator(CASE_SENSITIVE))
             .map{ childPath -> mockNode(childPath) }
             .collect(Collectors.toList())
     }
@@ -417,14 +419,14 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     private int getInsertionPoint() {
         int childIndex = SearchUtil.binarySearch(children) {
-            candidate -> PathUtil.compareWithCommonPrefix(candidate.pathToParent, absolutePath, offset)
+            candidate -> PathUtil.compareFirstSegment(absolutePath, offset, candidate.pathToParent, CASE_SENSITIVE)
         }
         assert childIndex < 0
         return -childIndex - 1
     }
 
     String getCommonPrefix() {
-        return selectedChild.pathToParent.substring(0, PathUtil.sizeOfCommonPrefix(selectedChild.pathToParent, absolutePath, offset))
+        return selectedChild.pathToParent.substring(0, PathUtil.lengthOfCommonPrefix(selectedChild.pathToParent, absolutePath, offset, CASE_SENSITIVE))
     }
 
     String getPathFromCommonPrefix() {

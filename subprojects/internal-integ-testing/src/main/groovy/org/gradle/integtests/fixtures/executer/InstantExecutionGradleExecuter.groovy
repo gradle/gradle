@@ -21,7 +21,7 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
 
-class InstantExecutionGradleExecuter extends InProcessGradleExecuter {
+class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
 
     InstantExecutionGradleExecuter(
         GradleDistribution distribution,
@@ -36,6 +36,8 @@ class InstantExecutionGradleExecuter extends InProcessGradleExecuter {
     protected List<String> getAllArgs() {
         return super.getAllArgs() + [
             "-D${SystemProperties.isEnabled}=true",
+            "-D${SystemProperties.isQuiet}=true",
+            "-D${SystemProperties.maxProblems}=0",
             "-D${SystemProperties.failOnProblems}=true"
         ].collect { it.toString() }
     }

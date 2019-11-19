@@ -199,6 +199,11 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         }
 
         @Override
+        public void onReuse() {
+            // Ignore
+        }
+
+        @Override
         public Class<? extends T> loadClass() {
             throw new UnsupportedOperationException("Cannot load a script that does nothing.");
         }

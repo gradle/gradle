@@ -9,8 +9,9 @@ import org.gradle.kotlin.dsl.precompile.v1.PrecompiledSettingsScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildScript
 import org.gradle.kotlin.dsl.support.CompiledKotlinBuildscriptAndPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinInitScript
-import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
+import org.gradle.kotlin.dsl.support.CompiledKotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
+import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.hamcrest.CoreMatchers.equalTo
 import org.junit.Assert.assertThat
 import org.junit.Test
@@ -81,6 +82,30 @@ class ScriptApiTest {
     @Test
     fun `precompiled init script template implements script api`() =
         assertScriptApiOf<PrecompiledInitScript>()
+
+    @Test
+    fun `init script template is backward compatible`() {
+        @Suppress("deprecation")
+        assertThat(
+            InitScriptApi::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
+                CompiledKotlinInitscriptBlock::class
+            ),
+            equalTo(emptyList())
+        )
+    }
+
+    @Test
+    fun `settings script template is backward compatible`() {
+        @Suppress("deprecation")
+        assertThat(
+            SettingsScriptApi::class.declaredMembers.filter { it.isPublic }.missingMembersFrom(
+                CompiledKotlinSettingsPluginManagementBlock::class
+            ).missingMembersFrom(
+                Settings::class
+            ),
+            equalTo(emptyList())
+        )
+    }
 }
 
 
@@ -120,7 +145,12 @@ fun KClass<*>.implements(api: KCallable<*>) =
 
 private
 val KClass<*>.publicMembers
-    get() = members.filter { it.visibility == KVisibility.PUBLIC }
+    get() = members.filter { it.isPublic }
+
+
+private
+val KCallable<*>.isPublic
+    get() = visibility == KVisibility.PUBLIC
 
 
 private
@@ -172,7 +202,7 @@ fun List<KParameter>.isCompatibleWith(api: List<KParameter>) =
     when {
         size != api.size -> false
         isEmpty() -> true
-        else -> (0 until size).all { idx -> this[idx].isCompatibleWith(api[idx]) }
+        else -> indices.all { idx -> get(idx).isCompatibleWith(api[idx]) }
     }
 
 
@@ -180,7 +210,7 @@ private
 fun KParameter.isCompatibleWith(api: KParameter) =
     when {
         isVarargCompatibleWith(api) -> true
-        isGradleActionCompatibleWith(api) -> true
+        isGradleActionCompatibleWith(api) || api.isGradleActionCompatibleWith(this) -> true
         type.isParameterTypeCompatibleWith(api.type) -> true
         else -> false
     }
@@ -216,8 +246,12 @@ fun KType.isParameterTypeCompatibleWith(apiParameterType: KType) =
 
 private
 fun KType.hasCompatibleTypeArguments(api: KType) =
-    arguments.size == api.arguments.size && (0..(arguments.size - 1)).all { idx ->
-        arguments[idx].type!!.isTypeArgumentCompatibleWith(api.arguments[idx].type!!)
+    arguments.size == api.arguments.size && arguments.indices.all { idx ->
+        val expectedType = arguments[idx].type
+        val actualType = api.arguments[idx].type
+        expectedType?.let { e ->
+            actualType?.let { a -> e.isTypeArgumentCompatibleWith(a) }
+        } ?: false
     }
 
 

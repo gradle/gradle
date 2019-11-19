@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
+
 import org.gradle.plugins.ide.AbstractIdeDeduplicationIntegrationTest
 
 class EclipseProjectNameDeduplicationIntegrationTest extends AbstractIdeDeduplicationIntegrationTest {

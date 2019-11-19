@@ -16,6 +16,8 @@
 
 package org.gradle.java.compile.incremental
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
     def setup() {
         buildFile << """
@@ -25,6 +27,7 @@ abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest
        """
     }
 
+    @ToBeFixedForInstantExecution
     def "doesn't recompile if implementation dependency changed in ABI compatible way"() {
         given:
         file('settings.gradle') << "include 'a'\n"

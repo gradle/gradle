@@ -16,7 +16,7 @@
 
 package org.gradle.ide.xcode
 
-
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppAppWithLibrary
 import org.gradle.nativeplatform.fixtures.app.CppSourceElement
@@ -44,6 +44,7 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
     }
 
     @Requires(TestPrecondition.XCODE)
+    @ToBeFixedForInstantExecution
     def "can create xcode project for unbuildable C++ application with library"() {
         useXcodebuildTool()
 
@@ -106,6 +107,7 @@ class XcodeCppApplicationProjectIntegrationTest extends AbstractXcodeCppProjectI
     }
 
     @Requires(TestPrecondition.XCODE)
+    @ToBeFixedForInstantExecution
     def "can create xcode project for C++ application with unbuildable library"() {
         useXcodebuildTool()
 

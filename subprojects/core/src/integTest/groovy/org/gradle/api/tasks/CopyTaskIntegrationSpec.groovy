@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Matchers
 import org.gradle.util.ToBeImplemented
@@ -1122,6 +1123,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "**/abc*abc" | "abc"
     }
 
+    @ToBeFixedForInstantExecution
     def "changing case-sensitive setting makes task out-of-date"() {
         given:
         buildScript '''
@@ -1251,6 +1253,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "changing spec-level property #property makes task out-of-date"() {
         given:
         buildScript """

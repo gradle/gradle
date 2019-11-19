@@ -43,7 +43,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public CompleteFileSystemLocationSnapshot store(String absolutePath, int offset, MetadataSnapshot snapshot) {
+    public CompleteFileSystemLocationSnapshot store(String absolutePath, int offset, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
         return this;
     }
 
@@ -67,11 +67,11 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
-        return getChildSnapshot(absolutePath, offset);
+    public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+        return getChildSnapshot(absolutePath, offset, caseSensitivity);
     }
 
-    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
         return Optional.of(SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath));
     }
 
@@ -89,12 +89,12 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         }
 
         @Override
-        public Optional<FileSystemNode> invalidate(String absolutePath, int offset) {
-            return delegate.invalidate(absolutePath, offset).map(splitSnapshot -> splitSnapshot.withPathToParent(getPathToParent()));
+        public Optional<FileSystemNode> invalidate(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+            return delegate.invalidate(absolutePath, offset, caseSensitivity).map(splitSnapshot -> splitSnapshot.withPathToParent(getPathToParent()));
         }
 
         @Override
-        public FileSystemNode store(String absolutePath, int offset, MetadataSnapshot newSnapshot) {
+        public FileSystemNode store(String absolutePath, int offset, CaseSensitivity caseSensitivity, MetadataSnapshot newSnapshot) {
             return this;
         }
 
@@ -104,8 +104,8 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         }
 
         @Override
-        public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset) {
-            return delegate.getSnapshot(absolutePath, offset);
+        public Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+            return delegate.getSnapshot(absolutePath, offset, caseSensitivity);
         }
 
         @Override

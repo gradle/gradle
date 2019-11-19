@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Unroll
 
@@ -35,6 +36,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in logging output with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -60,6 +62,7 @@ class CompositeBuildBuildSrcIdentityIntegrationTest extends AbstractCompositeBui
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in dependency report with #display"() {
         dependency "org.test:buildB:1.0"
 
@@ -139,6 +142,7 @@ Required by:
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in dependency resolution results with #display"() {
         dependency "org.test:buildB:1.0"
 

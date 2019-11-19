@@ -16,6 +16,7 @@
 
 package org.gradle.language
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 
 
@@ -26,6 +27,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "can define implementation dependencies on component"() {
         given:
         settingsFile << 'include "lib"'
@@ -45,6 +47,7 @@ abstract class AbstractNativeDependenciesIntegrationTest extends AbstractInstall
         result.assertTasksExecuted(libDebugTasks, assembleDevBinaryTasks, assembleDevBinaryTask)
     }
 
+    @ToBeFixedForInstantExecution
     def "can define implementation dependencies on each binary"() {
         given:
         settingsFile << 'include "lib"'

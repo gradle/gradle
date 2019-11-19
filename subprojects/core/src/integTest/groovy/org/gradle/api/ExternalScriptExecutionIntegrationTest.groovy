@@ -18,6 +18,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
@@ -108,7 +109,9 @@ assert 'value' == doStuff.someProp
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canExecuteExternalScriptFromSettingsScript() {
+
         testFile('settings.gradle') << ''' apply { from 'other.gradle' } '''
         testFile('other.gradle') << ''' include 'child' '''
         testFile('build.gradle') << ''' assert ['child'] == subprojects*.name '''

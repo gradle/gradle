@@ -17,9 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "provides basic meta-data for set"() {
         when:
         buildScript '''
@@ -58,6 +60,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains "to-string: ModelSet<Person> 'people'"
     }
 
+    @ToBeFixedForInstantExecution
     def "can view as ModelElement"() {
         when:
         buildScript '''
@@ -94,6 +97,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains "to-string: ModelSet<Person> 'people'"
     }
 
+    @ToBeFixedForInstantExecution
     def "rule can create a managed collection of interface backed managed model elements"() {
         when:
         buildScript '''
@@ -152,6 +156,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'names: p0, p1, p2, p3, p4'
     }
 
+    @ToBeFixedForInstantExecution
     def "rule can create a managed collection of abstract class backed managed model elements"() {
         when:
         buildScript '''
@@ -191,6 +196,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'people: p1, p2'
     }
 
+    @ToBeFixedForInstantExecution
     def "rule can create a set of various supported types"() {
         when:
         buildScript '''
@@ -258,6 +264,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains "setStrings: [[a], [b]]"
     }
 
+    @ToBeFixedForInstantExecution
     def "managed model type has property of collection of managed types"() {
         when:
         buildScript '''
@@ -309,6 +316,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'Women in computing: Ada Lovelace, Grace Hooper'
     }
 
+    @ToBeFixedForInstantExecution
     def "managed model cannot have a reference to a model set"() {
         when:
         buildScript '''
@@ -345,6 +353,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 - Property 'members' is not valid: it cannot have a setter (ModelSet properties must be read only)"""
     }
 
+    @ToBeFixedForInstantExecution
     def "rule method can apply defaults to a managed set"() {
         when:
         buildScript '''
@@ -398,6 +407,7 @@ finalize
 '''
     }
 
+    @ToBeFixedForInstantExecution
     def "creation and configuration of managed set elements is deferred until required"() {
         when:
         buildScript '''

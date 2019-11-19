@@ -16,11 +16,13 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepHeadersApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalSwiftModifyCppDepModuleMapApp
 
 class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMixedLanguageIntegrationTest {
+    @ToBeFixedForInstantExecution
     def "relinks but does not recompile when c++ sources change"() {
         def app = new IncrementalSwiftModifyCppDepApp()
         settingsFile << "include ':app', ':cppGreeter'"
@@ -69,6 +71,7 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles when c++ headers change"() {
         def app = new IncrementalSwiftModifyCppDepHeadersApp()
         settingsFile << "include ':app', ':cppGreeter'"
@@ -117,6 +120,7 @@ class SwiftIncrementalCppInteroperabilityIntegrationTest extends AbstractSwiftMi
         result.assertTasksSkipped(":cppGreeter:compileDebugCpp", ":cppGreeter:linkDebug", ":app:compileDebugSwift", ":app:linkDebug", ":app:installDebug", ":app:assemble")
     }
 
+    @ToBeFixedForInstantExecution
     def "regenerates module map and recompiles swift app when headers change"() {
         def app = new IncrementalSwiftModifyCppDepModuleMapApp()
         settingsFile << "include ':app', ':cppGreeter'"

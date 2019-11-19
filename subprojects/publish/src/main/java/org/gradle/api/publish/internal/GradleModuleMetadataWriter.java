@@ -40,6 +40,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.ComponentWithCoordinates;
 import org.gradle.api.component.ComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
@@ -141,10 +142,12 @@ public class GradleModuleMetadataWriter {
         jsonWriter.endObject();
     }
 
-    private void writeVersionConstraint(ImmutableVersionConstraint immutableVersionConstraint, String resolvedVersion, JsonWriter jsonWriter) throws IOException {
+    private void writeVersionConstraint(ImmutableVersionConstraint immutableVersionConstraint, String resolvedVersion, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
+        checker.sawDependencyOrConstraint();
         if (resolvedVersion == null && DefaultImmutableVersionConstraint.of().equals(immutableVersionConstraint)) {
             return;
         }
+        checker.sawVersion();
 
         jsonWriter.name("version");
         jsonWriter.beginObject();
@@ -221,7 +224,7 @@ public class GradleModuleMetadataWriter {
                 jsonWriter.beginArray();
                 started = true;
             }
-            writeVariantHostedInThisModule(publication, usageContext, jsonWriter);
+            writeVariantHostedInThisModule(publication, usageContext, jsonWriter, checker);
         }
         if (component instanceof ComponentWithVariants) {
             for (SoftwareComponent childComponent : ((ComponentWithVariants) component).getVariants()) {
@@ -308,14 +311,14 @@ public class GradleModuleMetadataWriter {
         return path.toString();
     }
 
-    private void writeVariantHostedInThisModule(PublicationInternal publication, UsageContext variant, JsonWriter jsonWriter) throws IOException {
+    private void writeVariantHostedInThisModule(PublicationInternal publication, UsageContext variant, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         jsonWriter.beginObject();
         jsonWriter.name("name");
         jsonWriter.value(variant.getName());
         writeAttributes(variant.getAttributes(), jsonWriter);
         VersionMappingStrategyInternal versionMappingStrategy = publication.getVersionMappingStrategy();
-        writeDependencies(variant, versionMappingStrategy, jsonWriter);
-        writeDependencyConstraints(variant, jsonWriter, versionMappingStrategy);
+        writeDependencies(variant, versionMappingStrategy, jsonWriter, checker);
+        writeDependencyConstraints(variant, jsonWriter, versionMappingStrategy, checker);
         writeArtifacts(publication, variant, jsonWriter);
         writeCapabilities("capabilities", variant.getCapabilities(), jsonWriter);
 
@@ -392,7 +395,7 @@ public class GradleModuleMetadataWriter {
         jsonWriter.endObject();
     }
 
-    private void writeDependencies(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy, JsonWriter jsonWriter) throws IOException {
+    private void writeDependencies(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         if (variant.getDependencies().isEmpty()) {
             return;
         }
@@ -402,10 +405,10 @@ public class GradleModuleMetadataWriter {
         VariantVersionMappingStrategyInternal variantVersionMappingStrategy = findVariantVersionMappingStrategy(variant, versionMappingStrategy);
         for (ModuleDependency moduleDependency : variant.getDependencies()) {
             if (moduleDependency.getArtifacts().isEmpty()) {
-                writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, null);
+                writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, null, checker);
             } else {
                 for (DependencyArtifact dependencyArtifact : moduleDependency.getArtifacts()) {
-                    writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, dependencyArtifact);
+                    writeDependency(moduleDependency, additionalExcludes, jsonWriter, variantVersionMappingStrategy, dependencyArtifact, checker);
                 }
             }
         }
@@ -421,7 +424,7 @@ public class GradleModuleMetadataWriter {
         return variantVersionMappingStrategy;
     }
 
-    private void writeDependency(ModuleDependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, DependencyArtifact dependencyArtifact) throws IOException {
+    private void writeDependency(ModuleDependency dependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, DependencyArtifact dependencyArtifact, InvalidPublicationChecker checker) throws IOException {
         jsonWriter.beginObject();
         String resolvedVersion = null;
         if (dependency instanceof ProjectDependency) {
@@ -438,7 +441,7 @@ public class GradleModuleMetadataWriter {
             jsonWriter.value(identifier.getGroup());
             jsonWriter.name("module");
             jsonWriter.value(identifier.getName());
-            writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), resolvedVersion, jsonWriter);
+            writeVersionConstraint(DefaultImmutableVersionConstraint.of(identifier.getVersion()), resolvedVersion, jsonWriter, checker);
         } else {
             String group = dependency.getGroup();
             String name = dependency.getName();
@@ -460,7 +463,7 @@ public class GradleModuleMetadataWriter {
             } else {
                 vc = DefaultImmutableVersionConstraint.of(Strings.nullToEmpty(dependency.getVersion()));
             }
-            writeVersionConstraint(vc, resolvedVersion, jsonWriter);
+            writeVersionConstraint(vc, resolvedVersion, jsonWriter, checker);
         }
         writeExcludes(dependency, additionalExcludes, jsonWriter);
         writeAttributes(dependency.getAttributes(), jsonWriter);
@@ -505,7 +508,7 @@ public class GradleModuleMetadataWriter {
         jsonWriter.endObject();
     }
 
-    private void writeDependencyConstraints(UsageContext variant, JsonWriter jsonWriter, VersionMappingStrategyInternal versionMappingStrategy) throws IOException {
+    private void writeDependencyConstraints(UsageContext variant, JsonWriter jsonWriter, VersionMappingStrategyInternal versionMappingStrategy, InvalidPublicationChecker checker) throws IOException {
         if (variant.getDependencyConstraints().isEmpty()) {
             return;
         }
@@ -513,12 +516,12 @@ public class GradleModuleMetadataWriter {
         jsonWriter.name("dependencyConstraints");
         jsonWriter.beginArray();
         for (DependencyConstraint dependencyConstraint : variant.getDependencyConstraints()) {
-            writeDependencyConstraint(dependencyConstraint, variantVersionMappingStrategy, jsonWriter);
+            writeDependencyConstraint(dependencyConstraint, variantVersionMappingStrategy, jsonWriter, checker);
         }
         jsonWriter.endArray();
     }
 
-    private void writeDependencyConstraint(DependencyConstraint dependencyConstraint, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, JsonWriter jsonWriter) throws IOException {
+    private void writeDependencyConstraint(DependencyConstraint dependencyConstraint, VariantVersionMappingStrategyInternal variantVersionMappingStrategy, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         jsonWriter.beginObject();
         String group = dependencyConstraint.getGroup();
         String module = dependencyConstraint.getName();
@@ -527,7 +530,7 @@ public class GradleModuleMetadataWriter {
         jsonWriter.value(resolvedVersion != null ? resolvedVersion.getGroup() : group);
         jsonWriter.name("module");
         jsonWriter.value(resolvedVersion != null ? resolvedVersion.getName() : module);
-        writeVersionConstraint(DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()), resolvedVersion != null ? resolvedVersion.getVersion() : null, jsonWriter);
+        writeVersionConstraint(DefaultImmutableVersionConstraint.of(dependencyConstraint.getVersionConstraint()), resolvedVersion != null ? resolvedVersion.getVersion() : null, jsonWriter, checker);
         writeAttributes(dependencyConstraint.getAttributes(), jsonWriter);
         String reason = dependencyConstraint.getReason();
         if (StringUtils.isNotEmpty(reason)) {
@@ -591,9 +594,14 @@ public class GradleModuleMetadataWriter {
 
     @NotThreadSafe
     public static class InvalidPublicationChecker {
+
+        private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
+
         private final String publicationName;
         private final BiMap<String, VariantIdentity> variants = HashBiMap.create();
         private List<String> errors;
+        private boolean publicationHasVersion = false;
+        private boolean publicationHasDependencyOrConstraint = false;
 
         public InvalidPublicationChecker(String publicationName) {
             this.publicationName = publicationName;
@@ -616,10 +624,20 @@ public class GradleModuleMetadataWriter {
             }
         }
 
+        private void checkVariantDependencyVersions() {
+            if (publicationHasDependencyOrConstraint && !publicationHasVersion) {
+                // Previous variant did not declare any version
+                failWith("Publication only contains dependencies and/or constraints without a version. You need to add minimal version information, publish resolved versions ("
+                    + DOCUMENTATION_REGISTRY.getDocumentationFor("publishing_maven", "publishing_maven:resolved_dependencies") + ") or reference a platform ("
+                    + DOCUMENTATION_REGISTRY.getDocumentationFor("platforms") + ")");
+            }
+        }
+
         public void validate() {
             if (variants.isEmpty()) {
                 failWith("This publication must publish at least one variant");
             }
+            checkVariantDependencyVersions();
             if (errors != null) {
                 TreeFormatter formatter = new TreeFormatter();
                 formatter.node("Invalid publication '" + publicationName + "'");
@@ -637,6 +655,14 @@ public class GradleModuleMetadataWriter {
                 errors = Lists.newArrayList();
             }
             errors.add(message);
+        }
+
+        public void sawVersion() {
+            publicationHasVersion = true;
+        }
+
+        public void sawDependencyOrConstraint() {
+            publicationHasDependencyOrConstraint = true;
         }
 
         private static final class VariantIdentity {

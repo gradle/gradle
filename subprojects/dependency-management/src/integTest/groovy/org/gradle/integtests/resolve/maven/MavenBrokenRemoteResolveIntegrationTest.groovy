@@ -17,9 +17,11 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class MavenBrokenRemoteResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -79,6 +81,7 @@ Required by:
         succeeds('showMissing')
     }
 
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from multiple missing modules"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -135,6 +138,7 @@ Required by:
         succeeds('showMissing')
     }
 
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from multiple missing transitive modules"() {
         settingsFile << "include 'child1'"
 
@@ -217,6 +221,7 @@ Required by:
         succeeds('showMissing')
     }
 
+    @ToBeFixedForInstantExecution
     void "reports and recovers from failed POM download"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.3').publish()
@@ -402,6 +407,7 @@ task showBroken { doLast { println configurations.broken.files } }
         retries << (1..3)
     }
 
+    @ToBeFixedForInstantExecution
     public void "reports and recovers from failed artifact download"() {
         given:
         buildFile << """

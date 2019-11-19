@@ -18,6 +18,8 @@ package org.gradle.internal.snapshot
 
 import spock.lang.Unroll
 
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
+
 @Unroll
 class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<UnknownSnapshot> {
 
@@ -35,7 +37,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -49,7 +51,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset)
+        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction { noMoreInteractions() }
@@ -63,7 +65,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         def invalidatedChild = mockNode(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
@@ -80,7 +82,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset).get()
+        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -97,7 +99,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset)
+        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction {

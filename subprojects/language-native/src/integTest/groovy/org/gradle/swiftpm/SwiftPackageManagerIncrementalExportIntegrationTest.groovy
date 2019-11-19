@@ -16,6 +16,8 @@
 
 package org.gradle.swiftpm
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
     def swiftBuild() {
         settingsFile << """
@@ -63,6 +65,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         assert file("Package.swift").text.contains('"src/main/cpp/lib.cpp"')
     }
 
+    @ToBeFixedForInstantExecution
     def "regenerates manifest when Swift source files added or removed"() {
         given:
         swiftBuild()
@@ -102,6 +105,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForInstantExecution
     def "regenerates manifest when Swift components added or removed"() {
         given:
         swiftBuild()
@@ -149,6 +153,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForInstantExecution
     def "regenerates manifest when Swift dependencies added or removed"() {
         given:
         settingsFile << """
@@ -210,6 +215,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores irrelevant changes to Swift source"() {
         given:
         swiftBuild()
@@ -229,6 +235,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores irrelevant changes to Swift build"() {
         given:
         swiftBuild()
@@ -257,6 +264,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForInstantExecution
     def "regenerates manifest when C++ source files added or removed"() {
         given:
         cppBuild()
@@ -290,6 +298,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         !file("Package.swift").text.contains('main.cpp')
     }
 
+    @ToBeFixedForInstantExecution
     def "regenerates manifest when C++ components added or removed"() {
         given:
         swiftBuild()
@@ -337,6 +346,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores irrelevant changes to C++ source"() {
         given:
         cppBuild()
@@ -359,6 +369,7 @@ class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftP
         result.assertTaskSkipped(":generateSwiftPmManifest")
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores irrelevant changes to C++ build"() {
         given:
         cppBuild()

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.diagnostics
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -27,6 +28,7 @@ class TaskReportTaskIntegrationTest extends AbstractIntegrationSpec {
     private final static String GROUP = 'Hello world'
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "always renders default tasks running #tasks"() {
         given:
         String projectName = 'test'
@@ -61,6 +63,7 @@ tasks - Displays the tasks runnable from root project '$projectName'.""")
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "always renders task rule running #tasks"() {
         given:
         buildFile << """
@@ -89,6 +92,7 @@ Pattern: ping<ID>
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "renders tasks with and without group running #tasks"() {
         given:
         buildFile << """
@@ -119,6 +123,7 @@ b
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "renders task with dependencies without group in detailed report running #tasks"() {
         given:
         buildFile << """
@@ -146,6 +151,7 @@ b
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "renders grouped task with dependencies in detailed report running #tasks"() {
         given:
         buildFile << """
@@ -175,6 +181,7 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
+    @ToBeFixedForInstantExecution
     def "renders only tasks in help group running [tasks, --group=build setup"() {
         buildFile << """
             task mytask {
@@ -202,6 +209,7 @@ To see more detail about a task, run gradle help --task <task>
         !output.contains("custom")
     }
 
+    @ToBeFixedForInstantExecution
     def "renders tasks in a multi-project build running [tasks]"() {
         given:
         buildFile << multiProjectBuild()
@@ -221,6 +229,7 @@ c
 """)
     }
 
+    @ToBeFixedForInstantExecution
     def "renders tasks in a multi-project build running [tasks, --all]"() {
         given:
         buildFile << multiProjectBuild()
@@ -244,6 +253,7 @@ c
 """)
     }
 
+    @ToBeFixedForInstantExecution
     def "task selector description is taken from task that TaskNameComparator considers to be of lowest ordering"() {
         given:
         settingsFile << """
@@ -274,6 +284,7 @@ alpha - ALPHA_in_sub1
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "task report includes tasks defined via model rules running #tasks"() {
         when:
         buildScript """
@@ -304,6 +315,7 @@ alpha - ALPHA_in_sub1
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "task report includes tasks with dependencies defined via model rules running #tasks"() {
         when:
         buildScript """
@@ -332,6 +344,7 @@ b
         TASKS_DETAILED_REPORT_TASK | true
     }
 
+    @ToBeFixedForInstantExecution
     def "task report includes task container rule based tasks defined via model rule"() {
         when:
         buildScript """
@@ -362,6 +375,7 @@ b
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2023")
+    @ToBeFixedForInstantExecution
     def "can deal with tasks with named task dependencies that are created by rules"() {
         when:
         buildFile << getBuildScriptContent()
@@ -371,6 +385,7 @@ b
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2023")
+    @ToBeFixedForInstantExecution
     def "can deal with tasks with named task dependencies that are created by rules - multiproject"() {
         when:
         settingsFile << "include 'module'"
@@ -382,6 +397,7 @@ b
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "renders tasks with dependencies created by model rules running #tasks"() {
         when:
         buildScript """
@@ -423,6 +439,7 @@ d
         TASKS_DETAILED_REPORT_TASK | true
     }
 
+    @ToBeFixedForInstantExecution
     def "can run multiple task reports in parallel"() {
         given:
         buildFile << multiProjectBuild()

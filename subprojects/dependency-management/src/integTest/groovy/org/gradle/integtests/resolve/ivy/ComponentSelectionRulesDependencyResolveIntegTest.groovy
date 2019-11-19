@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.junit.Assume
 import spock.lang.Issue
@@ -28,6 +29,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses '#rule' rule to choose component for #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible, gradleCompatible)
@@ -115,6 +117,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible)
@@ -187,6 +190,7 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         "latest.milestone"   | "select 1.1"               | '["2.0"]'               | ['2.1', '2.0']        | false
     }
 
+    @ToBeFixedForInstantExecution
     def "reports all candidates rejected by rule"() {
         buildFile << """
 
@@ -429,6 +433,7 @@ Required by:
     }
 
     @Issue("GRADLE-3236")
+    @ToBeFixedForInstantExecution
     def "can select a different component for the same selector in different configurations"() {
         def descriptorArg = GradleMetadataResolveRunner.useIvy() ? 'selection.getDescriptor(IvyModuleDescriptor)' : 'selection.metadata'
         buildFile << """

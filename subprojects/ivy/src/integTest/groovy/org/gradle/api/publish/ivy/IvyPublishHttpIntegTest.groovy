@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -55,7 +56,9 @@ credentials {
         server.expectUserAgent(matchesNameAndVersion("Gradle", GradleVersion.current().getVersion()))
     }
 
-    def "can publish to unauthenticated HTTP repository"() {
+    @Unroll
+    @ToBeFixedForInstantExecution
+    def "can publish to unauthenticated HTTP repository (extra checksums = #extraChecksums)"() {
         given:
         server.start()
         settingsFile << 'rootProject.name = "publish"'
@@ -78,19 +81,30 @@ credentials {
             }
         """
 
+        if (!extraChecksums) {
+            executer.withArgument("-Dorg.gradle.internal.publish.checksums.insecure=true")
+            module.withoutExtraChecksums()
+        }
+
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
-        module.jar.sha256.expectPut()
-        module.jar.sha512.expectPut()
+        if (extraChecksums) {
+            module.jar.sha256.expectPut()
+            module.jar.sha512.expectPut()
+        }
         module.ivy.expectPut(HttpStatus.ORDINAL_201_Created)
         module.ivy.sha1.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
-        module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
+        if (extraChecksums) {
+            module.ivy.sha256.expectPut(HttpStatus.ORDINAL_201_Created)
+            module.ivy.sha512.expectPut(HttpStatus.ORDINAL_201_Created)
+        }
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
-        module.moduleMetadata.sha256.expectPut()
-        module.moduleMetadata.sha512.expectPut()
+        if (extraChecksums) {
+            module.moduleMetadata.sha256.expectPut()
+            module.moduleMetadata.sha512.expectPut()
+        }
 
         when:
         succeeds 'publish'
@@ -103,8 +117,12 @@ credentials {
         progressLogging.uploadProgressLogged(module.moduleMetadata.uri)
         progressLogging.uploadProgressLogged(module.ivy.uri)
         progressLogging.uploadProgressLogged(module.jar.uri)
+
+        where:
+        extraChecksums << [true, false]
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish to a repository even if it doesn't support sha256/sha512 signatures"() {
         given:
         server.start()
@@ -152,6 +170,7 @@ credentials {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -214,6 +233,7 @@ credentials {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -262,6 +282,7 @@ credentials {
         AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure publishing to HTTP repository"() {
         given:
         server.start()
@@ -309,6 +330,7 @@ credentials {
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
+    @ToBeFixedForInstantExecution
     def "uses first configured pattern for publication"() {
         given:
         server.start()
@@ -361,6 +383,7 @@ credentials {
 
     @Requires(FIX_TO_WORK_ON_JAVA9)
     @Issue('provide a different large jar')
+    @ToBeFixedForInstantExecution
     public void "can publish large artifact (tools.jar) to authenticated repository"() {
         given:
         server.start()
@@ -416,6 +439,7 @@ credentials {
         module.jarFile.assertIsCopyOf(new TestFile(toolsJar))
     }
 
+    @ToBeFixedForInstantExecution
     public void "does not upload meta-data file if artifact upload fails"() {
         given:
         server.start()
@@ -453,6 +477,7 @@ credentials {
         module.ivyFile.assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     def "retries artifact upload for transient network error"() {
         given:
         server.start()

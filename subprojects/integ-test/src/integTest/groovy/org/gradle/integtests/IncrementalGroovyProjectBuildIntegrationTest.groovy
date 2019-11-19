@@ -16,9 +16,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class IncrementalGroovyProjectBuildIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "does not rebuild Groovydoc if source has not changed"() {
         def indexFile = file("build/docs/groovydoc/index.html");
         file("src/main/groovy/BuildClass.java") << 'public class BuildClass { }'

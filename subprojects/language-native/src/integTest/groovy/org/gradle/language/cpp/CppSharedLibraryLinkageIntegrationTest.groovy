@@ -16,6 +16,7 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.CppLib
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 
@@ -48,6 +49,7 @@ class CppSharedLibraryLinkageIntegrationTest extends AbstractCppIntegrationTest 
         return new CppLib()
     }
 
+    @ToBeFixedForInstantExecution
     def "can create shared library binary when only shared linkage is specified"() {
         def library = new CppLib()
         buildFile << """

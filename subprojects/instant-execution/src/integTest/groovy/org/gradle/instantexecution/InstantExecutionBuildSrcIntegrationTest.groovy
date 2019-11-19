@@ -23,6 +23,12 @@ import org.gradle.api.tasks.TaskAction
 
 class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     def "can use tasks defined in buildSrc"() {
+        file("buildSrc/settings.gradle") << """
+            include 'ignored' // include some content
+        """
+        file("buildSrc/build.gradle") << """
+            allprojects { apply plugin: 'java-library' } // include some content
+        """
         file("buildSrc/src/main/java/CustomTask.java") << """
             import ${DefaultTask.name};
             import ${TaskAction.name};

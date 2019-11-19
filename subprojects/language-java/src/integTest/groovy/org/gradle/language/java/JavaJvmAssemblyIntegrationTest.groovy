@@ -17,6 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import java.util.zip.ZipFile
 
@@ -43,6 +44,7 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         file('src/main/resources/myorg/answer.txt') << '# yadda\n42'
     }
 
+    @ToBeFixedForInstantExecution
     def "can create task that depends on assembly and jar is *not* built"() {
         given:
         buildFile << '''
@@ -89,6 +91,7 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         outputContains 'Resources were processed: [myorg/answer.txt => 42]'
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify additional resource directory with preprocessed resources and it will end up in the jar"() {
         given:
         buildFile << '''
@@ -110,6 +113,7 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         answer   == '42'
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify additional class directory with precompiled classes"() {
         given:
         buildFile << '''

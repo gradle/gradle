@@ -17,6 +17,7 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 /**
  * Tests the information provided when a model rule fails to bind.
@@ -25,6 +26,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  */
 class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "unbound rule by-type subject and inputs are reported"() {
         given:
         buildScript """
@@ -75,6 +77,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 '''
     }
 
+    @ToBeFixedForInstantExecution
     def "unbound rule by-path subject and inputs are reported"() {
         given:
         buildScript """
@@ -117,6 +120,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 '''
     }
 
+    @ToBeFixedForInstantExecution
     def "unbound dsl rule by-path subject and inputs are reported"() {
         given:
         buildScript '''
@@ -152,6 +156,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "suggestions are provided for unbound by-path references"() {
         given:
         buildScript """
@@ -185,6 +190,7 @@ class ModelRuleBindingFailureIntegrationTest extends AbstractIntegrationSpec {
 '''
     }
 
+    @ToBeFixedForInstantExecution
     def "fails on ambiguous by-type reference"() {
         given:
         buildScript """
@@ -318,6 +324,7 @@ model {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "partially bound rules are reported and the report includes the elements bound to"() {
         given:
         buildScript """

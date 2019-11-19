@@ -16,12 +16,14 @@
 
 package org.gradle.language.cpp
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppApp
 import org.gradle.nativeplatform.fixtures.app.CppLib
 
 class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements CppTaskNames {
 
+    @ToBeFixedForInstantExecution
     def "skips compile and link tasks for executable when source doesn't change"() {
         def app = new CppApp()
         settingsFile << "rootProject.name = 'app'"
@@ -54,6 +56,7 @@ class CppIncrementalCompileIntegrationTest extends AbstractInstalledToolChainInt
         installation("build/install/main/release").exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "skips compile and link tasks for library when source doesn't change"() {
         def lib = new CppLib()
         settingsFile << "rootProject.name = 'hello'"

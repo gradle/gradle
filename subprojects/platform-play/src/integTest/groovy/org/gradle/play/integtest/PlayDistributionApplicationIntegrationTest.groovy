@@ -16,6 +16,7 @@
 
 package org.gradle.play.integtest
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.play.integtest.fixtures.DistributionTestExecHandleBuilder
 import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest
 import org.gradle.process.internal.ExecHandle
@@ -25,6 +26,8 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
+
+    @ToBeFixedForInstantExecution
     def "can build play app distribution"() {
         when:
         succeeds("stage")
@@ -49,6 +52,7 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
     }
 
     @Requires(TestPrecondition.NOT_UNKNOWN_OS)
+    @ToBeFixedForInstantExecution
     def "can run play distribution" () {
         ExecHandleBuilder builder
         ExecHandle handle

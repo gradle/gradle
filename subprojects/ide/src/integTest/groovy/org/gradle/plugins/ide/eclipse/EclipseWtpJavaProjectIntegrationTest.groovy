@@ -15,7 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class EclipseWtpJavaProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
+
+    @ToBeFixedForInstantExecution
     def "generates configuration files for a Java project"() {
         file('src/main/java').mkdirs()
         file('src/main/resources').mkdirs()

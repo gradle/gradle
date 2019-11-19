@@ -21,30 +21,64 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
     def "task can have doFirst/doLast groovy script closures"() {
 
         given:
-        buildFile << """
-            tasks.register("some") {
-                doFirst {
-                    println("FIRST")
-                }
-                doLast {
-                    println("LAST")
-                }
-            }
+        settingsFile << """
+            include 'a', 'b'
         """
+        [file("a/build.gradle"), file("b/build.gradle")].each {
+            it << """
+                tasks.register("some") {
+                    doFirst {
+                        println("FIRST")
+                    }
+                    doLast {
+                        println("LAST")
+                    }
+                }
+                tasks.register("other") {
+                    doFirst {
+                        println("OTHER")
+                    }
+                }
+            """
+        }
 
         when:
-        instantRun "some"
+        instantRun ":a:some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
-        instantRun "some"
+        instantRun ":a:some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when: // rebuild task graph, with tasks from the same set of scripts
+        instantRun ":a:some", ":a:other"
+
+        then:
+        result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":a:other").assertOutputContains("OTHER")
+
+        when:
+        instantRun ":a:some", ":a:other"
+
+        then:
+        result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":a:other").assertOutputContains("OTHER")
+
+        when: // rebuild task graph, with tasks from a different set of scripts
+        instantRun ":b:some"
+
+        then:
+        result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when:
+        instantRun ":b:some"
+
+        then:
+        result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
     }
 
     def "task can have doFirst/doLast anonymous script actions"() {
@@ -63,34 +97,12 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
                     }
                 })
             }
-        """
-
-        when:
-        instantRun "some"
-
-        then:
-        outputContains("FIRST")
-        outputContains("LAST")
-
-        when:
-        instantRun "some"
-
-        then:
-        outputContains("FIRST")
-        outputContains("LAST")
-    }
-
-    def "task can have doFirst/doLast kotlin script lambdas"() {
-
-        given:
-        buildKotlinFile << """
-            tasks.register("some") {
-                doFirst {
-                    println("FIRST")
-                }
-                doLast {
-                    println("LAST")
-                }
+            tasks.register("other") {
+                doFirst(new Action<Task>() {
+                    void execute(task) {
+                        println("OTHER")
+                    }
+                })
             }
         """
 
@@ -98,15 +110,91 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
         instantRun "some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
 
         when:
         instantRun "some"
 
         then:
-        outputContains("FIRST")
-        outputContains("LAST")
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when:
+        instantRun "some", "other"
+
+        then:
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":other").assertOutputContains("OTHER")
+
+        when:
+        instantRun "some", "other"
+
+        then:
+        result.groupedOutput.task(":some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":other").assertOutputContains("OTHER")
+    }
+
+    def "task can have doFirst/doLast kotlin script lambdas"() {
+
+        given:
+        settingsFile << """
+            include 'a', 'b'
+        """
+        [file("a/build.gradle.kts"), file("b/build.gradle.kts")].each {
+            it << """
+                tasks.register("some") {
+                    doFirst {
+                        println("FIRST")
+                    }
+                    doLast {
+                        println("LAST")
+                    }
+                }
+    
+                tasks.register("other") {
+                    doFirst {
+                        println("OTHER")
+                    }
+                }
+            """
+        }
+
+        when:
+        instantRun ":a:some"
+
+        then:
+        result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when:
+        instantRun ":a:some"
+
+        then:
+        result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when: // rebuild task graph, with tasks from the same set of scripts
+        instantRun ":a:some", ":a:other"
+
+        then:
+        result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":a:other").assertOutputContains("OTHER")
+
+        when:
+        instantRun ":a:some", ":a:other"
+
+        then:
+        result.groupedOutput.task(":a:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+        result.groupedOutput.task(":a:other").assertOutputContains("OTHER")
+
+        when: // rebuild task graph, with tasks from a different set of scripts
+        instantRun ":b:some"
+
+        then:
+        result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+
+        when:
+        instantRun ":b:some"
+
+        then:
+        result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
     }
 
     def "name conflicts of types declared in groovy scripts"() {

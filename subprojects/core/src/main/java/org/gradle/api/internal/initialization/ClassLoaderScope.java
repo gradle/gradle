@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.Transformer;
+import org.gradle.initialization.ClassLoaderScopeId;
+import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.ClassPath;
+
+import java.util.function.Function;
 
 /**
  * Represents a particular node in the ClassLoader graph.
@@ -27,6 +30,7 @@ import org.gradle.internal.classpath.ClassPath;
  * Use of this class allows class loader creation to be lazy, and potentially optimised. It also provides a central location for class loader reuse.
  */
 public interface ClassLoaderScope {
+    ClassLoaderScopeId getId();
 
     /**
      * The classloader for use at this node.
@@ -100,10 +104,15 @@ public interface ClassLoaderScope {
     ClassLoaderScope lock();
 
     /**
-     * Locks this scope, using the given factory to create the local ClassLoader.
+     * Locks this scope, using the given factory to create the local ClassLoader if not already cached. The factory takes a parent ClassLoader and classpath and produces a ClassLoader
      */
-    ClassLoaderScope lock(Transformer<ClassLoader, ClassLoader> localClassLoaderFactory);
+    ClassLoaderScope lock(Function<Pair<ClassPath, ClassLoader>, ClassLoader> localClassLoaderFactory);
 
     boolean isLocked();
 
+    /**
+     * Notifies this scope that it is about to be reused in a new build invocation, so that the scope can recreate or otherwise prepare its classloaders for this, as certain state may have
+     * been discarded to reduce memory pressure.
+     */
+    void onReuse();
 }

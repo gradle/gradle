@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -56,6 +57,7 @@ model {
         run "assemble"
     }
 
+    @ToBeFixedForInstantExecution
     def "can link to a prebuilt header-only library with api linkage"() {
         given:
         app.alternateLibrarySources*.writeToDir(file("src/main"))
@@ -86,6 +88,7 @@ model {
         installation("build/install/main").exec().out == app.alternateLibraryOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "can link to a prebuilt library with static and shared linkage"() {
         given:
         preBuildLibrary()
@@ -146,6 +149,7 @@ model {
         installation("build/install/mainStatic").exec().out == app.englishOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "searches all prebuilt library repositories"() {
         given:
         preBuildLibrary()
@@ -187,6 +191,7 @@ model {
         installation("build/install/main").exec().out == app.frenchOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "locates prebuilt library in another project"() {
         given:
         app.executable.writeSources(file("projectA/src/main"))
@@ -231,6 +236,7 @@ model {
         installation("projectA/build/install/main").exec().out == app.englishOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "produces reasonable error message when no output file is defined for binary"() {
         given:
         buildFile << """
@@ -261,6 +267,7 @@ model {
         failure.assertHasCause("Static library file not set for prebuilt static library 'hello:${NativePlatformsTestFixture.defaultPlatformName}DebugDefaultStatic'.")
     }
 
+    @ToBeFixedForInstantExecution
     def "produces reasonable error message when prebuilt library output file does not exist"() {
         given:
         buildFile << """
