@@ -16,7 +16,7 @@
 
 package org.gradle.internal.service.scopes;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
@@ -31,7 +31,9 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.SplitFileHasher;
 import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
+import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
@@ -45,6 +47,7 @@ import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
+import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -121,14 +124,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
         return getSystemProperty(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs) != null;
     }
 
-    public static Iterable<String> getChangedPathsSinceLastBuild(Map<String, String> systemPropertiesArgs) {
+    public static List<File> getChangedPathsSinceLastBuild(PathToFileResolver resolver, Map<String, String> systemPropertiesArgs) {
         String changeList = getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, systemPropertiesArgs);
         if (changeList == null) {
-            return ImmutableSet.of();
+            return ImmutableList.of();
         }
         return Stream.of(changeList.split(","))
             .filter(path -> !path.isEmpty())
-            .map(path -> new File(path).getAbsolutePath())
+            .map(resolver::resolve)
             .collect(Collectors.toList());
     }
 
@@ -172,13 +175,23 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 listenerManager.addListener(new RootBuildLifecycleListener() {
                     @Override
                     public void afterStart(GradleInternal gradle) {
-                        Map<String, String> systemPropertiesArgs = gradle.getStartParameter().getSystemPropertiesArgs();
+                        StartParameter startParameter = gradle.getStartParameter();
+                        Map<String, String> systemPropertiesArgs = startParameter.getSystemPropertiesArgs();
                         if (isRetentionEnabled(systemPropertiesArgs)) {
-                            Iterable<String> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(systemPropertiesArgs);
-                            for (String changedPathSinceLastBuild : changedPathsSinceLastBuild) {
+                            FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
+                                throw new UnsupportedOperationException();
+                            });
+                            List<File> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(fileResolver, systemPropertiesArgs);
+                            for (File changedPathSinceLastBuild : changedPathsSinceLastBuild) {
                                 LOGGER.warn("Marking as changed since last build: {}", changedPathSinceLastBuild);
                             }
-                            virtualFileSystem.update(changedPathsSinceLastBuild, () -> {});
+                            virtualFileSystem.update(
+                                changedPathsSinceLastBuild
+                                    .stream()
+                                    .map(File::getAbsolutePath)
+                                    .collect(Collectors.toList()),
+                                () -> {}
+                            );
                         } else {
                             virtualFileSystem.invalidateAll();
                         }

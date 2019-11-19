@@ -36,7 +36,8 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
             application.mainClassName = "Main"
         """
 
-        def mainSourceFile = file("src/main/java/Main.java")
+        def mainSourceFileRelativePath = "src/main/java/Main.java"
+        def mainSourceFile = file(mainSourceFileRelativePath)
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
@@ -54,7 +55,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":run"
 
         when:
-        withRetention().run "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${mainSourceFile.absolutePath}"
+        withRetention().run "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=$mainSourceFileRelativePath"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
