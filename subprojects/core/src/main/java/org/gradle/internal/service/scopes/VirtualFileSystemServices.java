@@ -76,6 +76,7 @@ import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.RoutingVirtualFileSystem;
+import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -178,6 +179,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                         StartParameter startParameter = gradle.getStartParameter();
                         Map<String, String> systemPropertiesArgs = startParameter.getSystemPropertiesArgs();
                         if (isRetentionEnabled(systemPropertiesArgs)) {
+                            SingleMessageLogger.incubatingFeatureUsed("Virtual file system retention");
                             FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
                                 throw new UnsupportedOperationException();
                             });
@@ -193,6 +195,9 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                                 () -> {}
                             );
                         } else {
+                            if (isPartialInvalidationEnabled(systemPropertiesArgs)) {
+                                SingleMessageLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
+                            }
                             virtualFileSystem.invalidateAll();
                         }
                     }

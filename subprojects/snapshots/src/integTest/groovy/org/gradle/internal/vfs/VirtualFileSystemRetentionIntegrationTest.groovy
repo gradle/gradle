@@ -175,6 +175,23 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
+    def "incubating message is shown for retention"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        def incubatingMessage = "Virtual file system retention is an incubating feature"
+
+        when:
+        withRetention().run("assemble")
+        then:
+        outputContains(incubatingMessage)
+
+        when:
+        run("assemble")
+        then:
+        outputDoesNotContain(incubatingMessage)
+    }
+
     private def withRetention() {
         executer.withArgument  "-D${VFS_RETENTION_ENABLED_PROPERTY}"
         this
