@@ -361,7 +361,7 @@ tasks.register("santaTrackerAndroidBuild", RemoteProject) {
     // branch agp-4.0.0
     // with AGP 4.0.0-beta03
     // without licenses plugin
-    ref = '7325aa1329f94f9aebc2089b778c0ce70c8d7d00'
+    ref = 'd181f6414a58e8d9940bd97276f1a1a1f1478199'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
