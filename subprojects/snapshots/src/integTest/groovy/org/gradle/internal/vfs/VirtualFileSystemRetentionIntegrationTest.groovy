@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY
-import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
@@ -37,7 +36,8 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
             application.mainClassName = "Main"
         """
 
-        def mainSourceFile = file("src/main/java/Main.java")
+        def mainSourceFileRelativePath = "src/main/java/Main.java"
+        def mainSourceFile = file(mainSourceFileRelativePath)
         mainSourceFile.text = sourceFileWithGreeting("Hello World!")
 
         when:
@@ -55,7 +55,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":run"
 
         when:
-        withRetention().run "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${mainSourceFile.absolutePath}"
+        withRetention().run "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=$mainSourceFileRelativePath"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
