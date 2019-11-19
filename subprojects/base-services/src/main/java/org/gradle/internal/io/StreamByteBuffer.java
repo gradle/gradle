@@ -300,7 +300,7 @@ public class StreamByteBuffer {
         totalBytesUnreadInList += chunk.bytesUnread();
     }
 
-    class StreamByteBufferChunk {
+    static class StreamByteBufferChunk {
         private int pointer;
         private byte[] buffer;
         private int size;

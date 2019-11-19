@@ -98,7 +98,7 @@ public class PathAssembler {
         }
     }
 
-    public class LocalDistribution {
+    public static class LocalDistribution {
         private final File distZip;
         private final File distDir;
 

@@ -151,7 +151,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
-    private class FileAccessTrackingJarFileTransformer implements Transformer<File, File> {
+    private static class FileAccessTrackingJarFileTransformer implements Transformer<File, File> {
 
         private final Transformer<File, File> delegate;
         private final FileAccessTracker fileAccessTracker;

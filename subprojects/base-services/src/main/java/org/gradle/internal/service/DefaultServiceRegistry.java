@@ -801,7 +801,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         protected abstract Object invokeMethod(Object[] params);
     }
 
-    private class FactoryMethodService extends FactoryService {
+    private static class FactoryMethodService extends FactoryService {
         private final ServiceMethod method;
         private Object target;
 

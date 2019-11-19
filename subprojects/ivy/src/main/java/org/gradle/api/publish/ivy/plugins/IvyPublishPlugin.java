@@ -160,7 +160,7 @@ public class IvyPublishPlugin implements Plugin<Project> {
         publication.setModuleDescriptorGenerator(generatorTask);
     }
 
-    private class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {
+    private static class IvyPublicationFactory implements NamedDomainObjectFactory<IvyPublication> {
         private final Instantiator instantiator;
         private final DependencyMetaDataProvider dependencyMetaDataProvider;
         private final ObjectFactory objectFactory;

@@ -185,7 +185,7 @@ public class RepositoryTransportFactory {
         throw new InvalidUserDataException("You cannot mix different URL schemes for a single repository. Please declare separate repositories.");
     }
 
-    private class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
+    private static class DefaultResourceConnectorSpecification implements ResourceConnectorSpecification {
         private final Collection<Authentication> authentications;
         private final HttpRedirectVerifier redirectVerifier;
 
