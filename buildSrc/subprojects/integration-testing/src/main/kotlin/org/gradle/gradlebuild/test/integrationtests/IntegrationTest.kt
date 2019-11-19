@@ -19,6 +19,8 @@ package org.gradle.gradlebuild.test.integrationtests
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.gradlebuild.BuildEnvironment
 import java.util.Timer
 import java.util.concurrent.TimeUnit
@@ -33,7 +35,8 @@ import kotlin.concurrent.timerTask
 @CacheableTask
 open class IntegrationTest : DistributionTest() {
 
-    @get:InputDirectory
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     val samplesDir = gradleInstallationForTest.gradleSamplesDir
 
     override fun executeTests() {
