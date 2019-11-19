@@ -195,9 +195,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                                 () -> {}
                             );
                         } else {
-                            if (isPartialInvalidationEnabled(systemPropertiesArgs)) {
-                                SingleMessageLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
-                            }
                             virtualFileSystem.invalidateAll();
                         }
                     }
