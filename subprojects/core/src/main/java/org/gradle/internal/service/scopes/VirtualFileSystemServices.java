@@ -74,6 +74,7 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.RoutingVirtualFileSystem;
 import org.gradle.util.DeprecationLogger;
+import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,7 +176,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     public void afterStart(GradleInternal gradle) {
                         Map<String, String> systemPropertiesArgs = gradle.getStartParameter().getSystemPropertiesArgs();
                         if (isRetentionEnabled(systemPropertiesArgs)) {
-                            DeprecationLogger.incubatingFeatureUsed("Virtual File System Retention");
+                            SingleMessageLogger.incubatingFeatureUsed("Virtual file system retention");
                             Iterable<String> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(systemPropertiesArgs);
                             for (String changedPathSinceLastBuild : changedPathsSinceLastBuild) {
                                 LOGGER.warn("Marking as changed since last build: {}", changedPathSinceLastBuild);
@@ -183,7 +184,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                             virtualFileSystem.update(changedPathsSinceLastBuild, () -> {});
                         } else {
                             if (isPartialInvalidationEnabled(systemPropertiesArgs)) {
-                                DeprecationLogger.incubatingFeatureUsed("Partial Virtual File System Invalidation");
+                                SingleMessageLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
                             }
                             virtualFileSystem.invalidateAll();
                         }

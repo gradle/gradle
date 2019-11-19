@@ -179,7 +179,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             apply plugin: "java"
         """
-        def incubatingMessage = "Virtual File System Retention is an incubating feature"
+        def incubatingMessage = "Virtual file system retention is an incubating feature"
 
         when:
         withRetention().run("assemble")
@@ -196,7 +196,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         buildFile << """
             apply plugin: "java"
         """
-        def incubatingMessage = "Partial Virtual File System Invalidation is an incubating feature"
+        def incubatingMessage = "Partial virtual file system invalidation is an incubating feature"
 
         when:
         run("assemble", "-D${VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY}")
