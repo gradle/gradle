@@ -27,6 +27,10 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         this.name = name;
     }
 
+    protected static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
+        return new MissingFileSnapshot(filePath);
+    }
+
     @Override
     public String getAbsolutePath() {
         return absolutePath;
@@ -72,7 +76,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
-        return Optional.of(SnapshotUtil.missingSnapshotForAbsolutePath(absolutePath));
+        return Optional.of(missingSnapshotForAbsolutePath(absolutePath));
     }
 
     /**

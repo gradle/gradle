@@ -65,13 +65,13 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         if (!PathUtil.hasPrefix(pathToParent, normalizedPath, offset, caseSensitivity)) {
             return Optional.empty();
         }
-        return getSnapshotFromChild(normalizedPath, offset, rootNode, caseSensitivity);
+        return getSnapshotFromChild(rootNode, normalizedPath, offset, caseSensitivity);
     }
 
     @Override
     public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
         String normalizedPath = normalizeRoot(absolutePath);
-        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), snapshot, caseSensitivity), caseSensitivity);
+        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), caseSensitivity, snapshot), caseSensitivity);
     }
 
     @Override

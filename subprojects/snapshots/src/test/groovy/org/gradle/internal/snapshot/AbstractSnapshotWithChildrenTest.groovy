@@ -118,7 +118,8 @@ abstract class AbstractSnapshotWithChildrenTest<T extends FileSystemNode, CHILD 
         ['name/some', 'name2/other'],
         ['name/some', 'name2/other'],
         ['name', 'name1/some', 'name2/other/third'],
-        ['aa/b1', 'ab/a1', 'name', 'name1/some', 'name2/other/third']
+        ['aa/b1', 'ab/a1', 'name', 'name1/some', 'name2/other/third'],
+        ("a".."z").toList(),
     ]
 
     /**
@@ -139,7 +140,7 @@ abstract class AbstractSnapshotWithChildrenTest<T extends FileSystemNode, CHILD 
                 : "${childPath}0"
             new VirtualFileSystemTestSpec(childPaths, newChildPath, 0, null)
         } + new VirtualFileSystemTestSpec(childPaths, 'completelyDifferent', 0, null)
-    }
+    } + new VirtualFileSystemTestSpec([], 'different', 0, null)
 
     /**
      * The queried/updated path has a true common prefix with one of the initial children of the node under test.
