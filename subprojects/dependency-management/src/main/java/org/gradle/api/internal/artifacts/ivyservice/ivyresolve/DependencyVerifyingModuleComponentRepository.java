@@ -25,6 +25,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -115,11 +116,15 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             delegate.resolveArtifact(artifact, moduleSource, result);
             if (result.hasResult()) {
                 ComponentArtifactIdentifier id = artifact.getId();
-                if (id instanceof ModuleComponentArtifactIdentifier) {
+                if (isExternalArtifactId(id)) {
                     ModuleComponentArtifactIdentifier mcai = (ModuleComponentArtifactIdentifier) id;
                     operation.onArtifact(mcai, result.getResult());
                 }
             }
+        }
+
+        private boolean isExternalArtifactId(ComponentArtifactIdentifier id) {
+            return id instanceof ModuleComponentArtifactIdentifier && !(id instanceof ComponentFileArtifactIdentifier);
         }
 
         @Override
