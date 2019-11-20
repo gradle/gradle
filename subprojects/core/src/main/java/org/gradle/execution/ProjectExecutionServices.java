@@ -71,6 +71,7 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
+import org.gradle.util.SingleMessageLogger;
 
 import java.util.List;
 
@@ -134,6 +135,16 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor
     ) {
 
+        ExecuteActionsTaskExecuter.VfsInvalidationStrategy vfsInvalidationStrategy = VirtualFileSystemServices.isPartialInvalidationEnabled(startParameter.getSystemPropertiesArgs())
+            ? ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL
+            : ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE;
+
+        // TODO: The incubation message should be printed in VirtualFileSystemServices.
+        //   The problem is that `RootBuildLifecycleListener.afterStart` is called to early to have the system properties from gradle.properties available
+        //   We log the message now here as a workaround.
+        if (vfsInvalidationStrategy == ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL && !VirtualFileSystemServices.isRetentionEnabled(startParameter.getSystemPropertiesArgs())) {
+            SingleMessageLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
+        }
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheController.isEnabled()
                 ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED
@@ -141,9 +152,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             buildScanPlugin.isBuildScanPluginApplied()
                 ? ExecuteActionsTaskExecuter.ScanPluginState.APPLIED
                 : ExecuteActionsTaskExecuter.ScanPluginState.NOT_APPLIED,
-            VirtualFileSystemServices.isPartialInvalidationEnabled(startParameter.getSystemPropertiesArgs())
-                ? ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL
-                : ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE,
+            vfsInvalidationStrategy,
             taskSnapshotter,
             executionHistoryStore,
             buildOperationExecutor,
