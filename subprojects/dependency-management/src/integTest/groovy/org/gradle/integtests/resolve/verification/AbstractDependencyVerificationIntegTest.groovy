@@ -19,13 +19,19 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.internal.artifacts.verification.DependencyVerificationFixture
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpModule
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
+import org.junit.Rule
 
 class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyResolutionTest {
     @Delegate
     private final DependencyVerificationFixture verificationFile = new DependencyVerificationFixture(
         file("gradle/verification-metadata.xml")
     )
+
+    @Rule
+    MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def setup() {
         settingsFile << """
@@ -74,4 +80,9 @@ class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyReso
         mod.publish()
     }
 
+    protected void addPlugin() {
+        def pluginBuilder = new PluginBuilder(file("some-plugin"))
+        pluginBuilder.addPlugin("println 'Hello, Gradle!'")
+        pluginBuilder.publishAs("com", "myplugin", "1.0", pluginRepo, executer).allowAll()
+    }
 }
