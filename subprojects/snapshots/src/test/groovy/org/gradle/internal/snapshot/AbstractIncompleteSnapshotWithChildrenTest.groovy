@@ -26,6 +26,8 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     abstract protected boolean isSameNodeType(FileSystemNode node)
 
+    abstract boolean isAllowEmptyChildren()
+
     def "invalidate child with no common pathToParent has no effect (#vfsSpec)"() {
         setupTest(vfsSpec)
 
@@ -33,7 +35,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get() is initialRoot
 
         where:
-        vfsSpec << NO_COMMON_PREFIX + COMMON_PREFIX
+        vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty }
     }
 
     def "store #fileType child with common prefix adds a new child with the shared prefix of type Directory (#vfsSpec)"() {
@@ -101,7 +103,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << NO_COMMON_PREFIX
+        vfsSpec << NO_COMMON_PREFIX.findAll { allowEmptyChildren || !it.childPaths.empty }
     }
 
     def "store parent #vfsSpec.absolutePath replaces child #vfsSpec.selectedChildPath (#vfsSpec)"() {
@@ -213,7 +215,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << NO_COMMON_PREFIX + COMMON_PREFIX + IS_PREFIX_OF_CHILD
+        vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX + IS_PREFIX_OF_CHILD).findAll { allowEmptyChildren || !it.childPaths.empty}
     }
 
     def "querying the snapshot for existing child #vfsSpec.absolutePath returns the snapshot for the child (#vfsSpec)"() {

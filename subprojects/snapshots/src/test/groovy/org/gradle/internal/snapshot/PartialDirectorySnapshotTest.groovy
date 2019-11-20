@@ -34,6 +34,11 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         node instanceof PartialDirectorySnapshot
     }
 
+    @Override
+    boolean isAllowEmptyChildren() {
+        return true
+    }
+
     def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
 

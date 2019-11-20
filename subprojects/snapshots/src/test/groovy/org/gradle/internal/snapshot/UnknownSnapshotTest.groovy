@@ -33,6 +33,11 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         return node instanceof UnknownSnapshot
     }
 
+    @Override
+    boolean isAllowEmptyChildren() {
+        return false
+    }
+
     def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
 
