@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
+
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
@@ -497,6 +498,58 @@ class DependencyVerificationIntegTest extends AbstractDependencyVerificationInte
 """
     }
 
+    def "included build dependencies are used when generating the verification file"() {
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        file("included-build/build.gradle") << """
+            plugins {
+                id 'java-library'
+            }
+            
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            
+            dependencies {
+                implementation "org:bar:1.0"
+            }
+        """
+
+        settingsFile << """
+            includeBuild "included-build"
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        hasModules(["org:foo", "org:bar"])
+        module("org:foo") {
+            artifact("foo") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+        }
+        module("org:bar") {
+            artifact("bar") {
+                declaresChecksums(
+                    sha1: "42077067b52edb41c658839ab62a616740417814",
+                    sha512: "7bec2082e5447fbbd76285b458f2978194229360cc9aed75a0fc21e2a1b0033137ecf4cbd9883c0a3cfd8b11c176a915500b23d6622aa002c207f48e5043b3b2"
+                )
+            }
+        }
+    }
 
     private void addPlugin() {
         def pluginBuilder = new PluginBuilder(file("some-plugin"))
