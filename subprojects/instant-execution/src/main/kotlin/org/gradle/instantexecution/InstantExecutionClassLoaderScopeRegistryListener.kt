@@ -24,6 +24,7 @@ import org.gradle.instantexecution.serialization.ClassLoaderRole
 import org.gradle.instantexecution.serialization.ScopeLookup
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.hash.HashCode
 
 
 internal
@@ -89,24 +90,19 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
         }
     }
 
-    override fun localClasspathAdded(scopeId: ClassLoaderScopeId, localClassPath: ClassPath) {
+    override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
         val spec = scopeSpecs[scopeId]
         if (spec != null) {
-            spec.localClassPath += localClassPath
-        }
-    }
-
-    override fun exportClasspathAdded(scopeId: ClassLoaderScopeId, exportClassPath: ClassPath) {
-        val spec = scopeSpecs[scopeId]
-        if (spec != null) {
-            spec.exportClassPath += exportClassPath
-        }
-    }
-
-    override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader) {
-        val spec = scopeSpecs[scopeId]
-        if (spec != null) {
+            // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
+            //  Rather than fix the assumption here, it would be better to rework the scope implementation so that it produces no more than one export and one local ClassLoader
             val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
+            if (local) {
+                spec.localClassPath = classPath
+                spec.localImplementationHash = implementationHash
+            } else {
+                spec.exportClassPath = classPath
+                spec.exportImplementationHash = implementationHash
+            }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
         }
     }
@@ -119,7 +115,9 @@ class ClassLoaderScopeSpec(
     val name: String
 ) {
     var localClassPath = ClassPath.EMPTY
+    var localImplementationHash: HashCode? = null
     var exportClassPath = ClassPath.EMPTY
+    var exportImplementationHash: HashCode? = null
 
     override fun toString(): String {
         return if (parent != null) {
