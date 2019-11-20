@@ -31,6 +31,11 @@ public interface FileSystemNode {
      */
     Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset, CaseSensitivity caseSensitivity);
 
+    /**
+     * The snapshot information at this node.
+     *
+     * {@link Optional#empty()} if no information is available.
+     */
     Optional<MetadataSnapshot> getSnapshot();
 
     /**

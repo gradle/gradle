@@ -23,7 +23,6 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
 abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFileSystemLocationSnapshot> extends Specification {
 
-
     abstract protected T createInitialRootNode(String absolutePath);
 
     T initialRoot = createInitialRootNode("/some/absolute/path")
