@@ -15,7 +15,8 @@ Include only their name, impactful features should be called out separately belo
 [Bjørn Mølgård Vester](https://github.com/bjornvester),
 [Johnny Lim](https://github.com/izeye),
 [Benjamin Muskalla](https://github.com/bmuskalla),
-and [Ian Kerins](https://github.com/isker).
+[Ian Kerins](https://github.com/isker)
+and [Vladimir Sitnikov](https://github.com/vlsi).
 
 ## Upgrade Instructions
 
