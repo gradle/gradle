@@ -16,12 +16,14 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Unroll
 
 
 /**
  * Integration test Santa Tracker android app against AGP nightly.
  */
+@LeaksFileHandles("TODO: AGP (intentionally) does not get a ‘build finished’ event and so does not close some files")
 class InstantExecutionSantaTrackerIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     def setup() {
