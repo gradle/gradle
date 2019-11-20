@@ -72,7 +72,6 @@ class InputPropertyAnnotationOverrideIntegrationTest extends AbstractIntegration
 
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "can override @#inputType.simpleName with @Internal"() {
         buildFile << """
             class InputBaseTask extends BaseTask {

@@ -84,6 +84,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4166")
+    @ToBeFixedForInstantExecution
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {

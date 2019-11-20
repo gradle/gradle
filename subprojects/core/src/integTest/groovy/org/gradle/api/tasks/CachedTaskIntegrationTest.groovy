@@ -112,7 +112,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         skipped ":foo"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "displays info about loading and storing in cache"() {
         buildFile << defineCacheableTask()
         when:

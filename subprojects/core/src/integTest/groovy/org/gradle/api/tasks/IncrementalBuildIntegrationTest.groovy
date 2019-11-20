@@ -368,7 +368,6 @@ a.format = '- %s -'
         result.assertTasksSkipped(":a", ":b")
     }
 
-    @ToBeFixedForInstantExecution
     def "skips task when output dir contents are up-to-date"() {
         writeDirTransformerTask()
 
@@ -624,7 +623,6 @@ task a(type: GeneratorTask) {
         result.assertTasksNotSkipped(":a")
     }
 
-    @ToBeFixedForInstantExecution
     def "multiple tasks can generate into overlapping output directories"() {
         writeDirTransformerTask()
 
@@ -806,7 +804,6 @@ task nothing {
         result.assertTasksNotSkipped(":nothing")
     }
 
-    @ToBeFixedForInstantExecution
     def "lifecycle task is up-to-date when all dependencies are skipped"() {
         writeTransformerTask()
 
@@ -865,7 +862,6 @@ task generate(type: TransformerTask) {
         result.assertTasksSkipped(":${testDirectory.name}:generate", ":transform")
     }
 
-    @ToBeFixedForInstantExecution
     def "task can have outputs and no inputs"() {
         buildFile << """
             class TaskA extends DefaultTask {
@@ -1022,7 +1018,6 @@ task generate(type: TransformerTask) {
         result.assertTasksSkipped(":transform1", ":transform2")
     }
 
-    @ToBeFixedForInstantExecution
     def "can use outputs and inputs from other task"() {
         buildFile << """
             class TaskA extends DefaultTask {
@@ -1205,7 +1200,6 @@ task generate(type: TransformerTask) {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2180")
-    @ToBeFixedForInstantExecution
     def "fileTrees can be used as output files"() {
         given:
         buildScript """
