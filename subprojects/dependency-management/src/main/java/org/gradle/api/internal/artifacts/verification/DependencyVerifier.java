@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.verification;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
@@ -22,14 +24,22 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.operations.CallableBuildOperation;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class DependencyVerifier {
     private final Map<ComponentIdentifier, ComponentVerificationMetadata> verificationMetadata;
@@ -38,7 +48,42 @@ public class DependencyVerifier {
         this.verificationMetadata = ImmutableMap.copyOf(verificationMetadata);
     }
 
-    public void verify(ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
+    // This cache is a mapping from a file to its verification failure state
+    // This avoids recomputing the same checksums multiple times, especially
+    // when different subprojects use the same dependencies. It uses weak keys/values
+    // because it's only intended as a performance optimization.
+    private final Cache<File, Optional<VerificationFailure>> verificationCache = CacheBuilder.newBuilder()
+        .weakKeys()
+        .weakValues()
+        .build();
+
+    public void verify(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, File file, Action<VerificationFailure> onFailure) {
+        try {
+            Optional<VerificationFailure> verificationFailure = verificationCache.get(file, () -> {
+                return performVerification(buildOperationExecutor, foundArtifact, file);
+            });
+            verificationFailure.ifPresent(f -> onFailure.execute(f));
+        } catch (ExecutionException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private Optional<VerificationFailure> performVerification(BuildOperationExecutor buildOperationExecutor, ModuleComponentArtifactIdentifier foundArtifact, File file) {
+        return buildOperationExecutor.call(new CallableBuildOperation<Optional<VerificationFailure>>() {
+            @Override
+            public Optional<VerificationFailure> call(BuildOperationContext context) {
+                return doVerifyArtifact(foundArtifact, file);
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor.displayName("Verifying dependency " + foundArtifact);
+            }
+        });
+    }
+
+    private Optional<VerificationFailure> doVerifyArtifact(ModuleComponentArtifactIdentifier foundArtifact, File file) {
+        AtomicReference<VerificationFailure> failure = new AtomicReference<>();
         ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
         if (componentVerification != null) {
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
@@ -46,16 +91,18 @@ public class DependencyVerifier {
                 ComponentArtifactIdentifier verifiedArtifact = verification.getArtifact();
                 if (verifiedArtifact.equals(foundArtifact)) {
                     Map<ChecksumKind, String> checksums = verification.getChecksums();
-                    for (ChecksumKind value : ChecksumKind.mostSecureFirst()) {
-                        String checksum = checksums.get(value);
-                        if (checksum != null) {
-                            verify(value, file, checksum, onFailure);
+                    for (Map.Entry<ChecksumKind, String> entry : checksums.entrySet()) {
+                        verify(entry.getKey(), file, entry.getValue(), f -> failure.set(f));
+                        if (failure.get() != null) {
+                            return Optional.of(failure.get());
                         }
                     }
-                    break; // we've found our artifact, no need to continue
+                    return Optional.empty();
                 }
             }
         }
+
+        return VerificationFailure.OPT_MISSING;
     }
 
     private static void verify(ChecksumKind algorithm, File file, String expected, Action<VerificationFailure> onFailure) {
@@ -85,6 +132,9 @@ public class DependencyVerifier {
     }
 
     public static class VerificationFailure {
+        public static final VerificationFailure MISSING = new VerificationFailure(null, null, null);
+        private static final Optional<VerificationFailure> OPT_MISSING = Optional.of(MISSING);
+
         private final ChecksumKind kind;
         private final String expected;
         private final String actual;

@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.WriteDependencyVerificationFile;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
@@ -78,6 +79,12 @@ public class StartParameterResolutionOverride {
         if (!checksums.isEmpty()) {
             SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
             return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums);
+        } else {
+            File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
+            if (verificationsFile.exists()) {
+                SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
+                return new ChecksumVerificationOverride(buildOperationExecutor, verificationsFile);
+            }
         }
         return DependencyVerificationOverride.NO_VERIFICATION;
     }
