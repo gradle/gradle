@@ -83,7 +83,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             'native-platform-linux-amd64-ncurses5-0.19.jar' : 'd7b64017a43eacdf55f0412553e8f1e2a411a0e0e62be64e167b166e4b4b32d1',
             'native-platform-linux-amd64-ncurses6-0.19.jar' : 'c30a8d36f868f912bec9f5865a5e537127b1daee977a58dba6a3d492c41b695d',
             'native-platform-linux-i386-0.19.jar' : '9953b9c21147c350da2458ba13e5f3bf92c1b78173ed17fe16a3317b6e5b8621',
-            'native-platform-linux-i386-ncurses5-0.19.jar' : '9953b9c21147c350da2458ba13e5f3bf92c1b78173ed17fe16a3317b6e5b8621',
+            'native-platform-linux-i386-ncurses5-0.19.jar' : 'ffa08fadba21e9ea60ffa18891569b749b1184a554fbc5653a5ff1ac886cd4b1',
             'native-platform-linux-i386-ncurses6-0.19.jar' : '589aab57b52a774ca9cb517c5da36dd071e9a2ee2a3484753eba11e399cfc9ab',
             'native-platform-linux-aarch64-0.19.jar' : 'f51db6435f1a3a67445a2d491c18c60373c31d2aa18d278541c1c30919d05e1e',
             'native-platform-linux-aarch64-ncurses5-0.19.jar' : '184cf49e5bba98161afb3c5c214edd6c8248253dc5fea757fa464719393ceebd',
@@ -194,7 +194,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             }
         }
         then:
-        errors.blank
+        errors.empty
 
         when:
         def added = depJars.keySet() - expectedHashes.keySet()
