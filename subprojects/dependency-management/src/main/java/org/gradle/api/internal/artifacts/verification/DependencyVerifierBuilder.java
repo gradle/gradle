@@ -28,20 +28,15 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 
 import java.util.EnumMap;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class DependencyVerifierBuilder {
     private final Map<ModuleComponentIdentifier, ComponentVerificationsBuilder> byComponent = Maps.newLinkedHashMap();
 
     public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value) {
-        addChecksum(artifact, kind, () -> value);
-    }
-
-    public synchronized void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, Supplier<String> generator) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
         byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
-            .addChecksum(artifact, kind, generator);
+            .addChecksum(artifact, kind, value);
     }
 
     public DependencyVerifier build() {
@@ -60,8 +55,8 @@ public class DependencyVerifierBuilder {
             this.component = component;
         }
 
-        void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, Supplier<String> value) {
-            checksums.computeIfAbsent(artifact, id -> Maps.newEnumMap(ChecksumKind.class)).put(kind, value.get());
+        void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value) {
+            checksums.computeIfAbsent(artifact, id -> Maps.newEnumMap(ChecksumKind.class)).put(kind, value);
         }
 
         private static ArtifactVerificationMetadata toArtifactVerification(Map.Entry<ModuleComponentArtifactIdentifier, EnumMap<ChecksumKind, String>> entry) {
