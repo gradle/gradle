@@ -24,6 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifierBuilder;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -36,6 +37,7 @@ import org.xml.sax.helpers.DefaultHandler;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
+import java.io.IOException;
 import java.io.InputStream;
 
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
@@ -60,6 +62,12 @@ public class DependencyVerificationsXmlReader {
             xmlReader.parse(new InputSource(in));
         } catch (Exception e) {
             throw new InvalidUserDataException("Unable to read dependency verification metadata", e);
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
         }
     }
 

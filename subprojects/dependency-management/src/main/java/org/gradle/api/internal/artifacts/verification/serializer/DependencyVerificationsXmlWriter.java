@@ -54,8 +54,12 @@ public class DependencyVerificationsXmlWriter {
     }
 
     public static void serialize(DependencyVerifier verifier, OutputStream out) throws IOException {
-        DependencyVerificationsXmlWriter writer = new DependencyVerificationsXmlWriter(out);
-        writer.write(verifier);
+        try {
+            DependencyVerificationsXmlWriter writer = new DependencyVerificationsXmlWriter(out);
+            writer.write(verifier);
+        } finally {
+            out.close();
+        }
     }
 
     private void write(DependencyVerifier verifier) throws IOException {
