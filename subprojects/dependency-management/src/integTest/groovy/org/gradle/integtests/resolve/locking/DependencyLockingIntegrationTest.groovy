@@ -161,4 +161,36 @@ configurations {
         lockfileFixture.expectMissing('lockedConf')
     }
 
+    def 'attempting to change lock mode after a configuration has been resolved is invalid'() {
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+task doIt {
+    doLast {
+        println configurations.lockedConf.files
+        dependencyLocking {
+            lockMode = LockMode.STRICT
+        }
+    }
+}
+"""
+        when:
+        fails 'doIt'
+
+        then:
+        failureHasCause("It is illegal to modify the dependency locking mode after any dependency configuration has been resolved")
+    }
+
 }

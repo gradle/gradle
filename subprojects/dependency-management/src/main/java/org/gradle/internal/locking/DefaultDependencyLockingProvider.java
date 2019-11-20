@@ -19,6 +19,7 @@ package org.gradle.internal.locking;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -63,6 +64,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final DomainObjectContext context;
     private DependencySubstitutionRules dependencySubstitutionRules;
     private LockMode lockMode;
+    private boolean used = false;
 
     public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules) {
         this.context = context;
@@ -80,6 +82,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
     @Override
     public DependencyLockingState loadLockState(String configurationName) {
+        recordUsage();
         if (!writeLocks || partialUpdate) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
             if (lockedModules == null && lockMode == LockMode.STRICT) {
@@ -103,6 +106,14 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
+    }
+
+    private void recordUsage() {
+        used = true;
+    }
+
+    private boolean hasRecordedUsage() {
+        return used;
     }
 
     private boolean isSubstitutedInComposite(ModuleComponentIdentifier lockedIdentifier) {
@@ -157,7 +168,9 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
     @Override
     public void setLockMode(LockMode mode) {
-        // TODO Changing lockMode once it has been used needs to be illegal
+        if (hasRecordedUsage()) {
+            throw new InvalidUserCodeException("It is illegal to modify the dependency locking mode after any dependency configuration has been resolved");
+        }
         this.lockMode = mode;
     }
 
