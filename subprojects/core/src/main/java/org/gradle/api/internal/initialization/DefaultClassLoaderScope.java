@@ -151,12 +151,12 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return false;
     }
 
-    protected ClassLoader loader(ClassLoaderId id, ClassLoader parent, ClassPath classPath) {
+    protected ClassLoader loader(ClassLoaderId classLoaderId, ClassLoader parent, ClassPath classPath) {
         if (classPath.isEmpty()) {
             return parent;
         }
-        ClassLoader classLoader = classLoaderCache.get(id, classPath, parent, null);
-        listener.classloaderCreated(this.id, id, classLoader);
+        ClassLoader classLoader = classLoaderCache.get(classLoaderId, classPath, parent, null);
+        listener.classloaderCreated(this.id, classLoaderId, classLoader, classPath, null);
         if (ownLoaders == null) {
             ownLoaders = new ArrayList<>();
         }
@@ -178,7 +178,6 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             local = local.plus(classPath);
         }
 
-        localClasspathAdded(classPath);
         return this;
     }
 
@@ -195,7 +194,6 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
             export = export.plus(classPath);
         }
 
-        exportClasspathAdded(classPath);
         return this;
     }
 
@@ -231,25 +229,15 @@ public class DefaultClassLoaderScope extends AbstractClassLoaderScope {
         return locked;
     }
 
-    protected void exportClasspathAdded(ClassPath classPath) {
-        listener.exportClasspathAdded(id, classPath);
-    }
-
-    protected void localClasspathAdded(ClassPath classPath) {
-        listener.localClasspathAdded(id, classPath);
-    }
-
     @Override
     public void onReuse() {
         parent.onReuse();
         listener.childScopeCreated(parent.getId(), id);
         if (!export.isEmpty()) {
-            listener.exportClasspathAdded(id, export);
-            listener.classloaderCreated(this.id, id.exportId(), effectiveExportClassLoader);
+            listener.classloaderCreated(this.id, id.exportId(), effectiveExportClassLoader, export, null);
         }
         if (!local.isEmpty()) {
-            listener.localClasspathAdded(id, local);
-            listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader);
+            listener.classloaderCreated(this.id, id.localId(), effectiveLocalClassLoader, export, null);
         }
     }
 }

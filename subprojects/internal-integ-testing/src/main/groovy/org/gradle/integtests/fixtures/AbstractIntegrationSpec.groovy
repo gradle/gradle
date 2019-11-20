@@ -100,7 +100,7 @@ class AbstractIntegrationSpec extends Specification {
         testDirectory.file(getDefaultBuildFileName())
     }
 
-    protected TestFile getBuildKotlinFile() {
+    TestFile getBuildKotlinFile() {
         testDirectory.file(getDefaultBuildKotlinFileName())
     }
 

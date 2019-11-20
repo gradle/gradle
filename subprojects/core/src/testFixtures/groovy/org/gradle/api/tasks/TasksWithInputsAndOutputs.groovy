@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 trait TasksWithInputsAndOutputs {
     abstract TestFile getBuildFile()
 
+    abstract TestFile getBuildKotlinFile()
+
     def taskTypeWithOutputFileProperty() {
         buildFile << """
             class FileProducer extends DefaultTask {
@@ -39,6 +41,27 @@ trait TasksWithInputsAndOutputs {
                         file.delete()
                     } else {
                         file.text = content
+                    }
+                }
+            }
+        """
+    }
+
+    def kotlinTaskTypeWithOutputFileProperty() {
+        buildKotlinFile << """
+            abstract class FileProducer: DefaultTask() {
+                @get:OutputFile
+                abstract val output: RegularFileProperty
+                @get:Input
+                var content = "content" // set to empty string to delete file
+            
+                @TaskAction
+                fun go() {
+                    val file = output.get().asFile
+                    if (content.isBlank()) {
+                        file.delete()
+                    } else {
+                        file.writeText(content)
                     }
                 }
             }

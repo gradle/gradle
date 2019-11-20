@@ -31,6 +31,8 @@ import java.util.function.Function;
 public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
     private final ClassLoaderScope parent;
     private final ClassPath classPath;
+    @Nullable
+    private final HashCode classpathImplementationHash;
     private final ClassLoader localClassLoader;
 
     public ImmutableClassLoaderScope(ClassLoaderScopeIdentifier id, ClassLoaderScope parent, ClassPath classPath, @Nullable HashCode classpathImplementationHash,
@@ -38,6 +40,7 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
         super(id, classLoaderCache, listener);
         this.parent = parent;
         this.classPath = classPath;
+        this.classpathImplementationHash = classpathImplementationHash;
         listener.childScopeCreated(parent.getId(), id);
         ClassLoaderId classLoaderId = id.localId();
         if (localClassLoaderFactory != null) {
@@ -45,8 +48,7 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
         } else {
             localClassLoader = classLoaderCache.get(classLoaderId, classPath, parent.getExportClassLoader(), null, classpathImplementationHash);
         }
-        listener.localClasspathAdded(id, classPath);
-        listener.classloaderCreated(id, classLoaderId, localClassLoader);
+        listener.classloaderCreated(id, classLoaderId, localClassLoader, classPath, classpathImplementationHash);
     }
 
     @Override
@@ -73,8 +75,7 @@ public class ImmutableClassLoaderScope extends AbstractClassLoaderScope {
     public void onReuse() {
         parent.onReuse();
         listener.childScopeCreated(parent.getId(), id);
-        listener.localClasspathAdded(id, classPath);
-        listener.classloaderCreated(id, id.localId(), localClassLoader);
+        listener.classloaderCreated(id, id.localId(), localClassLoader, classPath, classpathImplementationHash);
     }
 
     @Override

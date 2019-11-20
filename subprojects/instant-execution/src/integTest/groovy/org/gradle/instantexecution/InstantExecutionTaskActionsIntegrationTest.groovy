@@ -16,7 +16,9 @@
 
 package org.gradle.instantexecution
 
-class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+import org.gradle.api.tasks.TasksWithInputsAndOutputs
+
+class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
 
     def "task can have doFirst/doLast groovy script closures"() {
 
@@ -195,6 +197,72 @@ class InstantExecutionTaskActionsIntegrationTest extends AbstractInstantExecutio
 
         then:
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
+    }
+
+    def "task with type declared in Groovy DSL script is up-to-date when no inputs have changed"() {
+
+        given:
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            tasks.register("a", FileProducer) {
+                output = layout.buildDirectory.file("out.txt")
+            }
+        """
+        def outputFile = file("build/out.txt")
+
+        when:
+        instantRun "a"
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":a")
+        outputFile.assertIsFile()
+
+        when:
+        instantRun "a"
+
+        then:
+        result.assertTasksSkipped(":a")
+
+        when:
+        outputFile.delete()
+        instantRun "a"
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":a")
+        outputFile.assertIsFile()
+    }
+
+    def "task with type declared in Kotlin DSL script is up-to-date when no inputs have changed"() {
+
+        given:
+        kotlinTaskTypeWithOutputFileProperty()
+        buildKotlinFile << """
+            tasks.register<FileProducer>("a") {
+                output.set(layout.buildDirectory.file("out.txt"))
+            }
+        """
+        def outputFile = file("build/out.txt")
+
+        when:
+        instantRun "a"
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":a")
+        outputFile.assertIsFile()
+
+        when:
+        instantRun "a"
+
+        then:
+        result.assertTasksSkipped(":a")
+
+        when:
+        outputFile.delete()
+        instantRun "a"
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":a")
+        outputFile.assertIsFile()
     }
 
     def "name conflicts of types declared in groovy scripts"() {
