@@ -194,7 +194,7 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
             }
         }
         then:
-        errors.blank
+        errors.empty
 
         when:
         def added = depJars.keySet() - expectedHashes.keySet()
