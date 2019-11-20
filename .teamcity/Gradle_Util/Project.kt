@@ -11,10 +11,6 @@ object Project : Project({
     parentId("Gradle")
     name = "Util"
 
-    params {
-        password("teamcity.user.bot-gradle.token", "credentialsJSON:6c130acc-332a-4dd3-98e0-7b699377dc7c", display = ParameterDisplay.HIDDEN)
-    }
-
     features {
         versionedSettings {
             id = "PROJECT_EXT_16"
