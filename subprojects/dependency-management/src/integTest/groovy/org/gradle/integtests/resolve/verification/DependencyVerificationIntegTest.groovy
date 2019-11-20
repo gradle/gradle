@@ -437,6 +437,67 @@ class DependencyVerificationIntegTest extends AbstractDependencyVerificationInte
 
     }
 
+    def "udpates existing verification file preserving order of entries"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", "md5", "abc")
+            addChecksum("org:foo:1.0", "sha1", "1234")
+            addChecksum("org:bar:1.0", "sha1", "untouched")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":compileJava"
+
+        then:
+        hasModules(["org:foo", "org:bar"])
+        module("org:foo") {
+            artifact("foo") {
+                declaresChecksums(
+                    md5: "abc",
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+        }
+        module("org:bar") {
+            artifact("bar") {
+                declaresChecksums(
+                    sha1: "untouched"
+                )
+            }
+        }
+
+        and:
+        assertXmlContents """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo" type="jar" ext="jar">
+            <md5 value="abc"/>
+            <sha1 value="16e066e005a935ac60f06216115436ab97c5da02"/>
+            <sha512 value="734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"/>
+         </artifact>
+      </component>
+      <component group="org" name="bar" version="1.0">
+         <artifact name="bar" type="jar" ext="jar">
+            <sha1 value="untouched"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+    }
+
+
     private void addPlugin() {
         def pluginBuilder = new PluginBuilder(file("some-plugin"))
         pluginBuilder.addPlugin("println 'Hello, Gradle!'")

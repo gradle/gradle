@@ -17,10 +17,15 @@
 package org.gradle.api.internal.artifacts.verification
 
 import groovy.transform.CompileStatic
+import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader
+import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlWriter
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.util.TextUtil
 
 @CompileStatic
 class DependencyVerificationFixture {
@@ -58,6 +63,11 @@ class DependencyVerificationFixture {
         hasModules([])
     }
 
+    void assertXmlContents(String expected) {
+        def actualContents = TextUtil.normaliseLineSeparators(verificationFile.text)
+        assert actualContents == expected
+    }
+
     private void withVerifier(@DelegatesTo(value = DependencyVerifier, strategy = Closure.DELEGATE_FIRST) Closure action) {
         if (verifier == null) {
             assertMetadataExists()
@@ -66,6 +76,16 @@ class DependencyVerificationFixture {
         action.delegate = verifier
         action.resolveStrategy = Closure.DELEGATE_FIRST
         action()
+    }
+
+    void createMetadataFile(@DelegatesTo(value = Builder, strategy = Closure.DELEGATE_FIRST) Closure config) {
+        assertMetadataIsMissing()
+        verificationFile.parentFile.mkdirs()
+        def builder = new Builder()
+        config.resolveStrategy = Closure.DELEGATE_FIRST
+        config.delegate = builder
+        config()
+        DependencyVerificationsXmlWriter.serialize(builder.build(), new FileOutputStream(verificationFile))
     }
 
     void module(String id, @DelegatesTo(value = ComponentVerification, strategy = Closure.DELEGATE_FIRST) Closure action) {
@@ -128,6 +148,34 @@ class DependencyVerificationFixture {
                 def actualChecksums = metadata.checksums.keySet()*.name() as Set
                 assert expectedChecksums == actualChecksums
             }
+        }
+    }
+
+    static class Builder {
+        private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
+
+        void addChecksum(String id, String algo, String checksum) {
+            def parts = id.split(":")
+            def group = parts[0]
+            def name = parts[1]
+            def version = parts.size() == 3 ? parts[2] : "1.0"
+            builder.addChecksum(
+                new DefaultModuleComponentArtifactIdentifier(
+                    DefaultModuleComponentIdentifier.newId(
+                        DefaultModuleIdentifier.newId(group, name),
+                        version
+                    ),
+                    name,
+                    "jar",
+                    "jar"
+                ),
+                ChecksumKind.valueOf(algo),
+                checksum
+            )
+        }
+
+        DependencyVerifier build() {
+            builder.build()
         }
     }
 }
