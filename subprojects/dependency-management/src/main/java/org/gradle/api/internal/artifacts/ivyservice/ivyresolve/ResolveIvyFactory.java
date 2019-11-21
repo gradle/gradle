@@ -37,14 +37,12 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -73,13 +71,13 @@ public class ResolveIvyFactory {
 
     public ResolveIvyFactory(ModuleRepositoryCacheProvider cacheProvider,
                              StartParameterResolutionOverride startParameterResolutionOverride,
+                             DependencyVerificationOverride dependencyVerificationOverride,
                              BuildCommencedTimeProvider timeProvider,
                              VersionComparator versionComparator,
                              ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                              RepositoryBlacklister repositoryBlacklister,
                              VersionParser versionParser,
-                             InstantiatorFactory instantiatorFactory,
-                             BuildOperationExecutor buildOperationExecutor) {
+                             InstantiatorFactory instantiatorFactory) {
         this.cacheProvider = cacheProvider;
         this.startParameterResolutionOverride = startParameterResolutionOverride;
         this.timeProvider = timeProvider;
@@ -88,7 +86,7 @@ public class ResolveIvyFactory {
         this.repositoryBlacklister = repositoryBlacklister;
         this.versionParser = versionParser;
         this.instantiatorFactory = instantiatorFactory;
-        this.dependencyVerificationOverride = startParameterResolutionOverride.dependencyVerificationOverride(buildOperationExecutor);
+        this.dependencyVerificationOverride = dependencyVerificationOverride;
     }
 
     public ComponentResolvers create(String resolveContextName,
@@ -153,10 +151,6 @@ public class ResolveIvyFactory {
         }
         moduleComponentRepository = FilteredModuleComponentRepository.of(moduleComponentRepository, filter, consumerName, consumerAttributes);
         return moduleComponentRepository;
-    }
-
-    public void buildFinished(Gradle gradle) {
-        dependencyVerificationOverride.buildFinished(gradle);
     }
 
     /**

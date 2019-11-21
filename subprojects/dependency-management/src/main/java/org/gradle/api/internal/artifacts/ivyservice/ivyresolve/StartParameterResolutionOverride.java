@@ -72,7 +72,7 @@ public class StartParameterResolutionOverride {
         return original;
     }
 
-    DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor) {
+    public DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor) {
         File currentDir = startParameter.getCurrentDir();
         List<String> checksums = startParameter.getWriteDependencyVerifications();
         if (!checksums.isEmpty()) {
