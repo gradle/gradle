@@ -33,8 +33,8 @@ class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyReso
         """
     }
 
-    protected GradleExecuter writeVerificationMetadata() {
-        executer.withArgument("--write-verification-metadata")
+    protected GradleExecuter writeVerificationMetadata(String checksums = "sha1,sha512") {
+        executer.withArguments("--write-verification-metadata", checksums)
     }
 
     protected void javaLibrary(File f = buildFile) {

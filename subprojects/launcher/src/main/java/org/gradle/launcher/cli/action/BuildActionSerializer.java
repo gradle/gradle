@@ -118,7 +118,7 @@ public class BuildActionSerializer {
             encoder.writeBoolean(startParameter.isBuildScan());
             encoder.writeBoolean(startParameter.isNoBuildScan());
             encoder.writeBoolean(startParameter.isWriteDependencyLocks());
-            encoder.writeBoolean(startParameter.isWriteDependencyVerifications());
+            stringListSerializer.write(encoder, startParameter.getWriteDependencyVerifications());
 
             // Deprecations (these should just be rendered on the client instead of being sent to the daemon to send them back again)
             stringSetSerializer.write(encoder, startParameter.getDeprecations());
@@ -189,7 +189,10 @@ public class BuildActionSerializer {
             startParameter.setBuildScan(decoder.readBoolean());
             startParameter.setNoBuildScan(decoder.readBoolean());
             startParameter.setWriteDependencyLocks(decoder.readBoolean());
-            startParameter.setWriteDependencyVerifications(decoder.readBoolean());
+            List<String> checksums = stringListSerializer.read(decoder);
+            if (!checksums.isEmpty()) {
+                startParameter.setWriteDependencyVerifications(checksums);
+            }
 
             for (String warning : stringSetSerializer.read(decoder)) {
                 startParameter.addDeprecation(warning);

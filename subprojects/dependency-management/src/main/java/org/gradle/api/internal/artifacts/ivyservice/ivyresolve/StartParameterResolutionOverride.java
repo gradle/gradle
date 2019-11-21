@@ -74,9 +74,10 @@ public class StartParameterResolutionOverride {
 
     DependencyVerificationOverride dependencyVerificationOverride(BuildOperationExecutor buildOperationExecutor) {
         File currentDir = startParameter.getCurrentDir();
-        if (startParameter.isWriteDependencyVerifications()) {
+        List<String> checksums = startParameter.getWriteDependencyVerifications();
+        if (!checksums.isEmpty()) {
             SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor);
+            return new WriteDependencyVerificationFile(currentDir, buildOperationExecutor, checksums);
         }
         return DependencyVerificationOverride.NO_VERIFICATION;
     }

@@ -16,9 +16,12 @@
 
 package org.gradle.initialization;
 
+import com.google.common.base.Splitter;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.BasicFileResolver;
+import org.gradle.cli.CommandLineOption;
+import org.gradle.cli.CommandLineParser;
 import org.gradle.internal.buildoption.BooleanBuildOption;
 import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
@@ -32,6 +35,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class StartParameterBuildOptions {
 
@@ -309,16 +313,29 @@ public class StartParameterBuildOptions {
         }
     }
 
-    public static class DependencyVerificationWriteOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+    public static class DependencyVerificationWriteOption extends StringBuildOption<StartParameterInternal> {
         public static final String LONG_OPTION = "write-verification-metadata";
 
-        public DependencyVerificationWriteOption() {
-            super(null, CommandLineOptionConfiguration.create(LONG_OPTION, "Persists dependency verification state").incubating());
+        DependencyVerificationWriteOption() {
+            super(null, CommandLineOptionConfiguration.create(LONG_OPTION,
+                "Generates checksums for dependencies used in the project (comma-separated list)").incubating());
         }
 
         @Override
-        public void applyTo(StartParameterInternal settings, Origin origin) {
-            settings.setWriteDependencyVerifications(true);
+        protected CommandLineOption configureCommandLineOption(CommandLineParser parser, String[] options, String description, boolean deprecated, boolean incubating) {
+            return super.configureCommandLineOption(parser, options, description, deprecated, incubating);
+        }
+
+        @Override
+        public void applyTo(String value, StartParameterInternal settings, Origin origin) {
+            List<String> checksums = Splitter.on(",")
+                .omitEmptyStrings()
+                .trimResults()
+                .splitToList(value)
+                .stream()
+                .map(String::toLowerCase)
+                .collect(Collectors.toList());
+            settings.setWriteDependencyVerifications(checksums);
         }
     }
 
