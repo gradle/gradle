@@ -86,7 +86,7 @@ Run the installed executable.
 [[sec:xctest_lifecycle_tasks]]
 === Lifecycle Tasks
 
-The XCTest Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> - which the XCTest Plugin applies automatically:
+The XCTest Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> — which the XCTest Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Aggregate task that assembles the debug variant of the tested component for the current host (if present) in the project.
