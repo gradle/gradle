@@ -186,7 +186,6 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         myTaskDir.assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "stale outputs are removed after Gradle version change"() {
         given:
         buildFile << """
@@ -501,7 +500,6 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         original.text == "Original"
     }
 
-    @ToBeFixedForInstantExecution
     def "task with file tree output can be up-to-date"() {
         buildFile << """                                     
             plugins {

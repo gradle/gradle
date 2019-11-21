@@ -288,7 +288,6 @@ task someOtherTask
         skipped(":someTask")
     }
 
-    @ToBeFixedForInstantExecution
     def "can use null value for task input property"() {
         buildFile << customSerializableType()
         buildFile << customTaskType()
