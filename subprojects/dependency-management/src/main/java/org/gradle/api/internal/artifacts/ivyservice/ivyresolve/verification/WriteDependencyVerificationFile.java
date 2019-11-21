@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
@@ -47,9 +49,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class WriteDependencyVerificationFile implements DependencyVerificationOverride, ArtifactVerificationOperation {
     private static final Logger LOGGER = LoggerFactory.getLogger(WriteDependencyVerificationFile.class);
@@ -57,16 +62,53 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         conf.componentFilter(id -> id instanceof ModuleComponentIdentifier);
         conf.setLenient(true);
     };
+    private static final Set<String> SUPPORTED_CHECKSUMS = ImmutableSet.of("md5", "sha1", "sha256", "sha512");
+    private static final Set<String> SECURE_CHECKSUMS = ImmutableSet.of("sha256", "sha512");
+    private static final List<String> DEFAULT_CHECKSUMS = ImmutableList.of("sha1", "sha512");
 
     private final DependencyVerifierBuilder verificationsBuilder = new DependencyVerifierBuilder();
     private final File buildDirectory;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final List<String> checksums;
     private final Map<FileChecksum, String> cachedChecksums = Maps.newConcurrentMap();
     private final Set<ChecksumEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
 
-    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor) {
+    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums) {
         this.buildDirectory = buildDirectory;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.checksums = validateChecksums(checksums);
+    }
+
+    private List<String> validateChecksums(List<String> checksums) {
+        checksums = assertSupportedChecksums(checksums);
+        warnAboutInsecureChecksums(checksums);
+        return checksums;
+    }
+
+    private List<String> assertSupportedChecksums(List<String> checksums) {
+        List<String> copy = new ArrayList<>(checksums);
+        boolean updated = copy.retainAll(SUPPORTED_CHECKSUMS);
+        if (updated) {
+            for (String checksum : checksums) {
+                if (!SUPPORTED_CHECKSUMS.contains(checksum)) {
+                    // we cannot throw an exception at this stage because this happens too early
+                    // in the build and the user feedback isn't great ("cannot create service blah!")
+                    LOGGER.warn("Invalid checksum type: '" + checksum + "'. You must choose one or more in " + SUPPORTED_CHECKSUMS);
+                }
+            }
+            if (copy.isEmpty()) {
+                LOGGER.warn("Falling back to the default checksums: sha1 and sha512");
+                copy = DEFAULT_CHECKSUMS;
+            }
+            return copy;
+        }
+        return checksums;
+    }
+
+    private void warnAboutInsecureChecksums(List<String> checksums) {
+        if (checksums.stream().noneMatch(SECURE_CHECKSUMS::contains)) {
+            LOGGER.warn("You chose to generate " + checksums.stream().collect(Collectors.joining(" and ")) + " checksums but they are all considered insecure. You should consider adding at least one of " + SECURE_CHECKSUMS.stream().collect(Collectors.joining(" or ")) + ".");
+        }
     }
 
     @Override
@@ -133,8 +175,9 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     @Override
     public void onArtifact(ModuleComponentArtifactIdentifier id, File file) {
-        addChecksum(id, file, ChecksumKind.sha1);
-        addChecksum(id, file, ChecksumKind.sha512);
+        for (String checksum : checksums) {
+            addChecksum(id, file, ChecksumKind.valueOf(checksum));
+        }
     }
 
     private void addChecksum(ModuleComponentArtifactIdentifier id, File file, ChecksumKind kind) {

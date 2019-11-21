@@ -20,8 +20,9 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+import spock.lang.Unroll
 
-class DependencyVerificationIntegTest extends AbstractDependencyVerificationIntegTest {
+class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest {
 
     @Rule
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
@@ -43,6 +44,41 @@ class DependencyVerificationIntegTest extends AbstractDependencyVerificationInte
 
         and:
         outputContains("Dependency verification is an incubating feature.")
+    }
+
+    @Unroll
+    def "warns if trying to generate with an unknown checksum type (#checksums)"() {
+        when:
+        writeVerificationMetadata(checksums)
+        succeeds ':help'
+
+        then:
+        outputContains "Invalid checksum type: 'unknown'. You must choose one or more in [md5, sha1, sha256, sha512]"
+
+        where:
+        checksums << [
+            "unknown",
+            "sha1,unknown",
+            "md5,unknown,sha1",
+            "unknown , sha512"
+        ]
+    }
+
+    @Unroll
+    def "warns if trying to generate only insecure #checksums checksums"() {
+        when:
+        writeVerificationMetadata(checksums)
+        succeeds ':help'
+
+        then:
+        outputContains "You chose to generate ${message} checksums but they are all considered insecure. You should consider adding at least one of sha256 or sha512."
+
+        where:
+        checksums   | message
+        "md5"       | "md5"
+        "sha1"      | "sha1"
+        "md5, sha1" | "md5 and sha1"
+
     }
 
     def "generates verification file for dependencies downloaded during build"() {
