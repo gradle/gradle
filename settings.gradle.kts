@@ -33,7 +33,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.1-rc-2")
+    id("com.gradle.enterprise").version("3.1-rc-3")
 }
 
 apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
