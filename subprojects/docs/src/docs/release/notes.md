@@ -14,7 +14,8 @@ Include only their name, impactful features should be called out separately belo
 [Nicholas Gates](https://github.com/gatesn),
 [Bjørn Mølgård Vester](https://github.com/bjornvester),
 [Johnny Lim](https://github.com/izeye),
-and [Benjamin Muskalla](https://github.com/bmuskalla).
+[Benjamin Muskalla](https://github.com/bmuskalla),
+and [Ian Kerins](https://github.com/isker).
 
 ## Upgrade Instructions
 
