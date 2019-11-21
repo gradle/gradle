@@ -53,16 +53,15 @@ class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    def "merges .gitignore if it already exists"() {
+    def "merges .gitignore if it already exists with #scriptDsl build scripts"() {
         when:
         def gitignoreFile = targetDir.file(".gitignore")
         gitignoreFile << "*.class\nexistingIgnores"
         run('init', '--project-name', 'someApp', '--dsl', scriptDsl.id)
 
         then:
-
-        assert gitignoreFile.file
-        assert gitignoreFile.text == toPlatformLineSeparators("""*.class
+        gitignoreFile.file
+        gitignoreFile.text == toPlatformLineSeparators("""*.class
 existingIgnores
 # Ignore Gradle project-specific cache directory
 .gradle

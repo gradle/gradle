@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.TestFiles/**/
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
@@ -39,14 +40,8 @@ class GitIgnoreGeneratorTest extends Specification {
 
         then:
         def gitignoreFile = tmpDir.file(".gitignore")
-        assert gitignoreFile.file
-        assert gitignoreFile.text == toPlatformLineSeparators("""
-# Ignore Gradle project-specific cache directory
-.gradle
-
-# Ignore Gradle build output directory
-build
-""")
+        gitignoreFile.file
+        gitignoreFile.text == toPlatformLineSeparators("${getGeneratedGitignoreContent()}")
     }
 
     def "appends .gitignore file if it already exists"() {
@@ -59,13 +54,48 @@ build
         generator.generate(null)
 
         then:
-        assert gitignoreFile.file
-        assert gitignoreFile.text == toPlatformLineSeparators("""ignoredFolder/
-# Ignore Gradle project-specific cache directory
-.gradle
+        gitignoreFile.file
+        gitignoreFile.text == toPlatformLineSeparators("""ignoredFolder/
+${getGeneratedGitignoreContent()}""")
+    }
 
-# Ignore Gradle build output directory
+    @Unroll
+    def "avoid adding duplicated entries when .gitignore file already exists [#entry]"() {
+        setup:
+        def generator = new GitIgnoreGenerator(fileResolver)
+        def gitignoreFile = tmpDir.file(".gitignore")
+        gitignoreFile << entry
+
+        when:
+        generator.generate(null)
+
+        then:
+        gitignoreFile.file
+        gitignoreFile.text == toPlatformLineSeparators("""$entry
+${getGeneratedGitignoreContent(entry)}""")
+
+        where:
+        entry << ['.gradle', 'build']
+    }
+
+    private static String getGeneratedGitignoreContent(String excludingEntry = null) {
+        def builder = new StringBuilder()
+
+        if (excludingEntry != '.gradle') {
+            builder << '''# Ignore Gradle project-specific cache directory
+.gradle
+'''
+        }
+
+        if (excludingEntry != 'build') {
+            if (builder.length() > 0) {
+                builder << '\n'
+            }
+            builder << '''# Ignore Gradle build output directory
 build
-""")
+'''
+        }
+
+        return builder.toString()
     }
 }
