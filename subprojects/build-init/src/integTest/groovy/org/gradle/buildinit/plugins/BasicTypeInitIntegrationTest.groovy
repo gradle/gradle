@@ -56,7 +56,7 @@ class BasicTypeInitIntegrationTest extends AbstractInitIntegrationSpec {
     def "merges .gitignore if it already exists with #scriptDsl build scripts"() {
         when:
         def gitignoreFile = targetDir.file(".gitignore")
-        gitignoreFile << "*.class\nexistingIgnores"
+        gitignoreFile << "*.class${System.lineSeparator()}existingIgnores"
         run('init', '--project-name', 'someApp', '--dsl', scriptDsl.id)
 
         then:
