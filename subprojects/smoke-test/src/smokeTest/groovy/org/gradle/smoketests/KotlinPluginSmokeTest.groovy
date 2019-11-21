@@ -80,7 +80,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         where:
 // To run a specific combination, set the values here, uncomment the following four lines
 //  and comment out the lines coming after
-//        kotlinPluginVersion = '1.3.50'
+//        kotlinPluginVersion = '1.3.60'
 //        androidPluginVersion = '3.5.1'
 //        workers = false
 //        sampleName = 'android-kotlin-example-kotlin-dsl'
