@@ -202,7 +202,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
         def descendantOffset = selectedChild.pathToParent.length() + 1
-        1 * selectedChild.store(relativePath.withNewOffset(descendantOffset), CASE_SENSITIVE, snapshot) >> updatedChild
+        1 * selectedChild.store(relativePath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, snapshot) >> updatedChild
     }
 
     def "querying the snapshot for non-existing child #vfsSpec.absolutePath finds nothings (#vfsSpec)"() {

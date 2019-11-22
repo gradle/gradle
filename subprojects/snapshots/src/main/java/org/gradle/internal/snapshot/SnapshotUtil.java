@@ -73,7 +73,7 @@ public class SnapshotUtil {
         if (relativePath.length() == child.getPathToParent().length()) {
             return child.getSnapshot();
         }
-        return child.getSnapshot(relativePath.withNewOffset(child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent())), caseSensitivity);
+        return child.getSnapshot(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
     }
 
     public static FileSystemNode storeSingleChild(FileSystemNode child, PathSuffix relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
@@ -81,7 +81,7 @@ public class SnapshotUtil {
             @Override
             public FileSystemNode handleDescendant() {
                 return child.store(
-                    relativePath.withNewOffset(child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent())),
+                    relativePath.fromChild(child.getPathToParent()),
                     caseSensitivity,
                     snapshot
                 );
@@ -108,7 +108,7 @@ public class SnapshotUtil {
                 String commonPrefix = prefix.substring(0, commonPrefixLength);
                 boolean emptyCommonPrefix = commonPrefixLength == 0;
                 FileSystemNode newChild = emptyCommonPrefix ? child : child.withPathToParent(prefix.substring(commonPrefixLength + 1));
-                FileSystemNode sibling = snapshot.asFileSystemNode(emptyCommonPrefix ? relativePath.getAsString() : relativePath.withNewOffset(commonPrefixLength + 1).getAsString());
+                FileSystemNode sibling = snapshot.asFileSystemNode(emptyCommonPrefix ? relativePath.getAsString() : relativePath.suffixStartingFrom(commonPrefixLength + 1).getAsString());
                 ImmutableList<FileSystemNode> newChildren = PathUtil.getPathComparator(caseSensitivity).compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
@@ -126,7 +126,7 @@ public class SnapshotUtil {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
-                return child.invalidate(relativePath.withNewOffset(child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent())), caseSensitivity);
+                return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
             }
 
             @Override

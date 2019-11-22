@@ -88,10 +88,10 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             @Override
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
                 CompleteFileSystemLocationSnapshot foundChild = children.get(childIndex);
-                int indexForSubSegment = foundChild.getPathToParent().length();
-                Optional<FileSystemNode> invalidated = indexForSubSegment == relativePath.length()
+                int childPathLength = foundChild.getPathToParent().length();
+                Optional<FileSystemNode> invalidated = childPathLength == relativePath.length()
                     ? Optional.empty()
-                    : foundChild.invalidate(relativePath.withNewOffset(indexForSubSegment + 1), caseSensitivity);
+                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity);
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), getChildren(childIndex, invalidated)));
             }
 

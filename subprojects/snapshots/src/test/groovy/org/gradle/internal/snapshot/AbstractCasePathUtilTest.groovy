@@ -32,13 +32,13 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "length of common prefix of #prefix and #path at #offset is #result"() {
         expect:
-        PathSuffix.of(absolutePath, offset).lengthOfCommonPrefix(prefix, caseSensitivity) == result
+        PathSuffix.of(absolutePath).lengthOfCommonPrefix(prefix, caseSensitivity) == result
 
         where:
-        prefix       | absolutePath  | offset | result
-        '/root'      | '/'           | 0      | 0
-        '/root'      | '/root'       | 0      | 5
-        '/root/some' | '/root/other' | 0      | 5
+        prefix       | absolutePath  | result
+        '/root'      | '/'           | 0
+        '/root'      | '/root'       | 5
+        '/root/some' | '/root/other' | 5
     }
 
     PathSuffix path(String absolutePath, int offset) {

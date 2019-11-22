@@ -211,8 +211,4 @@ public class PathUtil {
         }
         return -1;
     }
-
-    public static int descendantChildOffset(String childPathToParent) {
-        return childPathToParent.isEmpty() ? 0 : 1;
-    }
 }

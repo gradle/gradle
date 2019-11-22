@@ -16,6 +16,8 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 import static org.gradle.internal.snapshot.PathUtil.compareChars;
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase;
@@ -49,7 +51,8 @@ public class PathSuffix {
         return PathSuffix.of(normalizedRoot, determineOffset(normalizedRoot));
     }
 
-    public static PathSuffix of(String absolutePath, int offset) {
+    @VisibleForTesting
+    static PathSuffix of(String absolutePath, int offset) {
         return new PathSuffix(absolutePath, offset);
     }
 
@@ -76,14 +79,39 @@ public class PathSuffix {
         this.offset = offset;
     }
 
-    public PathSuffix withNewOffset(int addTo) {
-        return new PathSuffix(absolutePath, offset + addTo);
+    /**
+     * Returns a new relative path starting from the given start index.
+     *
+     * E.g.
+     *   (some/path, 5) -> path
+     */
+    public PathSuffix suffixStartingFrom(int startIndex) {
+        return new PathSuffix(absolutePath, offset + startIndex);
+    }
+
+    /**
+     * Returns a new relative path starting from the child.
+     *
+     * E.g.
+     *   (some/path, some) -> path
+     *   (some/path/other, some) -> path/other
+     *   ('', C:) -> C:
+     */
+    public PathSuffix fromChild(String relativeChildPath) {
+        return suffixStartingFrom(relativeChildPath.length() + descendantChildOffset(relativeChildPath));
+    }
+
+    private static int descendantChildOffset(String relativeChildPath) {
+        return relativeChildPath.isEmpty() ? 0 : 1;
     }
 
     public int length() {
         return absolutePath.length() - offset;
     }
 
+    /**
+     * The relative path represented by this suffix as a String.
+     */
     public String getAsString() {
         return absolutePath.substring(offset);
     }
@@ -132,7 +160,7 @@ public class PathSuffix {
     }
 
     /**
-     * Compares based to the first segment of a relative path.
+     * Compares to the first segment of a relative path.
      *
      * A segment of a path is the part between two file separators.
      * For example, the path some/long/path has the segments some, long and path.

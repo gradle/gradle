@@ -83,7 +83,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     String getPathFromCommonPrefix() {
-        return relativePath.withNewOffset(commonPrefix.length() + 1).asString
+        return relativePath.suffixStartingFrom(commonPrefix.length() + 1).asString
     }
 
     String getSelectedChildPathFromCommonPrefix() {
@@ -92,12 +92,12 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
 
     def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
         def descendantOffset = selectedChild.pathToParent.length() + 1
-        1 * selectedChild.getSnapshot(relativePath.withNewOffset(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
+        1 * selectedChild.getSnapshot(relativePath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
     }
 
     def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {
         def descendantOffset = selectedChild.pathToParent.length() + 1
-        1 * selectedChild.invalidate(relativePath.withNewOffset(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(invalidatedChild)
+        1 * selectedChild.invalidate(relativePath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(invalidatedChild)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
