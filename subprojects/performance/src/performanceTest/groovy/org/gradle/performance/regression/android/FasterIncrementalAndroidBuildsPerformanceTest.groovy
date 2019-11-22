@@ -21,6 +21,7 @@ import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
+import org.gradle.performance.regression.java.JavaInstantExecutionPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -84,7 +85,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     enum Optimization {
-        INSTANT_EXECUTION("org.gradle.unsafe.instant-execution"),
+        INSTANT_EXECUTION(JavaInstantExecutionPerformanceTest.INSTANT_EXECUTION_ENABLED_PROPERTY),
         VFS_RETENTION(VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY)
 
         Optimization(String systemProperty) {
