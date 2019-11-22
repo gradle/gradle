@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.resolve.verification
 
-
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest {
@@ -107,6 +107,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "generates verification file for dependencies downloaded in previous build"() {
         given:
         javaLibrary()
@@ -158,7 +159,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
                     canBeConsumed = true
                 }
             }
-            
+
             dependencies {
                 conf1 "org:foo:1.0"
                 conf2 "org:bar:1.0"
@@ -326,6 +327,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "writes checksums of plugins using plugins block"() {
         given:
         addPlugin()
@@ -353,6 +355,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         hasModules(["test-plugin:test-plugin.gradle.plugin", "com:myplugin"])
     }
 
+    @ToBeFixedForInstantExecution
     def "writes checksums of plugins using buildscript block"() {
         given:
         addPlugin()
@@ -549,11 +552,11 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             plugins {
                 id 'java-library'
             }
-            
+
             repositories {
                 maven { url "${mavenHttpRepo.uri}" }
             }
-            
+
             dependencies {
                 implementation "org:bar:1.0"
             }
