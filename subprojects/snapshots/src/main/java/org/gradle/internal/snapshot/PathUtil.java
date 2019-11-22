@@ -44,13 +44,6 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
  *
  * For all methods operating on a list of paths, the paths must not start with a common segment.
  * For example, ["some", "some1/other", "other/foo"] is allowed, but ["some/foo", "some/bar", "other/foo"] is not.
- *
- * Most of the methods take an absolutePath and an offset within the path.
- * The offset should always point to the first character of a segment of the absolute path, i.e. not including the file separator.
- * This is a performance optimization so that we don't need to call {@link String#substring(int)} to obtain a relative path from an absolute path.
- * The absolutePath argument of the method is supposed to be an absolute path and the offset determines the relative path to the examined location.
- * For example, filePath = /some/foo/bar with offset 6 determines the relative path foo/bar from the location /some.
- * TODO: There should be a separate type for capturing the relative path defined by an absolute path and offset.
  */
 public class PathUtil {
 
@@ -170,113 +163,6 @@ public class PathUtil {
             return Character.toUpperCase(char1) == Character.toUpperCase(char2) ||
                 Character.toLowerCase(char1) == Character.toLowerCase(char2);
         }
-    }
-
-    /**
-     * Returns the length of the common prefix of a path and a sub-path of another path starting at on offset.
-     *
-     * The length of the common prefix does not include the last line separator.
-     *
-     * Examples:
-     * lengthOfCommonPrefix("some/path", "some/other") == 4
-     * lengthOfCommonPrefix("some/path", "some1/other") == 0
-     * lengthOfCommonPrefix("some/longer/path", "some/longer/other") == 11
-     * lengthOfCommonPrefix("some/longer", "some/longer/path") == 11
-     */
-    public static int lengthOfCommonPrefix(String relativePath, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
-        int pos = 0;
-        int lastSeparator = 0;
-        int maxPos = Math.min(relativePath.length(), absolutePath.length() - offset);
-        for (; pos < maxPos; pos++) {
-            char charInPath1 = relativePath.charAt(pos);
-            char charInPath2 = absolutePath.charAt(pos + offset);
-            if (!equalChars(charInPath1, charInPath2, caseSensitivity)) {
-                break;
-            }
-            if (isFileSeparator(charInPath1)) {
-                lastSeparator = pos;
-            }
-        }
-        if (pos == maxPos) {
-            if (relativePath.length() == absolutePath.length() - offset) {
-                return pos;
-            }
-            if (pos < relativePath.length() && isFileSeparator(relativePath.charAt(pos))) {
-                return pos;
-            }
-            if (pos < absolutePath.length() - offset && isFileSeparator(absolutePath.charAt(pos + offset))) {
-                return pos;
-            }
-        }
-        return lastSeparator;
-    }
-
-    /**
-     * Compares based on the first segment of two paths.
-     *
-     * A segment of a path is the part between two file separators.
-     * For example, the path some/long/path has the segments some, long and path.
-     *
-     * Similar to {@link #lengthOfCommonPrefix(String, String, int, CaseSensitivity)},
-     * only that this method compares the first segment of the paths if there is no common prefix.
-     *
-     * The paths must not start with a separator, taking into account the offset
-     *
-     * For example, this method returns:
-     *     some/path     == some/other
-     *     some1/path    <  some2/other
-     *     some/path     >  some1/other
-     *     some/same     == some/same/more
-     *     some/one/alma == some/two/bela
-     *     a/some        <  b/other
-     *
-     * @return 0 if the two paths have a common prefix, and the comparison of the first segment of each path if not.
-     */
-    public static int compareFirstSegment(String absolutePath, int offset, String relativePath, CaseSensitivity caseSensitivity) {
-        int maxPos = Math.min(relativePath.length(), absolutePath.length() - offset);
-        int accumulatedValue = 0;
-        for (int pos = 0; pos < maxPos; pos++) {
-            char charInPath1 = absolutePath.charAt(pos + offset);
-            char charInPath2 = relativePath.charAt(pos);
-            int comparedChars = compareCharsIgnoringCase(charInPath1, charInPath2);
-            if (comparedChars != 0) {
-                return comparedChars;
-            }
-            accumulatedValue = computeCombinedCompare(accumulatedValue, charInPath1, charInPath2, caseSensitivity == CASE_SENSITIVE);
-            if (isFileSeparator(charInPath1)) {
-                if (pos > 0) {
-                    return accumulatedValue;
-                }
-            }
-        }
-        if (absolutePath.length() - offset == relativePath.length()) {
-            return accumulatedValue;
-        }
-        if (absolutePath.length() - offset > relativePath.length()) {
-            return isFileSeparator(absolutePath.charAt(maxPos + offset)) ? accumulatedValue : 1;
-        }
-        return isFileSeparator(relativePath.charAt(maxPos)) ? accumulatedValue : -1;
-    }
-
-    /**
-     * Checks whether the relative path given by the absolute path and the offset has the given prefix.
-     */
-    public static boolean hasPrefix(String prefix, String absolutePath, int offset, CaseSensitivity caseSensitivity) {
-        int prefixLength = prefix.length();
-        if (prefixLength == 0) {
-            return true;
-        }
-        int pathLength = absolutePath.length();
-        int endOfThisSegment = prefixLength + offset;
-        if (pathLength < endOfThisSegment) {
-            return false;
-        }
-        for (int i = prefixLength - 1, j = endOfThisSegment - 1; i >= 0; i--, j--) {
-            if (!equalChars(prefix.charAt(i), absolutePath.charAt(j), caseSensitivity)) {
-                return false;
-            }
-        }
-        return endOfThisSegment == pathLength || isFileSeparator(absolutePath.charAt(endOfThisSegment));
     }
 
     private static int comparePaths(String relativePath1, String relativePath2, CaseSensitivity caseSensitivity) {

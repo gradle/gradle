@@ -201,7 +201,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     private static String findPathWithParent(List<String> childPaths, String parentPath) {
-        childPaths.find { PathUtil.hasPrefix(parentPath, it, 0, CASE_SENSITIVE) }
+        childPaths.find { new OffsetRelativePath(it, 0).hasPrefix(parentPath, CASE_SENSITIVE) }
     }
 
     private static List<String> parentPaths(String childPath) {
