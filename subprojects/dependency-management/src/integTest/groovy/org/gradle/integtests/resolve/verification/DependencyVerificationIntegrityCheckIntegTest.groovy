@@ -168,40 +168,43 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         when:
         fails "resolve"
-        String message
-        if (!foo && !bar) {
-            message = """Dependency verification failed for org:foo:1.0:
-  - Artifact foo-1.0-sources.jar (org:foo:1.0) checksum is missing from verification metadata.
-Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe)."""
-        } else {
-            message = """Dependency verification failed for configuration ':compileClasspath':
-"""
-            if (bar) {
-                message += """  - On artifact bar-1.0.jar (org:bar:1.0): expected a 'sha1' checksum of 'invalid' but was '42077067b52edb41c658839ab62a616740417814'
-"""
-            }
-            if (foo) {
-                message += """  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
-"""
-            }
-            message += "This can indicate that a dependency has been compromised. Please verify carefully the checksums."
-        }
 
         then:
-        failure.assertHasCause(message)
+        failure.assertHasCause(buildExpectedFailureMessage(failsFooJar, failsBarJar, failsFooSources))
 
         and:
         outputDoesNotContain("Second resolution")
 
         where:
-        firstResolution                                                                                              | foo   | bar
-        "configurations.compileClasspath.files"                                                                      | true  | true
-        "configurations.compileClasspath.iterator().next()"                                                          | true  | true
-        "configurations.compileClasspath.incoming.files.files"                                                       | true  | true
-        "configurations.compileClasspath.incoming.files.iterator().next()"                                           | true  | true
-        "configurations.compileClasspath.incoming.artifactView {}.files.files"                                       | true  | true
-        "configurations.compileClasspath.incoming.artifactView { componentFilter { it.module=='foo' } }.files.files" | true  | false
-        "query('foo').resolvedComponents*.getArtifacts(SourcesArtifact)*.file"                                       | false | false
+        firstResolution                                                                                              | failsFooJar | failsBarJar | failsFooSources
+        "configurations.compileClasspath.files"                                                                      | true        | true        | false
+        "configurations.compileClasspath.iterator().next()"                                                          | true        | true        | false
+        "configurations.compileClasspath.incoming.files.files"                                                       | true        | true        | false
+        "configurations.compileClasspath.incoming.files.iterator().next()"                                           | true        | true        | false
+        "configurations.compileClasspath.incoming.artifactView {}.files.files"                                       | true        | true        | false
+        "configurations.compileClasspath.incoming.artifactView { componentFilter { it.module=='foo' } }.files.files" | true        | false       | false
+        "query('foo').resolvedComponents*.getArtifacts(SourcesArtifact)*.file"                                       | false       | false       | true
+    }
+
+    private static String buildExpectedFailureMessage(boolean failsFooJar, boolean failsBarJar, boolean failsFooSources) {
+        if (failsFooSources) {
+            return """Dependency verification failed for org:foo:1.0:
+  - Artifact foo-1.0-sources.jar (org:foo:1.0) checksum is missing from verification metadata.
+Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe)."""
+        }
+
+        String message = """Dependency verification failed for configuration ':compileClasspath':
+"""
+        if (failsBarJar) {
+            message += """  - On artifact bar-1.0.jar (org:bar:1.0): expected a 'sha1' checksum of 'invalid' but was '42077067b52edb41c658839ab62a616740417814'
+"""
+        }
+        if (failsFooJar) {
+            message += """  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+"""
+        }
+        message += "This can indicate that a dependency has been compromised. Please verify carefully the checksums."
+        message
     }
 
     @Unroll
