@@ -66,7 +66,7 @@ public class PathSuffix {
     }
 
     private static int determineOffset(String absolutePath) {
-        for (int i = 0; i < absolutePath.length() - 1; i++) {
+        for (int i = 0; i < absolutePath.length(); i++) {
             if (!isFileSeparator(absolutePath.charAt(i))) {
                 return i;
             }
@@ -234,6 +234,11 @@ public class PathSuffix {
         return previousCombinedValue == 0
             ? compareChars(charInPath1, charInPath2)
             : previousCombinedValue;
+    }
+
+    @Override
+    public String toString() {
+        return getAsString();
     }
 
     @Override
