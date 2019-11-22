@@ -95,14 +95,12 @@ public class PathSuffix {
      * E.g.
      *   (some/path, some) -> path
      *   (some/path/other, some) -> path/other
-     *   ('', C:) -> C:
+     *   (C:, '') -> C:
      */
     public PathSuffix fromChild(String relativeChildPath) {
-        return suffixStartingFrom(relativeChildPath.length() + descendantChildOffset(relativeChildPath));
-    }
-
-    private static int descendantChildOffset(String relativeChildPath) {
-        return relativeChildPath.isEmpty() ? 0 : 1;
+        return relativeChildPath.isEmpty()
+            ? this
+            : suffixStartingFrom(relativeChildPath.length() + 1);
     }
 
     public int length() {
