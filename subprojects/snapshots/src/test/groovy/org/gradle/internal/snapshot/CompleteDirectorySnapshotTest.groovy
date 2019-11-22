@@ -46,7 +46,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << filterSpecs(NO_COMMON_PREFIX)
+        vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX)
     }
 
     def "invalidate a single child creates a partial directory snapshot without the child (#vfsSpec)"() {
@@ -61,7 +61,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << filterSpecs(SAME_PATH)
+        vfsSpec << onlyDirectChildren(SAME_PATH)
     }
 
     def "invalidate descendant #vfsSpec.absolutePath of child #vfsSpec.selectedChildPath creates a partial directory snapshot with the invalidated child (#vfsSpec)"() {
@@ -81,7 +81,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         }
 
         where:
-        vfsSpec << filterSpecs(CHILD_IS_PREFIX)
+        vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
     }
 
     def "completely invalidating descendant #vfsSpec.absolutePath of child #vfsSpec.selectedChildPath creates a partial directory snapshot without the child (#vfsSpec)"() {
@@ -100,7 +100,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         }
 
         where:
-        vfsSpec << filterSpecs(CHILD_IS_PREFIX)
+        vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
     }
 
     def "storing for path #vfsSpec.absolutePath adds no information (#vfsSpec)"() {
@@ -110,7 +110,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         initialRoot.store(absolutePath, offset, CASE_SENSITIVE, Mock(MetadataSnapshot)) is initialRoot
 
         where:
-        vfsSpec << filterSpecs(NO_COMMON_PREFIX + SAME_PATH + CHILD_IS_PREFIX)
+        vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX + SAME_PATH + CHILD_IS_PREFIX)
     }
 
     def "querying the snapshot for non-existent child #vfsSpec.absolutePath yields a missing file (#vfsSpec)"() {
@@ -123,7 +123,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         foundSnapshot.absolutePath == absolutePath
 
         where:
-        vfsSpec << filterSpecs(NO_COMMON_PREFIX)
+        vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX)
     }
 
     def "querying the snapshot for child #vfsSpec.absolutePath yields the child (#vfsSpec)"() {
@@ -137,7 +137,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         interaction { noMoreInteractions() }
 
         where:
-        vfsSpec << filterSpecs(SAME_PATH)
+        vfsSpec << onlyDirectChildren(SAME_PATH)
     }
 
     def "querying a snapshot in child #vfsSpec.absolutePath yields the found snapshot (#vfsSpec)"() {
@@ -154,7 +154,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         }
 
         where:
-        vfsSpec << filterSpecs(CHILD_IS_PREFIX)
+        vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
     }
 
     def "querying a non-existent snapshot in child #vfsSpec.absolutePath yields a missing snapshot (#vfsSpec)"() {
@@ -171,10 +171,13 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         }
 
         where:
-        vfsSpec << filterSpecs(CHILD_IS_PREFIX)
+        vfsSpec << onlyDirectChildren(CHILD_IS_PREFIX)
     }
 
-    private static List<VirtualFileSystemTestSpec> filterSpecs(List<VirtualFileSystemTestSpec> fullList) {
+    /**
+     * Removes all specs which contain compressed paths, since this isn't allowed for the children of {@link CompleteDirectorySnapshot}s.
+     */
+    private static List<VirtualFileSystemTestSpec> onlyDirectChildren(List<VirtualFileSystemTestSpec> fullList) {
         return fullList.findAll { it.childPaths.every { !it.contains('/') } }
     }
 }

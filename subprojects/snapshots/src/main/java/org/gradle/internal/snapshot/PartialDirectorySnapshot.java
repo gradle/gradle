@@ -28,6 +28,10 @@ import java.util.Optional;
  */
 public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChildren {
 
+    public static PartialDirectorySnapshot withoutKnownChildren(String pathToParent) {
+        return new PartialDirectorySnapshot(pathToParent, ImmutableList.of());
+    }
+
     public PartialDirectorySnapshot(String pathToParent, List<? extends FileSystemNode> children) {
         super(pathToParent, children);
     }
@@ -39,7 +43,7 @@ public class PartialDirectorySnapshot extends AbstractIncompleteSnapshotWithChil
 
     @Override
     protected Optional<FileSystemNode> withAllChildrenRemoved() {
-        return Optional.of(new PartialDirectorySnapshot(getPathToParent(), ImmutableList.of()));
+        return Optional.of(withoutKnownChildren(getPathToParent()));
     }
 
     @Override

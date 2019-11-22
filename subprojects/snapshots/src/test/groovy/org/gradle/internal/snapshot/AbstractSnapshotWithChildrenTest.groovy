@@ -23,14 +23,18 @@ import java.util.stream.Collectors
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-abstract class AbstractSnapshotWithChildrenTest<T extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
-    T initialRoot
+abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
+    NODE initialRoot
     List<CHILD> children
     String absolutePath
     int offset
+
+    /**
+     * The child, if any, which has a common prefix with the selected path, i.e. (absolutePath/offset).
+     */
     FileSystemNode selectedChild
 
-    abstract protected T createInitialRootNode(String pathToParent, List<CHILD> children);
+    abstract protected NODE createInitialRootNode(String pathToParent, List<CHILD> children);
 
     abstract protected CHILD mockChild(String pathToParent)
 

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
 
 /**
@@ -32,7 +31,7 @@ public interface MetadataSnapshot {
 
         @Override
         public FileSystemNode asFileSystemNode(String pathToParent) {
-            return new PartialDirectorySnapshot(pathToParent, ImmutableList.of());
+            return PartialDirectorySnapshot.withoutKnownChildren(pathToParent);
         }
     };
 
