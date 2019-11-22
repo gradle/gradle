@@ -78,7 +78,7 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         fails ":compileJava"
 
         then:
-        failure.assertHasDescription("""Dependency verification failed:
+        failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): expected a '$kind' checksum of 'invalid' but was '$value'
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
 
@@ -115,10 +115,50 @@ This can indicate that a dependency has been compromised. Please verify carefull
         fails ":compileJava"
 
         then:
-        failure.assertHasDescription("""Dependency verification failed:
+        failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0): expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
   - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "fails on the first access to an artifact (not at the end of the build)"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", "sha1", "invalid")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+                testImplementation "org:bar:1.0"
+            }
+
+            task resolve {
+                inputs.files(configurations.compileClasspath)
+                inputs.files(configurations.testRuntimeClasspath)
+                doLast {
+                    println "First resolution"
+                    println configurations.compileClasspath.files
+                    println "Second resolution"
+                    println configurations.testRuntimeClasspath.files
+                }
+            }
+        """
+
+        when:
+        fails "resolve"
+
+        then:
+        failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
+
+        and:
+        outputDoesNotContain("Second resolution")
     }
 
     @Unroll
@@ -141,7 +181,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         fails ":compileJava"
 
         then:
-        failure.assertHasDescription("""Dependency verification failed:
+        failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): expected a '$wrong' checksum of 'invalid' but was""")
 
         where:
@@ -178,7 +218,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         fails ':help'
 
         then:
-        failure.assertHasDescription("""Dependency verification failed""")
+        failure.assertHasCause("""Dependency verification failed""")
     }
 
     @ToBeFixedForInstantExecution
@@ -204,7 +244,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         fails ':help'
 
         then:
-        failure.assertHasDescription("""Dependency verification failed:
+        failure.assertHasCause("""Dependency verification failed for configuration ':classpath':
   - On artifact myplugin-1.0.jar (com:myplugin:1.0): expected a 'sha1' checksum of 'woot' but was""")
     }
 
@@ -226,7 +266,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         fails ":compileJava"
 
         then:
-        failure.assertHasDescription("""Dependency verification failed:
+        failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata.
 Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe).""")
     }
@@ -299,7 +339,7 @@ Please update the file either manually (preferred) or by adding the --write-veri
         fails "compileJava", "--include-build", "included"
 
         then:
-        failure.assertHasDescription """Dependency verification failed:
+        failure.assertHasCause """Dependency verification failed for configuration ':included:compileClasspath':
   - Artifact bar-1.0.jar (org:bar:1.0) checksum is missing from verification metadata."""
     }
 
@@ -337,7 +377,7 @@ Please update the file either manually (preferred) or by adding the --write-veri
         fails ':compileJava'
 
         then:
-        failure.assertHasDescription """Dependency verification failed:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of '16e066e005a935ac60f06216115436ab97c5da02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
