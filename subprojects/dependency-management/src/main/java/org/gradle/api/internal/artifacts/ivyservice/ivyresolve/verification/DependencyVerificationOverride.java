@@ -26,10 +26,6 @@ public interface DependencyVerificationOverride {
         public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
             return original;
         }
-
-        public void buildFinished(Gradle gradle) {
-
-        }
     };
 
     static File dependencyVerificationsFile(File buildDirectory) {
@@ -47,5 +43,16 @@ public interface DependencyVerificationOverride {
 
     ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original);
 
-    void buildFinished(Gradle gradle);
+    default void buildFinished(Gradle gradle) {
+
+    }
+
+    /**
+     * This method is called after we know artifacts have been resolved
+     * and that something is actually trying to get the files of an artifact set
+     * @param displayName
+     */
+    default void artifactsAccessed(String displayName) {
+
+    }
 }

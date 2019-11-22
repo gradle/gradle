@@ -58,6 +58,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -594,7 +595,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                        ComponentSelectorConverter componentSelectorConverter,
                                                        AttributeContainerSerializer attributeContainerSerializer,
                                                        BuildState currentBuild,
-                                                       TransformationNodeRegistry transformationNodeRegistry) {
+                                                       TransformationNodeRegistry transformationNodeRegistry,
+                                                       DependencyVerificationOverride dependencyVerificationOverride) {
             return new ErrorHandlingConfigurationResolver(
                     new ShortCircuitEmptyConfigurationResolver(
                         new DefaultConfigurationResolver(
@@ -619,7 +621,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                             componentSelectorConverter,
                             attributeContainerSerializer,
                             currentBuild.getBuildIdentifier(),
-                            new AttributeDesugaring(attributesFactory)),
+                            new AttributeDesugaring(attributesFactory),
+                            dependencyVerificationOverride),
                         componentIdentifierFactory,
                         moduleIdentifierFactory,
                         currentBuild.getBuildIdentifier()));
