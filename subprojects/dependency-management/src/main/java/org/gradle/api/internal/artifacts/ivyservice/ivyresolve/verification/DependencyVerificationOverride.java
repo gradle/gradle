@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.invocation.Gradle;
 
@@ -54,5 +55,9 @@ public interface DependencyVerificationOverride {
      */
     default void artifactsAccessed(String displayName) {
 
+    }
+
+    default ResolvedArtifactResult verifiedArtifact(ResolvedArtifactResult artifact) {
+        return artifact;
     }
 }

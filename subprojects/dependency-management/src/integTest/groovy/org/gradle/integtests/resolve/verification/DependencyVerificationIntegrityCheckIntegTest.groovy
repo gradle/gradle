@@ -122,19 +122,36 @@ This can indicate that a dependency has been compromised. Please verify carefull
     }
 
     @ToBeFixedForInstantExecution
-    def "fails on the first access to an artifact (not at the end of the build)"() {
+    @Unroll
+    def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
+            addChecksum("org:bar:1.0", "sha1", "invalid")
         }
 
         given:
         javaLibrary()
-        uncheckedModule("org", "foo")
+        uncheckedModule("org", "foo", "1.0") {
+            withSourceAndJavadoc()
+        }
         uncheckedModule("org", "bar")
+        uncheckedModule("org", "baz")
         buildFile << """
             dependencies {
                 implementation "org:foo:1.0"
-                testImplementation "org:bar:1.0"
+                implementation "org:bar:1.0"
+                testImplementation "org:baz:1.0"
+            }
+
+            def query = { String module ->
+                def ids = configurations.compileClasspath.incoming.resolutionResult.allDependencies
+                    .collect { it.selected.id }
+                    .findAll { it.module == module }
+                println(ids)
+                dependencies.createArtifactResolutionQuery()
+                    .forComponents(ids)
+                    .withArtifacts(JvmLibrary, SourcesArtifact)
+                    .execute()
             }
 
             task resolve {
@@ -142,7 +159,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
                 inputs.files(configurations.testRuntimeClasspath)
                 doLast {
                     println "First resolution"
-                    println configurations.compileClasspath.files
+                    println $firstResolution
                     println "Second resolution"
                     println configurations.testRuntimeClasspath.files
                 }
@@ -151,14 +168,40 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         when:
         fails "resolve"
+        String message
+        if (!foo && !bar) {
+            message = """Dependency verification failed for org:foo:1.0:
+  - Artifact foo-1.0-sources.jar (org:foo:1.0) checksum is missing from verification metadata.
+Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe)."""
+        } else {
+            message = """Dependency verification failed for configuration ':compileClasspath':
+"""
+            if (bar) {
+                message += """  - On artifact bar-1.0.jar (org:bar:1.0): expected a 'sha1' checksum of 'invalid' but was '42077067b52edb41c658839ab62a616740417814'
+"""
+            }
+            if (foo) {
+                message += """  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+"""
+            }
+            message += "This can indicate that a dependency has been compromised. Please verify carefully the checksums."
+        }
 
         then:
-        failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
-This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
+        failure.assertHasCause(message)
 
         and:
         outputDoesNotContain("Second resolution")
+
+        where:
+        firstResolution                                                                                              | foo   | bar
+        "configurations.compileClasspath.files"                                                                      | true  | true
+        "configurations.compileClasspath.iterator().next()"                                                          | true  | true
+        "configurations.compileClasspath.incoming.files.files"                                                       | true  | true
+        "configurations.compileClasspath.incoming.files.iterator().next()"                                           | true  | true
+        "configurations.compileClasspath.incoming.artifactView {}.files.files"                                       | true  | true
+        "configurations.compileClasspath.incoming.artifactView { componentFilter { it.module=='foo' } }.files.files" | true  | false
+        "query('foo').resolvedComponents*.getArtifacts(SourcesArtifact)*.file"                                       | false | false
     }
 
     @Unroll

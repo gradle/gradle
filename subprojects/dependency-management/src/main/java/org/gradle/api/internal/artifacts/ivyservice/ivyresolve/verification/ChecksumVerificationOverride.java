@@ -17,6 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
+import org.gradle.api.artifacts.result.ResolvedVariantResult;
+import org.gradle.api.component.Artifact;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
@@ -100,5 +104,31 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
                 throw new InvalidUserDataException(formatter.toString());
             }
         }
+    }
+
+    @Override
+    public ResolvedArtifactResult verifiedArtifact(ResolvedArtifactResult artifact) {
+        return new ResolvedArtifactResult() {
+            @Override
+            public File getFile() {
+                artifactsAccessed(artifact.getVariant().getDisplayName());
+                return artifact.getFile();
+            }
+
+            @Override
+            public ResolvedVariantResult getVariant() {
+                return artifact.getVariant();
+            }
+
+            @Override
+            public ComponentArtifactIdentifier getId() {
+                return artifact.getId();
+            }
+
+            @Override
+            public Class<? extends Artifact> getType() {
+                return artifact.getType();
+            }
+        };
     }
 }
