@@ -25,6 +25,7 @@ import org.gradle.internal.snapshot.PathUtil;
 import java.util.Optional;
 
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
+import static org.gradle.internal.snapshot.SnapshotUtil.getSnapshotFromChild;
 import static org.gradle.internal.snapshot.SnapshotUtil.invalidateSingleChild;
 import static org.gradle.internal.snapshot.SnapshotUtil.storeSingleChild;
 
@@ -37,7 +38,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot, CaseSensitivity caseSensitivity) {
         String normalizedPath = normalizeRoot(absolutePath);
         int offset = determineOffset(absolutePath);
-        return new DefaultFileHierarchySet(snapshot.withPathToParent(offset == 0 ? normalizedPath : normalizedPath.substring(offset)), caseSensitivity);
+        return new DefaultFileHierarchySet(snapshot.asFileSystemNode(offset == 0 ? normalizedPath : normalizedPath.substring(offset)), caseSensitivity);
     }
 
     private DefaultFileHierarchySet(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
@@ -64,13 +65,13 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         if (!PathUtil.hasPrefix(pathToParent, normalizedPath, offset, caseSensitivity)) {
             return Optional.empty();
         }
-        return rootNode.getSnapshot(normalizedPath, pathToParent.length() + offset + PathUtil.descendantChildOffset(pathToParent), caseSensitivity);
+        return getSnapshotFromChild(rootNode, normalizedPath, offset, caseSensitivity);
     }
 
     @Override
     public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
         String normalizedPath = normalizeRoot(absolutePath);
-        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), snapshot, caseSensitivity), caseSensitivity);
+        return new DefaultFileHierarchySet(storeSingleChild(rootNode, normalizedPath, determineOffset(normalizedPath), caseSensitivity, snapshot), caseSensitivity);
     }
 
     @Override

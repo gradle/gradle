@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot
 
-public abstract class AbstractFileSystemNode implements FileSystemNode {
+import javax.annotation.Nullable
 
-    private final String pathToParent;
+class VirtualFileSystemTestSpec {
+    List<String> childPaths
+    String absolutePath
+    int offset
+    String selectedChildPath
 
-    public AbstractFileSystemNode(String pathToParent) {
-        this.pathToParent = pathToParent;
+    VirtualFileSystemTestSpec(List<String> childPaths, String absolutePath, int offset, @Nullable String selectedChildPath) {
+        this.childPaths = childPaths
+        this.absolutePath = absolutePath
+        this.offset = offset
+        this.selectedChildPath = selectedChildPath
     }
 
     @Override
-    public String getPathToParent() {
-        return pathToParent;
+    String toString() {
+        return "${absolutePath}${offset == 0 ? "" : " (${offset})"} selects ${selectedChildPath ?: "no child"} of ${childPaths}"
     }
 }

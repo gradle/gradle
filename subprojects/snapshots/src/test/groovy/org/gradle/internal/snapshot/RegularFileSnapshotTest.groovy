@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot
 
-public abstract class AbstractFileSystemNode implements FileSystemNode {
+import org.gradle.internal.hash.HashCode
 
-    private final String pathToParent;
-
-    public AbstractFileSystemNode(String pathToParent) {
-        this.pathToParent = pathToParent;
-    }
-
+class RegularFileSnapshotTest extends AbstractCompleteSnapshotWithoutChildrenTest {
     @Override
-    public String getPathToParent() {
-        return pathToParent;
+    protected CompleteFileSystemLocationSnapshot createInitialRootNode(String absolutePath) {
+        return new RegularFileSnapshot(absolutePath, PathUtil.getFileName(absolutePath), HashCode.fromInt(1235), new FileMetadata(1, 2))
     }
 }

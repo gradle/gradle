@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot
 
-public abstract class AbstractFileSystemNode implements FileSystemNode {
+import org.spockframework.mock.EmptyOrDummyResponse
+import org.spockframework.mock.IDefaultResponse
+import org.spockframework.mock.IMockInvocation
 
-    private final String pathToParent;
+class RespondWithPathToParent implements IDefaultResponse {
+    private final String pathToParent
 
-    public AbstractFileSystemNode(String pathToParent) {
-        this.pathToParent = pathToParent;
+    RespondWithPathToParent(String pathToParent) {
+        this.pathToParent = pathToParent
     }
 
     @Override
-    public String getPathToParent() {
-        return pathToParent;
+    Object respond(IMockInvocation invocation) {
+        if (invocation.getMethod().name == "getPathToParent") {
+            return pathToParent
+        }
+        return EmptyOrDummyResponse.INSTANCE.respond(invocation)
     }
 }

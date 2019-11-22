@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.snapshot;
+package org.gradle.internal.snapshot
 
-public abstract class AbstractFileSystemNode implements FileSystemNode {
-
-    private final String pathToParent;
-
-    public AbstractFileSystemNode(String pathToParent) {
-        this.pathToParent = pathToParent;
-    }
-
+class MissingFileSnapshotTest extends AbstractCompleteSnapshotWithoutChildrenTest {
     @Override
-    public String getPathToParent() {
-        return pathToParent;
+    protected CompleteFileSystemLocationSnapshot createInitialRootNode(String absolutePath) {
+        return new MissingFileSnapshot(absolutePath)
     }
 }
