@@ -17,10 +17,10 @@
 package org.gradle.internal.vfs;
 
 import com.google.common.collect.Iterables;
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
 
 import java.util.Optional;
 import java.util.function.BooleanSupplier;

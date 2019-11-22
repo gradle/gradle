@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
 
 /**
  * A {@link ResourceSnapshotterCacheService} that delegates to the global service for immutable files
