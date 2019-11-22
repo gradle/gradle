@@ -16,10 +16,12 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
+import org.gradle.performance.regression.java.JavaInstantExecutionPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
@@ -28,31 +30,37 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 
 @Category(PerformanceExperiment)
 class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPerformanceTest {
-    private static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution=true"
 
     @Unroll
     def "faster incremental build on #testProject (build comparison)"() {
         given:
         runner.testGroup = "incremental android changes"
-        runner.buildSpec {
-            testProject.configureForNonAbiChange(it)
-            displayName("non abi change")
-        }
-        runner.buildSpec {
-            testProject.configureForAbiChange(it)
-            displayName("abi change")
-        }
-        if (testProject != SANTA_TRACKER_KOTLIN) {
-            // Kotlin is not supported for instant execution
+
+        // Kotlin is not supported for instant execution
+        def optimizations = testProject == SANTA_TRACKER_KOTLIN
+            ? [
+                "no optimizations": EnumSet.noneOf(Optimization),
+                "VFS retention": EnumSet.of(Optimization.VFS_RETENTION)
+            ]
+            : [
+                "no optimizations": EnumSet.noneOf(Optimization),
+                "VFS retention": EnumSet.of(Optimization.VFS_RETENTION),
+                "instant execution": EnumSet.of(Optimization.INSTANT_EXECUTION),
+                "all optimizations": EnumSet.allOf(Optimization)
+            ]
+
+        optimizations.each { name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
                 testProject.configureForNonAbiChange(it)
-                configureFastIncrementalBuild(it)
-                displayName("instant non abi change")
+                passChangedFile(it, testProject)
+                invocation.args(*enabledOptimizations*.argument)
+                displayName("non abi change (${name})")
             }
             runner.buildSpec {
                 testProject.configureForAbiChange(it)
-                configureFastIncrementalBuild(it)
-                displayName("instant abi change")
+                passChangedFile(it, testProject)
+                invocation.args(*enabledOptimizations*.argument)
+                displayName("abi change (${name})")
             }
         }
 
@@ -72,7 +80,18 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
         }
     }
 
-    def configureFastIncrementalBuild(GradleBuildExperimentSpec.GradleBuilder builder) {
-        builder.invocation.args(INSTANT_EXECUTION_PROPERTY)
+    static void passChangedFile(GradleBuildExperimentSpec.GradleBuilder builder, IncrementalAndroidTestProject testProject) {
+        builder.invocation.args("-D${VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${testProject.pathToChange}")
+    }
+
+    enum Optimization {
+        INSTANT_EXECUTION(JavaInstantExecutionPerformanceTest.INSTANT_EXECUTION_ENABLED_PROPERTY),
+        VFS_RETENTION(VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY)
+
+        Optimization(String systemProperty) {
+            this.argument = "-D${systemProperty}=true"
+        }
+
+        final String argument
     }
 }
