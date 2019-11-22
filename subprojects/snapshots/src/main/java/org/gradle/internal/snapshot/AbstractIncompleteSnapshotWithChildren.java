@@ -31,7 +31,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(OffsetRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public Optional<FileSystemNode> invalidate(PathSuffix relativePath, CaseSensitivity caseSensitivity) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
@@ -57,7 +57,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public FileSystemNode store(OffsetRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
+    public FileSystemNode store(PathSuffix relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleNewChild(int insertBefore) {
@@ -82,7 +82,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public Optional<MetadataSnapshot> getSnapshot(OffsetRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public Optional<MetadataSnapshot> getSnapshot(PathSuffix relativePath, CaseSensitivity caseSensitivity) {
         return SnapshotUtil.getMetadataFromChildren(children, relativePath, caseSensitivity, Optional::empty);
     }
 

@@ -54,8 +54,8 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
         childSnapshot.absolutePath == childAbsolutePath.absolutePath
     }
 
-    private OffsetRelativePath childAbsolutePath(String relativePath) {
-        new OffsetRelativePath("${initialRoot.absolutePath}/${relativePath}", initialRoot.absolutePath.length() + 1)
+    private PathSuffix childAbsolutePath(String relativePath) {
+        PathSuffix.of("${initialRoot.absolutePath}/${relativePath}", initialRoot.absolutePath.length() + 1)
     }
 
     private int getChildOffset() {

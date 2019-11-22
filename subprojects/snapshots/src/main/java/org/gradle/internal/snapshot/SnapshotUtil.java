@@ -26,13 +26,13 @@ import java.util.function.Supplier;
 public class SnapshotUtil {
     /**
      * If a node has fewer children, we use a linear search for the child.
-     * We use this limit since {@link OffsetRelativePath#compareFirstSegment(String, CaseSensitivity)}
-     * is about twice as slow as {@link OffsetRelativePath#hasPrefix(String, CaseSensitivity)},
+     * We use this limit since {@link PathSuffix#compareToFirstSegment(String, CaseSensitivity)}
+     * is about twice as slow as {@link PathSuffix#hasPrefix(String, CaseSensitivity)},
      * so comparing the searched path to all of the children is actually faster than doing a binary search.
      */
     private static final int MINIMUM_CHILD_COUNT_FOR_BINARY_SEARCH = 10;
 
-    public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, OffsetRelativePath relativePath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
+    public static Optional<MetadataSnapshot> getMetadataFromChildren(List<? extends FileSystemNode> children, PathSuffix relativePath, CaseSensitivity caseSensitivity, Supplier<Optional<MetadataSnapshot>> noChildFoundResult) {
         int numberOfChildren = children.size();
         switch (numberOfChildren) {
             case 0:
@@ -61,7 +61,7 @@ public class SnapshotUtil {
                     }
                     return noChildFoundResult.get();
                 } else {
-                    int foundChild = SearchUtil.binarySearch(children, child -> relativePath.compareFirstSegment(child.getPathToParent(), caseSensitivity));
+                    int foundChild = SearchUtil.binarySearch(children, child -> relativePath.compareToFirstSegment(child.getPathToParent(), caseSensitivity));
                     return (foundChild >= 0 && relativePath.hasPrefix(children.get(foundChild).getPathToParent(), caseSensitivity))
                         ? getSnapshotFromChild(children.get(foundChild), relativePath, caseSensitivity)
                         : noChildFoundResult.get();
@@ -69,14 +69,14 @@ public class SnapshotUtil {
         }
     }
 
-    public static Optional<MetadataSnapshot> getSnapshotFromChild(FileSystemNode child, OffsetRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public static Optional<MetadataSnapshot> getSnapshotFromChild(FileSystemNode child, PathSuffix relativePath, CaseSensitivity caseSensitivity) {
         if (relativePath.length() == child.getPathToParent().length()) {
             return child.getSnapshot();
         }
         return child.getSnapshot(relativePath.withNewOffset(child.getPathToParent().length() + PathUtil.descendantChildOffset(child.getPathToParent())), caseSensitivity);
     }
 
-    public static FileSystemNode storeSingleChild(FileSystemNode child, OffsetRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
+    public static FileSystemNode storeSingleChild(FileSystemNode child, PathSuffix relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
@@ -122,7 +122,7 @@ public class SnapshotUtil {
         return metadataSnapshot.getType() != FileType.Missing;
     }
 
-    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, OffsetRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, PathSuffix relativePath, CaseSensitivity caseSensitivity) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
@@ -146,10 +146,10 @@ public class SnapshotUtil {
         });
     }
 
-    public static <T> T handleChildren(List<? extends FileSystemNode> children, OffsetRelativePath relativePath, CaseSensitivity caseSensitivity, ChildHandler<T> childHandler) {
+    public static <T> T handleChildren(List<? extends FileSystemNode> children, PathSuffix relativePath, CaseSensitivity caseSensitivity, ChildHandler<T> childHandler) {
         int childIndex = SearchUtil.binarySearch(
             children,
-            candidate -> relativePath.compareFirstSegment(candidate.getPathToParent(), caseSensitivity)
+            candidate -> relativePath.compareToFirstSegment(candidate.getPathToParent(), caseSensitivity)
         );
         if (childIndex >= 0) {
             return childHandler.handleChildOfExisting(childIndex);
@@ -162,7 +162,7 @@ public class SnapshotUtil {
         T handleChildOfExisting(int childIndex);
     }
 
-    private static <T> T handlePrefix(String prefix, OffsetRelativePath relativePath, CaseSensitivity caseSensitivity, DescendantHandler<T> descendantHandler) {
+    private static <T> T handlePrefix(String prefix, PathSuffix relativePath, CaseSensitivity caseSensitivity, DescendantHandler<T> descendantHandler) {
         int prefixLength = prefix.length();
         int pathLength = relativePath.length();
         int maxPos = Math.min(prefixLength, pathLength);

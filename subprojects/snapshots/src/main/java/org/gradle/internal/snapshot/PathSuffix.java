@@ -22,21 +22,62 @@ import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase;
 import static org.gradle.internal.snapshot.PathUtil.equalChars;
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
 
-public class OffsetRelativePath {
+/**
+ * A relative path represented by a path suffix of an absolute path.
+ *
+ * The use of this class is to improve performance by avoiding to call {@link String#substring(int)}.
+ * The class represents the relative path of absolutePath.substring(offset).
+ *
+ * A relative path does not start or end with a slash.
+ */
+public class PathSuffix {
     private final String absolutePath;
     private final int offset;
 
-    public static OffsetRelativePath of(String absolutePath, int offset) {
-        return new OffsetRelativePath(absolutePath, offset);
+    /**
+     * The relative path from the root of the file system for the given absolute path.
+     *
+     * E.g.:
+     *    'C:\' -> 'C:'
+     *    '/home/user/project' -> 'home/user/project'
+     *    '/' -> ''
+     *    '//uncpath/relative/path' -> 'uncpath/relative/path'
+     *    'C:\Users\user\project' -> 'C:\Users\user\project'
+     */
+    public static PathSuffix of(String absolutePath) {
+        String normalizedRoot = normalizeRoot(absolutePath);
+        return PathSuffix.of(normalizedRoot, determineOffset(normalizedRoot));
     }
 
-    public OffsetRelativePath(String absolutePath, int offset) {
+    public static PathSuffix of(String absolutePath, int offset) {
+        return new PathSuffix(absolutePath, offset);
+    }
+
+    private static String normalizeRoot(String absolutePath) {
+        if (absolutePath.equals("/")) {
+            return absolutePath;
+        }
+        return isFileSeparator(absolutePath.charAt(absolutePath.length() - 1))
+            ? absolutePath.substring(0, absolutePath.length() - 1)
+            : absolutePath;
+    }
+
+    private static int determineOffset(String absolutePath) {
+        for (int i = 0; i < absolutePath.length() - 1; i++) {
+            if (!isFileSeparator(absolutePath.charAt(i))) {
+                return i;
+            }
+        }
+        return absolutePath.length();
+    }
+
+    private PathSuffix(String absolutePath, int offset) {
         this.absolutePath = absolutePath;
         this.offset = offset;
     }
 
-    public OffsetRelativePath withNewOffset(int addTo) {
-        return new OffsetRelativePath(absolutePath, offset + addTo);
+    public PathSuffix withNewOffset(int addTo) {
+        return new PathSuffix(absolutePath, offset + addTo);
     }
 
     public int length() {
@@ -52,7 +93,7 @@ public class OffsetRelativePath {
     }
 
     /**
-     * Returns the length of the common prefix of a path and a sub-path of another path starting at on offset.
+     * Returns the length of the common prefix of this with a relative path.
      *
      * The length of the common prefix does not include the last line separator.
      *
@@ -91,15 +132,15 @@ public class OffsetRelativePath {
     }
 
     /**
-     * Compares based on the first segment of two paths.
+     * Compares based to the first segment of a relative path.
      *
      * A segment of a path is the part between two file separators.
      * For example, the path some/long/path has the segments some, long and path.
      *
      * Similar to {@link #lengthOfCommonPrefix(String, CaseSensitivity)},
-     * only that this method compares the first segment of the paths if there is no common prefix.
+     * only that this method compares to the first segment of the path if there is no common prefix.
      *
-     * The paths must not start with a separator, taking into account the offset
+     * The path must not start with a separator.
      *
      * For example, this method returns:
      *     some/path     == some/other
@@ -111,7 +152,7 @@ public class OffsetRelativePath {
      *
      * @return 0 if the two paths have a common prefix, and the comparison of the first segment of each path if not.
      */
-    public int compareFirstSegment(String relativePath, CaseSensitivity caseSensitivity) {
+    public int compareToFirstSegment(String relativePath, CaseSensitivity caseSensitivity) {
         int maxPos = Math.min(relativePath.length(), absolutePath.length() - offset);
         int accumulatedValue = 0;
         for (int pos = 0; pos < maxPos; pos++) {
@@ -138,7 +179,7 @@ public class OffsetRelativePath {
     }
 
     /**
-     * Checks whether the relative path given by the absolute path and the offset has the given prefix.
+     * Checks whether this path has the prefix.
      */
     public boolean hasPrefix(String prefix, CaseSensitivity caseSensitivity) {
         int prefixLength = prefix.length();
@@ -176,7 +217,7 @@ public class OffsetRelativePath {
             return false;
         }
 
-        OffsetRelativePath that = (OffsetRelativePath) o;
+        PathSuffix that = (PathSuffix) o;
 
         if (offset != that.offset) {
             return false;

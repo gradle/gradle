@@ -32,7 +32,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "length of common prefix of #prefix and #path at #offset is #result"() {
         expect:
-        path(absolutePath, offset).lengthOfCommonPrefix(prefix, caseSensitivity) == result
+        PathSuffix.of(absolutePath, offset).lengthOfCommonPrefix(prefix, caseSensitivity) == result
 
         where:
         prefix       | absolutePath  | offset | result
@@ -41,13 +41,13 @@ abstract class AbstractCasePathUtilTest extends Specification{
         '/root/some' | '/root/other' | 0      | 5
     }
 
-    OffsetRelativePath path(String absolutePath, int offset) {
-        return new OffsetRelativePath(absolutePath, offset)
+    PathSuffix path(String absolutePath, int offset) {
+        return PathSuffix.of(absolutePath, offset)
     }
 
     def "can compare by first segment"() {
         expect:
-        Integer.signum(path(path1, offset).compareFirstSegment(path2, caseSensitivity)) == result
+        Integer.signum(path(path1, offset).compareToFirstSegment(path2, caseSensitivity)) == result
         if (result) {
             assert Integer.signum(path1.substring(offset) <=> path2) == result
         }
@@ -104,7 +104,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "separator is smaller than every other character"() {
         expect:
-        Integer.signum(path(path1, offset).compareFirstSegment(path2, caseSensitivity)) == result
+        Integer.signum(path(path1, offset).compareToFirstSegment(path2, caseSensitivity)) == result
 
         where:
         path1              | offset | path2         | result
@@ -161,7 +161,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
     def "path #spec.searchedPrefix has common prefix with #spec.expectedIndex in #spec.children"() {
         expect:
         SearchUtil.binarySearch(spec.children) { child ->
-            path(spec.searchedPrefix, 0).compareFirstSegment(child, caseSensitivity)
+            path(spec.searchedPrefix, 0).compareToFirstSegment(child, caseSensitivity)
         } == spec.expectedIndex
         spec.children.each { child ->
             def childIndex = spec.children.indexOf(child)

@@ -31,7 +31,7 @@ class CaseSensitivePathUtilTest extends AbstractCasePathUtilTest {
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i]
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                path(searchedChild, 0).compareFirstSegment(child, CASE_SENSITIVE)
+                path(searchedChild, 0).compareToFirstSegment(child, CASE_SENSITIVE)
             }
             assert foundIndex == i
         }
@@ -44,7 +44,7 @@ class CaseSensitivePathUtilTest extends AbstractCasePathUtilTest {
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i].substring(0, 3)
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                path(searchedChild, 0).compareFirstSegment(child, CASE_SENSITIVE)
+                path(searchedChild, 0).compareToFirstSegment(child, CASE_SENSITIVE)
             }
             assert foundIndex == i
         }

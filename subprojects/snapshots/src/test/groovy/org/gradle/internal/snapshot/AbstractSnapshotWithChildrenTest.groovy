@@ -26,7 +26,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
     NODE initialRoot
     List<CHILD> children
-    OffsetRelativePath relativePath
+    PathSuffix relativePath
 
     /**
      * The child, if any, which has a common prefix with the selected path, i.e. (absolutePath/offset).
@@ -40,7 +40,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     void setupTest(VirtualFileSystemTestSpec spec) {
         this.children = createChildren(spec.childPaths)
         this.initialRoot = createInitialRootNode("path/to/parent", children)
-        this.relativePath = new OffsetRelativePath(spec.absolutePath, spec.offset)
+        this.relativePath = PathSuffix.of(spec.absolutePath, spec.offset)
         this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
     }
 
@@ -72,7 +72,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
 
     private int getInsertionPoint() {
         int childIndex = SearchUtil.binarySearch(children) {
-            candidate -> relativePath.compareFirstSegment(candidate.pathToParent, CASE_SENSITIVE)
+            candidate -> relativePath.compareToFirstSegment(candidate.pathToParent, CASE_SENSITIVE)
         }
         assert childIndex < 0
         return -childIndex - 1
@@ -201,7 +201,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     private static String findPathWithParent(List<String> childPaths, String parentPath) {
-        childPaths.find { new OffsetRelativePath(it, 0).hasPrefix(parentPath, CASE_SENSITIVE) }
+        childPaths.find { PathSuffix.of(it, 0).hasPrefix(parentPath, CASE_SENSITIVE) }
     }
 
     private static List<String> parentPaths(String childPath) {
