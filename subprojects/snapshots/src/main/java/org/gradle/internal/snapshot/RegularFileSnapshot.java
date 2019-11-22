@@ -65,6 +65,11 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
+    public void accept(KnownNodeVisitor visitor) {
+        visitor.visitKnownNode(getPathToParent(), this);
+    }
+
+    @Override
     public Optional<FileSystemNode> invalidate(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
         return Optional.empty();
     }

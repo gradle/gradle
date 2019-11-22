@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -116,5 +117,13 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
         List<FileSystemNode> merged = new ArrayList<>(children);
         merged.set(childIndex, newChild);
         return withIncompleteChildren(getPathToParent(), merged);
+    }
+
+    @Override
+    public void accept(KnownNodeVisitor visitor) {
+        visitor.visitKnownNode(getPathToParent(), this);
+        children.forEach(child -> child.accept((pathToParent, node) -> {
+            visitor.visitKnownNode(getPathToParent() + File.separator + pathToParent, node);
+        }));
     }
 }

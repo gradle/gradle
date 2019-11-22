@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
-import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
@@ -29,7 +28,7 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_R
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForInstantExecution
-    def "source file changes are recognized after change is injected"() {
+    def "source file changes are recognized"() {
         buildFile << """
             apply plugin: "application"
             
@@ -48,21 +47,15 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
+        Thread.sleep(2100)
         withRetention().run "run"
-        then:
-        outputContains "Hello World!"
-        skipped(":compileJava", ":processResources", ":classes")
-        executedAndNotSkipped ":run"
-
-        when:
-        withRetention().run "run", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=$mainSourceFileRelativePath"
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
     @ToBeFixedForInstantExecution
-    def "buildSrc changes are recognized after change is injected"() {
+    def "buildSrc changes are recognized"() {
         def taskSourceFile = file("buildSrc/src/main/java/PrinterTask.java")
         taskSourceFile.text = taskWithGreeting("Hello from original task!")
 
@@ -77,12 +70,8 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         taskSourceFile.text = taskWithGreeting("Hello from modified task!")
+        Thread.sleep(2100)
         withRetention().run "hello"
-        then:
-        outputContains "Hello from original task!"
-
-        when:
-        withRetention().run "hello", "-D${VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${taskSourceFile.absolutePath}"
         then:
         outputContains "Hello from modified task!"
     }

@@ -17,12 +17,17 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.PathUtil;
 
+import java.io.File;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Consumer;
 
 import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
 import static org.gradle.internal.snapshot.SnapshotUtil.getSnapshotFromChild;
@@ -82,6 +87,34 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
             .orElse(empty());
     }
 
+    @Override
+    public FileHierarchySet empty() {
+        return empty(caseSensitivity);
+    }
+
+    @Override
+    public void visitKnownDirectories(Consumer<File> directoryVisitor) {
+        Set<File> visited = new HashSet<>();
+        rootNode.accept((parentToRoot, node) -> {
+            File file = new File(new File("/"), parentToRoot);
+            node.getSnapshot().ifPresent(snapshot -> {
+                if (snapshot.getType() == FileType.Directory) {
+                    if (visited.add(file)) {
+                        directoryVisitor.accept(file);
+                    }
+                }
+            });
+            File parentFile = file;
+            while (true) {
+                parentFile = parentFile.getParentFile();
+                if (parentFile == null || !visited.add(parentFile)) {
+                    break;
+                }
+                directoryVisitor.accept(parentFile);
+            }
+        });
+    }
+
     private static int determineOffset(String absolutePath) {
         for (int i = 0; i < absolutePath.length() - 1; i++) {
             if (!isFileSeparator(absolutePath.charAt(i))) {
@@ -98,11 +131,6 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         return isFileSeparator(absolutePath.charAt(absolutePath.length() - 1))
             ? absolutePath.substring(0, absolutePath.length() - 1)
             : absolutePath;
-    }
-
-    @Override
-    public FileHierarchySet empty() {
-        return empty(caseSensitivity);
     }
 
     private enum EmptyFileHierarchy implements FileHierarchySet {
@@ -134,5 +162,8 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
         public FileHierarchySet empty() {
             return this;
         }
+
+        @Override
+        public void visitKnownDirectories(Consumer<File> directoryVisitor) {}
     }
 }

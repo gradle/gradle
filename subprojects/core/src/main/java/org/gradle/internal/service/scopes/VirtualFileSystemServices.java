@@ -75,6 +75,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.WatchableVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
@@ -165,7 +166,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 FileSystem fileSystem,
                 StringInterner stringInterner
             ) {
-                VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(
+                WatchableVirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(
                     hasher,
                     stringInterner,
                     stat,
@@ -196,11 +197,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                         } else {
                             virtualFileSystem.invalidateAll();
                         }
+                        virtualFileSystem.stopWatching();
                     }
 
                     @Override
                     public void beforeComplete(GradleInternal gradle) {
-                        if (!isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
+                        if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
+                            virtualFileSystem.startWatching();
+                        } else {
                             virtualFileSystem.invalidateAll();
                         }
                     }

@@ -32,9 +32,11 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
-import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.WatchableVirtualFileSystem;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,18 +45,20 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DefaultVirtualFileSystem implements VirtualFileSystem {
+public class DefaultVirtualFileSystem implements WatchableVirtualFileSystem {
     private final AtomicReference<FileHierarchySet> root;
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
+    private final FileWatcherRegistry watcherRegistry;
 
     public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, String... defaultExcludes) {
         this.stat = stat;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
         this.hasher = hasher;
         this.root = new AtomicReference<>(DefaultFileHierarchySet.empty(caseSensitivity));
+        this.watcherRegistry = new DefaultFileWatcherRegistry();
     }
 
     @Override
@@ -176,6 +180,28 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
     @Override
     public void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot) {
         root.updateAndGet(root -> root.update(snapshot.getAbsolutePath(), snapshot));
+    }
+
+    @Override
+    public void startWatching() {
+        root.get().visitKnownDirectories(directory -> watcherRegistry.watch(directory.toPath()));
+    }
+
+    @Override
+    public void stopWatching() {
+        watcherRegistry.stopAndProcess(new FileWatcherRegistry.ChangeEventHandler() {
+            @Override
+            public void handleEvent(FileWatcherRegistry.EventKind kind, Path path) {
+                System.out.println("> Invalidating " + path);
+                update(Collections.singleton(path.toString()), () -> {});
+            }
+
+            @Override
+            public void handleOverflow() {
+                System.out.println("> Invalidating entire VFS because there were too many changes");
+                invalidateAll();
+            }
+        });
     }
 
     private static class StripedProducerGuard<T> {

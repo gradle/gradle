@@ -20,7 +20,9 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import javax.annotation.CheckReturnValue;
+import java.io.File;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
@@ -46,4 +48,6 @@ public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
 
     @CheckReturnValue
     FileHierarchySet empty();
+
+    void visitKnownDirectories(Consumer<File> directoryVisitor);
 }
