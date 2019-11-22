@@ -19,13 +19,15 @@ package org.gradle.internal.snapshot
 import javax.annotation.Nullable
 
 class VirtualFileSystemTestSpec {
+    private static final String ABSOLUTE_PATH_PREFIX = "/home/user/project/my/directory"
+
     final List<String> childPaths
     final PathSuffix searchedPath
     final String selectedChildPath
 
-    VirtualFileSystemTestSpec(List<String> childPaths, String absolutePath, @Nullable String selectedChildPath) {
+    VirtualFileSystemTestSpec(List<String> childPaths, String relativeSearchedPath, @Nullable String selectedChildPath) {
         this.childPaths = childPaths
-        this.searchedPath = PathSuffix.of(absolutePath)
+        this.searchedPath = PathSuffix.of("${ABSOLUTE_PATH_PREFIX}/${relativeSearchedPath}").suffixStartingFrom(ABSOLUTE_PATH_PREFIX.length())
         this.selectedChildPath = selectedChildPath
     }
 
