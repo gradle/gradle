@@ -53,18 +53,18 @@ public interface ProviderFactory {
     Provider<String> systemProperty(String propertyName);
 
     /**
-     * Creates a {@link Provider} whose value is computed by the given {@link WestlineProvider}.
+     * Creates a {@link Provider} whose value is computed by the given {@link ValueSource}.
      *
-     * @param providerType the provider type
-     * @param configuration action to configure the parameters to the given {@link WestlineProvider}
+     * @param valueSourceType the type of the {@link ValueSource}
+     * @param configuration action to configure the parameters to the given {@link ValueSource}
      * @return the provider, never returns null
      * @since 6.1
      */
     @Incubating
-    <T, P extends WestlineProviderParameters>
-    Provider<T> westline(
+    <T, P extends ValueSourceParameters>
+    Provider<T> of(
         // M metadata, // TODO instant-execution allow user-provided metadata
-        Class<? extends WestlineProvider<T, P>> providerType,
-        Action<? super WestlineProviderSpec<P>> configuration
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        Action<? super ValueSourceSpec<P>> configuration
     );
 }

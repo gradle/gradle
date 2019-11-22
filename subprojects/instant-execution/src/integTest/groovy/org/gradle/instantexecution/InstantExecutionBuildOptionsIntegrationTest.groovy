@@ -29,35 +29,31 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
             import org.gradle.api.provider.*
 
-            abstract class PropertyFromPropertiesFile : WestlineProvider<String, PropertyFromPropertiesFile.Params> {
+            abstract class PropertyFromPropertiesFile : ValueSource<String, PropertyFromPropertiesFile.Parameters> {
 
-                interface Params : WestlineProviderParameters {
+                interface Parameters : ValueSourceParameters {
 
                     @get:InputFile
-                    val file: RegularFileProperty
+                    val propertiesFile: RegularFileProperty
 
                     @get:Input
                     val propertyName: Property<String>
                 }
 
-                override fun provide(): String? = parameters.run {
-                    file.get().asFile.takeIf { it.isFile }?.inputStream()?.use {
+                override fun obtain(): String? = parameters.run {
+                    propertiesFile.get().asFile.takeIf { it.isFile }?.inputStream()?.use {
                         java.util.Properties().apply { load(it) }
                     }?.get(propertyName.get()) as String?
                 }
             }
 
-            val propertiesFile = layout.projectDirectory.file("local.properties")
-            val isCi: Provider<String> = providers.westline(PropertyFromPropertiesFile::class) {
+            val isCi: Provider<String> = providers.of(PropertyFromPropertiesFile::class) {
                 parameters {
-                    // TODO consider whether we should introduce .source and .value in Property<T>
-                    // file.source = propertiesFile
-                    // propertyName.value = "ci" 
-                    file.set(propertiesFile)
+                    propertiesFile.set(layout.projectDirectory.file("local.properties"))
                     propertyName.set("ci")
                 }
             }
- 
+
             if ($expression) {
                 tasks.register("run") {
                     doLast { println("ON CI") }
@@ -65,7 +61,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
             } else {
                 tasks.register("run") {
                     doLast { println("NOT CI") }
-                }            
+                }
             }
         """
 
@@ -118,25 +114,27 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
         given:
         def instant = newInstantExecutionFixture()
-        buildKotlinFile("""
+        buildKotlinFile """
+
+            import org.gradle.api.provider.*
 
             val sysPropProvider = providers.systemProperty("thread.pool.size").map(Integer::valueOf)
-            
+
             abstract class TaskA : DefaultTask() {
 
                 @get:Input
                 abstract val threadPoolSize: Property<Int>
-            
+
                 @TaskAction
                 fun act() {
                     println("ThreadPoolSize = "+ threadPoolSize.get())
                 }
             }
-            
+
             tasks.register<TaskA>("a") {
                 threadPoolSize.set(sysPropProvider)
             }
-        """)
+        """
 
         when:
         instantRun("a", "-Dthread.pool.size=4")
@@ -167,7 +165,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
             } else {
                 tasks.register("run") {
                     doLast { println("NOT CI") }
-                }            
+                }
             }
         """
 

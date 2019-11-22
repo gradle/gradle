@@ -19,9 +19,9 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.provider.WestlineProvider;
-import org.gradle.api.provider.WestlineProviderParameters;
-import org.gradle.api.provider.WestlineProviderSpec;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.api.provider.ValueSourceParameters;
+import org.gradle.api.provider.ValueSourceSpec;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
@@ -30,11 +30,11 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     private final ProvidersListener broadcaster;
     @Nullable
-    private final WestlineProviderFactory westlineProviderFactory;
+    private final ValueSourceProviderFactory valueSourceProviderFactory;
 
-    public DefaultProviderFactory(ProvidersListener broadcaster, @Nullable WestlineProviderFactory westlineProviderFactory) {
+    public DefaultProviderFactory(ProvidersListener broadcaster, @Nullable ValueSourceProviderFactory valueSourceProviderFactory) {
         this.broadcaster = broadcaster;
-        this.westlineProviderFactory = westlineProviderFactory;
+        this.valueSourceProviderFactory = valueSourceProviderFactory;
     }
 
     @Override
@@ -51,10 +51,10 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
-    public <T, P extends WestlineProviderParameters> Provider<T> westline(Class<? extends WestlineProvider<T, P>> providerType, Action<? super WestlineProviderSpec<P>> configuration) {
-        if (westlineProviderFactory == null) {
+    public <T, P extends ValueSourceParameters> Provider<T> of(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configuration) {
+        if (valueSourceProviderFactory == null) {
             throw new UnsupportedOperationException();
         }
-        return westlineProviderFactory.createProviderOf(providerType, configuration);
+        return valueSourceProviderFactory.createProviderOf(valueSourceType, configuration);
     }
 }

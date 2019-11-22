@@ -16,24 +16,19 @@
 
 package org.gradle.api.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
-
-import javax.annotation.Nullable;
-import javax.inject.Inject;
 
 /**
  * Westline.
  *
- * @param <T> the provided value type
- * @param <P> the provider parameters
+ * @param <P> the parameters type
  * @since 6.1
  */
 @Incubating
-public interface WestlineProvider<T, P extends WestlineProviderParameters> {
+public interface ValueSourceSpec<P extends ValueSourceParameters> {
 
-    @Inject
     P getParameters();
 
-    @Nullable
-    T provide();
+    void parameters(Action<? super P> configuration);
 }

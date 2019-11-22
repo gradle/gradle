@@ -18,36 +18,36 @@ package org.gradle.instantexecution.westline
 
 import org.gradle.api.Action
 import org.gradle.api.internal.provider.AbstractReadOnlyProvider
-import org.gradle.api.internal.provider.WestlineProviderFactory
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
-import org.gradle.api.provider.WestlineProvider
-import org.gradle.api.provider.WestlineProviderParameters
-import org.gradle.api.provider.WestlineProviderSpec
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.api.provider.ValueSourceSpec
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.isolation.IsolatableFactory
 
 
-class DefaultWestlineProviderFactory(
+class DefaultValueSourceProviderFactory(
     private val objects: ObjectFactory,
     private val instantiatorFactory: InstantiatorFactory,
     private val isolatableFactory: IsolatableFactory
-) : WestlineProviderFactory {
+) : ValueSourceProviderFactory {
 
-    override fun <T : Any, P : WestlineProviderParameters> createProviderOf(
-        providerType: Class<out WestlineProvider<T, P>>,
-        configuration: Action<in WestlineProviderSpec<P>>
+    override fun <T : Any, P : ValueSourceParameters> createProviderOf(
+        valueSourceType: Class<out ValueSource<T, P>>,
+        configuration: Action<in ValueSourceSpec<P>>
     ): Provider<T> {
-        val parametersType = extractParametersType<P, WestlineProvider<T, P>, WestlineProviderParameters>(
-            providerType,
+        val parametersType = extractParametersType<P, ValueSource<T, P>, ValueSourceParameters>(
+            valueSourceType,
             1
         )
         val parameters = objects.newInstance(parametersType)
-        configuration.execute(DefaultWestlineProviderSpec(parameters))
+        configuration.execute(DefaultValueSourceSpec(parameters))
         val isolatedParameters = isolatableFactory.isolate(parameters)
-        return DefaultWestlineProviderProvider(
-            providerType,
+        return DefaultValueSourceProvider(
+            valueSourceType,
             parametersType,
             isolatedParameters,
             instantiatorFactory
@@ -57,9 +57,9 @@ class DefaultWestlineProviderFactory(
 
 
 private
-class DefaultWestlineProviderSpec<P : WestlineProviderParameters>(
+class DefaultValueSourceSpec<P : ValueSourceParameters>(
     private val parameters: P
-) : WestlineProviderSpec<P> {
+) : ValueSourceSpec<P> {
     override fun getParameters(): P = parameters
     override fun parameters(configuration: Action<in P>) {
         configuration.execute(parameters)
@@ -68,8 +68,8 @@ class DefaultWestlineProviderSpec<P : WestlineProviderParameters>(
 
 
 private
-class DefaultWestlineProviderProvider<T, P : WestlineProviderParameters>(
-    private val providerType: Class<out WestlineProvider<T, P>>,
+class DefaultValueSourceProvider<T, P : ValueSourceParameters>(
+    private val valueSourceType: Class<out ValueSource<T, P>>,
     private val parametersType: Class<P>,
     private val parameters: Isolatable<P>,
     private val instantiatorFactory: InstantiatorFactory
@@ -77,12 +77,12 @@ class DefaultWestlineProviderProvider<T, P : WestlineProviderParameters>(
 
     private
     val value: T? by lazy {
-        createProvider().provide()
+        createValueSource().obtain()
     }
 
     private
-    fun createProvider(): WestlineProvider<T, P> = instantiatorFactory.newIsolatedInstance(
-        providerType,
+    fun createValueSource(): ValueSource<T, P> = instantiatorFactory.newIsolatedInstance(
+        valueSourceType,
         parametersType,
         parameters
     )

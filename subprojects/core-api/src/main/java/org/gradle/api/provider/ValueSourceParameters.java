@@ -16,19 +16,22 @@
 
 package org.gradle.api.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 
 /**
- * Westline.
+ * Marker interface for parameter objects to {@link ValueSource}s.
  *
- * @param <P> the parameters type
+ * <p>
+ *     Parameter types should be interfaces, only declaring getters for {@link org.gradle.api.provider.Property}-like objects.
+ * </p>
+ * <pre class='autoTested'>
+ * public interface MyParameters extends ValueSourceParameters {
+ *     Property&lt;String&gt; getStringParameter();
+ * }
+ * </pre>
+ *
  * @since 6.1
  */
 @Incubating
-public interface WestlineProviderSpec<P extends WestlineProviderParameters> {
-
-    P getParameters();
-
-    void parameters(Action<? super P> configuration);
+public interface ValueSourceParameters {
 }

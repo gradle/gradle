@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.api.provider;
+package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.api.provider.ValueSourceParameters;
+import org.gradle.api.provider.ValueSourceSpec;
 
 /**
  * Westline.
+ *
  * @since 6.1
  */
 @Incubating
-public interface WestlineProviderParameters {
+public interface ValueSourceProviderFactory {
+
+    <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configuration);
 }
