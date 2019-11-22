@@ -188,7 +188,7 @@ public class DefaultArtifactResolutionQuery implements ArtifactResolutionQuery {
             if (resolveResult.getFailure() != null) {
                 artifacts.addArtifact(new DefaultUnresolvedArtifactResult(artifactMetaData.getId(), type, resolveResult.getFailure()));
             } else {
-                artifacts.addArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Describables.of(component.getId().getDisplayName()), type, resolveResult.getResult()));
+                artifacts.addArtifact(ivyFactory.verifiedArtifact(new DefaultResolvedArtifactResult(artifactMetaData.getId(), ImmutableAttributes.EMPTY, Describables.of(component.getId().getDisplayName()), type, resolveResult.getResult())));
             }
         }
     }
