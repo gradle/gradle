@@ -73,9 +73,9 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
+import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
-import org.gradle.internal.vfs.impl.RoutingVirtualFileSystem;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +92,6 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
-
 
     /**
      * System property to enable partial invalidation.

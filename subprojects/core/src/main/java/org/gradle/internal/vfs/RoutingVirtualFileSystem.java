@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
+package org.gradle.internal.vfs;
 
 import com.google.common.collect.Iterables;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
-import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
