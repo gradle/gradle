@@ -26,19 +26,19 @@ import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
 
 @Unroll
-abstract class AbstractCasePathUtilTest extends Specification{
+abstract class AbstractCasePathUtilTest extends Specification {
 
     abstract CaseSensitivity getCaseSensitivity()
 
-    def "length of common prefix of #prefix and #path at #offset is #result"() {
+    def "length of common prefix of #prefix and #absolutePath is #result"() {
         expect:
         PathSuffix.of(absolutePath).lengthOfCommonPrefix(prefix, caseSensitivity) == result
 
         where:
-        prefix       | absolutePath  | result
-        '/root'      | '/'           | 0
-        '/root'      | '/root'       | 5
-        '/root/some' | '/root/other' | 5
+        prefix      | absolutePath  | result
+        'root'      | '/'           | 0
+        'root'      | '/root'       | 4
+        'root/some' | '/root/other' | 4
     }
 
     PathSuffix path(String absolutePath, int offset) {
@@ -68,7 +68,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
         "/var/hello/other"      | 5      | "hello/world/some" | 0
     }
 
-    def "length of common prefix of #prefix with #path at offset #offset is #result"() {
+    def "length of common prefix of #prefix with #absolutePath at offset #offset is #result"() {
         expect:
         path(absolutePath, offset).lengthOfCommonPrefix(prefix, caseSensitivity) == result
 
@@ -88,7 +88,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
         "/hello/world/some" | "/var/hello/other"      | 4      | 6
     }
 
-    def "#prefix is prefix of #path at offset #offset: #result"() {
+    def "#prefix is prefix of #absolutePath at offset #offset: #result"() {
         def relativePath = path(absolutePath, offset)
 
         expect:

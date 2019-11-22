@@ -40,11 +40,11 @@ public class PathSuffix {
      * The relative path from the root of the file system for the given absolute path.
      *
      * E.g.:
-     *    'C:\' -> 'C:'
+     *    'C:/' -> 'C:'
      *    '/home/user/project' -> 'home/user/project'
      *    '/' -> ''
      *    '//uncpath/relative/path' -> 'uncpath/relative/path'
-     *    'C:\Users\user\project' -> 'C:\Users\user\project'
+     *    'C:/Users/user/project' -> 'C:/Users/user/project'
      */
     public static PathSuffix of(String absolutePath) {
         String normalizedRoot = normalizeRoot(absolutePath);

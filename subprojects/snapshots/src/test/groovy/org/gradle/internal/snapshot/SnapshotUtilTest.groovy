@@ -28,21 +28,22 @@ class SnapshotUtilTest extends Specification {
         def child = mockChild(pathToParent)
 
         when:
-        def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, PathSuffix.of(absolutePath, offset), CASE_SENSITIVE)
+        def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, PathSuffix.of(absolutePath).suffixStartingFrom(suffixStart), CASE_SENSITIVE)
         then:
         foundSnapshot.present
         1 * child.snapshot >> Optional.of(Mock(MetadataSnapshot))
 
         where:
-        absolutePath          | offset                     | pathToParent
-        "/some/absolute/path" | "/some/absolute/".length() | "path"
+        absolutePath          | suffixStart                | pathToParent
+        "/some/absolute/path" | "some/absolute/".length()  | "path"
         "C:"                  | 0                          | "C:"
-        "/"                   | 1                          | ""
+        "C:\\"                | 0                          | "C:"
+        "/"                   | 0                          | ""
     }
 
     def "getSnapshotFromChild queries child when queried at the path in child"() {
         def child = mockChild(pathToParent)
-        def relativePath = PathSuffix.of(absolutePath, offset)
+        def relativePath = PathSuffix.of(absolutePath).suffixStartingFrom(suffixStart)
 
         when:
         def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, relativePath, CASE_SENSITIVE)
@@ -51,18 +52,18 @@ class SnapshotUtilTest extends Specification {
         1 * child.getSnapshot(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE) >> Optional.of(Mock(MetadataSnapshot))
 
         where:
-        absolutePath                    | offset                     | pathToParent | childOffset
-        "/some/absolute/path/something" | "/some/absolute/".length() | "path"       | 1
+        absolutePath                    | suffixStart                | pathToParent | childOffset
+        "/some/absolute/path/something" | "some/absolute/".length()  | "path"       | 1
         "C:"                            | 0                          | ""           | 0
         "C:\\some"                      | 0                          | "C:"         | 1
-        "/something"                    | 1                          | ""           | 0
+        "/something"                    | 0                          | ""           | 0
     }
 
     def "storeSingleChild uses offset #childOffset for path #absolutePath in child #pathToParent"() {
         def child = mockChild(pathToParent)
         def snapshot = Mock(MetadataSnapshot)
         def updatedChild = mockChild(pathToParent)
-        def relativePath = PathSuffix.of(absolutePath, offset)
+        def relativePath = PathSuffix.of(absolutePath).suffixStartingFrom(suffixStart)
 
         when:
         def resultRoot = SnapshotUtil.storeSingleChild(child, relativePath, CASE_SENSITIVE, snapshot)
@@ -71,17 +72,17 @@ class SnapshotUtilTest extends Specification {
         1 * child.store(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE, snapshot) >> updatedChild
 
         where:
-        absolutePath                    | offset                     | pathToParent | childOffset
-        "/some/absolute/path/something" | "/some/absolute/".length() | "path"       | 1
+        absolutePath                    | suffixStart                | pathToParent | childOffset
+        "/some/absolute/path/something" | "some/absolute/".length()  | "path"       | 1
         "C:"                            | 0                          | ""           | 0
         "C:\\some"                      | 0                          | "C:"         | 1
-        "/something"                    | 1                          | ""           | 0
+        "/something"                    | 0                          | ""           | 0
     }
 
     def "invalidateSingleChild uses offset #childOffset for path #absolutePath in child #pathToParent"() {
         def child = mockChild(pathToParent)
         def invalidatedChild = mockChild(pathToParent)
-        def relativePath = PathSuffix.of(absolutePath, offset)
+        def relativePath = PathSuffix.of(absolutePath).suffixStartingFrom(suffixStart)
 
         when:
         def resultRoot = SnapshotUtil.invalidateSingleChild(child, relativePath, CASE_SENSITIVE).get()
@@ -90,8 +91,8 @@ class SnapshotUtilTest extends Specification {
         1 * child.invalidate(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE) >> Optional.of(invalidatedChild)
 
         where:
-        absolutePath                    | offset                     | pathToParent | childOffset
-        "/some/absolute/path/something" | "/some/absolute/".length() | "path"       | 1
+        absolutePath                    | suffixStart                | pathToParent | childOffset
+        "/some/absolute/path/something" | "some/absolute/".length()  | "path"       | 1
         "C:"                            | 0                          | ""           | 0
         "C:\\some"                      | 0                          | "C:"         | 1
         "/something"                    | 1                          | ""           | 0
