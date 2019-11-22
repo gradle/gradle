@@ -47,5 +47,4 @@ class PathSuffixTest extends Specification {
         "a/b"        | "a"   | "b"
         "a/b"        | ""    | "a/b"
     }
-
 }

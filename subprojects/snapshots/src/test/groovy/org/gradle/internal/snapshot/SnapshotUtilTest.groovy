@@ -34,11 +34,11 @@ class SnapshotUtilTest extends Specification {
         1 * child.snapshot >> Optional.of(Mock(MetadataSnapshot))
 
         where:
-        absolutePath          | suffixStart                | pathToParent
-        "/some/absolute/path" | "some/absolute/".length()  | "path"
-        "C:"                  | 0                          | "C:"
-        "C:\\"                | 0                          | "C:"
-        "/"                   | 0                          | ""
+        absolutePath          | suffixStart               | pathToParent
+        "/some/absolute/path" | "some/absolute/".length() | "path"
+        "C:"                  | 0                         | "C:"
+        "C:\\"                | 0                         | "C:"
+        "/"                   | 0                         | ""
     }
 
     def "getSnapshotFromChild queries child when queried at the path in child"() {
@@ -52,11 +52,11 @@ class SnapshotUtilTest extends Specification {
         1 * child.getSnapshot(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE) >> Optional.of(Mock(MetadataSnapshot))
 
         where:
-        absolutePath                    | suffixStart                | pathToParent | childOffset
-        "/some/absolute/path/something" | "some/absolute/".length()  | "path"       | 1
-        "C:"                            | 0                          | ""           | 0
-        "C:\\some"                      | 0                          | "C:"         | 1
-        "/something"                    | 0                          | ""           | 0
+        absolutePath                    | suffixStart               | pathToParent | childOffset
+        "/some/absolute/path/something" | "some/absolute/".length() | "path"       | 1
+        "C:"                            | 0                         | ""           | 0
+        "C:\\some"                      | 0                         | "C:"         | 1
+        "/something"                    | 0                         | ""           | 0
     }
 
     def "storeSingleChild uses offset #childOffset for path #absolutePath in child #pathToParent"() {
@@ -72,11 +72,11 @@ class SnapshotUtilTest extends Specification {
         1 * child.store(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE, snapshot) >> updatedChild
 
         where:
-        absolutePath                    | suffixStart                | pathToParent | childOffset
-        "/some/absolute/path/something" | "some/absolute/".length()  | "path"       | 1
-        "C:"                            | 0                          | ""           | 0
-        "C:\\some"                      | 0                          | "C:"         | 1
-        "/something"                    | 0                          | ""           | 0
+        absolutePath                    | suffixStart               | pathToParent | childOffset
+        "/some/absolute/path/something" | "some/absolute/".length() | "path"       | 1
+        "C:"                            | 0                         | ""           | 0
+        "C:\\some"                      | 0                         | "C:"         | 1
+        "/something"                    | 0                         | ""           | 0
     }
 
     def "invalidateSingleChild uses offset #childOffset for path #absolutePath in child #pathToParent"() {
@@ -91,11 +91,11 @@ class SnapshotUtilTest extends Specification {
         1 * child.invalidate(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE) >> Optional.of(invalidatedChild)
 
         where:
-        absolutePath                    | suffixStart                | pathToParent | childOffset
-        "/some/absolute/path/something" | "some/absolute/".length()  | "path"       | 1
-        "C:"                            | 0                          | ""           | 0
-        "C:\\some"                      | 0                          | "C:"         | 1
-        "/something"                    | 1                          | ""           | 0
+        absolutePath                    | suffixStart               | pathToParent | childOffset
+        "/some/absolute/path/something" | "some/absolute/".length() | "path"       | 1
+        "C:"                            | 0                         | ""           | 0
+        "C:\\some"                      | 0                         | "C:"         | 1
+        "/something"                    | 1                         | ""           | 0
     }
 
     protected FileSystemNode mockChild(String pathToParent) {
