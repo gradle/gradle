@@ -23,27 +23,41 @@ import javax.annotation.CheckReturnValue;
 import java.util.Optional;
 
 /**
- * An immutable set of directory trees. Intended to be use to efficiently determine whether a particular file is contained in a set of directories or not.
+ * An immutable hierarchy of snapshots of the file system.
+ *
+ * Intended to be to store an in-memory representation of the state of the file system.
  */
-public interface FileHierarchySet { // TODO rename to SnapshotHierarchy
+public interface SnapshotHierarchy {
 
-    Optional<MetadataSnapshot> getMetadata(String path);
+    /**
+     * Returns the snapshot stored at the absolute path.
+     */
+    Optional<MetadataSnapshot> getMetadata(String absolutePath);
 
-    default Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String path) {
-        return getMetadata(path)
+    /**
+     * Returns the complete snapshot stored at the absolute path.
+     */
+    default Optional<CompleteFileSystemLocationSnapshot> getSnapshot(String absolutePath) {
+        return getMetadata(absolutePath)
             .filter(CompleteFileSystemLocationSnapshot.class::isInstance)
             .map(CompleteFileSystemLocationSnapshot.class::cast);
     }
 
     /**
-     * Returns a set that contains the union of this set and the given directory. The set contains the directory itself, plus all its descendants.
+     * Returns a hierarchy augmented by the information of the snapshot at the absolute path.
      */
     @CheckReturnValue
-    FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot);
+    SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot);
 
+    /**
+     * Returns a hierarchy without any information at the absolute path.
+     */
     @CheckReturnValue
-    FileHierarchySet invalidate(String path);
+    SnapshotHierarchy invalidate(String absolutePath);
 
+    /**
+     * The empty hierarchy.
+     */
     @CheckReturnValue
-    FileHierarchySet empty();
+    SnapshotHierarchy empty();
 }

@@ -28,28 +28,28 @@ import static org.gradle.internal.snapshot.SnapshotUtil.getSnapshotFromChild;
 import static org.gradle.internal.snapshot.SnapshotUtil.invalidateSingleChild;
 import static org.gradle.internal.snapshot.SnapshotUtil.storeSingleChild;
 
-public class DefaultFileHierarchySet implements FileHierarchySet {
+public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @VisibleForTesting
     final FileSystemNode rootNode;
     private final CaseSensitivity caseSensitivity;
 
-    public static FileHierarchySet from(String absolutePath, MetadataSnapshot snapshot, CaseSensitivity caseSensitivity) {
+    public static SnapshotHierarchy from(String absolutePath, MetadataSnapshot snapshot, CaseSensitivity caseSensitivity) {
         PathSuffix relativePath = PathSuffix.of(absolutePath);
-        return new DefaultFileHierarchySet(snapshot.asFileSystemNode(relativePath.getAsString()), caseSensitivity);
+        return new DefaultSnapshotHierarchy(snapshot.asFileSystemNode(relativePath.getAsString()), caseSensitivity);
     }
 
-    private DefaultFileHierarchySet(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
+    private DefaultSnapshotHierarchy(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
         this.rootNode = rootNode;
         this.caseSensitivity = caseSensitivity;
     }
 
-    public static FileHierarchySet empty(CaseSensitivity caseSensitivity) {
+    public static SnapshotHierarchy empty(CaseSensitivity caseSensitivity) {
         switch (caseSensitivity) {
             case CASE_SENSITIVE:
-                return EmptyFileHierarchy.CASE_SENSITIVE;
+                return EmptySnapshotHierarchy.CASE_SENSITIVE;
             case CASE_INSENSITIVE:
-                return EmptyFileHierarchy.CASE_INSENSITIVE;
+                return EmptySnapshotHierarchy.CASE_INSENSITIVE;
             default:
                 throw new AssertionError("Unknown case sensitivity: " + caseSensitivity);
         }
@@ -66,51 +66,51 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     }
 
     @Override
-    public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
+    public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot) {
         PathSuffix relativePath = PathSuffix.of(absolutePath);
-        return new DefaultFileHierarchySet(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot), caseSensitivity);
+        return new DefaultSnapshotHierarchy(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot), caseSensitivity);
     }
 
     @Override
-    public FileHierarchySet invalidate(String absolutePath) {
+    public SnapshotHierarchy invalidate(String absolutePath) {
         PathSuffix relativePath = PathSuffix.of(absolutePath);
         return invalidateSingleChild(rootNode, relativePath, caseSensitivity)
-            .<FileHierarchySet>map(newRootNode -> new DefaultFileHierarchySet(newRootNode, caseSensitivity))
+            .<SnapshotHierarchy>map(newRootNode -> new DefaultSnapshotHierarchy(newRootNode, caseSensitivity))
             .orElse(empty());
     }
 
     @Override
-    public FileHierarchySet empty() {
+    public SnapshotHierarchy empty() {
         return empty(caseSensitivity);
     }
 
-    private enum EmptyFileHierarchy implements FileHierarchySet {
+    private enum EmptySnapshotHierarchy implements SnapshotHierarchy {
         CASE_SENSITIVE(CaseSensitivity.CASE_SENSITIVE),
         CASE_INSENSITIVE(CaseSensitivity.CASE_INSENSITIVE);
 
         private final CaseSensitivity caseSensitivity;
 
-        EmptyFileHierarchy(CaseSensitivity caseInsensitive) {
+        EmptySnapshotHierarchy(CaseSensitivity caseInsensitive) {
             this.caseSensitivity = caseInsensitive;
         }
 
         @Override
-        public Optional<MetadataSnapshot> getMetadata(String path) {
+        public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
             return Optional.empty();
         }
 
         @Override
-        public FileHierarchySet update(String absolutePath, MetadataSnapshot snapshot) {
+        public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot) {
             return from(absolutePath, snapshot, caseSensitivity);
         }
 
         @Override
-        public FileHierarchySet invalidate(String path) {
+        public SnapshotHierarchy invalidate(String absolutePath) {
             return this;
         }
 
         @Override
-        public FileHierarchySet empty() {
+        public SnapshotHierarchy empty() {
             return this;
         }
     }
