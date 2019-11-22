@@ -19,20 +19,18 @@ package org.gradle.internal.snapshot
 import javax.annotation.Nullable
 
 class VirtualFileSystemTestSpec {
-    List<String> childPaths
-    String absolutePath
-    int offset
-    String selectedChildPath
+    final List<String> childPaths
+    final PathSuffix searchedPath
+    final String selectedChildPath
 
-    VirtualFileSystemTestSpec(List<String> childPaths, String absolutePath, int offset, @Nullable String selectedChildPath) {
+    VirtualFileSystemTestSpec(List<String> childPaths, String absolutePath, @Nullable String selectedChildPath) {
         this.childPaths = childPaths
-        this.absolutePath = absolutePath
-        this.offset = offset
+        this.searchedPath = PathSuffix.of(absolutePath)
         this.selectedChildPath = selectedChildPath
     }
 
     @Override
     String toString() {
-        return "${absolutePath}${offset == 0 ? "" : " (${offset})"} selects ${selectedChildPath ?: "no child"} of ${childPaths}"
+        return "${searchedPath.asString} selects ${selectedChildPath ?: "no child"} of ${childPaths}"
     }
 }

@@ -39,7 +39,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         return true
     }
 
-    def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
@@ -53,7 +53,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         vfsSpec << IS_PREFIX_OF_CHILD + SAME_PATH
     }
 
-    def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
@@ -71,7 +71,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         vfsSpec << CHILD_IS_PREFIX
     }
 
-    def "invalidate #vfsSpec.absolutePath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:

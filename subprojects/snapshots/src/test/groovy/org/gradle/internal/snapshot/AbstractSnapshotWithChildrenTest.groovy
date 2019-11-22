@@ -40,7 +40,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     void setupTest(VirtualFileSystemTestSpec spec) {
         this.children = createChildren(spec.childPaths)
         this.initialRoot = createInitialRootNode("path/to/parent", children)
-        this.relativePath = PathSuffix.of(spec.absolutePath, spec.offset)
+        this.relativePath = spec.searchedPath
         this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
     }
 
@@ -140,9 +140,9 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
             String newChildPath = firstSlash > -1
                 ? "${childPath.substring(0, firstSlash)}0${childPath.substring(firstSlash)}"
                 : "${childPath}0"
-            new VirtualFileSystemTestSpec(childPaths, newChildPath, 0, null)
-        } + new VirtualFileSystemTestSpec(childPaths, 'completelyDifferent', 0, null)
-    } + new VirtualFileSystemTestSpec([], 'different', 0, null)
+            new VirtualFileSystemTestSpec(childPaths, newChildPath, null)
+        } + new VirtualFileSystemTestSpec(childPaths, 'completelyDifferent', null)
+    } + new VirtualFileSystemTestSpec([], 'different', null)
 
     /**
      * The queried/updated path has a true common prefix with one of the initial children of the node under test.
@@ -154,7 +154,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     static final List<VirtualFileSystemTestSpec> COMMON_PREFIX = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.findAll { it.contains('/') } collectMany { childPath ->
             parentPaths(childPath).collect {
-                new VirtualFileSystemTestSpec(childPaths, "${it}/different", 0, childPath)
+                new VirtualFileSystemTestSpec(childPaths, "${it}/different", childPath)
             }
         }
     }
@@ -169,7 +169,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     static final List<VirtualFileSystemTestSpec> IS_PREFIX_OF_CHILD = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.findAll { it.contains('/') } collectMany { childPath ->
             parentPaths(childPath).collect { parentPath ->
-                new VirtualFileSystemTestSpec(childPaths, parentPath, 0, findPathWithParent(childPaths, parentPath))
+                new VirtualFileSystemTestSpec(childPaths, parentPath, findPathWithParent(childPaths, parentPath))
             }
         }
     }
@@ -183,7 +183,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
      */
     static final List<VirtualFileSystemTestSpec> SAME_PATH = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.collect {
-            new VirtualFileSystemTestSpec(childPaths, it, 0, it)
+            new VirtualFileSystemTestSpec(childPaths, it, it)
         }
     }
 
@@ -196,7 +196,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
      */
     static final List<VirtualFileSystemTestSpec> CHILD_IS_PREFIX = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.collect {
-            new VirtualFileSystemTestSpec(childPaths, "${it}/descendant", 0, it)
+            new VirtualFileSystemTestSpec(childPaths, "${it}/descendant", it)
         }
     }
 

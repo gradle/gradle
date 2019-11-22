@@ -106,7 +106,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << NO_COMMON_PREFIX.findAll { allowEmptyChildren || !it.childPaths.empty }
     }
 
-    def "store parent #vfsSpec.absolutePath replaces child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "store parent #vfsSpec.searchedPath replaces child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
         def newPathToParent = relativePath.asString
         def snapshot = Mock(MetadataSnapshot)
@@ -124,7 +124,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << IS_PREFIX_OF_CHILD
     }
 
-    def "storing a complete snapshot with same path #vfsSpec.absolutePath does replace child (#vfsSpec)"() {
+    def "storing a complete snapshot with same path #vfsSpec.searchedPath does replace child (#vfsSpec)"() {
         setupTest(vfsSpec)
         def newPathToParent = relativePath.asString
         def snapshot = Mock(CompleteFileSystemLocationSnapshot)
@@ -142,7 +142,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
-    def "storing a metadata snapshot with same path #vfsSpec.absolutePath does not replace a complete snapshot (#vfsSpec)"() {
+    def "storing a metadata snapshot with same path #vfsSpec.searchedPath does not replace a complete snapshot (#vfsSpec)"() {
         setupTest(vfsSpec)
         def snapshot = Mock(MetadataSnapshot)
 
@@ -160,7 +160,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
-    def "storing a metadata snapshot with same path #vfsSpec.absolutePath does replace a metadata snapshot (#vfsSpec)"() {
+    def "storing a metadata snapshot with same path #vfsSpec.searchedPath does replace a metadata snapshot (#vfsSpec)"() {
         setupTest(vfsSpec)
         def newPathToParent = relativePath.asString
         def snapshot = Mock(MetadataSnapshot)
@@ -181,7 +181,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
-    def "storing the child #vfsSpec.absolutePath of #vfsSpec.selectedChildPath updates the child (#vfsSpec)"() {
+    def "storing the child #vfsSpec.searchedPath of #vfsSpec.selectedChildPath updates the child (#vfsSpec)"() {
         setupTest(vfsSpec)
         def snapshotToStore = Mock(MetadataSnapshot)
         def updatedChildNode = mockChild(selectedChild.pathToParent)
@@ -205,7 +205,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         1 * selectedChild.store(relativePath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, snapshot) >> updatedChild
     }
 
-    def "querying the snapshot for non-existing child #vfsSpec.absolutePath finds nothings (#vfsSpec)"() {
+    def "querying the snapshot for non-existing child #vfsSpec.searchedPath finds nothings (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
@@ -218,7 +218,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX + IS_PREFIX_OF_CHILD).findAll { allowEmptyChildren || !it.childPaths.empty}
     }
 
-    def "querying the snapshot for existing child #vfsSpec.absolutePath returns the snapshot for the child (#vfsSpec)"() {
+    def "querying the snapshot for existing child #vfsSpec.searchedPath returns the snapshot for the child (#vfsSpec)"() {
         setupTest(vfsSpec)
         def existingSnapshot = Mock(MetadataSnapshot)
 
@@ -236,7 +236,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
-    def "querying the snapshot for existing child #vfsSpec.absolutePath without snapshot returns empty (#vfsSpec)"() {
+    def "querying the snapshot for existing child #vfsSpec.searchedPath without snapshot returns empty (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
