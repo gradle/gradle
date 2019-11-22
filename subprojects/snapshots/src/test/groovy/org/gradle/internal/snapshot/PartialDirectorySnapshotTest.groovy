@@ -43,7 +43,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -58,7 +58,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
@@ -75,7 +75,7 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)

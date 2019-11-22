@@ -38,7 +38,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == children
@@ -53,7 +53,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildRemoved()
@@ -69,7 +69,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
@@ -88,7 +88,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildRemoved()
@@ -107,7 +107,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         expect:
-        initialRoot.store(relativePath, CASE_SENSITIVE, Mock(MetadataSnapshot)) is initialRoot
+        initialRoot.store(searchedPath, CASE_SENSITIVE, Mock(MetadataSnapshot)) is initialRoot
 
         where:
         vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX + SAME_PATH + CHILD_IS_PREFIX)
@@ -117,10 +117,10 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getSnapshot(relativePath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
+        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
         then:
         foundSnapshot.type == FileType.Missing
-        foundSnapshot.absolutePath == relativePath.absolutePath
+        foundSnapshot.absolutePath == searchedPath.absolutePath
 
         where:
         vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX)
@@ -130,7 +130,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getSnapshot(relativePath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
+        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
         then:
         foundSnapshot == selectedChild
         1 * selectedChild.snapshot >> Optional.of(selectedChild)
@@ -145,7 +145,7 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         def grandChild = Mock(CompleteFileSystemLocationSnapshot)
 
         when:
-        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getSnapshot(relativePath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
+        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
         then:
         foundSnapshot == grandChild
         interaction {
@@ -161,10 +161,10 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getSnapshot(relativePath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
+        CompleteFileSystemLocationSnapshot foundSnapshot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
         then:
         foundSnapshot.type == FileType.Missing
-        foundSnapshot.absolutePath == relativePath.absolutePath
+        foundSnapshot.absolutePath == searchedPath.absolutePath
         interaction {
             getDescendantSnapshotOfSelectedChild(null)
             noMoreInteractions()

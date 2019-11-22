@@ -42,7 +42,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -56,7 +56,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction { noMoreInteractions() }
@@ -70,7 +70,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
@@ -87,7 +87,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -104,7 +104,7 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(relativePath, CASE_SENSITIVE)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction {
