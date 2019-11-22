@@ -22,7 +22,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
 
 @Unroll
-class CaseSensitivePathUtilTest extends AbstractCasePathUtilTest {
+class CaseSensitivePathSuffixTest extends AbstractCasePathSuffixTest {
 
     def "finds right entry in sorted list with only case differences"() {
         def children = ["bAd", "BaD", "Bad"]
@@ -31,7 +31,7 @@ class CaseSensitivePathUtilTest extends AbstractCasePathUtilTest {
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i]
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                path(searchedChild, 0).compareToFirstSegment(child, CASE_SENSITIVE)
+                PathSuffix.of(searchedChild).compareToFirstSegment(child, CASE_SENSITIVE)
             }
             assert foundIndex == i
         }
@@ -44,7 +44,7 @@ class CaseSensitivePathUtilTest extends AbstractCasePathUtilTest {
         for (int i = 0; i < children.size(); i++) {
             def searchedChild = children[i].substring(0, 3)
             int foundIndex = SearchUtil.binarySearch(children) { child ->
-                path(searchedChild, 0).compareToFirstSegment(child, CASE_SENSITIVE)
+                PathSuffix.of(searchedChild).compareToFirstSegment(child, CASE_SENSITIVE)
             }
             assert foundIndex == i
         }

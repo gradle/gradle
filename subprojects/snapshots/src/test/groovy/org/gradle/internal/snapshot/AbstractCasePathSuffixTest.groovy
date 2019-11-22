@@ -26,7 +26,7 @@ import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
 
 @Unroll
-abstract class AbstractCasePathUtilTest extends Specification {
+abstract class AbstractCasePathSuffixTest extends Specification {
 
     abstract CaseSensitivity getCaseSensitivity()
 
@@ -41,13 +41,9 @@ abstract class AbstractCasePathUtilTest extends Specification {
         'root/some' | '/root/other' | 4
     }
 
-    PathSuffix path(String absolutePath, int offset) {
-        return PathSuffix.of(absolutePath, offset)
-    }
-
     def "can compare by first segment"() {
         expect:
-        Integer.signum(path(path1, offset).compareToFirstSegment(path2, caseSensitivity)) == result
+        Integer.signum(PathSuffix.of(path1, offset).compareToFirstSegment(path2, caseSensitivity)) == result
         if (result) {
             assert Integer.signum(path1.substring(offset) <=> path2) == result
         }
@@ -70,7 +66,7 @@ abstract class AbstractCasePathUtilTest extends Specification {
 
     def "length of common prefix of #prefix with #absolutePath at offset #offset is #result"() {
         expect:
-        path(absolutePath, offset).lengthOfCommonPrefix(prefix, caseSensitivity) == result
+        PathSuffix.of(absolutePath, offset).lengthOfCommonPrefix(prefix, caseSensitivity) == result
 
         where:
         prefix              | absolutePath            | offset | result
@@ -84,12 +80,12 @@ abstract class AbstractCasePathUtilTest extends Specification {
         "hello/world/some"  | "/var/hello/other"      | 5      | 5
         "hello/world"       | "/var/hello1/other"     | 5      | 0
         "bbc/some"          | "/var/abc/other"        | 5      | 0
-        "/hello/world/some" | "/var/hello/other"      | 0      | 0
-        "/hello/world/some" | "/var/hello/other"      | 4      | 6
+        "hello/world/some"  | "/var/hello/other"      | 1      | 0
+        "hello/world/some"  | "/var/hello/other"      | 5      | 5
     }
 
     def "#prefix is prefix of #absolutePath at offset #offset: #result"() {
-        def relativePath = path(absolutePath, offset)
+        def relativePath = PathSuffix.of(absolutePath, offset)
 
         expect:
         relativePath.hasPrefix(prefix, caseSensitivity)
@@ -104,7 +100,7 @@ abstract class AbstractCasePathUtilTest extends Specification {
 
     def "separator is smaller than every other character"() {
         expect:
-        Integer.signum(path(path1, offset).compareToFirstSegment(path2, caseSensitivity)) == result
+        Integer.signum(PathSuffix.of(path1, offset).compareToFirstSegment(path2, caseSensitivity)) == result
 
         where:
         path1              | offset | path2         | result
@@ -161,11 +157,11 @@ abstract class AbstractCasePathUtilTest extends Specification {
     def "path #spec.searchedPrefix has common prefix with #spec.expectedIndex in #spec.children"() {
         expect:
         SearchUtil.binarySearch(spec.children) { child ->
-            path(spec.searchedPrefix, 0).compareToFirstSegment(child, caseSensitivity)
+            PathSuffix.of(spec.searchedPrefix).compareToFirstSegment(child, caseSensitivity)
         } == spec.expectedIndex
         spec.children.each { child ->
             def childIndex = spec.children.indexOf(child)
-            def lengthOfCommonPrefix = path(child, 0).lengthOfCommonPrefix(spec.searchedPrefix, caseSensitivity)
+            def lengthOfCommonPrefix = PathSuffix.of(child).lengthOfCommonPrefix(spec.searchedPrefix, caseSensitivity)
             if (childIndex == spec.expectedIndex) {
                 assert lengthOfCommonPrefix > 0
             } else {
