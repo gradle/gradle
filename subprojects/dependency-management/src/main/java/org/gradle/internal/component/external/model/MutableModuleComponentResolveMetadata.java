@@ -16,7 +16,6 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -91,13 +90,13 @@ public interface MutableModuleComponentResolveMetadata {
     VariantMetadataRules getVariantMetadataRules();
 
     /**
-     * Declares that this component belongs to a platform.
-     * @param platform the identifier of the platform
+     * Declares that this component belongs to a virtual platform.
+     * @param platform the identifier of the virtual platform
      */
-    void belongsTo(ComponentIdentifier platform);
+    void belongsTo(VirtualComponentIdentifier platform);
 
     @Nullable
-    Set<? extends ComponentIdentifier> getPlatformOwners();
+    Set<? extends VirtualComponentIdentifier> getPlatformOwners();
 
     List<? extends MutableComponentVariant> getMutableVariants();
 }

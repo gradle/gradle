@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
@@ -74,7 +73,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     private List<MutableComponentVariant> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
-    private Set<ComponentIdentifier> owners;
+    private Set<VirtualComponentIdentifier> owners;
 
     protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier, AttributesSchemaInternal schema) {
         this.attributesFactory = attributesFactory;
@@ -256,7 +255,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public void belongsTo(ComponentIdentifier platform) {
+    public void belongsTo(VirtualComponentIdentifier platform) {
         if (owners == null) {
             owners = Sets.newLinkedHashSet();
         }
@@ -264,7 +263,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public Set<? extends ComponentIdentifier> getPlatformOwners() {
+    public Set<? extends VirtualComponentIdentifier> getPlatformOwners() {
         return owners;
     }
 
