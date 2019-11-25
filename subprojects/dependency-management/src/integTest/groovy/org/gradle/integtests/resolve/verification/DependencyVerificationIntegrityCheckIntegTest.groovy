@@ -346,7 +346,6 @@ Please update the file either manually (preferred) or by adding the --write-veri
         outputContains("Dependency verification is an incubating feature.")
     }
 
-    @ToBeFixedForInstantExecution
     def "can verify dependencies of buildSrc"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
