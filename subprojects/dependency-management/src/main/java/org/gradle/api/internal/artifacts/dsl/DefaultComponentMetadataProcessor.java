@@ -67,8 +67,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.api.internal.artifacts.repositories.resolver.VirtualComponentHelper.makeVirtual;
-
 public class DefaultComponentMetadataProcessor implements ComponentMetadataProcessor {
 
     private final static boolean FORCE_REALIZE = Boolean.getBoolean("org.gradle.integtest.force.realize.metadata");
@@ -316,7 +314,6 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         private boolean changing;
         private List<String> statusScheme;
         private AttributeContainerInternal attributes;
-        private final List<ComponentIdentifier> owners;
 
         public ShallowComponentMetadataAdapter(NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser, ComponentMetadata source, ImmutableAttributesFactory attributesFactory) {
             this.componentIdentifierNotationParser = componentIdentifierNotationParser;
@@ -324,7 +321,6 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
             changing = source.isChanging();
             statusScheme = source.getStatusScheme();
             attributes = attributesFactory.mutable((AttributeContainerInternal) source.getAttributes());
-            owners = Lists.newArrayListWithExpectedSize(1);
         }
 
         @Override
@@ -364,16 +360,12 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
         @Override
         public void belongsTo(Object notation) {
-            belongsTo(notation, true);
+
         }
 
         @Override
         public void belongsTo(Object notation, boolean virtual) {
-            if (virtual) {
-                ComponentIdentifier id = componentIdentifierNotationParser.parseNotation(notation);
-                id = makeVirtual(id);
-                owners.add(id);
-            }
+
         }
 
         @Override
