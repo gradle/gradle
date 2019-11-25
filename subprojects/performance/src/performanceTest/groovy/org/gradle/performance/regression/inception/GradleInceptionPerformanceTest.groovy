@@ -19,6 +19,7 @@ import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -55,7 +56,7 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
     def setup() {
         def targetVersion = "6.1-20191122093711+0000"
         runner.targetVersions = [targetVersion]
-        runner.minimumBaseVersion = '6.0'
+        runner.minimumBaseVersion = GradleVersion.version(targetVersion).baseVersion.version
     }
 
     @Unroll
