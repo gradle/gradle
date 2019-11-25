@@ -468,7 +468,7 @@ Things like strings and numbers. More generally, a simple value can have any typ
 
 * Filesystem types
 +
-These consist of the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method - for single file/directory properties - or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
+These consist of the standard `File` class but also derivatives of Gradle’s link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection] type and anything else that can be passed to either the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method — for single file/directory properties — or the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:files(java.lang.Object++[]++)[Project.files(java.lang.Object++...++)] method.
 
 * Nested values
 +
@@ -524,7 +524,7 @@ The source templates that the task will be processing. Single files and collecti
 
 * `templateData`
 +
-For this example, we’re using a custom class to represent the model data. However, it does not implement `Serializable`, so we can’t use the `@Input` annotation. That’s not a problem as the properties within `TemplateData` - a string and a hash map with serializable type parameters - are serializable and can be annotated with `@Input`. We use `@Nested` on `templateData` to let Gradle know that this is a value with nested input properties.
+For this example, we’re using a custom class to represent the model data. However, it does not implement `Serializable`, so we can’t use the `@Input` annotation. That’s not a problem as the properties within `TemplateData` — a string and a hash map with serializable type parameters — are serializable and can be annotated with `@Input`. We use `@Nested` on `templateData` to let Gradle know that this is a value with nested input properties.
 
 * `outputDir`
 +
@@ -811,7 +811,7 @@ One notable difference between the runtime API and the annotations is the lack o
 [[sec:runtime_api_configuration]]
 ===== Fine-grained configuration
 
-The runtime API methods only allow you to declare your inputs and outputs in themselves. However, the file-oriented ones return a builder - of type link:{javadocPath}/org/gradle/api/tasks/TaskInputFilePropertyBuilder.html[TaskInputFilePropertyBuilder] - that lets you provide additional information about those inputs and outputs.
+The runtime API methods only allow you to declare your inputs and outputs in themselves. However, the file-oriented ones return a builder — of type link:{javadocPath}/org/gradle/api/tasks/TaskInputFilePropertyBuilder.html[TaskInputFilePropertyBuilder] — that lets you provide additional information about those inputs and outputs.
 
 You can learn about all the options provided by the builder in its API documentation, but we’ll show you a simple example here to give you an idea of what you can do.
 
@@ -913,7 +913,7 @@ You will occasionally want to disable some of this validation, specifically when
 [[sec:task_input_output_continuous_build]]
 ===== Continuous build
 
-Another benefit of defining task inputs and outputs is continuous build. Since Gradle knows what files a task depends on, it can automatically run a task again if any of its inputs change. By activating continuous build when you run Gradle - through the `--continuous` or `-t` options - you will put Gradle into a state in which it continually checks for changes and executes the requested tasks when it encounters such changes.
+Another benefit of defining task inputs and outputs is continuous build. Since Gradle knows what files a task depends on, it can automatically run a task again if any of its inputs change. By activating continuous build when you run Gradle — through the `--continuous` or `-t` options — you will put Gradle into a state in which it continually checks for changes and executes the requested tasks when it encounters such changes.
 
 You can find out more about this feature in <<command_line_interface.adoc#sec:continuous_build,Continuous build>>.
 
@@ -1032,7 +1032,7 @@ When you want to link the output of one task to the input of another, the types 
 
 Unfortunately, this approach breaks down when you want the files in a task’s `@OutputDirectory` (of type `File`) to become the source for another task’s `@InputFiles` property (of type `FileCollection`). Since the two have different types, property assignment won’t work.
 
-As an example, imagine you want to use the output of a Java compilation task - via the `destinationDir` property - as the input of a custom task that instruments a set of files containing Java bytecode. This custom task, which we’ll call `Instrument`, has a `classFiles` property annotated with `@InputFiles`. You might initially try to configure the task like so:
+As an example, imagine you want to use the output of a Java compilation task — via the `destinationDir` property — as the input of a custom task that instruments a set of files containing Java bytecode. This custom task, which we’ll call `Instrument`, has a `classFiles` property annotated with `@InputFiles`. You might initially try to configure the task like so:
 
 .Failed attempt at setting up an inferred task dependency
 ====
@@ -1078,7 +1078,7 @@ include::{samplesPath}/userguide/tasks/incrementalBuild/incrementalBuildAdvanced
 
 Remember that `files()`, `layout.files()` and `objects.fileCollection()` can take tasks as arguments, whereas `fileTree()` cannot.
 
-The downside of this approach is that all file outputs of the source task become the input files of the target - `instrumentClasses` in this case. That’s fine as long as the source task only has a single file-based output, like the `JavaCompile` task. But if you have to link just one output property among several, then you need to explicitly tell Gradle which task generates the input files using the `builtBy` method:
+The downside of this approach is that all file outputs of the source task become the input files of the target — `instrumentClasses` in this case. That’s fine as long as the source task only has a single file-based output, like the `JavaCompile` task. But if you have to link just one output property among several, then you need to explicitly tell Gradle which task generates the input files using the `builtBy` method:
 
 .Setting up an inferred task dependency with builtBy()
 ====
@@ -1150,7 +1150,7 @@ include::sample[dir="userguide/tasks/inputNormalization/kotlin",files="build.gra
 If adding such a file to your jar files is something you do for all of the projects in your build, and you want to filter this file for all consumers, you may wrap the configurations described above in an `allprojects {}` or `subprojects {}` block in the root build script.
 
 The effect of this configuration would be that changes to `build-info.properties` would be ignored for up-to-date checks and <<build_cache.adoc#build_cache,build cache>> key calculations.
-Note that this will not change the runtime behavior of the `test` task - i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
+Note that this will not change the runtime behavior of the `test` task — i.e. any test is still able to load `build-info.properties` and the runtime classpath is still the same as before.
 
 [[sec:stale_task_outputs]]
 === Stale task outputs

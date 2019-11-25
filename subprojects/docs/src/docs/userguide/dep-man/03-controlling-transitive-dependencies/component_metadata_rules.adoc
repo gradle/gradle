@@ -35,7 +35,7 @@ Because of this, the moment you have a constructor, it must be annotated with `@
 A commonly required service is link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] to create instances of strongly typed value objects like a value for setting an link:{javadocPath}/org/gradle/api/attributes/Attribute.html[Attribute].
 A service which is helpful for advanced usage of component metadata rules with custom metadata is the link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryResourceAccessor.html[RepositoryResourceAccessor].
 
-A component metadata rule can be applied to all modules - `all(rule)` - or to a selected module - `withModule(groupAndName, rule)`.
+A component metadata rule can be applied to all modules — `all(rule)` — or to a selected module — `withModule(groupAndName, rule)`.
 Usually, a rule is specifically written to enrich metadata of one specific module and hence the `withModule` API should be preferred.
 
 [[sec:component_metadata_rules_details]]
@@ -53,11 +53,11 @@ Variants can be addressed for modification through the following methods:
 
 The following details of each variant can be adjusted:
 
-- The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant - `attributes {}` block
-- The <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides - `withCapabilities { }` block
-- The <<declaring_dependencies.adoc#,dependencies>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencies {}` block
-- The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencyConstraints {}` block
-- The location of the published files that make up the actual content of the variant - `withFiles { }` block
+- The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant — `attributes {}` block
+- The <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides — `withCapabilities { }` block
+- The <<declaring_dependencies.adoc#,dependencies>> of the variant, including <<rich_versions.adoc#,rich versions>> — `withDependencies {}` block
+- The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#,rich versions>> — `withDependencyConstraints {}` block
+- The location of the published files that make up the actual content of the variant — `withFiles { }` block
 
 There are also a few properties of the whole component that can be changed:
 
@@ -134,7 +134,7 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/metada
 == Making variants published as classified jars explicit ==
 
 While in the previous example, all variants, "main variants" and optional features, were packaged in one jar file, it is common to publish certain variants as separate files.
-In particular, when the variants are mutual exclusive - i.e. they are *not* feature variants, but different variants offering alternative choices.
+In particular, when the variants are mutual exclusive — i.e. they are *not* feature variants, but different variants offering alternative choices.
 One example *all* pom-based libraries already have are the _runtime_ and _compile_ variants, where Gradle can choose only one depending on the task at hand.
 Another of such alternatives discovered often in the Java ecosystems are jars targeting different Java versions.
 
@@ -158,7 +158,7 @@ This way, all other Java ecosystem attributes are already set correctly and all 
 Then we set the `TARGET_JVM_VERSION_ATTRIBUTE` to `8` for both variants, remove any existing file from the new variants with `removeAllFiles()`, and add the jdk8 jar file with `addFile()`.
 The `removeAllFiles()` is needed, because the reference to the main jar `quasar-core-0.7.5.jar` is copied from the corresponding base variant.
 
-We also enrich the existing _compile_ and _runtime_ variants with the information that they target Java 7 - `attribute(TARGET_JVM_VERSION_ATTRIBUTE, 7)`.
+We also enrich the existing _compile_ and _runtime_ variants with the information that they target Java 7 — `attribute(TARGET_JVM_VERSION_ATTRIBUTE, 7)`.
 
 Now, we can request a Java 8 versions for all of our dependencies on the compile classpath in the build script and Gradle will automatically select the best fitting variant for each library.
 In the case of Quasar this will now be the _jdk8Compile_ variant exposing the `quasar-core-0.7.9-jdk8.jar`.

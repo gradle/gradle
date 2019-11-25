@@ -272,7 +272,7 @@ Previously, if the pom packaging was not _jar_, _ejb_, _bundle_ or _maven-plugin
 
 This behavior led to broken Gradle Module Metadata and was difficult to understand due to handling of different packaging types.
 
-Build authors can change the artifact name when the artifact is created to obtain the same result as before - e.g. by setting `jar.archiveExtension.set(pomPackaging)` explicitly.
+Build authors can change the artifact name when the artifact is created to obtain the same result as before — e.g. by setting `jar.archiveExtension.set(pomPackaging)` explicitly.
 
 ==== An `ivy.xml` published for Java libraries contains more information
 

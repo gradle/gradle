@@ -144,7 +144,7 @@ If you ever break your build logic, it will be easier to analyze the changelog s
 
 4. [[task_configuration_avoidance_guideline_validate_build_logic]] **Ensure a good plan is established for validating the build logic.**
 Usually, a simple `build` task invocation should do the trick to validate your build logic.
-However, some builds may need additional verification - understand the behavior of your build and make sure you have a good plan for verification.
+However, some builds may need additional verification — understand the behavior of your build and make sure you have a good plan for verification.
 
 5. [[task_configuration_avoidance_guideline_prefer_automatic_testing]] **Prefer automatic testing to manual testing.**
 It’s good practice to write integration test for your build logic using TestKit.
