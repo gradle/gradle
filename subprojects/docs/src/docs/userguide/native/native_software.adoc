@@ -430,7 +430,7 @@ include::{samplesPath}/native-binaries/cpp/nativeComponentReport.out[]
 [[native_binaries:languages]]
 == Language support
 
-Presently, Gradle supports building native software from any combination of source languages listed below. A native binary project will contain one or more named `FunctionalSourceSet` instances (eg 'main', 'test', etc), each of which can contain ``LanguageSourceSet``s containing source files, one for each language.
+Presently, Gradle supports building native software from any combination of source languages listed below. A native binary project will contain one or more named `FunctionalSourceSet` instances (e.g. 'main', 'test', etc), each of which can contain ``LanguageSourceSet``s containing source files, one for each language.
 
 * C
 * C++
@@ -576,7 +576,7 @@ include::{samplesPath}/native-binaries/assembler/build.gradle[tag=assembler-args
 
 The example above will apply the supplied configuration to all `executable` binaries built.
 
-Similarly, settings can be specified to target binaries for a component that are of a particular type: eg all shared libraries for the main library component.
+Similarly, settings can be specified to target binaries for a component that are of a particular type: e.g. all shared libraries for the main library component.
 
 === Example: Settings that apply only to shared libraries produced for the 'main' library component
 
