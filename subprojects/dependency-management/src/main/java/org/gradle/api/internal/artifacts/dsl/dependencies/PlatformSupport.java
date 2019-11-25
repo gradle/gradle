@@ -46,6 +46,10 @@ public class PlatformSupport {
         return regularPlatform.equals(category) || enforcedPlatform.equals(category);
     }
 
+    public Category getRegularPlatformCategory() {
+        return regularPlatform;
+    }
+
     public void configureSchema(AttributesSchema attributesSchema) {
         configureCategoryDisambiguationRule(attributesSchema);
     }

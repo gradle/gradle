@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.MetadataResolutionContext;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.UserProvidedMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
@@ -134,6 +135,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     private final ComponentMetadataRuleExecutor ruleExecutor;
     private final MetadataResolutionContext metadataResolutionContext;
     private final ComponentMetadataRuleContainer metadataRuleContainer;
+    private final PlatformSupport platformSupport;
 
     public DefaultComponentMetadataProcessor(ComponentMetadataRuleContainer metadataRuleContainer,
                                              Instantiator instantiator,
@@ -142,6 +144,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
                                              NotationParser<Object, ComponentIdentifier> componentIdentifierNotationParser,
                                              ImmutableAttributesFactory attributesFactory,
                                              ComponentMetadataRuleExecutor ruleExecutor,
+                                             PlatformSupport platformSupport,
                                              MetadataResolutionContext resolutionContext) {
         this.metadataRuleContainer = metadataRuleContainer;
         this.instantiator = instantiator;
@@ -150,6 +153,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         this.componentIdentifierNotationParser = componentIdentifierNotationParser;
         this.attributesFactory = attributesFactory;
         this.ruleExecutor = ruleExecutor;
+        this.platformSupport = platformSupport;
         this.metadataResolutionContext = resolutionContext;
     }
 
@@ -187,7 +191,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
     }
 
     protected ComponentMetadataDetails createDetails(MutableModuleComponentResolveMetadata mutableMetadata) {
-        return instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
+        return instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, platformSupport);
     }
 
     @Override
@@ -240,7 +244,7 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
                 new Transformer<WrappingComponentMetadataContext, ModuleComponentResolveMetadata>() {
                     @Override
                     public WrappingComponentMetadataContext transform(ModuleComponentResolveMetadata moduleVersionIdentifier) {
-                        return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser);
+                        return new WrappingComponentMetadataContext(metadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, platformSupport);
                     }
                 }, metadataResolutionContext.getCachePolicy());
         } catch (InvalidUserCodeException e) {
@@ -365,11 +369,11 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
         @Override
         public void belongsTo(Object notation, boolean virtual) {
-            ComponentIdentifier id = componentIdentifierNotationParser.parseNotation(notation);
             if (virtual) {
+                ComponentIdentifier id = componentIdentifierNotationParser.parseNotation(notation);
                 id = makeVirtual(id);
+                owners.add(id);
             }
-            owners.add(id);
         }
 
         @Override

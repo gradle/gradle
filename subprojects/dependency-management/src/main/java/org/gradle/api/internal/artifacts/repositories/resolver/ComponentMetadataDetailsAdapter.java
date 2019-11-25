@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -39,16 +40,19 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     private final NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierParser;
+    private final PlatformSupport platformSupport;
 
     public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata, Instantiator instantiator,
                                            NotationParser<Object, DirectDependencyMetadata> dependencyMetadataNotationParser,
                                            NotationParser<Object, DependencyConstraintMetadata> dependencyConstraintMetadataNotationParser,
-                                           NotationParser<Object, ComponentIdentifier> dependencyNotationParser) {
+                                           NotationParser<Object, ComponentIdentifier> dependencyNotationParser,
+                                           PlatformSupport platformSupport) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
         this.componentIdentifierParser = dependencyNotationParser;
+        this.platformSupport = platformSupport;
     }
 
     @Override

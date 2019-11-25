@@ -94,7 +94,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     }
 
     def "does nothing when no rules registered"() {
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
         def metadata = ivyMetadata().asImmutable()
 
         expect:
@@ -106,7 +106,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         context.injectingInstantiator >> instantiator
         String notation = "${GROUP}:${MODULE}"
         addRuleForModule(notation)
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
 
 
         when:
@@ -122,7 +122,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         String notation = "${GROUP}:${MODULE}"
         addRuleForModuleWithParams(notation, "foo", 42L)
 
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
 
         when:
         processor.processMetadata(ivyMetadata().asImmutable())
@@ -133,7 +133,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     }
 
     def "processing fails when status is not present in status scheme"() {
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
         def metadata = ivyMetadata()
         metadata.status = "green"
         metadata.statusScheme = ["alpha", "beta"]
@@ -158,7 +158,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
                 addRuleForModule(notation)
             }
         }
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, context)
+        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
 
 
         when:
