@@ -21,19 +21,10 @@ pluginManagement {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
     }
-
-    // No plugin marker for plugin RC - can be removed when going to a final version
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "com.gradle.enterprise") {
-                useModule("com.gradle:gradle-enterprise-gradle-plugin:${requested.version}")
-            }
-        }
-    }
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.1-rc-3")
+    id("com.gradle.enterprise").version("3.1")
 }
 
 apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
