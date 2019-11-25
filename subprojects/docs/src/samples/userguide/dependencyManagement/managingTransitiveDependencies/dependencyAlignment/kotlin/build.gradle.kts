@@ -32,24 +32,25 @@ dependencies {
 }
 // end::dependencies[]
 
+if (project.hasProperty("useBom")) {
 // tag::use_bom_rule[]
 dependencies {
     components.all<JacksonBomAlignmentRule>()
 }
 // end::use_bom_rule[]
-
+} else {
 // tag::use_rule[]
 dependencies {
     components.all<JacksonAlignmentRule>()
 }
 // end::use_rule[]
-
 // tag::enforced_platform[]
 dependencies {
     // Forcefully downgrade the virtual Jackson platform to 2.8.9
     implementation(enforcedPlatform("com.fasterxml.jackson:jackson-virtual-platform:2.8.9"))
 }
 // end::enforced_platform[]
+}
 
 // tag::bom-alignment-rule[]
 open class JacksonBomAlignmentRule: ComponentMetadataRule {
