@@ -70,16 +70,16 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return Optional.of(
-            SnapshotUtil.getMetadataFromChildren(children, absolutePath, offset, caseSensitivity, Optional::empty)
-                .orElseGet(() -> missingSnapshotForAbsolutePath(absolutePath))
+            SnapshotUtil.getMetadataFromChildren(children, relativePath, caseSensitivity, Optional::empty)
+                .orElseGet(() -> missingSnapshotForAbsolutePath(relativePath.getAbsolutePath()))
         );
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
-        return SnapshotUtil.handleChildren(children, absolutePath, offset, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));
@@ -88,10 +88,10 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
             @Override
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
                 CompleteFileSystemLocationSnapshot foundChild = children.get(childIndex);
-                int indexForSubSegment = foundChild.getPathToParent().length();
-                Optional<FileSystemNode> invalidated = indexForSubSegment == absolutePath.length() - offset
+                int childPathLength = foundChild.getPathToParent().length();
+                Optional<FileSystemNode> invalidated = childPathLength == relativePath.length()
                     ? Optional.empty()
-                    : foundChild.invalidate(absolutePath, offset + indexForSubSegment + 1, caseSensitivity);
+                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity);
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), getChildren(childIndex, invalidated)));
             }
 

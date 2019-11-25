@@ -31,12 +31,12 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
         def snapshot = Mock(MetadataSnapshot)
 
         expect:
-        initialRoot.store(childAbsolutePath("some/child"), childOffset, CASE_SENSITIVE, snapshot) == initialRoot
+        initialRoot.store(childAbsolutePath("some/child"), CASE_SENSITIVE, snapshot) == initialRoot
     }
 
     def "invalidate removes the node"() {
         expect:
-        initialRoot.invalidate(childAbsolutePath("some/child"), childOffset, CASE_SENSITIVE) == Optional.empty()
+        initialRoot.invalidate(childAbsolutePath("some/child"), CASE_SENSITIVE) == Optional.empty()
     }
 
     def "getSnapshot returns itself"() {
@@ -48,14 +48,14 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
         def childAbsolutePath = childAbsolutePath("some/child")
 
         when:
-        CompleteFileSystemLocationSnapshot childSnapshot = initialRoot.getSnapshot(childAbsolutePath, childOffset, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
+        CompleteFileSystemLocationSnapshot childSnapshot = initialRoot.getSnapshot(childAbsolutePath, CASE_SENSITIVE).get() as CompleteFileSystemLocationSnapshot
         then:
         childSnapshot.type == FileType.Missing
-        childSnapshot.absolutePath == childAbsolutePath
+        childSnapshot.absolutePath == childAbsolutePath.absolutePath
     }
 
-    private String childAbsolutePath(String relativePath) {
-        "${initialRoot.absolutePath}/${relativePath}"
+    private VfsRelativePath childAbsolutePath(String relativePath) {
+        VfsRelativePath.of("${initialRoot.absolutePath}/${relativePath}", initialRoot.absolutePath.length() + 1)
     }
 
     private int getChildOffset() {

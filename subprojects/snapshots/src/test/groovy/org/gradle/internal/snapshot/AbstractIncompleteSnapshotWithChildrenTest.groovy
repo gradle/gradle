@@ -32,7 +32,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         setupTest(vfsSpec)
 
         expect:
-        initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get() is initialRoot
+        initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get() is initialRoot
 
         where:
         vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX).findAll { allowEmptyChildren || !it.childPaths.empty }
@@ -45,7 +45,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def newGrandChild = mockChild(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
+        def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot)
         AbstractIncompleteSnapshotWithChildren newChild = getNodeWithIndexOfSelectedChild(resultRoot.children) as AbstractIncompleteSnapshotWithChildren
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(newChild)
@@ -71,7 +71,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def newGrandChild = mockChild(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
+        def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot)
         AbstractIncompleteSnapshotWithChildren newChild = getNodeWithIndexOfSelectedChild(resultRoot.children) as AbstractIncompleteSnapshotWithChildren
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(newChild)
@@ -90,12 +90,12 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
 
     def "store child with no common prefix adds it (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def newPathToParent = absolutePath.substring(offset)
+        def newPathToParent = searchedPath.asString
         def snapshot = Mock(MetadataSnapshot)
         def newChild = mockChild(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
+        def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.children == childrenWithAdditionalChild(newChild)
         isSameNodeType(resultRoot)
@@ -106,14 +106,14 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << NO_COMMON_PREFIX.findAll { allowEmptyChildren || !it.childPaths.empty }
     }
 
-    def "store parent #vfsSpec.absolutePath replaces child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "store parent #vfsSpec.searchedPath replaces child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def newPathToParent = absolutePath.substring(offset)
+        def newPathToParent = searchedPath.asString
         def snapshot = Mock(MetadataSnapshot)
         def parent = mockChild(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
+        def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(parent)
         isSameNodeType(resultRoot)
@@ -124,14 +124,14 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << IS_PREFIX_OF_CHILD
     }
 
-    def "storing a complete snapshot with same path #vfsSpec.absolutePath does replace child (#vfsSpec)"() {
+    def "storing a complete snapshot with same path #vfsSpec.searchedPath does replace child (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def newPathToParent = absolutePath.substring(offset)
+        def newPathToParent = searchedPath.asString
         def snapshot = Mock(CompleteFileSystemLocationSnapshot)
         def snapshotWithParent = mockChild(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
+        def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(snapshotWithParent)
         isSameNodeType(resultRoot)
@@ -142,12 +142,12 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
-    def "storing a metadata snapshot with same path #vfsSpec.absolutePath does not replace a complete snapshot (#vfsSpec)"() {
+    def "storing a metadata snapshot with same path #vfsSpec.searchedPath does not replace a complete snapshot (#vfsSpec)"() {
         setupTest(vfsSpec)
         def snapshot = Mock(MetadataSnapshot)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
+        def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot)
         then:
         resultRoot.children == children
         isSameNodeType(resultRoot)
@@ -160,14 +160,14 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
-    def "storing a metadata snapshot with same path #vfsSpec.absolutePath does replace a metadata snapshot (#vfsSpec)"() {
+    def "storing a metadata snapshot with same path #vfsSpec.searchedPath does replace a metadata snapshot (#vfsSpec)"() {
         setupTest(vfsSpec)
-        def newPathToParent = absolutePath.substring(offset)
+        def newPathToParent = searchedPath.asString
         def snapshot = Mock(MetadataSnapshot)
         def newNode = mockChild(newPathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshot)
+        def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshot)
         then:
         isSameNodeType(resultRoot)
         resultRoot.children == childrenWithSelectedChildReplacedBy(newNode)
@@ -181,13 +181,13 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
-    def "storing the child #vfsSpec.absolutePath of #vfsSpec.selectedChildPath updates the child (#vfsSpec)"() {
+    def "storing the child #vfsSpec.searchedPath of #vfsSpec.selectedChildPath updates the child (#vfsSpec)"() {
         setupTest(vfsSpec)
         def snapshotToStore = Mock(MetadataSnapshot)
         def updatedChildNode = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.store(absolutePath, offset, CASE_SENSITIVE, snapshotToStore)
+        def resultRoot = initialRoot.store(searchedPath, CASE_SENSITIVE, snapshotToStore)
         then:
         initialRoot.class == resultRoot.class
         resultRoot.children == childrenWithSelectedChildReplacedBy(updatedChildNode)
@@ -201,15 +201,15 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
     }
 
     def storeDescendantOfSelectedChild(MetadataSnapshot snapshot, FileSystemNode updatedChild) {
-        def descendantOffset = offset + selectedChild.pathToParent.length() + 1
-        1 * selectedChild.store(absolutePath, descendantOffset, CASE_SENSITIVE, snapshot) >> updatedChild
+        def descendantOffset = selectedChild.pathToParent.length() + 1
+        1 * selectedChild.store(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE, snapshot) >> updatedChild
     }
 
-    def "querying the snapshot for non-existing child #vfsSpec.absolutePath finds nothings (#vfsSpec)"() {
+    def "querying the snapshot for non-existing child #vfsSpec.searchedPath finds nothings (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
+        def resultRoot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction { noMoreInteractions() }
@@ -218,12 +218,12 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << (NO_COMMON_PREFIX + COMMON_PREFIX + IS_PREFIX_OF_CHILD).findAll { allowEmptyChildren || !it.childPaths.empty}
     }
 
-    def "querying the snapshot for existing child #vfsSpec.absolutePath returns the snapshot for the child (#vfsSpec)"() {
+    def "querying the snapshot for existing child #vfsSpec.searchedPath returns the snapshot for the child (#vfsSpec)"() {
         setupTest(vfsSpec)
         def existingSnapshot = Mock(MetadataSnapshot)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
+        def resultRoot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE)
         then:
         resultRoot.get() == existingSnapshot
 
@@ -236,11 +236,11 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         vfsSpec << SAME_PATH
     }
 
-    def "querying the snapshot for existing child #vfsSpec.absolutePath without snapshot returns empty (#vfsSpec)"() {
+    def "querying the snapshot for existing child #vfsSpec.searchedPath without snapshot returns empty (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
+        def resultRoot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE)
         then:
         !resultRoot.present
         1 * selectedChild.getSnapshot() >> Optional.empty()
@@ -257,7 +257,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         def descendantSnapshot = Mock(MetadataSnapshot)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
+        def resultRoot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE)
         then:
         resultRoot.get() == descendantSnapshot
         interaction {
@@ -273,7 +273,7 @@ abstract class AbstractIncompleteSnapshotWithChildrenTest<T extends FileSystemNo
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.getSnapshot(absolutePath, offset, CASE_SENSITIVE)
+        def resultRoot = initialRoot.getSnapshot(searchedPath, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction {
