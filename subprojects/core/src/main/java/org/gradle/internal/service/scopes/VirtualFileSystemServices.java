@@ -75,8 +75,11 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.vfs.WatchableVirtualFileSystem;
+import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
+import org.gradle.internal.vfs.impl.FileWatcherRegistry;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,15 +162,21 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 return new DefaultWellKnownFileLocations(fileStores);
             }
 
+            FileWatcherRegistry createFileWatcherRegistry() {
+                return new DefaultFileWatcherRegistry();
+            }
+
             VirtualFileSystem createVirtualFileSystem(
                 FileHasher hasher,
+                FileSystem fileSystem,
+                FileWatcherRegistry fileWatcherRegistry,
                 ListenerManager listenerManager,
                 Stat stat,
-                FileSystem fileSystem,
                 StringInterner stringInterner
             ) {
-                WatchableVirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(
+                WatchingVirtualFileSystem virtualFileSystem = new DefaultWatchingVirtualFileSystem(
                     hasher,
+                    fileWatcherRegistry,
                     stringInterner,
                     stat,
                     fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,

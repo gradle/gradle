@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs;
 
-public interface WatchableVirtualFileSystem extends VirtualFileSystem {
+public interface WatchingVirtualFileSystem extends VirtualFileSystem {
 
     void startWatching();
 

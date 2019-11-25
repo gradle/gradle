@@ -17,7 +17,10 @@
 package org.gradle.internal.vfs.impl;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
@@ -37,7 +40,9 @@ import static org.gradle.internal.vfs.impl.FileWatcherRegistry.EventKind.CREATED
 import static org.gradle.internal.vfs.impl.FileWatcherRegistry.EventKind.DELETED;
 import static org.gradle.internal.vfs.impl.FileWatcherRegistry.EventKind.MODIFIED;
 
-public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
+public class DefaultFileWatcherRegistry implements FileWatcherRegistry, Closeable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
+
     private final Map<Path, WatchKey> registrations = new HashMap<>();
     private final WatchService watchService;
 
@@ -56,8 +61,8 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                 // TODO Technically this shouldn't be needed
                 return null;
             }
+            LOGGER.debug("Start watching {}", path);
             try {
-                System.out.println("> Started watching " + path);
                 return path.register(watchService,
                     new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
                     SensitivityWatchEventModifier.HIGH);
@@ -73,6 +78,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
         for (WatchKey watchKey : registrations.values()) {
             watchKey.cancel();
             Path watchRoot = (Path) watchKey.watchable();
+            LOGGER.debug("Stop watching {}", watchRoot);
             for (WatchEvent<?> event : watchKey.pollEvents()) {
                 WatchEvent.Kind<?> kind = event.kind();
                 if (kind == OVERFLOW) {
@@ -94,5 +100,11 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
             }
         }
         registrations.clear();
+    }
+
+    @Override
+    public void close() throws IOException {
+        registrations.clear();
+        watchService.close();
     }
 }
