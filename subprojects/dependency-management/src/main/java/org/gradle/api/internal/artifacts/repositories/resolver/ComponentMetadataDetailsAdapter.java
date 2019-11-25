@@ -15,14 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.apache.groovy.util.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.DependencyConstraintMetadata;
 import org.gradle.api.artifacts.DirectDependencyMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VariantMetadata;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.attributes.Category;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.specs.Spec;
@@ -121,9 +125,19 @@ public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails
     public void belongsTo(Object notation, boolean virtual) {
         ComponentIdentifier id = componentIdentifierParser.parseNotation(notation);
         if (virtual) {
-            id = VirtualComponentHelper.makeVirtual(id);
+            metadata.belongsTo(VirtualComponentHelper.makeVirtual(id));
+        } else if (id instanceof ModuleComponentIdentifier) {
+            addPlatformDependencyToAllVariants((ModuleComponentIdentifier) id);
+        } else {
+            throw new InvalidUserCodeException(notation + " is not a valid platform identifier");
         }
-        metadata.belongsTo(id);
+    }
+
+    private void addPlatformDependencyToAllVariants(ModuleComponentIdentifier platformId) {
+        allVariants(v -> v.withDependencies(dependencies -> {
+            dependencies.add(Maps.of("group", platformId.getGroup(), "name", platformId.getModule(), "version", platformId.getVersion()),
+                platformDependency -> platformDependency.attributes(attributes -> attributes.attribute(Category.CATEGORY_ATTRIBUTE, platformSupport.getRegularPlatformCategory())));
+        }));
     }
 
     @Override
