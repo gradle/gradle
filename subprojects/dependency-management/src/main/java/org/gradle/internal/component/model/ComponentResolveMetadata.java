@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -94,7 +95,7 @@ public interface ComponentResolveMetadata extends HasAttributes {
 
     List<String> getStatusScheme();
 
-    ImmutableList<? extends ComponentIdentifier> getPlatformOwners();
+    ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners();
 
     @Override
     ImmutableAttributes getAttributes();

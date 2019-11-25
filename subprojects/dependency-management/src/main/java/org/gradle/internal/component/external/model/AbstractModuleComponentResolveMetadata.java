@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -48,7 +47,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue originalContentHash;
     private final ImmutableAttributes attributes;
-    private final ImmutableList<? extends ComponentIdentifier> platformOwners;
+    private final ImmutableList<? extends VirtualComponentIdentifier> platformOwners;
     private final AttributesSchemaInternal schema;
 
     public AbstractModuleComponentResolveMetadata(AbstractMutableModuleComponentResolveMetadata metadata) {
@@ -63,7 +62,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         originalContentHash = metadata.getContentHash();
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
-        platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.<ComponentIdentifier>of() : ImmutableList.copyOf(metadata.getPlatformOwners());
+        platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.of() : ImmutableList.copyOf(metadata.getPlatformOwners());
     }
 
     public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ImmutableList<? extends ComponentVariant> variants) {
@@ -196,7 +195,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
+    public ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners() {
         return platformOwners;
     }
 
