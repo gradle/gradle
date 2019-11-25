@@ -64,6 +64,8 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.PropertyAssociationTaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
@@ -198,6 +200,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 }
             }
         });
+    }
+
+    ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
+        return new DefaultProviderFactory(valueSourceProviderFactory);
     }
 
     protected PublicBuildPath createPublicBuildPath(BuildState buildState) {

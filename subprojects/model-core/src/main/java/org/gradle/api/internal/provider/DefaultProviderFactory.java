@@ -16,12 +16,28 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.api.provider.ValueSourceParameters;
+import org.gradle.api.provider.ValueSourceSpec;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
 
 public class DefaultProviderFactory implements ProviderFactory {
+
+    @Nullable
+    private final ValueSourceProviderFactory valueSourceProviderFactory;
+
+    public DefaultProviderFactory() {
+        this(null);
+    }
+
+    public DefaultProviderFactory(@Nullable ValueSourceProviderFactory valueSourceProviderFactory) {
+        this.valueSourceProviderFactory = valueSourceProviderFactory;
+    }
 
     @Override
     public <T> Provider<T> provider(final Callable<? extends T> value) {
@@ -29,5 +45,13 @@ public class DefaultProviderFactory implements ProviderFactory {
             throw new IllegalArgumentException("Value cannot be null");
         }
         return new DefaultProvider<T>(value);
+    }
+
+    @Override
+    public <T, P extends ValueSourceParameters> Provider<T> of(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configuration) {
+        if (valueSourceProviderFactory == null) {
+            throw new UnsupportedOperationException();
+        }
+        return valueSourceProviderFactory.createProviderOf(valueSourceType, configuration);
     }
 }
