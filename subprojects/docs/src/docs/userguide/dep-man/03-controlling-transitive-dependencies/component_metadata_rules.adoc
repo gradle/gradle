@@ -266,7 +266,6 @@ include::sample[dir="userguide/dependencyManagement/customizingResolution/metada
 include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guice-dependencies]"]
 ====
 
-
 == Adding missing capabilities to detect conflicts
 
 Another usage of capabilities is to express that two different modules, for example `log4j` and `log4j-over-slf4j`, provide alternative implementations of the same thing.
@@ -298,7 +297,7 @@ While all the examples above made modifications to variants of a component, ther
 This information can influence the <<dependency_resolution.adoc#,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
-It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-virtual,aligning versions of modules not published with Gradle>>.
+It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
 
 [[sec:custom_status_scheme]]
 == Modifying metadata on the component level for version selection based on status

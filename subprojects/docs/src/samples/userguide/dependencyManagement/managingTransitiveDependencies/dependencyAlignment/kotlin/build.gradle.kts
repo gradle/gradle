@@ -32,18 +32,37 @@ dependencies {
 }
 // end::dependencies[]
 
+// tag::use_bom_rule[]
+dependencies {
+    components.all<JacksonBomAlignmentRule>()
+}
+// end::use_bom_rule[]
+
 // tag::use_rule[]
 dependencies {
-    components.all(JacksonAlignmentRule::class.java)
+    components.all<JacksonAlignmentRule>()
 }
 // end::use_rule[]
 
 // tag::enforced_platform[]
 dependencies {
-    // Forcefully downgrade the Jackson platform to 2.8.9
-    implementation(enforcedPlatform("com.fasterxml.jackson:jackson-platform:2.8.9"))
+    // Forcefully downgrade the virtual Jackson platform to 2.8.9
+    implementation(enforcedPlatform("com.fasterxml.jackson:jackson-virtual-platform:2.8.9"))
 }
 // end::enforced_platform[]
+
+// tag::bom-alignment-rule[]
+open class JacksonBomAlignmentRule: ComponentMetadataRule {
+    override fun execute(ctx: ComponentMetadataContext) {
+        ctx.details.run {
+            if (id.group.startsWith("com.fasterxml.jackson")) {
+                // declare that Jackson modules belong to the platform defined by the Jackson BOM
+                belongsTo("com.fasterxml.jackson:jackson-bom:${id.version}", false)
+            }
+        }
+    }
+}
+// end::bom-alignment-rule[]
 
 // tag::alignment-rule[]
 open class JacksonAlignmentRule: ComponentMetadataRule {
@@ -51,7 +70,7 @@ open class JacksonAlignmentRule: ComponentMetadataRule {
         ctx.details.run {
             if (id.group.startsWith("com.fasterxml.jackson")) {
                 // declare that Jackson modules all belong to the Jackson virtual platform
-                belongsTo("com.fasterxml.jackson:jackson-platform:${id.version}")
+                belongsTo("com.fasterxml.jackson:jackson-virtual-platform:${id.version}")
             }
         }
     }
