@@ -78,6 +78,7 @@ class LibsRepositoryEnvironmentProvider(objects: ObjectFactory) : CommandLineArg
         if (required) mapOf("integTest.libsRepo" to absolutePathOf(dir)).asSystemPropertyJvmArguments()
         else emptyList()
 
+    @Internal
     override fun getName() =
         "libsRepository"
 }
@@ -120,6 +121,7 @@ class GradleInstallationForTestEnvironmentProvider(project: Project) : CommandLi
             "integTest.toolingApiShadedJarDir" to absolutePathOf(toolingApiShadedJarDir)
         ).asSystemPropertyJvmArguments()
 
+    @Internal
     override fun getName() =
         "gradleInstallationForTest"
 }
