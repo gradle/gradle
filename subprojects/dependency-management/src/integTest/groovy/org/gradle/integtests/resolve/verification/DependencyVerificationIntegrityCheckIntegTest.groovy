@@ -347,6 +347,39 @@ Please update the file either manually (preferred) or by adding the --write-veri
     }
 
     @ToBeFixedForInstantExecution
+    def "can verify dependencies of buildSrc"() {
+        createMetadataFile {
+            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+        }
+        uncheckedModule("org", "foo")
+        uncheckedModule("org", "bar")
+
+        given:
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+        def buildSrc = file("buildSrc/build.gradle")
+        buildSrc << """
+            repositories {
+                maven { url "${mavenHttpRepo.uri}" }
+            }
+            dependencies {
+               implementation "org:bar:1.0"
+            }
+        """
+
+        when:
+        fails "compileJava"
+
+        then:
+        failure.assertHasDescription """Dependency verification failed for configuration ':buildSrc:runtimeClasspath':
+  - Artifact bar-1.0.jar (org:bar:1.0) checksum is missing from verification metadata."""
+    }
+
+    @ToBeFixedForInstantExecution
     def "dependency verification also checks included build dependencies"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")

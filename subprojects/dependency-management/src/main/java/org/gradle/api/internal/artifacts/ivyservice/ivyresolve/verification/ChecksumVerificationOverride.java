@@ -57,13 +57,11 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
 
     @Override
     public void onArtifact(ModuleComponentArtifactIdentifier artifact, File path) {
-        if (verifier != null) {
-            verifier.verify(buildOperationExecutor, artifact, path, f -> {
-                synchronized (failures) {
-                    failures.put(artifact, f);
-                }
-            });
-        }
+        verifier.verify(buildOperationExecutor, artifact, path, f -> {
+            synchronized (failures) {
+                failures.put(artifact, f);
+            }
+        });
     }
 
     @Override
