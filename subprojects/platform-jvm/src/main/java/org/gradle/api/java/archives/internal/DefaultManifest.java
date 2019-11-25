@@ -31,11 +31,13 @@ import org.gradle.util.ClosureBackedAction;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -210,7 +212,7 @@ public class DefaultManifest implements ManifestInternal {
         try {
             Manifest javaManifest = generateJavaManifest(manifest.getEffectiveManifest());
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            javaManifest.write(buffer);
+            write(javaManifest, buffer);
             byte[] manifestBytes;
             if (DEFAULT_CONTENT_CHARSET.equals(contentCharset)) {
                 manifestBytes = buffer.toByteArray();
@@ -221,6 +223,110 @@ public class DefaultManifest implements ManifestInternal {
             outputStream.write(manifestBytes);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    // Pulled from java.util.jar.Manifest
+    @SuppressWarnings("deprecation")
+    private static void write(Manifest manifest, OutputStream out) throws IOException {
+        DataOutputStream dos = new DataOutputStream(out);
+        // Write out the main attributes for the manifest
+        writeMain(manifest.getMainAttributes(), dos);
+        // Now write out the per-entry attributes
+        for (Map.Entry<String, java.util.jar.Attributes> e : manifest.getEntries().entrySet()) {
+            StringBuffer buffer = new StringBuffer("Name: ");
+            String value = e.getKey();
+            if (value != null) {
+                byte[] vb = value.getBytes(StandardCharsets.UTF_8);
+                value = new String(vb, 0, 0, vb.length);
+            }
+            buffer.append(value);
+            make72Safe(buffer);
+            buffer.append("\r\n");
+            dos.writeBytes(buffer.toString());
+            write(e.getValue(), dos);
+        }
+        dos.flush();
+    }
+
+    // Pulled from java.util.jar.Attributes
+    @SuppressWarnings("deprecation")
+    private static void writeMain(java.util.jar.Attributes attributes, DataOutputStream out) throws IOException {
+        // write out the *-Version header first, if it exists
+        String vername = java.util.jar.Attributes.Name.MANIFEST_VERSION.toString();
+        String version = attributes.getValue(vername);
+        if (version == null) {
+            vername = java.util.jar.Attributes.Name.SIGNATURE_VERSION.toString();
+            version = attributes.getValue(vername);
+        }
+
+        if (version != null) {
+            out.writeBytes(vername+": "+version+"\r\n");
+        }
+
+        // write out all attributes except for the version
+        // we wrote out earlier
+        for (Map.Entry<Object, Object> e : attributes.entrySet()) {
+            String name = ((java.util.jar.Attributes.Name) e.getKey()).toString();
+            if ((version != null) && !(name.equalsIgnoreCase(vername))) {
+
+                StringBuffer buffer = new StringBuffer(name);
+                buffer.append(": ");
+
+                String value = (String) e.getValue();
+                if (value != null) {
+                    byte[] vb = value.getBytes(StandardCharsets.UTF_8);
+                    value = new String(vb, 0, 0, vb.length);
+                }
+                buffer.append(value);
+
+                make72Safe(buffer);
+                buffer.append("\r\n");
+                out.writeBytes(buffer.toString());
+            }
+        }
+        out.writeBytes("\r\n");
+    }
+
+    // Pulled from java.util.jar.Attributes
+    @SuppressWarnings("deprecation")
+    private static void write(java.util.jar.Attributes attributes, DataOutputStream os) throws IOException {
+        for (Map.Entry<Object, Object> e : attributes.entrySet()) {
+            StringBuffer buffer = new StringBuffer(
+                    ((java.util.jar.Attributes.Name) e.getKey()).toString());
+            buffer.append(": ");
+
+            String value = (String) e.getValue();
+            if (value != null) {
+                byte[] vb = value.getBytes(StandardCharsets.UTF_8);
+                value = new String(vb, 0, 0, vb.length);
+            }
+            buffer.append(value);
+
+            make72Safe(buffer);
+            buffer.append("\r\n");
+            os.writeBytes(buffer.toString());
+        }
+        os.writeBytes("\r\n");
+    }
+
+    /**
+     * Adds line breaks to enforce a maximum 72 bytes per line.
+     *
+     * Note: Pulled from java.util.jar.Manifest
+     */
+    private static void make72Safe(StringBuffer line) {
+        int length = line.length();
+        int index = 72;
+        while (index < length) {
+            // Decrement index until it points at the first byte of a UTF-8 encoded character
+            final int minIndex = index - 3;
+            while ((line.charAt(index) & 0xC0) == 0x80 && index > minIndex) {
+                index--;
+            }
+            line.insert(index, "\r\n ");
+            index += 74; // + line width + line break ("\r\n")
+            length += 3; // + line break ("\r\n") and space
         }
     }
 

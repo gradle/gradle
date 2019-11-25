@@ -28,6 +28,8 @@ import spock.lang.Unroll
 import java.util.jar.JarFile
 import java.util.jar.Manifest
 
+import static org.hamcrest.CoreMatchers.containsString
+
 @TestReproducibleArchives
 class JarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -701,6 +703,37 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         def jar = new JarTestFixture(file('build/test.jar'))
         jar.manifest.mainAttributes.getValue('attr') == 'value'
         jar.manifest.mainAttributes.getValue('version') == '1.0'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/5225")
+    @Unroll
+    def "does not split multibyte characters inside manifest [#attributeName]"(attributeName, attributeValue, expectedManifestEntry) {
+        given:
+        buildFile << """
+            task jar(type: Jar) {
+                manifest {
+                    attributes('${attributeName}': '${attributeValue}')
+                }
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
+                archiveVersion = "1.0"
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.assertFileContent('META-INF/MANIFEST.MF', containsString(expectedManifestEntry))
+        jar.manifest.getMainAttributes().getValue(attributeName) == attributeValue
+
+        where:
+        attributeName     | attributeValue                                                                              | expectedManifestEntry
+        'German_2-byte'   | 'äääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääääää'                 | 'German_2-byte: ääääääääääääääääääääääääääää\r\n äääääääääääääääääääääääääääääääääää\r\n ääääääääää'
+        'Cyrillic_2-byte' | 'йййййййййййййййййййййййййййййййййййййййййййййййййййййййййййййййййййййййй'                  | 'Cyrillic_2-byte: ййййййййййййййййййййййййййй\r\n ййййййййййййййййййййййййййййййййййй\r\n йййййййййй'
+        'Kanji_3-byte'    | '丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈' | 'Kanji_3-byte: 丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈\r\n 丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈丈\r\n 丈丈丈丈丈丈丈丈丈丈'
+        'Emoji_4-byte'    | '😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨'              | 'Emoji_4-byte: 😨😨😨😨😨😨😨😨😨😨😨😨😨😨\r\n 😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨😨\r\n 😨😨😨😨😨😨😨😨😨😨'
     }
 
     private static String customJarManifestTask() {
