@@ -20,11 +20,11 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 @Unroll
-class PathSuffixTest extends Specification {
+class VfsRelativePathTest extends Specification {
 
     def "convert absolute path '#absolutePath' to relative path '#relativePath'"() {
         expect:
-        PathSuffix.of(absolutePath).asString == relativePath
+        VfsRelativePath.of(absolutePath).asString == relativePath
 
         where:
         absolutePath           | relativePath
@@ -40,7 +40,7 @@ class PathSuffixTest extends Specification {
 
     def "'#relativePath' fromChild '#child' is '#result'"() {
         expect:
-        PathSuffix.of(relativePath).fromChild(child).asString == result
+        VfsRelativePath.of(relativePath).fromChild(child).asString == result
 
         where:
         relativePath | child | result

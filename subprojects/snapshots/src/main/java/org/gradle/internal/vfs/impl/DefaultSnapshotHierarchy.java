@@ -20,7 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
-import org.gradle.internal.snapshot.PathSuffix;
+import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     private final CaseSensitivity caseSensitivity;
 
     public static SnapshotHierarchy from(String absolutePath, MetadataSnapshot snapshot, CaseSensitivity caseSensitivity) {
-        PathSuffix relativePath = PathSuffix.of(absolutePath);
+        VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         return new DefaultSnapshotHierarchy(snapshot.asFileSystemNode(relativePath.getAsString()), caseSensitivity);
     }
 
@@ -57,7 +57,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public Optional<MetadataSnapshot> getMetadata(String absolutePath) {
-        PathSuffix relativePath = PathSuffix.of(absolutePath);
+        VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         String pathToParent = rootNode.getPathToParent();
         if (!relativePath.hasPrefix(pathToParent, caseSensitivity)) {
             return Optional.empty();
@@ -67,13 +67,13 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
     @Override
     public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot) {
-        PathSuffix relativePath = PathSuffix.of(absolutePath);
+        VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         return new DefaultSnapshotHierarchy(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot), caseSensitivity);
     }
 
     @Override
     public SnapshotHierarchy invalidate(String absolutePath) {
-        PathSuffix relativePath = PathSuffix.of(absolutePath);
+        VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         return invalidateSingleChild(rootNode, relativePath, caseSensitivity)
             .<SnapshotHierarchy>map(newRootNode -> new DefaultSnapshotHierarchy(newRootNode, caseSensitivity))
             .orElse(empty());

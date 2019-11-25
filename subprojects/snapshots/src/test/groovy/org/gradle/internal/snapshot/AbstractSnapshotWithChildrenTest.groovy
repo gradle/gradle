@@ -26,7 +26,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
     NODE initialRoot
     List<CHILD> children
-    PathSuffix searchedPath
+    VfsRelativePath searchedPath
 
     /**
      * The child, if any, which has a common prefix with the selected path, i.e. (absolutePath/offset).
@@ -201,7 +201,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     private static String findPathWithParent(List<String> childPaths, String parentPath) {
-        childPaths.find { PathSuffix.of(it, 0).hasPrefix(parentPath, CASE_SENSITIVE) }
+        childPaths.find { VfsRelativePath.of(it, 0).hasPrefix(parentPath, CASE_SENSITIVE) }
     }
 
     private static List<String> parentPaths(String childPath) {

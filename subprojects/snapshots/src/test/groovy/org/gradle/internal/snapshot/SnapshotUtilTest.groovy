@@ -28,7 +28,7 @@ class SnapshotUtilTest extends Specification {
         def child = mockChild(pathToParent)
 
         when:
-        def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, PathSuffix.of(absolutePath).suffixStartingFrom(suffixStart), CASE_SENSITIVE)
+        def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, VfsRelativePath.of(absolutePath).suffixStartingFrom(suffixStart), CASE_SENSITIVE)
         then:
         foundSnapshot.present
         1 * child.snapshot >> Optional.of(Mock(MetadataSnapshot))
@@ -43,7 +43,7 @@ class SnapshotUtilTest extends Specification {
 
     def "getSnapshotFromChild queries child when queried at the path in child"() {
         def child = mockChild(pathToParent)
-        def relativePath = PathSuffix.of(absolutePath).suffixStartingFrom(suffixStart)
+        def relativePath = VfsRelativePath.of(absolutePath).suffixStartingFrom(suffixStart)
 
         when:
         def foundSnapshot = SnapshotUtil.getSnapshotFromChild(child, relativePath, CASE_SENSITIVE)
@@ -63,7 +63,7 @@ class SnapshotUtilTest extends Specification {
         def child = mockChild(pathToParent)
         def snapshot = Mock(MetadataSnapshot)
         def updatedChild = mockChild(pathToParent)
-        def relativePath = PathSuffix.of(absolutePath).suffixStartingFrom(suffixStart)
+        def relativePath = VfsRelativePath.of(absolutePath).suffixStartingFrom(suffixStart)
 
         when:
         def resultRoot = SnapshotUtil.storeSingleChild(child, relativePath, CASE_SENSITIVE, snapshot)
@@ -82,7 +82,7 @@ class SnapshotUtilTest extends Specification {
     def "invalidateSingleChild uses offset #childOffset for path #absolutePath in child #pathToParent"() {
         def child = mockChild(pathToParent)
         def invalidatedChild = mockChild(pathToParent)
-        def relativePath = PathSuffix.of(absolutePath).suffixStartingFrom(suffixStart)
+        def relativePath = VfsRelativePath.of(absolutePath).suffixStartingFrom(suffixStart)
 
         when:
         def resultRoot = SnapshotUtil.invalidateSingleChild(child, relativePath, CASE_SENSITIVE).get()

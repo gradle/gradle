@@ -32,7 +32,7 @@ import static org.gradle.internal.snapshot.PathUtil.isFileSeparator;
  *
  * A relative path does not start or end with a slash.
  */
-public class PathSuffix {
+public class VfsRelativePath {
     private final String absolutePath;
     private final int offset;
 
@@ -46,14 +46,14 @@ public class PathSuffix {
      *    '//uncpath/relative/path' -> 'uncpath/relative/path'
      *    'C:/Users/user/project' -> 'C:/Users/user/project'
      */
-    public static PathSuffix of(String absolutePath) {
+    public static VfsRelativePath of(String absolutePath) {
         String normalizedRoot = normalizeRoot(absolutePath);
-        return PathSuffix.of(normalizedRoot, determineOffset(normalizedRoot));
+        return VfsRelativePath.of(normalizedRoot, determineOffset(normalizedRoot));
     }
 
     @VisibleForTesting
-    static PathSuffix of(String absolutePath, int offset) {
-        return new PathSuffix(absolutePath, offset);
+    static VfsRelativePath of(String absolutePath, int offset) {
+        return new VfsRelativePath(absolutePath, offset);
     }
 
     private static String normalizeRoot(String absolutePath) {
@@ -74,7 +74,7 @@ public class PathSuffix {
         return absolutePath.length();
     }
 
-    private PathSuffix(String absolutePath, int offset) {
+    private VfsRelativePath(String absolutePath, int offset) {
         this.absolutePath = absolutePath;
         this.offset = offset;
     }
@@ -85,8 +85,8 @@ public class PathSuffix {
      * E.g.
      *   (some/path, 5) -> path
      */
-    public PathSuffix suffixStartingFrom(int startIndex) {
-        return new PathSuffix(absolutePath, offset + startIndex);
+    public VfsRelativePath suffixStartingFrom(int startIndex) {
+        return new VfsRelativePath(absolutePath, offset + startIndex);
     }
 
     /**
@@ -97,7 +97,7 @@ public class PathSuffix {
      *   (some/path/other, some) -> path/other
      *   (C:, '') -> C:
      */
-    public PathSuffix fromChild(String relativeChildPath) {
+    public VfsRelativePath fromChild(String relativeChildPath) {
         return relativeChildPath.isEmpty()
             ? this
             : suffixStartingFrom(relativeChildPath.length() + 1);
@@ -248,7 +248,7 @@ public class PathSuffix {
             return false;
         }
 
-        PathSuffix that = (PathSuffix) o;
+        VfsRelativePath that = (VfsRelativePath) o;
 
         if (offset != that.offset) {
             return false;

@@ -25,7 +25,7 @@ import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 
 @Unroll
-class CaseInsensitivePathSuffixTest extends AbstractCasePathSuffixTest {
+class CaseInsensitiveVfsRelativePathTest extends AbstractCaseVfsRelativePathTest {
 
     def "#left and #right are equal ignoring case"() {
         char char1 = left as char

@@ -70,7 +70,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getChildSnapshot(PathSuffix relativePath, CaseSensitivity caseSensitivity) {
+    protected Optional<MetadataSnapshot> getChildSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return Optional.of(
             SnapshotUtil.getMetadataFromChildren(children, relativePath, caseSensitivity, Optional::empty)
                 .orElseGet(() -> missingSnapshotForAbsolutePath(relativePath.getAbsolutePath()))
@@ -78,7 +78,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(PathSuffix relativePath, CaseSensitivity caseSensitivity) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {

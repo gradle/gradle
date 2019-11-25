@@ -29,7 +29,7 @@ public interface FileSystemNode {
      * When calling this method, the caller needs to make sure the the snapshot is a child of this node.
      * Must not include the {@link #getPathToParent()}..
      */
-    Optional<MetadataSnapshot> getSnapshot(PathSuffix relativePath, CaseSensitivity caseSensitivity);
+    Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
 
     /**
      * The snapshot information at this node.
@@ -43,12 +43,12 @@ public interface FileSystemNode {
      *
      * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
      */
-    FileSystemNode store(PathSuffix relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot);
+    FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot);
 
     /**
      * Invalidates part of the node.
      */
-    Optional<FileSystemNode> invalidate(PathSuffix relativePath, CaseSensitivity caseSensitivity);
+    Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
 
     /**
      * The path to the parent snapshot or the root of the file system.
