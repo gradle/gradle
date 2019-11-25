@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.TextUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -701,6 +702,49 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         def jar = new JarTestFixture(file('build/test.jar'))
         jar.manifest.mainAttributes.getValue('attr') == 'value'
         jar.manifest.mainAttributes.getValue('version') == '1.0'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/2295")
+    def "preserves manifest order"() {
+        given:
+        def buildDate = new Date().format("yyyy-MM-dd")
+        def buildTime = new Date().format("HH:mm:ssZ")
+        buildFile << """
+            task jar(type: Jar) {
+                manifest {
+                    attributes(
+                        'Build-Date': '$buildDate',
+                        'Build-Time': '$buildTime',
+                        'Code-Revision': '1.0',
+                        'Class-Path': files('a-file.jar', 'another-file.jar').collect { it.getName() }.join(' ')
+                    )
+                    attributes([Sealed: true], 'myCompany/firstPackage/')
+                    attributes([Sealed: true], 'myCompany/secondPackage/')
+                }
+                destinationDirectory = buildDir
+                archiveFileName = 'test.jar'
+                archiveVersion = '1.0'
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarTestFixture(file('build/test.jar'))
+        jar.content('META-INF/MANIFEST.MF') == TextUtil.convertLineSeparators("""Manifest-Version: 1.0
+Build-Date: $buildDate
+Build-Time: $buildTime
+Code-Revision: 1.0
+Class-Path: a-file.jar another-file.jar
+
+Name: myCompany/firstPackage/
+Sealed: true
+
+Name: myCompany/secondPackage/
+Sealed: true
+
+""", TextUtil.windowsLineSeparator)
     }
 
     private static String customJarManifestTask() {
