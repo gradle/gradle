@@ -25,5 +25,8 @@ dependencies {
     constraints {
         api("com.github.javaparser:javaparser-core:$javaParserVersion")
         api("com.github.javaparser:javaparser-symbol-solver-core:$javaParserVersion")
+        api("xerces:xercesImpl:2.12.0") {
+            because("Maven Central and JCenter disagree on version 2.9.1 metadata")
+        }
     }
 }

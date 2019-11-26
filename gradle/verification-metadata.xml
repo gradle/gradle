@@ -1061,11 +1061,6 @@
             <sha256 value="c13e871892b9820f27d96f5a2216e888960e5c2d4383d8ea1837d18f1c733153"/>
          </artifact>
       </component>
-      <component group="xerces" name="xercesImpl" version="2.9.1">
-         <artifact name="xercesImpl" type="jar" ext="jar">
-            <sha256 value="9b4a8557217fe93c3a274d301e45c3f93caeb36f89b720a5f42ac34f7d27cd88"/>
-         </artifact>
-      </component>
       <component group="xml-resolver" name="xml-resolver" version="1.2">
          <artifact name="xml-resolver" type="jar" ext="jar">
             <sha256 value="47dcde8986019314ef78ae7280a94973a21d2ed95075a40a000b42da956429e1"/>
