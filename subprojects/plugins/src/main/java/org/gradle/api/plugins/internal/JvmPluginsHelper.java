@@ -35,6 +35,7 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponent;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
@@ -123,12 +124,19 @@ public class JvmPluginsHelper {
     private static void configureForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, AbstractCompile compile, final Project target) {
         compile.setDescription("Compiles the " + sourceDirectorySet.getDisplayName() + ".");
         compile.setSource(sourceSet.getJava());
+        for (SourceDirectorySet dependency : sourceDirectorySet.getCompilationOrderDependencies()) {
+            compile.dependsOn(dependency.getCompileTask());
+        }
 
         ConfigurableFileCollection classpath = compile.getProject().getObjects().fileCollection();
         classpath.from(new Callable<Object>() {
             @Override
             public Object call() {
-                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
+                FileCollection compileClasspath = sourceSet.getCompileClasspath();
+                for (SourceDirectorySet dependency : sourceDirectorySet.getCompilationOrderDependencies()) {
+                    compileClasspath = compileClasspath.plus(target.files(dependency.getOutputDir()));
+                }
+                return compileClasspath;
             }
         });
 
@@ -180,6 +188,7 @@ public class JvmPluginsHelper {
             }
         });
         sourceSetOutput.registerCompileTask(compileTask);
+        sourceDirectorySet.setCompileTask(compileTask);
         sourceSetOutput.getGeneratedSourcesDirs().from(options.map(new Transformer<Object, CompileOptions>() {
             @Override
             public Object transform(CompileOptions compileOptions) {

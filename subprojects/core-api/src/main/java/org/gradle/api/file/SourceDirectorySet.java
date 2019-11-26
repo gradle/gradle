@@ -16,12 +16,16 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.Task;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.model.internal.core.UnmanagedStruct;
 
+import javax.annotation.Nullable;
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -127,4 +131,34 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @since 4.0
      */
     void setOutputDir(File outputDir);
+
+    /**
+     * Define dependencies between source directories of one source set.
+     *
+     * @return the mutable list of source directory sets this set depends on
+     * @since 6.1
+     */
+    @Incubating
+    List<SourceDirectorySet> getCompilationOrderDependencies();
+
+    /**
+     * Get the task responsible for processing the sources from this set if available.
+     *
+     * @return the task compiling sources from this set
+     * @since 6.1
+     */
+    @Incubating
+    @Nullable
+    Provider<? extends Task> getCompileTask();
+
+    /**
+     * Register the task responsible for processing the sources from this set.
+     * This is helpful to let plugins know how the sources are processed so that they can respect
+     * the compilation order defined through {@link #getCompilationOrderDependencies()}.
+     *
+     * @param compileTask the task compiling sources from this set
+     * @since 6.1
+     */
+    @Incubating
+    void setCompileTask(@Nullable Provider<? extends Task> compileTask);
 }

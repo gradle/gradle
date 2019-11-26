@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
@@ -38,6 +39,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.util.GUtil;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -47,7 +49,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultSourceDirectorySet extends CompositeFileTree implements SourceDirectorySet {
-    private final List<Object> source = new ArrayList<Object>();
+    private final List<Object> source = new ArrayList<>();
     private final String name;
     private final String displayName;
     private final FileCollectionFactory fileCollectionFactory;
@@ -56,6 +58,9 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final PatternSet filter;
     private final FileCollection dirs;
     private final Property<File> outputDir;
+    private final List<SourceDirectorySet> dependencies = new ArrayList<>();
+
+    private Provider<? extends Task> compileTask = null;
 
     public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this.name = name;
@@ -175,6 +180,22 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     public void setOutputDir(File outputDir) {
         this.outputDir.set(outputDir);
+    }
+
+    @Override
+    public List<SourceDirectorySet> getCompilationOrderDependencies() {
+        return dependencies;
+    }
+
+    @Override
+    @Nullable
+    public Provider<? extends Task> getCompileTask() {
+        return compileTask;
+    }
+
+    @Override
+    public void setCompileTask(@Nullable Provider<? extends Task> compileTask) {
+        this.compileTask = compileTask;
     }
 
     @Override
