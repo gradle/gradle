@@ -113,9 +113,8 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
                         overflow = true;
                         break;
                     }
-                    Path changedPath = watchRoot.resolve(((Path) event.context()));
-                    update(Collections.singleton(changedPath.toString()), () -> {
-                    });
+                    Path changedPath = watchRoot.resolve((Path) event.context());
+                    update(Collections.singleton(changedPath.toString()), () -> {});
                 }
             }
         } finally {
