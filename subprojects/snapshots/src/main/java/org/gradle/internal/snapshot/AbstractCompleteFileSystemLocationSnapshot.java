@@ -121,9 +121,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
 
         @Override
         public void accept(KnownNodeVisitor visitor) {
-            delegate.accept((pathToParent, node) -> {
-                visitor.visitKnownNode(getPathToParent() + pathToParent.substring(delegate.getPathToParent().length()), node);
-            });
+            delegate.accept(visitor);
         }
     }
 }

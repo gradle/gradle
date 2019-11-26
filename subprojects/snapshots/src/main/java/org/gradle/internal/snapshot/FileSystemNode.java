@@ -66,6 +66,6 @@ public interface FileSystemNode {
     void accept(KnownNodeVisitor visitor);
 
     interface KnownNodeVisitor {
-        void visitKnownNode(String parentToRoot, FileSystemNode node);
+        void visitKnownNode(FileSystemNode node);
     }
 }

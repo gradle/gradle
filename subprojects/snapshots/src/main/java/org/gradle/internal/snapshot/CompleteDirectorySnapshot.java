@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -69,10 +68,8 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
     @Override
     public void accept(KnownNodeVisitor visitor) {
-        visitor.visitKnownNode(getPathToParent(), this);
-        children.forEach(child -> child.accept((pathToParent, node) -> {
-            visitor.visitKnownNode(getPathToParent() + File.separator + pathToParent, node);
-        }));
+        visitor.visitKnownNode(this);
+        children.forEach(child -> child.accept(visitor));
     }
 
     @VisibleForTesting

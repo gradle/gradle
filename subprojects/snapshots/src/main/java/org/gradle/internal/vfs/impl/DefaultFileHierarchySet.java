@@ -19,6 +19,7 @@ package org.gradle.internal.vfs.impl;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CaseSensitivity;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.PathUtil;
@@ -95,22 +96,20 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     @Override
     public void visitKnownDirectories(Consumer<File> directoryVisitor) {
         Set<File> visited = new HashSet<>();
-        rootNode.accept((parentToRoot, node) -> {
-            File file = new File(new File("/"), parentToRoot);
-            node.getSnapshot().ifPresent(snapshot -> {
-                if (snapshot.getType() == FileType.Directory) {
-                    if (visited.add(file)) {
-                        directoryVisitor.accept(file);
-                    }
+        rootNode.accept((node) -> {
+            if (!(node instanceof CompleteFileSystemLocationSnapshot)) {
+                return;
+            }
+            CompleteFileSystemLocationSnapshot snapshot = (CompleteFileSystemLocationSnapshot) node;
+            File file = new File(snapshot.getAbsolutePath());
+            if (snapshot.getType() == FileType.Directory) {
+                if (visited.add(file)) {
+                    directoryVisitor.accept(file);
                 }
-            });
-            File parentFile = file;
-            while (true) {
-                parentFile = parentFile.getParentFile();
-                if (parentFile == null || !visited.add(parentFile)) {
-                    break;
-                }
-                directoryVisitor.accept(parentFile);
+            }
+            File directory = file.getParentFile();
+            if (visited.add(directory)) {
+                directoryVisitor.accept(directory);
             }
         });
     }

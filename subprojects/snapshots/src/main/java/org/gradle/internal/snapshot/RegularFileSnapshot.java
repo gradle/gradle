@@ -66,7 +66,7 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
 
     @Override
     public void accept(KnownNodeVisitor visitor) {
-        visitor.visitKnownNode(getPathToParent(), this);
+        visitor.visitKnownNode(this);
     }
 
     @Override
