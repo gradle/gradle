@@ -33,41 +33,6 @@ class DistributionIntegritySpec extends DistributionIntegrationSpec {
         'bin'
     }
 
-    def "verify 3rd-party dependencies jar hashes"() {
-        setup:
-        // dependencies produced by Gradle and cannot be verified by this test
-        def excluded = ['gradle-', 'fastutil-8.3.0-min', 'kotlin-compiler-embeddable-1.3.61-patched']
-
-        def libDir = unpackDistribution().file('lib')
-        def jars = collectJars(libDir)
-        def filtered = jars.grep { jar ->
-            // Filter out any excluded jars
-            !excluded.any { jar.name.startsWith(it) }
-        }
-        Map<String, TestFile> depJars = filtered.collectEntries { [libDir.relativePath(it), it] }
-
-        when:
-        def errors = []
-        depJars.each { String jarPath, TestFile jar ->
-            def expected = THIRD_PARTY_LIBS[jarPath]
-            def actual = jar.sha256Hash
-            if (expected != actual) {
-                errors << """SHA-256 hash does not match for ${jarPath}:
-  expected=${expected}
-  actual=${actual}
-"""
-            }
-        }
-        then:
-        errors.empty
-
-        when:
-        def added = depJars.keySet() - THIRD_PARTY_LIBS.keySet()
-        def removed = THIRD_PARTY_LIBS.keySet() - depJars.keySet()
-        then:
-        (added + removed).isEmpty()
-    }
-
     @Issue(['https://github.com/gradle/gradle/issues/9990', 'https://github.com/gradle/gradle/issues/10038'])
     def "validate dependency archives"() {
         when:
