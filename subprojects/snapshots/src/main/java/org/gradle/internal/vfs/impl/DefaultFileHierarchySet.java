@@ -96,7 +96,7 @@ public class DefaultFileHierarchySet implements FileHierarchySet {
     @Override
     public void visitKnownDirectories(Consumer<File> directoryVisitor) {
         Set<File> visited = new HashSet<>();
-        rootNode.accept((node) -> {
+        rootNode.accept(node -> {
             if (!(node instanceof CompleteFileSystemLocationSnapshot)) {
                 return;
             }
