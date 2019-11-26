@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl;
+package org.gradle.internal.vfs;
 
 import com.google.common.collect.Interner;
 import com.sun.nio.file.SensitivityWatchEventModifier;
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
@@ -44,16 +44,20 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem implements WatchingVirtualFileSystem, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchingVirtualFileSystem.class);
 
+    private final WellKnownFileLocations wellKnownFileLocations;
     private final WatchService watchService;
 
     public DefaultWatchingVirtualFileSystem(
         FileHasher hasher,
         Interner<String> stringInterner,
         Stat stat,
+        WellKnownFileLocations wellKnownFileLocations,
+
         CaseSensitivity caseSensitivity,
         String... defaultExcludes
     ) {
         super(hasher, stringInterner, stat, caseSensitivity, defaultExcludes);
+        this.wellKnownFileLocations = wellKnownFileLocations;
         try {
             this.watchService = FileSystems.getDefault().newWatchService();
         } catch (IOException ex) {
@@ -64,14 +68,16 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
     @Override
     public void startWatching() {
         root.get().visitKnownDirectories(directory -> {
+            if (!directory.exists()) {
+                // TODO Technically this shouldn't be needed
+                return;
+            }
+            if (wellKnownFileLocations.isImmutable(directory.getAbsolutePath())) {
+                return;
+            }
+            LOGGER.debug("Start watching {}", directory);
             try {
-                Path path = directory.toPath();
-                if (!Files.exists(path)) {
-                    // TODO Technically this shouldn't be needed
-                    return;
-                }
-                LOGGER.debug("Start watching {}", path);
-                path.register(watchService,
+                directory.toPath().register(watchService,
                     new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
                     SensitivityWatchEventModifier.HIGH);
             } catch (IOException ex) {
@@ -100,7 +106,8 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
                     break;
                 }
                 Path changedPath = watchRoot.resolve(((Path) event.context()));
-                update(Collections.singleton(changedPath.toString()), () -> {});
+                update(Collections.singleton(changedPath.toString()), () -> {
+                });
             }
         }
     }
