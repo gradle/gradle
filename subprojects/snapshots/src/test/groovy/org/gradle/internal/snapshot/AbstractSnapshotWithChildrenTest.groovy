@@ -26,8 +26,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHILD extends FileSystemNode> extends Specification {
     NODE initialRoot
     List<CHILD> children
-    String absolutePath
-    int offset
+    VfsRelativePath searchedPath
 
     /**
      * The child, if any, which has a common prefix with the selected path, i.e. (absolutePath/offset).
@@ -41,8 +40,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     void setupTest(VirtualFileSystemTestSpec spec) {
         this.children = createChildren(spec.childPaths)
         this.initialRoot = createInitialRootNode("path/to/parent", children)
-        this.absolutePath = spec.absolutePath
-        this.offset = spec.offset
+        this.searchedPath = spec.searchedPath
         this.selectedChild = children.find { it.pathToParent == spec.selectedChildPath }
     }
 
@@ -74,18 +72,18 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
 
     private int getInsertionPoint() {
         int childIndex = SearchUtil.binarySearch(children) {
-            candidate -> PathUtil.compareFirstSegment(absolutePath, offset, candidate.pathToParent, CASE_SENSITIVE)
+            candidate -> searchedPath.compareToFirstSegment(candidate.pathToParent, CASE_SENSITIVE)
         }
         assert childIndex < 0
         return -childIndex - 1
     }
 
     String getCommonPrefix() {
-        return selectedChild.pathToParent.substring(0, PathUtil.lengthOfCommonPrefix(selectedChild.pathToParent, absolutePath, offset, CASE_SENSITIVE))
+        return selectedChild.pathToParent.substring(0, searchedPath.lengthOfCommonPrefix(selectedChild.pathToParent, CASE_SENSITIVE))
     }
 
     String getPathFromCommonPrefix() {
-        return absolutePath.substring(offset + commonPrefix.length() + 1)
+        return searchedPath.suffixStartingFrom(commonPrefix.length() + 1).asString
     }
 
     String getSelectedChildPathFromCommonPrefix() {
@@ -93,13 +91,13 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     }
 
     def getDescendantSnapshotOfSelectedChild(@Nullable MetadataSnapshot foundSnapshot) {
-        def descendantOffset = offset + selectedChild.pathToParent.length() + 1
-        1 * selectedChild.getSnapshot(absolutePath, descendantOffset, CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
+        def descendantOffset = selectedChild.pathToParent.length() + 1
+        1 * selectedChild.getSnapshot(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(foundSnapshot)
     }
 
     def invalidateDescendantOfSelectedChild(@Nullable FileSystemNode invalidatedChild) {
-        def descendantOffset = offset + selectedChild.pathToParent.length() + 1
-        1 * selectedChild.invalidate(absolutePath, descendantOffset, CASE_SENSITIVE) >> Optional.ofNullable(invalidatedChild)
+        def descendantOffset = selectedChild.pathToParent.length() + 1
+        1 * selectedChild.invalidate(searchedPath.suffixStartingFrom(descendantOffset), CASE_SENSITIVE) >> Optional.ofNullable(invalidatedChild)
     }
 
     @SuppressWarnings("GrMethodMayBeStatic")
@@ -142,9 +140,9 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
             String newChildPath = firstSlash > -1
                 ? "${childPath.substring(0, firstSlash)}0${childPath.substring(firstSlash)}"
                 : "${childPath}0"
-            new VirtualFileSystemTestSpec(childPaths, newChildPath, 0, null)
-        } + new VirtualFileSystemTestSpec(childPaths, 'completelyDifferent', 0, null)
-    } + new VirtualFileSystemTestSpec([], 'different', 0, null)
+            new VirtualFileSystemTestSpec(childPaths, newChildPath, null)
+        } + new VirtualFileSystemTestSpec(childPaths, 'completelyDifferent', null)
+    } + new VirtualFileSystemTestSpec([], 'different', null)
 
     /**
      * The queried/updated path has a true common prefix with one of the initial children of the node under test.
@@ -156,7 +154,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     static final List<VirtualFileSystemTestSpec> COMMON_PREFIX = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.findAll { it.contains('/') } collectMany { childPath ->
             parentPaths(childPath).collect {
-                new VirtualFileSystemTestSpec(childPaths, "${it}/different", 0, childPath)
+                new VirtualFileSystemTestSpec(childPaths, "${it}/different", childPath)
             }
         }
     }
@@ -171,7 +169,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     static final List<VirtualFileSystemTestSpec> IS_PREFIX_OF_CHILD = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.findAll { it.contains('/') } collectMany { childPath ->
             parentPaths(childPath).collect { parentPath ->
-                new VirtualFileSystemTestSpec(childPaths, parentPath, 0, findPathWithParent(childPaths, parentPath))
+                new VirtualFileSystemTestSpec(childPaths, parentPath, findPathWithParent(childPaths, parentPath))
             }
         }
     }
@@ -185,7 +183,7 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
      */
     static final List<VirtualFileSystemTestSpec> SAME_PATH = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.collect {
-            new VirtualFileSystemTestSpec(childPaths, it, 0, it)
+            new VirtualFileSystemTestSpec(childPaths, it, it)
         }
     }
 
@@ -198,12 +196,12 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
      */
     static final List<VirtualFileSystemTestSpec> CHILD_IS_PREFIX = INITIAL_CHILD_CONSTELLATIONS.collectMany { childPaths ->
         childPaths.collect {
-            new VirtualFileSystemTestSpec(childPaths, "${it}/descendant", 0, it)
+            new VirtualFileSystemTestSpec(childPaths, "${it}/descendant", it)
         }
     }
 
     private static String findPathWithParent(List<String> childPaths, String parentPath) {
-        childPaths.find { PathUtil.hasPrefix(parentPath, it, 0, CASE_SENSITIVE) }
+        childPaths.find { VfsRelativePath.of(it, 0).hasPrefix(parentPath, CASE_SENSITIVE) }
     }
 
     private static List<String> parentPaths(String childPath) {

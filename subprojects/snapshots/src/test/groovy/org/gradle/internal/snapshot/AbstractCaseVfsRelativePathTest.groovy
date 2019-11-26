@@ -22,31 +22,28 @@ import spock.lang.Unroll
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 import static org.gradle.internal.snapshot.PathUtil.compareChars
 import static org.gradle.internal.snapshot.PathUtil.compareCharsIgnoringCase
-import static org.gradle.internal.snapshot.PathUtil.compareFirstSegment
 import static org.gradle.internal.snapshot.PathUtil.equalChars
 import static org.gradle.internal.snapshot.PathUtil.getPathComparator
-import static org.gradle.internal.snapshot.PathUtil.hasPrefix
-import static org.gradle.internal.snapshot.PathUtil.lengthOfCommonPrefix
 
 @Unroll
-abstract class AbstractCasePathUtilTest extends Specification{
+abstract class AbstractCaseVfsRelativePathTest extends Specification {
 
     abstract CaseSensitivity getCaseSensitivity()
 
-    def "length of common prefix of #prefix and #path at #offset is #result"() {
+    def "length of common prefix of #prefix and #absolutePath is #result"() {
         expect:
-        lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == result
+        VfsRelativePath.of(absolutePath).lengthOfCommonPrefix(prefix, caseSensitivity) == result
 
         where:
-        prefix       | path          | offset | result
-        '/root'      | '/'           | 0      | 0
-        '/root'      | '/root'       | 0      | 5
-        '/root/some' | '/root/other' | 0      | 5
+        prefix      | absolutePath  | result
+        'root'      | '/'           | 0
+        'root'      | '/root'       | 4
+        'root/some' | '/root/other' | 4
     }
 
     def "can compare by first segment"() {
         expect:
-        Integer.signum(compareFirstSegment(path1, offset, path2, caseSensitivity)) == result
+        Integer.signum(VfsRelativePath.of(path1, offset).compareToFirstSegment(path2, caseSensitivity)) == result
         if (result) {
             assert Integer.signum(path1.substring(offset) <=> path2) == result
         }
@@ -67,12 +64,12 @@ abstract class AbstractCasePathUtilTest extends Specification{
         "/var/hello/other"      | 5      | "hello/world/some" | 0
     }
 
-    def "length of common prefix of #prefix with #path at offset #offset is #result"() {
+    def "length of common prefix of #prefix with #absolutePath at offset #offset is #result"() {
         expect:
-        lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == result
+        VfsRelativePath.of(absolutePath, offset).lengthOfCommonPrefix(prefix, caseSensitivity) == result
 
         where:
-        prefix              | path                    | offset | result
+        prefix              | absolutePath            | offset | result
         "hello/world"       | "hello/other"           | 0      | 5
         "hello/world"       | "/var/hello/other"      | 5      | 5
         "hello/world"       | "/var/hello/world"      | 5      | 11
@@ -83,17 +80,19 @@ abstract class AbstractCasePathUtilTest extends Specification{
         "hello/world/some"  | "/var/hello/other"      | 5      | 5
         "hello/world"       | "/var/hello1/other"     | 5      | 0
         "bbc/some"          | "/var/abc/other"        | 5      | 0
-        "/hello/world/some" | "/var/hello/other"      | 0      | 0
-        "/hello/world/some" | "/var/hello/other"      | 4      | 6
+        "hello/world/some"  | "/var/hello/other"      | 1      | 0
+        "hello/world/some"  | "/var/hello/other"      | 5      | 5
     }
 
-    def "#prefix is prefix of #path at offset #offset: #result"() {
+    def "#prefix is prefix of #absolutePath at offset #offset: #result"() {
+        def relativePath = VfsRelativePath.of(absolutePath, offset)
+
         expect:
-        hasPrefix(prefix, path, offset, caseSensitivity)
-        lengthOfCommonPrefix(prefix, path, offset, caseSensitivity) == prefix.length()
+        relativePath.hasPrefix(prefix, caseSensitivity)
+        relativePath.lengthOfCommonPrefix(prefix, caseSensitivity) == prefix.length()
 
         where:
-        prefix         | path                       | offset | result
+        prefix         | absolutePath               | offset | result
         "hello/world"  | "hello/world\\inside"      | 0      | true
         "hello/world"  | "/var/hello/world\\inside" | 5      | true
         "hello\\world" | "/var/hello/world\\inside" | 5      | true
@@ -101,7 +100,7 @@ abstract class AbstractCasePathUtilTest extends Specification{
 
     def "separator is smaller than every other character"() {
         expect:
-        Integer.signum(compareFirstSegment(path1, offset, path2, caseSensitivity)) == result
+        Integer.signum(VfsRelativePath.of(path1, offset).compareToFirstSegment(path2, caseSensitivity)) == result
 
         where:
         path1              | offset | path2         | result
@@ -158,11 +157,11 @@ abstract class AbstractCasePathUtilTest extends Specification{
     def "path #spec.searchedPrefix has common prefix with #spec.expectedIndex in #spec.children"() {
         expect:
         SearchUtil.binarySearch(spec.children) { child ->
-            compareFirstSegment(spec.searchedPrefix, 0, child, caseSensitivity)
+            VfsRelativePath.of(spec.searchedPrefix).compareToFirstSegment(child, caseSensitivity)
         } == spec.expectedIndex
         spec.children.each { child ->
             def childIndex = spec.children.indexOf(child)
-            def lengthOfCommonPrefix = lengthOfCommonPrefix(spec.searchedPrefix, child, 0, caseSensitivity)
+            def lengthOfCommonPrefix = VfsRelativePath.of(child).lengthOfCommonPrefix(spec.searchedPrefix, caseSensitivity)
             if (childIndex == spec.expectedIndex) {
                 assert lengthOfCommonPrefix > 0
             } else {

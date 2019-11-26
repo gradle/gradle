@@ -96,7 +96,6 @@ public class RealisedMavenModuleResolveMetadataSerializationHelper extends Abstr
             if (dependency instanceof GradleDependencyMetadata) {
                 encoder.writeByte(GRADLE_DEPENDENCY_METADATA);
                 writeDependencyMetadata(encoder, (GradleDependencyMetadata) dependency);
-                break;
             } else if (dependency instanceof ConfigurationBoundExternalDependencyMetadata) {
                 ConfigurationBoundExternalDependencyMetadata dependencyMetadata = (ConfigurationBoundExternalDependencyMetadata) dependency;
                 ExternalDependencyDescriptor dependencyDescriptor = dependencyMetadata.getDependencyDescriptor();

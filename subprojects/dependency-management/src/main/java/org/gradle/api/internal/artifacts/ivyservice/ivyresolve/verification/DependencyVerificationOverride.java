@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
+import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.invocation.Gradle;
 
@@ -25,10 +26,6 @@ public interface DependencyVerificationOverride {
         @Override
         public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
             return original;
-        }
-
-        public void buildFinished(Gradle gradle) {
-
         }
     };
 
@@ -47,5 +44,20 @@ public interface DependencyVerificationOverride {
 
     ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original);
 
-    void buildFinished(Gradle gradle);
+    default void buildFinished(Gradle gradle) {
+
+    }
+
+    /**
+     * This method is called after we know artifacts have been resolved
+     * and that something is actually trying to get the files of an artifact set
+     * @param displayName
+     */
+    default void artifactsAccessed(String displayName) {
+
+    }
+
+    default ResolvedArtifactResult verifiedArtifact(ResolvedArtifactResult artifact) {
+        return artifact;
+    }
 }

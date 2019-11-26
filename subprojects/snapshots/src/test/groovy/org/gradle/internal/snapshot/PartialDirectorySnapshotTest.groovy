@@ -39,11 +39,11 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         return true
     }
 
-    def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -53,12 +53,12 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         vfsSpec << IS_PREFIX_OF_CHILD + SAME_PATH
     }
 
-    def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
@@ -71,11 +71,11 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         vfsSpec << CHILD_IS_PREFIX
     }
 
-    def "invalidate #vfsSpec.absolutePath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)

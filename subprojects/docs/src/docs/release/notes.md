@@ -17,7 +17,8 @@ Include only their name, impactful features should be called out separately belo
 [Benjamin Muskalla](https://github.com/bmuskalla),
 [Ian Kerins](https://github.com/isker)
 [Vladimir Sitnikov](https://github.com/vlsi),
-and [Michael Ernst](https://github.com/mernst).
+[Michael Ernst](https://github.com/mernst),
+and [Nelson Osacky](https://github.com/runningcode).
 
 ## Upgrade Instructions
 

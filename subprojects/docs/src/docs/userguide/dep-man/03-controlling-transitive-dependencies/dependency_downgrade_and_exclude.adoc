@@ -160,7 +160,7 @@ You may consider to look into the following features:
   If versions of dependencies clash, it is usually better to adjust the version through a dependency constraint, instead of attempting to exclude the dependency with the undesired version.
 - <<component_metadata_rules.adoc#,Component Metadata Rules>>:
   If a library's metadata is clearly wrong, for example if it includes a compile time dependency which is never needed at compile time, a possible solution is to remove the dependency in a component metadata rule.
-  By this, you tell Gradle that a dependency between two modules is never needed - i.e. the metadata was wrong - and therefore should *never* be considered.
+  By this, you tell Gradle that a dependency between two modules is never needed — i.e. the metadata was wrong — and therefore should *never* be considered.
   If you are developing a library, you have to be aware that this information is not published, and so sometimes an _exclude_ can be the better alternative.
 - <<dependency_capability_conflict.adoc#,Resolving mutually exclusive dependency conflicts>>:
   Another situation that you often see solved by excludes is that two dependencies can not be used together because they represent two implementations of the same thing (the same <<dependency_capability_conflict.adoc#sub:capabilities,capability>>).

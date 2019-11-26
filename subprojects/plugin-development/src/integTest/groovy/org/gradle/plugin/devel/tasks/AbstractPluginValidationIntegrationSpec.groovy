@@ -767,6 +767,34 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
+
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    def "reports both input and output annotation applied to the same property"() {
+        javaTaskSource << """
+            import java.io.File;
+            import org.gradle.api.*;
+            import org.gradle.api.model.*;
+            import org.gradle.api.tasks.*;
+            import org.gradle.api.provider.*;
+
+            public class MyTask extends DefaultTask {
+                @Optional
+                @InputFile
+                @OutputFile
+                public File getFile() {
+                    return null;
+                }
+
+                @TaskAction public void execute() {}
+            }
+        """
+
+        expect:
+        assertValidationFailsWith(
+            "Type 'MyTask': property 'file' has conflicting type annotations declared: @InputFile, @OutputFile; assuming @InputFile.": WARNING,
+        )
+    }
+
     abstract String getIterableSymbol()
 
     abstract String getNameSymbolFor(String name)

@@ -213,7 +213,7 @@ link:{groovyDslPath}/org.gradle.language.cpp.tasks.CppCompile.html#org.gradle.la
 [[sec:cpp_application_link_task]]
 === `link__Variant__` Task
 
-The {cpp} Application Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the application - e.g. `linkDebug` and `linkRelease`.
+The {cpp} Application Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the application — e.g. `linkDebug` and `linkRelease`.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 
@@ -235,6 +235,6 @@ link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html#org.gra
 [[sec:cpp_application_install_task]]
 === `install__Variant__` Task
 
-The {cpp} Application Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable] instance for each variant of the test component - e.g. `installDebug` and `installRelease`.
+The {cpp} Application Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.InstallExecutable.html[InstallExecutable] instance for each variant of the test component — e.g. `installDebug` and `installRelease`.
 Read the <<building_cpp_projects.adoc#sec:introducing_build_variants-cpp,introduction to build variants>> for more information.
 There is no need to configure any properties on the task.

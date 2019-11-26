@@ -38,11 +38,11 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         return false
     }
 
-    def "invalidate #vfsSpec.absolutePath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -52,11 +52,11 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() > 1 }
     }
 
-    def "invalidating the only child by #vfsSpec.absolutePath removes the node (#vfsSpec)"() {
+    def "invalidating the only child by #vfsSpec.searchedPath removes the node (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction { noMoreInteractions() }
@@ -65,12 +65,12 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() == 1 }
     }
 
-    def "invalidate #vfsSpec.absolutePath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
@@ -83,11 +83,11 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         vfsSpec << CHILD_IS_PREFIX
     }
 
-    def "invalidate #vfsSpec.absolutePath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
@@ -100,11 +100,11 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() > 1 }
     }
 
-    def "invalidate #vfsSpec.absolutePath removes the child #vfsSpec.selectedChildPath and the node with it (#vfsSpec)"() {
+    def "invalidate #vfsSpec.searchedPath removes the child #vfsSpec.selectedChildPath and the node with it (#vfsSpec)"() {
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(absolutePath, offset, CASE_SENSITIVE)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE)
         then:
         !resultRoot.present
         interaction {

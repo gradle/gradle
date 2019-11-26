@@ -19,7 +19,6 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -34,6 +33,7 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.RealisedConfigurationMetadata;
 import org.gradle.internal.component.external.model.VariantMetadataRules;
+import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleSource;
@@ -145,7 +145,7 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
-    public ImmutableList<? extends ComponentIdentifier> getPlatformOwners() {
+    public ImmutableList<? extends VirtualComponentIdentifier> getPlatformOwners() {
         return ImmutableList.of();
     }
 
