@@ -78,7 +78,7 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
             if (wellKnownFileLocations.isImmutable(directory.getAbsolutePath())) {
                 return;
             }
-            LOGGER.debug("Start watching {}", directory);
+            LOGGER.warn("Start watching {}", directory);
             try {
                 directory.toPath().register(watchService,
                     new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
