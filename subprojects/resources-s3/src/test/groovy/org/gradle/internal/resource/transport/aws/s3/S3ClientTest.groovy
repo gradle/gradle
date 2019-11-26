@@ -61,7 +61,6 @@ class S3ClientTest extends Specification {
         }
     }
 
-    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "Should upload large files to s3 using the multi-part API"() {
         given:
         AmazonS3Client amazonS3Client = Mock()
