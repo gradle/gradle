@@ -223,5 +223,10 @@ public class DefaultFileHierarchySet {
                 child.collect(depth + 1, prefixes);
             }
         }
+
+        @Override
+        public String toString() {
+            return prefix;
+        }
     }
 }
