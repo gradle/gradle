@@ -46,9 +46,10 @@ public interface ValueSource<T, P extends ValueSourceParameters> {
     P getParameters();
 
     /**
-     * Obtains the value from the source.
+     * Obtains the value from the source. The returned value must be effectively immutable.
      *
      * <p>This method must be implemented in the subclass.</p>
+     * <p>This method is only called if the provider value is requested and only once in that case.</p>
      *
      * @return the value obtained or {@code null} if the value is not present.
      */
