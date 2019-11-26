@@ -1,0 +1,2800 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <components>
+      <component group="antlr" name="antlr" version="2.7.7">
+         <artifact name="antlr" type="jar" ext="jar">
+            <sha256 value="88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c"/>
+         </artifact>
+      </component>
+      <component group="com.beust" name="jcommander" version="1.35">
+         <artifact name="jcommander" type="jar" ext="jar">
+            <sha256 value="19c12fec1ce5c02cbabb150f6ac8a86d92a0ecc9c89a549e5537283e863000c"/>
+         </artifact>
+      </component>
+      <component group="com.github.javaparser" name="javaparser-core" version="3.6.11">
+         <artifact name="javaparser-core" type="jar" ext="jar">
+            <sha256 value="a2da3d9707f1ab3fef4e10d785736249fd31abd14d7bf73f6de387e5bc645f99"/>
+         </artifact>
+      </component>
+      <component group="com.github.javaparser" name="javaparser-symbol-solver-core" version="3.6.11">
+         <artifact name="javaparser-symbol-solver-core" type="jar" ext="jar">
+            <sha256 value="49ff6d636ac4b788d5db5de5306abd008130639004d3489a320af55adb611ede"/>
+         </artifact>
+      </component>
+      <component group="com.github.javaparser" name="javaparser-symbol-solver-logic" version="3.6.11">
+         <artifact name="javaparser-symbol-solver-logic" type="jar" ext="jar">
+            <sha256 value="4c2f1fc7e938d84acd9d7e75b250e74c0dc8b4325c61ead202f8a3f41299cbb1"/>
+         </artifact>
+      </component>
+      <component group="com.github.javaparser" name="javaparser-symbol-solver-model" version="3.6.11">
+         <artifact name="javaparser-symbol-solver-model" type="jar" ext="jar">
+            <sha256 value="a9f135bb50ff08164124541526dfe2c2b40e4f9750c98bcf91508378ae48c8f"/>
+         </artifact>
+      </component>
+      <component group="com.github.siom79.japicmp" name="japicmp" version="0.10.0">
+         <artifact name="japicmp" type="jar" ext="jar">
+            <sha256 value="4a3b7d2e695fc4fabd6c547f3607cc4eb54f7b391b0fc50127c7320dbbe8e484"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.findbugs" name="jsr305" version="1.3.9">
+         <artifact name="jsr305" type="jar" ext="jar">
+            <sha256 value="905721a0eea90a81534abb7ee6ef4ea2e5e645fa1def0a5cd88402df1b46c9ed"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.findbugs" name="jsr305" version="3.0.2">
+         <artifact name="jsr305" type="jar" ext="jar">
+            <sha256 value="766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.gson" name="gson" version="2.7">
+         <artifact name="gson" type="jar" ext="jar">
+            <sha256 value="2d43eb5ea9e133d2ee2405cc14f5ee08951b8361302fdd93494a3a997b508d32"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.gson" name="gson" version="2.8.5">
+         <artifact name="gson" type="jar" ext="jar">
+            <sha256 value="233a0149fc365c9f6edbd683cfe266b19bdc773be98eabdaf6b3c924b48e7d81"/>
+         </artifact>
+      </component>
+      <component group="com.google.errorprone" name="error_prone_annotations" version="2.0.18">
+         <artifact name="error_prone_annotations" type="jar" ext="jar">
+            <sha256 value="cb4cfad870bf563a07199f3ebea5763f0dec440fcda0b318640b1feaa788656b"/>
+         </artifact>
+      </component>
+      <component group="com.google.errorprone" name="error_prone_annotations" version="2.1.3">
+         <artifact name="error_prone_annotations" type="jar" ext="jar">
+            <sha256 value="3d0329547c13da9e17c634d1049ea2ead093925e290567e1a364fd6b1fc7ff8"/>
+         </artifact>
+      </component>
+      <component group="com.google.errorprone" name="error_prone_annotations" version="2.2.0">
+         <artifact name="error_prone_annotations" type="jar" ext="jar">
+            <sha256 value="6ebd22ca1b9d8ec06d41de8d64e0596981d9607b42035f9ed374f9de271a481a"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="failureaccess" version="1.0.1">
+         <artifact name="failureaccess" type="jar" ext="jar">
+            <sha256 value="a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava" version="17.0">
+         <artifact name="guava" type="jar" ext="jar">
+            <sha256 value="8c36a80ea613d0b6b8040a17cf837c5bbe3677bc1b06a058a6c174fdb787ebbc"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava" version="23.4-jre">
+         <artifact name="guava" type="jar" ext="jar">
+            <sha256 value="2662a33f09febab5023ddbf52780cb8d2a6e0c49a24db8094adc0e944801a810"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava" version="25.1-jre">
+         <artifact name="guava" type="jar" ext="jar">
+            <sha256 value="6db0c3a244c397429c2e362ea2837c3622d5b68bb95105d37c21c36e5bc70abf"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava" version="27.1-jre">
+         <artifact name="guava" type="jar" ext="jar">
+            <sha256 value="4a5aa70cc968a4d137e599ad37553e5cfeed2265e8c193476d7119036c536fe7"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava-jdk5" version="14.0.1">
+         <artifact name="guava-jdk5" type="jar" ext="jar">
+            <sha256 value="a731ccc86ad457ea5f6b8f9835057d84a6da5e8eb0e88e84464b48bc9a27bcea"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="listenablefuture" version="9999.0-empty-to-avoid-conflict-with-guava">
+         <artifact name="listenablefuture" type="jar" ext="jar">
+            <sha256 value="b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99"/>
+         </artifact>
+      </component>
+      <component group="com.google.j2objc" name="j2objc-annotations" version="1.1">
+         <artifact name="j2objc-annotations" type="jar" ext="jar">
+            <sha256 value="40ceb7157feb263949e0f503fe5f71689333a621021aa20ce0d0acee3badaa0f"/>
+         </artifact>
+      </component>
+      <component group="com.gradle" name="gradle-enterprise-gradle-plugin" version="3.1">
+         <artifact name="gradle-enterprise-gradle-plugin" type="jar" ext="jar">
+            <sha256 value="bef20111e432bdccf8f872c437fa122712cb066ba8cb116d14e4fe292b6d4669"/>
+         </artifact>
+      </component>
+      <component group="com.gradle.publish" name="plugin-publish-plugin" version="0.10.0">
+         <artifact name="plugin-publish-plugin" type="jar" ext="jar">
+            <sha256 value="7eca605502e1ac6877c424aaa5888f8ad37e334579b5104cd193c1393430bbcd"/>
+         </artifact>
+      </component>
+      <component group="com.h2database" name="h2" version="1.4.196">
+         <artifact name="h2" type="jar" ext="jar">
+            <sha256 value="a05f4a0d5b85840148aadce63a423b5d3c36ef44756389b4faad08d2733faf5"/>
+         </artifact>
+      </component>
+      <component group="com.ibm.icu" name="icu4j" version="59.1">
+         <artifact name="icu4j" type="jar" ext="jar">
+            <sha256 value="deae084ed81bf5193ef43b1819ee6f120359f101ef0f11aa94697f82e9a91005"/>
+         </artifact>
+      </component>
+      <component group="com.nhaarman" name="mockito-kotlin" version="1.6.0">
+         <artifact name="mockito-kotlin" type="jar" ext="jar">
+            <sha256 value="20f51c98853764b5fda939fca14e6c48b337139672abc1faeaf0feee4862e340"/>
+         </artifact>
+      </component>
+      <component group="com.openhtmltopdf" name="openhtmltopdf-core" version="0.0.1-RC13">
+         <artifact name="openhtmltopdf-core" type="jar" ext="jar">
+            <sha256 value="939d227a8b8746e5718c0234d72a70aeacfe05adf6970d792222aeea9ab77eb9"/>
+         </artifact>
+      </component>
+      <component group="com.openhtmltopdf" name="openhtmltopdf-jsoup-dom-converter" version="0.0.1-RC13">
+         <artifact name="openhtmltopdf-jsoup-dom-converter" type="jar" ext="jar">
+            <sha256 value="5db1f3352d93beb9468c78dab77f0d08ee11e460fd99ec93a0a1afa17dd11e7f"/>
+         </artifact>
+      </component>
+      <component group="com.openhtmltopdf" name="openhtmltopdf-pdfbox" version="0.0.1-RC13">
+         <artifact name="openhtmltopdf-pdfbox" type="jar" ext="jar">
+            <sha256 value="a23f77f22a2a1ca88fad666cae3a7101a29d47267a1657978081709cfdec07ba"/>
+         </artifact>
+      </component>
+      <component group="com.openhtmltopdf" name="openhtmltopdf-rtl-support" version="0.0.1-RC13">
+         <artifact name="openhtmltopdf-rtl-support" type="jar" ext="jar">
+            <sha256 value="19433a57b13a4d54e5cf4a8e5652f4c1bc7e970093bcfcec6eb2b1f8fdd529d3"/>
+         </artifact>
+      </component>
+      <component group="com.puppycrawl.tools" name="checkstyle" version="8.12">
+         <artifact name="checkstyle" type="jar" ext="jar">
+            <sha256 value="5c30d034c316722cabc8a0eb43f18a823baaf35b47ce8123e202f065aeb6c362"/>
+         </artifact>
+      </component>
+      <component group="com.sun.mail" name="mailapi" version="1.6.0">
+         <artifact name="mailapi" type="jar" ext="jar">
+            <sha256 value="d5c79db26b4ccf985f5599c7f40515441a75011400e1c2d238c137b8bcd138b1"/>
+         </artifact>
+      </component>
+      <component group="com.sun.xml.bind" name="jaxb-core" version="2.2.11">
+         <artifact name="jaxb-core" type="jar" ext="jar">
+            <sha256 value="b13da0c655a3d590a2a945553648c407e6347648c9f7a3f811b7b3a8a1974baa"/>
+         </artifact>
+      </component>
+      <component group="com.sun.xml.bind" name="jaxb-impl" version="2.2.11">
+         <artifact name="jaxb-impl" type="jar" ext="jar">
+            <sha256 value="f91793a96f185a2fc004c86a37086f060985854ce6b19935e03c4de51e3201d2"/>
+         </artifact>
+      </component>
+      <component group="com.thoughtworks.qdox" name="qdox" version="2.0-M9">
+         <artifact name="qdox" type="jar" ext="jar">
+            <sha256 value="ee2f7fa60b6ef3151f1bb0a242e0bacb832ff29f3ee8fd3da61d26d8608bc1bc"/>
+         </artifact>
+      </component>
+      <component group="com.uwyn" name="jhighlight" version="1.0">
+         <artifact name="jhighlight" type="jar" ext="jar">
+            <sha256 value="ede52343fc4a8f080a1801bb735be1b895a5055d61cef55e2b5c6ac7dd4e5c8c"/>
+         </artifact>
+      </component>
+      <component group="com.vdurmont" name="semver4j" version="2.1.0">
+         <artifact name="semver4j" type="jar" ext="jar">
+            <sha256 value="8a09d0c657ceb03c0e5a42de535b2aab815cc10be467ea5be5aa8f9d2204c0c7"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark" version="0.34.56">
+         <artifact name="flexmark" type="jar" ext="jar">
+            <sha256 value="a03191e0d02da4ba2c6aaeff367b303eab08aca3d72df76647751ee4a4037f0a"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-all" version="0.34.56">
+         <artifact name="flexmark-all" type="jar" ext="jar">
+            <sha256 value="133c1398798c872d255f230789fd6287ee6ec0fecc10ca01647821abb6c76e01"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-abbreviation" version="0.34.56">
+         <artifact name="flexmark-ext-abbreviation" type="jar" ext="jar">
+            <sha256 value="6086f5aec7523736ccff6615b2f177a796c30ef295ea33750144436ea778fbf3"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-admonition" version="0.34.56">
+         <artifact name="flexmark-ext-admonition" type="jar" ext="jar">
+            <sha256 value="9453474b958b2e5234a74cf81fa2d695fd4ce9249badf1e068547be3c3646b16"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-anchorlink" version="0.34.56">
+         <artifact name="flexmark-ext-anchorlink" type="jar" ext="jar">
+            <sha256 value="c5073b26faaca757f947e6f183d3acae7897b8d40387961f7a3af5c64cb098ef"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-aside" version="0.34.56">
+         <artifact name="flexmark-ext-aside" type="jar" ext="jar">
+            <sha256 value="47be3f419342814afce05686ba270e4b8953551d20055394258b72813b275174"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-attributes" version="0.34.56">
+         <artifact name="flexmark-ext-attributes" type="jar" ext="jar">
+            <sha256 value="77b96794df71222bf4326b526b1fb638d83731be80621fa5732e1f546d6d08e0"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-autolink" version="0.34.56">
+         <artifact name="flexmark-ext-autolink" type="jar" ext="jar">
+            <sha256 value="b6c849af340b56214548d5e14e3448d2559434510f72e862c85d2a8ed0ed521e"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-definition" version="0.34.56">
+         <artifact name="flexmark-ext-definition" type="jar" ext="jar">
+            <sha256 value="8591724797d1dc3c0ce5db3baf5ec9da3a7b57fa158cae4fbf5ccec10d498a6a"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-emoji" version="0.34.56">
+         <artifact name="flexmark-ext-emoji" type="jar" ext="jar">
+            <sha256 value="d9923414944bc2cd3a638be2b7b58a6c103a687eba6cc298ec927d51a7180190"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-enumerated-reference" version="0.34.56">
+         <artifact name="flexmark-ext-enumerated-reference" type="jar" ext="jar">
+            <sha256 value="d17a9494821827ac17b4196e483c21a362dc20e9f0ae9830bfdb45235b6b7402"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-escaped-character" version="0.34.56">
+         <artifact name="flexmark-ext-escaped-character" type="jar" ext="jar">
+            <sha256 value="c864f45e96f333b453b7dd59f3458675dffb240787388f92518d63789f946293"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-footnotes" version="0.34.56">
+         <artifact name="flexmark-ext-footnotes" type="jar" ext="jar">
+            <sha256 value="4c887740c752096df11d2b1f29eb6a68a29aa450edd2db8cdd2487854a626def"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-gfm-issues" version="0.34.56">
+         <artifact name="flexmark-ext-gfm-issues" type="jar" ext="jar">
+            <sha256 value="aa67596d2ff9ceeb97612e2cb414ec4516ebc946e71dadbb4ef9484f5d752889"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-gfm-strikethrough" version="0.34.56">
+         <artifact name="flexmark-ext-gfm-strikethrough" type="jar" ext="jar">
+            <sha256 value="3223e06d273eea4ef61278f482255a0fb85b649c057ac2c36082413482246c72"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-gfm-tables" version="0.34.56">
+         <artifact name="flexmark-ext-gfm-tables" type="jar" ext="jar">
+            <sha256 value="355f8f3ec1ab1e3660268e3789b96102475bbb914a6fea26f18d21d463fdcefc"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-gfm-tasklist" version="0.34.56">
+         <artifact name="flexmark-ext-gfm-tasklist" type="jar" ext="jar">
+            <sha256 value="ccd9787e48859308cb7dde403bbc6490f7689af2ce541335042070fa6d9a48d2"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-gfm-users" version="0.34.56">
+         <artifact name="flexmark-ext-gfm-users" type="jar" ext="jar">
+            <sha256 value="7a56a1435e71469761172908caade73656606cee16bc8228b9d38ccac448493"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-gitlab" version="0.34.56">
+         <artifact name="flexmark-ext-gitlab" type="jar" ext="jar">
+            <sha256 value="104589028b8c0b81d45a36b0d3c260bd68ed496d1a5411310fb7a3a2ac120adf"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-ins" version="0.34.56">
+         <artifact name="flexmark-ext-ins" type="jar" ext="jar">
+            <sha256 value="de2111fc2388af0fda73c34f6cbe05c85a6783b2fc8c2c21da7f4c025cba444c"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-jekyll-front-matter" version="0.34.56">
+         <artifact name="flexmark-ext-jekyll-front-matter" type="jar" ext="jar">
+            <sha256 value="136ce984959dae60bc8d43e9532c40eef4c37cf3157d209d36814eca566425f3"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-jekyll-tag" version="0.34.56">
+         <artifact name="flexmark-ext-jekyll-tag" type="jar" ext="jar">
+            <sha256 value="22e42863a7c2f8e9237c5bff091fa72f80910942189932e64046d3ed8b8b73f"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-macros" version="0.34.56">
+         <artifact name="flexmark-ext-macros" type="jar" ext="jar">
+            <sha256 value="62f4349d23473383cfdf24c36fd8a7922f9ae0754dce5f4fdc78e6af0efeed9e"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-media-tags" version="0.34.56">
+         <artifact name="flexmark-ext-media-tags" type="jar" ext="jar">
+            <sha256 value="7a71fba641786c56e4c0d3a1a345b858790aed7cf5b623eb7a606b6520de9"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-superscript" version="0.34.56">
+         <artifact name="flexmark-ext-superscript" type="jar" ext="jar">
+            <sha256 value="b00914d4849f670ae95e7d0dbcefe8687931897c93644726dc07f69ed92f1bf5"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-tables" version="0.34.56">
+         <artifact name="flexmark-ext-tables" type="jar" ext="jar">
+            <sha256 value="2033496a65f98cd6c738b15ed964b24032d66b41b117f24567357b05920655f"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-toc" version="0.34.56">
+         <artifact name="flexmark-ext-toc" type="jar" ext="jar">
+            <sha256 value="eb2fdfb317a93258458bcae11e504bd8909fb171a4858d384b0c68540e7072bd"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-typographic" version="0.34.56">
+         <artifact name="flexmark-ext-typographic" type="jar" ext="jar">
+            <sha256 value="f28d6ee75636d1d7e3ad85c8a8a696f1a75c351a3eb8a2873c12d0c574a8b1c0"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-wikilink" version="0.34.56">
+         <artifact name="flexmark-ext-wikilink" type="jar" ext="jar">
+            <sha256 value="84e4bac9d24428b551d1b2242600d42df960f4d0d4db086c92504decd5328571"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-xwiki-macros" version="0.34.56">
+         <artifact name="flexmark-ext-xwiki-macros" type="jar" ext="jar">
+            <sha256 value="ff59b2afeb40e8088e339efddbbe17fdc278d423471aceccd2f8346b9bcff66d"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-yaml-front-matter" version="0.34.56">
+         <artifact name="flexmark-ext-yaml-front-matter" type="jar" ext="jar">
+            <sha256 value="9c0b45db592d6ca5f80ff5d003d69231fd9a118d8add6a5dcf9423f52c1d5db9"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-ext-youtube-embedded" version="0.34.56">
+         <artifact name="flexmark-ext-youtube-embedded" type="jar" ext="jar">
+            <sha256 value="dcdf78539f8ac945c2b914bc23dc15ae2244e4bdeff23c3e0c40a80420f79496"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-formatter" version="0.34.56">
+         <artifact name="flexmark-formatter" type="jar" ext="jar">
+            <sha256 value="2a0da6f2d9d004dad9acd67e0302f5303c6adb0286a55cab51f90a46ddf702c7"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-html-parser" version="0.34.56">
+         <artifact name="flexmark-html-parser" type="jar" ext="jar">
+            <sha256 value="1703ebba30e84b9258f6ca48cc26b7701dd95d8f3bec8b247e59a59f6c4f7ae1"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-jira-converter" version="0.34.56">
+         <artifact name="flexmark-jira-converter" type="jar" ext="jar">
+            <sha256 value="1d84880eb4cadce3be15926a63cc59f52a95765927e88f15901f83676aa3b896"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-pdf-converter" version="0.34.56">
+         <artifact name="flexmark-pdf-converter" type="jar" ext="jar">
+            <sha256 value="a4b9c191a7c4ebd2cae699c890ea46531d0ce1b910abb5ddd79eec706068607f"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-profile-pegdown" version="0.34.56">
+         <artifact name="flexmark-profile-pegdown" type="jar" ext="jar">
+            <sha256 value="8fe78a5fd7c077024888de4eee5753b331e182ada8701a81bfc59271e2e0b3e9"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-test-util" version="0.34.56">
+         <artifact name="flexmark-test-util" type="jar" ext="jar">
+            <sha256 value="c65d9e2942fa9e271568792d01e3852efc60da79842a91f5bc8a987f09875267"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-util" version="0.34.56">
+         <artifact name="flexmark-util" type="jar" ext="jar">
+            <sha256 value="a0ff19ad2685272888afa3ecba389fc0d4f04a337d54dd8f2c762eed56d09e18"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-youtrack-converter" version="0.34.56">
+         <artifact name="flexmark-youtrack-converter" type="jar" ext="jar">
+            <sha256 value="c140053336801d36e41d8b0096794a031b50c4367362249fb216c161212940b5"/>
+         </artifact>
+      </component>
+      <component group="commons-beanutils" name="commons-beanutils" version="1.8.0">
+         <artifact name="commons-beanutils" type="jar" ext="jar">
+            <sha256 value="13543939b86e3bb8339019d6acc08ecb04e4b095a82baf984e505b3afb54742a"/>
+         </artifact>
+      </component>
+      <component group="commons-beanutils" name="commons-beanutils" version="1.9.3">
+         <artifact name="commons-beanutils" type="jar" ext="jar">
+            <sha256 value="c058e39c7c64203d3a448f3adb588cb03d6378ed808485618f26e137f29dae73"/>
+         </artifact>
+      </component>
+      <component group="commons-cli" name="commons-cli" version="1.4">
+         <artifact name="commons-cli" type="jar" ext="jar">
+            <sha256 value="fd3c7c9545a9cdb2051d1f9155c4f76b1e4ac5a57304404a6eedb578ffba7328"/>
+         </artifact>
+      </component>
+      <component group="commons-codec" name="commons-codec" version="1.6">
+         <artifact name="commons-codec" type="jar" ext="jar">
+            <sha256 value="54b34e941b8e1414bd3e40d736efd3481772dc26db3296f6aa45cec9f6203d86"/>
+         </artifact>
+      </component>
+      <component group="commons-codec" name="commons-codec" version="1.9">
+         <artifact name="commons-codec" type="jar" ext="jar">
+            <sha256 value="ad19d2601c3abf0b946b5c3a4113e226a8c1e3305e395b90013b78dd94a723ce"/>
+         </artifact>
+      </component>
+      <component group="commons-collections" name="commons-collections" version="3.2.1">
+         <artifact name="commons-collections" type="jar" ext="jar">
+            <sha256 value="87363a4c94eaabeefd8b930cb059f66b64c9f7d632862f23de3012da7660047b"/>
+         </artifact>
+      </component>
+      <component group="commons-collections" name="commons-collections" version="3.2.2">
+         <artifact name="commons-collections" type="jar" ext="jar">
+            <sha256 value="eeeae917917144a68a741d4c0dff66aa5c5c5fd85593ff217bced3fc8ca783b8"/>
+         </artifact>
+      </component>
+      <component group="commons-io" name="commons-io" version="2.6">
+         <artifact name="commons-io" type="jar" ext="jar">
+            <sha256 value="f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513"/>
+         </artifact>
+      </component>
+      <component group="commons-lang" name="commons-lang" version="2.4">
+         <artifact name="commons-lang" type="jar" ext="jar">
+            <sha256 value="2c73b940c91250bc98346926270f13a6a10bb6e29d2c9316a70d134e382c873e"/>
+         </artifact>
+      </component>
+      <component group="commons-lang" name="commons-lang" version="2.6">
+         <artifact name="commons-lang" type="jar" ext="jar">
+            <sha256 value="50f11b09f877c294d56f24463f47d28f929cf5044f648661c0f0cfbae9a2f49c"/>
+         </artifact>
+      </component>
+      <component group="commons-logging" name="commons-logging" version="1.1.1">
+         <artifact name="commons-logging" type="jar" ext="jar">
+            <sha256 value="ce6f913cad1f0db3aad70186d65c5bc7ffcc9a99e3fe8e0b137312819f7c362f"/>
+         </artifact>
+      </component>
+      <component group="commons-logging" name="commons-logging" version="1.2">
+         <artifact name="commons-logging" type="jar" ext="jar">
+            <sha256 value="daddea1ea0be0f56978ab3006b8ac92834afeefbd9b7e4e6316fca57df0fa636"/>
+         </artifact>
+      </component>
+      <component group="de.rototor.pdfbox" name="graphics2d" version="0.12">
+         <artifact name="graphics2d" type="jar" ext="jar">
+            <sha256 value="c0711863671eccacdcb1e49ad97477ed743969251ebf00adbc9f566df360285e"/>
+         </artifact>
+      </component>
+      <component group="de.undercouch" name="gradle-download-task" version="3.4.3">
+         <artifact name="gradle-download-task" type="jar" ext="jar">
+            <sha256 value="453637054b08115122b7c7b2acf87e912e1613a78f37be3e9e6779cd0830d43e"/>
+         </artifact>
+      </component>
+      <component group="gradle.plugin.org.jetbrains.gradle.plugin.idea-ext" name="gradle-idea-ext" version="0.7">
+         <artifact name="gradle-idea-ext" type="jar" ext="jar">
+            <sha256 value="1fb062ce91b80a406ab2721c4209f099cadfcf4e56cca044b1e126e20d177e32"/>
+         </artifact>
+      </component>
+      <component group="io.mockk" name="mockk" version="1.8.13">
+         <artifact name="mockk" type="jar" ext="jar">
+            <sha256 value="4eaeca28b4e89110b66fb0648bcc86e31c09f434d9c6c7276b4b15ca8ef839cc"/>
+         </artifact>
+      </component>
+      <component group="io.mockk" name="mockk-agent-api" version="1.8.13">
+         <artifact name="mockk-agent-api" type="jar" ext="jar">
+            <sha256 value="9f07282e788bc9f163f0154a963406e28c84b42edc897f62deae9b9cd38ccd92"/>
+         </artifact>
+      </component>
+      <component group="io.mockk" name="mockk-agent-common" version="1.8.13">
+         <artifact name="mockk-agent-common" type="jar" ext="jar">
+            <sha256 value="9c5ca707dc412aca538a62bcde9c4df36fdb2c406a6510d85cbbf9ee4d1fd059"/>
+         </artifact>
+      </component>
+      <component group="io.mockk" name="mockk-agent-jvm" version="1.8.13">
+         <artifact name="mockk-agent-jvm" type="jar" ext="jar">
+            <sha256 value="a7b96616ab988a42d02c19c6d734226f2467e1e65fbdce59fabdbf51e9e87163"/>
+         </artifact>
+      </component>
+      <component group="io.mockk" name="mockk-common" version="1.8.13">
+         <artifact name="mockk-common" type="jar" ext="jar">
+            <sha256 value="6587d5d5b2729aeca8a2cbed8f8c5171868377e9b670120ce955bdba54e90c7a"/>
+         </artifact>
+      </component>
+      <component group="io.mockk" name="mockk-dsl" version="1.8.13">
+         <artifact name="mockk-dsl" type="jar" ext="jar">
+            <sha256 value="849f367c87e74a8dc1e1d47c5eb10d803b4914577e9b5dc62ea24e75b136de1b"/>
+         </artifact>
+      </component>
+      <component group="io.mockk" name="mockk-dsl-jvm" version="1.8.13">
+         <artifact name="mockk-dsl-jvm" type="jar" ext="jar">
+            <sha256 value="feec7d26d3166d7158bc5897d4d59220f818377b7b807cb2ffa8026d9419d9b9"/>
+         </artifact>
+      </component>
+      <component group="javax.activation" name="activation" version="1.1.1">
+         <artifact name="activation" type="jar" ext="jar">
+            <sha256 value="ae475120e9fcd99b4b00b38329bd61cdc5eb754eee03fe66c01f50e137724f99"/>
+         </artifact>
+      </component>
+      <component group="javax.xml.bind" name="jaxb-api" version="2.2.12">
+         <artifact name="jaxb-api" type="jar" ext="jar">
+            <sha256 value="68a621ec18485f951d09ac76f43e57eee394dbe42cb8f2a4c59c93296fa9dcc6"/>
+         </artifact>
+      </component>
+      <component group="joda-time" name="joda-time" version="1.6">
+         <artifact name="joda-time" type="jar" ext="jar">
+            <sha256 value="bc96dbe7c56f4fe367ea33e66dfcf18b589e3c8eddcff52a78323c5e6da2387e"/>
+         </artifact>
+      </component>
+      <component group="junit" name="junit" version="4.12">
+         <artifact name="junit" type="jar" ext="jar">
+            <sha256 value="59721f0805e223d84b90677887d9ff567dc534d7c502ca903c0c2b17f05c116a"/>
+         </artifact>
+      </component>
+      <component group="me.champeau.gradle" name="japicmp-gradle-plugin" version="0.2.7">
+         <artifact name="japicmp-gradle-plugin" type="jar" ext="jar">
+            <sha256 value="661f73230dfe586a02a767542dfba4f2950476f23ff9f36bf73867d653d1bc56"/>
+         </artifact>
+      </component>
+      <component group="me.champeau.gradle" name="jmh-gradle-plugin" version="0.5.0-rc-2">
+         <artifact name="jmh-gradle-plugin" type="jar" ext="jar">
+            <sha256 value="311d3df1910eb678e172110b0f0b1cbe6f83f89e87327fb8cb54bfa998a461f2"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy" version="1.8.21">
+         <artifact name="byte-buddy" type="jar" ext="jar">
+            <sha256 value="bf9121e29c855e69b4583ff98c1f7be3023b0207b27ec34dea8633be3361bd90"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy" version="1.8.22">
+         <artifact name="byte-buddy" type="jar" ext="jar">
+            <sha256 value="d330d2ef290a2852bbaf06eab03bc93d24501599c8a836da9d946f82c48e276c"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy" version="1.8.5">
+         <artifact name="byte-buddy" type="jar" ext="jar">
+            <sha256 value="5cdf38df41d2224e668382dde9d8698b443769d8d20f4a3377b029c6719d681e"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy-agent" version="1.8.22">
+         <artifact name="byte-buddy-agent" type="jar" ext="jar">
+            <sha256 value="ebc20e83fbb13e7911e4c704c9548a4166d7e83922f80de700ae5c5c983943d5"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy-agent" version="1.8.5">
+         <artifact name="byte-buddy-agent" type="jar" ext="jar">
+            <sha256 value="804e0d85bff9f34110564318bfb34ec62604c4704dbcc734668abd68d58cbb7a"/>
+         </artifact>
+      </component>
+      <component group="net.sf.ezmorph" name="ezmorph" version="1.0.6">
+         <artifact name="ezmorph" type="jar" ext="jar">
+            <sha256 value="2be06a2380f8656426b5c610db694bbd75314caf3e9191affcd7942721398ed7"/>
+         </artifact>
+      </component>
+      <component group="net.sf.jopt-simple" name="jopt-simple" version="4.6">
+         <artifact name="jopt-simple" type="jar" ext="jar">
+            <sha256 value="3fcfbe3203c2ea521bf7640484fd35d6303186ea2e08e72f032d640ca067ffda"/>
+         </artifact>
+      </component>
+      <component group="net.sf.json-lib" name="json-lib" version="2.3">
+         <artifact name="json-lib" classifier="jdk15" type="jar" ext="jar">
+            <sha256 value="1e58cc49a02f2ae22049c73de69d03a6aa44f197533c42106a302e03c95c40ca"/>
+         </artifact>
+      </component>
+      <component group="net.sf.saxon" name="Saxon-HE" version="9.8.0-12">
+         <artifact name="Saxon-HE" type="jar" ext="jar">
+            <sha256 value="ea44221e70bad2e1bffe9c37454d52047b44f5ee86ae86ad17553e4409beb474"/>
+         </artifact>
+      </component>
+      <component group="net.sourceforge.nekohtml" name="nekohtml" version="1.9.16">
+         <artifact name="nekohtml" type="jar" ext="jar">
+            <sha256 value="9d8160bdd45d5f39cddee3b40e143f3eef1295103ffe19b12077ee5bf46c980f"/>
+         </artifact>
+      </component>
+      <component group="net.swiftzer.semver" name="semver" version="1.1.1">
+         <artifact name="semver" type="jar" ext="jar">
+            <sha256 value="757eeb1c6703b81fa3bb6bc2eae7a5fe6ddac5d833b977aa1ce08979d7c2de5a"/>
+         </artifact>
+      </component>
+      <component group="org.antlr" name="antlr4-runtime" version="4.7.1">
+         <artifact name="antlr4-runtime" type="jar" ext="jar">
+            <sha256 value="43516d19beae35909e04d06af6c0c58c17bc94e0070c85e8dc9929ca640dc91d"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-compress" version="1.15">
+         <artifact name="commons-compress" type="jar" ext="jar">
+            <sha256 value="a778bbd659722889245fc52a0ec2873fbbb89ec661bc1ad3dc043c0757c784c4"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-lang3" version="3.4">
+         <artifact name="commons-lang3" type="jar" ext="jar">
+            <sha256 value="734c8356420cc8e30c795d64fd1fcd5d44ea9d90342a2cc3262c5158fbc6d98b"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-lang3" version="3.5">
+         <artifact name="commons-lang3" type="jar" ext="jar">
+            <sha256 value="8ac96fc686512d777fca85e144f196cd7cfe0c0aec23127229497d1a38ff651c"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-math3" version="3.2">
+         <artifact name="commons-math3" type="jar" ext="jar">
+            <sha256 value="6268a9a0ea3e769fc493a21446664c0ef668e48c93d126791f6f3f757978fee2"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpclient" version="4.2.1">
+         <artifact name="httpclient" type="jar" ext="jar">
+            <sha256 value="8885d824bc82704fa85f658aa330820f797b2c5f79ca0ace15b00a14b8116b32"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpclient" version="4.5.3">
+         <artifact name="httpclient" type="jar" ext="jar">
+            <sha256 value="db3d1b6c2d6a5e5ad47577ad61854e2f0e0936199b8e05eb541ed52349263135"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcore" version="4.2.1">
+         <artifact name="httpcore" type="jar" ext="jar">
+            <sha256 value="8086826dd2349d83e4933fde398965cdfe871eb9278cdb61ac5bc8141d797d84"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcore" version="4.4.6">
+         <artifact name="httpcore" type="jar" ext="jar">
+            <sha256 value="d7f853dee87680b07293d30855b39b9eb56c1297bd16ff1cd6f19ddb8fa745fb"/>
+         </artifact>
+      </component>
+      <component group="org.apache.lucene" name="lucene-analyzers-common" version="5.5.5">
+         <artifact name="lucene-analyzers-common" type="jar" ext="jar">
+            <sha256 value="f5fd2a9a9838dd4b7d4a21261aaf2d457b7b831d3c674293e66d356569ef94ac"/>
+         </artifact>
+      </component>
+      <component group="org.apache.lucene" name="lucene-core" version="5.5.5">
+         <artifact name="lucene-core" type="jar" ext="jar">
+            <sha256 value="8d27a8ab4ee8883282d7713f067e72d1cfde1e88d0f5701a119100ec9e86d7e1"/>
+         </artifact>
+      </component>
+      <component group="org.apache.lucene" name="lucene-queries" version="5.5.5">
+         <artifact name="lucene-queries" type="jar" ext="jar">
+            <sha256 value="f0f15c590cfe3ee7bc5f61731e9afdc5b1c8eccbfc715b12a30d476b5ea2aa5c"/>
+         </artifact>
+      </component>
+      <component group="org.apache.lucene" name="lucene-queryparser" version="5.5.5">
+         <artifact name="lucene-queryparser" type="jar" ext="jar">
+            <sha256 value="89ed31a799f2b11a0bd5c4155381c03694d2223fb21d3940ce7d018766ff629a"/>
+         </artifact>
+      </component>
+      <component group="org.apache.lucene" name="lucene-sandbox" version="5.5.5">
+         <artifact name="lucene-sandbox" type="jar" ext="jar">
+            <sha256 value="b51698bed971d582451135c7b8b7ef71acb805fe66ef6a7dfeddc525b14e345e"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-model" version="3.0.4">
+         <artifact name="maven-model" type="jar" ext="jar">
+            <sha256 value="26b6825ea73ac4d7b1a6f5e62ac1c11b0fc272504da6dde9ba8f894cd847e1c1"/>
+         </artifact>
+      </component>
+      <component group="org.apache.pdfbox" name="fontbox" version="2.0.8">
+         <artifact name="fontbox" type="jar" ext="jar">
+            <sha256 value="a6fab3b2ad256564e10224d7c2c0d4977fcfd5cd566a659f429e9c3793720e12"/>
+         </artifact>
+      </component>
+      <component group="org.apache.pdfbox" name="pdfbox" version="2.0.8">
+         <artifact name="pdfbox" type="jar" ext="jar">
+            <sha256 value="8deec6288a6d0866f2794ae2c1924459f1b70234f04ac223ff9a773e317f5816"/>
+         </artifact>
+      </component>
+      <component group="org.apache.pdfbox" name="xmpbox" version="2.0.8">
+         <artifact name="xmpbox" type="jar" ext="jar">
+            <sha256 value="86987a3536a79740494594ba56586a54063ac045e9773601feb2b2bf0fca70c7"/>
+         </artifact>
+      </component>
+      <component group="org.apache.velocity" name="velocity" version="1.7">
+         <artifact name="velocity" type="jar" ext="jar">
+            <sha256 value="ec92dae810034f4b46dbb16ef4364a4013b0efb24a8c5dd67435cae46a290d8e"/>
+         </artifact>
+      </component>
+      <component group="org.apiguardian" name="apiguardian-api" version="1.0.0">
+         <artifact name="apiguardian-api" type="jar" ext="jar">
+            <sha256 value="1f58b77470d8d147a0538d515347dd322f49a83b9e884b8970051160464b65b3"/>
+         </artifact>
+      </component>
+      <component group="org.asciidoctor" name="asciidoctor-gradle-plugin" version="1.5.10">
+         <artifact name="asciidoctor-gradle-plugin" type="jar" ext="jar">
+            <sha256 value="5076611c14107ec0aa057842567db1e1c0c4e54cdad229c6e189b6503bda8b2e"/>
+         </artifact>
+      </component>
+      <component group="org.asciidoctor" name="asciidoctorj" version="1.5.8.1">
+         <artifact name="asciidoctorj" type="jar" ext="jar">
+            <sha256 value="599fd7281344ee8085caac3b8e99dc1ea1d8443918dc10f5dc0790db6a7cff7d"/>
+         </artifact>
+      </component>
+      <component group="org.asciidoctor" name="asciidoctorj-pdf" version="1.5.0-alpha.16">
+         <artifact name="asciidoctorj-pdf" type="jar" ext="jar">
+            <sha256 value="f247dc045283d84d18f4cb08bad74c51933db5e99b7c80fca38b7c61248776c8"/>
+         </artifact>
+      </component>
+      <component group="org.checkerframework" name="checker-qual" version="2.0.0">
+         <artifact name="checker-qual" type="jar" ext="jar">
+            <sha256 value="fc8441632f5fa5537492c9f026d1c8b1adb6a7796f46031b04b4cc0622427995"/>
+         </artifact>
+      </component>
+      <component group="org.checkerframework" name="checker-qual" version="2.5.2">
+         <artifact name="checker-qual" type="jar" ext="jar">
+            <sha256 value="64b02691c8b9d4e7700f8ee2e742dce7ea2c6e81e662b7522c9ee3bf568c040a"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.groovy.modules.http-builder" name="http-builder" version="0.7.2">
+         <artifact name="http-builder" type="jar" ext="jar">
+            <sha256 value="cbd0fa43ebc62cb548e17f78b92b745220d9b1904f255c5916ef5a592b11e090"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.mojo" name="animal-sniffer-annotations" version="1.14">
+         <artifact name="animal-sniffer-annotations" type="jar" ext="jar">
+            <sha256 value="2068320bd6bad744c3673ab048f67e30bef8f518996fa380033556600669905d"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.mojo" name="animal-sniffer-annotations" version="1.17">
+         <artifact name="animal-sniffer-annotations" type="jar" ext="jar">
+            <sha256 value="92654f493ecfec52082e76354f0ebf87648dc3d5cec2e3c3cdb947c016747a53"/>
+         </artifact>
+      </component>
+      <component group="org.codenarc" name="CodeNarc" version="1.0">
+         <artifact name="CodeNarc" type="jar" ext="jar">
+            <sha256 value="a5a93e93c54648c4fba65ae8168c5c382b701a67421e1378791d31167ed27166"/>
+         </artifact>
+      </component>
+      <component group="org.glassfish" name="javax.json" version="1.0.4">
+         <artifact name="javax.json" type="jar" ext="jar">
+            <sha256 value="e1dec40a1ede965941251eda968aeee052cc4f50378bc316cc48e8159bdbeb4"/>
+         </artifact>
+      </component>
+      <component group="org.gmetrics" name="GMetrics" version="1.0">
+         <artifact name="GMetrics" type="jar" ext="jar">
+            <sha256 value="d8c8fd300abac3e11e9a306dce82a1df0626eb26a40c20efcc4d88611b2e676e"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.groovy" name="groovy-all" version="1.3-2.5.8">
+         <artifact name="groovy-all" type="jar" ext="jar">
+            <sha256 value="25394ae305024c27bca108eeb7e9895e97c6dc1e9701f341502bf10dd00bef33"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.kotlin" name="gradle-kotlin-dsl-conventions" version="0.4.1">
+         <artifact name="gradle-kotlin-dsl-conventions" type="jar" ext="jar">
+            <sha256 value="34ab4b4b2155c54a53dfffdf60316ce2169aae929fb1f0bac649e16780fb2901"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.kotlin" name="plugins" version="1.3.2">
+         <artifact name="plugins" type="jar" ext="jar">
+            <sha256 value="8430e842e5827cdfb6e9ead5a5bd476e2ec48f1c7331f014c91a3a8ad31d9086"/>
+         </artifact>
+      </component>
+      <component group="org.hamcrest" name="hamcrest-core" version="1.3">
+         <artifact name="hamcrest-core" type="jar" ext="jar">
+            <sha256 value="66fdef91e9739348df7a096aa384a5685f4e875584cce89386a7a47251c4d8e9"/>
+         </artifact>
+      </component>
+      <component group="org.javassist" name="javassist" version="3.20.0-GA">
+         <artifact name="javassist" type="jar" ext="jar">
+            <sha256 value="d7691062fb779c2381640c8f72acba2c23873b01c243866d41c15dc4c8848ea2"/>
+         </artifact>
+      </component>
+      <component group="org.javassist" name="javassist" version="3.22.0-GA">
+         <artifact name="javassist" type="jar" ext="jar">
+            <sha256 value="59531c00f3e3aa1ff48b3a8cf4ead47d203ab0e2fd9e0ad401f764e05947e252"/>
+         </artifact>
+      </component>
+      <component group="org.javassist" name="javassist" version="3.23.0-GA">
+         <artifact name="javassist" type="jar" ext="jar">
+            <sha256 value="dd1532fadbdb752765b1f35e507a4d7b3598168ef7abedea0524cfe4422f3179"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains" name="annotations" version="13.0">
+         <artifact name="annotations" type="jar" ext="jar">
+            <sha256 value="ace2a10dc8e2d5fd34925ecac03e4988b2c0f851650c94b8cef49ba1bd111478"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.intellij.deps" name="trove4j" version="1.0.20181211">
+         <artifact name="trove4j" type="jar" ext="jar">
+            <sha256 value="affb7c85a3c87bdcf69ff1dbb84de11f63dc931293934bc08cd7ab18de083601"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-android-extensions" version="1.3.60">
+         <artifact name="kotlin-android-extensions" type="jar" ext="jar">
+            <sha256 value="d01c72493b0da84298d8c8b5ff74cc857057c09c2e0792eb6183a9e9ee84edc9"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-annotation-processing-gradle" version="1.3.60">
+         <artifact name="kotlin-annotation-processing-gradle" type="jar" ext="jar">
+            <sha256 value="2047d4dc7c79d7e69923d15891a8ba56932a5f5521489f704b34c71ad97aa78c"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-build-common" version="1.3.60">
+         <artifact name="kotlin-build-common" type="jar" ext="jar">
+            <sha256 value="852b1ebd7659a6afd930a93ab1681b51d98767455924c77941ca14ad48b13052"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-compiler-embeddable" version="1.3.60">
+         <artifact name="kotlin-compiler-embeddable" type="jar" ext="jar">
+            <sha256 value="f53fe4fefd4d9a3daa7896b8699a64779eef370c906fa4f0e3aa947b270526ad"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-compiler-runner" version="1.3.60">
+         <artifact name="kotlin-compiler-runner" type="jar" ext="jar">
+            <sha256 value="deb3266be9c51eff99eb6e1f80f3543feeef68d0ad6e90d138edc2fab0b2c0f0"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-daemon-client" version="1.3.60">
+         <artifact name="kotlin-daemon-client" type="jar" ext="jar">
+            <sha256 value="917d3805419eeb8a9435cf3f28280aab3b0eb57e0a78ac7f91ac0888c646a680"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-daemon-embeddable" version="1.3.60">
+         <artifact name="kotlin-daemon-embeddable" type="jar" ext="jar">
+            <sha256 value="d98cc407ffeec1be372098bd468698c65fad2d3d32ae4684410e73cc78fccd00"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-gradle-plugin" version="1.3.60">
+         <artifact name="kotlin-gradle-plugin" type="jar" ext="jar">
+            <sha256 value="dfc2a4c6e3b849b1c3b7510a7449229da27ffc5aeb09c3cbf94cff26714f6dfd"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-gradle-plugin-api" version="1.3.60">
+         <artifact name="kotlin-gradle-plugin-api" type="jar" ext="jar">
+            <sha256 value="ba83f15b2b83a7c49b073d77d72f004a4e74810f4fcfa49a778403dc35a0daf0"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-gradle-plugin-model" version="1.3.60">
+         <artifact name="kotlin-gradle-plugin-model" type="jar" ext="jar">
+            <sha256 value="e7eee98de3a11442daa43e43da1e5b6f40f259f0b0aab42e4932d705b9d51135"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-native-utils" version="1.3.60">
+         <artifact name="kotlin-native-utils" type="jar" ext="jar">
+            <sha256 value="dd40755975ba674a31b27ca4108a3006ad404cd511d42b229310c2ce0c666ae9"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-reflect" version="1.3.60">
+         <artifact name="kotlin-reflect" type="jar" ext="jar">
+            <sha256 value="8075d263e4c00f8ddd71db47581773ed40049824fad34f073661f9a8c4768adb"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-sam-with-receiver" version="1.3.60">
+         <artifact name="kotlin-sam-with-receiver" type="jar" ext="jar">
+            <sha256 value="f666485ccb5f3690f858cab11b9d415c4ee761359a1c6aa1ff0115b97f4f8642"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-script-runtime" version="1.3.60">
+         <artifact name="kotlin-script-runtime" type="jar" ext="jar">
+            <sha256 value="5c96492ec6b3995b7d3c5ae6faacc8d6f47e8ff875237be08a9e2662a27f9858"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-scripting-common" version="1.3.60">
+         <artifact name="kotlin-scripting-common" type="jar" ext="jar">
+            <sha256 value="5e2e0fb83530669523deaf1d142d2402f6d40da69aac0c47b077b126c27c890a"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-scripting-compiler-embeddable" version="1.3.60">
+         <artifact name="kotlin-scripting-compiler-embeddable" type="jar" ext="jar">
+            <sha256 value="bc0e3ab2a6997401e91c29300345e0bbc8fd7d82e3e5e78cd268a0d4727b1e01"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-scripting-compiler-impl-embeddable" version="1.3.60">
+         <artifact name="kotlin-scripting-compiler-impl-embeddable" type="jar" ext="jar">
+            <sha256 value="9cb0bc0c694bc84aeaca3afcd1de3b25b10430704f52c99c6319bf2b10ced9ad"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-scripting-jvm" version="1.3.60">
+         <artifact name="kotlin-scripting-jvm" type="jar" ext="jar">
+            <sha256 value="9a97f876e46d0e20c5ddb33ac319164490c436abbcd2fcdbd5fca0e5a3ae411"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-stdlib" version="1.3.60">
+         <artifact name="kotlin-stdlib" type="jar" ext="jar">
+            <sha256 value="e98834000b5db07376d5782761ad58f3f23ccd05b6f1fa90dc0ad428be582506"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-stdlib-common" version="1.3.60">
+         <artifact name="kotlin-stdlib-common" type="jar" ext="jar">
+            <sha256 value="1f1586b4ad56158f85a376ccbff36bf4cf131b9d9a3930eb4468023cf082a77f"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-stdlib-jdk7" version="1.3.60">
+         <artifact name="kotlin-stdlib-jdk7" type="jar" ext="jar">
+            <sha256 value="eff4c2d86bd159c991fdf213576d85eca6b94191729d905d8686633a17195967"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-stdlib-jdk8" version="1.3.60">
+         <artifact name="kotlin-stdlib-jdk8" type="jar" ext="jar">
+            <sha256 value="7abde0fd337d680a11365b750224b9c88de65923b19246292c2836d99458069d"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-util-io" version="1.3.60">
+         <artifact name="kotlin-util-io" type="jar" ext="jar">
+            <sha256 value="15d4c95c5e43ea64db9196dac7eb75b433d8a1dcb280f2106e30f9eb4bb74c3c"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlinx" name="kotlinx-coroutines-core" version="1.2.1">
+         <artifact name="kotlinx-coroutines-core" type="jar" ext="jar">
+            <sha256 value="7177ed4629704537e0252537629886f5409526ecd041d8d8e308e20624b14394"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlinx" name="kotlinx-metadata-jvm" version="0.1.0">
+         <artifact name="kotlinx-metadata-jvm" type="jar" ext="jar">
+            <sha256 value="9753bb39efef35957c5c15df9a3cb769aabf2cdfa74b47afcb7760e5146be3b5"/>
+         </artifact>
+      </component>
+      <component group="org.jlleitschuh.gradle" name="ktlint-gradle" version="8.2.0">
+         <artifact name="ktlint-gradle" type="jar" ext="jar">
+            <sha256 value="a0b8a2ea760667678076ddbf6cc51e45d17a152b8c32ff884ee0f4e0b10e5b55"/>
+         </artifact>
+      </component>
+      <component group="org.jruby" name="jruby-complete" version="9.1.17.0">
+         <artifact name="jruby-complete" type="jar" ext="jar">
+            <sha256 value="bdf1a7ca08161d42262b3dad5888ba6fecaf9a2da7ff9170489224f3525cb457"/>
+         </artifact>
+      </component>
+      <component group="org.jsoup" name="jsoup" version="1.10.2">
+         <artifact name="jsoup" type="jar" ext="jar">
+            <sha256 value="6ebe6abd7775c10a49407ae22db45c840cd2cdaf715866a5b0b5af70941c3f4a"/>
+         </artifact>
+      </component>
+      <component group="org.jsoup" name="jsoup" version="1.11.2">
+         <artifact name="jsoup" type="jar" ext="jar">
+            <sha256 value="f4b843e5012648676117f1cadf0adbd5dff91f0cb07b888d6b4d6e7cbb9737db"/>
+         </artifact>
+      </component>
+      <component group="org.jsoup" name="jsoup" version="1.11.3">
+         <artifact name="jsoup" type="jar" ext="jar">
+            <sha256 value="df2c71a4240ecbdae7cdcd1667bcf0d747e4e3dcefe8161e787adcff7e5f2fa0"/>
+         </artifact>
+      </component>
+      <component group="org.junit.jupiter" name="junit-jupiter-api" version="5.1.0">
+         <artifact name="junit-jupiter-api" type="jar" ext="jar">
+            <sha256 value="fd82b27b4dcab250740516b95342f997609c340e1fe121bdcb55ab84c2259af6"/>
+         </artifact>
+      </component>
+      <component group="org.junit.jupiter" name="junit-jupiter-api" version="5.4.2">
+         <artifact name="junit-jupiter-api" type="jar" ext="jar">
+            <sha256 value="cdfb355fee661633f15f2763b8c2029c2e1958585b97b9162d38a36b1754dc3e"/>
+         </artifact>
+      </component>
+      <component group="org.junit.jupiter" name="junit-jupiter-engine" version="5.1.0">
+         <artifact name="junit-jupiter-engine" type="jar" ext="jar">
+            <sha256 value="7d033aa4d7c9de55152d165147490dc8152572aca054d66935f039fbc8292eea"/>
+         </artifact>
+      </component>
+      <component group="org.junit.jupiter" name="junit-jupiter-params" version="5.4.2">
+         <artifact name="junit-jupiter-params" type="jar" ext="jar">
+            <sha256 value="13f89bca59fb6931a0ca9e3f4dc74e1a3054e0c63863e091a5df4855605ae4ce"/>
+         </artifact>
+      </component>
+      <component group="org.junit.platform" name="junit-platform-commons" version="1.1.0">
+         <artifact name="junit-platform-commons" type="jar" ext="jar">
+            <sha256 value="caec691dd26bfb3778bd18c0aa9bec04409a9523fec4f1bb46f6212843f73615"/>
+         </artifact>
+      </component>
+      <component group="org.junit.platform" name="junit-platform-commons" version="1.4.2">
+         <artifact name="junit-platform-commons" type="jar" ext="jar">
+            <sha256 value="104bfa65b30ceb425a6de19d66b976caf38443ff5978ae931c103fa0f99d04ce"/>
+         </artifact>
+      </component>
+      <component group="org.junit.platform" name="junit-platform-engine" version="1.1.0">
+         <artifact name="junit-platform-engine" type="jar" ext="jar">
+            <sha256 value="fd7f304bebd66ea8f31a765596e7536b2f071f2a8795e621502b1d80aaefa770"/>
+         </artifact>
+      </component>
+      <component group="org.mockito" name="mockito-core" version="2.18.3">
+         <artifact name="mockito-core" type="jar" ext="jar">
+            <sha256 value="c05b2e4fe13a0dfeda8f2bb6eb1871f02076118982fdac2cfcda40d66cda0910"/>
+         </artifact>
+      </component>
+      <component group="org.nibor.autolink" name="autolink" version="0.6.0">
+         <artifact name="autolink" type="jar" ext="jar">
+            <sha256 value="a80be030f6386f18111cad9161c0b6983157352a1b59a59e6002172f0d321c04"/>
+         </artifact>
+      </component>
+      <component group="org.objenesis" name="objenesis" version="2.6">
+         <artifact name="objenesis" type="jar" ext="jar">
+            <sha256 value="5e168368fbc250af3c79aa5fef0c3467a2d64e5a7bd74005f25d8399aeb0708d"/>
+         </artifact>
+      </component>
+      <component group="org.openjdk.jmh" name="jmh-core" version="1.21">
+         <artifact name="jmh-core" type="jar" ext="jar">
+            <sha256 value="79aecd73ffb5d95d88b1ac36b505fa30ae3e83788e936838e2be9a51074fd2dd"/>
+         </artifact>
+      </component>
+      <component group="org.openmbee.junit" name="junit-xml-parser" version="1.0.0">
+         <artifact name="junit-xml-parser" type="jar" ext="jar">
+            <sha256 value="ef5da0d3135e27372039e8b0251b40b100c48b4f1308ab8cc43531b208620049"/>
+         </artifact>
+      </component>
+      <component group="org.opentest4j" name="opentest4j" version="1.0.0">
+         <artifact name="opentest4j" type="jar" ext="jar">
+            <sha256 value="6a05b14e8764a1fa51551ccef29e7271681d65fa907a8136136b94de92a0b862"/>
+         </artifact>
+      </component>
+      <component group="org.opentest4j" name="opentest4j" version="1.1.1">
+         <artifact name="opentest4j" type="jar" ext="jar">
+            <sha256 value="f106351abd941110226745ed103c85863b3f04e9fa82ddea1084639ae0c5336c"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm" version="7.1">
+         <artifact name="asm" type="jar" ext="jar">
+            <sha256 value="4ab2fa2b6d2cc9ccb1eaa05ea329c407b47b13ed2915f62f8c4b8cc96258d4de"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm-analysis" version="7.1">
+         <artifact name="asm-analysis" type="jar" ext="jar">
+            <sha256 value="4612c0511a63db2a2570f07ad1959e19ed8eb703e4114da945cb85682519a55c"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm-commons" version="7.1">
+         <artifact name="asm-commons" type="jar" ext="jar">
+            <sha256 value="e5590489d8f1984d85bfeabd3b17374c59c28ae09d48ec4a0ebbd01959ecd358"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm-tree" version="7.1">
+         <artifact name="asm-tree" type="jar" ext="jar">
+            <sha256 value="c0e82b220b0a52c71c7ca2a58c99a2530696c7b58b173052b9d48fe3efb10073"/>
+         </artifact>
+      </component>
+      <component group="org.owasp" name="dependency-check-core" version="3.1.0">
+         <artifact name="dependency-check-core" type="jar" ext="jar">
+            <sha256 value="559a48c578e254400e1f4a9e14eb340ea576f0fdd908197589a8d5ed66c4a996"/>
+         </artifact>
+      </component>
+      <component group="org.owasp" name="dependency-check-gradle" version="3.1.0">
+         <artifact name="dependency-check-gradle" type="jar" ext="jar">
+            <sha256 value="2ae2c1201fe618e333f8abf640276187ae81b36cb57d99a64ece6546f78278a9"/>
+         </artifact>
+      </component>
+      <component group="org.owasp" name="dependency-check-utils" version="3.1.0">
+         <artifact name="dependency-check-utils" type="jar" ext="jar">
+            <sha256 value="23a40c59b54feab0eec89bfccfab3475e69733cb95bf04718367deb70f4d4037"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-api" version="1.7.25">
+         <artifact name="slf4j-api" type="jar" ext="jar">
+            <sha256 value="18c4a0095d5c1da6b817592e767bb23d29dd2f560ad74df75ff3961dbde25b79"/>
+         </artifact>
+      </component>
+      <component group="org.spockframework" name="spock-core" version="1.3-groovy-2.5">
+         <artifact name="spock-core" type="jar" ext="jar">
+            <sha256 value="4e5c788ce5bac0bda41cd066485ce84ab50e3182d81a6789b82a3e265cd85f90"/>
+         </artifact>
+      </component>
+      <component group="org.tukaani" name="xz" version="1.6">
+         <artifact name="xz" type="jar" ext="jar">
+            <sha256 value="a594643d73cc01928cf6ca5ce100e094ea9d73af760a5d4fb6b75fa673ecec96"/>
+         </artifact>
+      </component>
+      <component group="org.ysb33r.gradle" name="grolifant" version="0.10">
+         <artifact name="grolifant" type="jar" ext="jar">
+            <sha256 value="c13e871892b9820f27d96f5a2216e888960e5c2d4383d8ea1837d18f1c733153"/>
+         </artifact>
+      </component>
+      <component group="xerces" name="xercesImpl" version="2.9.1">
+         <artifact name="xercesImpl" type="jar" ext="jar">
+            <sha256 value="9b4a8557217fe93c3a274d301e45c3f93caeb36f89b720a5f42ac34f7d27cd88"/>
+         </artifact>
+      </component>
+      <component group="xml-resolver" name="xml-resolver" version="1.2">
+         <artifact name="xml-resolver" type="jar" ext="jar">
+            <sha256 value="47dcde8986019314ef78ae7280a94973a21d2ed95075a40a000b42da956429e1"/>
+         </artifact>
+      </component>
+      <component group="aopalliance" name="aopalliance" version="1.0">
+         <artifact name="aopalliance" type="jar" ext="jar">
+            <sha256 value="addec670fedcd3f113c5c8091d783280d23f75e3acb841b61a9cdb079376a08"/>
+         </artifact>
+      </component>
+      <component group="cglib" name="cglib" version="3.2.6">
+         <artifact name="cglib" type="jar" ext="jar">
+            <sha256 value="2d1f0f1bcc45738c9741cbbe3ae0de4c7724e51193ba6aa97d582d4e7e842ae8"/>
+         </artifact>
+      </component>
+      <component group="cglib" name="cglib-nodep" version="2.1_3">
+         <artifact name="cglib-nodep" type="jar" ext="jar">
+            <sha256 value="e77f0b091a800acd15217bbc3c3629c1af0925b55b271fc5d0586422985639bb"/>
+         </artifact>
+      </component>
+      <component group="classycle" name="classycle" version="1.4.2">
+         <artifact name="classycle" type="jar" ext="jar">
+            <sha256 value="6625a678ba5b8f77dc9c7c1aac941c39d6f4649f232f48144f57533b97c5b03f"/>
+         </artifact>
+      </component>
+      <component group="com.amazonaws" name="aws-java-sdk-core" version="1.11.633">
+         <artifact name="aws-java-sdk-core" type="jar" ext="jar">
+            <sha256 value="aa4199cd1b52484f9535c36f6ef80f104369aa070912397eeb5c25a41dd1f83e"/>
+         </artifact>
+      </component>
+      <component group="com.amazonaws" name="aws-java-sdk-kms" version="1.11.633">
+         <artifact name="aws-java-sdk-kms" type="jar" ext="jar">
+            <sha256 value="6a71923945e91f554899481f46fbed66991de8bb9d4ad375c0b8ac802ef28b10"/>
+         </artifact>
+      </component>
+      <component group="com.amazonaws" name="aws-java-sdk-s3" version="1.11.633">
+         <artifact name="aws-java-sdk-s3" type="jar" ext="jar">
+            <sha256 value="d4db7809743ee5155da1b9899919369824df6e8ee04db793bd0d73b40b81c2ec"/>
+         </artifact>
+      </component>
+      <component group="com.amazonaws" name="jmespath-java" version="1.11.633">
+         <artifact name="jmespath-java" type="jar" ext="jar">
+            <sha256 value="6ca34bef5587d6f3986199df310fd5b54f139c700f4bf14ed8c258ad3e1d0e77"/>
+         </artifact>
+      </component>
+      <component group="com.android.databinding" name="baseLibrary" version="3.0.0">
+         <artifact name="baseLibrary" type="jar" ext="jar">
+            <sha256 value="2e1f9788cd636f9d0d761bb98552866d81fe30f249943026ce2cbc4fab9048a2"/>
+         </artifact>
+      </component>
+      <component group="com.android.databinding" name="compilerCommon" version="3.0.0">
+         <artifact name="compilerCommon" type="jar" ext="jar">
+            <sha256 value="e3ddd69b83f790f5238447af3401b0cba58d7a050ad6708ee217922c11d6fbae"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools" name="annotations" version="26.0.0">
+         <artifact name="annotations" type="jar" ext="jar">
+            <sha256 value="33ce43b086a2302c218bb5ed7e3801457484e6139112052d83b1297c80aed847"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools" name="common" version="26.0.0">
+         <artifact name="common" type="jar" ext="jar">
+            <sha256 value="28565a3704f70d3fe46ad7ecc8f286d329477c79b2ec1d46724679e73db2011c"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools" name="dvlib" version="26.0.0">
+         <artifact name="dvlib" type="jar" ext="jar">
+            <sha256 value="f518445fc8a2defc443aac1c53ca60d07cd991a20063c275a322f1668acd67c4"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools" name="repository" version="26.0.0">
+         <artifact name="repository" type="jar" ext="jar">
+            <sha256 value="d808bba7658fc4b6ddd720b4758bda51fb02ad94d21f237f3394dbb534ed0215"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools" name="sdk-common" version="26.0.0">
+         <artifact name="sdk-common" type="jar" ext="jar">
+            <sha256 value="c72c9b3e1f33fc64b209a5a23b0592eb0451291181d76f05d00379e4845d63b8"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools" name="sdklib" version="26.0.0">
+         <artifact name="sdklib" type="jar" ext="jar">
+            <sha256 value="9bc30fe51d376a9b055ea9f27850139b9753a1a2621b269219d7d6e0ff17d0cb"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.analytics-library" name="protos" version="26.0.0">
+         <artifact name="protos" type="jar" ext="jar">
+            <sha256 value="4232ebd5e832ef8be679ee32e54d595d735f96e6b2998813d815e9e76390adb0"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.analytics-library" name="shared" version="26.0.0">
+         <artifact name="shared" type="jar" ext="jar">
+            <sha256 value="89294024138c6687863671f3c4ad14e9f2cd40f6f670d89c10f5923a05ca7744"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.analytics-library" name="tracker" version="26.0.0">
+         <artifact name="tracker" type="jar" ext="jar">
+            <sha256 value="a6264267bc97bd4c99d97977209454d87235680518797a1e385b41a209ab2fb2"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="apksig" version="3.0.0">
+         <artifact name="apksig" type="jar" ext="jar">
+            <sha256 value="787c8ca3f0e7c4ae13a0456ff2f39bdd0848a5ca4b8b2c32ac208ed58b434c86"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="builder" version="3.0.0">
+         <artifact name="builder" type="jar" ext="jar">
+            <sha256 value="16206445fddc63504820177c4fcc2a4a938e73764d668350d824bf5876cffc1e"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="builder-model" version="3.0.0">
+         <artifact name="builder-model" type="jar" ext="jar">
+            <sha256 value="37a17328078c3380422c9a5c75c7e6730f40f63760815b7797a3ad6a271231ba"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="builder-test-api" version="3.0.0">
+         <artifact name="builder-test-api" type="jar" ext="jar">
+            <sha256 value="ebdb36756ff29640e909c51916b68b93752153a1985f71fd8eac7930305354cd"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="gradle" version="3.0.0">
+         <artifact name="gradle" type="jar" ext="jar">
+            <sha256 value="ab22fcbc1c2e65879b6ca945b5454e57ed206cf8e5a13c1d3f3dbf5c30ef3b02"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="gradle-api" version="3.0.0">
+         <artifact name="gradle-api" type="jar" ext="jar">
+            <sha256 value="44f016c36366969c199fa6e3e14a1bed7a49a6076908354512383b17b1e954b3"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="gradle-core" version="3.0.0">
+         <artifact name="gradle-core" type="jar" ext="jar">
+            <sha256 value="57747406178ed04007e0ed464e9a3757fefc9eb63d7c1859de10f9b8d580defc"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="manifest-merger" version="26.0.0">
+         <artifact name="manifest-merger" type="jar" ext="jar">
+            <sha256 value="c9d5760c634e288528136702100c031acb08d4d6d04587863216b51d74897509"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.build" name="transform-api" version="2.0.0-deprecated-use-gradle-api">
+         <artifact name="transform-api" type="jar" ext="jar">
+            <sha256 value="e8b4151ae1679f1abe7a14ee371ac9b3c651ae7b63290d1f586bdd0f78face9a"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.ddms" name="ddmlib" version="26.0.0">
+         <artifact name="ddmlib" type="jar" ext="jar">
+            <sha256 value="59fab3a68f8bd121b19ed94d1f65e946b3da909e4fb9cf3398bb2491f9a55a3"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.external.com-intellij" name="intellij-core" version="26.0.0">
+         <artifact name="intellij-core" type="jar" ext="jar">
+            <sha256 value="8ca48058cddc85f7711a68d0c5bf78a9efe98a3589cb5454e2285510e1e85efb"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.external.lombok" name="lombok-ast" version="0.2.3">
+         <artifact name="lombok-ast" type="jar" ext="jar">
+            <sha256 value="45eb0d6e49430271b5fb385c53fae0b81d6ad3eae465a7a8d948217bcae1e86d"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.external.org-jetbrains" name="uast" version="26.0.0">
+         <artifact name="uast" type="jar" ext="jar">
+            <sha256 value="fb41e9d1ab00acd01423c7cbe9a04a0a339271a739a12165af11060cb7754b72"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.layoutlib" name="layoutlib-api" version="26.0.0">
+         <artifact name="layoutlib-api" type="jar" ext="jar">
+            <sha256 value="2d0e9e0f7f4dfe22f12f84a8f0c4764c43bb8de69ecffcbc3deda29037dedd2b"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.lint" name="lint" version="26.0.0">
+         <artifact name="lint" type="jar" ext="jar">
+            <sha256 value="949a972800e353f51bc9c18410a029ed2b8176639ca307cc0d5c93f36e81dc1f"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.lint" name="lint-api" version="26.0.0">
+         <artifact name="lint-api" type="jar" ext="jar">
+            <sha256 value="34eaad7db45b3fa6f817daa8c0c74e8c91a80d849b735b231a5fb31c0777c27b"/>
+         </artifact>
+      </component>
+      <component group="com.android.tools.lint" name="lint-checks" version="26.0.0">
+         <artifact name="lint-checks" type="jar" ext="jar">
+            <sha256 value="a0752e3164203444f77f08662e34267320f9435e76de41864a3e8a8e4781043f"/>
+         </artifact>
+      </component>
+      <component group="com.beust" name="jcommander" version="1.72">
+         <artifact name="jcommander" type="jar" ext="jar">
+            <sha256 value="e0de160b129b2414087e01fe845609cd55caec6820cfd4d0c90fabcc7bdb8c1e"/>
+         </artifact>
+      </component>
+      <component group="com.burgstaller" name="okhttp-digest" version="1.10">
+         <artifact name="okhttp-digest" type="jar" ext="jar">
+            <sha256 value="be46341a814e786c14c5d0e6cf5d470e55fff468b99509437c4014d8b2a20ce4"/>
+         </artifact>
+      </component>
+      <component group="com.drewwilson.code" name="jquery.tipTip" version="1.3">
+         <artifact name="jquery.tipTip" classifier="minified" type="js" ext="js">
+            <sha256 value="1b8204b85fd6b9ea88a98dadb3bef2c9a7169e7f14584ca1a5e8044034d92086"/>
+         </artifact>
+      </component>
+      <component group="com.eed3si9n" name="shaded-scalajson_2.12" version="1.0.0-M4">
+         <artifact name="shaded-scalajson_2.12" type="jar" ext="jar">
+            <sha256 value="264051c330fca00fe57d4b4cb767c1f6b359a5603f79f63562832125c7055a40"/>
+         </artifact>
+      </component>
+      <component group="com.eed3si9n" name="sjson-new-core_2.12" version="0.8.3">
+         <artifact name="sjson-new-core_2.12" type="jar" ext="jar">
+            <sha256 value="2cbba080a09f5322fdda29f3ecf73d2add55ce2e3c123780916c9282727ab221"/>
+         </artifact>
+      </component>
+      <component group="com.eed3si9n" name="sjson-new-scalajson_2.12" version="0.8.3">
+         <artifact name="sjson-new-scalajson_2.12" type="jar" ext="jar">
+            <sha256 value="928a452967e90336f4b893c23471bef46c0471eda6c301371d927f693957ce18"/>
+         </artifact>
+      </component>
+      <component group="com.esotericsoftware.kryo" name="kryo" version="2.24.0">
+         <artifact name="kryo" type="jar" ext="jar">
+            <sha256 value="7e56b32c635058f9aa2820f88919ab702d029cbcd15285da9992e36cc0ae52f2"/>
+         </artifact>
+      </component>
+      <component group="com.esotericsoftware.minlog" name="minlog" version="1.2">
+         <artifact name="minlog" type="jar" ext="jar">
+            <sha256 value="a678cb1aa8f5d03d901c992c75741841d98a9bc3d55dad02e84d65315c4e60f2"/>
+         </artifact>
+      </component>
+      <component group="com.fasterxml.jackson.core" name="jackson-annotations" version="2.9.0">
+         <artifact name="jackson-annotations" type="jar" ext="jar">
+            <sha256 value="45d32ac61ef8a744b464c54c2b3414be571016dd46bfc2bec226761cf7ae457a"/>
+         </artifact>
+      </component>
+      <component group="com.fasterxml.jackson.core" name="jackson-annotations" version="2.9.10">
+         <artifact name="jackson-annotations" type="jar" ext="jar">
+            <sha256 value="c876f2e85d0f108a34cdd11ccc9d8d7875697367efc75bf10a89c2c26aee994c"/>
+         </artifact>
+      </component>
+      <component group="com.fasterxml.jackson.core" name="jackson-core" version="2.9.10">
+         <artifact name="jackson-core" type="jar" ext="jar">
+            <sha256 value="65fe26d7554a4409652c86ee38f2e94bc42934326d88b3c78c61f66ff2222c53"/>
+         </artifact>
+      </component>
+      <component group="com.fasterxml.jackson.core" name="jackson-core" version="2.9.2">
+         <artifact name="jackson-core" type="jar" ext="jar">
+            <sha256 value="c0d5d4bae541d2f26a19c2eb1067d9be806c449f67af047ce8963059b18d1e1"/>
+         </artifact>
+      </component>
+      <component group="com.fasterxml.jackson.core" name="jackson-databind" version="2.9.10">
+         <artifact name="jackson-databind" type="jar" ext="jar">
+            <sha256 value="49bb71a73fcdcdf59c40a1a01d7245f41d3a8ba96ea6182b720f0c6167241757"/>
+         </artifact>
+      </component>
+      <component group="com.fasterxml.jackson.core" name="jackson-databind" version="2.9.2">
+         <artifact name="jackson-databind" type="jar" ext="jar">
+            <sha256 value="d06823e75174e566fc4a169cb3d162b128eebedc5de336a179d6513b59a0758a"/>
+         </artifact>
+      </component>
+      <component group="com.fasterxml.jackson.module" name="jackson-module-kotlin" version="2.9.2">
+         <artifact name="jackson-module-kotlin" type="jar" ext="jar">
+            <sha256 value="c59db7cbc880b7a081b54dccfbcd9e82570009d1045dcfb6ea6bfd7739515f"/>
+         </artifact>
+      </component>
+      <component group="com.github.javaparser" name="javaparser-core" version="3.1.3">
+         <artifact name="javaparser-core" type="jar" ext="jar">
+            <sha256 value="3784284d2c8e64262692947e544d7cf49760a22cfdf65ba496801db91f505ca4"/>
+         </artifact>
+      </component>
+      <component group="com.google.api-client" name="google-api-client" version="1.25.0">
+         <artifact name="google-api-client" type="jar" ext="jar">
+            <sha256 value="24e1a69d6c04e6e72e3e16757d46d32daa7dd43cb32c3895f832f25358be1402"/>
+         </artifact>
+      </component>
+      <component group="com.google.apis" name="google-api-services-storage" version="v1-rev136-1.25.0">
+         <artifact name="google-api-services-storage" type="jar" ext="jar">
+            <sha256 value="c517a94e5ff2670470fc8c3ae690e7d0d28d210276e6f2228aaafead994c59d1"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.findbugs" name="annotations" version="3.0.1">
+         <artifact name="annotations" type="jar" ext="jar">
+            <sha256 value="6b47ff0a6de0ce17cbedc3abb0828ca5bce3009d53ea47b3723ff023c4742f79"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.gson" name="gson" version="2.3">
+         <artifact name="gson" type="jar" ext="jar">
+            <sha256 value="9466512cd8cf0bd66a8a3661685373f7b3deafded11096e044926ff5c82c7a4c"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava" version="19.0">
+         <artifact name="guava" type="jar" ext="jar">
+            <sha256 value="58d4cc2e05ebb012bbac568b032f75623be1cb6fb096f3c60c72a86f7f057de4"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava" version="22.0">
+         <artifact name="guava" type="jar" ext="jar">
+            <sha256 value="1158e94c7de4da480873f0b4ab4a1da14c0d23d4b1902cc94a58a6f0f9ab579e"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava" version="27.1-android">
+         <artifact name="guava" type="jar" ext="jar">
+            <sha256 value="686404f2d1d4d221911f96bd627ff60dac2226a5dfa6fb8ba517073eb97ec0ef"/>
+         </artifact>
+      </component>
+      <component group="com.google.http-client" name="google-http-client" version="1.25.0">
+         <artifact name="google-http-client" type="jar" ext="jar">
+            <sha256 value="fb7d80a515da4618e2b402e1fef96999e07621b381a5889ef091482c5a3e961d"/>
+         </artifact>
+      </component>
+      <component group="com.google.http-client" name="google-http-client-jackson2" version="1.25.0">
+         <artifact name="google-http-client-jackson2" type="jar" ext="jar">
+            <sha256 value="f9e7e0d318860a2092d70b56331976280c4e9348a065ede3b99c92aa032fd853"/>
+         </artifact>
+      </component>
+      <component group="com.google.inject" name="guice" version="2.0">
+         <artifact name="guice" type="jar" ext="jar">
+            <sha256 value="9fb545199584a41e8064e1232ca3f3c757366b27fc7aa488ac0fc98263642756"/>
+         </artifact>
+      </component>
+      <component group="com.google.jimfs" name="jimfs" version="1.1">
+         <artifact name="jimfs" type="jar" ext="jar">
+            <sha256 value="c4828e28d7c0a930af9387510b3bada7daa5c04d7c25a75c7b8b081f1c257ddd"/>
+         </artifact>
+      </component>
+      <component group="com.google.oauth-client" name="google-oauth-client" version="1.25.0">
+         <artifact name="google-oauth-client" type="jar" ext="jar">
+            <sha256 value="7e2929133d4231e702b5956a7e5dc8347a352acc1e97082b40c3585b81cd3501"/>
+         </artifact>
+      </component>
+      <component group="com.google.protobuf" name="protobuf-java" version="3.0.0">
+         <artifact name="protobuf-java" type="jar" ext="jar">
+            <sha256 value="a1e7d6b3efc1703c7c8f1b15ecf8757f17d0ac41f32c9a48481a5caf638c55db"/>
+         </artifact>
+      </component>
+      <component group="com.google.protobuf" name="protobuf-java" version="3.7.0">
+         <artifact name="protobuf-java" type="jar" ext="jar">
+            <sha256 value="dc7f93e3a3dc2c11be5ba9672af3e26410f0a3289312dbf2260d4d8a0c711a51"/>
+         </artifact>
+      </component>
+      <component group="com.googlecode.jatl" name="jatl" version="0.2.3">
+         <artifact name="jatl" type="jar" ext="jar">
+            <sha256 value="93ee3810f7275244f5f6311d50c587d8fe43ab5047dfa3291aa96fe50587501c"/>
+         </artifact>
+      </component>
+      <component group="com.googlecode.javaewah" name="JavaEWAH" version="1.1.6">
+         <artifact name="JavaEWAH" type="jar" ext="jar">
+            <sha256 value="f78d44a1e3877f1ce748b4a85df5171e5e8e9a5c3c6f63bb9003db6f84cce952"/>
+         </artifact>
+      </component>
+      <component group="com.googlecode.json-simple" name="json-simple" version="1.1">
+         <artifact name="json-simple" type="jar" ext="jar">
+            <sha256 value="2d9484f4c649f708f47f9a479465fc729770ee65617dca3011836602264f6439"/>
+         </artifact>
+      </component>
+      <component group="com.googlecode.juniversalchardet" name="juniversalchardet" version="1.0.3">
+         <artifact name="juniversalchardet" type="jar" ext="jar">
+            <sha256 value="757bfe906193b8b651e79dc26cd67d6b55d0770a2cdfb0381591504f779d4a76"/>
+         </artifact>
+      </component>
+      <component group="com.googlecode.plist" name="dd-plist" version="1.21">
+         <artifact name="dd-plist" type="jar" ext="jar">
+            <sha256 value="19c61abd93ecf614e3d214e9fed942dcf47d9d2d9548fe59d70f0840ba32fb6"/>
+         </artifact>
+      </component>
+      <component group="com.h2database" name="h2" version="1.4.192">
+         <artifact name="h2" type="jar" ext="jar">
+            <sha256 value="225b22e9857235c46c93861410b60b8c81c10dc8985f4faf188985ba5445126c"/>
+         </artifact>
+      </component>
+      <component group="com.intellij" name="annotations" version="12.0">
+         <artifact name="annotations" type="jar" ext="jar">
+            <sha256 value="f8ab13b14be080fe2f617f90e55599760e4a1b4deeea5c595df63d0d6375ed6d"/>
+         </artifact>
+      </component>
+      <component group="com.jcraft" name="jsch" version="0.1.54">
+         <artifact name="jsch" type="jar" ext="jar">
+            <sha256 value="92eb273a3316762478fdd4fe03a0ce1842c56f496c9c12fe1235db80450e1fdb"/>
+         </artifact>
+      </component>
+      <component group="com.jcraft" name="jsch" version="0.1.55">
+         <artifact name="jsch" type="jar" ext="jar">
+            <sha256 value="d492b15a6d2ea3f1cc39c422c953c40c12289073dbe8360d98c0f6f9ec74fc44"/>
+         </artifact>
+      </component>
+      <component group="com.jcraft" name="jzlib" version="1.1.1">
+         <artifact name="jzlib" type="jar" ext="jar">
+            <sha256 value="5cb1e9f9cf0be011487545694ff0a178237c6bfcbb21c97865cdc52c60b9347a"/>
+         </artifact>
+      </component>
+      <component group="com.jcraft" name="jzlib" version="1.1.3">
+         <artifact name="jzlib" type="jar" ext="jar">
+            <sha256 value="89b1360f407381bf61fde411019d8cbd009ebb10cff715f3669017a031027560"/>
+         </artifact>
+      </component>
+      <component group="com.lihaoyi" name="fastparse-utils_2.12" version="0.4.2">
+         <artifact name="fastparse-utils_2.12" type="jar" ext="jar">
+            <sha256 value="da40d3c89d3f7009ac2f6e32b11d8cdd379b40a2f09ce08669b4695f558e101"/>
+         </artifact>
+      </component>
+      <component group="com.lihaoyi" name="fastparse_2.12" version="0.4.2">
+         <artifact name="fastparse_2.12" type="jar" ext="jar">
+            <sha256 value="43f57787179e902137167ba107e665272a0764f1addb3f452136f15bad5b21a8"/>
+         </artifact>
+      </component>
+      <component group="com.lihaoyi" name="sourcecode_2.12" version="0.1.3">
+         <artifact name="sourcecode_2.12" type="jar" ext="jar">
+            <sha256 value="3ba3aca0d46496a3304798db8c8d79eedbdf29846b988a0a65207cc13408deca"/>
+         </artifact>
+      </component>
+      <component group="com.lmax" name="disruptor" version="3.4.2">
+         <artifact name="disruptor" type="jar" ext="jar">
+            <sha256 value="f412ecbb235c2460b45e63584109723dea8d94b819c78c9bfc38f50cba8546c0"/>
+         </artifact>
+      </component>
+      <component group="com.nhaarman.mockitokotlin2" name="mockito-kotlin" version="2.1.0">
+         <artifact name="mockito-kotlin" type="jar" ext="jar">
+            <sha256 value="ff0f0ea7bd44f11a68caa4089676ab09dc0196dfd8dee985125884f6c96114b4"/>
+         </artifact>
+      </component>
+      <component group="com.squareup" name="javawriter" version="2.5.0">
+         <artifact name="javawriter" type="jar" ext="jar">
+            <sha256 value="fcfb09fb0ea0aa97d3cfe7ea792398081348e468f126b3603cb3803f240197f0"/>
+         </artifact>
+      </component>
+      <component group="com.squareup.okhttp3" name="mockwebserver" version="3.9.1">
+         <artifact name="mockwebserver" type="jar" ext="jar">
+            <sha256 value="895069352beb38c1cf95bdd389e2878b8366488e569989d527c9b32eba41ee8c"/>
+         </artifact>
+      </component>
+      <component group="com.squareup.okhttp3" name="okhttp" version="3.5.0">
+         <artifact name="okhttp" type="jar" ext="jar">
+            <sha256 value="eecd834b09d12c3cd568b811522b97012619f7f00378c3c719a1957fac6458ef"/>
+         </artifact>
+      </component>
+      <component group="com.squareup.okhttp3" name="okhttp" version="3.9.1">
+         <artifact name="okhttp" type="jar" ext="jar">
+            <sha256 value="a0d01017a42bba26e507fc6d448bb36e536f4b6e612f7c42de30bbdac2b7785e"/>
+         </artifact>
+      </component>
+      <component group="com.squareup.okio" name="okio" version="1.11.0">
+         <artifact name="okio" type="jar" ext="jar">
+            <sha256 value="8c5436cadfab36bbd97db5f5c43b7bfdb5bf2f5f894ec8709b1929f14bdd010c"/>
+         </artifact>
+      </component>
+      <component group="com.squareup.okio" name="okio" version="1.13.0">
+         <artifact name="okio" type="jar" ext="jar">
+            <sha256 value="734269c3ebc5090e3b23566db558f421f0b4027277c79ad5d176b8ec168bb850"/>
+         </artifact>
+      </component>
+      <component group="com.sun.xml.bind" name="jaxb-impl" version="2.3.2">
+         <artifact name="jaxb-impl" type="jar" ext="jar">
+            <sha256 value="b3a3d3aeaa5503cadc24dca9539b87efcd7bc3bd8c48018887a1489f2a77bdc0"/>
+         </artifact>
+      </component>
+      <component group="com.swoval" name="file-tree-views" version="2.1.3">
+         <artifact name="file-tree-views" type="jar" ext="jar">
+            <sha256 value="7e8157f873f4c4d5463d69c0d1c297cccfa8361d2364f512bcfe0868e47ea41c"/>
+         </artifact>
+      </component>
+      <component group="com.tngtech.archunit" name="archunit" version="0.11.0">
+         <artifact name="archunit" type="jar" ext="jar">
+            <sha256 value="839fbda6d6eea8eb35f6a158e9de8cad15442d4b719968e8a28b7e428582c3b4"/>
+         </artifact>
+      </component>
+      <component group="com.tngtech.archunit" name="archunit-junit4" version="0.11.0">
+         <artifact name="archunit-junit4" type="jar" ext="jar">
+            <sha256 value="171026f01765586627b14ba22f7b47af24279611182f6d599ed40f6ebf36ddcb"/>
+         </artifact>
+      </component>
+      <component group="com.trueaccord.lenses" name="lenses_2.12" version="0.4.12">
+         <artifact name="lenses_2.12" type="jar" ext="jar">
+            <sha256 value="7cedcbc3125ad3f156466d6f3aec24b7fe6954cdc54a426ea089b4a46cd84c1c"/>
+         </artifact>
+      </component>
+      <component group="com.trueaccord.scalapb" name="scalapb-runtime_2.12" version="0.6.0">
+         <artifact name="scalapb-runtime_2.12" type="jar" ext="jar">
+            <sha256 value="7921c157a5d0c4852d6ee99c728cf77c148ce6d36280dfcb6b58d1fa90d17f8d"/>
+         </artifact>
+      </component>
+      <component group="com.typesafe" name="config" version="1.2.1">
+         <artifact name="config" type="jar" ext="jar">
+            <sha256 value="c160fbd78f51a0c2375a794e435ce2112524a6871f64d0331895e9e26ee8b9ee"/>
+         </artifact>
+      </component>
+      <component group="com.typesafe" name="config" version="1.3.3">
+         <artifact name="config" type="jar" ext="jar">
+            <sha256 value="b5f1d6071f1548d05be82f59f9039c7d37a1787bd8e3c677e31ee275af4a4621"/>
+         </artifact>
+      </component>
+      <component group="commons-codec" name="commons-codec" version="1.13">
+         <artifact name="commons-codec" type="jar" ext="jar">
+            <sha256 value="61f7a3079e92b9fdd605238d0295af5fd11ac411a0a0af48deace1f6c5ffa072"/>
+         </artifact>
+      </component>
+      <component group="commons-codec" name="commons-codec" version="1.7">
+         <artifact name="commons-codec" type="jar" ext="jar">
+            <sha256 value="db82a948bc070414fcfd3880ebd1205c94df5f5c61558ccbc653ec2f820bf7a4"/>
+         </artifact>
+      </component>
+      <component group="commons-io" name="commons-io" version="1.4">
+         <artifact name="commons-io" type="jar" ext="jar">
+            <sha256 value="a7f713593007813bf07d19bd1df9f81c86c0719e9a0bb2ef1b98b78313fc940d"/>
+         </artifact>
+      </component>
+      <component group="commons-io" name="commons-io" version="2.4">
+         <artifact name="commons-io" type="jar" ext="jar">
+            <sha256 value="cc6a41dc3eaacc9e440a6bd0d2890b20d36b4ee408fe2d67122f328bb6e01581"/>
+         </artifact>
+      </component>
+      <component group="commons-io" name="commons-io" version="2.5">
+         <artifact name="commons-io" type="jar" ext="jar">
+            <sha256 value="a10418348d234968600ccb1d988efcbbd08716e1d96936ccc1880e7d22513474"/>
+         </artifact>
+      </component>
+      <component group="docbook" name="docbook-xsl" version="1.75.2">
+         <artifact name="docbook-xsl" type="zip" ext="zip">
+            <sha256 value="3c5f3c1d3f9116416344f6c3721734b22f4f30be893d9e8e22ef7e027a01ca7e"/>
+         </artifact>
+      </component>
+      <component group="flot" name="flot" version="0.8.1">
+         <artifact name="flot" classifier="min" type="js" ext="js">
+            <sha256 value="889e1e07300265211222ad70b0644b9af0954eb2f9eaf06544c0e436967f434f"/>
+         </artifact>
+      </component>
+      <component group="gradle" name="gradle" version="6.0.1">
+         <artifact name="gradle" type="zip" ext="zip">
+            <sha256 value="d364b7098b9f2e58579a3603dc0a12a1991353ac58ed339316e6762b21efba44"/>
+         </artifact>
+      </component>
+      <component group="gradle.plugin.org.ysb33r.gradle" name="gradle-cloudci-plugin" version="2.3">
+         <artifact name="gradle-cloudci-plugin" type="jar" ext="jar">
+            <sha256 value="6f1d0599d99a19da9d26c6cee89c421552d9929e4f94f7dfdd9934f80558b1b9"/>
+         </artifact>
+      </component>
+      <component group="gradle.plugin.org.ysb33r.gradle" name="gradle-runner" version="1.1">
+         <artifact name="gradle-runner" type="jar" ext="jar">
+            <sha256 value="7de9b7ade957c6a1996e9c3d0e1e4d1e1840c081ebf16bbd3c2a6a5b05b88891"/>
+         </artifact>
+      </component>
+      <component group="io.airlift" name="aircompressor" version="0.8">
+         <artifact name="aircompressor" type="jar" ext="jar">
+            <sha256 value="5ff153975c0d9be96ad454ddffdbfb1d2492f5e1fa342ea51950e0bdec3f8aef"/>
+         </artifact>
+      </component>
+      <component group="io.airlift" name="slice" version="0.29">
+         <artifact name="slice" type="jar" ext="jar">
+            <sha256 value="4f14e56c77e0d372d45fae79d03c0a5c2987434ef4958924756bbae4911495e7"/>
+         </artifact>
+      </component>
+      <component group="io.github.http-builder-ng" name="http-builder-ng-core" version="1.0.3">
+         <artifact name="http-builder-ng-core" type="jar" ext="jar">
+            <sha256 value="7f834ac1eec306847ca5f09de8c57145ffb4509eeea252355052486b4ece59c8"/>
+         </artifact>
+      </component>
+      <component group="io.github.http-builder-ng" name="http-builder-ng-okhttp" version="1.0.3">
+         <artifact name="http-builder-ng-okhttp" type="jar" ext="jar">
+            <sha256 value="89be40f0a7b880e8b5c523a5396489e06209376835348961dfc2d4107a306c6e"/>
+         </artifact>
+      </component>
+      <component group="io.netty" name="netty-all" version="4.0.44.Final">
+         <artifact name="netty-all" type="jar" ext="jar">
+            <sha256 value="8c2bc535056cbf66f9656b9c4e92db8d2a1732528234631cee80bc27bc91f218"/>
+         </artifact>
+      </component>
+      <component group="it.unimi.dsi" name="fastutil" version="7.2.0">
+         <artifact name="fastutil" type="jar" ext="jar">
+            <sha256 value="74fa208043740642f7e6eb09faba15965218ad2f50ce3020efb100136e4b591c"/>
+         </artifact>
+      </component>
+      <component group="it.unimi.dsi" name="fastutil" version="8.3.0">
+         <artifact name="fastutil" type="jar" ext="jar">
+            <sha256 value="77249efd4f23d039515bcc0bfc973cf65ee560da0a26a9db7fa2532e11deb4e7"/>
+         </artifact>
+      </component>
+      <component group="itext" name="itext" version="2.0.8">
+         <artifact name="itext" type="jar" ext="jar">
+            <sha256 value="d6e41bfa732ecc84ba6c0850a4e36d57ee665a9b8eb1184ba5c4ef8d301f24bd"/>
+         </artifact>
+      </component>
+      <component group="javax.inject" name="javax.inject" version="1">
+         <artifact name="javax.inject" type="jar" ext="jar">
+            <sha256 value="91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff"/>
+         </artifact>
+      </component>
+      <component group="jline" name="jline" version="2.14.6">
+         <artifact name="jline" type="jar" ext="jar">
+            <sha256 value="97d1acaac82409be42e622d7a54d3ae9d08517e8aefdea3d2ba9791150c2f02d"/>
+         </artifact>
+      </component>
+      <component group="joda-time" name="joda-time" version="2.10.4">
+         <artifact name="joda-time" type="jar" ext="jar">
+            <sha256 value="ac6fda8989775776f428df8b5a4517cdb06d923465abf9bda0746ec07dfcc657"/>
+         </artifact>
+      </component>
+      <component group="jquery" name="jquery.min" version="1.11.0">
+         <artifact name="jquery.min" type="js" ext="js">
+            <sha256 value="b294e973896f8f874e90a8eb1a8908ac790980d034c4c4bdf0fc3d37b8abf682"/>
+         </artifact>
+      </component>
+      <component group="jquery" name="jquery.min" version="1.8.0">
+         <artifact name="jquery.min" type="js" ext="js">
+            <sha256 value="8c574e0a06396dfa7064b8b460e0e4a8d5d0748c4aa66eb2e4efdfcb46da4b31"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy" version="1.9.0">
+         <artifact name="byte-buddy" type="jar" ext="jar">
+            <sha256 value="695d00c430d7111196c5be8de2ad7d289abfba91636fa4003bd8950d501b8740"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy-agent" version="1.9.0">
+         <artifact name="byte-buddy-agent" type="jar" ext="jar">
+            <sha256 value="f1b5865730f0ae36539d91984d2dbf38ce7640c3db4c70b1a778395e579b3229"/>
+         </artifact>
+      </component>
+      <component group="net.java.dev.jna" name="jna" version="3.4.0">
+         <artifact name="jna" type="jar" ext="jar">
+            <sha256 value="3bff6a1489b8e54cf130344bc5e8744db331045ad2fc736612576e1d80eb1f48"/>
+         </artifact>
+      </component>
+      <component group="net.java.dev.jna" name="jna" version="4.5.0">
+         <artifact name="jna" type="jar" ext="jar">
+            <sha256 value="617a8d75f66a57296255a13654a99f10f72f0964336e352211247ed046da3e94"/>
+         </artifact>
+      </component>
+      <component group="net.java.dev.jna" name="jna-platform" version="4.5.0">
+         <artifact name="jna-platform" type="jar" ext="jar">
+            <sha256 value="68ee6431c6c07dda48deaa2627c56beeea0dec5927fe7848983e06f7a6a76a08"/>
+         </artifact>
+      </component>
+      <component group="net.java.dev.jna" name="platform" version="3.4.0">
+         <artifact name="platform" type="jar" ext="jar">
+            <sha256 value="ea89d5090c8303ba4e9a0056e6d8a20429f3e021411e950bfd9eba3b6e6cf15c"/>
+         </artifact>
+      </component>
+      <component group="net.jcip" name="jcip-annotations" version="1.0">
+         <artifact name="jcip-annotations" type="jar" ext="jar">
+            <sha256 value="be5805392060c71474bf6c9a67a099471274d30b83eef84bfc4e0889a4f1dcc0"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="ansi-control-sequence-util" version="0.2">
+         <artifact name="ansi-control-sequence-util" type="jar" ext="jar">
+            <sha256 value="4e8e553980d97d67fdafe422f410b4591a8ae4b78bce6ba99f381e2a07050b35"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform" version="0.19">
+         <artifact name="native-platform" type="jar" ext="jar">
+            <sha256 value="2b640b50b719a1e5e28b0a767aef34c597961c1dd20d9ba9a4bd7bd547726af6"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-freebsd-amd64-libcpp" version="0.19">
+         <artifact name="native-platform-freebsd-amd64-libcpp" type="jar" ext="jar">
+            <sha256 value="1731c5508d09b56d9f564cb7f9096e8d80df982383435568e1a2e8b44a93aa24"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-freebsd-amd64-libstdcpp" version="0.19">
+         <artifact name="native-platform-freebsd-amd64-libstdcpp" type="jar" ext="jar">
+            <sha256 value="c910daabcb323ca9fff2dd3e260a5d8d2b71fbb5bfa58df03f8e431182268e36"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-freebsd-i386-libcpp" version="0.19">
+         <artifact name="native-platform-freebsd-i386-libcpp" type="jar" ext="jar">
+            <sha256 value="a8d53e683dbc2c1bc63c3eb826f82caa1df1267d45ae8ccb5ee641478667c985"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-freebsd-i386-libstdcpp" version="0.19">
+         <artifact name="native-platform-freebsd-i386-libstdcpp" type="jar" ext="jar">
+            <sha256 value="f2d61306896d7ea5ec920c783e82296e80205df48c8bae9c95b01b631de707ff"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-aarch64" version="0.19">
+         <artifact name="native-platform-linux-aarch64" type="jar" ext="jar">
+            <sha256 value="f51db6435f1a3a67445a2d491c18c60373c31d2aa18d278541c1c30919d05e1e"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-aarch64-ncurses5" version="0.19">
+         <artifact name="native-platform-linux-aarch64-ncurses5" type="jar" ext="jar">
+            <sha256 value="184cf49e5bba98161afb3c5c214edd6c8248253dc5fea757fa464719393ceebd"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-aarch64-ncurses6" version="0.19">
+         <artifact name="native-platform-linux-aarch64-ncurses6" type="jar" ext="jar">
+            <sha256 value="5b76e5a9e17a4460ec27809865efa7b0732bd849a919c35c3b7e53994bd67373"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-amd64" version="0.19">
+         <artifact name="native-platform-linux-amd64" type="jar" ext="jar">
+            <sha256 value="bf9eca4ad664b1aed9764a90bdf5e7fa1480a06c755edc48ff7599af2ef9504f"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-amd64-ncurses5" version="0.19">
+         <artifact name="native-platform-linux-amd64-ncurses5" type="jar" ext="jar">
+            <sha256 value="d7b64017a43eacdf55f0412553e8f1e2a411a0e0e62be64e167b166e4b4b32d1"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-amd64-ncurses6" version="0.19">
+         <artifact name="native-platform-linux-amd64-ncurses6" type="jar" ext="jar">
+            <sha256 value="c30a8d36f868f912bec9f5865a5e537127b1daee977a58dba6a3d492c41b695d"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-i386" version="0.19">
+         <artifact name="native-platform-linux-i386" type="jar" ext="jar">
+            <sha256 value="9953b9c21147c350da2458ba13e5f3bf92c1b78173ed17fe16a3317b6e5b8621"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-i386-ncurses5" version="0.19">
+         <artifact name="native-platform-linux-i386-ncurses5" type="jar" ext="jar">
+            <sha256 value="ffa08fadba21e9ea60ffa18891569b749b1184a554fbc5653a5ff1ac886cd4b1"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-linux-i386-ncurses6" version="0.19">
+         <artifact name="native-platform-linux-i386-ncurses6" type="jar" ext="jar">
+            <sha256 value="589aab57b52a774ca9cb517c5da36dd071e9a2ee2a3484753eba11e399cfc9ab"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-osx-amd64" version="0.19">
+         <artifact name="native-platform-osx-amd64" type="jar" ext="jar">
+            <sha256 value="43ff39d8476efe153053c47f79f7a954668eb22a091212bc0b16a0c62774f89c"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-windows-amd64" version="0.19">
+         <artifact name="native-platform-windows-amd64" type="jar" ext="jar">
+            <sha256 value="2cc2b9dc334e62c1f27d2db34bb7afb11ebdd62275ac7b4b7d86739b92bca167"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-windows-amd64-min" version="0.19">
+         <artifact name="native-platform-windows-amd64-min" type="jar" ext="jar">
+            <sha256 value="28e680cc46e766d5a7a778fccfc1ba73855720c874c056f4bc7d76efbcc2d2ec"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-windows-i386" version="0.19">
+         <artifact name="native-platform-windows-i386" type="jar" ext="jar">
+            <sha256 value="810bcf57825051f9562ed2d6bd5c849b7ff674278b96c12fb0e91ac14e944f05"/>
+         </artifact>
+      </component>
+      <component group="net.rubygrapefruit" name="native-platform-windows-i386-min" version="0.19">
+         <artifact name="native-platform-windows-i386-min" type="jar" ext="jar">
+            <sha256 value="f746bc3a8c613fe11a27d359cd089449582b8cf4e4492e8dca6ed4a6dcf7840f"/>
+         </artifact>
+      </component>
+      <component group="net.sf.jopt-simple" name="jopt-simple" version="4.9">
+         <artifact name="jopt-simple" type="jar" ext="jar">
+            <sha256 value="26c5856e954b5f864db76f13b86919b59c6eecf9fd930b96baa8884626baf2f5"/>
+         </artifact>
+      </component>
+      <component group="net.sf.jopt-simple" name="jopt-simple" version="5.0.4">
+         <artifact name="jopt-simple" type="jar" ext="jar">
+            <sha256 value="df26cc58f235f477db07f753ba5a3ab243ebe5789d9f89ecf68dd62ea9a66c28"/>
+         </artifact>
+      </component>
+      <component group="net.sf.kxml" name="kxml2" version="2.3.0">
+         <artifact name="kxml2" type="jar" ext="jar">
+            <sha256 value="f264dd9f79a1fde10ce5ecc53221eff24be4c9331c830b7d52f2f08a7b633de2"/>
+         </artifact>
+      </component>
+      <component group="net.sf.proguard" name="proguard-base" version="5.3.3">
+         <artifact name="proguard-base" type="jar" ext="jar">
+            <sha256 value="1d2e883717b8ab7d3fcc9fa01034d165809a9c94daa6303a838f11e4d36adc86"/>
+         </artifact>
+      </component>
+      <component group="net.sf.proguard" name="proguard-gradle" version="5.3.3">
+         <artifact name="proguard-gradle" type="jar" ext="jar">
+            <sha256 value="f34b3a0b62cdb468eb7e8335de4edc87958dc299306c2b4ba8ea15e6a4be106a"/>
+         </artifact>
+      </component>
+      <component group="net.sourceforge.cssparser" name="cssparser" version="0.9.13">
+         <artifact name="cssparser" type="jar" ext="jar">
+            <sha256 value="e698db3f94f95c55ddbdc892eca46fdddedc1885b28250487e5e2d956e7fcb6f"/>
+         </artifact>
+      </component>
+      <component group="net.sourceforge.htmlunit" name="htmlunit" version="2.14">
+         <artifact name="htmlunit" type="jar" ext="jar">
+            <sha256 value="9d62be75194ba06f01775037d982ec19f77066b3b85ce172b2ed032d6514cbc6"/>
+         </artifact>
+      </component>
+      <component group="net.sourceforge.htmlunit" name="htmlunit-core-js" version="2.14">
+         <artifact name="htmlunit-core-js" type="jar" ext="jar">
+            <sha256 value="10697013395060c7e10841c75fe5e47af963ac6ca979d8dc46f06adff973a73e"/>
+         </artifact>
+      </component>
+      <component group="net.sourceforge.nekohtml" name="nekohtml" version="1.9.21">
+         <artifact name="nekohtml" type="jar" ext="jar">
+            <sha256 value="c88b0557a51f0e035fccb8e216738c3449fb937ee157888adfafeddb65f9c41e"/>
+         </artifact>
+      </component>
+      <component group="net.sourceforge.nekohtml" name="nekohtml" version="1.9.22">
+         <artifact name="nekohtml" type="jar" ext="jar">
+            <sha256 value="452978e8b6667c7b8357fd3f0a2f2f405e4560a7148143a69181735da5d19045"/>
+         </artifact>
+      </component>
+      <component group="nl.jqno.equalsverifier" name="equalsverifier" version="2.1.6">
+         <artifact name="equalsverifier" type="jar" ext="jar">
+            <sha256 value="35d52ab599b6d55ea53339f3d4946651d5573d18ac2062512a330383aa678d1a"/>
+         </artifact>
+      </component>
+      <component group="org.ajoberstar" name="gradle-git-publish" version="2.0.0-rc.2">
+         <artifact name="gradle-git-publish" type="jar" ext="jar">
+            <sha256 value="fb4bc7d2e84249cd5b9e3de8a36d56fbcbdb87d8dd5a0d324a62a7cba149f643"/>
+         </artifact>
+      </component>
+      <component group="org.ajoberstar.grgit" name="grgit-core" version="3.0.0-rc.2">
+         <artifact name="grgit-core" type="jar" ext="jar">
+            <sha256 value="f3c53bb25b59edee72912cd8319f5a174e4a50b4f40b01c1ad8bd69ba16b981f"/>
+         </artifact>
+      </component>
+      <component group="org.antlr" name="antlr4" version="4.5.3">
+         <artifact name="antlr4" type="jar" ext="jar">
+            <sha256 value="a32de739cfdf515774e696f91aa9697d2e7731e5cb5045ca8a4b657f8b1b4fb4"/>
+         </artifact>
+      </component>
+      <component group="org.apache-extras.beanshell" name="bsh" version="2.0b6">
+         <artifact name="bsh" type="jar" ext="jar">
+            <sha256 value="a17955976070c0573235ee662f2794a78082758b61accffce8d3f8aedcd91047"/>
+         </artifact>
+      </component>
+      <component group="org.apache.ant" name="ant" version="1.10.7">
+         <artifact name="ant" type="jar" ext="jar">
+            <sha256 value="dab4d3b2e45b73aec95cb25ce5050a651ad060f50f74662bbc3c1cb406ec1d19"/>
+         </artifact>
+      </component>
+      <component group="org.apache.ant" name="ant-compress" version="1.5">
+         <artifact name="ant-compress" type="jar" ext="jar">
+            <sha256 value="1ce5252760a69839cbae4d67503748767bdbe5222590982cce1ba303466f040"/>
+         </artifact>
+      </component>
+      <component group="org.apache.ant" name="ant-launcher" version="1.10.7">
+         <artifact name="ant-launcher" type="jar" ext="jar">
+            <sha256 value="749d131ab53fd292041245bf24e4b6a6241766f17a5b987a4e4d833cd4234ae6"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-compress" version="1.12">
+         <artifact name="commons-compress" type="jar" ext="jar">
+            <sha256 value="2c1542faf343185b7cab9c3d55c8ae5471d6d095d3887a4adefdbdf2984dc0b6"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-compress" version="1.19">
+         <artifact name="commons-compress" type="jar" ext="jar">
+            <sha256 value="ff2d59fad74e867630fbc7daab14c432654712ac624dbee468d220677b124dd5"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-csv" version="1.2">
+         <artifact name="commons-csv" type="jar" ext="jar">
+            <sha256 value="e3dff89337c2f1c47d97ab70b9586fa6e7c89c7388cd4549122a7565082cca6e"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-exec" version="1.1">
+         <artifact name="commons-exec" type="jar" ext="jar">
+            <sha256 value="e969402c143f527967fdfec29ce756a75e29ea0f3104bf99ab3406dac03a6767"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-lang3" version="3.2.1">
+         <artifact name="commons-lang3" type="jar" ext="jar">
+            <sha256 value="8024c2503bf83efa7dff153fe024c1624f5f756be0ec5fc11c856fe420864d26"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-lang3" version="3.7">
+         <artifact name="commons-lang3" type="jar" ext="jar">
+            <sha256 value="6e8dc31e046508d9953c96534edf0c2e0bfe6f468966b5b842b3f87e43b6a847"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-math3" version="3.6.1">
+         <artifact name="commons-math3" type="jar" ext="jar">
+            <sha256 value="1e56d7b058d28b65abd256b8458e3885b674c1d588fa43cd7d1cbb9c7ef2b308"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpclient" version="4.2.6">
+         <artifact name="httpclient" type="jar" ext="jar">
+            <sha256 value="362e9324ee7c697e21279e20077b52737ddef3f1b2c1a7abe5ad34b465145550"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpclient" version="4.5.10">
+         <artifact name="httpclient" type="jar" ext="jar">
+            <sha256 value="38b9f16f504928e4db736a433b9cd10968d9ec8d6f5d0e61a64889a689172134"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcore" version="4.2.5">
+         <artifact name="httpcore" type="jar" ext="jar">
+            <sha256 value="e5e82da4cc66c8d917bbf743e3c0752efe8522735e7fc9dbddb65bccea81cfe9"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcore" version="4.4.12">
+         <artifact name="httpcore" type="jar" ext="jar">
+            <sha256 value="ab765334beabf0ea024484a5e90a7c40e8160b145f22d199e11e27f68d57da08"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpmime" version="4.1">
+         <artifact name="httpmime" type="jar" ext="jar">
+            <sha256 value="31629566148e8a47688ae43b420abc3ecd783ed15b33bebc00824bf24c9b15aa"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpmime" version="4.5.10">
+         <artifact name="httpmime" type="jar" ext="jar">
+            <sha256 value="2bdf3dc862e39e2c69e42f036759e53d457af35a7ce178d8cf286fdb42528864"/>
+         </artifact>
+      </component>
+      <component group="org.apache.ivy" name="ivy" version="2.3.0">
+         <artifact name="ivy" type="jar" ext="jar">
+            <sha256 value="ff3543305c62f23d1a4cafc66fab9c9f55ea169ccf2b6c040d3fa23254b86b18"/>
+         </artifact>
+      </component>
+      <component group="org.apache.logging.log4j" name="log4j-api" version="2.11.2">
+         <artifact name="log4j-api" type="jar" ext="jar">
+            <sha256 value="9b8ce1740491deefdb3c336855822b64609b457c2966d806348456c0da261d2"/>
+         </artifact>
+      </component>
+      <component group="org.apache.logging.log4j" name="log4j-core" version="2.11.2">
+         <artifact name="log4j-core" type="jar" ext="jar">
+            <sha256 value="d4748cd5d8d67f513de7634fa202740490d7e0ab546f4bf94e5c4d4a11e3edbc"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-aether-provider" version="3.0.4">
+         <artifact name="maven-aether-provider" type="jar" ext="jar">
+            <sha256 value="33ff4aabbd0d02e4dd8279cda8f366c69915302bc4bb97bc01814a985f5c0643"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-artifact" version="3.0.4">
+         <artifact name="maven-artifact" type="jar" ext="jar">
+            <sha256 value="3c199a96af9550872724f41c053d7839dfcc6512e7704fa16c675363c4146796"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-compat" version="3.0.4">
+         <artifact name="maven-compat" type="jar" ext="jar">
+            <sha256 value="a2d02378d413d9e87833780820163902c5be4b0f3c44b65de7608f47cd94599f"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-core" version="3.0.4">
+         <artifact name="maven-core" type="jar" ext="jar">
+            <sha256 value="3dd795c0ad9742a0be65a2a5ec22428d59dd2a891a7565ae94f64661e3740528"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-model-builder" version="3.0.4">
+         <artifact name="maven-model-builder" type="jar" ext="jar">
+            <sha256 value="b4f1d3ae53c290e1ae45694c5ce2d17bf8d577ff5ece0f9aa0cffe151a6ef4e7"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-plugin-api" version="3.0.4">
+         <artifact name="maven-plugin-api" type="jar" ext="jar">
+            <sha256 value="4e5ee7f7ab7e43f691788489e59f2da4a322e3e35f2a2d8b714ad929f624eead"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-repository-metadata" version="3.0.4">
+         <artifact name="maven-repository-metadata" type="jar" ext="jar">
+            <sha256 value="a25c4db27cffda9e9229db168b1190d6a3e5439f3f67d6afec3df9470e0752d5"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-settings" version="3.0.4">
+         <artifact name="maven-settings" type="jar" ext="jar">
+            <sha256 value="3e3df17f5df5e4ce1e7b7f2011c57d61d328e65678542ade2048f0d0fa295f09"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-settings-builder" version="3.0.4">
+         <artifact name="maven-settings-builder" type="jar" ext="jar">
+            <sha256 value="a38a54ec1e69a30ddfc14434e0aec2764fc268668abcc0e132d86692a5dce3e4"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven.wagon" name="wagon-file" version="3.0.0">
+         <artifact name="wagon-file" type="jar" ext="jar">
+            <sha256 value="63324036899559f94154e6f845e62453a1f202c1b21b80060f2d88a05a05a272"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven.wagon" name="wagon-http" version="3.0.0">
+         <artifact name="wagon-http" type="jar" ext="jar">
+            <sha256 value="9f68fed6684c2245a62d5d3c8b4954b882562797e96b15ce0f18514c543fb999"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven.wagon" name="wagon-http-shared" version="3.0.0">
+         <artifact name="wagon-http-shared" type="jar" ext="jar">
+            <sha256 value="40c51265b3ed90b6919c08dcdf3620dc614894ef60bacdf4c34bdbe295b44c49"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven.wagon" name="wagon-provider-api" version="3.0.0">
+         <artifact name="wagon-provider-api" type="jar" ext="jar">
+            <sha256 value="4de4d2f39178998ef3ce5f6d91a358363ad3f5270e897d5547321ea69fa2992"/>
+         </artifact>
+      </component>
+      <component group="org.apache.mina" name="mina-core" version="2.0.17">
+         <artifact name="mina-core" type="jar" ext="jar">
+            <sha256 value="8316826fa2b9357b061e52fa8f19ccae75420c949ebe29e28759d2bddd9b39b"/>
+         </artifact>
+      </component>
+      <component group="org.apache.sshd" name="sshd-core" version="2.0.0">
+         <artifact name="sshd-core" type="jar" ext="jar">
+            <sha256 value="c944fac00dec2e7ace4052e0a52c772ca3fa2653918bbcfadf7100df022e25"/>
+         </artifact>
+      </component>
+      <component group="org.apache.sshd" name="sshd-scp" version="2.0.0">
+         <artifact name="sshd-scp" type="jar" ext="jar">
+            <sha256 value="ae32fcc16ab0a0ae04655b8832676b41199814184dc50028b3c6aa61053635ca"/>
+         </artifact>
+      </component>
+      <component group="org.apache.sshd" name="sshd-sftp" version="2.0.0">
+         <artifact name="sshd-sftp" type="jar" ext="jar">
+            <sha256 value="504af9a4afcaf61be9f0b56d3cfc76a9187a654e297bc57b7fa81aa76bb8cb0"/>
+         </artifact>
+      </component>
+      <component group="org.apache.xbean" name="xbean-reflect" version="3.7">
+         <artifact name="xbean-reflect" type="jar" ext="jar">
+            <sha256 value="104e5e9bb5a669f86722f32281960700f7ec8e3209ef51b23eb9b6d23d1629cb"/>
+         </artifact>
+      </component>
+      <component group="org.asciidoctor" name="asciidoctor-gradle-plugin" version="1.5.3">
+         <artifact name="asciidoctor-gradle-plugin" type="jar" ext="jar">
+            <sha256 value="ec68c187743da1e1605b76b8f09b520ecb4867f877f40cb047d1147ccde8f1fb"/>
+         </artifact>
+      </component>
+      <component group="org.asciidoctor" name="asciidoctorj-groovy-dsl" version="1.0.0.Alpha3">
+         <artifact name="asciidoctorj-groovy-dsl" type="jar" ext="jar">
+            <sha256 value="19a944d3b4548a8e43049706947ccc481b5d241af9b7e1b8bae89d30bad16016"/>
+         </artifact>
+      </component>
+      <component group="org.awaitility" name="awaitility" version="3.1.6">
+         <artifact name="awaitility" type="jar" ext="jar">
+            <sha256 value="694e2e915312b6fe0123c3d532f6675eed3b6d60e4f2ab677d3688fde3defcfc"/>
+         </artifact>
+      </component>
+      <component group="org.awaitility" name="awaitility-kotlin" version="3.1.6">
+         <artifact name="awaitility-kotlin" type="jar" ext="jar">
+            <sha256 value="e3929922709af987c90bcf295ee014769668b8ee45779594da50561a1b01e511"/>
+         </artifact>
+      </component>
+      <component group="org.bouncycastle" name="bcpg-jdk15on" version="1.63">
+         <artifact name="bcpg-jdk15on" type="jar" ext="jar">
+            <sha256 value="dc4f51adfc46583c2543489c82708fef5660202bf264c7cd453f081a117ea536"/>
+         </artifact>
+      </component>
+      <component group="org.bouncycastle" name="bcpkix-jdk15on" version="1.56">
+         <artifact name="bcpkix-jdk15on" type="jar" ext="jar">
+            <sha256 value="7043dee4e9e7175e93e0b36f45b1ec1ecb893c5f755667e8b916eb8dd201c6ca"/>
+         </artifact>
+      </component>
+      <component group="org.bouncycastle" name="bcpkix-jdk15on" version="1.61">
+         <artifact name="bcpkix-jdk15on" type="jar" ext="jar">
+            <sha256 value="326eb81c2a0cb0d665733a9cc7c03988081101ad17d1453b334368453658591f"/>
+         </artifact>
+      </component>
+      <component group="org.bouncycastle" name="bcprov-jdk15on" version="1.56">
+         <artifact name="bcprov-jdk15on" type="jar" ext="jar">
+            <sha256 value="963e1ee14f808ffb99897d848ddcdb28fa91ddda867eb18d303e82728f878349"/>
+         </artifact>
+      </component>
+      <component group="org.bouncycastle" name="bcprov-jdk15on" version="1.61">
+         <artifact name="bcprov-jdk15on" type="jar" ext="jar">
+            <sha256 value="dba6e408f205215ad1a89b70b37353d3cdae4ec61037e1feee885704e2413458"/>
+         </artifact>
+      </component>
+      <component group="org.bouncycastle" name="bcprov-jdk15on" version="1.63">
+         <artifact name="bcprov-jdk15on" type="jar" ext="jar">
+            <sha256 value="28155c8695934f666fabc235f992096e40d97ecb044d5b6b0902db6e15a0b72f"/>
+         </artifact>
+      </component>
+      <component group="org.brotli" name="dec" version="0.1.2">
+         <artifact name="dec" type="jar" ext="jar">
+            <sha256 value="615c0c3efef990d77831104475fba6a1f7971388691d4bad1471ad84101f6d52"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.gpars" name="gpars" version="1.2.1">
+         <artifact name="gpars" type="jar" ext="jar">
+            <sha256 value="f9e08bf964f34d129344404c01666276ec43c6704dd74e8d4ca32dcd1d2fb4a8"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.groovy" name="groovy" version="2.4.15">
+         <artifact name="groovy" type="jar" ext="jar">
+            <sha256 value="2205b6649976295bc24a751b1f7b5192e9d28d3815efe39505de8dbbb99ed952"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.groovy.modules" name="http-builder-ng-core" version="0.11.1">
+         <artifact name="http-builder-ng-core" type="jar" ext="jar">
+            <sha256 value="28bc7119715fbfe60c9cfb9393690dd955d582777a24b56d01917ac0c55c0e9a"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.groovy.modules.http-builder" name="http-builder" version="0.7">
+         <artifact name="http-builder" type="jar" ext="jar">
+            <sha256 value="c55981548c6e0110c539a147fde2261ff661740d4634b219b2bcd649761f2ba1"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.jsr166-mirror" name="jsr166y" version="1.7.0">
+         <artifact name="jsr166y" type="jar" ext="jar">
+            <sha256 value="4d4e74532e81bc6a54e4cbda865999f4ab29885e850f0b835ea374800b84d0b2"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-classworlds" version="2.5.1">
+         <artifact name="plexus-classworlds" type="jar" ext="jar">
+            <sha256 value="de9ce33b29088c2db7c3f55ddc061c2a7a72f9c93c28faad62cc15aee26b6888"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-component-annotations" version="1.5.5">
+         <artifact name="plexus-component-annotations" type="jar" ext="jar">
+            <sha256 value="4df7a6a7be64b35bbccf60b5c115697f9ea3421d22674ae67135dde375fcca1f"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-container-default" version="1.7.1">
+         <artifact name="plexus-container-default" type="jar" ext="jar">
+            <sha256 value="f3f61952d63675ef61b42fa4256c1635749a5bc17668b4529fccde0a29d8ee19"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-interpolation" version="1.14">
+         <artifact name="plexus-interpolation" type="jar" ext="jar">
+            <sha256 value="7fc63378d3e84663619b9bedace9f9fe78b276c2be3c62ca2245449294c84176"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-utils" version="3.1.0">
+         <artifact name="plexus-utils" type="jar" ext="jar">
+            <sha256 value="ffa0ad084ebff5712540a7b7ea0abda487c53d3a18f78c98d1a3675dab9bf61"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.jdt.core.compiler" name="ecj" version="4.6.1">
+         <artifact name="ecj" type="jar" ext="jar">
+            <sha256 value="9cddda75f4a1b4469e73f44e7b61a3e897d0f657df4797f9106ffe88c4eeade0"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.jetty" name="jetty-http" version="8.1.14.v20131031">
+         <artifact name="jetty-http" type="jar" ext="jar">
+            <sha256 value="b875a0259d1377bd5a4aa03fdea1ddfd2a5d17c131d760901bb96a80f4afafb0"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.jetty" name="jetty-io" version="8.1.14.v20131031">
+         <artifact name="jetty-io" type="jar" ext="jar">
+            <sha256 value="2c2b3db8549821d08ae595ac2d443e5c47c774050a41fc434fc80412bb68b433"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.jetty" name="jetty-util" version="8.1.14.v20131031">
+         <artifact name="jetty-util" type="jar" ext="jar">
+            <sha256 value="97b42cc2769e15581ff22d8cbd9df9af31711d47728a7bd5296510e990dc1c2c"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.jetty" name="jetty-websocket" version="8.1.14.v20131031">
+         <artifact name="jetty-websocket" type="jar" ext="jar">
+            <sha256 value="27853b872a9295488f7b24e235f192a39d247e7ca3e17607671c6f5e7076874"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.1.1.201809181055-r">
+         <artifact name="org.eclipse.jgit" type="jar" ext="jar">
+            <sha256 value="2122a983a3156d53d960e8adecc196eb7dd1bbc37234cd594ae25158a33c1cee"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.jgit" name="org.eclipse.jgit" version="5.5.0.201909110433-r">
+         <artifact name="org.eclipse.jgit" type="jar" ext="jar">
+            <sha256 value="d5b2cd6284744abbc63ccc10f4c2039a6bc010e9d697c26999f30c4705e5fdcf"/>
+         </artifact>
+      </component>
+      <component group="org.fusesource.jansi" name="jansi" version="1.18">
+         <artifact name="jansi" type="jar" ext="jar">
+            <sha256 value="109e64fc65767c7a1a3bd654709d76f107b0a3b39db32cbf11139e13a6f5229b"/>
+         </artifact>
+      </component>
+      <component group="org.gebish" name="geb-ast" version="2.2">
+         <artifact name="geb-ast" type="jar" ext="jar">
+            <sha256 value="9c4d01759c6fdcadf8b45c7234c648548e26da5ab70439c1c13e360ca0749cbf"/>
+         </artifact>
+      </component>
+      <component group="org.gebish" name="geb-core" version="2.2">
+         <artifact name="geb-core" type="jar" ext="jar">
+            <sha256 value="1c2c13defe13d90946c3eb159d28be58292771b7e847ec02b498542bec4cf5f1"/>
+         </artifact>
+      </component>
+      <component group="org.gebish" name="geb-exceptions" version="2.2">
+         <artifact name="geb-exceptions" type="jar" ext="jar">
+            <sha256 value="a2ebb311709e894b85250cb86b1c7f8f4ad94fa568968cb8f74c9614a340f24c"/>
+         </artifact>
+      </component>
+      <component group="org.gebish" name="geb-implicit-assertions" version="2.2">
+         <artifact name="geb-implicit-assertions" type="jar" ext="jar">
+            <sha256 value="bb9bfd715e4838437e643c0a4bc7cbe7bf21e33968b405d1073ea6310009d346"/>
+         </artifact>
+      </component>
+      <component group="org.gebish" name="geb-spock" version="2.2">
+         <artifact name="geb-spock" type="jar" ext="jar">
+            <sha256 value="b6469a26e01ada11b7ee0af426abe50a38f915904ceb3394da156b3565e87eb2"/>
+         </artifact>
+      </component>
+      <component group="org.gebish" name="geb-waiting" version="2.2">
+         <artifact name="geb-waiting" type="jar" ext="jar">
+            <sha256 value="7cc625d58fdbb31f9128c73e3daa2a5e08b82df121636b3c5d699c6f06811b42"/>
+         </artifact>
+      </component>
+      <component group="org.gradle" name="docs-asciidoctor-extensions" version="0.4.0">
+         <artifact name="docs-asciidoctor-extensions" type="jar" ext="jar">
+            <sha256 value="1100a92be78352d01bc18d1570357b213c5869ec1112d3dc0e4a16e57872bdfe"/>
+         </artifact>
+      </component>
+      <component group="org.gradle" name="gradle-tooling-api" version="5.2.1">
+         <artifact name="gradle-tooling-api" type="jar" ext="jar">
+            <sha256 value="479c6f0007c36e5e74371ff4b1dac7f73cd8f90a8b5ffe002a64a8a3c34ce7fe"/>
+         </artifact>
+      </component>
+      <component group="org.gradle" name="sample-check" version="0.9.0">
+         <artifact name="sample-check" type="jar" ext="jar">
+            <sha256 value="84b976700a5f5535e54ad0e56f68c0354220880f6846a9032e9f1f8a75d0ef47"/>
+         </artifact>
+      </component>
+      <component group="org.gradle" name="sample-discovery" version="0.9.0">
+         <artifact name="sample-discovery" type="jar" ext="jar">
+            <sha256 value="6f46ae4f389f11010c2cfbf51c3f60dc73546365bf784d6ddd133809e47080dd"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.ci.health" name="common" version="0.63">
+         <artifact name="common" type="jar" ext="jar">
+            <sha256 value="1cbecb45b99d98523a62f9ead6a248b95e295d5db186d09222e6ae1ea6ce0292"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.ci.health" name="github-client" version="0.63">
+         <artifact name="github-client" type="jar" ext="jar">
+            <sha256 value="e9d6c49b772fb14c1575852bf8e44252f4f99761e6828e18182b33b4a98b3b73"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.ci.health" name="tagging" version="0.63">
+         <artifact name="tagging" type="jar" ext="jar">
+            <sha256 value="28575c1d4c1f3317b94b446150850a6172fc8be905df342f96f4ac35a8c7f0bf"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.ci.health" name="teamcity-client" version="0.63">
+         <artifact name="teamcity-client" type="jar" ext="jar">
+            <sha256 value="d4635a414f344ce567a156806abb9d42f4f0ef54055b2d53a7294be8bcb58ef5"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.guides" name="gradle-guides-plugin" version="0.15.23">
+         <artifact name="gradle-guides-plugin" type="jar" ext="jar">
+            <sha256 value="11b17ef9d39fd10e66d1a100f5fe03daa1de8211568eeca112e03c169209e5be"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.org.littleshoot" name="littleproxy" version="1.1.3">
+         <artifact name="littleproxy" type="jar" ext="jar">
+            <sha256 value="cbcfaf783789ae9bb5f39d780afaa38544b2debc820b14a230e4ba928fbfe579"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.org.openjdk.jmc" name="common" version="7.0.0-alpha01">
+         <artifact name="common" type="jar" ext="jar">
+            <sha256 value="2bae497c01a175be417e0e2f9da3c58f6babce942ec8c569bef80cd8317b2256"/>
+         </artifact>
+      </component>
+      <component group="org.gradle.org.openjdk.jmc" name="flightrecorder" version="7.0.0-alpha01">
+         <artifact name="flightrecorder" type="jar" ext="jar">
+            <sha256 value="a65026b92e356d8ea5cee4dd97d8272b766e39de20d843c4ea0ebec5e7217021"/>
+         </artifact>
+      </component>
+      <component group="org.hamcrest" name="hamcrest-library" version="1.3">
+         <artifact name="hamcrest-library" type="jar" ext="jar">
+            <sha256 value="711d64522f9ec410983bd310934296da134be4254a125080a0416ec178dfad1c"/>
+         </artifact>
+      </component>
+      <component group="org.iq80.snappy" name="snappy" version="0.4">
+         <artifact name="snappy" type="jar" ext="jar">
+            <sha256 value="46a0c87d504ce9d6063e1ff6e4d20738feb49d8abf85b5071a7d18df4f11bac9"/>
+         </artifact>
+      </component>
+      <component group="org.jacoco" name="org.jacoco.core" version="0.7.4.201502262128">
+         <artifact name="org.jacoco.core" type="jar" ext="jar">
+            <sha256 value="ec4c74554312fac5116350164786f91b35c9e082fa4ea598bfa42b5db05d7abb"/>
+         </artifact>
+      </component>
+      <component group="org.jacoco" name="org.jacoco.report" version="0.7.4.201502262128">
+         <artifact name="org.jacoco.report" type="jar" ext="jar">
+            <sha256 value="7a3554c605e088e7e323b1084656243f0444fa353e2f2dee1f1a4204eb64ff09"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-reflect" version="1.1.3-2">
+         <artifact name="kotlin-reflect" type="jar" ext="jar">
+            <sha256 value="ee5f691cbbedb69969b48374d27412f821959af5d2dffbabc424b607cdbbdf6"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-sam-with-receiver-compiler-plugin" version="1.3.60">
+         <artifact name="kotlin-sam-with-receiver-compiler-plugin" type="jar" ext="jar">
+            <sha256 value="48f219d6db824c73d4c6588c93a514c753a3ba000366ecc60dc97602c7a97640"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-scripting-jvm-host-embeddable" version="1.3.60">
+         <artifact name="kotlin-scripting-jvm-host-embeddable" type="jar" ext="jar">
+            <sha256 value="b1d9515473abc7868a1cea9bdad489dae10bb80b2a2a64799bde96792c09c4e8"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-stdlib" version="1.1.3-2">
+         <artifact name="kotlin-stdlib" type="jar" ext="jar">
+            <sha256 value="f2885288839f82f824a0c042922ae7f24ed0d55ce26a74b6a7c557e0b7e30c24"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-stdlib-js" version="1.3.60">
+         <artifact name="kotlin-stdlib-js" type="jar" ext="jar">
+            <sha256 value="a5b947150a0e348ddb25ec15ce713a6bd3a34a6207d0d33147eeb098667ad57b"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-test" version="1.3.11">
+         <artifact name="kotlin-test" type="jar" ext="jar">
+            <sha256 value="8ae63d1fc724a961ed0a600053181e3a35de56afbebc84b003530b926eb12ac8"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-test-annotations-common" version="1.3.11">
+         <artifact name="kotlin-test-annotations-common" type="jar" ext="jar">
+            <sha256 value="3b153040eb739628b110627f9ecdb2b54a349cbe382c1a18114781c976932e06"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-test-common" version="1.3.11">
+         <artifact name="kotlin-test-common" type="jar" ext="jar">
+            <sha256 value="cf4efd4ca8fc070b6b24ff8816ddeffa7bbdc09b16a8c93ffcfd98376ef7da36"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-test-junit" version="1.3.11">
+         <artifact name="kotlin-test-junit" type="jar" ext="jar">
+            <sha256 value="35a7696dadfbd4bf419d83eed1645302672ac42eb4c1503c245f2c0539bd016d"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlinx" name="kotlinx-coroutines-core" version="1.0.1">
+         <artifact name="kotlinx-coroutines-core" type="jar" ext="jar">
+            <sha256 value="1bbc516011181c35c23552f39584d9e1dcc46c2c38486c8e71d56060a6722a12"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlinx" name="kotlinx-coroutines-core-common" version="1.0.1">
+         <artifact name="kotlinx-coroutines-core-common" type="jar" ext="jar">
+            <sha256 value="1fb02f239ac87ab97d2b6478dca2ef769d4d20390a1e4d77ccf40bd4b45cf043"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.trove4j" name="trove4j" version="20160824">
+         <artifact name="trove4j" type="jar" ext="jar">
+            <sha256 value="1917871c8deb468307a584680c87a44572f5a8b0b98c6d397fc0f5f86596dbe7"/>
+         </artifact>
+      </component>
+      <component group="org.jodd" name="jodd-core" version="3.7.1">
+         <artifact name="jodd-core" type="jar" ext="jar">
+            <sha256 value="4824001d9444160ef3956fc7efe9ab476100a46ba7dbde39a1e92aad2e384098"/>
+         </artifact>
+      </component>
+      <component group="org.jodd" name="jodd-lagarto" version="3.7.1">
+         <artifact name="jodd-lagarto" type="jar" ext="jar">
+            <sha256 value="a9692affc8e99cdce09c1e5523b14b2048a858a0d08be93d656f69053e2755ff"/>
+         </artifact>
+      </component>
+      <component group="org.jodd" name="jodd-log" version="3.7.1">
+         <artifact name="jodd-log" type="jar" ext="jar">
+            <sha256 value="656f5653854c468b8946f0d364cca711797e51a1b281b414ba8bd234f1f948c0"/>
+         </artifact>
+      </component>
+      <component group="org.json" name="json" version="20080701">
+         <artifact name="json" type="jar" ext="jar">
+            <sha256 value="3acd6adab2da447f49814751b0e953fb62a6a1023f9d2a705c30a6e3e4638eb"/>
+         </artifact>
+      </component>
+      <component group="org.junit.platform" name="junit-platform-commons" version="1.3.1">
+         <artifact name="junit-platform-commons" type="jar" ext="jar">
+            <sha256 value="457d8e1c0c80d1e320a792ec35e7c180694ba05182d7ecf7dabdb4e5a8a12fe2"/>
+         </artifact>
+      </component>
+      <component group="org.junit.platform" name="junit-platform-engine" version="1.3.1">
+         <artifact name="junit-platform-engine" type="jar" ext="jar">
+            <sha256 value="303d0546c3e950cc3beaca00dfcbf2632d4eca530e4e446391bf193cbc2a71a3"/>
+         </artifact>
+      </component>
+      <component group="org.junit.platform" name="junit-platform-launcher" version="1.3.1">
+         <artifact name="junit-platform-launcher" type="jar" ext="jar">
+            <sha256 value="6f698076c33cf27d2b80de11506031b625733aab7f18e2d4c5d15803f27231dd"/>
+         </artifact>
+      </component>
+      <component group="org.kamranzafar" name="jtar" version="2.3">
+         <artifact name="jtar" type="jar" ext="jar">
+            <sha256 value="4e5d426813a4426e5aca874ab06cd01c5de53904e0147f38698b736ad519dda2"/>
+         </artifact>
+      </component>
+      <component group="org.kohsuke" name="github-api" version="1.95">
+         <artifact name="github-api" type="jar" ext="jar">
+            <sha256 value="6e7ff132e341c0bd6b1046ca313fe8bee2187e0da68a272c487f60ebdfb425a8"/>
+         </artifact>
+      </component>
+      <component group="org.mockito" name="mockito-core" version="2.23.0">
+         <artifact name="mockito-core" type="jar" ext="jar">
+            <sha256 value="637991bfc37fdd2a7adfe610f2ee5290acf9b15a7e4347bc3c96c61ed9dfe043"/>
+         </artifact>
+      </component>
+      <component group="org.mortbay.jetty" name="jetty" version="6.1.26">
+         <artifact name="jetty" type="jar" ext="jar">
+            <sha256 value="21091d3a9c1349f640fdc421504a604c040ed89087ecc12afbe32353326ed4e5"/>
+         </artifact>
+      </component>
+      <component group="org.mortbay.jetty" name="jetty-util" version="6.1.26">
+         <artifact name="jetty-util" type="jar" ext="jar">
+            <sha256 value="9b974ce2b99f48254b76126337dc45b21226f383aaed616f59780adaf167c047"/>
+         </artifact>
+      </component>
+      <component group="org.mortbay.jetty" name="servlet-api" version="2.5-20081211">
+         <artifact name="servlet-api" type="jar" ext="jar">
+            <sha256 value="68756096996fe00f604ac3b6672d6f663dc777ea4a83056e240d0456e77e472"/>
+         </artifact>
+      </component>
+      <component group="org.mozilla" name="rhino" version="1.7.10">
+         <artifact name="rhino" type="jar" ext="jar">
+            <sha256 value="38eb3000cf56b8c7559ee558866a768eebcbf254174522d6404b7f078f75c2d4"/>
+         </artifact>
+      </component>
+      <component group="org.multiverse" name="multiverse-core" version="0.7.0">
+         <artifact name="multiverse-core" type="jar" ext="jar">
+            <sha256 value="c54398f0228054b7fae65227433ae9da87e5b2a96eba824e66a924912d10fc50"/>
+         </artifact>
+      </component>
+      <component group="org.openjdk.jmh" name="jmh-generator-asm" version="1.21">
+         <artifact name="jmh-generator-asm" type="jar" ext="jar">
+            <sha256 value="f6757d41c0c99d0f463d0bea726ca3f9fae2713d577f3935e8ceb2b8635f8e0b"/>
+         </artifact>
+      </component>
+      <component group="org.openjdk.jmh" name="jmh-generator-bytecode" version="1.21">
+         <artifact name="jmh-generator-bytecode" type="jar" ext="jar">
+            <sha256 value="db4b0577f0a6413dc1299872c104518a54a3280abe486de7ec01003baf5ba018"/>
+         </artifact>
+      </component>
+      <component group="org.openjdk.jmh" name="jmh-generator-reflection" version="1.21">
+         <artifact name="jmh-generator-reflection" type="jar" ext="jar">
+            <sha256 value="80309a00b3afcf65d238603e66d60203280a6699de8867d16b4571c420a707bd"/>
+         </artifact>
+      </component>
+      <component group="org.openjdk.jol" name="jol-core" version="0.2">
+         <artifact name="jol-core" type="jar" ext="jar">
+            <sha256 value="ef84e1a414319772f49bcdf651c1b0cf984a51ea562c9450d8c7fb9f3261acf2"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm" version="5.0.3">
+         <artifact name="asm" type="jar" ext="jar">
+            <sha256 value="71c4f78e437b8fdcd9cc0dfd2abea8c089eb677005a6a5cff320206cc52b46cc"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm" version="5.1">
+         <artifact name="asm" type="jar" ext="jar">
+            <sha256 value="d2da399a9967c69f0a21739256fa79d284222c223082cacadc17372244764b54"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm" version="6.0">
+         <artifact name="asm" type="jar" ext="jar">
+            <sha256 value="dd8971c74a4e697899a8e95caae4ea8760ea6c486dc6b97b1795e75760420461"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm-analysis" version="5.1">
+         <artifact name="asm-analysis" type="jar" ext="jar">
+            <sha256 value="a34658f5c5de4b573eef21131cc32cc25f7b66407944f312b28ec2e56abb1fa9"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm-commons" version="5.1">
+         <artifact name="asm-commons" type="jar" ext="jar">
+            <sha256 value="97b3786e1f55e74bddf8ad102bf50e33bbcbc1f6b7fd7b36f0bbbb25cd4981be"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm-tree" version="5.1">
+         <artifact name="asm-tree" type="jar" ext="jar">
+            <sha256 value="c0de2bbc4cb8297419659813ecd4ed1d077ed1dd5c1f5544cc5143e493e84c10"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm-util" version="5.1">
+         <artifact name="asm-util" type="jar" ext="jar">
+            <sha256 value="ee032c39ae5e3cd099148fbba9a2124f9ed613e5cb93e03ee0fa8808ce364040"/>
+         </artifact>
+      </component>
+      <component group="org.ow2.asm" name="asm-util" version="7.1">
+         <artifact name="asm-util" type="jar" ext="jar">
+            <sha256 value="a24485517596ae1003dcf2329c044a2a861e5c25d4476a695ccaacf560c74d1a"/>
+         </artifact>
+      </component>
+      <component group="org.samba.jcifs" name="jcifs" version="1.3.17">
+         <artifact name="jcifs" type="jar" ext="jar">
+            <sha256 value="3b077938f676934bc20bde821d1bdea2cd6d55d96151218b40fd159532f45061"/>
+         </artifact>
+      </component>
+      <component group="org.scala-lang" name="scala-compiler" version="2.12.8">
+         <artifact name="scala-compiler" type="jar" ext="jar">
+            <sha256 value="f34e9119f45abd41e85b9e121ba19dd9288b3b4af7f7047e86dc70236708d170"/>
+         </artifact>
+      </component>
+      <component group="org.scala-lang" name="scala-library" version="2.12.8">
+         <artifact name="scala-library" type="jar" ext="jar">
+            <sha256 value="321fb55685635c931eba4bc0d7668349da3f2c09aee2de93a70566066ff25c28"/>
+         </artifact>
+      </component>
+      <component group="org.scala-lang" name="scala-reflect" version="2.12.8">
+         <artifact name="scala-reflect" type="jar" ext="jar">
+            <sha256 value="4d6405395c4599ce04cea08ba082339e3e42135de9aae2923c9f5367e957315a"/>
+         </artifact>
+      </component>
+      <component group="org.scala-lang.modules" name="scala-parser-combinators_2.12" version="1.1.2">
+         <artifact name="scala-parser-combinators_2.12" type="jar" ext="jar">
+            <sha256 value="24985eb43e295a9dd77905ada307a850ca25acf819cdb579c093fc6987b0dbc2"/>
+         </artifact>
+      </component>
+      <component group="org.scala-lang.modules" name="scala-xml_2.12" version="1.0.6">
+         <artifact name="scala-xml_2.12" type="jar" ext="jar">
+            <sha256 value="7cc3b6ceb56e879cb977e8e043f4bfe2e062f78795efd7efa09f85003cb3230a"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="compiler-bridge_2.12" version="1.3.0">
+         <artifact name="compiler-bridge_2.12" type="jar" ext="jar">
+            <sha256 value="ba901945c9eb40f67634d2ac0c562886a3281d375f747e5ceefcadbf2dac2336"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="compiler-interface" version="1.3.0">
+         <artifact name="compiler-interface" type="jar" ext="jar">
+            <sha256 value="f04e07df0f803e5a082a93b06c6434ccb409a71bb6a7bde89c841113cdfc6ab9"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="io_2.12" version="1.3.0">
+         <artifact name="io_2.12" type="jar" ext="jar">
+            <sha256 value="df60541da3c7c70eeacd90c846b8c5997de61384a72ead773590409a9ba02470"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="launcher-interface" version="1.0.0">
+         <artifact name="launcher-interface" type="jar" ext="jar">
+            <sha256 value="11ab8f0e2c035c90f019e4f5780ee57de978b7018d34e8f020eb88aa8b14af25"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="sbinary_2.12" version="0.4.4">
+         <artifact name="sbinary_2.12" type="jar" ext="jar">
+            <sha256 value="24a7a488a6992b6ab4d8e78b170f5fbc02ef13eadada88851fd41cb2ccfa802a"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="util-control_2.12" version="1.3.0">
+         <artifact name="util-control_2.12" type="jar" ext="jar">
+            <sha256 value="b91642135a6a08fb3f911fc03ff4e3075a4d3a579966a1e50cc72f6355a23929"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="util-interface" version="1.3.0">
+         <artifact name="util-interface" type="jar" ext="jar">
+            <sha256 value="89028234b4621ac92761676a00e2e47598fcf5232a9bb994a7ed6dee94eb5aa2"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="util-logging_2.12" version="1.3.0">
+         <artifact name="util-logging_2.12" type="jar" ext="jar">
+            <sha256 value="f23a67634c5fcbe41b82cd02e53c5cf8545fb9ac29e14101d1540f8c33d120c2"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="util-relation_2.12" version="1.3.0">
+         <artifact name="util-relation_2.12" type="jar" ext="jar">
+            <sha256 value="6397d2212446dbe999d8e0a02ce07827987c24b575f143dbbcba428fb73fbd0a"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="zinc-apiinfo_2.12" version="1.3.0">
+         <artifact name="zinc-apiinfo_2.12" type="jar" ext="jar">
+            <sha256 value="3e66b3f85ed5a0e8933708684d715516884228aadf443a60708837bc5cd5d6d7"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="zinc-classfile_2.12" version="1.3.0">
+         <artifact name="zinc-classfile_2.12" type="jar" ext="jar">
+            <sha256 value="10f29900378fcf9ec60d4793d39284a645c7d2a03eb5087f3b3b44d076ee8f26"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="zinc-classpath_2.12" version="1.3.0">
+         <artifact name="zinc-classpath_2.12" type="jar" ext="jar">
+            <sha256 value="9c6adea94d11f62f425fab0a892e93f5b69aaf60833725915945168f38b5cecf"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="zinc-compile-core_2.12" version="1.3.0">
+         <artifact name="zinc-compile-core_2.12" type="jar" ext="jar">
+            <sha256 value="a54b0fb8bea5a0a42254d70a081b05aafb4a838462a9ce4e2b85fb4dcf3dfad8"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="zinc-core_2.12" version="1.3.0">
+         <artifact name="zinc-core_2.12" type="jar" ext="jar">
+            <sha256 value="c9e0c164505c07b18e071e020b66b9527c474343383d987322ae6f4e18d03f40"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="zinc-persist_2.12" version="1.3.0">
+         <artifact name="zinc-persist_2.12" type="jar" ext="jar">
+            <sha256 value="77e2e4563e0f84b2c2ed4337d04a0e3d8afe1856435c4b61378344a7e1e3ae3"/>
+         </artifact>
+      </component>
+      <component group="org.scala-sbt" name="zinc_2.12" version="1.3.0">
+         <artifact name="zinc_2.12" type="jar" ext="jar">
+            <sha256 value="5b2ae8d1f25ea2c6ace44ce3446e1daa3b2f158d84ca8002f5f9b3f6baedc9b8"/>
+         </artifact>
+      </component>
+      <component group="org.seleniumhq.selenium" name="selenium-api" version="2.42.2">
+         <artifact name="selenium-api" type="jar" ext="jar">
+            <sha256 value="f3e28e0e21d19879742eae8d03040c0b8be2396d13d09523a38a981fed2e34fa"/>
+         </artifact>
+      </component>
+      <component group="org.seleniumhq.selenium" name="selenium-htmlunit-driver" version="2.42.2">
+         <artifact name="selenium-htmlunit-driver" type="jar" ext="jar">
+            <sha256 value="cad055f90239d8c027537639c9a923e24eb9dffa9109733dab675a2c36a6352"/>
+         </artifact>
+      </component>
+      <component group="org.seleniumhq.selenium" name="selenium-remote-driver" version="2.42.2">
+         <artifact name="selenium-remote-driver" type="jar" ext="jar">
+            <sha256 value="bef40e0cc0c86624231a0c3567a7017ac05de93407230f3225107a04741ccfc8"/>
+         </artifact>
+      </component>
+      <component group="org.simpleframework" name="simple" version="4.1.21">
+         <artifact name="simple" type="jar" ext="jar">
+            <sha256 value="8e6439fcc1f2fe87b5dfc20eb13289acba8047e9cfadf45ad3dc5c57a9bcd054"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="jcl-over-slf4j" version="1.7.28">
+         <artifact name="jcl-over-slf4j" type="jar" ext="jar">
+            <sha256 value="b81f5f910da9708c7a6a77b720a7de20154cced4065b56f33301945c04aaad70"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="jul-to-slf4j" version="1.7.28">
+         <artifact name="jul-to-slf4j" type="jar" ext="jar">
+            <sha256 value="67c99ffdef691c3b0f817e130c2047fa43ecf12017613ff597f66f768d745475"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="log4j-over-slf4j" version="1.7.28">
+         <artifact name="log4j-over-slf4j" type="jar" ext="jar">
+            <sha256 value="c24e45c905f0c3b1dcc873164f5409bbfe3ee8860e366d1cd2190f798227f864"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-api" version="1.7.16">
+         <artifact name="slf4j-api" type="jar" ext="jar">
+            <sha256 value="e56288031f5e60652c06e7bb6e9fa410a61231ab54890f7b708fc6adc4107c5b"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-api" version="1.7.21">
+         <artifact name="slf4j-api" type="jar" ext="jar">
+            <sha256 value="1d5aeb6bd98b0fdd151269eae941c05f6468a791ea0f1e68d8e7fe518af3e7df"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-api" version="1.7.28">
+         <artifact name="slf4j-api" type="jar" ext="jar">
+            <sha256 value="fb6e4f67a2a4689e3e713584db17a5d1090c1ebe6eec30e9e0349a6ee118141e"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-simple" version="1.7.16">
+         <artifact name="slf4j-simple" type="jar" ext="jar">
+            <sha256 value="49b36cfd60aa7d91c28ce4366b5492143c6aea6106c04f742b966911ee5bcf7f"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-simple" version="1.7.25">
+         <artifact name="slf4j-simple" type="jar" ext="jar">
+            <sha256 value="966e86fffa5be52d3d9e7b89dd674d98a03eed0a454fbaf7c1bd9493bd9d874"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.aether" name="aether-api" version="1.13.1">
+         <artifact name="aether-api" type="jar" ext="jar">
+            <sha256 value="ae8dc80232771f8913febfa410c5719e9ba8ded81fb99788e214fd676dbbe13f"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.aether" name="aether-connector-wagon" version="1.13.1">
+         <artifact name="aether-connector-wagon" type="jar" ext="jar">
+            <sha256 value="df54e8505104228ee7e3fbdead7a7a9cb753b04ca6c9cf60a6b19aee0737f1ec"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.aether" name="aether-impl" version="1.13.1">
+         <artifact name="aether-impl" type="jar" ext="jar">
+            <sha256 value="865511994805827e88f327944a089142bb7f3d88cde271ba3dceb732cb137a93"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.aether" name="aether-spi" version="1.13.1">
+         <artifact name="aether-spi" type="jar" ext="jar">
+            <sha256 value="d5de4e299be5a79feb1dbe8ff3814034c6e44314b4c00b92ffa8d97576ded5b3"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.aether" name="aether-util" version="1.13.1">
+         <artifact name="aether-util" type="jar" ext="jar">
+            <sha256 value="687799a0ce988bee9e8eb9ae0ba870300adc0114248ad4a4327bdb625d27e010"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.plexus" name="plexus-cipher" version="1.7">
+         <artifact name="plexus-cipher" type="jar" ext="jar">
+            <sha256 value="114859861ff10f987b880d6f34e3215274af3cc92b3a73831c84d596e37c6511"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.plexus" name="plexus-sec-dispatcher" version="1.3">
+         <artifact name="plexus-sec-dispatcher" type="jar" ext="jar">
+            <sha256 value="3b0559bb8432f28937efe6ca193ef54a8506d0075d73fd7406b9b116c6a11063"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.pmaven" name="pmaven-common" version="0.8-20100325">
+         <artifact name="pmaven-common" type="jar" ext="jar">
+            <sha256 value="129306abcdb337cd53e710aadafaa226f017997e6bc81c2cb50deb00916ca8d8"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.pmaven" name="pmaven-groovy" version="0.8-20100325">
+         <artifact name="pmaven-groovy" type="jar" ext="jar">
+            <sha256 value="87891a373d079fd370e859b1f5bd0579d8b4a68e515fa8bbae91301c28f48d57"/>
+         </artifact>
+      </component>
+      <component group="org.spire-math" name="jawn-parser_2.12" version="0.10.4">
+         <artifact name="jawn-parser_2.12" type="jar" ext="jar">
+            <sha256 value="c617fdde8c5b7646b1bedc4f6f565e85aa83b157ea93977fcdc4056b823aadb2"/>
+         </artifact>
+      </component>
+      <component group="org.testng" name="testng" version="6.3.1">
+         <artifact name="testng" type="jar" ext="jar">
+            <sha256 value="57ed8e83e357c3838daad81b789a2753227fee8cfb86aa31a61b765c4093d6ad"/>
+         </artifact>
+      </component>
+      <component group="org.w3c.css" name="sac" version="1.3">
+         <artifact name="sac" type="jar" ext="jar">
+            <sha256 value="3785669f921aafe4f137468dd20a01a36111e94fd7449f26c16e7924d82d23"/>
+         </artifact>
+      </component>
+      <component group="org.yaml" name="snakeyaml" version="1.17">
+         <artifact name="snakeyaml" type="jar" ext="jar">
+            <sha256 value="5666b36f9db46f06dd5a19d73bbff3b588d5969c0f4b8848fde0f5ec849430a5"/>
+         </artifact>
+      </component>
+      <component group="software.amazon.ion" name="ion-java" version="1.0.2">
+         <artifact name="ion-java" type="jar" ext="jar">
+            <sha256 value="d127b205a1fce0abc2a3757a041748651bc66c15cf4c059bac5833b27d471a5"/>
+         </artifact>
+      </component>
+      <component group="xalan" name="serializer" version="2.7.1">
+         <artifact name="serializer" type="jar" ext="jar">
+            <sha256 value="a15078d243d4a20b6b4e8ae2f61ed4655e352054e121aada6f7441f1ed445a3c"/>
+         </artifact>
+      </component>
+      <component group="xalan" name="xalan" version="2.7.1">
+         <artifact name="xalan" type="jar" ext="jar">
+            <sha256 value="55a2e95144acf1abe44fea91c2948525c9b1f00fcaa1d10e753e92872ffbdd1e"/>
+         </artifact>
+      </component>
+      <component group="xerces" name="xercesImpl" version="2.10.0">
+         <artifact name="xercesImpl" type="jar" ext="jar">
+            <sha256 value="9614d23312d563c14db294e49ae03cfa9ef3f4259df27326e427aaae73819a5b"/>
+         </artifact>
+      </component>
+      <component group="xerces" name="xercesImpl" version="2.11.0">
+         <artifact name="xercesImpl" type="jar" ext="jar">
+            <sha256 value="175bbbd9def7a22a30e05f9c8db629c88fa5bdfc57d5658791901b54222abe1c"/>
+         </artifact>
+      </component>
+      <component group="xerces" name="xercesImpl" version="2.12.0">
+         <artifact name="xercesImpl" type="jar" ext="jar">
+            <sha256 value="b50d3a4ca502faa4d1c838acb8aa9480446953421f7327e338c5dda3da5e76d0"/>
+         </artifact>
+      </component>
+      <component group="xhtmlrenderer" name="xhtmlrenderer" version="R8rc1">
+         <artifact name="xhtmlrenderer" type="jar" ext="jar">
+            <sha256 value="d7ce17af83bc04ea07a0cf1245ac7821a146833ebb69b2ca4145113c4637c05e"/>
+         </artifact>
+      </component>
+      <component group="xml-apis" name="xml-apis" version="1.4.01">
+         <artifact name="xml-apis" type="jar" ext="jar">
+            <sha256 value="a840968176645684bb01aed376e067ab39614885f9eee44abe35a5f20ebe7fad"/>
+         </artifact>
+      </component>
+      <component group="xmlunit" name="xmlunit" version="1.6">
+         <artifact name="xmlunit" type="jar" ext="jar">
+            <sha256 value="f715ce826b7d39f0e3d5accd7c50c91dd668ce1f016487c1a16ee76cf3e00a74"/>
+         </artifact>
+      </component>
+      <component group="xslthl" name="xslthl" version="2.0.1">
+         <artifact name="xslthl" type="jar" ext="jar">
+            <sha256 value="28026d1b450cdc532c6a92264658d29b9b57a006cfbfb8c9cac2b098fd93e772"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
