@@ -19,6 +19,7 @@ package org.gradle.internal.vfs;
 import com.google.common.collect.Interner;
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
+import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.snapshot.CaseSensitivity;
@@ -27,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystems;
@@ -35,6 +37,8 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -70,24 +74,47 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
         } catch (IOException ex) {
             throw new UncheckedIOException(ex);
         }
-        root.get().visitKnownDirectories(directory -> {
-            if (!directory.exists()) {
-                // TODO Technically this shouldn't be needed
+        Set<File> visited = new HashSet<>();
+        root.get().visitCompleteSnapshots(snapshot -> {
+            String absolutePath = snapshot.getAbsolutePath();
+            File file = new File(absolutePath);
+            if (wellKnownFileLocations.isImmutable(absolutePath)) {
                 return;
             }
-            if (wellKnownFileLocations.isImmutable(directory.getAbsolutePath())) {
-                return;
-            }
-            LOGGER.warn("Start watching {}", directory);
             try {
-                directory.toPath().register(watchService,
-                    new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
-                    SensitivityWatchEventModifier.HIGH);
+                if (snapshot.getType() == FileType.Directory) {
+                    watch(file, visited);
+                }
+                File parent = file;
+                while (true) {
+                    parent = parent.getParentFile();
+                    if (parent == null) {
+                        break;
+                    }
+                    if (parent.exists()) {
+                        watch(parent, visited);
+                        break;
+                    }
+                }
             } catch (IOException ex) {
                 // TODO Handle error here and disable watching
                 throw new UncheckedIOException(ex);
             }
         });
+    }
+
+    private void watch(File directory, Set<File> visited) throws IOException {
+        if (!visited.add(directory)) {
+            return;
+        }
+        // TODO This shouldn't be required, but sometimes we seem to hit it
+        if (!directory.exists()) {
+            return;
+        }
+        LOGGER.warn("Start watching {}", directory);
+        directory.toPath().register(watchService,
+            new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
+            SensitivityWatchEventModifier.HIGH);
     }
 
     @Override

@@ -20,7 +20,6 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import javax.annotation.CheckReturnValue;
-import java.io.File;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -63,5 +62,5 @@ public interface SnapshotHierarchy {
     @CheckReturnValue
     SnapshotHierarchy empty();
 
-    void visitKnownDirectories(Consumer<File> directoryVisitor);
+    void visitCompleteSnapshots(Consumer<CompleteFileSystemLocationSnapshot> snapshotVisitor);
 }

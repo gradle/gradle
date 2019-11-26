@@ -17,17 +17,13 @@
 package org.gradle.internal.vfs.impl;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
-import java.io.File;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import static org.gradle.internal.snapshot.SnapshotUtil.getSnapshotFromChild;
@@ -91,22 +87,10 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public void visitKnownDirectories(Consumer<File> directoryVisitor) {
-        Set<File> visited = new HashSet<>();
+    public void visitCompleteSnapshots(Consumer<CompleteFileSystemLocationSnapshot> snapshotVisitor) {
         rootNode.accept(node -> {
-            if (!(node instanceof CompleteFileSystemLocationSnapshot)) {
-                return;
-            }
-            CompleteFileSystemLocationSnapshot snapshot = (CompleteFileSystemLocationSnapshot) node;
-            File file = new File(snapshot.getAbsolutePath());
-            if (snapshot.getType() == FileType.Directory) {
-                if (visited.add(file)) {
-                    directoryVisitor.accept(file);
-                }
-            }
-            File directory = file.getParentFile();
-            if (visited.add(directory)) {
-                directoryVisitor.accept(directory);
+            if (node instanceof CompleteFileSystemLocationSnapshot) {
+                snapshotVisitor.accept((CompleteFileSystemLocationSnapshot) node);
             }
         });
     }
@@ -142,6 +126,6 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public void visitKnownDirectories(Consumer<File> directoryVisitor) {}
+        public void visitCompleteSnapshots(Consumer<CompleteFileSystemLocationSnapshot> snapshotVisitor) {}
     }
 }
