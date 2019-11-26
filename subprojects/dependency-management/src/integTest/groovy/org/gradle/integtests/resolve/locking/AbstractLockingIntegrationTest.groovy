@@ -188,6 +188,7 @@ dependencies {
         "+"         | "2.1"
     }
 
+    @ToBeFixedForInstantExecution
     def "does not lock a configuration that is marked with deactivateDependencyLocking"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
             mavenRepo.module('org', artifact, '1.0').publish()
@@ -244,6 +245,7 @@ dependencies {
         lockfileFixture.expectMissing('secondLockEnabledConf')
     }
 
+    @ToBeFixedForInstantExecution
     def 'upgrades lock file'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -280,6 +282,7 @@ dependencies {
         lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'])
     }
 
+    @ToBeFixedForInstantExecution
     def 'counts dependencies with multiple paths as one instance'() {
         def foo = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()
@@ -315,6 +318,7 @@ dependencies {
         outputContains("org:foo:1.0")
     }
 
+    @ToBeFixedForInstantExecution
     def 'does not write duplicates in the lockfile'() {
         def foo = mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').dependsOn(foo).publish()

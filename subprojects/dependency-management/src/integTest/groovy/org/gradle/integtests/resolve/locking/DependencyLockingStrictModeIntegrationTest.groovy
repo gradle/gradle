@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class DependencyLockingStrictModeIntegrationTest extends AbstractValidatingLockingIntegrationTest {
 
@@ -25,6 +26,7 @@ class DependencyLockingStrictModeIntegrationTest extends AbstractValidatingLocki
         LockMode.STRICT
     }
 
+    @ToBeFixedForInstantExecution
     def 'fails without lock file present and does not create one'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
@@ -57,6 +59,7 @@ dependencies {
         lockfileFixture.expectMissing('unlockedConf')
     }
 
+    @ToBeFixedForInstantExecution
     def 'fails if update done without lockfile present'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -93,6 +96,7 @@ dependencies {
         lockfileFixture.expectMissing('unlockedConf')
     }
 
+    @ToBeFixedForInstantExecution
     def 'ignores not locked configurations'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
