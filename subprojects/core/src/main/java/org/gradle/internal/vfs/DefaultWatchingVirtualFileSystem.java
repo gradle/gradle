@@ -45,7 +45,7 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchingVirtualFileSystem.class);
 
     private final WellKnownFileLocations wellKnownFileLocations;
-    private final WatchService watchService;
+    private WatchService watchService;
 
     public DefaultWatchingVirtualFileSystem(
         FileHasher hasher,
@@ -58,15 +58,18 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
     ) {
         super(hasher, stringInterner, stat, caseSensitivity, defaultExcludes);
         this.wellKnownFileLocations = wellKnownFileLocations;
-        try {
-            this.watchService = FileSystems.getDefault().newWatchService();
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
-        }
     }
 
     @Override
     public void startWatching() {
+        if (watchService != null) {
+            throw new IllegalStateException("Watch service already started");
+        }
+        try {
+            watchService = FileSystems.getDefault().newWatchService();
+        } catch (IOException ex) {
+            throw new UncheckedIOException(ex);
+        }
         root.get().visitKnownDirectories(directory -> {
             if (!directory.exists()) {
                 // TODO Technically this shouldn't be needed
@@ -81,6 +84,7 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
                     new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
                     SensitivityWatchEventModifier.HIGH);
             } catch (IOException ex) {
+                // TODO Handle error here and disable watching
                 throw new UncheckedIOException(ex);
             }
         });
@@ -88,32 +92,46 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
 
     @Override
     public void stopWatching() {
-        boolean overflow = false;
-        while (!overflow) {
-            WatchKey watchKey = watchService.poll();
-            if (watchKey == null) {
-                break;
-            }
-            watchKey.cancel();
-            Path watchRoot = (Path) watchKey.watchable();
-            LOGGER.debug("Stop watching {}", watchRoot);
-            for (WatchEvent<?> event : watchKey.pollEvents()) {
-                WatchEvent.Kind<?> kind = event.kind();
-                if (kind == OVERFLOW) {
-                    LOGGER.info("Too many modifications for path {} since last build, dropping all VFS state", watchRoot);
-                    invalidateAll();
-                    overflow = true;
+        if (watchService == null) {
+            return;
+        }
+        try {
+            boolean overflow = false;
+            while (!overflow) {
+                WatchKey watchKey = watchService.poll();
+                if (watchKey == null) {
                     break;
                 }
-                Path changedPath = watchRoot.resolve(((Path) event.context()));
-                update(Collections.singleton(changedPath.toString()), () -> {
-                });
+                watchKey.cancel();
+                Path watchRoot = (Path) watchKey.watchable();
+                LOGGER.debug("Stop watching {}", watchRoot);
+                for (WatchEvent<?> event : watchKey.pollEvents()) {
+                    WatchEvent.Kind<?> kind = event.kind();
+                    if (kind == OVERFLOW) {
+                        LOGGER.info("Too many modifications for path {} since last build, dropping all VFS state", watchRoot);
+                        invalidateAll();
+                        overflow = true;
+                        break;
+                    }
+                    Path changedPath = watchRoot.resolve(((Path) event.context()));
+                    update(Collections.singleton(changedPath.toString()), () -> {
+                    });
+                }
             }
+        } finally {
+            close();
         }
     }
 
     @Override
-    public void close() throws IOException {
-        watchService.close();
+    public void close() {
+        if (watchService != null) {
+            try {
+                watchService.close();
+            } catch (IOException ex) {
+                LOGGER.warn("Couldn't close watch service", ex);
+            }
+            watchService = null;
+        }
     }
 }
