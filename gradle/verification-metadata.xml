@@ -2796,5 +2796,170 @@
             <sha256 value="28026d1b450cdc532c6a92264658d29b9b57a006cfbfb8c9cac2b098fd93e772"/>
          </artifact>
       </component>
+      <component group="com.andreapivetta.kolor" name="kolor" version="0.0.2">
+         <artifact name="kolor" type="jar" ext="jar">
+            <sha256 value="ec3b40d491ffad244c63a10d54e431d8b87ed97a749869b266f6e794f40547c2"/>
+         </artifact>
+      </component>
+      <component group="com.github.shyiko" name="ktlint" version="0.30.0">
+         <artifact name="ktlint" type="jar" ext="jar">
+            <sha256 value="a037a08fd2bfb10fbea57088e8f2b91adae676b110a883f4a3e7e86c29ca9c49"/>
+         </artifact>
+      </component>
+      <component group="com.github.shyiko.klob" name="klob" version="0.2.1">
+         <artifact name="klob" type="jar" ext="jar">
+            <sha256 value="2f6174e3049008f263fd832813390df645ac5c7cfa79f170ace58690810476f2"/>
+         </artifact>
+      </component>
+      <component group="com.github.shyiko.ktlint" name="ktlint-core" version="0.30.0">
+         <artifact name="ktlint-core" type="jar" ext="jar">
+            <sha256 value="442d76a449bde7a03b2ed2cc380d36c1b3d95d1d8e80f71c92bc31bc54e7ce83"/>
+         </artifact>
+      </component>
+      <component group="com.github.shyiko.ktlint" name="ktlint-reporter-checkstyle" version="0.30.0">
+         <artifact name="ktlint-reporter-checkstyle" type="jar" ext="jar">
+            <sha256 value="a67f90c87cb45c0fa8a7c1f476a8697da189714f0188add0d0a36c8d00eba724"/>
+         </artifact>
+      </component>
+      <component group="com.github.shyiko.ktlint" name="ktlint-reporter-json" version="0.30.0">
+         <artifact name="ktlint-reporter-json" type="jar" ext="jar">
+            <sha256 value="db116d18e970d7961d432b20a8e21c0a1509a14e8b206ac01d99ae591dd89fa8"/>
+         </artifact>
+      </component>
+      <component group="com.github.shyiko.ktlint" name="ktlint-reporter-plain" version="0.30.0">
+         <artifact name="ktlint-reporter-plain" type="jar" ext="jar">
+            <sha256 value="6750fb4e86166b0c940519e0efbf70e400fc082872cddb8d197ff197ddc5262b"/>
+         </artifact>
+      </component>
+      <component group="com.github.shyiko.ktlint" name="ktlint-test" version="0.30.0">
+         <artifact name="ktlint-test" type="jar" ext="jar">
+            <sha256 value="9276f8af3801fe42e4bebf0cd413f94d8fed1d4edb3edcde7daba1a75549b1fd"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava" version="18.0">
+         <artifact name="guava" type="jar" ext="jar">
+            <sha256 value="d664fbfc03d2e5ce9cab2a44fb01f1d0bf9dfebeccc1a473b1f9ea31f79f6f99"/>
+         </artifact>
+      </component>
+      <component group="info.picocli" name="picocli" version="2.3.0">
+         <artifact name="picocli" type="jar" ext="jar">
+            <sha256 value="5ab87ecb277c9b1193b14aa9ba781beeafc2f32e232371ceb2eebf1be41df2ab"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpclient" version="4.3.5">
+         <artifact name="httpclient" type="jar" ext="jar">
+            <sha256 value="b184521bce85de3f7f57a9d6afba133b323c8752857723031ec5468d4feef8c6"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcore" version="4.3.2">
+         <artifact name="httpcore" type="jar" ext="jar">
+            <sha256 value="abd02320e2356f89d054dae4cf02306bef20a9cf7865b3ac94ec7552b4f1528b"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-aether-provider" version="3.3.9">
+         <artifact name="maven-aether-provider" type="jar" ext="jar">
+            <sha256 value="f46962583d812cd4459a4cc963113b9c52f1f9b169172354693bc9efa0b3e3cb"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-artifact" version="3.3.9">
+         <artifact name="maven-artifact" type="jar" ext="jar">
+            <sha256 value="1f702928f2233c6ecdf308fbd8f2932ea287c7062183d3c8364b0db7e9c4445d"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-builder-support" version="3.3.9">
+         <artifact name="maven-builder-support" type="jar" ext="jar">
+            <sha256 value="462a0d711a979c44791b97422ec4e91300ae555a598f684f116d725a2b9d297b"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-model" version="3.3.9">
+         <artifact name="maven-model" type="jar" ext="jar">
+            <sha256 value="15abde67fa7ea1e573e1f68c34921e995f0971351aaf1fb96790688ff510efcd"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-model-builder" version="3.3.9">
+         <artifact name="maven-model-builder" type="jar" ext="jar">
+            <sha256 value="6909cb229489e693df7960678528800a1759625835a1cb939c37b051c22193c3"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-repository-metadata" version="3.3.9">
+         <artifact name="maven-repository-metadata" type="jar" ext="jar">
+            <sha256 value="6dbcc3d3d1dfb34df46c1ddb080fdd09fb899c80207016419cf13236c6b10399"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-component-annotations" version="1.6">
+         <artifact name="plexus-component-annotations" type="jar" ext="jar">
+            <sha256 value="2b3a6ca5f19a9ad490bc233f45e68d3093c8c01b4acc3c1d14bad4ca7c7ff438"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-interpolation" version="1.21">
+         <artifact name="plexus-interpolation" type="jar" ext="jar">
+            <sha256 value="aba7980581027ad5fc74a27ee4d64aad74932fdb32694967242d03fc50290d1f"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-utils" version="3.0.22">
+         <artifact name="plexus-utils" type="jar" ext="jar">
+            <sha256 value="f31c44b275f87e56d46a582ce96d03b9e2ab344cf87c4e268b34d3ad046beab"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.aether" name="aether-api" version="1.1.0">
+         <artifact name="aether-api" type="jar" ext="jar">
+            <sha256 value="e196bd5e61c5fc3139fb3d12161b122ce657bab6a34c38f1e338a3aab18992f5"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.aether" name="aether-connector-basic" version="1.1.0">
+         <artifact name="aether-connector-basic" type="jar" ext="jar">
+            <sha256 value="4431d8edf172815349a444a34376aa3229f89952d01bae748f42c5f0b4680d93"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.aether" name="aether-impl" version="1.1.0">
+         <artifact name="aether-impl" type="jar" ext="jar">
+            <sha256 value="bf7dfbbcde79ce0ded7712f191c7ecd28f5a4fa16f4f6bfbfaa7c2f98e5c234"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.aether" name="aether-spi" version="1.1.0">
+         <artifact name="aether-spi" type="jar" ext="jar">
+            <sha256 value="dd9e79b759f813269ff15f849c9ebb1999bd7bc988e2b399f7581089fd368acb"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.aether" name="aether-transport-file" version="1.1.0">
+         <artifact name="aether-transport-file" type="jar" ext="jar">
+            <sha256 value="e519cd8726d282c03999fb591dbd811eb96b00068ee6c7984035ee98b7f64b91"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.aether" name="aether-transport-http" version="1.1.0">
+         <artifact name="aether-transport-http" type="jar" ext="jar">
+            <sha256 value="9356e876bca03730e8048048a19cc83d9d84ff3ab07c13bfc555023674a3524c"/>
+         </artifact>
+      </component>
+      <component group="org.eclipse.aether" name="aether-util" version="1.1.0">
+         <artifact name="aether-util" type="jar" ext="jar">
+            <sha256 value="556f083dd35fe7f430ac4a7705784191e39df6df89abc31b30cb538f53828d62"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-compiler-embeddable" version="1.3.20">
+         <artifact name="kotlin-compiler-embeddable" type="jar" ext="jar">
+            <sha256 value="200a10fbcccd7c451bdb0da305c95e6b03715ab429b233b9ca1b7de789d2e77b"/>
+         </artifact>
+      </component>
+      <component group="org.jetbrains.kotlin" name="kotlin-script-runtime" version="1.3.20">
+         <artifact name="kotlin-script-runtime" type="jar" ext="jar">
+            <sha256 value="a21eeba4604b479759b729613f4d291c9dd92bb49d8058c840ec0106ac9c8dec"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="jcl-over-slf4j" version="1.6.2">
+         <artifact name="jcl-over-slf4j" type="jar" ext="jar">
+            <sha256 value="ff95d8cbe80a47f23ba1cbb099b032e98721442f431852db6cf09303816d4b2c"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-api" version="1.6.2">
+         <artifact name="slf4j-api" type="jar" ext="jar">
+            <sha256 value="c26413df1741466d8bec549a4b7f6480acb2ac928b156be8c5e3feaf9cba1b59"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-nop" version="1.6.2">
+         <artifact name="slf4j-nop" type="jar" ext="jar">
+            <sha256 value="3b17b25a04c384bd2606a5b03c50b8375af881a9308004c89800d0fac15a5b9d"/>
+         </artifact>
+      </component>
    </components>
 </verification-metadata>
