@@ -2956,5 +2956,385 @@
             <sha256 value="3b17b25a04c384bd2606a5b03c50b8375af881a9308004c89800d0fac15a5b9d"/>
          </artifact>
       </component>
+      <component group="com.github.javaparser" name="javaparser-parent" version="3.6.11">
+         <artifact name="javaparser-parent" type="pom" ext="pom">
+            <sha256 value="c32544db0f15409c449d0fa08cd65748783c9dfacbce064579b259a7b7d5fc28"/>
+         </artifact>
+      </component>
+      <component group="com.github.siom79.japicmp" name="japicmp-base" version="0.10.0">
+         <artifact name="japicmp-base" type="pom" ext="pom">
+            <sha256 value="cd0427a225f3712f3fc22ae896fcfe0b16b325a2802995ea38f845742f698c5a"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.gson" name="gson-parent" version="2.7">
+         <artifact name="gson-parent" type="pom" ext="pom">
+            <sha256 value="871e8c737322301f0cc8acfe39a2960c4579d9d8666aeea5298bb6fcc9e4272b"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.gson" name="gson-parent" version="2.8.2">
+         <artifact name="gson-parent" type="pom" ext="pom">
+            <sha256 value="cf5c43860b53ba5a95c19bc6525cc43d3488a6fe3df2f649c0099a613a0640e3"/>
+         </artifact>
+      </component>
+      <component group="com.google.code.gson" name="gson-parent" version="2.8.5">
+         <artifact name="gson-parent" type="pom" ext="pom">
+            <sha256 value="8f1fec72b91a71ea39ec39f5f778c4d1124b6b097c6d55b3a50b554a52237b27"/>
+         </artifact>
+      </component>
+      <component group="com.google.errorprone" name="error_prone_parent" version="2.0.18">
+         <artifact name="error_prone_parent" type="pom" ext="pom">
+            <sha256 value="cf149955279b07d4f11e817985c1164a69e930d73db7441b43a6ef53bbd286c4"/>
+         </artifact>
+      </component>
+      <component group="com.google.errorprone" name="error_prone_parent" version="2.1.3">
+         <artifact name="error_prone_parent" type="pom" ext="pom">
+            <sha256 value="d52a2616a1389fce951de0e97a780b88f1bdf0c947b315a76fd47cd6bbfb239b"/>
+         </artifact>
+      </component>
+      <component group="com.google.errorprone" name="error_prone_parent" version="2.2.0">
+         <artifact name="error_prone_parent" type="pom" ext="pom">
+            <sha256 value="c460902ddf5ece68832c6b271ce52a0928b05cf3a6ac81a8f548c73cbd541138"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava-parent" version="17.0">
+         <artifact name="guava-parent" type="pom" ext="pom">
+            <sha256 value="9fba53585551d3c775179de859760a73c4beab407dfde16b551a09a87b50532a"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava-parent" version="23.4-jre">
+         <artifact name="guava-parent" type="pom" ext="pom">
+            <sha256 value="10ef176c53cd8f959ded6af740516e99b5fc20aa201e3a9198bb92194a6a3934"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava-parent" version="25.1-jre">
+         <artifact name="guava-parent" type="pom" ext="pom">
+            <sha256 value="c0d16762dc9bfc77ecc598b8e65907d85b345508a5f7f9556df943c2c47f968e"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava-parent" version="26.0-android">
+         <artifact name="guava-parent" type="pom" ext="pom">
+            <sha256 value="f8698ab46ca996ce889c1afc8ca4f25eb8ac6b034dc898d4583742360016cc04"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava-parent" version="27.1-jre">
+         <artifact name="guava-parent" type="pom" ext="pom">
+            <sha256 value="d3610165c6de2b4d8d6418487717b63c52b5a39c5e35a553e24873ecb60e0628"/>
+         </artifact>
+      </component>
+      <component group="com.google.guava" name="guava-parent-jdk5" version="14.0.1">
+         <artifact name="guava-parent-jdk5" type="pom" ext="pom">
+            <sha256 value="c3b02a8790cefcbe12a938c4f8ad16fa961c68e56893f77433e1ac4c291ad6c9"/>
+         </artifact>
+      </component>
+      <component group="com.openhtmltopdf" name="openhtmltopdf-parent" version="0.0.1-RC13">
+         <artifact name="openhtmltopdf-parent" type="pom" ext="pom">
+            <sha256 value="8a96ffb95a989e9a99ba6a8434c51b023959190dcd96e9354c0a1ab48797e89c"/>
+         </artifact>
+      </component>
+      <component group="com.sun.mail" name="all" version="1.6.0">
+         <artifact name="all" type="pom" ext="pom">
+            <sha256 value="f7b3c1e63161deb8c8bede3bd6c77ea73bdecce2ebd3b271d35092e1d25d5705"/>
+         </artifact>
+      </component>
+      <component group="com.sun.xml.bind" name="jaxb-bom-ext" version="2.2.11">
+         <artifact name="jaxb-bom-ext" type="pom" ext="pom">
+            <sha256 value="b25e0693de21cb92b039a2e4608f396590fb8773108f10d6dc9f1465f03b5be9"/>
+         </artifact>
+      </component>
+      <component group="com.sun.xml.bind.mvn" name="jaxb-bundles" version="2.2.11">
+         <artifact name="jaxb-bundles" type="pom" ext="pom">
+            <sha256 value="f60261b174dbedf4334cebcb2a437a20578b9384f758b7af49d343cd8e1f23f5"/>
+         </artifact>
+      </component>
+      <component group="com.sun.xml.bind.mvn" name="jaxb-parent" version="2.2.11">
+         <artifact name="jaxb-parent" type="pom" ext="pom">
+            <sha256 value="10b745ee463eb822ceca023089d00708f021811eb3c285fbba72a3b564a0774"/>
+         </artifact>
+      </component>
+      <component group="com.vladsch.flexmark" name="flexmark-java" version="0.34.56">
+         <artifact name="flexmark-java" type="pom" ext="pom">
+            <sha256 value="a94e73e4ff6dbc0d1dfee32201882486d485cab27f610e0a28efa385ff7972f6"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy-parent" version="1.8.21">
+         <artifact name="byte-buddy-parent" type="pom" ext="pom">
+            <sha256 value="1cd0f46384dda09eeb5a8311561b776b7b72a86826334a0dc5af5832e15ddd66"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy-parent" version="1.8.22">
+         <artifact name="byte-buddy-parent" type="pom" ext="pom">
+            <sha256 value="2012982bbbda2598f0b175d1d363fc31dcd5457eadde98eab3e12615361e2eb9"/>
+         </artifact>
+      </component>
+      <component group="net.bytebuddy" name="byte-buddy-parent" version="1.8.5">
+         <artifact name="byte-buddy-parent" type="pom" ext="pom">
+            <sha256 value="c8d9a073504f3aae8178950fb4c5ac89c3c6ecd6f933f10de70077fbd5297a17"/>
+         </artifact>
+      </component>
+      <component group="net.java" name="jvnet-parent" version="1">
+         <artifact name="jvnet-parent" type="pom" ext="pom">
+            <sha256 value="5b936f6757872c1b901cb821001652eda746e3b6cffef9c434443534a96bfc9a"/>
+         </artifact>
+      </component>
+      <component group="net.java" name="jvnet-parent" version="3">
+         <artifact name="jvnet-parent" type="pom" ext="pom">
+            <sha256 value="8fd3e207f5edf3a446b55f5a6136725e3f7b0ac572d8bdc3067431815887a676"/>
+         </artifact>
+      </component>
+      <component group="net.java" name="jvnet-parent" version="4">
+         <artifact name="jvnet-parent" type="pom" ext="pom">
+            <sha256 value="471395735549495297c8ff939b9a32e08b91302020ff773586d27e497abb8fbb"/>
+         </artifact>
+      </component>
+      <component group="org.antlr" name="antlr4-master" version="4.7.1">
+         <artifact name="antlr4-master" type="pom" ext="pom">
+            <sha256 value="4126f67bf413f6c8bcc1b19d87b9a7256742cfa71c250c4a99530daedea0868c"/>
+         </artifact>
+      </component>
+      <component group="org.apache" name="apache" version="10">
+         <artifact name="apache" type="pom" ext="pom">
+            <sha256 value="f41c275119474b1f53bf76eb3a4edf7fe3bd42f18954735f60c09a291daabd0"/>
+         </artifact>
+      </component>
+      <component group="org.apache" name="apache" version="13">
+         <artifact name="apache" type="pom" ext="pom">
+            <sha256 value="2fafa38abefe1b40283016f506ba9e844bfcf18713497284264166a5dbf4b95e"/>
+         </artifact>
+      </component>
+      <component group="org.apache" name="apache" version="16">
+         <artifact name="apache" type="pom" ext="pom">
+            <sha256 value="ae815ad44b18b96a05b667d0143809c56457f6a20343d01024b5998a2bddb563"/>
+         </artifact>
+      </component>
+      <component group="org.apache" name="apache" version="18">
+         <artifact name="apache" type="pom" ext="pom">
+            <sha256 value="506d348ed86601eaa69fbf06e711b6eb8a6263be2c869066a6ca90c729f8f9f3"/>
+         </artifact>
+      </component>
+      <component group="org.apache" name="apache" version="3">
+         <artifact name="apache" type="pom" ext="pom">
+            <sha256 value="9ce0d60b1a0b3ae5f4eb28243c384ffd7d109a90790043757e4b759e7d00fb1"/>
+         </artifact>
+      </component>
+      <component group="org.apache" name="apache" version="4">
+         <artifact name="apache" type="pom" ext="pom">
+            <sha256 value="1a8b0bcf4b7c264e249dfbc64515f9f0cf870b94b84dcac791a625ef6d3553b0"/>
+         </artifact>
+      </component>
+      <component group="org.apache" name="apache" version="7">
+         <artifact name="apache" type="pom" ext="pom">
+            <sha256 value="18115e545e113efce3e54119a9246cf6cde867c62f4d35853e43005e4af1d8be"/>
+         </artifact>
+      </component>
+      <component group="org.apache" name="apache" version="9">
+         <artifact name="apache" type="pom" ext="pom">
+            <sha256 value="a4c544f745eab903a5d8b92eebe02ce548105669e32b7ae3e28b3f0e3867c3e1"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="11">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="b9e0306f393460105b8a3fa5105250c5291b1efaa99954ace0ec1c783109a02a"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="17">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="96e718baf534874ee62ce4d42de265f2ddacd88391a540e030d59d98fa7c4408"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="22">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="fb8c5e55e30a7addb4ff210858a0e8d2494ed6757bbe19012da99d51586c3cbb"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="28">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="14733a68e8b120b69de60cd96d222146dcf32f03c1c6cc6a750b1269bafe86c7"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="32">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="e4d258af8b2ff4032148d415379def7870789a6003e80576f1504b10f26b4be8"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="34">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="3a2e69d06d641d1f3b293126dc9e2e4ea6563bf8c36c87e0ab6fa4292d04b79c"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="37">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="ee705a4dd68d8dcd9cc8d1249d5790861eb145ce7b0c6d6c0555ba94489d014b"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="39">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="87cd27e1a02a5c3eb6d85059ce98696bb1b44c2b8b650f0567c86df60fa61da7"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="41">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="b2877c8016f8b28924c8e90dd5ae40cd11f328d02a1de98d80de22574ab36ec7"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="42">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="cd313494c670b483ec256972af1698b330e598f807002354eb765479f604b09c"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="5">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="8bd632c00bdf80a7de36c22b60f12452c147d8eca2f00d79d66699ebe7daa02a"/>
+         </artifact>
+      </component>
+      <component group="org.apache.commons" name="commons-parent" version="9">
+         <artifact name="commons-parent" type="pom" ext="pom">
+            <sha256 value="5331b7d3e0aed59728c80f1118e4dbf78565d4109e81d16602c9cadbdb23a128"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcomponents-client" version="4.2.1">
+         <artifact name="httpcomponents-client" type="pom" ext="pom">
+            <sha256 value="b3a628d66c768a354cf9c7fc91ad6a5080dc063fbe169c3e8287589aa951659c"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcomponents-client" version="4.5.3">
+         <artifact name="httpcomponents-client" type="pom" ext="pom">
+            <sha256 value="43c7d2975a1125bb00cf058a3877f549a1f1894f8b8ad47e2c3e46e3fc4623dc"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcomponents-core" version="4.2.1">
+         <artifact name="httpcomponents-core" type="pom" ext="pom">
+            <sha256 value="6847c79d8d19208c7f7825842c31a1add906c3acfad66cb5b5c830e621968179"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="httpcomponents-core" version="4.4.6">
+         <artifact name="httpcomponents-core" type="pom" ext="pom">
+            <sha256 value="2a3cb532d0dd63f3f3f080307edd5ff84f4625253bf6b564eb72737753dd96be"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="project" version="6">
+         <artifact name="project" type="pom" ext="pom">
+            <sha256 value="a00fdb3a1f5f9a60318464b55baf0ea1f95139b5c27032444c32c4a7c3824b11"/>
+         </artifact>
+      </component>
+      <component group="org.apache.httpcomponents" name="project" version="7">
+         <artifact name="project" type="pom" ext="pom">
+            <sha256 value="eebb2cca58a8b5afac41b5ba5782f54de6f557138fdc36c24941245cb1c8e379"/>
+         </artifact>
+      </component>
+      <component group="org.apache.lucene" name="lucene-parent" version="5.5.5">
+         <artifact name="lucene-parent" type="pom" ext="pom">
+            <sha256 value="fab36048c1fb7ddc4108d242e0ce364a7dcb93f390938bb4011a56253b27b2b6"/>
+         </artifact>
+      </component>
+      <component group="org.apache.lucene" name="lucene-solr-grandparent" version="5.5.5">
+         <artifact name="lucene-solr-grandparent" type="pom" ext="pom">
+            <sha256 value="900e13da62875974a501a56ec3ed3a0d36c73edbeacccf857428c72b651109c0"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven" version="3.0.4">
+         <artifact name="maven" type="pom" ext="pom">
+            <sha256 value="4d223e01a6569d6655c1f4fce84969d45142cdbabdb118ea08c5c8c33ec632f6"/>
+         </artifact>
+      </component>
+      <component group="org.apache.maven" name="maven-parent" version="21">
+         <artifact name="maven-parent" type="pom" ext="pom">
+            <sha256 value="d43afc273a4793ef78db18e615f0020ec9e2c179214c8769d5b65986e348482"/>
+         </artifact>
+      </component>
+      <component group="org.apache.pdfbox" name="pdfbox-parent" version="2.0.8">
+         <artifact name="pdfbox-parent" type="pom" ext="pom">
+            <sha256 value="a4cd52e13ddcd455a4b2210761c494769935e9bc1fa79b284c4630fde06b1013"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus" name="codehaus-parent" version="4">
+         <artifact name="codehaus-parent" type="pom" ext="pom">
+            <sha256 value="2e69ae7d0912f7089bbf1860c9e1c5377f6e0fcd5ea7e9bc0ec2c756d19e03e"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.mojo" name="animal-sniffer-parent" version="1.14">
+         <artifact name="animal-sniffer-parent" type="pom" ext="pom">
+            <sha256 value="f51550a06b1410bd4962cb0e71df0b921a60a7ef47bfa9c4825a14be72316eea"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.mojo" name="animal-sniffer-parent" version="1.17">
+         <artifact name="animal-sniffer-parent" type="pom" ext="pom">
+            <sha256 value="18a03df16e2a184c582db7b125633c15fb7714027a84c1b532d72933dc08b81f"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.mojo" name="mojo-parent" version="34">
+         <artifact name="mojo-parent" type="pom" ext="pom">
+            <sha256 value="d536e1365b48d6493ff5ecc9ebb75c8f386d11a2e2945ca243c8c0089d141282"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.mojo" name="mojo-parent" version="40">
+         <artifact name="mojo-parent" type="pom" ext="pom">
+            <sha256 value="abc0c03f247914223d46fa80e21a72ca41067b3599f854e170004b03dccb756b"/>
+         </artifact>
+      </component>
+      <component group="org.glassfish" name="json" version="1.0.4">
+         <artifact name="json" type="pom" ext="pom">
+            <sha256 value="6d7c68423115f921718d944f859924b4c685217ec03a49f70455a8b2caa972e6"/>
+         </artifact>
+      </component>
+      <component group="org.glassfish.jaxb" name="jaxb-bom" version="2.2.11">
+         <artifact name="jaxb-bom" type="pom" ext="pom">
+            <sha256 value="a52e6850f070dc9f7a2a51d0b25dfaafd49b0b9bf8196db6c0b3c5b7c94d8d38"/>
+         </artifact>
+      </component>
+      <component group="org.hamcrest" name="hamcrest-parent" version="1.3">
+         <artifact name="hamcrest-parent" type="pom" ext="pom">
+            <sha256 value="6d535f94efb663bdb682c9f27a50335394688009642ba7a9677504bc1be4129b"/>
+         </artifact>
+      </component>
+      <component group="org.jruby" name="jruby-artifacts" version="9.1.17.0">
+         <artifact name="jruby-artifacts" type="pom" ext="pom">
+            <sha256 value="12f94f7855532af441c7ed058769b7cc7cc0b439e983ab55810d76b15adf0f14"/>
+         </artifact>
+      </component>
+      <component group="org.jruby" name="jruby-parent" version="9.1.17.0">
+         <artifact name="jruby-parent" type="pom" ext="pom">
+            <sha256 value="7e77268cec007f39c04153ce6df76eb6f92fb5ec55ac9098260e292f078b25b6"/>
+         </artifact>
+      </component>
+      <component group="org.objenesis" name="objenesis-parent" version="2.6">
+         <artifact name="objenesis-parent" type="pom" ext="pom">
+            <sha256 value="3825feca2a3c176400b063dec7c6b0643e2b5256bbbfd4e0a7c11e0dd0983baa"/>
+         </artifact>
+      </component>
+      <component group="org.openjdk.jmh" name="jmh-parent" version="1.21">
+         <artifact name="jmh-parent" type="pom" ext="pom">
+            <sha256 value="1f1a47c481f1740671bef9d48cdf19dbca2377e1670823429a89c03dde60eeea"/>
+         </artifact>
+      </component>
+      <component group="org.ow2" name="ow2" version="1.5">
+         <artifact name="ow2" type="pom" ext="pom">
+            <sha256 value="813589b6c082ae253c97b52a2cf495fdbe20ed4c74755e0d36a0a7670f379b6b"/>
+         </artifact>
+      </component>
+      <component group="org.owasp" name="dependency-check-parent" version="3.1.0">
+         <artifact name="dependency-check-parent" type="pom" ext="pom">
+            <sha256 value="e63580391b44400469e5148d581d35647ab56de7e4395f0a16a42917c88c8bfe"/>
+         </artifact>
+      </component>
+      <component group="org.slf4j" name="slf4j-parent" version="1.7.25">
+         <artifact name="slf4j-parent" type="pom" ext="pom">
+            <sha256 value="cdd8fdf74dba4692d3d4bc9382e6753e998673e2040b262ec6310a423e3f19e6"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.oss" name="oss-parent" version="3">
+         <artifact name="oss-parent" type="pom" ext="pom">
+            <sha256 value="45892a95f7fe03f57ad07888b88f93e8b6af147b4d6ede3fee863c1e094e9c4"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.oss" name="oss-parent" version="7">
+         <artifact name="oss-parent" type="pom" ext="pom">
+            <sha256 value="5a649560cb19fa25434bbd00611e489334bcdcb801c541599397c66050e972cc"/>
+         </artifact>
+      </component>
+      <component group="org.sonatype.oss" name="oss-parent" version="9">
+         <artifact name="oss-parent" type="pom" ext="pom">
+            <sha256 value="af61c75c7ba85d379575e6c82a4800561caf821b2e3f1809d6a09f5f89da047e"/>
+         </artifact>
+      </component>
    </components>
 </verification-metadata>
