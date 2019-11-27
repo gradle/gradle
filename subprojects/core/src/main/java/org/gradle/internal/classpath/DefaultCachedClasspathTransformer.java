@@ -17,16 +17,8 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.Transformer;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
-import org.gradle.cache.internal.CompositeCleanupAction;
-import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
-import org.gradle.cache.internal.SingleDepthFilesFinder;
-import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
-import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
@@ -36,9 +28,7 @@ import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.util.CollectionUtils;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -47,10 +37,8 @@ import java.util.Collection;
 import java.util.List;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
-import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
+public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer {
 
     public static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("3.1-rc-1").incrementedIn("3.2-rc-1").incrementedIn("3.5-rc-1").build();
     public static final String CACHE_NAME = "jars";
@@ -60,17 +48,13 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final PersistentCache cache;
     private final Transformer<File, File> jarFileTransformer;
 
-    public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, FileAccessTimeJournal fileAccessTimeJournal, List<CachedJarFileStore> fileStores, UsedGradleVersions usedGradleVersions) {
-        this.cache = cacheRepository
-            .cache(CACHE_KEY)
-            .withDisplayName(CACHE_NAME)
-            .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
-            .withLockOptions(mode(FileLockManager.LockMode.None))
-            .withCleanup(CompositeCleanupAction.builder()
-                .add(UnusedVersionsCacheCleanup.create(CACHE_NAME, CACHE_VERSION_MAPPING, usedGradleVersions))
-                .add(new LeastRecentlyUsedCacheCleanup(new SingleDepthFilesFinder(FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP), fileAccessTimeJournal, DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES))
-                .build())
-            .open();
+    public DefaultCachedClasspathTransformer(
+        ClasspathTransformerCache classpathTransformerCache,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        JarCache jarCache,
+        List<CachedJarFileStore> fileStores
+    ) {
+        this.cache = classpathTransformerCache.getCache();
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
         this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores), fileAccessTracker);
     }
@@ -82,25 +66,17 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     @Override
     public Collection<URL> transform(Collection<URL> urls) {
-        return CollectionUtils.collect(urls, new Transformer<URL, URL>() {
-            @Override
-            public URL transform(URL url) {
-                if (url.getProtocol().equals("file")) {
-                    try {
-                        return jarFileTransformer.transform(new File(url.toURI())).toURI().toURL();
-                    } catch (URISyntaxException | MalformedURLException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                } else {
-                    return url;
+        return CollectionUtils.collect(urls, url -> {
+            if (url.getProtocol().equals("file")) {
+                try {
+                    return jarFileTransformer.transform(new File(url.toURI())).toURI().toURL();
+                } catch (URISyntaxException | MalformedURLException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
+            } else {
+                return url;
             }
         });
-    }
-
-    @Override
-    public void close() throws IOException {
-        cache.close();
     }
 
     private class CachedJarFileTransformer implements Transformer<File, File> {
@@ -127,12 +103,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         @Override
         public File transform(final File original) {
             if (shouldUseFromCache(original)) {
-                return cache.useCache(new Factory<File>() {
-                    @Override
-                    public File create() {
-                        return jarCache.getCachedJar(original, baseDir);
-                    }
-                });
+                return cache.useCache(() -> jarCache.getCachedJar(original, baseDir));
             }
             return original;
         }
@@ -151,7 +122,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         }
     }
 
-    private class FileAccessTrackingJarFileTransformer implements Transformer<File, File> {
+    private static class FileAccessTrackingJarFileTransformer implements Transformer<File, File> {
 
         private final Transformer<File, File> delegate;
         private final FileAccessTracker fileAccessTracker;

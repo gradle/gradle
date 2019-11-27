@@ -55,8 +55,10 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)
 
+    def classpathTransformerCache = new DefaultClasspathTransformerCache(cacheRepository, fileAccessTimeJournal, usedGradleVersions)
+
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, fileAccessTimeJournal, [jarFileStore], usedGradleVersions)
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(classpathTransformerCache, fileAccessTimeJournal, jarCache, [jarFileStore])
 
     def "can convert a classpath to cached jars"() {
         given:

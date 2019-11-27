@@ -46,7 +46,9 @@ import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
+import org.gradle.internal.classpath.ClasspathTransformerCache;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
+import org.gradle.internal.classpath.DefaultClasspathTransformerCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -130,9 +132,30 @@ public class GradleUserHomeScopeServices {
         return cache;
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, FileAccessTimeJournal fileAccessTimeJournal,
-                                                                List<CachedJarFileStore> fileStores, UsedGradleVersions usedGradleVersions) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), fileAccessTimeJournal, fileStores, usedGradleVersions);
+    ClasspathTransformerCache createClasspathTransformerCache(
+        CacheRepository cacheRepository,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        UsedGradleVersions usedGradleVersions
+    ) {
+        return new DefaultClasspathTransformerCache(
+            cacheRepository,
+            fileAccessTimeJournal,
+            usedGradleVersions
+        );
+    }
+
+    CachedClasspathTransformer createCachedClasspathTransformer(
+        ClasspathTransformerCache classpathTransformerCache,
+        FileHasher fileHasher,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        List<CachedJarFileStore> fileStores
+    ) {
+        return new DefaultCachedClasspathTransformer(
+            classpathTransformerCache,
+            fileAccessTimeJournal,
+            new JarCache(fileHasher),
+            fileStores
+        );
     }
 
     WorkerProcessFactory createWorkerProcessFactory(LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
