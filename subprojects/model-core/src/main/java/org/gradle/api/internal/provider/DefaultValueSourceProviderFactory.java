@@ -45,6 +45,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public DefaultValueSourceProviderFactory(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, ServiceLookup services) {
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
+        // TODO - dedupe logic copied from DefaultBuildServicesRegistry
         this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
         this.specInstantiator = instantiatorFactory.decorateLenientScheme().withServices(services).instantiator();
     }
