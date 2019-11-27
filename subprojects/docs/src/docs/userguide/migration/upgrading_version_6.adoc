@@ -80,5 +80,5 @@ This will become an error in Gradle 7.0
 
 ==== Updates to bundled Gradle dependencies
 
-- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/11/kotlin-1-3-60-released/[Kotlin 1.3.60].
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/11/kotlin-1-3-60-released/[Kotlin 1.3.61].
 
