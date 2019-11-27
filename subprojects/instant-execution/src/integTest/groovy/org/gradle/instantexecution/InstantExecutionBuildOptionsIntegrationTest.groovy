@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import spock.lang.Ignore
 import spock.lang.Unroll
 
+@Ignore("wip")
 class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     @Unroll
