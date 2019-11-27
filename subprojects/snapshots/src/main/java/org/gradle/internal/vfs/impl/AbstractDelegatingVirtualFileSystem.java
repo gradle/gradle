@@ -62,7 +62,7 @@ abstract class AbstractDelegatingVirtualFileSystem extends AbstractVirtualFileSy
     }
 
     @Override
-    public SnapshotHierarchy getRoot() {
+    SnapshotHierarchy getRoot() {
         return delegate.getRoot();
     }
 }
