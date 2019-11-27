@@ -22,12 +22,8 @@ import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.DefaultProviderFactory;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
-import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
@@ -43,7 +39,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
@@ -111,15 +107,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
         return "WorkerDaemonServer{}";
     }
 
-    private static class WorkerDaemonServices {
-
-        ValueSourceProviderFactory createValueSourceProviderFactory(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, ServiceRegistry services) {
-            return new DefaultValueSourceProviderFactory(instantiatorFactory, isolatableFactory, services);
-        }
-
-        ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
-            return new DefaultProviderFactory(valueSourceProviderFactory);
-        }
+    private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
 
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
@@ -127,10 +115,6 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
         ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
-        }
-
-        DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-            return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
         ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
