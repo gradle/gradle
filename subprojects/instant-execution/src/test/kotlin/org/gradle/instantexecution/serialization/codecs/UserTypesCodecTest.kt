@@ -133,6 +133,14 @@ class UserTypesCodecTest {
     }
 
     @Test
+    fun `can handle Serializable with only writeObject`() {
+        assertThat(
+            roundtrip(SerializableWriteObjectOnlyBean()).value,
+            equalTo<Any>("42")
+        )
+    }
+
+    @Test
     fun `preserves identity of Serializable objects`() {
         val writeReplaceBean = SerializableWriteReplaceBean()
         val writeObjectBean = SerializableWriteObjectBean(Pair(writeReplaceBean, writeReplaceBean))
@@ -183,6 +191,15 @@ class UserTypesCodecTest {
         class Memento {
             @Suppress("unused")
             fun readResolve() = SerializableWriteReplaceBean("42")
+        }
+    }
+
+    class SerializableWriteObjectOnlyBean(var value: Any? = null) : Serializable {
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            value = "42"
+            objectOutputStream.defaultWriteObject()
         }
     }
 

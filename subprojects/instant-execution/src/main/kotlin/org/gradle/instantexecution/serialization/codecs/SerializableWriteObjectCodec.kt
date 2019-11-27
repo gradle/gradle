@@ -59,14 +59,16 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
                 withBeanTrace(beanType) {
                     val beanStateReader = beanStateReaderFor(beanType)
                     beanStateReader.run { newBeanWithId(false, id) }.also { bean ->
-                        readObjectMethodOf(beanType).invoke(
+                        val objectInputStream = ObjectInputStreamAdapter(
                             bean,
-                            ObjectInputStreamAdapter(
-                                bean,
-                                beanStateReader,
-                                this@decode
-                            )
+                            beanStateReader,
+                            this@decode
                         )
+                        val readObject = readObjectMethodOf(beanType)
+                        when {
+                            readObject != null -> readObject.invoke(bean, objectInputStream)
+                            else -> objectInputStream.defaultReadObject()
+                        }
                     }
                 }
             }
@@ -100,7 +102,7 @@ class SerializableWriteObjectCodec : EncodingProducer, Decoding {
         }
 
     private
-    fun readObjectMethodOf(type: Class<*>) = readObjectCache.forClass(type)!!
+    fun readObjectMethodOf(type: Class<*>) = readObjectCache.forClass(type)
 
     // TODO:instant-execution readObjectNoData
     private
