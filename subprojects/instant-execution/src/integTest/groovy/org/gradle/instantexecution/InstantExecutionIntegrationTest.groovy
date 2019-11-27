@@ -420,6 +420,12 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         when:
         instantRun "ok"
 
+        then: "bean is serialized before task runs"
+        outputContains("bean.value = 42")
+
+        when:
+        instantRun "ok"
+
         then:
         outputContains("bean.value = 42")
     }
