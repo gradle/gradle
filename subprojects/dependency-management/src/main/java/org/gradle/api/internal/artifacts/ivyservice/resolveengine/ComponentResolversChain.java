@@ -25,7 +25,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DefaultArtifactSelector;
@@ -115,12 +115,12 @@ public class ComponentResolversChain {
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
             for (ArtifactResolver resolver : resolvers) {
                 if (result.hasResult()) {
                     return;
                 }
-                resolver.resolveArtifact(artifact, moduleSource, result);
+                resolver.resolveArtifact(artifact, moduleSources, result);
             }
         }
 

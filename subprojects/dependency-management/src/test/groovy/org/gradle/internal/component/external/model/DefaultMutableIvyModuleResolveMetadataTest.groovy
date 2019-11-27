@@ -27,7 +27,9 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.component.model.MutableModuleSources
 import org.gradle.internal.hash.HashValue
 
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
@@ -57,7 +59,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
 
         and:
         metadata.contentHash == AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
-        metadata.source == null
+        metadata.sources == new MutableModuleSources()
         metadata.artifactDefinitions.size() == 2
         metadata.excludes.empty
 
@@ -65,7 +67,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def immutable = metadata.asImmutable()
         immutable != metadata
         immutable.id == id
-        immutable.source == null
+        immutable.sources == ImmutableModuleSources.of()
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.branch == null
         immutable.excludes.empty
@@ -84,7 +86,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def copy = immutable.asMutable()
         copy != metadata
         copy.id == id
-        copy.source == null
+        copy.sources == new MutableModuleSources()
         copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         copy.branch == null
         copy.artifactDefinitions.size() == 2
@@ -110,14 +112,14 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     def "can override values from descriptor"() {
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
-        def source = Stub(ModuleSource)
+        def sources = ImmutableModuleSources.of(Mock(ModuleSource))
         def contentHash = new HashValue("123")
         def excludes = [new DefaultExclude(DefaultModuleIdentifier.newId("group", "name"))]
 
         when:
         def metadata = ivyMetadataFactory.create(id, [], [], [], excludes)
         metadata.id = newId
-        metadata.source = source
+        metadata.sources = sources
         metadata.status = "3"
         metadata.branch = "release"
         metadata.changing = true
@@ -128,7 +130,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         then:
         metadata.id == newId
         metadata.moduleVersionId == DefaultModuleVersionIdentifier.newId(newId)
-        metadata.source == source
+        metadata.sources == MutableModuleSources.of(sources)
         metadata.changing
         metadata.missing
         metadata.status == "3"
@@ -141,7 +143,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable != metadata
         immutable.id == newId
         immutable.moduleVersionId == DefaultModuleVersionIdentifier.newId(newId)
-        immutable.source == source
+        immutable.sources == sources
         immutable.status == "3"
         immutable.branch == "release"
         immutable.changing
@@ -154,7 +156,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy != metadata
         copy.id == newId
         copy.moduleVersionId == DefaultModuleVersionIdentifier.newId(newId)
-        copy.source == source
+        copy.sources == MutableModuleSources.of(sources)
         copy.status == "3"
         copy.branch == "release"
         copy.changing
@@ -167,61 +169,61 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
     def "making changes to copy does not affect original"() {
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
-        def source = Stub(ModuleSource)
+        def sources = ImmutableModuleSources.of(Stub(ModuleSource))
 
         when:
         def metadata = ivyMetadataFactory.create(id, [], [], [], [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.id = newId
-        copy.source = source
+        copy.sources = sources
         copy.statusScheme = ["2", "3"]
         def immutableCopy = copy.asImmutable()
 
         then:
         metadata.id == id
-        metadata.source == null
+        metadata.sources == new MutableModuleSources()
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         immutable.id == id
-        immutable.source == null
+        immutable.sources == ImmutableModuleSources.of()
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         copy.id == newId
-        copy.source == source
+        copy.sources == MutableModuleSources.of(sources)
         copy.statusScheme == ["2", "3"]
 
         immutableCopy.id == newId
-        immutableCopy.source == source
+        immutableCopy.sources == sources
         immutableCopy.statusScheme == ["2", "3"]
     }
 
     def "making changes to original does not affect copy"() {
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
-        def source = Stub(ModuleSource)
+        def sources = ImmutableModuleSources.of(Stub(ModuleSource))
 
         when:
         def metadata = ivyMetadataFactory.create(id, [], [], [], [])
         def immutable = metadata.asImmutable()
 
         metadata.id = newId
-        metadata.source = source
+        metadata.sources = sources
         metadata.statusScheme = ["1", "2"]
 
         def immutableCopy = metadata.asImmutable()
 
         then:
         metadata.id == newId
-        metadata.source == source
+        metadata.sources == MutableModuleSources.of(sources)
         metadata.statusScheme == ["1", "2"]
 
         immutable.id == id
-        immutable.source == null
+        immutable.sources == ImmutableModuleSources.of()
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
 
         immutableCopy.id == newId
-        immutableCopy.source == source
+        immutableCopy.sources == sources
         immutableCopy.statusScheme == ["1", "2"]
     }
 

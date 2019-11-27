@@ -20,21 +20,15 @@ import org.gradle.internal.component.model.ModuleSource;
 public class RepositoryChainModuleSource implements ModuleSource {
     private final String repositoryId;
     private final String repositoryName;
-    private final ModuleSource delegate;
 
-    public RepositoryChainModuleSource(ModuleComponentRepository repository, ModuleSource delegate) {
+    public RepositoryChainModuleSource(ModuleComponentRepository repository) {
         this.repositoryId = repository.getId();
         this.repositoryName = repository.getName();
-        this.delegate = delegate;
     }
 
     @Override
     public String toString() {
-        return "{repo: " + repositoryId + ", source: " + delegate + "}";
-    }
-
-    public ModuleSource getDelegate() {
-        return delegate;
+        return "{repo: " + repositoryId + "}";
     }
 
     public String getRepositoryId() {

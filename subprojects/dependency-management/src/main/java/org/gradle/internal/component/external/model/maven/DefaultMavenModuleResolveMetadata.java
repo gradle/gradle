@@ -38,7 +38,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -79,8 +79,8 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
         dependencies = metadata.getDependencies();
     }
 
-    private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
-        super(metadata, source);
+    private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSources sources) {
+        super(metadata, sources);
         this.objectInstantiator = metadata.objectInstantiator;
         this.mavenImmutableAttributesFactory = metadata.mavenImmutableAttributesFactory;
         packaging = metadata.packaging;
@@ -204,13 +204,13 @@ public class DefaultMavenModuleResolveMetadata extends AbstractLazyModuleCompone
     }
 
     @Override
-    public DefaultMavenModuleResolveMetadata withSource(ModuleSource source) {
-        return new DefaultMavenModuleResolveMetadata(this, source);
+    public MutableMavenModuleResolveMetadata asMutable() {
+        return new DefaultMutableMavenModuleResolveMetadata(this, objectInstantiator);
     }
 
     @Override
-    public MutableMavenModuleResolveMetadata asMutable() {
-        return new DefaultMutableMavenModuleResolveMetadata(this, objectInstantiator);
+    public DefaultMavenModuleResolveMetadata withSources(ModuleSources sources) {
+        return new DefaultMavenModuleResolveMetadata(this, sources);
     }
 
     @Override
