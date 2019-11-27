@@ -46,27 +46,35 @@ import org.gradle.instantexecution.serialization.writeCollection
 
 private
 suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
-    if (value.isValueProducedByTask && value is AbstractMappingProvider<*, *> || value is BuildServiceProvider<*, *>) {
-        // Need to serialize the transformation and its source, as the value is not available until execution time
-        writeBoolean(true)
-        BeanCodec().run { encode(value) }
-    } else {
-        // Can serialize the value and discard the provider
-        writeBoolean(false)
-        write(unpack(value))
+    when {
+        value is BuildServiceProvider<*, *> -> {
+            writeByte(1)
+            write(value)
+        }
+        value.isValueProducedByTask && value is AbstractMappingProvider<*, *> -> {
+            // Need to serialize the transformation and its source, as the value is not available until execution time
+            writeByte(2)
+            BeanCodec().run { encode(value) }
+        }
+        else -> {
+            // Can serialize the value and discard the provider
+            writeByte(3)
+            write(unpack(value))
+        }
     }
 }
 
 
 private
 suspend fun ReadContext.readProvider(): ProviderInternal<Any> =
-    if (readBoolean()) {
-        BeanCodec().run { decode() }!!.uncheckedCast()
-    } else {
-        when (val value = read()) {
-            is BrokenValue -> DefaultProvider<Any> { value.rethrow() }.uncheckedCast()
-            else -> Providers.ofNullable(value)
-        }
+    when (readByte()) {
+        1.toByte() -> read()!!.uncheckedCast()
+        2.toByte() -> BeanCodec().run { decode() }!!.uncheckedCast()
+        else ->
+            when (val value = read()) {
+                is BrokenValue -> DefaultProvider<Any> { value.rethrow() }.uncheckedCast()
+                else -> Providers.ofNullable(value)
+            }
     }
 
 
