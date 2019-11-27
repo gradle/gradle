@@ -49,8 +49,7 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        boolean subscribable = action instanceof SubscribableBuildAction;
-        if (subscribable) {
+        if (action instanceof SubscribableBuildAction) {
             BuildEventConsumer eventConsumer = requestContext.getEventConsumer();
             SubscribableBuildAction subscribableBuildAction = (SubscribableBuildAction) action;
             registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), eventConsumer);

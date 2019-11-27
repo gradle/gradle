@@ -40,6 +40,7 @@ import org.gradle.tooling.internal.provider.runner.PluginApplicationTracker.Plug
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,7 +109,7 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
         long startTime = finishEvent.getStartTime();
         long endTime = finishEvent.getEndTime();
         Throwable failure = finishEvent.getFailure();
-        List<InternalPluginApplicationResult> pluginApplicationResults = configResult.toInternalPluginApplicationResults();
+        List<InternalPluginApplicationResult> pluginApplicationResults = configResult != null ? configResult.toInternalPluginApplicationResults() : Collections.emptyList();
         if (failure != null) {
             return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults);
         }
