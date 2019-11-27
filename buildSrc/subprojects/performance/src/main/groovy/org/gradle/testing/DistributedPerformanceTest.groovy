@@ -446,7 +446,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                     def contentUri = fileNode.content.href
                     client.get(path: contentUri, contentType: ContentType.BINARY) {
                         resp, inputStream ->
-                            testSuite = parseXmlsInZip(inputStream)
+                            testSuite = parseXmlsInZip(buildData, inputStream)
                     }
                 }
             }
@@ -454,7 +454,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         return testSuite
     }
 
-    private static JUnitTestSuite parseXmlsInZip(InputStream inputStream) {
+    private static JUnitTestSuite parseXmlsInZip(Map response, InputStream inputStream) {
         List<JUnitTestSuite> parsedXmls = []
         new ZipInputStream(inputStream).withStream { zipInput ->
             def entry
@@ -464,7 +464,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                 }
             }
         }
-        assert parsedXmls.size() == 1
+        assert parsedXmls.size() == 1: "Error when parsing xml: ${response}"
         parsedXmls[0]
     }
 
