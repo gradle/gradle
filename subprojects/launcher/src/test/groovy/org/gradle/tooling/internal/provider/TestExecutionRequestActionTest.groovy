@@ -17,13 +17,14 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.internal.build.event.BuildEventSubscriptions
 import org.gradle.tooling.internal.provider.test.ProviderInternalTestExecutionRequest
 import spock.lang.Specification
 
 class TestExecutionRequestActionTest extends Specification {
 
     StartParameterInternal startParameter = Mock()
-    BuildClientSubscriptions buildClientSubscriptions= Mock()
+    BuildEventSubscriptions buildClientSubscriptions= Mock()
     ProviderInternalTestExecutionRequest executionRequest = Mock()
 
     def "maps testClasses to internalJvmTestRequests if empty"(){

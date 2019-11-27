@@ -21,6 +21,7 @@ import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -62,7 +63,7 @@ public class LauncherServices extends AbstractPluginServiceRegistry {
 
     static class ToolingGlobalScopeServices {
         BuildExecuter createBuildExecuter(List<BuildActionRunner> buildActionRunners,
-                                          List<SubscribableBuildActionRunnerRegistration> registrations,
+                                          List<BuildEventListenerFactory> registrations,
                                           ListenerManager listenerManager,
                                           BuildOperationListenerManager buildOperationListenerManager,
                                           TaskInputsListener inputsListener,

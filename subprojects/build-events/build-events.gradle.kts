@@ -15,6 +15,29 @@
  */
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
+plugins {
+    `java-library`
+}
+
 gradlebuildJava {
     moduleType = ModuleType.CORE
+}
+
+dependencies {
+    implementation(project(":baseServices"))
+    implementation(project(":messaging"))
+    implementation(project(":coreApi"))
+    implementation(project(":core"))
+    implementation(project(":toolingApi"))
+
+    implementation(library("jsr305"))
+    implementation(library("guava"))
+
+    integTestImplementation(project(":internalTesting"))
+    integTestImplementation(project(":internalIntegTesting"))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":toolingApiBuilders")) {
+        because("Event handlers are in the wrong place, and should live in this project")
+    }
 }

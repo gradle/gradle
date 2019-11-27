@@ -142,8 +142,8 @@ dependencies {
     integTestImplementation(testLibrary("jetty"))
     integTestImplementation(testLibrary("littleproxy"))
     integTestImplementation(testFixtures(project(":native")))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
 
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":maven"))
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":kotlinDsl"))
@@ -153,7 +153,6 @@ dependencies {
     integTestRuntimeOnly(project(":testKit"))
 
     crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
-
 }
 
 gradlebuildJava {
