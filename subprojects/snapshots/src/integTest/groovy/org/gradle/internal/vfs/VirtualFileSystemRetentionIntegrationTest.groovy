@@ -21,11 +21,17 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
+import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon })
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        // Make the first build in each test drop the VFS state
+        executer.withArgument("-D$VFS_DROP_PROPERTY=true")
+    }
 
     @ToBeFixedForInstantExecution
     def "source file changes are recognized"() {
