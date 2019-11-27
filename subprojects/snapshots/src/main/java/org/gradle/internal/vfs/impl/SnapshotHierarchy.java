@@ -61,9 +61,9 @@ public interface SnapshotHierarchy {
     @CheckReturnValue
     SnapshotHierarchy empty();
 
-    void visitCompleteSnapshots(CompleteSnapshotVisitor snapshotVisitor);
+    void visitSnapshots(SnapshotVisitor snapshotVisitor);
 
-    interface CompleteSnapshotVisitor {
-        void visitCompleteSnapshot(CompleteFileSystemLocationSnapshot snapshot);
+    interface SnapshotVisitor {
+        void visitSnapshot(CompleteFileSystemLocationSnapshot snapshot);
     }
 }

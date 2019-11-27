@@ -60,7 +60,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         try {
             watchRegistry = watcherRegistryFactory.createRegistry();
             Set<Path> visited = new HashSet<>();
-            getRoot().visitCompleteSnapshots(snapshot -> {
+            getRoot().visitSnapshots(snapshot -> {
                 String absolutePath = snapshot.getAbsolutePath();
                 Path path = Paths.get(absolutePath);
                 if (!watchFilter.test(path)) {
