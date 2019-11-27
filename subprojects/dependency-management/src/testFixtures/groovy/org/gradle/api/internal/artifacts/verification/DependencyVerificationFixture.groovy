@@ -136,7 +136,7 @@ class DependencyVerificationFixture {
 
         void declaresChecksum(String checksum, String algorithm = "sha1") {
             def expectedChecksum = metadata.checksums.get(ChecksumKind.valueOf(algorithm))
-            assert expectedChecksum == checksum
+            assert expectedChecksum == checksum : "Expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
         }
 
         void declaresChecksums(Map<String, String> checksums, boolean strict = true) {

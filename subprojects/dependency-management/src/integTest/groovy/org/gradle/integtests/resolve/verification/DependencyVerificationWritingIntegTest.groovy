@@ -583,4 +583,82 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             }
         }
     }
+
+    // This test documents the existing behavior, in practice, ALL metadata
+    // should be written to the verification file, but it appears that at this
+    // stage, parent POMs are _already_ written and verified
+    def "writes checksums for parent POMs"() {
+        given:
+        javaLibrary()
+        uncheckedModule("org", "parent")
+        uncheckedModule("org", "foo", "1.0") {
+            parent("org", "parent", "1.0")
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        succeeds "help"
+
+        then:
+        hasModules(["org:foo", "org:parent"])
+        module("org:foo") {
+            artifact("foo") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+        }
+        module("org:parent") {
+            artifact("parent", "pom", "pom") {
+                declaresChecksums(
+                    "sha1": "80467aedb11ffbbbcc2dfc38c9221e878dd32850",
+                    "sha512": "65ae65654f6f97acfe989b5e0bcd0cfea76c15723d8c2433ea2eaca2e71224118421a9fd1fbc5ff7c1de5cab0c5ffe8551e40abda37a83c9d9c71467442f978"
+                )
+            }
+        }
+    }
+
+    // This test documents the existing behavior, in practice, ALL metadata
+    // should be written to the verification file, but it appears that at this
+    // stage, parent POMs are _already_ written and verified
+    def "doesn't write checksums for parent POMs if they were downloaded in a previous build"() {
+        given:
+        javaLibrary()
+        uncheckedModule("org", "parent")
+        uncheckedModule("org", "foo", "1.0") {
+            parent("org", "parent", "1.0")
+        }
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava"
+
+        then:
+        executedAndNotSkipped(":compileJava")
+
+        when:
+        writeVerificationMetadata()
+        succeeds ":help"
+
+        then:
+        hasModules(["org:foo"]) // parent is absent in this case!
+        module("org:foo") {
+            artifact("foo") {
+                declaresChecksums(
+                    sha1: "16e066e005a935ac60f06216115436ab97c5da02",
+                    sha512: "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+                )
+            }
+        }
+    }
 }
