@@ -27,6 +27,8 @@ import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
 import java.io.Closeable;
 import java.io.File;
@@ -38,9 +40,9 @@ import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MA
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultClasspathTransformerCache implements ClasspathTransformerCache, Closeable {
-    public static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("3.1-rc-1").incrementedIn("3.2-rc-1").incrementedIn("3.5-rc-1").build();
-    public static final String CACHE_NAME = "jars";
-    public static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
+    private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("3.1-rc-1").incrementedIn("3.2-rc-1").incrementedIn("3.5-rc-1").build();
+    private static final String CACHE_NAME = "jars";
+    private static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final PersistentCache cache;
@@ -65,6 +67,11 @@ public class DefaultClasspathTransformerCache implements ClasspathTransformerCac
     @Override
     public PersistentCache getCache() {
         return cache;
+    }
+
+    @Override
+    public FileAccessTracker createFileAccessTracker(FileAccessTimeJournal fileAccessTimeJournal) {
+        return new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 
     @Override

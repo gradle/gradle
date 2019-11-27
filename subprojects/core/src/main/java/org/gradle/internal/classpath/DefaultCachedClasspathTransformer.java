@@ -18,12 +18,10 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.Transformer;
 import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.CacheVersionMapping;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.util.CollectionUtils;
 
@@ -33,14 +31,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 
-import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
-
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer {
-
-    public static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("3.1-rc-1").incrementedIn("3.2-rc-1").incrementedIn("3.5-rc-1").build();
-    public static final String CACHE_NAME = "jars";
-    public static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
-    private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final PersistentCache cache;
     private final Transformer<File, File> jarFileTransformer;
@@ -52,7 +43,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         WellKnownFileLocations wellKnownFileLocations
     ) {
         this.cache = classpathTransformerCache.getCache();
-        FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        FileAccessTracker fileAccessTracker = classpathTransformerCache.createFileAccessTracker(fileAccessTimeJournal);
         this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, wellKnownFileLocations), fileAccessTracker);
     }
 
