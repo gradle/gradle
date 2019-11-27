@@ -112,7 +112,7 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? {
         return decodePreservingIdentity(sharedIdentities) { id ->
             val name = readString()
-            val implementationType = readClass() as Class<BuildService<*>>
+            val implementationType = readClass().uncheckedCast<Class<BuildService<*>>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
             val provider = serviceRegistry.register(name, implementationType, parameters, maxUsages)
