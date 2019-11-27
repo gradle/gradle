@@ -67,8 +67,8 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public void accept(KnownNodeVisitor visitor) {
-        visitor.visitKnownNode(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visitNode(this);
         children.forEach(child -> child.accept(visitor));
     }
 

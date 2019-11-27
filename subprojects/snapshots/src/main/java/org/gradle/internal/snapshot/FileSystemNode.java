@@ -60,9 +60,9 @@ public interface FileSystemNode {
      */
     FileSystemNode withPathToParent(String newPathToParent);
 
-    void accept(KnownNodeVisitor visitor);
+    void accept(NodeVisitor visitor);
 
-    interface KnownNodeVisitor {
-        void visitKnownNode(FileSystemNode node);
+    interface NodeVisitor {
+        void visitNode(FileSystemNode node);
     }
 }

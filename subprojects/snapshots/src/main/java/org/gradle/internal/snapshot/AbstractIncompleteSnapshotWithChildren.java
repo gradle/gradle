@@ -119,8 +119,8 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public void accept(KnownNodeVisitor visitor) {
-        visitor.visitKnownNode(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visitNode(this);
         children.forEach(child -> child.accept(visitor));
     }
 }
