@@ -67,19 +67,19 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
         return ServiceRegistryBuilder.builder()
-                .displayName("worker daemon services")
-                .parent(parent)
-                .provider(new WorkerSharedGlobalScopeServices())
-                .provider(new WorkerDaemonServices())
-                .build();
+            .displayName("worker daemon services")
+            .parent(parent)
+            .provider(new WorkerSharedGlobalScopeServices())
+            .provider(new WorkerDaemonServices())
+            .build();
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
             ServiceRegistry workServices = new WorkerPublicServicesBuilder(new WorkerProjectServices(spec.getBaseDir(), internalServices))
-                    .withInternalServicesVisible(spec.isInternalServicesRequired())
-                    .build();
+                .withInternalServicesVisible(spec.isInternalServicesRequired())
+                .build();
             Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), workServices);
             return worker.execute(spec);
         } catch (Throwable t) {
@@ -142,7 +142,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
         private final File baseDir;
 
         public WorkerProjectServices(File baseDir, ServiceRegistry... parents) {
-            super("worker file services for "+ baseDir.getAbsolutePath(), parents);
+            super("worker file services for " + baseDir.getAbsolutePath(), parents);
             this.baseDir = baseDir;
             addProvider(new WorkerSharedProjectScopeServices(baseDir));
         }
