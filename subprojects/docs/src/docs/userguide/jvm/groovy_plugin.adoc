@@ -41,17 +41,17 @@ include::sample[dir="groovy/quickstart/kotlin",files="build.gradle.kts[tags=use-
 The Groovy plugin adds the following tasks to the project.
 
 `compileGroovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
-_Depends on_: `compileJava`
+_Depends on_: `compileJava` (can be turned off with `java { withoutCompileJavaFirst() }`)
 +
 Compiles production Groovy source files.
 
 `compileTestGroovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
-_Depends on_: `compileTestJava`
+_Depends on_: `compileTestJava` (can be turned off with `java { withoutCompileJavaFirst() }`)
 +
 Compiles test Groovy source files.
 
 `compile__SourceSet__Groovy` — link:{groovyDslPath}/org.gradle.api.tasks.compile.GroovyCompile.html[GroovyCompile]::
-_Depends on_: `compile__SourceSet__Java`
+_Depends on_: `compile__SourceSet__Java` (can be turned off with `java { withoutCompileJavaFirst() }`)
 +
 Compiles the given source set's Groovy source files.
 

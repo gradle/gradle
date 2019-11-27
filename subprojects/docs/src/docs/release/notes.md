@@ -42,6 +42,26 @@ See [the documentation](userguide/dependency_resolution.html#sub:cache_copy) for
 
 This is one step in helping out ephemeral CI setups where host images can be seeded with dependency cache content, reducing the amout of downloads during the build.
 
+## Compile dependencies between Groovy, Scala and Java in the same project can be turned off
+
+By default, `compileGroovy` and `compileScala` depend on `compileJava`.
+This can now be turned off if that dependency interferes with other parts of the build.
+This is helpful, for example, when combining Groovy and Kotlin in the same project.
+
+```
+// Turn off default compilation order for all source sets
+java {
+    withoutCompileJavaFirst()
+}
+
+// Make Kotlin compilation depend on the result of 
+// Groovy compilation for the main source set
+tasks.named('compileKotlin') {
+    dependsOn tasks.named('compileGroovy')
+    classpath += files(sourceSets.main.groovy.outputDir)
+}
+```
+
 ## Features for Gradle tooling providers
 
 ### `TestLauncher` can select specific methods
