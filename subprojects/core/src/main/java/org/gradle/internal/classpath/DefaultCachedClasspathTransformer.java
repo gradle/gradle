@@ -44,13 +44,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
+public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, CachedJarFileStore, Closeable {
 
     public static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("3.1-rc-1").incrementedIn("3.2-rc-1").incrementedIn("3.5-rc-1").build();
     public static final String CACHE_NAME = "jars";
@@ -96,6 +97,11 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 }
             }
         });
+    }
+
+    @Override
+    public List<File> getFileStoreRoots() {
+        return Collections.singletonList(cache.getBaseDir());
     }
 
     @Override
