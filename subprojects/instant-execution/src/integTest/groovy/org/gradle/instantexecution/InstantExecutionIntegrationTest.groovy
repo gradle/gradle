@@ -394,6 +394,36 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = [b]")
     }
 
+    def "restores task fields whose value is Serializable and has only a writeObject method"() {
+        buildFile << """
+            class SomeBean implements Serializable {
+                String value
+
+                private void writeObject(java.io.ObjectOutputStream oos) {
+                    value = "42"
+                    oos.defaultWriteObject()
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+
+                @TaskAction
+                void run() {
+                    println "bean.value = " + bean.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+
+        then:
+        outputContains("bean.value = 42")
+    }
+
     @Unroll
     def "restores task fields whose value is service of type #type"() {
         buildFile << """
