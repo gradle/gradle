@@ -1348,13 +1348,13 @@ class DefaultConfigurationSpec extends Specification {
         conf.dependencies.add(Mock(Dependency))
         then:
         def exDependency = thrown(InvalidUserDataException);
-        exDependency.message == "Cannot change dependencies of configuration ':conf' after it has been resolved."
+        exDependency.message == "Cannot change dependencies of dependency configuration ':conf' after it has been resolved."
 
         when:
         conf.artifacts.add(Mock(PublishArtifact))
         then:
         def exArtifact = thrown(InvalidUserDataException);
-        exArtifact.message == "Cannot change artifacts of configuration ':conf' after it has been resolved."
+        exArtifact.message == "Cannot change artifacts of dependency configuration ':conf' after it has been resolved."
     }
 
     def "defaultDependencies action does not trigger when config has dependencies"() {
@@ -1549,7 +1549,7 @@ class DefaultConfigurationSpec extends Specification {
 
         then:
         IllegalArgumentException t = thrown()
-        t.message == "Cannot change attributes of configuration ':conf' after it has been resolved"
+        t.message == "Cannot change attributes of dependency configuration ':conf' after it has been resolved"
     }
 
     def "wrapper attribute container behaves similar to the delegatee"() {

@@ -37,7 +37,7 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
     def "cannot mutate outgoing variants after configuration is resolved"() {
         given:
         buildFile << """
-        
+
         configurations {
             compile {
                 attributes.attribute(usage, 'for compile')
@@ -85,13 +85,13 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         fails("mutateAfterResolve")
 
         then:
-        failure.assertHasCause "Cannot change attributes of configuration ':compile' after it has been resolved"
+        failure.assertHasCause "Cannot change attributes of dependency configuration ':compile' after it has been resolved"
     }
 
     def "cannot add outgoing variants after configuration is resolved"() {
         given:
         buildFile << """
-        
+
         configurations {
             compile {
                 attributes.attribute(usage, 'for compile')
@@ -139,6 +139,6 @@ class OutgoingVariantsMutationIntegrationTest extends AbstractIntegrationSpec {
         fails("mutateAfterResolve")
 
         then:
-        failure.assertHasCause "Cannot create variant 'sources' after configuration ':compile' has been resolved"
+        failure.assertHasCause "Cannot create variant 'sources' after dependency configuration ':compile' has been resolved"
     }
 }

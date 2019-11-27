@@ -207,11 +207,11 @@ configurations.compile.withDependencies {
 
         then:
         fails "mutateResolved"
-        failure.assertHasCause("Cannot change dependencies of configuration ':compile' after it has been resolved.")
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':compile' after it has been resolved.")
 
         and:
         fails "mutateParent"
-        failure.assertHasCause("Cannot change dependencies of configuration ':conf' after it has been included in dependency resolution.")
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':conf' after it has been included in dependency resolution.")
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
