@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.instantexecution.provider.DefaultValueSourceProviderFactory
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
@@ -33,7 +32,6 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
         registration.run {
             add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
-            add(DefaultValueSourceProviderFactory::class.java)
         }
     }
 

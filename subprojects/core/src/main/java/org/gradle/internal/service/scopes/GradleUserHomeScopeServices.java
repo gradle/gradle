@@ -27,6 +27,11 @@ import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.ValueSourceProviderFactory;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
@@ -60,6 +65,8 @@ import org.gradle.internal.file.JarCache;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -96,6 +103,14 @@ public class GradleUserHomeScopeServices {
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
+    }
+
+    ValueSourceProviderFactory createValueSourceProviderFactory(ObjectFactory objectFactory, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
+        return new DefaultValueSourceProviderFactory(objectFactory, instantiatorFactory, isolatableFactory);
+    }
+
+    ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
+        return new DefaultProviderFactory(valueSourceProviderFactory);
     }
 
     ListenerManager createListenerManager(ListenerManager parent) {
