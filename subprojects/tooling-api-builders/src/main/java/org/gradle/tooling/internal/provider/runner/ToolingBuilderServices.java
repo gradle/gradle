@@ -20,17 +20,18 @@ import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.operations.BuildOperationIdFactory;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
+import org.gradle.tooling.internal.events.DefaultProgressListenerRegistry;
 import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-
+        registration.add(DefaultProgressListenerRegistry.class);
         registration.addProvider(new Object() {
             BuildActionRunner createBuildActionRunner(final BuildOperationListenerManager buildOperationListenerManager) {
                 return new ChainingBuildActionRunner(
@@ -41,8 +42,8 @@ public class ToolingBuilderServices extends AbstractPluginServiceRegistry {
                         new ClientProvidedPhasedActionRunner()));
             }
 
-            ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration(ServiceRegistry services) {
-                return new ToolingApiSubscribableBuildActionRunnerRegistration(services.get(BuildOperationIdFactory.class), new CompositeOperationResultPostProcessor(services.getAll(OperationResultPostProcessor.class)));
+            ToolingApiSubscribableBuildActionRunnerRegistration createToolingApiSubscribableBuildActionRunnerRegistration(BuildOperationIdFactory buildOperationIdFactory, List<OperationResultPostProcessor> processors) {
+                return new ToolingApiSubscribableBuildActionRunnerRegistration(buildOperationIdFactory, new CompositeOperationResultPostProcessor(processors));
             }
         });
     }
