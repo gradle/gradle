@@ -110,7 +110,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         private final InstantiationScheme instantiationScheme;
 
         @Nullable
-        private Try<T> instance = null;
+        private Try<T> value = null;
 
         public DefaultValueSourceProvider(
             Class<? extends ValueSource<T, P>> valueSourceType,
@@ -134,20 +134,16 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Override
         public T getOrNull() {
             synchronized (this) {
-                if (instance == null) {
+                if (value == null) {
                     // TODO - dedupe logic copied from DefaultBuildServicesRegistry
                     DefaultServiceRegistry services = new DefaultServiceRegistry();
                     // TODO - consider if should hold the project lock to do the isolation
                     P isolatedParameters = (P) isolatableFactory.isolate(parameters).isolate();
                     services.add(parametersType, isolatedParameters);
-                    try {
-                        instance = Try.successful(realizeValueSource(services).obtain());
-                    } catch (Exception e) {
-                        // TODO - add more information to exception
-                        instance = Try.failure(e);
-                    }
+                    // TODO - add more information to exception
+                    value = Try.ofFailable(() -> realizeValueSource(services).obtain());
                 }
-                return instance.get();
+                return value.get();
             }
         }
 
