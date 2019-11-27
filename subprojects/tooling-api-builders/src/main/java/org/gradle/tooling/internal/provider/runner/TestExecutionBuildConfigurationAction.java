@@ -32,7 +32,7 @@ import org.gradle.process.internal.DefaultJavaDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
-import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
+import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 
 import java.util.*;

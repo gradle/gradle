@@ -29,7 +29,7 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
-import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
+import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import spock.lang.Specification
 import spock.lang.Unroll
 

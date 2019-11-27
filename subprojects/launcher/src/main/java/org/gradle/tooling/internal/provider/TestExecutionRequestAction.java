@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.tooling.events.test.internal.DefaultDebugOptions;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
@@ -42,7 +43,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
     private final InternalDebugOptions debugOptions;
     private final Map<String, List<InternalJvmTestRequest>> taskAndTests;
 
-    private TestExecutionRequestAction(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
+    private TestExecutionRequestAction(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, Set<InternalTestDescriptor> testDescriptors, Set<String> providerClassNames, Set<InternalJvmTestRequest> internalJvmTestRequests, InternalDebugOptions debugOptions, Map<String, List<InternalJvmTestRequest>> taskAndTests) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.testDescriptors = testDescriptors;
@@ -54,7 +55,7 @@ public class TestExecutionRequestAction extends SubscribableBuildAction {
 
     // Unpacks the request to serialize across to the daemon and creates instance of
     // TestExecutionRequestAction
-    public static TestExecutionRequestAction create(BuildClientSubscriptions clientSubscriptions, StartParameterInternal startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
+    public static TestExecutionRequestAction create(BuildEventSubscriptions clientSubscriptions, StartParameterInternal startParameter, ProviderInternalTestExecutionRequest testExecutionRequest) {
         ImmutableSet<String> classNames = ImmutableSet.copyOf(testExecutionRequest.getTestClassNames());
         return new TestExecutionRequestAction(clientSubscriptions, startParameter,
                 ImmutableSet.copyOf(testExecutionRequest.getTestExecutionDescriptors()),

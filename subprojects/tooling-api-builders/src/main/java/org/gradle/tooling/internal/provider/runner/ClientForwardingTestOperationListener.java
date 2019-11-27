@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.operations.ExecuteTestBuildOperationType;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -30,15 +31,14 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalJvmTestDescriptor;
-import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.AbstractTestResult;
-import org.gradle.tooling.internal.provider.events.DefaultFailure;
-import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTestFailureResult;
-import org.gradle.tooling.internal.provider.events.DefaultTestFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestSkippedResult;
-import org.gradle.tooling.internal.provider.events.DefaultTestStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestSuccessResult;
+import org.gradle.internal.build.event.types.AbstractTestResult;
+import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultTestDescriptor;
+import org.gradle.internal.build.event.types.DefaultTestFailureResult;
+import org.gradle.internal.build.event.types.DefaultTestFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultTestSkippedResult;
+import org.gradle.internal.build.event.types.DefaultTestStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultTestSuccessResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,10 +50,10 @@ import java.util.Map;
 class ClientForwardingTestOperationListener implements BuildOperationListener {
 
     private final ProgressEventConsumer eventConsumer;
-    private final BuildClientSubscriptions clientSubscriptions;
+    private final BuildEventSubscriptions clientSubscriptions;
     private final Map<Object, String> runningTasks = Maps.newConcurrentMap();
 
-    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions) {
+    ClientForwardingTestOperationListener(ProgressEventConsumer eventConsumer, BuildEventSubscriptions clientSubscriptions) {
         this.eventConsumer = eventConsumer;
         this.clientSubscriptions = clientSubscriptions;
     }

@@ -32,16 +32,16 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
-import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
-import org.gradle.tooling.internal.provider.events.DefaultFailure;
-import org.gradle.tooling.internal.provider.events.DefaultTaskDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTaskFailureResult;
-import org.gradle.tooling.internal.provider.events.DefaultTaskFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTaskSkippedResult;
-import org.gradle.tooling.internal.provider.events.DefaultTaskStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
-import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.build.event.types.AbstractTaskResult;
+import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultTaskDescriptor;
+import org.gradle.internal.build.event.types.DefaultTaskFailureResult;
+import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultTaskSkippedResult;
+import org.gradle.internal.build.event.types.DefaultTaskStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultTaskSuccessResult;
+import org.gradle.internal.build.event.OperationResultPostProcessor;
 
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +63,7 @@ class ClientForwardingTaskOperationListener extends SubtreeFilteringBuildOperati
     private final TaskOriginTracker taskOriginTracker;
     private final OperationDependenciesResolver operationDependenciesResolver;
 
-    ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
+    ClientForwardingTaskOperationListener(ProgressEventConsumer eventConsumer, BuildEventSubscriptions clientSubscriptions, BuildOperationListener delegate,
                                           OperationResultPostProcessor operationResultPostProcessor, TaskOriginTracker taskOriginTracker, OperationDependenciesResolver operationDependenciesResolver) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TASK, ExecuteTaskBuildOperationDetails.class);
         this.operationResultPostProcessor = operationResultPostProcessor;

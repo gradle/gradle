@@ -18,13 +18,14 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 
 public class ClientProvidedPhasedAction extends SubscribableBuildAction {
     private final StartParameterInternal startParameter;
     private final SerializedPayload phasedAction;
     private final boolean runTasks;
 
-    public ClientProvidedPhasedAction(StartParameterInternal startParameter, SerializedPayload phasedAction, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+    public ClientProvidedPhasedAction(StartParameterInternal startParameter, SerializedPayload phasedAction, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.phasedAction = phasedAction;

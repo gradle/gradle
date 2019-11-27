@@ -17,13 +17,14 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 
 public class BuildModelAction extends SubscribableBuildAction {
     private final StartParameterInternal startParameter;
     private final String modelName;
     private final boolean runTasks;
 
-    public BuildModelAction(StartParameterInternal startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+    public BuildModelAction(StartParameterInternal startParameter, String modelName, boolean runTasks, BuildEventSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.modelName = modelName;

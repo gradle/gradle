@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResul
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.FileContentCacheFactory;
+import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -36,7 +37,6 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.java.artifact.JavadocArtifact;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
@@ -60,7 +60,7 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaGlobalScopeServices {
-        SubscribableBuildActionRunnerRegistration createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultPostProcessor factory) {
+        BuildEventListenerFactory createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultPostProcessor factory) {
             return (clientSubscriptions, consumer) -> clientSubscriptions.isRequested(OperationType.TASK)
                 ? Collections.singletonList(factory)
                 : emptyList();

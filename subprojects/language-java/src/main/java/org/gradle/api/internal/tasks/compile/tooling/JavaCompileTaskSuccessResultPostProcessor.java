@@ -26,11 +26,11 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalJavaCompileTaskOperationResult.InternalAnnotationProcessorResult;
-import org.gradle.tooling.internal.provider.events.AbstractTaskResult;
-import org.gradle.tooling.internal.provider.events.DefaultAnnotationProcessorResult;
-import org.gradle.tooling.internal.provider.events.DefaultJavaCompileTaskSuccessResult;
-import org.gradle.tooling.internal.provider.events.DefaultTaskSuccessResult;
-import org.gradle.tooling.internal.provider.events.OperationResultPostProcessor;
+import org.gradle.internal.build.event.types.AbstractTaskResult;
+import org.gradle.internal.build.event.types.DefaultAnnotationProcessorResult;
+import org.gradle.internal.build.event.types.DefaultJavaCompileTaskSuccessResult;
+import org.gradle.internal.build.event.types.DefaultTaskSuccessResult;
+import org.gradle.internal.build.event.OperationResultPostProcessor;
 
 import java.time.Duration;
 import java.util.ArrayList;

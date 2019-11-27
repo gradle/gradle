@@ -31,11 +31,6 @@ dependencies {
     implementation(library("commons_io"))
 
     testImplementation(project(":fileCollections"))
-
-    integTestImplementation(project(":internalTesting"))
-    integTestImplementation(project(":internalIntegTesting"))
-
-    integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
 gradlebuildJava {
