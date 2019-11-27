@@ -17,7 +17,6 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.services.BuildServiceParameters;
 
 /**
  * Marker interface for parameter objects to {@link ValueSource}s.
