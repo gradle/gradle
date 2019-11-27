@@ -90,6 +90,31 @@ This can indicate that a dependency has been compromised. Please verify carefull
         "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
     }
 
+    def "doesn't fail the build but logs errors if lenient mode is used"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", 'sha1', "invalid")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ":compileJava", "-lv"
+
+        then:
+        errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
+
+    }
+
+
     def "can collect multiple errors in a single dependency graph"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")

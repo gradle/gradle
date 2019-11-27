@@ -63,6 +63,7 @@ public class StartParameterBuildOptions {
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
         options.add(new DependencyVerificationWriteOption());
+        options.add(new LenientDependencyVerificationOption());
         options.add(new DependencyLockingUpdateOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
@@ -336,6 +337,23 @@ public class StartParameterBuildOptions {
                 .map(String::toLowerCase)
                 .collect(Collectors.toList());
             settings.setWriteDependencyVerifications(checksums);
+        }
+    }
+
+    public static class LenientDependencyVerificationOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+
+        private static final String LONG_OPTION = "lenient-dependency-verification";
+        private static final String SHORT_OPTION = "lv";
+
+        public LenientDependencyVerificationOption() {
+            super(null, CommandLineOptionConfiguration.create(
+                LONG_OPTION, SHORT_OPTION, "Enables lenient dependency verification. Errors will be non fatal. Should only be used when updating checksums"
+            ));
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setLenientDependencyVerification(true);
         }
     }
 

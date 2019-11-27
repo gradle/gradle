@@ -25,6 +25,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyi
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -38,14 +40,18 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
+    private final static Logger LOGGER = Logging.getLogger(ChecksumVerificationOverride.class);
+
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
 
     private final DependencyVerifier verifier;
     private final Map<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure> failures = Maps.newLinkedHashMapWithExpectedSize(2);
     private final BuildOperationExecutor buildOperationExecutor;
+    private final boolean isLenient;
 
-    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile) {
+    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, boolean isLenient) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.isLenient = isLenient;
         try {
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
@@ -99,7 +105,13 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
                     // the else is just to avoid telling people to use `--write-verification-metadata` if we suspect compromised dependencies
                     formatter.node("Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe).");
                 }
-                throw new InvalidUserDataException(formatter.toString());
+                String message = formatter.toString();
+                if (isLenient) {
+                    LOGGER.error(message);
+                    failures.clear();
+                } else {
+                    throw new InvalidUserDataException(message);
+                }
             }
         }
     }

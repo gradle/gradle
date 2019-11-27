@@ -83,7 +83,7 @@ public class StartParameterResolutionOverride {
             File verificationsFile = DependencyVerificationOverride.dependencyVerificationsFile(currentDir);
             if (verificationsFile.exists()) {
                 SingleMessageLogger.incubatingFeatureUsed("Dependency verification");
-                return new ChecksumVerificationOverride(buildOperationExecutor, verificationsFile);
+                return new ChecksumVerificationOverride(buildOperationExecutor, verificationsFile, startParameter.isLenientDependencyVerification());
             }
         }
         return DependencyVerificationOverride.NO_VERIFICATION;

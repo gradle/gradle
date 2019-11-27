@@ -98,6 +98,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean writeDependencyLocks;
     private List<String> writeDependencyVerifications = emptyList();
     private List<String> lockedDependenciesToUpdate = emptyList();
+    private boolean lenientDependencyVerification;
 
     /**
      * {@inheritDoc}
@@ -883,5 +884,29 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public List<String> getLockedDependenciesToUpdate() {
         return lockedDependenciesToUpdate;
+    }
+
+    /**
+     * Enables lenient dependency verification mode. In this mode, failure to verify a checksum, missing checksums
+     * or signatures will be logged but will not fail the build. This mode should only be used when updating
+     * dependencies as it is inherently unsafe.
+     *
+     * @param lenientDependencyVerification if true, enables lenient dependency verification
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public void setLenientDependencyVerification(boolean lenientDependencyVerification) {
+        this.lenientDependencyVerification = lenientDependencyVerification;
+    }
+
+    /**
+     * Returns true if lenient dependency verification is active
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public boolean isLenientDependencyVerification() {
+        return lenientDependencyVerification;
     }
 }
