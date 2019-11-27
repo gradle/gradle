@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.buildsrc
+package org.gradle.internal.classpath
 
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.FileAccessTimeJournalFixture
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
-import org.gradle.internal.classpath.DefaultCachedClasspathTransformer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
@@ -263,8 +262,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         given:
         requireOwnGradleUserHomeDir() // messes with caches
         def oldCacheDirs = [
-            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-1"),
-            userHomeCacheDir.createDir("${DefaultCachedClasspathTransformer.CACHE_NAME}-2")
+            userHomeCacheDir.createDir("${DefaultClasspathTransformerCache.CACHE_NAME}-1"),
+            userHomeCacheDir.createDir("${DefaultClasspathTransformerCache.CACHE_NAME}-2")
         ]
         gcFile.createFile().lastModified = daysAgo(2)
 
@@ -292,7 +291,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     TestFile getCacheDir() {
-        return userHomeCacheDir.file(DefaultCachedClasspathTransformer.CACHE_KEY)
+        return userHomeCacheDir.file(DefaultClasspathTransformerCache.CACHE_KEY)
     }
 
 

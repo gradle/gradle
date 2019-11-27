@@ -20,6 +20,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
+import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -46,7 +47,9 @@ import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
+import org.gradle.internal.classpath.ClasspathTransformerCache;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
+import org.gradle.internal.classpath.DefaultClasspathTransformerCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -62,6 +65,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -130,9 +134,34 @@ public class GradleUserHomeScopeServices {
         return cache;
     }
 
-    CachedClasspathTransformer createCachedClasspathTransformer(CacheRepository cacheRepository, FileHasher fileHasher, FileAccessTimeJournal fileAccessTimeJournal,
-                                                                List<CachedJarFileStore> fileStores, UsedGradleVersions usedGradleVersions) {
-        return new DefaultCachedClasspathTransformer(cacheRepository, new JarCache(fileHasher), fileAccessTimeJournal, fileStores, usedGradleVersions);
+    ClasspathTransformerCache createClasspathTransformerCache(
+        CacheRepository cacheRepository,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        UsedGradleVersions usedGradleVersions
+    ) {
+        return new DefaultClasspathTransformerCache(
+            cacheRepository,
+            fileAccessTimeJournal,
+            usedGradleVersions
+        );
+    }
+
+    WellKnownFileLocations createWellKnownFileLocations(List<CachedJarFileStore> fileStores) {
+        return new DefaultWellKnownFileLocations(fileStores);
+    }
+
+    CachedClasspathTransformer createCachedClasspathTransformer(
+        ClasspathTransformerCache classpathTransformerCache,
+        FileHasher fileHasher,
+        FileAccessTimeJournal fileAccessTimeJournal,
+        WellKnownFileLocations wellKnownFileLocations
+    ) {
+        return new DefaultCachedClasspathTransformer(
+            classpathTransformerCache,
+            fileAccessTimeJournal,
+            new JarCache(fileHasher),
+            wellKnownFileLocations
+        );
     }
 
     WorkerProcessFactory createWorkerProcessFactory(LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
