@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":bootstrap"))
     implementation(project(":jvmServices"))
     implementation(project(":toolingApi"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
     implementation(library("slf4j_api"))
