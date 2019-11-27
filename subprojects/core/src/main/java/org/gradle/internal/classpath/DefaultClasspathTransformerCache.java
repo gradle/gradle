@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
@@ -41,8 +42,10 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultClasspathTransformerCache implements ClasspathTransformerCache, Closeable {
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("3.1-rc-1").incrementedIn("3.2-rc-1").incrementedIn("3.5-rc-1").build();
-    private static final String CACHE_NAME = "jars";
-    private static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
+    @VisibleForTesting
+    static final String CACHE_NAME = "jars";
+    @VisibleForTesting
+    static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
     private final PersistentCache cache;
