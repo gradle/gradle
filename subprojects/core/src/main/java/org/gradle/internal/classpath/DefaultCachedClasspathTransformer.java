@@ -26,15 +26,14 @@ import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
+import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
 
@@ -52,11 +51,11 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathTransformerCache classpathTransformerCache,
         FileAccessTimeJournal fileAccessTimeJournal,
         JarCache jarCache,
-        List<CachedJarFileStore> fileStores
+        WellKnownFileLocations wellKnownFileLocations
     ) {
         this.cache = classpathTransformerCache.getCache();
         FileAccessTracker fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
-        this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, fileStores), fileAccessTracker);
+        this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, wellKnownFileLocations), fileAccessTracker);
     }
 
     @Override
@@ -81,23 +80,13 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private class CachedJarFileTransformer implements Transformer<File, File> {
         private final JarCache jarCache;
+        private final WellKnownFileLocations wellKnownFileLocations;
         private final Factory<File> baseDir;
-        private final List<String> prefixes;
 
-        CachedJarFileTransformer(JarCache jarCache, List<CachedJarFileStore> fileStores) {
+        CachedJarFileTransformer(JarCache jarCache, WellKnownFileLocations wellKnownFileLocations) {
             this.jarCache = jarCache;
-            baseDir = Factories.constant(cache.getBaseDir());
-            prefixes = new ArrayList<String>(fileStores.size() + 1);
-            prefixes.add(directoryPrefix(cache.getBaseDir()));
-            for (CachedJarFileStore fileStore : fileStores) {
-                for (File rootDir : fileStore.getFileStoreRoots()) {
-                    prefixes.add(directoryPrefix(rootDir));
-                }
-            }
-        }
-
-        private String directoryPrefix(File dir) {
-            return dir.getAbsolutePath() + File.separator;
+            this.wellKnownFileLocations = wellKnownFileLocations;
+            this.baseDir = Factories.constant(cache.getBaseDir());
         }
 
         @Override
@@ -113,12 +102,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 return false;
             }
             String absolutePath = original.getAbsolutePath();
-            for (String prefix : prefixes) {
-                if (absolutePath.startsWith(prefix)) {
-                    return false;
-                }
-            }
-            return true;
+            return !wellKnownFileLocations.isImmutable(absolutePath);
         }
     }
 

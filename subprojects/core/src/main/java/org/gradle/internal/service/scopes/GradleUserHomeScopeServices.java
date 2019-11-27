@@ -20,6 +20,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
+import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -64,6 +65,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
@@ -144,17 +146,21 @@ public class GradleUserHomeScopeServices {
         );
     }
 
+    WellKnownFileLocations createWellKnownFileLocations(List<CachedJarFileStore> fileStores) {
+        return new DefaultWellKnownFileLocations(fileStores);
+    }
+
     CachedClasspathTransformer createCachedClasspathTransformer(
         ClasspathTransformerCache classpathTransformerCache,
         FileHasher fileHasher,
         FileAccessTimeJournal fileAccessTimeJournal,
-        List<CachedJarFileStore> fileStores
+        WellKnownFileLocations wellKnownFileLocations
     ) {
         return new DefaultCachedClasspathTransformer(
             classpathTransformerCache,
             fileAccessTimeJournal,
             new JarCache(fileHasher),
-            fileStores
+            wellKnownFileLocations
         );
     }
 
