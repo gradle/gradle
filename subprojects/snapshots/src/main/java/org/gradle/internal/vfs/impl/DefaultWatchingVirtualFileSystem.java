@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs;
+package org.gradle.internal.vfs.impl;
 
-import com.google.common.collect.Interner;
 import com.sun.nio.file.SensitivityWatchEventModifier;
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.file.Stat;
-import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.snapshot.CaseSensitivity;
-import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
+import org.gradle.internal.vfs.WatchingVirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,29 +34,26 @@ import java.nio.file.WatchService;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
-public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem implements WatchingVirtualFileSystem, Closeable {
+public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingVirtualFileSystem, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchingVirtualFileSystem.class);
 
-    private final WellKnownFileLocations wellKnownFileLocations;
+    private final Predicate<String> watchFilter;
+
     private WatchService watchService;
 
     public DefaultWatchingVirtualFileSystem(
-        FileHasher hasher,
-        Interner<String> stringInterner,
-        Stat stat,
-        WellKnownFileLocations wellKnownFileLocations,
-
-        CaseSensitivity caseSensitivity,
-        String... defaultExcludes
+        AbstractVirtualFileSystem delegate,
+        Predicate<String> watchFilter
     ) {
-        super(hasher, stringInterner, stat, caseSensitivity, defaultExcludes);
-        this.wellKnownFileLocations = wellKnownFileLocations;
+        super(delegate);
+        this.watchFilter = watchFilter;
     }
 
     @Override
@@ -75,12 +67,12 @@ public class DefaultWatchingVirtualFileSystem extends DefaultVirtualFileSystem i
             throw new UncheckedIOException(ex);
         }
         Set<File> visited = new HashSet<>();
-        root.get().visitCompleteSnapshots(snapshot -> {
+        getRoot().visitCompleteSnapshots(snapshot -> {
             String absolutePath = snapshot.getAbsolutePath();
-            File file = new File(absolutePath);
-            if (wellKnownFileLocations.isImmutable(absolutePath)) {
+            if (!watchFilter.test(absolutePath)) {
                 return;
             }
+            File file = new File(absolutePath);
             try {
                 if (snapshot.getType() == FileType.Directory) {
                     watch(file, visited);

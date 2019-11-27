@@ -77,7 +77,7 @@ import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
-import org.gradle.internal.vfs.DefaultWatchingVirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -169,12 +169,14 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 WellKnownFileLocations wellKnownFileLocations
             ) {
                 WatchingVirtualFileSystem virtualFileSystem = new DefaultWatchingVirtualFileSystem(
-                    hasher,
-                    stringInterner,
-                    stat,
-                    wellKnownFileLocations,
-                    fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
-                    DirectoryScanner.getDefaultExcludes()
+                    new DefaultVirtualFileSystem(
+                        hasher,
+                        stringInterner,
+                        stat,
+                        fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                        DirectoryScanner.getDefaultExcludes()
+                    ),
+                    absolutePath -> !wellKnownFileLocations.isImmutable(absolutePath)
                 );
                 listenerManager.addListener(new RootBuildLifecycleListener() {
                     @Override
