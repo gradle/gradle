@@ -53,7 +53,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
-        Thread.sleep(2100)
+        waitForChangesToBePickedUp()
         withRetention().run "run"
         then:
         outputContains "Hello VFS!"
@@ -76,7 +76,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         taskSourceFile.text = taskWithGreeting("Hello from modified task!")
-        Thread.sleep(2100)
+        waitForChangesToBePickedUp()
         withRetention().run "hello"
         then:
         outputContains "Hello from modified task!"
@@ -214,5 +214,10 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
                 }
             }
         """
+    }
+
+    private static void waitForChangesToBePickedUp() {
+        // With the JDK file watcher we only get notified every 2 seconds about changes
+        Thread.sleep(2100)
     }
 }
