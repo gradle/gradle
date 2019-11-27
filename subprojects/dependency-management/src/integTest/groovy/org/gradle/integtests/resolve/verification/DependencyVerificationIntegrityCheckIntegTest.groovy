@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.verification
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -116,6 +117,98 @@ This can indicate that a dependency has been compromised. Please verify carefull
         "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"
         "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
     }
+
+    @Unroll
+    def "doesn't fail the build but logs errors if lenient mode is used (#param)"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", 'sha1', "invalid")
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds([":compileJava", *param] as String[])
+
+        then:
+        errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
+
+        where:
+        param << [["-dv", "lenient"], ["--dependency-verification", "lenient"], ["-Dorg.gradle.dependency.verification=lenient"]]
+    }
+
+    @Unroll
+    def "can fully disable verification (#param)"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", 'sha1', "invalid")
+        }
+
+        given:
+        if (param.isEmpty()) {
+            disableVerificationViaProjectPropertiesFile()
+        }
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds([":compileJava", *param] as String[])
+
+        then:
+        !errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath'""")
+
+        where:
+        param << [["-dv", "off"], ["--dependency-verification", "off"], ["-Dorg.gradle.dependency.verification=off"], []]
+    }
+
+    @Unroll
+    def "can override whatever the gradle.properties file says (#param)"() {
+        createMetadataFile {
+            addChecksum("org:foo:1.0", 'sha1', "invalid")
+        }
+
+        given:
+        disableVerificationViaProjectPropertiesFile()
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds([":compileJava", *param] as String[])
+
+        then:
+        errorOutput.contains("""Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata.
+This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
+
+        where:
+        param << [["-dv", "lenient"], ["--dependency-verification", "lenient"], ["-Dorg.gradle.dependency.verification=lenient"]]
+    }
+
+    private TestFile disableVerificationViaProjectPropertiesFile() {
+        file("gradle.properties") << """
+        org.gradle.dependency.verification=off
+        """
+    }
+
 
     def "can collect multiple errors in a single dependency graph"() {
         createMetadataFile {
