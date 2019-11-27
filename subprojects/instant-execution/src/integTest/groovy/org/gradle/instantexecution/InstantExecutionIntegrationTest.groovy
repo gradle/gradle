@@ -623,13 +623,16 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
                 import org.gradle.api.*;
                 import org.gradle.api.tasks.*;
-                import java.util.function.Supplier;
 
                 public class LambdaTask extends DefaultTask {
 
-                    private Supplier<Integer> supplier;
-                    
-                    public <T extends Supplier<Integer> & java.io.Serializable> void setSupplier(T supplier) {
+                    public interface SerializableSupplier<T> extends java.io.Serializable {
+                        T get();
+                    }
+
+                    private SerializableSupplier<Integer> supplier;
+
+                    public void setSupplier(SerializableSupplier<Integer> supplier) {
                         this.supplier = supplier;
                     }
 
