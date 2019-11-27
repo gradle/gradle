@@ -19,8 +19,6 @@ package org.gradle.internal.classpath;
 import org.gradle.api.Transformer;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.CacheVersionMapping;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
@@ -81,18 +79,16 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private class CachedJarFileTransformer implements Transformer<File, File> {
         private final JarCache jarCache;
         private final WellKnownFileLocations wellKnownFileLocations;
-        private final Factory<File> baseDir;
 
         CachedJarFileTransformer(JarCache jarCache, WellKnownFileLocations wellKnownFileLocations) {
             this.jarCache = jarCache;
             this.wellKnownFileLocations = wellKnownFileLocations;
-            this.baseDir = Factories.constant(cache.getBaseDir());
         }
 
         @Override
         public File transform(final File original) {
             if (shouldUseFromCache(original)) {
-                return cache.useCache(() -> jarCache.getCachedJar(original, baseDir));
+                return cache.useCache(() -> jarCache.getCachedJar(original, cache.getBaseDir()));
             }
             return original;
         }
