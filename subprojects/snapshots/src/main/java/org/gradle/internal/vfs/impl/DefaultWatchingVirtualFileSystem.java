@@ -61,25 +61,36 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
             watchRegistry = watcherRegistryFactory.createRegistry();
             Set<Path> visited = new HashSet<>();
             getRoot().visitSnapshots(snapshot -> {
-                String absolutePath = snapshot.getAbsolutePath();
-                Path path = Paths.get(absolutePath);
+                Path path = Paths.get(snapshot.getAbsolutePath());
+
+                // We don't watch things that shouldn't be watched
                 if (!watchFilter.test(path)) {
                     return;
                 }
+
                 try {
+                    // For existing files and directories we watch the parent directory,
+                    // so we learn if the entry itself disappears or gets modified.
+                    // In case of a missing file we need to find the closest existing
+                    // ancestor to watch so we can learn if the missing file respawns.
+                    Path ancestor = path;
+                    while (true) {
+                        ancestor = ancestor.getParent();
+                        if (ancestor == null) {
+                            break;
+                        }
+                        if (Files.exists(ancestor)) {
+                            watch(ancestor, visited);
+                            break;
+                        }
+                    }
+
+                    // For directory entries we watch the directory itself,
+                    // so we learn about new children spawning. If the directory
+                    // has children, it would be watched through them already.
+                    // This is here to make sure we also watch empty directories.
                     if (snapshot.getType() == FileType.Directory) {
                         watch(path, visited);
-                    }
-                    Path parent = path;
-                    while (true) {
-                        parent = parent.getParent();
-                        if (parent == null) {
-                            break;
-                        }
-                        if (Files.exists(parent)) {
-                            watch(parent, visited);
-                            break;
-                        }
                     }
                 } catch (IOException ex) {
                     throw new UncheckedIOException(ex);
