@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.services.BuildServiceParameters;
 
 /**
  * Marker interface for parameter objects to {@link ValueSource}s.
@@ -34,4 +35,14 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface ValueSourceParameters {
+    /**
+     * Used for sources without parameters.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    final class None implements ValueSourceParameters {
+        private None() {
+        }
+    }
 }

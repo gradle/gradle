@@ -33,5 +33,5 @@ import org.gradle.api.provider.ValueSourceSpec;
 @Incubating
 public interface ValueSourceProviderFactory {
 
-    <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configuration);
+    <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction);
 }

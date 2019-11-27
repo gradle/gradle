@@ -30,7 +30,6 @@ import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCach
 import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
@@ -105,8 +104,8 @@ public class GradleUserHomeScopeServices {
         }
     }
 
-    ValueSourceProviderFactory createValueSourceProviderFactory(ObjectFactory objectFactory, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
-        return new DefaultValueSourceProviderFactory(objectFactory, instantiatorFactory, isolatableFactory);
+    ValueSourceProviderFactory createValueSourceProviderFactory(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, ServiceRegistry services) {
+        return new DefaultValueSourceProviderFactory(instantiatorFactory, isolatableFactory, services);
     }
 
     ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {

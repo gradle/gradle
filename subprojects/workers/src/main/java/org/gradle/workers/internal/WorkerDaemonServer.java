@@ -23,6 +23,8 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.provider.DefaultProviderFactory;
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
+import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -111,8 +113,12 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
     private static class WorkerDaemonServices {
 
-        ProviderFactory createProviderFactory() {
-            return new DefaultProviderFactory(null);
+        ValueSourceProviderFactory createValueSourceProviderFactory(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, ServiceRegistry services) {
+            return new DefaultValueSourceProviderFactory(instantiatorFactory, isolatableFactory, services);
+        }
+
+        ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
+            return new DefaultProviderFactory(valueSourceProviderFactory);
         }
 
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
