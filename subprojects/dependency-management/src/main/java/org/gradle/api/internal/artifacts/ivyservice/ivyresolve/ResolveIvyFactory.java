@@ -43,7 +43,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
@@ -214,8 +214,8 @@ public class ResolveIvyFactory {
         }
 
         @Override
-        public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSource moduleSource, final BuildableArtifactResolveResult result) {
-            delegate.getArtifactResolver().resolveArtifact(artifact, moduleSource, result);
+        public void resolveArtifact(final ComponentArtifactMetadata artifact, final ModuleSources moduleSources, final BuildableArtifactResolveResult result) {
+            delegate.getArtifactResolver().resolveArtifact(artifact, moduleSources, result);
         }
     }
 

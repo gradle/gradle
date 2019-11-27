@@ -40,7 +40,8 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
@@ -64,7 +65,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private boolean changing;
     private boolean missing;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
-    private ModuleSource moduleSource;
+    private MutableModuleSources moduleSources;
     private HashValue contentHash = EMPTY_CONTENT;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
     private final AttributesSchemaInternal schema;
@@ -82,6 +83,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.componentLevelAttributes = defaultAttributes(attributesFactory);
         this.schema = schema;
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
+        this.moduleSources = new MutableModuleSources();
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -90,12 +92,12 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.changing = metadata.isChanging();
         this.missing = metadata.isMissing();
         this.statusScheme = metadata.getStatusScheme();
-        this.moduleSource = metadata.getSource();
+        this.moduleSources = MutableModuleSources.of(metadata.getSources());
         this.contentHash = metadata.getOriginalContentHash();
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.schema = metadata.getAttributesSchema();
-        this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
+        this.componentLevelAttributes = attributesFactory.mutable(metadata.getAttributes());
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
         this.variantMetadataRules.setVariantDerivationStrategy(metadata.getVariantMetadataRules().getVariantDerivationStrategy());
     }
@@ -175,13 +177,13 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public ModuleSource getSource() {
-        return moduleSource;
+    public MutableModuleSources getSources() {
+        return moduleSources;
     }
 
     @Override
-    public void setSource(ModuleSource source) {
-        this.moduleSource = source;
+    public void setSources(ModuleSources sources) {
+        this.moduleSources = MutableModuleSources.of(sources);
     }
 
     @Override

@@ -52,19 +52,19 @@ public interface ComponentResolveMetadata extends HasAttributes {
     ModuleVersionIdentifier getModuleVersionId();
 
     /**
-     * Returns the source (eg location) for this component.
+     * @return the sources information for this component.
      */
-    ModuleSource getSource();
+    ModuleSources getSources();
+
+    /**
+     * Creates a copy of this meta-data with the given sources.
+     */
+    ComponentResolveMetadata withSources(ModuleSources sources);
 
     /**
      * Returns the schema used by this component.
      */
     AttributesSchemaInternal getAttributesSchema();
-
-    /**
-     * Creates a copy of this meta-data with the given source.
-     */
-    ComponentResolveMetadata withSource(ModuleSource source);
 
     /**
      * Returns the names of all of the legacy configurations for this component. May be empty, in which case the component should provide at least one variant via {@link #getVariantsForGraphTraversal()}.

@@ -36,7 +36,7 @@ import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
@@ -71,18 +71,13 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     }
 
     @Override
-    public ModuleSource getSource() {
+    public ModuleSources getSources() {
         return null;
     }
 
     @Override
     public AttributesSchemaInternal getAttributesSchema() {
         return null;
-    }
-
-    @Override
-    public ModuleComponentResolveMetadata withSource(ModuleSource source) {
-        return this;
     }
 
     @Override
@@ -152,6 +147,11 @@ class LenientPlatformResolveMetadata implements ModuleComponentResolveMetadata {
     @Override
     public MutableModuleComponentResolveMetadata asMutable() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ModuleComponentResolveMetadata withSources(ModuleSources sources) {
+        return this;
     }
 
     @Override

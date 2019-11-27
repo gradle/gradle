@@ -39,7 +39,7 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
 import org.gradle.internal.component.model.DependencyMetadata
-import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
@@ -179,7 +179,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         artifact.componentId >> Mock(LibraryBinaryIdentifier)
 
         when:
-        resolver.resolveArtifact(artifact, Mock(ModuleSource), result)
+        resolver.resolveArtifact(artifact, ImmutableModuleSources.of(), result)
 
         then:
         result.hasResult()
@@ -192,7 +192,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         artifact.componentId >> Mock(ModuleComponentIdentifier)
 
         when:
-        resolver.resolveArtifact(artifact, Mock(ModuleSource), result)
+        resolver.resolveArtifact(artifact, ImmutableModuleSources.of(), result)
 
         then:
         !result.hasResult()

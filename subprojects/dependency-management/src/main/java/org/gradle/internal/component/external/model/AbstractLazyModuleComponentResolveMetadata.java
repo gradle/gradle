@@ -27,9 +27,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -61,8 +60,8 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
     /**
      * Creates a copy of the given metadata
      */
-    protected AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
-        super(metadata, source);
+    protected AbstractLazyModuleComponentResolveMetadata(AbstractLazyModuleComponentResolveMetadata metadata, ModuleSources sources) {
+        super(metadata, sources);
         this.configurationDefinitions = metadata.configurationDefinitions;
         variantMetadataRules = metadata.variantMetadataRules;
     }
