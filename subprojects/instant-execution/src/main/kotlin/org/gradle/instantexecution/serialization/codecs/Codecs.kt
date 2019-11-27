@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
@@ -166,6 +167,7 @@ class Codecs(
 
         bind(TaskReferenceCodec)
 
+        bind(ownerService<ProviderFactory>())
         bind(ownerService<ObjectFactory>())
         bind(ownerService<PatternSpecFactory>())
         bind(ownerService<FileResolver>())
