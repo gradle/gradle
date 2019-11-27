@@ -280,7 +280,12 @@ public class GradleModuleMetadataWriter {
         jsonWriter.name("name");
         jsonWriter.value(variant.getName());
         writeAttributes(variant.getAttributes(), jsonWriter);
+        writeAvailableAt(coordinates, targetCoordinates, jsonWriter);
+        writeCapabilities("capabilities", variant.getCapabilities(), jsonWriter);
+        jsonWriter.endObject();
+    }
 
+    private void writeAvailableAt(ModuleVersionIdentifier coordinates, ModuleVersionIdentifier targetCoordinates, JsonWriter jsonWriter) throws IOException {
         jsonWriter.name("available-at");
         jsonWriter.beginObject();
 
@@ -293,8 +298,6 @@ public class GradleModuleMetadataWriter {
         jsonWriter.value(targetCoordinates.getName());
         jsonWriter.name("version");
         jsonWriter.value(targetCoordinates.getVersion());
-        jsonWriter.endObject();
-
         jsonWriter.endObject();
     }
 

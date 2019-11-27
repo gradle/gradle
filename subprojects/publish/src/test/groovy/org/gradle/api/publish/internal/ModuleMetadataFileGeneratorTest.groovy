@@ -628,9 +628,17 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         def comp2 = Stub(TestComponent)
         def publication2 = publication(comp2, id2)
 
+        def c1 = Stub(Capability) {
+            getGroup() >> 'org.test'
+            getName() >> 'foo'
+            getVersion() >> '1'
+        }
+
+
         def v1 = Stub(UsageContext)
         v1.name >> "v1"
         v1.attributes >> attributes(usage: "compile")
+        v1.capabilities >> [c1]
         def v2 = Stub(UsageContext)
         v2.name >> "v2"
         v2.attributes >> attributes(usage: "runtime")
@@ -669,7 +677,14 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         "group": "group",
         "module": "other-1",
         "version": "1"
-      }
+      },
+      "capabilities": [
+        {
+          "group": "org.test",
+          "name": "foo",
+          "version": "1"
+        }
+      ]
     },
     {
       "name": "v2",
