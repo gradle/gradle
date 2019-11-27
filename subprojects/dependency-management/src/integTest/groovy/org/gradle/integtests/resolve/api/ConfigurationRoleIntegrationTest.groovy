@@ -50,7 +50,7 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         fails 'checkState'
 
         then:
-        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
+        failure.assertHasCause("Resolving dependency configuration 'internal' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends 'internal' should be resolved.")
 
         where:
         role                      | code
@@ -82,7 +82,7 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         fails 'checkState'
 
         then:
-        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
+        failure.assertHasCause("Resolving dependency configuration 'internal' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends 'internal' should be resolved.")
 
         where:
         role                      | code
@@ -117,7 +117,7 @@ class ConfigurationRoleIntegrationTest extends AbstractIntegrationSpec {
         fails 'checkState'
 
         then:
-        failure.assertHasCause("Resolving configuration 'internal' directly is not allowed")
+        failure.assertHasCause("Resolving dependency configuration 'internal' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends 'internal' should be resolved.")
 
         where:
         [method, role] << [

@@ -1295,7 +1295,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void assertIsResolvable() {
         if (!canBeResolved) {
-            throw new IllegalStateException("Resolving configuration '" + name + "' directly is not allowed");
+            throw new IllegalStateException("Resolving dependency configuration '" + name + "' is not allowed as it is defined as 'canBeResolved=false'.\nInstead, a resolvable ('canBeResolved=true') dependency configuration that extends '" + name + "' should be resolved.");
         }
     }
 
