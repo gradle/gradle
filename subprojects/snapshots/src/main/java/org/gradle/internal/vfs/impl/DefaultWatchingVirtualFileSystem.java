@@ -16,126 +16,111 @@
 
 package org.gradle.internal.vfs.impl;
 
-import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.watch.FileWatcherRegistry;
+import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
-import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-
 public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingVirtualFileSystem, Closeable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchingVirtualFileSystem.class);
 
-    private final Predicate<String> watchFilter;
+    private final FileWatcherRegistryFactory watcherRegistryFactory;
+    private final Predicate<Path> watchFilter;
 
-    private WatchService watchService;
+    private FileWatcherRegistry watchRegistry;
 
     public DefaultWatchingVirtualFileSystem(
+        FileWatcherRegistryFactory watcherRegistryFactory,
         AbstractVirtualFileSystem delegate,
-        Predicate<String> watchFilter
+        Predicate<Path> watchFilter
     ) {
         super(delegate);
+        this.watcherRegistryFactory = watcherRegistryFactory;
         this.watchFilter = watchFilter;
     }
 
     @Override
     public void startWatching() {
-        if (watchService != null) {
+        if (watchRegistry != null) {
             throw new IllegalStateException("Watch service already started");
         }
         try {
-            watchService = FileSystems.getDefault().newWatchService();
-        } catch (IOException ex) {
-            throw new UncheckedIOException(ex);
+            watchRegistry = watcherRegistryFactory.createRegistry();
+            Set<Path> visited = new HashSet<>();
+            getRoot().visitCompleteSnapshots(snapshot -> {
+                String absolutePath = snapshot.getAbsolutePath();
+                Path path = Paths.get(absolutePath);
+                if (!watchFilter.test(path)) {
+                    return;
+                }
+                try {
+                    if (snapshot.getType() == FileType.Directory) {
+                        watch(path, visited);
+                    }
+                    Path parent = path;
+                    while (true) {
+                        parent = parent.getParent();
+                        if (parent == null) {
+                            break;
+                        }
+                        if (Files.exists(parent)) {
+                            watch(parent, visited);
+                            break;
+                        }
+                    }
+                } catch (IOException ex) {
+                    throw new UncheckedIOException(ex);
+                }
+            });
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
+            invalidateAll();
+            close();
         }
-        Set<File> visited = new HashSet<>();
-        getRoot().visitCompleteSnapshots(snapshot -> {
-            String absolutePath = snapshot.getAbsolutePath();
-            if (!watchFilter.test(absolutePath)) {
-                return;
-            }
-            File file = new File(absolutePath);
-            try {
-                if (snapshot.getType() == FileType.Directory) {
-                    watch(file, visited);
-                }
-                File parent = file;
-                while (true) {
-                    parent = parent.getParentFile();
-                    if (parent == null) {
-                        break;
-                    }
-                    if (parent.exists()) {
-                        watch(parent, visited);
-                        break;
-                    }
-                }
-            } catch (IOException ex) {
-                // TODO Handle error here and disable watching
-                throw new UncheckedIOException(ex);
-            }
-        });
     }
 
-    private void watch(File directory, Set<File> visited) throws IOException {
+    private void watch(Path directory, Set<Path> visited) throws IOException {
         if (!visited.add(directory)) {
             return;
         }
-        // TODO This shouldn't be required, but sometimes we seem to hit it
-        if (!directory.exists()) {
-            return;
-        }
         LOGGER.warn("Start watching {}", directory);
-        directory.toPath().register(watchService,
-            new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
-            SensitivityWatchEventModifier.HIGH);
+        watchRegistry.registerWatchPoint(directory);
     }
 
     @Override
     public void stopWatching() {
-        if (watchService == null) {
+        if (watchRegistry == null) {
             return;
         }
         try {
-            boolean overflow = false;
-            while (!overflow) {
-                WatchKey watchKey = watchService.poll();
-                if (watchKey == null) {
-                    break;
+            watchRegistry.stopWatching(new FileWatcherRegistry.ChangeHandler() {
+                @Override
+                public void handleChange(FileWatcherRegistry.Type type, Path path) {
+                    update(Collections.singleton(path.toString()), () -> {
+                    });
                 }
-                watchKey.cancel();
-                Path watchRoot = (Path) watchKey.watchable();
-                LOGGER.debug("Stop watching {}", watchRoot);
-                for (WatchEvent<?> event : watchKey.pollEvents()) {
-                    WatchEvent.Kind<?> kind = event.kind();
-                    if (kind == OVERFLOW) {
-                        LOGGER.info("Too many modifications for path {} since last build, dropping all VFS state", watchRoot);
-                        invalidateAll();
-                        overflow = true;
-                        break;
-                    }
-                    Path changedPath = watchRoot.resolve((Path) event.context());
-                    update(Collections.singleton(changedPath.toString()), () -> {});
+
+                @Override
+                public void handleOverflow() {
+                    invalidateAll();
                 }
-            }
+            });
+        } catch (IOException ex) {
+            LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
+            invalidateAll();
         } finally {
             close();
         }
@@ -143,13 +128,13 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
 
     @Override
     public void close() {
-        if (watchService != null) {
+        if (watchRegistry != null) {
             try {
-                watchService.close();
+                watchRegistry.close();
             } catch (IOException ex) {
-                LOGGER.warn("Couldn't close watch service", ex);
+                LOGGER.error("Couldn't close watch service", ex);
             }
-            watchService = null;
+            watchRegistry = null;
         }
     }
 }

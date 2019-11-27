@@ -21,7 +21,6 @@ import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import javax.annotation.CheckReturnValue;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * An immutable hierarchy of snapshots of the file system.
@@ -62,5 +61,9 @@ public interface SnapshotHierarchy {
     @CheckReturnValue
     SnapshotHierarchy empty();
 
-    void visitCompleteSnapshots(Consumer<CompleteFileSystemLocationSnapshot> snapshotVisitor);
+    void visitCompleteSnapshots(CompleteSnapshotVisitor snapshotVisitor);
+
+    interface CompleteSnapshotVisitor {
+        void visitCompleteSnapshot(CompleteFileSystemLocationSnapshot snapshot);
+    }
 }

@@ -24,7 +24,6 @@ import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.VfsRelativePath;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import static org.gradle.internal.snapshot.SnapshotUtil.getSnapshotFromChild;
 import static org.gradle.internal.snapshot.SnapshotUtil.invalidateSingleChild;
@@ -87,10 +86,10 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public void visitCompleteSnapshots(Consumer<CompleteFileSystemLocationSnapshot> snapshotVisitor) {
+    public void visitCompleteSnapshots(CompleteSnapshotVisitor snapshotVisitor) {
         rootNode.accept(node -> {
             if (node instanceof CompleteFileSystemLocationSnapshot) {
-                snapshotVisitor.accept((CompleteFileSystemLocationSnapshot) node);
+                snapshotVisitor.visitCompleteSnapshot((CompleteFileSystemLocationSnapshot) node);
             }
         });
     }
@@ -126,6 +125,6 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public void visitCompleteSnapshots(Consumer<CompleteFileSystemLocationSnapshot> snapshotVisitor) {}
+        public void visitCompleteSnapshots(CompleteSnapshotVisitor snapshotVisitor) {}
     }
 }
