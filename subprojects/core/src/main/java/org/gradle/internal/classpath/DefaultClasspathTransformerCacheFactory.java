@@ -53,7 +53,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     private final UsedGradleVersions usedGradleVersions;
 
     public DefaultClasspathTransformerCacheFactory(CacheScopeMapping cacheScopeMapping, UsedGradleVersions usedGradleVersions) {
-        this.cacheDir = cacheScopeMapping.getBaseDirectory(null, CACHE_KEY, VersionStrategy.CachePerVersion);
+        this.cacheDir = cacheScopeMapping.getBaseDirectory(null, CACHE_KEY, VersionStrategy.SharedCache);
         this.usedGradleVersions = usedGradleVersions;
     }
 
