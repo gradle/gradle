@@ -25,7 +25,6 @@ import org.gradle.api.internal.changedetection.state.BuildScopeFileTimeStampInsp
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.DefaultResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
@@ -45,7 +44,6 @@ import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
-import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.file.PathToFileResolver;
@@ -162,10 +160,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 CachingFileHasher fileHasher = new CachingFileHasher(new DefaultFileHasher(streamHasher), fileStore, stringInterner, fileTimeStampInspector, "fileHashes", fileSystem);
                 fileTimeStampInspector.attach(fileHasher);
                 return fileHasher;
-            }
-
-            WellKnownFileLocations createWellKnownFileLocations(List<CachedJarFileStore> fileStores) {
-                return new DefaultWellKnownFileLocations(fileStores);
             }
 
             VirtualFileSystem createVirtualFileSystem(

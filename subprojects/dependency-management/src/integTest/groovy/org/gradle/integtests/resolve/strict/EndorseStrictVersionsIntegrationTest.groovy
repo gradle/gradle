@@ -50,7 +50,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                     endorseStrictVersions()
                 }
                 conf('org:bar')
-            }           
+            }
         """
 
         when:
@@ -109,7 +109,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                     endorseStrictVersions()
                 }
                 conf('org:bar')
-            }           
+            }
         """
 
         when:
@@ -169,7 +169,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                     endorseStrictVersions()
                 }
                 conf('org:foo')
-            }           
+            }
         """
 
         when:
@@ -190,7 +190,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo'
    Constraint path ':test:unspecified' --> 'org:platform-a:1.0' --> 'org:foo:{strictly 1.0}'
    Constraint path ':test:unspecified' --> 'org:platform-b:1.0' --> 'org:foo:{strictly 2.0}'"""
@@ -221,7 +221,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                 conf('org:baz:1.0') {
                     endorseStrictVersions()
                 }
-            }           
+            }
         """
 
         when:
@@ -281,7 +281,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         buildFile << """
             dependencies {
                 conf('org:baz:1.0')
-            }           
+            }
         """
 
         when:

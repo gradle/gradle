@@ -38,6 +38,9 @@
                 <td>dependencies</td>
             </tr>
             <tr>
+                <td>dependencyLocking</td>
+            </tr>
+            <tr>
                 <td>defaultTasks</td>
             </tr>
             <tr>
@@ -127,6 +130,9 @@
             </tr>
             <tr>
                 <td>dependencies</td>
+            </tr>
+            <tr>
+                <td>dependencyLocking</td>
             </tr>
             <tr>
                 <td>artifacts</td>

@@ -63,6 +63,92 @@ buildscript {
         outputDoesNotContain('org.foo:foo-plugin:1.1')
     }
 
+    def 'strict locks on buildscript classpath does not mean strict locks on project'() {
+        given:
+        mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
+        mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
+
+        settingsFile << """
+rootProject.name = 'foo'
+"""
+        buildFile << """
+buildscript {
+    repositories {
+        maven {
+            url = '$mavenRepo.uri'
+        }
+    }
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    dependencies {
+        classpath 'org.foo:foo-plugin:[1.0,2.0)'
+    }
+    dependencyLocking {
+        lockMode = LockMode.STRICT
+    }
+}
+
+repositories {
+    maven {
+        url = '$mavenRepo.uri'
+    }
+}
+
+configurations {
+    foo {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+
+dependencies {
+    foo 'org.foo:foo-plugin:1.0'
+}
+
+task resolve {
+    doLast {
+        println configurations.foo.files
+    }
+}
+"""
+        def lockFile = new LockfileFixture(testDirectory: testDirectory)
+        lockFile.createLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        outputContains('foo-plugin-1.0.jar')
+    }
+
+    def 'strict lock on build script classpath configuration causes build to fail when no lockfile present'() {
+        given:
+        settingsFile << """
+rootProject.name = 'foo'
+"""
+        buildFile << """
+buildscript {
+    repositories {
+        maven {
+            url = '$mavenRepo.uri'
+        }
+    }
+    dependencyLocking {
+        lockMode = LockMode.STRICT
+    }
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+}
+"""
+
+        when:
+        fails 'buildEnvironment'
+
+        then:
+        failureHasCause("Locking strict mode:")
+    }
+
     @ToBeFixedForInstantExecution
     def 'locks build script classpath combined with plugins'() {
         given:

@@ -687,9 +687,9 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     /**
-     * Returns the result for the command run by this task. Returns {@code null} if this task has not been executed yet.
+     * Returns the result for the command run by this task. The provider has no value if this task has not been executed yet.
      *
-     * @return The result. Returns {@code null} if this task has not been executed yet.
+     * @return A provider of the result.
      * @since 6.1
      */
     @Internal

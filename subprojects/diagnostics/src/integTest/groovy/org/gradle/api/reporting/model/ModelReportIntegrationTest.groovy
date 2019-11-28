@@ -214,7 +214,7 @@ model {
     }
 
     // nb: specifically doesn't use the parsing fixture, so that the output is visualised
-    //If you're changing this you will also need to change: src/samples/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
+    //If you're changing this you will also need to change: src/snippets/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
     def "displays a report in the correct format"() {
         given:
         buildFile << """

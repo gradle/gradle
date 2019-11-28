@@ -58,7 +58,7 @@ class UserGuideSamplesIntegrationTest {
     Important info: This test uses Exemplar (https://github.com/gradle/exemplar/) to discover and check samples.
 
     In order to add a new sample:
-        * Create your new sample project in a subdirectory under subprojects/docs/src/samples/
+        * Create your new sample project in a subdirectory under subprojects/docs/src/snippets/
         * Write a *.sample.conf HOCON file in the root of your sample project dir
         * Exemplar will automatically discover your sample. See instructions below for running it
 

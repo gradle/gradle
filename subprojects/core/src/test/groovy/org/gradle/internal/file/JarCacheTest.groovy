@@ -16,7 +16,6 @@
 
 package org.gradle.internal.file
 
-import org.gradle.internal.Factory
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.test.fixtures.file.TestFile
@@ -27,7 +26,6 @@ import spock.lang.Specification
 class JarCacheTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def baseDirFactory = Mock(Factory)
     def original = tmpDir.createFile("original.txt")
     def cacheDir = tmpDir.createDir("cache")
     def fileHasher = Stub(FileHasher)
@@ -35,11 +33,10 @@ class JarCacheTest extends Specification {
 
     def "copies file into cache when it has not been seen before"() {
         given:
-        baseDirFactory.create() >> cacheDir
         fileHasher.hash(original) >> HashCode.fromInt(123)
 
         expect:
-        def cached = cache.getCachedJar(original, baseDirFactory)
+        def cached = cache.getCachedJar(original, cacheDir)
         cached != original
         cached.text == original.text
         cached.name == original.name
@@ -48,11 +45,10 @@ class JarCacheTest extends Specification {
 
     def "reuses cached file when it has not changed"() {
         given:
-        baseDirFactory.create() >> cacheDir
         def copy = cache(original)
 
         when:
-        def result = cache.getCachedJar(original, baseDirFactory)
+        def result = cache.getCachedJar(original, cacheDir)
 
         then:
         result == copy
@@ -60,14 +56,12 @@ class JarCacheTest extends Specification {
 
     def "copies file into cache when its content has changed"() {
         given:
-        baseDirFactory.create() >> cacheDir
-
         fileHasher.hash(original) >>> [HashCode.fromInt(123), HashCode.fromInt(234)]
         def copy = cache(original)
         original.text = "this is some new content"
 
         when:
-        def result = cache.getCachedJar(original, baseDirFactory)
+        def result = cache.getCachedJar(original, cacheDir)
 
         then:
         result != copy
@@ -77,11 +71,10 @@ class JarCacheTest extends Specification {
 
     def "does not copy file into cache when it already exists in the cache directory"() {
         given:
-        baseDirFactory.create() >> cacheDir
-        def copy = new JarCache(fileHasher).getCachedJar(original, { cacheDir} as Factory)
+        def copy = new JarCache(fileHasher).getCachedJar(original, cacheDir)
 
         when:
-        def result = cache.getCachedJar(original, baseDirFactory)
+        def result = cache.getCachedJar(original, cacheDir)
 
         then:
         result == copy
@@ -89,12 +82,11 @@ class JarCacheTest extends Specification {
 
     def "copies file again when it has been deleted from the cache directory"() {
         given:
-        baseDirFactory.create() >> cacheDir
         def copy = cache(original)
         copy.delete()
 
         when:
-        def result = cache.getCachedJar(original, baseDirFactory)
+        def result = cache.getCachedJar(original, cacheDir)
 
         then:
         result == copy
@@ -102,6 +94,6 @@ class JarCacheTest extends Specification {
     }
 
     def cache(TestFile original)  {
-        return cache.getCachedJar(original, { cacheDir } as Factory)
+        return cache.getCachedJar(original, cacheDir)
     }
 }

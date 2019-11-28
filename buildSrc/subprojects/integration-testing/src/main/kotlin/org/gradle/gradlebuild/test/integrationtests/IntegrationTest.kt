@@ -37,7 +37,7 @@ open class IntegrationTest : DistributionTest() {
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
-    val samplesDir = gradleInstallationForTest.gradleSamplesDir
+    val samplesDir = gradleInstallationForTest.gradleSnippetsDir
 
     override fun executeTests() {
         printStacktracesAfterTimeout { super.executeTests() }

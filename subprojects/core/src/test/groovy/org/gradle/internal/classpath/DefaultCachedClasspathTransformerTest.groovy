@@ -16,6 +16,7 @@
 
 package org.gradle.internal.classpath
 
+import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
@@ -55,13 +56,16 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)
 
+    def classpathTransformerCache = new DefaultClasspathTransformerCache(cacheRepository, fileAccessTimeJournal, usedGradleVersions)
+    def wellKnownFileLocations = new DefaultWellKnownFileLocations([classpathTransformerCache, jarFileStore])
+
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, jarCache, fileAccessTimeJournal, [jarFileStore], usedGradleVersions)
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(classpathTransformerCache, fileAccessTimeJournal, jarCache, wellKnownFileLocations)
 
     def "can convert a classpath to cached jars"() {
         given:
         File externalFile = testDir.file("external/file1").createFile()
-        File cachedFile = cachedDir.file("file1").createFile()
+        File externalFileCached = cachedDir.file("file1").createFile()
         File alreadyCachedFile = cachedDir.file("file2").createFile()
         File cachedInOtherStore = otherStore.file("file3").createFile()
         File externalDir = testDir.file("external/dir1").createDir()
@@ -71,10 +75,10 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         ClassPath cachedClassPath = transformer.transform(classPath)
 
         then:
-        1 * jarCache.getCachedJar(externalFile, _) >> cachedFile
+        1 * jarCache.getCachedJar(externalFile, _) >> externalFileCached
 
         and:
-        cachedClassPath.asFiles == [ cachedFile, alreadyCachedFile, cachedInOtherStore, externalDir ]
+        cachedClassPath.asFiles == [ externalFileCached, alreadyCachedFile, cachedInOtherStore, externalDir ]
     }
 
     def "can convert a url collection to cached jars"() {

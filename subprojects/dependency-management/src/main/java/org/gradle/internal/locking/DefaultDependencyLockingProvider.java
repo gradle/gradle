@@ -19,9 +19,11 @@ package org.gradle.internal.locking;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
+import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
@@ -61,6 +63,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final LockEntryFilter lockEntryFilter;
     private final DomainObjectContext context;
     private DependencySubstitutionRules dependencySubstitutionRules;
+    private LockMode lockMode;
+    private boolean used = false;
 
     public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules) {
         this.context = context;
@@ -73,12 +77,17 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         List<String> lockedDependenciesToUpdate = startParameter.getLockedDependenciesToUpdate();
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
+        lockMode = LockMode.DEFAULT;
     }
 
     @Override
     public DependencyLockingState loadLockState(String configurationName) {
+        recordUsage();
         if (!writeLocks || partialUpdate) {
             List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
+            if (lockedModules == null && lockMode == LockMode.STRICT) {
+                throw new MissingLockStateException(context.identityPath(configurationName).toString());
+            }
             if (lockedModules != null) {
                 Set<ModuleComponentIdentifier> results = Sets.newHashSetWithExpectedSize(lockedModules.size());
                 for (String module : lockedModules) {
@@ -92,10 +101,19 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                 } else {
                     LOGGER.info("Loaded lock state for configuration '{}'", context.identityPath(configurationName));
                 }
-                return new DefaultDependencyLockingState(partialUpdate, results);
+                boolean strictlyValidate = !partialUpdate && lockMode != LockMode.LENIENT;
+                return new DefaultDependencyLockingState(strictlyValidate, results);
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
+    }
+
+    private void recordUsage() {
+        used = true;
+    }
+
+    private boolean hasRecordedUsage() {
+        return used;
     }
 
     private boolean isSubstitutedInComposite(ModuleComponentIdentifier lockedIdentifier) {
@@ -141,6 +159,19 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         }
         Collections.sort(modules);
         return modules;
+    }
+
+    @Override
+    public LockMode getLockMode() {
+        return lockMode;
+    }
+
+    @Override
+    public void setLockMode(LockMode mode) {
+        if (hasRecordedUsage()) {
+            throw new InvalidUserCodeException("It is illegal to modify the dependency locking mode after any dependency configuration has been resolved");
+        }
+        this.lockMode = mode;
     }
 
     private static class LockingDependencySubstitution implements DependencySubstitutionInternal {
