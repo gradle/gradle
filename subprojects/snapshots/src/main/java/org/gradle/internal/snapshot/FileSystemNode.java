@@ -59,4 +59,10 @@ public interface FileSystemNode {
      * Creates a new node with the same children, but a different path to the parent.
      */
     FileSystemNode withPathToParent(String newPathToParent);
+
+    void accept(NodeVisitor visitor);
+
+    interface NodeVisitor {
+        void visitNode(FileSystemNode node);
+    }
 }

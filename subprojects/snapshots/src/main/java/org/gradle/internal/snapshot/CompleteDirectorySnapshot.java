@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
@@ -65,6 +66,15 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
         visitor.postVisitDirectory(this);
     }
 
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visitNode(this);
+        for (CompleteFileSystemLocationSnapshot child : children) {
+            child.accept(visitor);
+        }
+    }
+
+    @VisibleForTesting
     public List<CompleteFileSystemLocationSnapshot> getChildren() {
         return children;
     }

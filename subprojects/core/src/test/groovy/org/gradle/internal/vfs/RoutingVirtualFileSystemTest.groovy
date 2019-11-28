@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.impl
+package org.gradle.internal.vfs
 
 import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocations
 import org.gradle.internal.classpath.CachedJarFileStore
@@ -22,7 +22,6 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
-import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

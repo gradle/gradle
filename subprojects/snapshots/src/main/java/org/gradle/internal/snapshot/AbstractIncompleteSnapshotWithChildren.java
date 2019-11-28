@@ -117,4 +117,12 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
         merged.set(childIndex, newChild);
         return withIncompleteChildren(getPathToParent(), merged);
     }
+
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visitNode(this);
+        for (FileSystemNode child : children) {
+            child.accept(visitor);
+        }
+    }
 }

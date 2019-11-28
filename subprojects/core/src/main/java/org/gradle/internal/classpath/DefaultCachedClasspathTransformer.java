@@ -17,12 +17,12 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;

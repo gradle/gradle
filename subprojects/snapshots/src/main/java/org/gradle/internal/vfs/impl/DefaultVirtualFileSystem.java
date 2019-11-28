@@ -32,7 +32,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
-import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
 import java.util.Optional;
@@ -43,7 +42,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class DefaultVirtualFileSystem implements VirtualFileSystem {
+public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     private final AtomicReference<SnapshotHierarchy> root;
     private final Stat stat;
     private final DirectorySnapshotter directorySnapshotter;
@@ -147,6 +146,11 @@ public class DefaultVirtualFileSystem implements VirtualFileSystem {
             default:
                 throw new UnsupportedOperationException();
         }
+    }
+
+    @Override
+    SnapshotHierarchy getRoot() {
+        return root.get();
     }
 
     private CompleteFileSystemLocationSnapshot readLocation(String location) {

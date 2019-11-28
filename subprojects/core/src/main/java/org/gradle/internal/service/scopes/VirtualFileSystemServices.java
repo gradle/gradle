@@ -30,6 +30,7 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.SplitFileHasher;
 import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
+import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -70,10 +71,12 @@ import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
+import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
+import org.gradle.internal.vfs.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
-import org.gradle.internal.vfs.impl.RoutingVirtualFileSystem;
+import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
+import org.gradle.internal.vfs.watch.impl.JdkFileWatcherRegistryFactory;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,7 +93,6 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
-
 
     /**
      * System property to enable partial invalidation.
@@ -113,6 +115,13 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
      * @see #VFS_RETENTION_ENABLED_PROPERTY
      */
     public static final String VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY = "org.gradle.unsafe.vfs.changes";
+
+    /**
+     * When retention is enabled, this system property can be used to invalidate the entire VFS.
+     *
+     * @see #VFS_RETENTION_ENABLED_PROPERTY
+     */
+    public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
     public static boolean isPartialInvalidationEnabled(Map<String, String> systemPropertiesArgs) {
         return getSystemProperty(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs) != null
@@ -155,17 +164,22 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
             VirtualFileSystem createVirtualFileSystem(
                 FileHasher hasher,
+                FileSystem fileSystem,
                 ListenerManager listenerManager,
                 Stat stat,
-                FileSystem fileSystem,
-                StringInterner stringInterner
+                StringInterner stringInterner,
+                WellKnownFileLocations wellKnownFileLocations
             ) {
-                VirtualFileSystem virtualFileSystem = new DefaultVirtualFileSystem(
-                    hasher,
-                    stringInterner,
-                    stat,
-                    fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
-                    DirectoryScanner.getDefaultExcludes()
+                WatchingVirtualFileSystem virtualFileSystem = new DefaultWatchingVirtualFileSystem(
+                    new JdkFileWatcherRegistryFactory(),
+                    new DefaultVirtualFileSystem(
+                        hasher,
+                        stringInterner,
+                        stat,
+                        fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                        DirectoryScanner.getDefaultExcludes()
+                    ),
+                    path -> !wellKnownFileLocations.isImmutable(path.toString())
                 );
                 listenerManager.addListener(new RootBuildLifecycleListener() {
                     @Override
@@ -177,25 +191,33 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                             FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
                                 throw new UnsupportedOperationException();
                             });
-                            List<File> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(fileResolver, systemPropertiesArgs);
-                            for (File changedPathSinceLastBuild : changedPathsSinceLastBuild) {
-                                LOGGER.warn("Marking as changed since last build: {}", changedPathSinceLastBuild);
+                            if (getSystemProperty(VFS_DROP_PROPERTY, systemPropertiesArgs) != null) {
+                                virtualFileSystem.invalidateAll();
+                            } else {
+                                List<File> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(fileResolver, systemPropertiesArgs);
+                                for (File changedPathSinceLastBuild : changedPathsSinceLastBuild) {
+                                    LOGGER.warn("Marking as changed since last build: {}", changedPathSinceLastBuild);
+                                }
+                                virtualFileSystem.update(
+                                    changedPathsSinceLastBuild
+                                        .stream()
+                                        .map(File::getAbsolutePath)
+                                        .collect(Collectors.toList()),
+                                    () -> {
+                                    }
+                                );
                             }
-                            virtualFileSystem.update(
-                                changedPathsSinceLastBuild
-                                    .stream()
-                                    .map(File::getAbsolutePath)
-                                    .collect(Collectors.toList()),
-                                () -> {}
-                            );
                         } else {
                             virtualFileSystem.invalidateAll();
                         }
+                        virtualFileSystem.stopWatching();
                     }
 
                     @Override
                     public void beforeComplete(GradleInternal gradle) {
-                        if (!isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
+                        if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
+                            virtualFileSystem.startWatching();
+                        } else {
                             virtualFileSystem.invalidateAll();
                         }
                     }

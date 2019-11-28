@@ -60,4 +60,10 @@ public interface SnapshotHierarchy {
      */
     @CheckReturnValue
     SnapshotHierarchy empty();
+
+    void visitSnapshots(SnapshotVisitor snapshotVisitor);
+
+    interface SnapshotVisitor {
+        void visitSnapshot(CompleteFileSystemLocationSnapshot snapshot);
+    }
 }
