@@ -30,7 +30,7 @@ import org.gradle.tooling.events.OperationCompletionListener;
 @Incubating
 public interface BuildEventsListenerRegistry {
     /**
-     * Subscribes to operation finish events, if not already subscribed. The listener receives events as each operation completes.
+     * Subscribes the given listener to operation finish events, if not already subscribed. The listener receives events as each operation completes.
      */
     void subscribe(Provider<? extends OperationCompletionListener> listener);
 }
