@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
@@ -55,7 +56,8 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final PatternSet patterns;
     private final PatternSet filter;
     private final FileCollection dirs;
-    private final Property<File> outputDir;
+    private final Property<File> outputDir;          // the user configurable output directory
+    private final DirectoryProperty outputDirectory; // bound to the compile task output
 
     public DefaultSourceDirectorySet(String name, String displayName, Factory<PatternSet> patternSetFactory, FileCollectionFactory fileCollectionFactory, DirectoryFileTreeFactory directoryFileTreeFactory, ObjectFactory objectFactory) {
         this.name = name;
@@ -66,6 +68,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.filter = patternSetFactory.create();
         this.dirs = new FileCollectionAdapter(new SourceDirectories());
         this.outputDir = objectFactory.property(File.class);
+        this.outputDirectory = objectFactory.directoryProperty();
     }
 
     @Override
@@ -175,6 +178,11 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     public void setOutputDir(File outputDir) {
         this.outputDir.set(outputDir);
+    }
+
+    @Override
+    public DirectoryProperty getOutputDirectoryProperty() {
+        return outputDirectory;
     }
 
     @Override
