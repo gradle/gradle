@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -127,4 +128,19 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @since 4.0
      */
     void setOutputDir(File outputDir);
+
+    /**
+     * Returns the directory property that is, or can be, bound to the task that produces the output.
+     * Use this as part of a classpath or input to another task to ensure that the output is created before it is used.
+     *
+     * Set this property to a output property of a task to connect this source directory set to the output producing (compile) task.
+     *
+     * Note: To define the path of the output folder for a source directory set that is already wired to
+     * a task (e.g. 'java' / `compileJava`) use {@link #setOutputDir(Provider)} or {@link #setOutputDir(File)}.
+     *
+     * @return The output directory property for this set of sources.
+     * @since 6.1
+     */
+    @Incubating
+    DirectoryProperty getOutputDirectoryProperty();
 }
