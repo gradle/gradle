@@ -21,10 +21,13 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.WatchService;
 
 public class JdkFileWatcherRegistryFactory implements FileWatcherRegistryFactory {
     @Override
-    public FileWatcherRegistry createRegistry() throws IOException {
-        return new JdkFileWatcherRegistry(FileSystems.getDefault().newWatchService());
+    public FileWatcherRegistry startWatching(Iterable<Path> roots) throws IOException {
+        WatchService watchService = FileSystems.getDefault().newWatchService();
+        return new JdkFileWatcherRegistry(watchService, roots);
     }
 }

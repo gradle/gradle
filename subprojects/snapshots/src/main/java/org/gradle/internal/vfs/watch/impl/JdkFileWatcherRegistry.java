@@ -37,15 +37,14 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
 
     private final WatchService watchService;
 
-    public JdkFileWatcherRegistry(WatchService watchService) {
+    public JdkFileWatcherRegistry(WatchService watchService, Iterable<Path> watchRoots) throws IOException {
         this.watchService = watchService;
-    }
-
-    @Override
-    public void registerWatchPoint(Path path) throws IOException {
-        path.register(watchService,
-            new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
-            SensitivityWatchEventModifier.HIGH);
+        for (Path watchRoot : watchRoots) {
+            LOGGER.debug("Started watching {}", watchRoot);
+            watchRoot.register(watchService,
+                new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
+                SensitivityWatchEventModifier.HIGH);
+        }
     }
 
     @Override
@@ -59,11 +58,11 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
                 }
                 watchKey.cancel();
                 Path watchRoot = (Path) watchKey.watchable();
-                LOGGER.debug("Stop watching {}", watchRoot);
+                LOGGER.debug("Stoped watching {}", watchRoot);
                 for (WatchEvent<?> event : watchKey.pollEvents()) {
                     WatchEvent.Kind<?> kind = event.kind();
                     if (kind == OVERFLOW) {
-                        LOGGER.info("Too many modifications for path {} since last build, dropping all VFS state", watchRoot);
+                        LOGGER.warn("Too many modifications for path {} since last build, dropping all VFS state", watchRoot);
                         handler.handleOverflow();
                         overflow = true;
                         break;
