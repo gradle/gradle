@@ -118,7 +118,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     @Override
     public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService> implementationType, BuildServiceParameters parameters, int maxUsages) {
         if (registrations.findByName(name) != null) {
-            throw new IllegalArgumentException("Service '%s' has already been registered.");
+            throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
         }
         return doRegister(name, implementationType, isolationScheme.parameterTypeFor(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
     }

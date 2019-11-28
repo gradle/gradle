@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
+import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
@@ -31,6 +32,7 @@ import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -38,6 +40,7 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import java.io.File
@@ -257,8 +260,11 @@ class DefaultInstantExecution internal constructor(
             BuildOperationListenersCodec().run {
                 writeBuildOperationListeners(service())
             }
+            val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
+            writeCollection(eventListenerRegistry.subscriptions)
         }
     }
+
 
     private
     suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
@@ -268,6 +274,11 @@ class DefaultInstantExecution internal constructor(
             }
             service<BuildOperationListenerManager>().let { manager ->
                 listeners.forEach { manager.addListener(it) }
+            }
+            val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
+            readCollection {
+                val provider = read() as Provider<OperationCompletionListener>
+                eventListenerRegistry.subscribe(provider)
             }
         }
     }
