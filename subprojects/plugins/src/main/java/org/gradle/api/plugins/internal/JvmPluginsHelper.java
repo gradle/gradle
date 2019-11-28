@@ -128,7 +128,7 @@ public class JvmPluginsHelper {
         classpath.from(new Callable<Object>() {
             @Override
             public Object call() {
-                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
+                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDirectoryProperty()));
             }
         });
 
@@ -138,12 +138,12 @@ public class JvmPluginsHelper {
                 return classpath;
             }
         });
-        compile.setDestinationDir(target.provider(new Callable<File>() {
+        compile.getDestinationDirectory().set(target.getLayout().dir(target.provider(new Callable<File>() {
             @Override
             public File call() {
                 return sourceDirectorySet.getOutputDir();
             }
-        }));
+        })));
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
@@ -187,6 +187,7 @@ public class JvmPluginsHelper {
             }
         })).builtBy(compileTask);
 
+        sourceDirectorySet.getOutputDirectoryProperty().set(compileTask.flatMap(AbstractCompile::getDestinationDirectory));
     }
 
     public static void configureClassesDirectoryVariant(SourceSet sourceSet, Project target, String targetConfigName, final String usage) {

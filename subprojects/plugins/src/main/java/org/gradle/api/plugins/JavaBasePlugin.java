@@ -201,12 +201,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                     }
                 });
                 JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
-                compileTask.setDestinationDir(target.provider(new Callable<File>() {
+                compileTask.getDestinationDirectory().set(target.getLayout().dir(target.provider(new Callable<File>() {
                     @Override
                     public File call() {
                         return sourceDirectorySet.getOutputDir();
                     }
-                }));
+                })));
             }
         });
     }
