@@ -16,6 +16,7 @@
 
 package org.gradle.internal.build.event;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
@@ -35,13 +36,15 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry, BuildEventListenerRegistryInternal {
     private final List<BuildEventListenerFactory> factories;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
-    private final List<Provider<?>> subscriptions = new ArrayList<>();
+    private final Set<Provider<?>> subscriptions = new LinkedHashSet<>();
     private final List<Object> listeners = new ArrayList<>();
 
     public DefaultBuildEventsListenerRegistry(List<BuildEventListenerFactory> factories, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager) {
@@ -53,16 +56,22 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
     @Override
     public List<Provider<?>> getSubscriptions() {
-        return subscriptions;
+        return ImmutableList.copyOf(subscriptions);
     }
 
     @Override
     public void subscribe(Provider<? extends OperationCompletionListener> listenerProvider) {
+        if (!subscriptions.add(listenerProvider)) {
+            return;
+        }
+
         // TODO - deliver events asynchronously
+        // TODO - reuse the listeners
 
         ForwardingBuildEventConsumer consumer = new ForwardingBuildEventConsumer(listenerProvider);
+        BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
         for (BuildEventListenerFactory registration : factories) {
-            Iterable<Object> listeners = registration.createListeners(new BuildEventSubscriptions(Collections.singleton(OperationType.TASK)), consumer);
+            Iterable<Object> listeners = registration.createListeners(eventSubscriptions, consumer);
             CollectionUtils.addAll(this.listeners, listeners);
             for (Object listener : listeners) {
                 listenerManager.addListener(listener);
@@ -71,7 +80,6 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
                 }
             }
         }
-        subscriptions.add(listenerProvider);
     }
 
     private static class ForwardingBuildEventConsumer implements BuildEventConsumer {

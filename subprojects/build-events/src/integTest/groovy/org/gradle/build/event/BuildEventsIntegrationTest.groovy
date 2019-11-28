@@ -27,36 +27,10 @@ import org.junit.runner.RunWith
 @RunWith(InstantExecutionRunner)
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     def "listener can subscribe to task completion events"() {
+        loggingListener()
+        registeringPlugin()
         buildFile << """
-            import ${BuildEventsListenerRegistry.name}
-            import ${OperationCompletionListener.name}
-            import ${FinishEvent.name}
-            import ${TaskFinishEvent.name}
-            import javax.inject.Inject
-            import ${BuildServiceParameters.name}
-
-            abstract class MyListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None> {
-                @Override
-                void onFinish(FinishEvent event) {
-                    if (event instanceof TaskFinishEvent) {
-                        println("EVENT: finish \${event.descriptor.taskPath}")
-                    } else {
-                        throw IllegalArgumentException()
-                    }
-                }
-            }
-
-            abstract class MyPlugin implements Plugin<Project> {
-                @Inject
-                abstract BuildEventsListenerRegistry getListenerRegistry()
-
-                void apply(Project project) {
-                    def listener = project.gradle.sharedServices.registerIfAbsent("listener", MyListener) { }
-                    listenerRegistry.subscribe(listener)
-                }
-            }
-
-            apply plugin: MyPlugin
+            apply plugin: LoggingPlugin
 
             task a {}
             task b {}
@@ -94,5 +68,86 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :a")
         outputContains("EVENT: finish :b")
         outputContains("EVENT: finish :c")
+    }
+
+    def "plugin applied to multiple projects can register a shared listener"() {
+        settingsFile << """
+            include 'a', 'b'
+        """
+        loggingListener()
+        registeringPlugin()
+        buildFile << """
+            subprojects {
+                apply plugin: LoggingPlugin
+                task thing { }
+            }
+        """
+
+        when:
+        run("a:thing")
+
+        then:
+        output.count("EVENT:") == 1
+        outputContains("EVENT: finish :a:thing")
+
+        when:
+        run("a:thing")
+
+        then:
+        output.count("EVENT:") == 1
+        outputContains("EVENT: finish :a:thing")
+
+        when:
+        run("thing")
+
+        then:
+        output.count("EVENT:") == 2
+        outputContains("EVENT: finish :a:thing")
+        outputContains("EVENT: finish :b:thing")
+
+        when:
+        run("thing")
+
+        then:
+        output.count("EVENT:") == 2
+        outputContains("EVENT: finish :a:thing")
+        outputContains("EVENT: finish :b:thing")
+    }
+
+    def loggingListener() {
+        buildFile << """
+            import ${OperationCompletionListener.name}
+            import ${FinishEvent.name}
+            import ${TaskFinishEvent.name}
+            import ${BuildServiceParameters.name}
+
+            abstract class LoggingListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None> {
+                @Override
+                void onFinish(FinishEvent event) {
+                    if (event instanceof TaskFinishEvent) {
+                        println("EVENT: finish \${event.descriptor.taskPath}")
+                    } else {
+                        throw IllegalArgumentException()
+                    }
+                }
+            }
+        """
+    }
+
+    def registeringPlugin() {
+        buildFile << """
+            import ${BuildEventsListenerRegistry.name}
+            import javax.inject.Inject
+
+            abstract class LoggingPlugin implements Plugin<Project> {
+                @Inject
+                abstract BuildEventsListenerRegistry getListenerRegistry()
+
+                void apply(Project project) {
+                    def listener = project.gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
+                    listenerRegistry.subscribe(listener)
+                }
+            }
+        """
     }
 }
