@@ -18,10 +18,13 @@ package org.gradle.build.event
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.junit.runner.RunWith
 
+@RunWith(InstantExecutionRunner)
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
     def "listener can subscribe to task completion events"() {
         buildFile << """

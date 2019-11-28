@@ -16,7 +16,6 @@
 
 package org.gradle.internal.build.event;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
@@ -32,30 +31,39 @@ import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
+import org.gradle.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry {
-    private final List<BuildEventListenerFactory> registrations;
+public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry, BuildEventListenerRegistryInternal {
+    private final List<BuildEventListenerFactory> factories;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
+    private final List<Provider<?>> subscriptions = new ArrayList<>();
+    private final List<Object> listeners = new ArrayList<>();
 
-    public DefaultBuildEventsListenerRegistry(List<BuildEventListenerFactory> registrations, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager) {
-        this.registrations = registrations;
+    public DefaultBuildEventsListenerRegistry(List<BuildEventListenerFactory> factories, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager) {
+        this.factories = factories;
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
+        listenerManager.addListener(new ListenerCleanup());
+    }
+
+    @Override
+    public List<Provider<?>> getSubscriptions() {
+        return subscriptions;
     }
 
     @Override
     public void subscribe(Provider<? extends OperationCompletionListener> listenerProvider) {
         // TODO - deliver events asynchronously
 
-        ImmutableList.Builder<Object> builder = ImmutableList.builder();
         ForwardingBuildEventConsumer consumer = new ForwardingBuildEventConsumer(listenerProvider);
-        for (BuildEventListenerFactory registration : registrations) {
+        for (BuildEventListenerFactory registration : factories) {
             Iterable<Object> listeners = registration.createListeners(new BuildEventSubscriptions(Collections.singleton(OperationType.TASK)), consumer);
-            builder.addAll(listeners);
+            CollectionUtils.addAll(this.listeners, listeners);
             for (Object listener : listeners) {
                 listenerManager.addListener(listener);
                 if (listener instanceof BuildOperationListener) {
@@ -63,11 +71,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
                 }
             }
         }
-
-        ImmutableList<Object> allListeners = builder.build();
-        if (!allListeners.isEmpty()) {
-            listenerManager.addListener(new ListenerCleanup(allListeners, listenerManager, buildOperationListenerManager));
-        }
+        subscriptions.add(listenerProvider);
     }
 
     private static class ForwardingBuildEventConsumer implements BuildEventConsumer {
@@ -90,30 +94,22 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
     }
 
-    private static class ListenerCleanup implements RootBuildLifecycleListener {
-        private final List<?> allListeners;
-        private final ListenerManager listenerManager;
-        private final BuildOperationListenerManager buildOperationListenerManager;
-
-        public ListenerCleanup(List<?> allListeners, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager) {
-            this.allListeners = allListeners;
-            this.listenerManager = listenerManager;
-            this.buildOperationListenerManager = buildOperationListenerManager;
-        }
-
+    private class ListenerCleanup implements RootBuildLifecycleListener {
         @Override
         public void afterStart(GradleInternal gradle) {
         }
 
         @Override
         public void beforeComplete(GradleInternal gradle) {
-            for (Object listener : allListeners) {
+            // TODO - maybe make this registry a build scoped service
+            for (Object listener : listeners) {
                 listenerManager.removeListener(listener);
                 if (listener instanceof BuildOperationListener) {
                     buildOperationListenerManager.removeListener((BuildOperationListener) listener);
                 }
             }
-            listenerManager.removeListener(this);
+            listeners.clear();
+            subscriptions.clear();
         }
     }
 }
