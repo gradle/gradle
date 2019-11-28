@@ -84,6 +84,33 @@ class ScalaPluginTest {
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
     }
 
+    @Test void "compile dependency to java compilation can be turned off by changing the compile task classpath"() {
+        scalaPlugin.apply(project)
+
+        def task = project.tasks['compileScala']
+        task.classpath = project.sourceSets.main.compileClasspath
+
+        SourceSet mainSourceSet = project.sourceSets.main
+        assertThat(task, instanceOf(ScalaCompile.class))
+        assertThat(task.classpath.files as List, equalTo([]))
+        assertThat(task.source as List, equalTo(mainSourceSet.scala  as List))
+        assertThat(task, not(dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME)))
+
+        task = project.tasks['compileTestScala']
+        task.classpath = project.sourceSets.test.compileClasspath
+
+        def testSourceSet = project.sourceSets.test
+        assertThat(task, instanceOf(ScalaCompile.class))
+        assertThat(task.classpath.files as List, equalTo([
+            mainSourceSet.java.outputDirectory.get().asFile,
+            mainSourceSet.scala.outputDirectory.get().asFile,
+            mainSourceSet.output.resourcesDir
+        ]))
+        assertThat(task.source as List, equalTo(testSourceSet.scala as List))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+        assertThat(task, not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME)))
+    }
+
     @Test void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
         scalaPlugin.apply(project)
 
