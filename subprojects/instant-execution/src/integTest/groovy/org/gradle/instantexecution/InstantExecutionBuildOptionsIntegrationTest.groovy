@@ -108,7 +108,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         where:
         expression                                     | usage
         'isCi.map(String::toBoolean).getOrElse(false)' | 'mapped'
-        'isCi.run { isPresent && get() != "false" }'   | 'raw'
+        'isCi.getOrElse("false") != "false"'           | 'raw'
     }
 
     @Ignore("wip")
