@@ -157,6 +157,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
         javaProject.redundantClassFileAlternate.assertIsFile()
 
         when:
+        buildFile.text = buildFile.text.replace('compileJava.destinationDir', 'compileJava.destinationDirectory')
         forceDelete(javaProject.redundantSourceFile)
         succeeds JAR_TASK_NAME
 
