@@ -22,16 +22,42 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
+import org.gradle.internal.Try;
 
 /**
  * Service to create providers from {@link ValueSource}s.
  *
- * Separate from {@link org.gradle.api.provider.ProviderFactory} so it can be implemented in the instant-execution module.
+ * Notifies interested parties when values are obtained from their sources.
  *
  * @since 6.1
  */
 @Incubating
 public interface ValueSourceProviderFactory {
 
-    <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction);
+    <T, P extends ValueSourceParameters> Provider<T> createProviderOf(
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        Action<? super ValueSourceSpec<P>> configureAction
+    );
+
+    void addListener(Listener listener);
+
+    void removeListener(Listener listener);
+
+    interface Listener {
+
+        <T, P extends ValueSourceParameters> void valueObtained(
+            ObtainedValue<T, P> obtainedValue
+        );
+
+        interface ObtainedValue<T, P extends ValueSourceParameters> {
+
+            Try<T> getValue();
+
+            Class<? extends ValueSource<T, P>> getValueSourceType();
+
+            Class<P> getValueSourceParametersType();
+
+            P getValueSourceParameters();
+        }
+    }
 }

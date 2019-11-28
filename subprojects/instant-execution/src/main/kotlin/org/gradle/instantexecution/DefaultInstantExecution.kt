@@ -16,10 +16,12 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.serialization.DefaultReadContext
@@ -57,7 +59,8 @@ import kotlin.coroutines.startCoroutine
 class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
-    private val beanConstructors: BeanConstructors
+    private val beanConstructors: BeanConstructors,
+    private val valueSourceProviderFactory: ValueSourceProviderFactory
 ) : InstantExecution {
 
     interface Host {
@@ -104,6 +107,22 @@ class DefaultInstantExecution internal constructor(
             )
             true
         }
+    }
+
+    override fun prepareForBuildLogicExecution() {
+
+        if (!isInstantExecutionEnabled) return
+
+        // TODO - remove listener in `saveScheduledWork`
+        valueSourceProviderFactory.addListener(
+            object : ValueSourceProviderFactory.Listener {
+                override fun <T, P : ValueSourceParameters> valueObtained(
+                    obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
+                ) {
+                    // TODO - collect and store in the fingerprint file
+                }
+            }
+        )
     }
 
     override fun saveScheduledWork() {
@@ -348,8 +367,9 @@ class DefaultInstantExecution internal constructor(
 
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
-    val isInstantExecutionEnabled: Boolean
-        get() = systemProperty(SystemProperties.isEnabled)?.toBoolean() ?: false && !host.currentBuild.buildSrc
+    val isInstantExecutionEnabled: Boolean by lazy {
+        systemProperty(SystemProperties.isEnabled)?.toBoolean() ?: false && !host.currentBuild.buildSrc
+    }
 
     private
     val instantExecutionLogLevel: LogLevel

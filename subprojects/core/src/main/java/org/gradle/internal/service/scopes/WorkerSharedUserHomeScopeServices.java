@@ -20,6 +20,7 @@ import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
 import org.gradle.api.internal.provider.ValueSourceProviderFactory;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -29,8 +30,18 @@ import org.gradle.internal.state.ManagedFactoryRegistry;
 
 public class WorkerSharedUserHomeScopeServices {
 
-    ValueSourceProviderFactory createValueSourceProviderFactory(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, ServiceRegistry services) {
-        return new DefaultValueSourceProviderFactory(instantiatorFactory, isolatableFactory, services);
+    ValueSourceProviderFactory createValueSourceProviderFactory(
+        InstantiatorFactory instantiatorFactory,
+        IsolatableFactory isolatableFactory,
+        ServiceRegistry services,
+        ListenerManager listenerManager
+    ) {
+        return new DefaultValueSourceProviderFactory(
+            listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class),
+            instantiatorFactory,
+            isolatableFactory,
+            services
+        );
     }
 
     ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {

@@ -23,8 +23,8 @@ import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.Try;
+import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.instantiation.InstanceGenerator;
-import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -38,11 +38,18 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
+    private final AnonymousListenerBroadcast<Listener> broadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
     private final InstanceGenerator specInstantiator;
 
-    public DefaultValueSourceProviderFactory(InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory, ServiceLookup services) {
+    public DefaultValueSourceProviderFactory(
+        AnonymousListenerBroadcast<Listener> broadcaster,
+        InstantiatorFactory instantiatorFactory,
+        IsolatableFactory isolatableFactory,
+        ServiceLookup services
+    ) {
+        this.broadcaster = broadcaster;
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
@@ -59,12 +66,32 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         // TODO - consider deferring configuration
         configureParameters(parameters, configureAction);
 
-        return new DefaultValueSourceProvider(
-            valueSourceType,
-            parametersType,
-            parameters,
-            instantiatorFactory.injectScheme()
-        );
+        return new DefaultValueSourceProvider<>(valueSourceType, parametersType, parameters);
+    }
+
+    @Override
+    public void addListener(Listener listener) {
+        broadcaster.add(listener);
+    }
+
+    @Override
+    public void removeListener(Listener listener) {
+        broadcaster.remove(listener);
+    }
+
+    @NotNull
+    public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        Class<P> parametersType,
+        P isolatedParameters
+    ) {
+        DefaultServiceRegistry services = new DefaultServiceRegistry();
+        services.add(parametersType, isolatedParameters);
+        return instantiatorFactory
+            .injectScheme()
+            .withServices(services)
+            .instantiator()
+            .newInstance(valueSourceType);
     }
 
     @NotNull
@@ -108,21 +135,18 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;
         private final ValueSourceParameters parameters;
-        private final InstantiationScheme instantiationScheme;
 
         @Nullable
         private Try<T> value = null;
 
         public DefaultValueSourceProvider(
             Class<? extends ValueSource<T, P>> valueSourceType,
-            Class parametersType,
-            ValueSourceParameters parameters,
-            InstantiationScheme instantiationScheme
+            Class<P> parametersType,
+            ValueSourceParameters parameters
         ) {
             this.valueSourceType = valueSourceType;
             this.parametersType = parametersType;
             this.parameters = parameters;
-            this.instantiationScheme = instantiationScheme;
         }
 
         @Nullable
@@ -136,21 +160,77 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         public T getOrNull() {
             synchronized (this) {
                 if (value == null) {
-                    // TODO - dedupe logic copied from DefaultBuildServicesRegistry
-                    DefaultServiceRegistry services = new DefaultServiceRegistry();
                     // TODO - consider if should hold the project lock to do the isolation
-                    P isolatedParameters = (P) isolatableFactory.isolate(parameters).isolate();
-                    services.add(parametersType, isolatedParameters);
+                    P valueSourceParameters = (P) isolatableFactory.isolate(parameters).isolate();
+
+                    // TODO - dedupe logic copied from DefaultBuildServicesRegistry
                     // TODO - add more information to exception
-                    value = Try.ofFailable(() -> realizeValueSource(services).obtain());
+                    value = Try.ofFailable(() -> obtainValueFromSource(valueSourceParameters));
+
+                    onValueObtained(valueSourceParameters);
                 }
                 return value.get();
             }
         }
 
-        @NotNull
-        private ValueSource<T, P> realizeValueSource(DefaultServiceRegistry services) {
-            return instantiationScheme.withServices(services).instantiator().newInstance(valueSourceType);
+        @Nullable
+        private T obtainValueFromSource(P isolatedParameters) {
+            return instantiateValueSource(
+                valueSourceType,
+                parametersType,
+                isolatedParameters
+            ).obtain();
+        }
+
+        private void onValueObtained(P isolatedParameters) {
+            broadcaster.getSource().valueObtained(
+                new DefaultObtainedValue(
+                    value,
+                    valueSourceType,
+                    parametersType,
+                    isolatedParameters
+                )
+            );
+        }
+    }
+
+    private static class DefaultObtainedValue<T, P extends ValueSourceParameters> implements Listener.ObtainedValue<T, P> {
+
+        private final Try<T> value;
+        private final Class<? extends ValueSource<T, P>> valueSourceType;
+        private final Class<P> parametersType;
+        private final P isolatedParameters;
+
+        public DefaultObtainedValue(
+            Try<T> value,
+            Class<? extends ValueSource<T, P>> valueSourceType,
+            Class<P> parametersType,
+            P isolatedParameters
+        ) {
+            this.value = value;
+            this.valueSourceType = valueSourceType;
+            this.parametersType = parametersType;
+            this.isolatedParameters = isolatedParameters;
+        }
+
+        @Override
+        public Try<T> getValue() {
+            return value;
+        }
+
+        @Override
+        public Class<? extends ValueSource<T, P>> getValueSourceType() {
+            return valueSourceType;
+        }
+
+        @Override
+        public Class<P> getValueSourceParametersType() {
+            return parametersType;
+        }
+
+        @Override
+        public P getValueSourceParameters() {
+            return isolatedParameters;
         }
     }
 }
