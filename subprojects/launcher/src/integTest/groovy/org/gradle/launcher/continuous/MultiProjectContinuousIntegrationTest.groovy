@@ -16,10 +16,11 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Ignore
 
-class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def upstreamSource, downstreamSource
 

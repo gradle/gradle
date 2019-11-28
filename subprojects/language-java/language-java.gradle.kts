@@ -8,7 +8,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":launcher"))
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -45,7 +44,6 @@ dependencies {
     testImplementation(library("commons_io"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":platformBase")))
-    testImplementation(testFixtures(project(":launcher")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 

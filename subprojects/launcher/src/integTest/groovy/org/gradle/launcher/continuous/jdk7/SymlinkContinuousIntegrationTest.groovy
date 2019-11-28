@@ -16,8 +16,8 @@
 
 package org.gradle.launcher.continuous.jdk7
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -25,7 +25,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 @Requires(TestPrecondition.NOT_WINDOWS)
-class SymlinkContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class SymlinkContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "can use symlink for input"() {
         given:
         def baseDir = file("src").createDir()

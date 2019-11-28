@@ -57,7 +57,6 @@ dependencies {
     testImplementation(testFixtures(project(":logging")))
 
     testRuntimeOnly(project(":toolingApi"))
-    testRuntimeOnly(project(":launcher"))
     testRuntimeOnly(project(":testKit"))
     testRuntimeOnly(project(":runtimeApiInfo"))
 

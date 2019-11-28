@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.os.OperatingSystem
@@ -24,7 +25,7 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Issue
 
-class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class SmokeContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
         if (OperatingSystem.current().isWindows()) {
             ignoreShutdownTimeoutException = true
