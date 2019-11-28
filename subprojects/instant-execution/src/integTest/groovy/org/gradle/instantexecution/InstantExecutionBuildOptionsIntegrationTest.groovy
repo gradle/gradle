@@ -22,7 +22,7 @@ import spock.lang.Unroll
 class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     @Unroll
-    def "property from properties file #usage used as build logic input"() {
+    def "#usage property from properties file used as build logic input"() {
 
         given:
         def instant = newInstantExecutionFixture()
@@ -80,35 +80,35 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         then:
         output.count("NOT CI") == 1
         instant.assertStateLoaded()
-// TODO instant-execution
-//        when: "running with the property present in the file"
-//        file("local.properties") << "ci=true"
-//        instantRun "run"
-//
-//        then:
-//        output.count("ON CI") == 1
-//        instant.assertStateStored()
-//
-//        when: "running after changing the file without changing the property value"
-//        file("local.properties") << "\nunrelated.properties=foo"
-//        instantRun "run"
-//
-//        then:
-//        output.count("ON CI") == 1
-//        instant.assertStateLoaded()
-//
-//        when: "running after changing the property value"
-//        file("local.properties").text = "ci=false"
-//        instantRun "run"
-//
-//        then:
-//        output.count("NOT CI") == 1
-//        instant.assertStateStored()
+
+        when: "running with the property present in the file"
+        file("local.properties") << "ci=true"
+        instantRun "run"
+
+        then:
+        output.count("ON CI") == 1
+        instant.assertStateStored()
+
+        when: "running after changing the file without changing the property value"
+        file("local.properties") << "\nunrelated.properties=foo"
+        instantRun "run"
+
+        then:
+        output.count("ON CI") == 1
+        instant.assertStateLoaded()
+
+        when: "running after changing the property value"
+        file("local.properties").text = "ci=false"
+        instantRun "run"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateStored()
 
         where:
         expression                                     | usage
-        "isCi.map(String::toBoolean).getOrElse(false)" | "value"
-        "isCi.isPresent"                               | "presence"
+        'isCi.map(String::toBoolean).getOrElse(false)' | 'mapped'
+        'isCi.run { isPresent && get() != "false" }'   | 'raw'
     }
 
     @Ignore("wip")

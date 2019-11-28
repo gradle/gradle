@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
+import org.gradle.instantexecution.DefaultInstantExecution
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
@@ -266,6 +267,10 @@ sealed class IsolateOwner {
 
     class OwnerGradle(override val delegate: Gradle) : IsolateOwner() {
         override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
+    }
+
+    class OwnerHost(override val delegate: DefaultInstantExecution.Host) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = delegate.getService(type)
     }
 }
 
