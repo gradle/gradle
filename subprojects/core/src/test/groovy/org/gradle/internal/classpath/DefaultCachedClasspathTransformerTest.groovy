@@ -56,7 +56,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)
 
-    def classpathTransformerCache = new DefaultClasspathTransformerCache(cacheRepository, fileAccessTimeJournal, usedGradleVersions)
+    def classpathTransformerCache = new DefaultClasspathTransformerCacheFactory(cacheRepository, fileAccessTimeJournal, usedGradleVersions)
     def wellKnownFileLocations = new DefaultWellKnownFileLocations([classpathTransformerCache, jarFileStore])
 
     @Subject

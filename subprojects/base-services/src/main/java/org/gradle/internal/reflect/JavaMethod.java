@@ -117,4 +117,9 @@ public class JavaMethod<T, R> {
     public Class<?>[] getParameterTypes(){
         return method.getParameterTypes();
     }
+
+    @Override
+    public String toString() {
+        return method.toString();
+    }
 }

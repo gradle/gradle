@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
+import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTimeJournal;
@@ -25,25 +26,27 @@ import org.gradle.internal.file.JarCache;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.util.CollectionUtils;
 
+import java.io.Closeable;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 
-public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer {
+public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer, Closeable {
 
     private final PersistentCache cache;
     private final Transformer<File, File> jarFileTransformer;
 
     public DefaultCachedClasspathTransformer(
-        ClasspathTransformerCache classpathTransformerCache,
+        CacheRepository cacheRepository,
+        ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         JarCache jarCache,
         WellKnownFileLocations wellKnownFileLocations
     ) {
-        this.cache = classpathTransformerCache.getCache();
-        FileAccessTracker fileAccessTracker = classpathTransformerCache.createFileAccessTracker(fileAccessTimeJournal);
+        this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
+        FileAccessTracker fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
         this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, wellKnownFileLocations), fileAccessTracker);
     }
 
@@ -109,5 +112,10 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             fileAccessTracker.markAccessed(result);
             return result;
         }
+    }
+
+    @Override
+    public void close() {
+        cache.close();
     }
 }

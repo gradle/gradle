@@ -262,8 +262,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         given:
         requireOwnGradleUserHomeDir() // messes with caches
         def oldCacheDirs = [
-            userHomeCacheDir.createDir("${DefaultClasspathTransformerCache.CACHE_NAME}-1"),
-            userHomeCacheDir.createDir("${DefaultClasspathTransformerCache.CACHE_NAME}-2")
+            userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-1"),
+            userHomeCacheDir.createDir("${DefaultClasspathTransformerCacheFactory.CACHE_NAME}-2")
         ]
         gcFile.createFile().lastModified = daysAgo(2)
 
@@ -291,7 +291,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
     }
 
     TestFile getCacheDir() {
-        return userHomeCacheDir.file(DefaultClasspathTransformerCache.CACHE_KEY)
+        return userHomeCacheDir.file(DefaultClasspathTransformerCacheFactory.CACHE_KEY)
     }
 
 
