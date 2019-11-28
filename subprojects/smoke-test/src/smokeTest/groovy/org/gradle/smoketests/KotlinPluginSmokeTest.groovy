@@ -120,6 +120,52 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         ].combinations()
     }
 
+    @Unroll
+    @Requires(KOTLIN_SCRIPT)
+    def 'kotlin #kotlinVersion and groovy plugins combined'() {
+        given:
+        buildFile << """
+            buildscript {
+                ext.kotlin_version = '$kotlinVersion'
+                repositories { mavenCentral() }
+                dependencies {
+                    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+                }
+            }
+            apply plugin: 'kotlin'
+            apply plugin: 'groovy'
+
+            repositories {
+                mavenCentral()
+            }
+
+            tasks.named('compileGroovy') {
+                classpath = sourceSets.main.compileClasspath
+            }
+            tasks.named('compileKotlin') {
+                classpath += files(sourceSets.main.groovy.outputDirectory)
+            }
+
+            dependencies {
+                implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+                implementation localGroovy()
+            }
+        """
+        file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
+        file("src/main/kotlin/Kotlin.kt")     << "class Kotlin { val groovy = Groovy() }"
+        file("src/main/java/Java.java")       << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
+
+        when:
+        def result = build(false, 'compileJava')
+
+        then:
+        result.task(':compileJava').outcome == SUCCESS
+        result.tasks.collect { it.path } == [':compileGroovy', ':compileKotlin', ':compileJava']
+
+        where:
+        kotlinVersion << TestedVersions.kotlin.versions
+    }
+
     private BuildResult build(boolean workers, String... tasks) {
         return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
             .forwardOutput()

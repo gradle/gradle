@@ -38,4 +38,36 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
         notExecuted(":lib:processResources", ":lib:jar")
     }
 
+    def "scala and java source directory compilation order can be reversed (task configuration #configurationStyle)"() {
+        given:
+        file("src/main/scala/Scala.scala") << "class Scala { }"
+        file("src/main/java/Java.java") << "public class Java { Scala scala = new Scala(); }"
+        buildFile << """
+            plugins {
+                id 'scala'
+            }
+            $setup
+            tasks.named('compileScala') {
+                classpath = sourceSets.main.compileClasspath
+            }
+            repositories {
+                mavenCentral()
+            }
+            dependencies {
+                implementation("org.scala-lang:scala-library:2.11.12")
+            }
+        """
+
+        when:
+        succeeds 'compileJava'
+
+        then:
+        result.assertTasksExecutedInOrder(':compileScala', ':compileJava')
+
+        where:
+        configurationStyle | setup
+        'lazy'             | "tasks.named('compileJava') { classpath += files(sourceSets.main.scala.outputDirectory) }"
+        'eager'            | "compileJava { classpath += files(sourceSets.main.scala.outputDirectory) }"
+    }
+
 }

@@ -7,19 +7,19 @@ repositories {
 task compileWithOptimization(type: GroovyCompile) {
     source = sourceSets.main.groovy
     classpath = configurations.compileClasspath
-    destinationDir = file("$buildDir/classes/optimized")
+    destinationDirectory = file("$buildDir/classes/optimized")
     groovyOptions.optimizationOptions.all = true
 }
 
 task compileWithoutOptimization(type: GroovyCompile) {
     source = sourceSets.main.groovy
     classpath = configurations.compileClasspath
-    destinationDir = file("$buildDir/classes/unoptimized")
+    destinationDirectory = file("$buildDir/classes/unoptimized")
     groovyOptions.optimizationOptions.all = false
 }
 
 task sanityCheck(dependsOn: [compileWithOptimization, compileWithoutOptimization]) {
     doLast {
-        assert fileTree(compileWithOptimization.destinationDir).singleFile.size() != fileTree(compileWithoutOptimization.destinationDir).singleFile.size()
+        assert compileWithOptimization.destinationDirectory.getAsFileTree().singleFile.size() != compileWithoutOptimization.destinationDirectory.getAsFileTree().singleFile.size()
     }
 }
