@@ -114,7 +114,6 @@ public class GroovyBasePlugin implements Plugin<Project> {
                     @Override
                     public void execute(final GroovyCompile compile) {
                         JvmPluginsHelper.configureForSourceSet(sourceSet, groovySourceSet.getGroovy(), compile, compile.getOptions(), project);
-                        compile.dependsOn(sourceSet.getCompileJavaTaskName());
                         compile.setDescription("Compiles the " + sourceSet.getName() + " Groovy source.");
                         compile.setSource(groovySourceSet.getGroovy());
                     }
