@@ -22,6 +22,6 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 public class BuildEventServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.add(DefaultProgressListenerRegistry.class);
+        registration.add(DefaultBuildEventsListenerRegistry.class);
     }
 }

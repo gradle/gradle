@@ -19,38 +19,36 @@ package org.gradle.internal.build.event;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.provider.Provider;
-import org.gradle.build.event.ProgressListenerRegistry;
+import org.gradle.build.event.BuildEventsListenerRegistry;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
+import org.gradle.tooling.events.OperationCompletionListener;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
 import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
-import org.gradle.tooling.events.task.internal.DefaultTaskStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
-import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultProgressListenerRegistry implements ProgressListenerRegistry {
+public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry {
     private final List<BuildEventListenerFactory> registrations;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
 
-    public DefaultProgressListenerRegistry(List<BuildEventListenerFactory> registrations, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager) {
+    public DefaultBuildEventsListenerRegistry(List<BuildEventListenerFactory> registrations, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager) {
         this.registrations = registrations;
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
     }
 
     @Override
-    public void register(Provider<? extends ProgressListener> listenerProvider) {
+    public void subscribe(Provider<? extends OperationCompletionListener> listenerProvider) {
         // TODO - deliver events asynchronously
 
         ImmutableList.Builder<Object> builder = ImmutableList.builder();
@@ -73,9 +71,9 @@ public class DefaultProgressListenerRegistry implements ProgressListenerRegistry
     }
 
     private static class ForwardingBuildEventConsumer implements BuildEventConsumer {
-        private final Provider<? extends ProgressListener> listenerProvider;
+        private final Provider<? extends OperationCompletionListener> listenerProvider;
 
-        public ForwardingBuildEventConsumer(Provider<? extends ProgressListener> listenerProvider) {
+        public ForwardingBuildEventConsumer(Provider<? extends OperationCompletionListener> listenerProvider) {
             this.listenerProvider = listenerProvider;
         }
 
@@ -83,15 +81,11 @@ public class DefaultProgressListenerRegistry implements ProgressListenerRegistry
         public void dispatch(Object message) {
             // TODO - reuse adapters from tooling api client
             InternalProgressEvent event = (InternalProgressEvent) message;
-            if (event.getDescriptor() instanceof InternalTaskDescriptor) {
+            if (event.getDescriptor() instanceof InternalTaskDescriptor && event instanceof InternalOperationFinishedProgressEvent) {
                 InternalTaskDescriptor providerDescriptor = (InternalTaskDescriptor) event.getDescriptor();
                 DefaultTaskOperationDescriptor descriptor = new DefaultTaskOperationDescriptor(providerDescriptor, null, providerDescriptor.getTaskPath());
-                if (event instanceof InternalOperationStartedProgressEvent) {
-                    listenerProvider.get().statusChanged(new DefaultTaskStartEvent(event.getEventTime(), event.getDisplayName(), descriptor));
-                } else if (event instanceof InternalOperationFinishedProgressEvent) {
-                    // TODO - provide the correct result
-                    listenerProvider.get().statusChanged(new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, null));
-                }
+                // TODO - provide the correct result
+                listenerProvider.get().onFinish(new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, null));
             }
         }
     }
@@ -113,7 +107,6 @@ public class DefaultProgressListenerRegistry implements ProgressListenerRegistry
 
         @Override
         public void beforeComplete(GradleInternal gradle) {
-            System.out.println("-> UNREGISTER!!");
             for (Object listener : allListeners) {
                 listenerManager.removeListener(listener);
                 if (listener instanceof BuildOperationListener) {

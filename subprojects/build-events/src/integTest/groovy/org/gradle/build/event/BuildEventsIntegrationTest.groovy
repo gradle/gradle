@@ -18,41 +18,38 @@ package org.gradle.build.event
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.tooling.events.ProgressEvent
-import org.gradle.tooling.events.ProgressListener
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
-import org.gradle.tooling.events.task.TaskStartEvent
-
 
 class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
-    def "listener can subscribe to task events"() {
+    def "listener can subscribe to task completion events"() {
         buildFile << """
-            import ${ProgressListenerRegistry.name}
-            import ${ProgressListener.name}
-            import ${ProgressEvent.name}
-            import ${TaskStartEvent.name}
+            import ${BuildEventsListenerRegistry.name}
+            import ${OperationCompletionListener.name}
+            import ${FinishEvent.name}
             import ${TaskFinishEvent.name}
             import javax.inject.Inject
             import ${BuildServiceParameters.name}
 
-            abstract class MyListener implements ProgressListener, BuildService<BuildServiceParameters.None> {
+            abstract class MyListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None> {
                 @Override
-                void statusChanged(ProgressEvent event) {
-                    if (event instanceof TaskStartEvent) {
-                        println("EVENT: start \${event.descriptor.taskPath}")
-                    } else if (event instanceof TaskFinishEvent) {
+                void onFinish(FinishEvent event) {
+                    if (event instanceof TaskFinishEvent) {
                         println("EVENT: finish \${event.descriptor.taskPath}")
+                    } else {
+                        throw IllegalArgumentException()
                     }
                 }
             }
 
             abstract class MyPlugin implements Plugin<Project> {
                 @Inject
-                abstract ProgressListenerRegistry getListenerRegistry()
+                abstract BuildEventsListenerRegistry getListenerRegistry()
 
                 void apply(Project project) {
                     def listener = project.gradle.sharedServices.registerIfAbsent("listener", MyListener) { }
-                    listenerRegistry.register(listener)
+                    listenerRegistry.subscribe(listener)
                 }
             }
 
@@ -67,16 +64,32 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         run("a")
 
         then:
-        output.count("EVENT:") == 2
-        outputContains("start :a")
-        outputContains("finish :a")
+        output.count("EVENT:") == 1
+        outputContains("EVENT: finish :a")
 
         when:
         run("a")
 
         then:
-        output.count("EVENT:") == 2
-        outputContains("start :a")
-        outputContains("finish :a")
+        output.count("EVENT:") == 1
+        outputContains("EVENT: finish :a")
+
+        when:
+        run("c")
+
+        then:
+        output.count("EVENT:") == 3
+        outputContains("EVENT: finish :a")
+        outputContains("EVENT: finish :b")
+        outputContains("EVENT: finish :c")
+
+        when:
+        run("c")
+
+        then:
+        output.count("EVENT:") == 3
+        outputContains("EVENT: finish :a")
+        outputContains("EVENT: finish :b")
+        outputContains("EVENT: finish :c")
     }
 }
