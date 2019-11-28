@@ -48,9 +48,9 @@ import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.CachedJarFileStore;
-import org.gradle.internal.classpath.ClasspathTransformerCache;
+import org.gradle.internal.classpath.ClasspathTransformerCacheFactory;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
-import org.gradle.internal.classpath.DefaultClasspathTransformerCache;
+import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
@@ -134,14 +134,12 @@ public class GradleUserHomeScopeServices {
         return cache;
     }
 
-    ClasspathTransformerCache createClasspathTransformerCache(
-        CacheRepository cacheRepository,
-        FileAccessTimeJournal fileAccessTimeJournal,
+    ClasspathTransformerCacheFactory createClasspathTransformerCache(
+        CacheScopeMapping cacheScopeMapping,
         UsedGradleVersions usedGradleVersions
     ) {
-        return new DefaultClasspathTransformerCache(
-            cacheRepository,
-            fileAccessTimeJournal,
+        return new DefaultClasspathTransformerCacheFactory(
+            cacheScopeMapping,
             usedGradleVersions
         );
     }
@@ -151,13 +149,15 @@ public class GradleUserHomeScopeServices {
     }
 
     CachedClasspathTransformer createCachedClasspathTransformer(
-        ClasspathTransformerCache classpathTransformerCache,
+        CacheRepository cacheRepository,
+        ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileHasher fileHasher,
         FileAccessTimeJournal fileAccessTimeJournal,
         WellKnownFileLocations wellKnownFileLocations
     ) {
         return new DefaultCachedClasspathTransformer(
-            classpathTransformerCache,
+            cacheRepository,
+            classpathTransformerCacheFactory,
             fileAccessTimeJournal,
             new JarCache(fileHasher),
             wellKnownFileLocations

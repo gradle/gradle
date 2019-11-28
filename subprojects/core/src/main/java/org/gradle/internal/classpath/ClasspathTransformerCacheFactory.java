@@ -16,12 +16,13 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
 
-public interface ClasspathTransformerCache extends CachedJarFileStore {
-    PersistentCache getCache();
+public interface ClasspathTransformerCacheFactory extends CachedJarFileStore {
+    PersistentCache createCache(CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal);
 
     FileAccessTracker createFileAccessTracker(FileAccessTimeJournal fileAccessTimeJournal);
 }

@@ -21,17 +21,18 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
+import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CacheVersionMapping;
 import org.gradle.cache.internal.CompositeCleanupAction;
 import org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup;
 import org.gradle.cache.internal.SingleDepthFilesFinder;
 import org.gradle.cache.internal.UnusedVersionsCacheCleanup;
 import org.gradle.cache.internal.UsedGradleVersions;
+import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.resource.local.SingleDepthFileAccessTracker;
 
-import java.io.Closeable;
 import java.io.File;
 import java.util.Collections;
 import java.util.List;
@@ -40,7 +41,7 @@ import static org.gradle.cache.internal.CacheVersionMapping.introducedIn;
 import static org.gradle.cache.internal.LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultClasspathTransformerCache implements ClasspathTransformerCache, Closeable {
+public class DefaultClasspathTransformerCacheFactory implements ClasspathTransformerCacheFactory {
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("3.1-rc-1").incrementedIn("3.2-rc-1").incrementedIn("3.5-rc-1").build();
     @VisibleForTesting
     static final String CACHE_NAME = "jars";
@@ -48,15 +49,18 @@ public class DefaultClasspathTransformerCache implements ClasspathTransformerCac
     static final String CACHE_KEY = CACHE_NAME + "-" + CACHE_VERSION_MAPPING.getLatestVersion();
     private static final int FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP = 1;
 
-    private final PersistentCache cache;
+    private final File cacheDir;
+    private final UsedGradleVersions usedGradleVersions;
 
-    public DefaultClasspathTransformerCache(
-        CacheRepository cacheRepository,
-        FileAccessTimeJournal fileAccessTimeJournal,
-        UsedGradleVersions usedGradleVersions
-    ) {
-        this.cache = cacheRepository
-            .cache(CACHE_KEY)
+    public DefaultClasspathTransformerCacheFactory(CacheScopeMapping cacheScopeMapping, UsedGradleVersions usedGradleVersions) {
+        this.cacheDir = cacheScopeMapping.getBaseDirectory(null, CACHE_KEY, VersionStrategy.SharedCache);
+        this.usedGradleVersions = usedGradleVersions;
+    }
+
+    @Override
+    public PersistentCache createCache(CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal) {
+        return cacheRepository
+            .cache(cacheDir)
             .withDisplayName(CACHE_NAME)
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withLockOptions(mode(FileLockManager.LockMode.None))
@@ -68,22 +72,12 @@ public class DefaultClasspathTransformerCache implements ClasspathTransformerCac
     }
 
     @Override
-    public PersistentCache getCache() {
-        return cache;
-    }
-
-    @Override
     public FileAccessTracker createFileAccessTracker(FileAccessTimeJournal fileAccessTimeJournal) {
-        return new SingleDepthFileAccessTracker(fileAccessTimeJournal, cache.getBaseDir(), FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
+        return new SingleDepthFileAccessTracker(fileAccessTimeJournal, cacheDir, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }
 
     @Override
     public List<File> getFileStoreRoots() {
-        return Collections.singletonList(cache.getBaseDir());
-    }
-
-    @Override
-    public void close() {
-        cache.close();
+        return Collections.singletonList(cacheDir);
     }
 }
