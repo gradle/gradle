@@ -22,8 +22,8 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":bootstrap"))
     implementation(project(":jvmServices"))
-    implementation(project(":toolingApi"))
     implementation(project(":buildEvents"))
+    implementation(project(":toolingApi"))
 
     implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
     implementation(library("slf4j_api"))
@@ -67,12 +67,6 @@ dependencies {
     integTestRuntimeOnly(project(":languageNative")) {
         because("for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
-
-    testFixturesApi(project(":baseServices")) {
-        because("Test fixtures export the Action class")
-    }
-    testFixturesImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":internalIntegTesting"))
 }
 
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'

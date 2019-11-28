@@ -22,7 +22,6 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":launcher"))
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
@@ -36,9 +35,9 @@ dependencies {
     implementation(library("guava"))
 
     testImplementation(testFixtures(project(":dependencyManagement")))
-    testImplementation(testFixtures(project(":launcher")))
 
     integTestImplementation(project(":buildOption"))
+    integTestImplementation(project(":launcher"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":ide"))

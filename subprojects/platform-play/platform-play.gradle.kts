@@ -69,7 +69,6 @@ dependencies {
     testFixturesApi(project(":platformBase")) {
         because("Test fixtures export the Platform class")
     }
-    testFixturesApi(testFixtures(project(":launcher")))
     testFixturesApi(testFixtures(project(":core")))
     testFixturesApi(testFixtures(project(":platformNative")))
     testFixturesApi(testFixtures(project(":languageJvm")))

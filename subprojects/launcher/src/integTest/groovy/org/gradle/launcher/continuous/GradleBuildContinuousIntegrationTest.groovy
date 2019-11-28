@@ -16,9 +16,10 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
-class GradleBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class GradleBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
         file("gradle-build/inputs/input.txt").text = "first"
         file("gradle-build/settings.gradle") << """

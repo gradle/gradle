@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 
-class CompositeContinuousBuildIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
     def setup() {
         buildTestFixture.withBuildInSubDir()
     }
