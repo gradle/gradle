@@ -173,7 +173,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         // Simplistic approach at detecting MSBuild by assuming Windows imply MSBuild is present
         WINDOWS.fulfilled
     }),
-    SUPPORTS_TARGETING_JAVA6({!JDK12_OR_LATER.fulfilled})
+    SUPPORTS_TARGETING_JAVA6({ !JDK12_OR_LATER.fulfilled }),
+    // Currently mac agents are not that strong so we avoid running high-concurrency tests on them
+    HIGH_PERFORMANCE(NOT_MAC_OS_X)
 
     /**
      * A predicate for testing whether the precondition is fulfilled.
@@ -182,6 +184,10 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
 
     TestPrecondition(Closure predicate) {
         this.predicate = predicate
+    }
+
+    TestPrecondition(TestPrecondition aliasOf) {
+        this.predicate = aliasOf.predicate
     }
 
     /**
