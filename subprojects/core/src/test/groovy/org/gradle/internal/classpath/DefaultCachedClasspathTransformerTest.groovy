@@ -20,6 +20,7 @@ import org.gradle.api.internal.changedetection.state.DefaultWellKnownFileLocatio
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
+import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.Factory
 import org.gradle.internal.file.FileAccessTimeJournal
@@ -46,6 +47,9 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         withLockOptions(_) >> { cacheBuilder }
         withCleanup(_) >> { cacheBuilder }
     }
+    def cacheScopeMapping = Stub(CacheScopeMapping) {
+        getBaseDirectory(_, _, _) >> cachedDir
+    }
     def cacheRepository = Stub(CacheRepository) {
         cache(_) >> cacheBuilder
     }
@@ -56,11 +60,11 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     def fileAccessTimeJournal = Mock(FileAccessTimeJournal)
     def usedGradleVersions = Stub(UsedGradleVersions)
 
-    def classpathTransformerCache = new DefaultClasspathTransformerCacheFactory(cacheRepository, fileAccessTimeJournal, usedGradleVersions)
-    def wellKnownFileLocations = new DefaultWellKnownFileLocations([classpathTransformerCache, jarFileStore])
+    def cacheFactory = new DefaultClasspathTransformerCacheFactory(cacheScopeMapping, usedGradleVersions)
+    def wellKnownFileLocations = new DefaultWellKnownFileLocations([cacheFactory, jarFileStore])
 
     @Subject
-    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(classpathTransformerCache, fileAccessTimeJournal, jarCache, wellKnownFileLocations)
+    DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, jarCache, wellKnownFileLocations)
 
     def "can convert a classpath to cached jars"() {
         given:
