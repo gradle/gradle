@@ -17,7 +17,8 @@
 package org.gradle.internal.vfs.watch;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 public interface FileWatcherRegistryFactory {
-    FileWatcherRegistry createRegistry() throws IOException;
+    FileWatcherRegistry startWatching(Iterable<Path> roots) throws IOException;
 }

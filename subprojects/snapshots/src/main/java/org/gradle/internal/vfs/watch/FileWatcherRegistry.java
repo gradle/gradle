@@ -35,11 +35,6 @@ public interface FileWatcherRegistry extends Closeable {
     }
 
     /**
-     * Registers the given location to watch for changes.
-     */
-    void registerWatchPoint(Path path) throws IOException;
-
-    /**
      * Stop watching and handle the accumulated changes.
      */
     void stopWatching(ChangeHandler handler) throws IOException;
