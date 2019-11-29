@@ -87,16 +87,14 @@ class DefaultInstantExecution internal constructor(
             false
         }
         host.skipLoadingStateReason != null -> {
-            logger.log(
-                instantExecutionLogLevel,
+            log(
                 "Calculating task graph as instant execution cache cannot be reused due to {}",
                 host.skipLoadingStateReason
             )
             false
         }
         !instantExecutionFingerprintFile.isFile -> {
-            logger.log(
-                instantExecutionLogLevel,
+            log(
                 "Calculating task graph as no instant execution cache is available for tasks: {}",
                 host.requestedTaskNames.joinToString(" ")
             )
@@ -106,16 +104,14 @@ class DefaultInstantExecution internal constructor(
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
-                    logger.log(
-                        instantExecutionLogLevel,
-                        "Calculating task graph as instant execution cache cannot be reused due to {}",
+                    log(
+                        "Calculating task graph as instant execution cache cannot be reused because {}.",
                         fingerprintChangedReason
                     )
                     false
                 }
                 else -> {
-                    logger.log(
-                        instantExecutionLogLevel,
+                    log(
                         "Reusing instant execution cache. This is not guaranteed to work in any way."
                     )
                     true
@@ -424,6 +420,11 @@ class DefaultInstantExecution internal constructor(
                 ?.path
                 ?.let(Path::path)
         }
+
+    private
+    fun log(message: String, vararg args: Any?) {
+        logger.log(instantExecutionLogLevel, message, *args)
+    }
 
     private
     val buildOperationExecutor: BuildOperationExecutor
