@@ -27,9 +27,12 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -47,7 +50,7 @@ import org.gradle.instantexecution.serialization.writeCollection
 private
 suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
     when {
-        value is BuildServiceProvider<*, *> -> {
+        value is BuildServiceProvider<*, *> || value is ValueSourceProvider<*, *> -> {
             writeByte(1)
             write(value)
         }
@@ -118,6 +121,64 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
             val provider = serviceRegistry.register(name, implementationType, parameters, maxUsages)
             sharedIdentities.putInstance(id, provider)
             provider
+        }
+    }
+}
+
+
+class
+ValueSourceProviderCodec(
+    private val valueSourceProviderFactory: ValueSourceProviderFactory
+) : Codec<ValueSourceProvider<*, *>> {
+
+    override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
+        when (val obtainedValue = value.obtainedValueOrNull) {
+            null -> {
+                // source has **NOT** been used as build logic input:
+                // serialize the source
+                writeBoolean(true)
+                encodeValueSource(value)
+            }
+            else -> {
+                // source has been used as build logic input:
+                // serialize the value directly as it will be part of the
+                // cached state fingerprint
+                TODO("build logic input")
+            }
+        }
+    }
+
+    override suspend fun ReadContext.decode(): ValueSourceProvider<*, *>? =
+        when (readBoolean()) {
+            true -> decodeValueSource()
+            false -> TODO()
+        }
+
+    private
+    suspend fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
+        encodePreservingIdentityOf(sharedIdentities, value) {
+            value.run {
+                writeClass(valueSourceType)
+                writeClass(parametersType)
+                write(parameters)
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *>? {
+        return decodePreservingIdentity(sharedIdentities) { id ->
+            val valueSourceType = readClass()
+            val parametersType = readClass()
+            val parameters = read()!!
+            val provider =
+                valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
+                    valueSourceType.uncheckedCast(),
+                    parametersType.uncheckedCast(),
+                    parameters.uncheckedCast()
+                )
+            sharedIdentities.putInstance(id, provider)
+            provider.uncheckedCast()
         }
     }
 }

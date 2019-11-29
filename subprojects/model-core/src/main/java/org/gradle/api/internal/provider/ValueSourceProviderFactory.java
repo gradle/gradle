@@ -43,6 +43,12 @@ public interface ValueSourceProviderFactory {
 
     void removeListener(Listener listener);
 
+    <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        Class<P> parametersType,
+        P parameters
+    );
+
     interface Listener {
 
         <T, P extends ValueSourceParameters> void valueObtained(

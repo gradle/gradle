@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution
 
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -111,8 +110,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         'isCi.getOrElse("false") != "false"'           | 'raw'
     }
 
-    @Ignore("wip")
-    def "system property used as task input"() {
+    def "mapped system property used as task input"() {
 
         given:
         def instant = newInstantExecutionFixture()

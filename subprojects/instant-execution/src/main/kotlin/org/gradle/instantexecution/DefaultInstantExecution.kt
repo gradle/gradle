@@ -379,16 +379,17 @@ class DefaultInstantExecution internal constructor(
             fingerprinterRegistry = service(),
             projectFinder = service(),
             buildOperationExecutor = service(),
+            classLoaderHierarchyHasher = service(),
             isolatableFactory = service(),
             valueSnapshotter = service(),
             fileCollectionFingerprinterRegistry = service(),
             buildServiceRegistry = service(),
             isolatableSerializerRegistry = service(),
-            actionScheme = service(),
             parameterScheme = service(),
-            classLoaderHierarchyHasher = service(),
+            actionScheme = service(),
             attributesFactory = service(),
-            transformListener = service()
+            transformListener = service(),
+            valueSourceProviderFactory = service()
         )
     }
 

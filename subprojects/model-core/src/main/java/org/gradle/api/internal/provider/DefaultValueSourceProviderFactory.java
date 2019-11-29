@@ -66,7 +66,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         // TODO - consider deferring configuration
         configureParameters(parameters, configureAction);
 
-        return new DefaultValueSourceProvider<>(valueSourceType, parametersType, parameters);
+        return instantiateValueSourceProvider(valueSourceType, parametersType, parameters);
     }
 
     @Override
@@ -77,6 +77,12 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     @Override
     public void removeListener(Listener listener) {
         broadcaster.remove(listener);
+    }
+
+    @Override
+    @NotNull
+    public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(Class<? extends ValueSource<T, P>> valueSourceType, Class<P> parametersType, P parameters) {
+        return new ValueSourceProvider<>(valueSourceType, parametersType, parameters);
     }
 
     @NotNull
@@ -130,23 +136,45 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    public class DefaultValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractReadOnlyProvider<T> {
+    public class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractReadOnlyProvider<T> {
 
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;
-        private final ValueSourceParameters parameters;
+        private final P parameters;
 
         @Nullable
         private Try<T> value = null;
 
-        public DefaultValueSourceProvider(
+        public ValueSourceProvider(
             Class<? extends ValueSource<T, P>> valueSourceType,
             Class<P> parametersType,
-            ValueSourceParameters parameters
+            P parameters
         ) {
             this.valueSourceType = valueSourceType;
             this.parametersType = parametersType;
             this.parameters = parameters;
+        }
+
+        public Class<? extends ValueSource<T, P>> getValueSourceType() {
+            return valueSourceType;
+        }
+
+        public Class<P> getParametersType() {
+            return parametersType;
+        }
+
+        public P getParameters() {
+            return parameters;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return value == null;
+        }
+
+        @Nullable
+        public Try<T> getObtainedValueOrNull() {
+            return value;
         }
 
         @Nullable
