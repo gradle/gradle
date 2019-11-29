@@ -359,6 +359,11 @@ inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: Write
 
 
 internal
+inline fun WriteContext.encodePreservingSharedIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) =
+    encodePreservingIdentityOf(sharedIdentities, reference, encode)
+
+
+internal
 inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: Any, encode: WriteContext.(Any) -> Unit) {
     val id = identities.getId(reference)
     if (id != null) {
@@ -371,9 +376,13 @@ inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, 
 
 
 internal
-inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> T): T {
-    return decodePreservingIdentity(isolate.identities, decode)
-}
+inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> T): T =
+    decodePreservingIdentity(isolate.identities, decode)
+
+
+internal
+inline fun <T> ReadContext.decodePreservingSharedIdentity(decode: ReadContext.(Int) -> T): T =
+    decodePreservingIdentity(sharedIdentities, decode)
 
 
 internal

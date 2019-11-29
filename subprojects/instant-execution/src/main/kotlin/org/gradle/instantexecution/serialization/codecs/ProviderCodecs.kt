@@ -41,8 +41,8 @@ import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.decodePreservingIdentity
-import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
+import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
 
@@ -104,7 +104,7 @@ ProviderCodec : Codec<ProviderInternal<*>> {
 class
 BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInternal) : Codec<BuildServiceProvider<*, *>> {
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        encodePreservingIdentityOf(sharedIdentities, value) {
+        encodePreservingSharedIdentityOf(value) {
             writeString(value.getName())
             writeClass(value.getImplementationType())
             write(value.getParameters())
@@ -112,8 +112,8 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
         }
     }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? {
-        return decodePreservingIdentity(sharedIdentities) { id ->
+    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
+        decodePreservingSharedIdentity { id ->
             val name = readString()
             val implementationType = readClass().uncheckedCast<Class<BuildService<*>>>()
             val parameters = read() as BuildServiceParameters?
@@ -122,7 +122,6 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
             sharedIdentities.putInstance(id, provider)
             provider
         }
-    }
 }
 
 
@@ -158,7 +157,7 @@ ValueSourceProviderCodec(
 
     private
     suspend fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
-        encodePreservingIdentityOf(sharedIdentities, value) {
+        encodePreservingSharedIdentityOf(value) {
             value.run {
                 writeClass(valueSourceType)
                 writeClass(parametersType)
@@ -168,8 +167,8 @@ ValueSourceProviderCodec(
     }
 
     private
-    suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *>? {
-        return decodePreservingIdentity(sharedIdentities) { id ->
+    suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *>? =
+        decodePreservingSharedIdentity { id ->
             val valueSourceType = readClass()
             val parametersType = readClass()
             val parameters = read()!!
@@ -182,7 +181,6 @@ ValueSourceProviderCodec(
             sharedIdentities.putInstance(id, provider)
             provider.uncheckedCast()
         }
-    }
 }
 
 
