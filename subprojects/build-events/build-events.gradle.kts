@@ -33,6 +33,7 @@ dependencies {
     implementation(library("jsr305"))
     implementation(library("guava"))
 
+    testImplementation(project(":internalTesting"))
     testImplementation(project(":modelCore"))
 
     integTestImplementation(project(":internalTesting"))
