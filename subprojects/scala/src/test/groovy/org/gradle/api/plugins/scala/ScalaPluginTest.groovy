@@ -18,6 +18,7 @@ package org.gradle.api.plugins.scala
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
@@ -104,6 +105,32 @@ class ScalaPluginTest {
         assertThat(task.classpath.files as List, equalTo([
             mainSourceSet.java.outputDirectory.get().asFile,
             mainSourceSet.scala.outputDirectory.get().asFile,
+            mainSourceSet.output.resourcesDir
+        ]))
+        assertThat(task.source as List, equalTo(testSourceSet.scala as List))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
+        assertThat(task, not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME)))
+    }
+
+    @Test void "compile dependency to java compilation can be turned off"() {
+        scalaPlugin.apply(project)
+        project.getExtensions().configure(JavaPluginExtension) {
+            it.withoutCompileJavaFirst()
+        }
+
+        def task = project.tasks['compileScala']
+        SourceSet mainSourceSet = project.sourceSets.main
+        assertThat(task, instanceOf(ScalaCompile.class))
+        assertThat(task.classpath.files as List, equalTo([]))
+        assertThat(task.source as List, equalTo(mainSourceSet.scala  as List))
+        assertThat(task, not(dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME)))
+
+        task = project.tasks['compileTestScala']
+        def testSourceSet = project.sourceSets.test
+        assertThat(task, instanceOf(ScalaCompile.class))
+        assertThat(task.classpath.files as List, equalTo([
+            mainSourceSet.java.outputDir,
+            mainSourceSet.scala.outputDir,
             mainSourceSet.output.resourcesDir
         ]))
         assertThat(task.source as List, equalTo(testSourceSet.scala as List))

@@ -126,6 +126,35 @@ class GroovyPluginTest extends AbstractProjectBuilderSpec {
         not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)).matches(task)
     }
 
+    def "compile dependency to java compilation can be turned off"() {
+        given:
+        groovyPlugin.apply(project)
+        SourceSet mainSourceSet = project.sourceSets.main
+        project.getExtensions().configure(JavaPluginExtension) {
+            it.withoutCompileJavaFirst()
+        }
+
+        when:
+        def task = project.tasks['compileGroovy']
+
+        then:
+        task instanceof GroovyCompile
+        task.classpath.files as List == []
+        not(dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME)).matches(task)
+
+        when:
+        task = project.tasks['compileTestGroovy']
+
+        then:
+        task instanceof GroovyCompile
+        task.classpath.files as List == [
+            mainSourceSet.java.outputDir,
+            mainSourceSet.groovy.outputDir,
+            mainSourceSet.output.resourcesDir
+        ]
+        not(dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)).matches(task)
+    }
+
     def "dependencies of Java plugin tasks include Groovy compile tasks"() {
         given:
         groovyPlugin.apply(project)
