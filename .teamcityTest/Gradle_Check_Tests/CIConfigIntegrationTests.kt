@@ -7,6 +7,7 @@ import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
+import model.GradleSubproject
 import model.SpecificBuild
 import model.Stage
 import model.StageNames
@@ -231,6 +232,23 @@ class CIConfigIntegrationTests {
     }
 
     @Test
+    fun testsAreCorrectlyConfiguredForAllSubProjects() {
+        CIBuildModel().subProjects.filter {
+            !listOf(
+                "soak", // soak test
+                "distributions", // build distributions
+                "docs", // sanity check
+                "architectureTest" // sanity check
+            ).contains(it.name)
+        }.forEach {
+            val dir = getSubProjectFolder(it)
+            assertEquals(it.unitTests, File(dir, "src/test").isDirectory, "${it.name}'s unitTests is wrong!")
+            assertEquals(it.functionalTests, File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
+            assertEquals(it.crossVersionTests, File(dir, "src/crossVersionTest").isDirectory, "${it.name}'s crossVersionTests is wrong!")
+        }
+    }
+
+    @Test
     fun allSubprojectsDefineTheirUnitTestPropertyCorrectly() {
         val projectsWithUnitTests = CIBuildModel().subProjects.filter { it.unitTests }
         val projectFoldersWithUnitTests = subProjectFolderList().filter {
@@ -309,6 +327,8 @@ class CIConfigIntegrationTests {
         assertFalse(subprojectFolders.isEmpty())
         return subprojectFolders
     }
+
+    private fun getSubProjectFolder(subProject: GradleSubproject): File = File("../subprojects/${subProject.asDirectoryName()}")
 
     private fun printTree(project: Project, indent: String = "") {
         println(indent + project.id + " (Project)")
