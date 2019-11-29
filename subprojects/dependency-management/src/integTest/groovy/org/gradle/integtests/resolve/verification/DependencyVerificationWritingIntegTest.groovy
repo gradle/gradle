@@ -321,6 +321,29 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
+    def "doesn't generate checksums for changing dependencies"() {
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0-SNAPSHOT")
+        uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0-SNAPSHOT"
+                api("org:bar:1.0") {
+                   changing = true
+                }
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        hasModules([])
+    }
+
     @ToBeFixedForInstantExecution
     def "writes checksums of plugins using plugins block"() {
         given:
