@@ -52,6 +52,31 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
     }
 
+    def "doesn't try to verify checksums for changing dependencies"() {
+        createMetadataFile {
+            // empty
+        }
+
+        given:
+        javaLibrary()
+        uncheckedModule("org", "foo", "1.0-SNAPSHOT")
+        uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0-SNAPSHOT"
+                api("org:bar:1.0") {
+                   changing = true
+                }
+            }
+        """
+
+        when:
+        run ":compileJava"
+
+        then:
+        noExceptionThrown()
+    }
+
     @Unroll
     @ToBeFixedForInstantExecution
     def "fails verifying the file but not resolution itself if verification metadata fails for #kind"() {
