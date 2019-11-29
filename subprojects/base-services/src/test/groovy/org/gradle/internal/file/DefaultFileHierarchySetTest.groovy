@@ -17,7 +17,10 @@
 package org.gradle.internal.file
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultFileHierarchySetTest extends Specification {
@@ -92,6 +95,8 @@ class DefaultFileHierarchySetTest extends Specification {
         set.flatten() == [dir1.path]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/11508")
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "creates from file system root files"() {
         expect:
         def set = DefaultFileHierarchySet.of(Arrays.asList(File.listRoots()))
