@@ -142,7 +142,9 @@ ValueSourceProviderCodec(
             else -> {
                 // source has been used as build logic input:
                 // serialize the value directly as it will be part of the
-                // cached state fingerprint
+                // cached state fingerprint.
+                // Currently not necessary due to the unpacking that happens
+                // to the TypeSanitizingProvider put around the ValueSourceProvider.
                 TODO("build logic input")
             }
         }
@@ -151,7 +153,7 @@ ValueSourceProviderCodec(
     override suspend fun ReadContext.decode(): ValueSourceProvider<*, *>? =
         when (readBoolean()) {
             true -> decodeValueSource()
-            false -> TODO()
+            false -> throw IllegalStateException()
         }
 
     private
