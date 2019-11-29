@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.ModuleSources;
 
 class ModuleMetadataCacheEntry {
     static final byte TYPE_MISSING = 0;
@@ -25,11 +26,13 @@ class ModuleMetadataCacheEntry {
     final byte type;
     final boolean isChanging;
     final long createTimestamp;
+    final ModuleSources moduleSources;
 
-    ModuleMetadataCacheEntry(byte type, boolean isChanging, long createTimestamp) {
+    ModuleMetadataCacheEntry(byte type, boolean isChanging, long createTimestamp, ModuleSources moduleSources) {
         this.type = type;
         this.isChanging = isChanging;
         this.createTimestamp = createTimestamp;
+        this.moduleSources = moduleSources;
     }
 
     public static ModuleMetadataCacheEntry forMissingModule(long createTimestamp) {
@@ -37,7 +40,7 @@ class ModuleMetadataCacheEntry {
     }
 
     public static ModuleMetadataCacheEntry forMetaData(ModuleComponentResolveMetadata metaData, long createTimestamp) {
-        return new ModuleMetadataCacheEntry(TYPE_PRESENT, metaData.isChanging(), createTimestamp);
+        return new ModuleMetadataCacheEntry(TYPE_PRESENT, metaData.isChanging(), createTimestamp, metaData.getSources());
     }
 
     public boolean isMissing() {
@@ -46,6 +49,7 @@ class ModuleMetadataCacheEntry {
 
     protected ModuleComponentResolveMetadata configure(MutableModuleComponentResolveMetadata input) {
         input.setChanging(isChanging);
+        input.setSources(moduleSources);
         return input.asImmutable();
     }
 }
