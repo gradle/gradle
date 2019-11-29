@@ -188,35 +188,37 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         public T getOrNull() {
             synchronized (this) {
                 if (value == null) {
-                    // TODO - consider if should hold the project lock to do the isolation
-                    P valueSourceParameters = (P) isolatableFactory.isolate(parameters).isolate();
 
-                    // TODO - dedupe logic copied from DefaultBuildServicesRegistry
                     // TODO - add more information to exception
-                    value = Try.ofFailable(() -> obtainValueFromSource(valueSourceParameters));
+                    value = Try.ofFailable(() -> obtainValueFromSource());
 
-                    onValueObtained(valueSourceParameters);
+                    onValueObtained();
                 }
                 return value.get();
             }
         }
 
         @Nullable
-        private T obtainValueFromSource(P isolatedParameters) {
+        private T obtainValueFromSource() {
             return instantiateValueSource(
                 valueSourceType,
                 parametersType,
-                isolatedParameters
+                isolateParameters()
             ).obtain();
         }
 
-        private void onValueObtained(P isolatedParameters) {
+        private P isolateParameters() {
+            // TODO - consider if should hold the project lock to do the isolation
+            return (P) isolatableFactory.isolate(parameters).isolate();
+        }
+
+        private void onValueObtained() {
             broadcaster.getSource().valueObtained(
                 new DefaultObtainedValue(
                     value,
                     valueSourceType,
                     parametersType,
-                    isolatedParameters
+                    parameters
                 )
             );
         }
@@ -227,18 +229,18 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         private final Try<T> value;
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;
-        private final P isolatedParameters;
+        private final P parameters;
 
         public DefaultObtainedValue(
             Try<T> value,
             Class<? extends ValueSource<T, P>> valueSourceType,
             Class<P> parametersType,
-            P isolatedParameters
+            P parameters
         ) {
             this.value = value;
             this.valueSourceType = valueSourceType;
             this.parametersType = parametersType;
-            this.isolatedParameters = isolatedParameters;
+            this.parameters = parameters;
         }
 
         @Override
@@ -258,7 +260,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         @Override
         public P getValueSourceParameters() {
-            return isolatedParameters;
+            return parameters;
         }
     }
 }
