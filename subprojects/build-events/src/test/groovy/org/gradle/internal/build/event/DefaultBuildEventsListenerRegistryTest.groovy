@@ -16,14 +16,16 @@
 
 package org.gradle.internal.build.event
 
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.initialization.BuildEventConsumer
+import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.build.event.types.DefaultTaskDescriptor
 import org.gradle.internal.build.event.types.DefaultTaskFailureResult
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent
 import org.gradle.internal.build.event.types.DefaultTaskSkippedResult
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult
-import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
@@ -34,7 +36,8 @@ import spock.lang.Specification
 
 class DefaultBuildEventsListenerRegistryTest extends Specification {
     def factory = new MockBuildEventListenerFactory()
-    def registry = new DefaultBuildEventsListenerRegistry([factory], Stub(ListenerManager), Stub(BuildOperationListenerManager))
+    def listenerManager = new DefaultListenerManager()
+    def registry = new DefaultBuildEventsListenerRegistry([factory], listenerManager, Stub(BuildOperationListenerManager))
 
     def "listener receives task finish events"() {
         def listener = Mock(OperationCompletionListener)
@@ -72,6 +75,28 @@ class DefaultBuildEventsListenerRegistryTest extends Specification {
 
         then:
         registry.subscriptions.size() == 1
+    }
+
+    def "broken listener is quarantined and failure rethrown at completion of build"() {
+        def listener = Mock(OperationCompletionListener)
+        def provider = Providers.of(listener)
+        def failure = new RuntimeException()
+
+        when:
+        registry.subscribe(provider)
+        factory.fire(taskFinishEvent())
+        factory.fire(taskFinishEvent())
+
+        then:
+        1 * listener.onFinish(_) >> { throw failure }
+        0 * listener._
+
+        when:
+        listenerManager.getBroadcaster(RootBuildLifecycleListener).beforeComplete(Stub(GradleInternal))
+
+        then:
+        def e = thrown(RuntimeException)
+        e.is(failure)
     }
 
     private DefaultTaskFinishedProgressEvent taskFinishEvent() {
