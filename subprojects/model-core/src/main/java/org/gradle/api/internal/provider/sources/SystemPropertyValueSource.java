@@ -22,7 +22,7 @@ import org.gradle.api.provider.ValueSourceParameters;
 
 import javax.annotation.Nullable;
 
-public abstract class SystemPropertySource implements ValueSource<String, SystemPropertySource.Parameters> {
+public abstract class SystemPropertyValueSource implements ValueSource<String, SystemPropertyValueSource.Parameters> {
 
     public interface Parameters extends ValueSourceParameters {
         Property<String> getPropertyName();

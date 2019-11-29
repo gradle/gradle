@@ -17,7 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.provider.sources.SystemPropertySource;
+import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
@@ -56,7 +56,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public Provider<String> systemProperty(Provider<String> propertyName) {
         return of(
-            SystemPropertySource.class,
+            SystemPropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
         );
     }

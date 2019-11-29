@@ -18,7 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.internal.provider.sources.SystemPropertySource
+import org.gradle.api.internal.provider.sources.SystemPropertyValueSource
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
@@ -242,12 +242,12 @@ class DefaultInstantExecution internal constructor(
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? = obtainedValue.run {
         when (valueSourceType) {
-            SystemPropertySource::class.java -> {
+            SystemPropertyValueSource::class.java -> {
                 // Special case system properties to get them from the host because
                 // this check happens too early in the process, before the system properties
                 // passed in the command line have been propagated.
                 val propertyName = valueSourceParameters
-                    .uncheckedCast<SystemPropertySource.Parameters>()
+                    .uncheckedCast<SystemPropertyValueSource.Parameters>()
                     .propertyName
                     .get()
                 if (value.get() != systemProperty(propertyName)) {
