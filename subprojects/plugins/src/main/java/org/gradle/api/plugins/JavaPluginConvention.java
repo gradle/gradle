@@ -18,6 +18,7 @@ package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.java.archives.Manifest;
@@ -178,4 +179,22 @@ public abstract class JavaPluginConvention {
      * @since 5.3
      */
     public abstract boolean getAutoTargetJvmDisabled();
+
+    /**
+     * Indicate that no compilation order is implied if other JVM language plugins are used.
+     * Plugins like 'groovy' or 'scala' use this information to determine if they need to depend on the result of Java compilation.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public abstract void withoutCompileJavaFirst();
+
+    /**
+     * Should the default compilation order (compile 'sourceSetLocation/java' first) be used or not.
+     * Only applicable if additional JVM plugins ('groovy' or 'scala') are applied.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public abstract boolean getCompileJavaFirst();
 }

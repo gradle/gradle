@@ -107,4 +107,13 @@ public interface JavaPluginExtension {
      */
     @Incubating
     void withSourcesJar();
+
+    /**
+     * Indicate that no compilation order is implied if other JVM language plugins are used.
+     * Plugins like 'groovy' or 'scala' use this information to determine if they need to depend on the result of Java compilation.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    void withoutCompileJavaFirst();
 }

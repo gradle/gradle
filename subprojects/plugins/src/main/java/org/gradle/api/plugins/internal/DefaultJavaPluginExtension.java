@@ -120,6 +120,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory);
     }
 
+    @Override
+    public void withoutCompileJavaFirst() {
+        convention.withoutCompileJavaFirst();
+    }
+
     private static String validateFeatureName(String name) {
         if (!VALID_FEATURE_NAME.matcher(name).matches()) {
             throw new InvalidUserDataException("Invalid feature name '" + name + "'. Must match " + VALID_FEATURE_NAME.pattern());

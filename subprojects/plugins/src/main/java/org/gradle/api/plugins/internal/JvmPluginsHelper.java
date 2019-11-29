@@ -45,6 +45,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
@@ -128,7 +129,11 @@ public class JvmPluginsHelper {
         classpath.from(new Callable<Object>() {
             @Override
             public Object call() {
-                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDirectoryProperty()));
+                if (target.getConvention().getPlugin(JavaPluginConvention.class).getCompileJavaFirst()) {
+                    return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDirectoryProperty()));
+                } else {
+                    return sourceSet.getCompileClasspath();
+                }
             }
         });
 
