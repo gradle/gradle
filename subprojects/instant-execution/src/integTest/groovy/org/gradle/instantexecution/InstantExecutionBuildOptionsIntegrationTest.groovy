@@ -129,7 +129,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
                 @TaskAction
                 fun act() {
-                    println("ThreadPoolSize = "+ threadPoolSize.get())
+                    println("ThreadPoolSize = " + threadPoolSize.get())
                 }
             }
 
