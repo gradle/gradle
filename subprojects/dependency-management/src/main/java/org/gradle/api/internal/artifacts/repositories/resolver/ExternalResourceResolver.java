@@ -53,7 +53,6 @@ import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetada
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.component.model.WrappedComponentResolveMetadata;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
@@ -249,7 +248,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         for (MetadataSource<?> source : metadataSources.sources()) {
             MutableModuleComponentResolveMetadata value = source.create(name, componentResolvers, moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
             if (value != null) {
-                value.setSources(MutableModuleSources.of(artifactResolver.getSource()));
                 result.resolved(value.asImmutable());
                 return;
             }
