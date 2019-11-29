@@ -43,6 +43,26 @@ public interface ProviderFactory {
     <T> Provider<T> provider(Callable<? extends T> value);
 
     /**
+     * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
+     *
+     * @param propertyName the name of the system property
+     * @return the provider for the system property, never returns null
+     * @since 6.1
+     */
+    @Incubating
+    Provider<String> systemProperty(String propertyName);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from system properties using the given property name.
+     *
+     * @param propertyName the name of the system property
+     * @return the provider for the system property, never returns null
+     * @since 6.1
+     */
+    @Incubating
+    Provider<String> systemProperty(Provider<String> propertyName);
+
+    /**
      * Creates a {@link Provider} whose value is obtained from the given {@link ValueSource}.
      *
      * @param valueSourceType the type of the {@link ValueSource}

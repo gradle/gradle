@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.provider.sources.SystemPropertySource;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
@@ -45,6 +46,19 @@ public class DefaultProviderFactory implements ProviderFactory {
             throw new IllegalArgumentException("Value cannot be null");
         }
         return new DefaultProvider<T>(value);
+    }
+
+    @Override
+    public Provider<String> systemProperty(String propertyName) {
+        return systemProperty(Providers.of(propertyName));
+    }
+
+    @Override
+    public Provider<String> systemProperty(Provider<String> propertyName) {
+        return of(
+            SystemPropertySource.class,
+            spec -> spec.getParameters().getPropertyName().set(propertyName)
+        );
     }
 
     @Override

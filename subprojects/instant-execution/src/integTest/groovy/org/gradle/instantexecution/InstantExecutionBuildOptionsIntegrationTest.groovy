@@ -153,7 +153,6 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         instant.assertStateLoaded()
     }
 
-    @Ignore("wip")
     @Unroll
     def "system property #usage used as build logic input"() {
 

@@ -18,10 +18,12 @@ package org.gradle.instantexecution
 
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.internal.provider.sources.SystemPropertySource
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.InstantExecution
@@ -124,7 +126,7 @@ class DefaultInstantExecution internal constructor(
 
         if (!isInstantExecutionEnabled) return
 
-        addValueSourceProviderFactoryListener()
+        attachBuildLogicInputsCollector()
     }
 
     override fun saveScheduledWork() {
@@ -136,7 +138,7 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        removeValueSourceProviderFactoryListener()
+        detachBuildLogicInputsCollector()
 
         buildOperationExecutor.withStoreOperation {
 
@@ -214,27 +216,19 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultWriteContext.encodeFingerprint() {
         withHostIsolate {
-            writeCollection(valueSourceCollector!!.obtainedValues)
+            writeCollection(buildLogicInputsCollector!!.obtainedValues)
         }
     }
 
-    // TODO - return helpful message describing all changes
     private
-    fun checkFingerprint(): String? =
+    fun checkFingerprint(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
                 val size = readSmallInt()
                 for (i in 0 until size) {
-                    val obtainedValue = read()!!.uncheckedCast<ValueSourceProviderFactory.Listener.ObtainedValue<Any, ValueSourceParameters>>()
-                    val valueSource = obtainedValue.run {
-                        (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
-                            valueSourceType,
-                            valueSourceParametersType,
-                            valueSourceParameters
-                        )
-                    }
-                    if (obtainedValue.value.get() != valueSource.obtain()) {
-                        return@withHostIsolate "value source changed"
+                    val obtainedValue = readObtainedValue()
+                    checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
+                        return@withHostIsolate reason
                     }
                 }
                 null
@@ -242,33 +236,75 @@ class DefaultInstantExecution internal constructor(
         }
 
     private
-    fun addValueSourceProviderFactoryListener() {
-        ValueSourceCollector().also {
-            valueSourceCollector = it
+    suspend fun DefaultReadContext.readObtainedValue(): ObtainedValue =
+        read()!!.uncheckedCast()
+
+    private
+    fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? = obtainedValue.run {
+        when (valueSourceType) {
+            SystemPropertySource::class.java -> {
+                // Special case system properties to get them from the host because
+                // this check happens too early in the process, before the system properties
+                // passed in the command line have been propagated.
+                val propertyName = valueSourceParameters
+                    .uncheckedCast<SystemPropertySource.Parameters>()
+                    .propertyName
+                    .get()
+                if (value.get() != systemProperty(propertyName)) {
+                    "system property '$propertyName' has changed"
+                } else {
+                    null
+                }
+            }
+            else -> {
+                val valueSource = instantiateValueSourceOf(this)
+                if (value.get() != valueSource.obtain()) {
+                    "a build logic input has changed"
+                } else {
+                    null
+                }
+            }
+        }
+    }
+
+    private
+    fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters> =
+        obtainedValue.run {
+            (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
+                valueSourceType,
+                valueSourceParametersType,
+                valueSourceParameters
+            )
+        }
+
+    private
+    fun attachBuildLogicInputsCollector() {
+        BuildLogicInputsCollector().also {
+            buildLogicInputsCollector = it
             valueSourceProviderFactory.addListener(it)
         }
     }
 
     private
-    fun removeValueSourceProviderFactoryListener() {
-        valueSourceCollector.let {
+    fun detachBuildLogicInputsCollector() {
+        buildLogicInputsCollector.let {
             require(it != null)
             valueSourceProviderFactory.removeListener(it)
         }
     }
 
     private
-    var valueSourceCollector: ValueSourceCollector? = null
+    var buildLogicInputsCollector: BuildLogicInputsCollector? = null
 
     private
-    class ValueSourceCollector : ValueSourceProviderFactory.Listener {
+    class BuildLogicInputsCollector : ValueSourceProviderFactory.Listener {
 
-        val obtainedValues = mutableListOf<ValueSourceProviderFactory.Listener.ObtainedValue<*, *>>()
+        val obtainedValues = mutableListOf<ObtainedValue>()
 
-        override fun <T, P : ValueSourceParameters> valueObtained(
+        override fun <T : Any, P : ValueSourceParameters> valueObtained(
             obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
         ) {
-            obtainedValues.add(obtainedValue)
+            obtainedValues.add(obtainedValue.uncheckedCast())
         }
     }
 
@@ -282,7 +318,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun discardInstantExecutionState() {
-        instantExecutionStateFile.delete()
+        instantExecutionFingerprintFile.delete()
     }
 
     private
@@ -492,6 +528,14 @@ class DefaultInstantExecution internal constructor(
     fun compactMD5For(taskNames: List<String>) =
         HashUtil.createCompactMD5(taskNames.joinToString("/"))
 }
+
+
+private
+typealias InvalidationReason = String
+
+
+private
+typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any, ValueSourceParameters>
 
 
 inline fun <reified T> DefaultInstantExecution.Host.service(): T =
