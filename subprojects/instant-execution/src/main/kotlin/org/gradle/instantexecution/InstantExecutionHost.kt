@@ -35,6 +35,7 @@ import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.NotifyingBuildLoader
+import org.gradle.initialization.PropertiesLoadingSettingsProcessor
 import org.gradle.initialization.SettingsLocation
 import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
@@ -162,7 +163,10 @@ class InstantExecutionHost internal constructor(
             // or replace this with a different event/op that carries this information and wraps some actual work
             val buildOperationExecutor = service<BuildOperationExecutor>()
             val settingsProcessor = BuildOperationSettingsProcessor(
-                SettingsProcessor { gradle, _, _, _ -> gradle.settings },
+                PropertiesLoadingSettingsProcessor(
+                    SettingsProcessor { gradle, _, _, _ -> gradle.settings },
+                    service()
+                ),
                 buildOperationExecutor
             )
             val rootProject = gradle.rootProject
