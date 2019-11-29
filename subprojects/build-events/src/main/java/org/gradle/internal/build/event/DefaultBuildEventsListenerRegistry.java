@@ -22,16 +22,19 @@ import org.gradle.api.provider.Provider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
 import org.gradle.tooling.events.OperationCompletionListener;
 import org.gradle.tooling.events.OperationType;
+import org.gradle.tooling.events.task.TaskOperationResult;
 import org.gradle.tooling.events.task.internal.DefaultTaskFinishEvent;
 import org.gradle.tooling.events.task.internal.DefaultTaskOperationDescriptor;
-import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
+import org.gradle.tooling.internal.consumer.parameters.BuildProgressListenerAdapter;
 import org.gradle.tooling.internal.protocol.events.InternalProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
+import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -93,11 +96,13 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         public void dispatch(Object message) {
             // TODO - reuse adapters from tooling api client
             InternalProgressEvent event = (InternalProgressEvent) message;
-            if (event.getDescriptor() instanceof InternalTaskDescriptor && event instanceof InternalOperationFinishedProgressEvent) {
-                InternalTaskDescriptor providerDescriptor = (InternalTaskDescriptor) event.getDescriptor();
+            if (event instanceof DefaultTaskFinishedProgressEvent) {
+                DefaultTaskFinishedProgressEvent finishEvent = (DefaultTaskFinishedProgressEvent) event;
+                InternalTaskDescriptor providerDescriptor = finishEvent.getDescriptor();
+                InternalTaskResult providerResult = finishEvent.getResult();
                 DefaultTaskOperationDescriptor descriptor = new DefaultTaskOperationDescriptor(providerDescriptor, null, providerDescriptor.getTaskPath());
-                // TODO - provide the correct result
-                listenerProvider.get().onFinish(new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, null));
+                TaskOperationResult result = BuildProgressListenerAdapter.toTaskResult(providerResult);
+                listenerProvider.get().onFinish(new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result));
             }
         }
     }

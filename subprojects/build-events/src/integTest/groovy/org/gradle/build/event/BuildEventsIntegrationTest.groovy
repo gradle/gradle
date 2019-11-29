@@ -21,7 +21,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskSkippedResult
+import org.gradle.tooling.events.task.TaskSuccessResult
 import org.junit.runner.RunWith
 
 @RunWith(InstantExecutionRunner)
@@ -32,42 +35,52 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: LoggingPlugin
 
-            task a {}
-            task b {}
-            task c { dependsOn a, b }
+            task notUpToDate {
+                doFirst { println("not up-to-date") }
+            }
+            task upToDate {
+                outputs.file("thing.txt")
+                doFirst { file("thing.txt").text = "thing" }
+            }
+            task broken { 
+                dependsOn notUpToDate, upToDate
+                doFirst {
+                    throw new RuntimeException()
+                }
+            }
         """
 
         when:
-        run("a")
+        run("notUpToDate")
 
         then:
         output.count("EVENT:") == 1
-        outputContains("EVENT: finish :a")
+        outputContains("EVENT: finish :notUpToDate OK")
 
         when:
-        run("a")
+        run("notUpToDate")
 
         then:
         output.count("EVENT:") == 1
-        outputContains("EVENT: finish :a")
+        outputContains("EVENT: finish :notUpToDate OK")
 
         when:
-        run("c")
+        fails("broken")
 
         then:
         output.count("EVENT:") == 3
-        outputContains("EVENT: finish :a")
-        outputContains("EVENT: finish :b")
-        outputContains("EVENT: finish :c")
+        outputContains("EVENT: finish :notUpToDate OK")
+        outputContains("EVENT: finish :upToDate OK")
+        outputContains("EVENT: finish :broken FAILED")
 
         when:
-        run("c")
+        fails("broken")
 
         then:
         output.count("EVENT:") == 3
-        outputContains("EVENT: finish :a")
-        outputContains("EVENT: finish :b")
-        outputContains("EVENT: finish :c")
+        outputContains("EVENT: finish :notUpToDate OK")
+        outputContains("EVENT: finish :upToDate UP-TO-DATE")
+        outputContains("EVENT: finish :broken FAILED")
     }
 
     def "plugin applied to multiple projects can register a shared listener"() {
@@ -119,15 +132,31 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             import ${OperationCompletionListener.name}
             import ${FinishEvent.name}
             import ${TaskFinishEvent.name}
+            import ${TaskSuccessResult.name}
+            import ${TaskFailureResult.name}
+            import ${TaskSkippedResult.name}
             import ${BuildServiceParameters.name}
 
             abstract class LoggingListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None> {
                 @Override
                 void onFinish(FinishEvent event) {
                     if (event instanceof TaskFinishEvent) {
-                        println("EVENT: finish \${event.descriptor.taskPath}")
+                        print("EVENT: finish \${event.descriptor.taskPath}")
+                        if (event.result instanceof TaskSuccessResult) {
+                            if (event.result.upToDate) {
+                                println(" UP-TO-DATE")
+                            } else {
+                                println(" OK")
+                            }
+                        } else if (event.result instanceof TaskFailureResult) {
+                            println(" FAILED")
+                        } else if (event.result instanceof TaskSkippedResult) {
+                            println(" SKIPPED")
+                        } else {
+                            throw new IllegalArgumentException()
+                        }
                     } else {
-                        throw IllegalArgumentException()
+                        throw new IllegalArgumentException()
                     }
                 }
             }

@@ -18,13 +18,18 @@ package org.gradle.internal.build.event
 
 import org.gradle.api.internal.provider.Providers
 import org.gradle.initialization.BuildEventConsumer
-import org.gradle.internal.build.event.types.AbstractTaskResult
 import org.gradle.internal.build.event.types.DefaultTaskDescriptor
+import org.gradle.internal.build.event.types.DefaultTaskFailureResult
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent
+import org.gradle.internal.build.event.types.DefaultTaskSkippedResult
+import org.gradle.internal.build.event.types.DefaultTaskSuccessResult
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFailureResult
 import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskSkippedResult
+import org.gradle.tooling.events.task.TaskSuccessResult
 import spock.lang.Specification
 
 class DefaultBuildEventsListenerRegistryTest extends Specification {
@@ -34,7 +39,9 @@ class DefaultBuildEventsListenerRegistryTest extends Specification {
     def "listener receives task finish events"() {
         def listener = Mock(OperationCompletionListener)
         def provider = Providers.of(listener)
-        def event = taskFinishEvent()
+        def success = taskFinishEvent()
+        def failure = failedTaskFinishEvent()
+        def skipped = skippedTaskFinishEvent()
 
         when:
         registry.subscribe(provider)
@@ -44,10 +51,14 @@ class DefaultBuildEventsListenerRegistryTest extends Specification {
         0 * listener._
 
         when:
-        factory.fire(event)
+        factory.fire(success)
+        factory.fire(failure)
+        factory.fire(skipped)
 
         then:
-        1 * listener.onFinish({ it instanceof TaskFinishEvent })
+        1 * listener.onFinish({ it instanceof TaskFinishEvent && it.result instanceof TaskSuccessResult })
+        1 * listener.onFinish({ it instanceof TaskFinishEvent && it.result instanceof TaskFailureResult })
+        1 * listener.onFinish({ it instanceof TaskFinishEvent && it.result instanceof TaskSkippedResult })
         0 * listener._
     }
 
@@ -64,7 +75,15 @@ class DefaultBuildEventsListenerRegistryTest extends Specification {
     }
 
     private DefaultTaskFinishedProgressEvent taskFinishEvent() {
-        new DefaultTaskFinishedProgressEvent(123L, Stub(DefaultTaskDescriptor), Stub(AbstractTaskResult))
+        new DefaultTaskFinishedProgressEvent(123L, Stub(DefaultTaskDescriptor), Stub(DefaultTaskSuccessResult))
+    }
+
+    private DefaultTaskFinishedProgressEvent failedTaskFinishEvent() {
+        new DefaultTaskFinishedProgressEvent(123L, Stub(DefaultTaskDescriptor), Stub(DefaultTaskFailureResult))
+    }
+
+    private DefaultTaskFinishedProgressEvent skippedTaskFinishEvent() {
+        new DefaultTaskFinishedProgressEvent(123L, Stub(DefaultTaskDescriptor), Stub(DefaultTaskSkippedResult))
     }
 
     class MockBuildEventListenerFactory implements BuildEventListenerFactory {
