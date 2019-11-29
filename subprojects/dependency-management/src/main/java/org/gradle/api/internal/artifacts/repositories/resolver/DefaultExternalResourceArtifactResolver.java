@@ -19,7 +19,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -52,11 +51,6 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         this.artifactPatterns = artifactPatterns;
         this.fileStore = fileStore;
         this.resourceAccessor = resourceAccessor;
-    }
-
-    @Override
-    public ModuleSource getSource() {
-        return null;
     }
 
     @Override
