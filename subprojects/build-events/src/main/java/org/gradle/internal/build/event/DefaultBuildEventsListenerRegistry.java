@@ -22,7 +22,9 @@ import org.gradle.api.provider.Provider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.RootBuildLifecycleListener;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
@@ -37,17 +39,18 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 import org.gradle.util.CollectionUtils;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRegistry, BuildEventListenerRegistryInternal {
     private final List<BuildEventListenerFactory> factories;
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
-    private final Set<Provider<?>> subscriptions = new LinkedHashSet<>();
+    private final Map<Provider<?>, ForwardingBuildEventConsumer> subscriptions = new LinkedHashMap<>();
     private final List<Object> listeners = new ArrayList<>();
 
     public DefaultBuildEventsListenerRegistry(List<BuildEventListenerFactory> factories, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager) {
@@ -59,19 +62,20 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
     @Override
     public List<Provider<?>> getSubscriptions() {
-        return ImmutableList.copyOf(subscriptions);
+        return ImmutableList.copyOf(subscriptions.keySet());
     }
 
     @Override
     public void subscribe(Provider<? extends OperationCompletionListener> listenerProvider) {
-        if (!subscriptions.add(listenerProvider)) {
+        if (subscriptions.containsKey(listenerProvider)) {
             return;
         }
-
         // TODO - deliver events asynchronously
         // TODO - reuse the listeners
 
         ForwardingBuildEventConsumer consumer = new ForwardingBuildEventConsumer(listenerProvider);
+        subscriptions.put(listenerProvider, consumer);
+
         BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
         for (BuildEventListenerFactory registration : factories) {
             Iterable<Object> listeners = registration.createListeners(eventSubscriptions, consumer);
@@ -85,8 +89,9 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         }
     }
 
-    private static class ForwardingBuildEventConsumer implements BuildEventConsumer {
+    private static class ForwardingBuildEventConsumer implements BuildEventConsumer, Closeable {
         private final Provider<? extends OperationCompletionListener> listenerProvider;
+        private Exception failure;
 
         public ForwardingBuildEventConsumer(Provider<? extends OperationCompletionListener> listenerProvider) {
             this.listenerProvider = listenerProvider;
@@ -94,15 +99,31 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
 
         @Override
         public void dispatch(Object message) {
+            if (failure != null) {
+                return;
+            }
+
             // TODO - reuse adapters from tooling api client
             InternalProgressEvent event = (InternalProgressEvent) message;
             if (event instanceof DefaultTaskFinishedProgressEvent) {
-                DefaultTaskFinishedProgressEvent finishEvent = (DefaultTaskFinishedProgressEvent) event;
-                InternalTaskDescriptor providerDescriptor = finishEvent.getDescriptor();
-                InternalTaskResult providerResult = finishEvent.getResult();
+                DefaultTaskFinishedProgressEvent providerEvent = (DefaultTaskFinishedProgressEvent) event;
+                InternalTaskDescriptor providerDescriptor = providerEvent.getDescriptor();
+                InternalTaskResult providerResult = providerEvent.getResult();
                 DefaultTaskOperationDescriptor descriptor = new DefaultTaskOperationDescriptor(providerDescriptor, null, providerDescriptor.getTaskPath());
                 TaskOperationResult result = BuildProgressListenerAdapter.toTaskResult(providerResult);
-                listenerProvider.get().onFinish(new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result));
+                DefaultTaskFinishEvent finishEvent = new DefaultTaskFinishEvent(event.getEventTime(), event.getDisplayName(), descriptor, result);
+                try {
+                    listenerProvider.get().onFinish(finishEvent);
+                } catch (Exception e) {
+                    failure = e;
+                }
+            }
+        }
+
+        @Override
+        public void close() {
+            if (failure != null) {
+                throw UncheckedException.throwAsUncheckedException(failure);
             }
         }
     }
@@ -115,14 +136,18 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         @Override
         public void beforeComplete(GradleInternal gradle) {
             // TODO - maybe make this registry a build scoped service
-            for (Object listener : listeners) {
-                listenerManager.removeListener(listener);
-                if (listener instanceof BuildOperationListener) {
-                    buildOperationListenerManager.removeListener((BuildOperationListener) listener);
+            try {
+                for (Object listener : listeners) {
+                    listenerManager.removeListener(listener);
+                    if (listener instanceof BuildOperationListener) {
+                        buildOperationListenerManager.removeListener((BuildOperationListener) listener);
+                    }
                 }
+                CompositeStoppable.stoppable(subscriptions.values()).stop();
+            } finally {
+                listeners.clear();
+                subscriptions.clear();
             }
-            listeners.clear();
-            subscriptions.clear();
         }
     }
 }

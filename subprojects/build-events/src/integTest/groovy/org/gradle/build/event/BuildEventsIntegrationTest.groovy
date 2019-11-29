@@ -127,6 +127,90 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b:thing")
     }
 
+    def "reports failure to handle event and continues with task execution"() {
+        loggingListener()
+        brokenListener()
+        buildFile << """
+            import ${BuildEventsListenerRegistry.name}
+
+            def registry = project.services.get(BuildEventsListenerRegistry)
+            registry.subscribe(gradle.sharedServices.registerIfAbsent('broken', BrokenListener) { })
+            registry.subscribe(gradle.sharedServices.registerIfAbsent('listener', LoggingListener) { })
+
+            task a 
+            task b { dependsOn a }
+        """
+
+        when:
+        fails("b")
+
+        then:
+        // TODO - add some context to the failure
+        failure.assertHasDescription("broken")
+
+        output.count("BROKEN:") == 1
+
+        output.count("EVENT:") == 2
+        outputContains("EVENT: finish :a")
+        outputContains("EVENT: finish :b")
+
+        when:
+        fails("b")
+
+        then:
+        // TODO - add some context to the failure
+        failure.assertHasDescription("broken")
+
+        output.count("BROKEN:") == 1
+
+        output.count("EVENT:") == 2
+        outputContains("EVENT: finish :a")
+        outputContains("EVENT: finish :b")
+    }
+
+    def "reports failure to create listener and continues with task execution"() {
+        loggingListener()
+        cannotConstructListener()
+        buildFile << """
+            import ${BuildEventsListenerRegistry.name}
+
+            def registry = project.services.get(BuildEventsListenerRegistry)
+            registry.subscribe(gradle.sharedServices.registerIfAbsent('broken', BrokenListener) { })
+            registry.subscribe(gradle.sharedServices.registerIfAbsent('listener', LoggingListener) { })
+
+            task a 
+            task b { dependsOn a }
+        """
+
+        when:
+        fails("b")
+
+        then:
+        // TODO - add some context to the failure
+        failure.assertHasDescription("Failed to create service 'broken'.")
+        failure.assertHasCause("broken")
+
+        output.count("BROKEN:") == 1
+
+        output.count("EVENT:") == 2
+        outputContains("EVENT: finish :a")
+        outputContains("EVENT: finish :b")
+
+        when:
+        fails("b")
+
+        then:
+        // TODO - add some context to the failure
+        failure.assertHasDescription("Failed to create service 'broken'.")
+        failure.assertHasCause("broken")
+
+        output.count("BROKEN:") == 1
+
+        output.count("EVENT:") == 2
+        outputContains("EVENT: finish :a")
+        outputContains("EVENT: finish :b")
+    }
+
     def loggingListener() {
         buildFile << """
             import ${OperationCompletionListener.name}
@@ -158,6 +242,49 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
                     } else {
                         throw new IllegalArgumentException()
                     }
+                }
+            }
+        """
+    }
+
+    def cannotConstructListener() {
+        buildFile << """
+            import ${OperationCompletionListener.name}
+            import ${FinishEvent.name}
+            import ${TaskFinishEvent.name}
+            import ${TaskSuccessResult.name}
+            import ${TaskFailureResult.name}
+            import ${TaskSkippedResult.name}
+            import ${BuildServiceParameters.name}
+
+            abstract class BrokenListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None> {
+                BrokenListener() {
+                    println("BROKEN: created")
+                    throw new RuntimeException("broken")
+                }
+                @Override
+                void onFinish(FinishEvent event) {
+                    println("BROKEN: received event") 
+                }
+            }
+        """
+    }
+
+    def brokenListener() {
+        buildFile << """
+            import ${OperationCompletionListener.name}
+            import ${FinishEvent.name}
+            import ${TaskFinishEvent.name}
+            import ${TaskSuccessResult.name}
+            import ${TaskFailureResult.name}
+            import ${TaskSkippedResult.name}
+            import ${BuildServiceParameters.name}
+
+            abstract class BrokenListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None> {
+                @Override
+                void onFinish(FinishEvent event) {
+                    println("BROKEN: received event") 
+                    throw new RuntimeException("broken")
                 }
             }
         """
