@@ -116,18 +116,17 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             delegate.resolveArtifact(artifact, moduleSources, result);
             if (result.hasResult()) {
                 ComponentArtifactIdentifier id = artifact.getId();
-                if (isExternalArtifactId(id) && isNotChanging(moduleSource)) {
+                if (isExternalArtifactId(id) && isNotChanging(moduleSources)) {
                     ModuleComponentArtifactIdentifier mcai = (ModuleComponentArtifactIdentifier) id;
                     operation.onArtifact(mcai, result.getResult());
                 }
             }
         }
 
-        private boolean isNotChanging(ModuleSource moduleSource) {
-            if (moduleSource instanceof CachingModuleComponentRepository.CachingModuleSource) {
-                return !((CachingModuleComponentRepository.CachingModuleSource) moduleSource).isChangingModule();
-            }
-            return true;
+        private boolean isNotChanging(ModuleSources moduleSources) {
+            return moduleSources.withSource(CachingModuleComponentRepository.CachingModuleSource.class, source -> {
+                return source.map(cachingModuleSource -> !cachingModuleSource.isChangingModule()).orElse(true);
+            });
         }
 
         private boolean isExternalArtifactId(ComponentArtifactIdentifier id) {
