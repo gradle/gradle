@@ -117,7 +117,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     protected ScalaJavaJointCompileSpec createSpec() {
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions).create();
         spec.setSourceFiles(getSource().getFiles());
-        spec.setDestinationDir(getDestinationDir());
+        spec.setDestinationDir(getDestinationDirectory().getAsFile().getOrNull());
         spec.setWorkingDir(getProject().getProjectDir());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));

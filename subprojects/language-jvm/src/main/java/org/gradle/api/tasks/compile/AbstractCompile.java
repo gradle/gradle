@@ -15,27 +15,34 @@
  */
 package org.gradle.api.tasks.compile;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.provider.Property;
+import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
+import org.gradle.util.DeprecationLogger;
 
+import javax.annotation.Nullable;
 import java.io.File;
 
 /**
  * The base class for all JVM-based language compilation tasks.
  */
 public abstract class AbstractCompile extends SourceTask {
-    private final Property<File> destinationDir;
+    private final DirectoryProperty destinationDir;
     private FileCollection classpath;
     private String sourceCompatibility;
     private String targetCompatibility;
 
     public AbstractCompile() {
-        this.destinationDir = getProject().getObjects().property(File.class);
+        this.destinationDir = getProject().getObjects().directoryProperty();
+        this.destinationDir.convention(new BackwardCompatibilityOutputDirectoryConvention());
     }
 
     /**
@@ -58,21 +65,44 @@ public abstract class AbstractCompile extends SourceTask {
     }
 
     /**
+     * Returns the directory property that represents the directory to generate the {@code .class} files into.
+     *
+     * @return The destination directory property.
+     * @since 6.1
+     */
+    @Incubating
+    @OutputDirectory
+    public DirectoryProperty getDestinationDirectory() {
+        return destinationDir;
+    }
+
+    /**
      * Returns the directory to generate the {@code .class} files into.
      *
      * @return The destination directory.
+     * @deprecated use {@link #getDestinationDirectory()}
      */
-    @OutputDirectory
+    @Deprecated
+    @Internal
     public File getDestinationDir() {
-        return destinationDir.getOrNull();
+        // DeprecationLogger.nagUserOfReplacedMethod("getDestinationDir", "getDestinationDirectory");
+        if (destinationDir.isPresent()) {
+            return destinationDir.get().getAsFile();
+        } else {
+            return null;
+        }
     }
 
     /**
      * Sets the directory to generate the {@code .class} files into.
      *
      * @param destinationDir The destination directory. Must not be null.
+     *
+     * @deprecated set the value of {@link #getDestinationDirectory()} instead
      */
+    @Deprecated
     public void setDestinationDir(File destinationDir) {
+        DeprecationLogger.nagUserOfReplacedMethod("setDestinationDir", "getDestinationDirectory");
         this.destinationDir.set(destinationDir);
     }
 
@@ -82,9 +112,12 @@ public abstract class AbstractCompile extends SourceTask {
      * @param destinationDir The destination directory. Must not be null.
      *
      * @since 4.0
+     * @deprecated set the value of {@link #getDestinationDirectory()} instead
      */
+    @Deprecated
     public void setDestinationDir(Provider<File> destinationDir) {
-        this.destinationDir.set(destinationDir);
+        DeprecationLogger.nagUserOfReplacedMethod("setDestinationDir", "getDestinationDirectory");
+        this.destinationDir.set(getProject().getLayout().dir(destinationDir));
     }
 
     /**
@@ -123,5 +156,43 @@ public abstract class AbstractCompile extends SourceTask {
      */
     public void setTargetCompatibility(String targetCompatibility) {
         this.targetCompatibility = targetCompatibility;
+    }
+
+    /**
+     * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile and override the deprecated methods.
+     */
+    @Deprecated
+    private class BackwardCompatibilityOutputDirectoryConvention extends AbstractReadOnlyProvider<Directory> {
+        private boolean recursiveCall;
+
+        @Override
+        public Class<Directory> getType() {
+            return Directory.class;
+        }
+
+        @Nullable
+        @Override
+        public Directory getOrNull() {
+            recursiveCall = true;
+            // If we are not in an error case, this will most likely call a subclass implementation of getDestinationDir().
+            // In the Kotlin plugin, the subclass manages it's own field which will be used here.
+            File legacyValue = getDestinationDir();
+            recursiveCall = false;
+            if (legacyValue == null) {
+                return null;
+            } else {
+                return getProject().getLayout().dir(getProject().provider(() -> legacyValue)).get();
+            }
+        }
+
+        @Override
+        public boolean isPresent() {
+            if (recursiveCall) {
+                // getOrNull() was called by AbstractCompile.getDestinationDir() and not by a subclass implementation of that method.
+                // In that case, this convention should not be used.
+                return false;
+            }
+            return super.isPresent();
+        }
     }
 }
