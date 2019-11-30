@@ -26,7 +26,8 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
     @Unroll
     def "doesn't fail if verification metadata matches for #kind"() {
         createMetadataFile {
-            addChecksum("org:foo:1.0", kind, value)
+            addChecksum("org:foo:1.0", kind, jar)
+            addChecksum("org:foo:1.0", kind, pom, "pom", "pom")
         }
 
         given:
@@ -45,11 +46,11 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         outputContains("Dependency verification is an incubating feature.")
 
         where:
-        kind     | value
-        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"
-        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"
-        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"
-        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b"
+        kind     | jar                                                                                                                                | pom
+        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"                                                                                                 | "22e09664c99c4400719de9ee049804cc"
+        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"                                                                                         | "e2dfeef03aea02f5a7167c8fd7468ea75ed8e659"
+        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"                                                                 | "dbefc7de18973e2e4e3cecca794ad6267f3738cbcea6cdc23d977e02b4215729"
+        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "22a6b6a05b4d3e49209de90d55b8c67c9cfc238626cbb0c7ad7525ac1dcdc3e4fb406495d512c519745212f16ff3dab4bd47c33b80905ad02ea61d08b8f6ddaa"
     }
 
     def "doesn't try to verify checksums for changing dependencies"() {
@@ -105,6 +106,7 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
         then:
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact foo-1.0.jar (org:foo:1.0): expected a '$kind' checksum of 'invalid' but was '$value'
+  - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata.
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
 
         where:
@@ -118,6 +120,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
     def "can collect multiple errors in a single dependency graph"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
+            addChecksum("org:foo:1.0", "sha1", "invalid", "pom", "pom")
             addChecksum("org:bar:1.0", "sha1", "also invalid")
             addChecksum("org:baz:1.0", "sha1", "c554a4a45e3ed3da494befb446fb2923b8bcecef")
         }
@@ -142,7 +145,10 @@ This can indicate that a dependency has been compromised. Please verify carefull
         then:
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0): expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
+  - Artifact bar-1.0.pom (org:bar:1.0) checksum is missing from verification metadata.
+  - Artifact baz-1.0.pom (org:baz:1.0) checksum is missing from verification metadata.
   - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
+  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was 'd516bfe9f553cdf29cbb452f85e603fa1ca96a7f'
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
     }
 
@@ -151,7 +157,9 @@ This can indicate that a dependency has been compromised. Please verify carefull
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
+            addChecksum("org:foo:1.0", "sha1", "e2dfeef03aea02f5a7167c8fd7468ea75ed8e659", "pom", "pom")
             addChecksum("org:bar:1.0", "sha1", "invalid")
+            addChecksum("org:bar:1.0", "sha1", "be5e9e1ed7791c9120dcc896912c359595f959ad", "pom", "pom")
         }
 
         given:
@@ -339,6 +347,7 @@ Please update the file either manually (preferred) or by adding the --write-veri
         then:
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - Artifact foo-1.0.jar (org:foo:1.0) checksum is missing from verification metadata.
+  - Artifact foo-1.0.pom (org:foo:1.0) checksum is missing from verification metadata.
 Please update the file either manually (preferred) or by adding the --write-verification-metadata flag (unsafe).""")
     }
 
@@ -451,6 +460,7 @@ Please update the file either manually (preferred) or by adding the --write-veri
     def "can detect a tampered file in the local cache"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "e2dfeef03aea02f5a7167c8fd7468ea75ed8e659", "pom", "pom")
         }
         uncheckedModule("org", "foo")
 

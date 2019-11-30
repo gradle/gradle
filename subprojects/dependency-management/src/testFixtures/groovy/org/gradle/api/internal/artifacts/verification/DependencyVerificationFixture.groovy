@@ -120,7 +120,7 @@ class DependencyVerificationFixture {
                 throw new AssertionError("Expected only one artifact named ${name} for module ${metadata.componentId} but found ${artifacts}")
             }
             ArtifactVerificationMetadata md = artifacts ? artifacts[0] : null
-            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifact.name.name } }"
+            assert md: "Artifact file $name:$type:$ext:${classy?:''} not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifact.name.name } }"
             action.delegate = new ArtifactVerification(md)
             action.resolveStrategy = Closure.DELEGATE_FIRST
             action()
@@ -136,7 +136,7 @@ class DependencyVerificationFixture {
 
         void declaresChecksum(String checksum, String algorithm = "sha1") {
             def expectedChecksum = metadata.checksums.get(ChecksumKind.valueOf(algorithm))
-            assert expectedChecksum == checksum
+            assert expectedChecksum == checksum : "On ${metadata.artifact}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
         }
 
         void declaresChecksums(Map<String, String> checksums, boolean strict = true) {
@@ -154,7 +154,7 @@ class DependencyVerificationFixture {
     static class Builder {
         private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
 
-        void addChecksum(String id, String algo, String checksum) {
+        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar") {
             def parts = id.split(":")
             def group = parts[0]
             def name = parts[1]
@@ -166,8 +166,8 @@ class DependencyVerificationFixture {
                         version
                     ),
                     name,
-                    "jar",
-                    "jar"
+                    type,
+                    ext
                 ),
                 ChecksumKind.valueOf(algo),
                 checksum

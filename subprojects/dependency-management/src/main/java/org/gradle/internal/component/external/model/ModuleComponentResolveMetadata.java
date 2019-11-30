@@ -22,7 +22,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 
@@ -61,11 +60,6 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
-
-    /**
-     * Returns the hash of the resource(s) from which this metadata was created.
-     */
-    HashValue getOriginalContentHash();
 
     /**
      * Returns the variants of this component

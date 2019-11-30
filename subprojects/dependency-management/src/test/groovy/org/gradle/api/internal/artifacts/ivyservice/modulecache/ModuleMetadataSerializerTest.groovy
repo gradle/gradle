@@ -40,6 +40,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
+import org.gradle.internal.component.model.MutableModuleSources
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocalFileStandInExternalResource
@@ -122,13 +123,18 @@ class ModuleMetadataSerializerTest extends Specification {
     MutableModuleComponentResolveMetadata parse(File file) {
         switch (file.parentFile.name) {
             case 'pom':
-                return parsePom(file)
+                return removeSources(parsePom(file))
             case 'ivy':
-                return parseIvy(file)
+                return removeSources(parseIvy(file))
             case 'gradle':
-                return parseGradle(file)
+                return removeSources(parseGradle(file))
         }
         throw new IllegalStateException("Unexpected metadata file $file")
+    }
+
+    MutableModuleComponentResolveMetadata removeSources(MutableModuleComponentResolveMetadata md) {
+        md.sources = new MutableModuleSources()
+        md
     }
 
     MutableMavenModuleResolveMetadata parsePom(File pomFile) {

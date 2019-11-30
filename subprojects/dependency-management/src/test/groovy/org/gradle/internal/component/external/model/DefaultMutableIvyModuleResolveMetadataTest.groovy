@@ -30,7 +30,6 @@ import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.component.model.MutableModuleSources
-import org.gradle.internal.hash.HashValue
 
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     private final IvyMutableModuleMetadataFactory ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
@@ -58,7 +57,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.branch == null
 
         and:
-        metadata.contentHash == AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
         metadata.sources == new MutableModuleSources()
         metadata.artifactDefinitions.size() == 2
         metadata.excludes.empty
@@ -113,7 +111,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "version")
         def newId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.2")
         def sources = ImmutableModuleSources.of(Mock(ModuleSource))
-        def contentHash = new HashValue("123")
         def excludes = [new DefaultExclude(DefaultModuleIdentifier.newId("group", "name"))]
 
         when:
@@ -125,7 +122,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.changing = true
         metadata.missing = true
         metadata.statusScheme = ["1", "2", "3"]
-        metadata.contentHash = contentHash
 
         then:
         metadata.id == newId
@@ -136,7 +132,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         metadata.status == "3"
         metadata.branch == "release"
         metadata.statusScheme == ["1", "2", "3"]
-        metadata.contentHash == contentHash
         metadata.excludes == excludes
 
         def immutable = metadata.asImmutable()
@@ -149,7 +144,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.changing
         immutable.missing
         immutable.statusScheme == ["1", "2", "3"]
-        immutable.originalContentHash == contentHash
         immutable.excludes == excludes
 
         def copy = immutable.asMutable()
@@ -162,7 +156,6 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         copy.changing
         copy.missing
         copy.statusScheme == ["1", "2", "3"]
-        copy.contentHash == contentHash
         copy.excludes == excludes
     }
 

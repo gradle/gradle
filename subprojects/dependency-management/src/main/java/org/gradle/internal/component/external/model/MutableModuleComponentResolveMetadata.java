@@ -22,7 +22,6 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
-import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -48,12 +47,6 @@ public interface MutableModuleComponentResolveMetadata {
      * Sets the component id and legacy module version id
      */
     void setId(ModuleComponentIdentifier componentId);
-
-    /**
-     * Returns the hash of the resource(s) from which this metadata was created.
-     */
-    HashValue getContentHash();
-    void setContentHash(HashValue hash);
 
     boolean isMissing();
     void setMissing(boolean missing);

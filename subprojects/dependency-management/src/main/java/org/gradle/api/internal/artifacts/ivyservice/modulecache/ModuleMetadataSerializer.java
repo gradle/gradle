@@ -61,7 +61,6 @@ import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.MutableModuleSources;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
@@ -213,7 +212,6 @@ public class ModuleMetadataSerializer {
         }
 
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
-            encoder.writeBinary(metadata.getOriginalContentHash().asByteArray());
             encoder.writeBoolean(metadata.isMissing());
             encoder.writeBoolean(metadata.isChanging());
             encoder.writeString(metadata.getStatus());
@@ -425,7 +423,6 @@ public class ModuleMetadataSerializer {
         }
 
         private void readSharedInfo(MutableModuleComponentResolveMetadata metadata) throws IOException {
-            metadata.setContentHash(new HashValue(decoder.readBinary()));
             metadata.setMissing(decoder.readBoolean());
             metadata.setChanging(decoder.readBoolean());
             metadata.setStatus(decoder.readString());

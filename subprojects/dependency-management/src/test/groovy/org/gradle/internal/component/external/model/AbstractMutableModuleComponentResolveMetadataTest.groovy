@@ -29,11 +29,9 @@ import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
-import org.gradle.internal.hash.HashValue
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 
-import static org.gradle.internal.component.external.model.AbstractMutableModuleComponentResolveMetadata.EMPTY_CONTENT
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
 
 abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specification {
@@ -77,7 +75,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         !metadata.missing
         metadata.status == "integration"
         metadata.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
-        metadata.contentHash == EMPTY_CONTENT
+
 
         def immutable = metadata.asImmutable()
         immutable.id == id
@@ -85,7 +83,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         !immutable.missing
         immutable.status == "integration"
         immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
-        immutable.originalContentHash == EMPTY_CONTENT
+
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").artifacts.size() == 1
         immutable.getConfiguration("default").artifacts.first().name.name == id.module
@@ -96,39 +94,31 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def "can override default values"() {
-        def contentHash = new HashValue("123")
-
         def metadata = createMetadata(id)
 
         given:
         metadata.changing = true
         metadata.missing = true
         metadata.status = "broken"
-        metadata.contentHash = contentHash
 
         expect:
         def immutable = metadata.asImmutable()
         immutable.changing
         immutable.missing
         immutable.status == "broken"
-        immutable.originalContentHash == contentHash
 
         def copy = immutable.asMutable()
         copy.changing
         copy.missing
         copy.status == "broken"
-        copy.contentHash == contentHash
 
         def immutable2 = copy.asImmutable()
         immutable2.changing
         immutable2.missing
         immutable2.status == "broken"
-        immutable2.originalContentHash == contentHash
     }
 
     def "can changes to mutable metadata does not affect copies"() {
-        def contentHash = new HashValue("123")
-        def newContentHash = new HashValue("234")
 
         def metadata = createMetadata(id)
 
@@ -136,26 +126,22 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         metadata.changing = true
         metadata.missing = true
         metadata.status = "broken"
-        metadata.contentHash = contentHash
 
         def immutable = metadata.asImmutable()
 
         metadata.changing = false
         metadata.missing = false
         metadata.status = "ok"
-        metadata.contentHash = newContentHash
 
         expect:
         immutable.changing
         immutable.missing
         immutable.status == "broken"
-        immutable.originalContentHash == contentHash
 
         def copy = immutable.asMutable()
         copy.changing
         copy.missing
         copy.status == "broken"
-        copy.contentHash == contentHash
     }
 
     def "can attach variants with files"() {
