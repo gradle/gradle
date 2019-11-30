@@ -80,13 +80,13 @@ tasks {
     val santaTrackerJava by registering(RemoteProject::class) {
         remoteUri.set(gitUri)
         // From agp-3.6.0-java branch
-        ref.set("609eb93f19c8fc8c9d8a0cb130d620e31d47b9bc")
+        ref.set("174705275e434adc843e8e9b28106a5e3ffd6733")
     }
 
     val santaTrackerKotlin by registering(RemoteProject::class) {
         remoteUri.set(gitUri)
         // From agp-3.6.0 branch
-        ref.set("036aad22af993d2f564a6a15d6a7b9706ba37d8e")
+        ref.set("3bbbd895de38efafd0dd1789454d4e4cb72d46d5")
     }
 
     if (BuildEnvironment.isCiServer) {
