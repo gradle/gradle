@@ -105,7 +105,7 @@ tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri.set("https://github.com/gradle/santa-tracker-android.git")
         // From branch agp-3.6.0
-        ref.set("b41faedecf78f966e3489e267d68c024f5afd780")
+        ref.set("3bbbd895de38efafd0dd1789454d4e4cb72d46d5")
     }
 
     if (BuildEnvironment.isCiServer) {
