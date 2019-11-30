@@ -31,7 +31,6 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -45,7 +44,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<String> statusScheme;
     private final ImmutableModuleSources moduleSources;
     private final ImmutableList<? extends ComponentVariant> variants;
-    private final HashValue originalContentHash;
     private final ImmutableAttributes attributes;
     private final ImmutableList<? extends VirtualComponentIdentifier> platformOwners;
     private final AttributesSchemaInternal schema;
@@ -59,7 +57,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         moduleSources = ImmutableModuleSources.of(metadata.getSources());
         attributesFactory = metadata.getAttributesFactory();
         schema = metadata.getAttributesSchema();
-        originalContentHash = metadata.getContentHash();
         attributes = extractAttributes(metadata);
         variants = metadata.getVariants();
         platformOwners = metadata.getPlatformOwners() == null ? ImmutableList.of() : ImmutableList.copyOf(metadata.getPlatformOwners());
@@ -74,7 +71,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         moduleSources = ImmutableModuleSources.of(metadata.getSources());
         attributesFactory = metadata.getAttributesFactory();
         schema = metadata.getAttributesSchema();
-        originalContentHash = metadata.getOriginalContentHash();
         attributes = metadata.getAttributes();
         this.variants = variants;
         this.platformOwners = metadata.getPlatformOwners();
@@ -89,7 +85,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         moduleSources = metadata.moduleSources;
         attributesFactory = metadata.attributesFactory;
         schema = metadata.schema;
-        originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
         platformOwners = metadata.platformOwners;
@@ -103,7 +98,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.statusScheme;
         attributesFactory = metadata.attributesFactory;
         schema = metadata.schema;
-        originalContentHash = metadata.originalContentHash;
         attributes = metadata.attributes;
         variants = metadata.variants;
         platformOwners = metadata.platformOwners;
@@ -166,11 +160,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public HashValue getOriginalContentHash() {
-        return originalContentHash;
-    }
-
-    @Override
     public String getStatus() {
         return attributes.getAttribute(ProjectInternal.STATUS_ATTRIBUTE);
     }
@@ -216,8 +205,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             && Objects.equal(statusScheme, that.statusScheme)
             && Objects.equal(moduleSources, that.moduleSources)
             && Objects.equal(attributes, that.attributes)
-            && Objects.equal(variants, that.variants)
-            && Objects.equal(originalContentHash, that.originalContentHash);
+            && Objects.equal(variants, that.variants);
     }
 
     @Override
@@ -230,7 +218,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             statusScheme,
             moduleSources,
             attributes,
-            variants,
-            originalContentHash);
+            variants);
     }
 }

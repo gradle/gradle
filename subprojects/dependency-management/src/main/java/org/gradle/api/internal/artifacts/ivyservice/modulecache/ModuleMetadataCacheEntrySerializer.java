@@ -16,19 +16,23 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import com.google.common.base.Objects;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.MutableModuleSources;
+import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.util.Map;
 
 class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetadataCacheEntry> {
-    private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
+    private final Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> moduleSourceCodecs;
+
+    public ModuleMetadataCacheEntrySerializer(Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs) {
+        this.moduleSourceCodecs = codecs;
+    }
 
     @Override
     public void write(Encoder encoder, ModuleMetadataCacheEntry value) throws Exception {
@@ -40,18 +44,33 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
             case ModuleMetadataCacheEntry.TYPE_PRESENT:
                 encoder.writeBoolean(value.isChanging);
                 encoder.writeLong(value.createTimestamp);
-                encoder.writeSmallInt(value.moduleSources.size());
-                value.moduleSources.withSources(source -> {
-                    try {
-                        moduleSourceSerializer.write(encoder, source);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                });
+                writeModuleSources(encoder, value);
                 break;
             default:
                 throw new IllegalArgumentException("Don't know how to serialize meta-data entry: " + value);
         }
+    }
+
+    private void writeModuleSources(Encoder encoder, ModuleMetadataCacheEntry value) throws IOException {
+        value.moduleSources.withSources(source -> {
+            try {
+                if (source instanceof PersistentModuleSource) {
+                    PersistentModuleSource persistentModuleSource = (PersistentModuleSource) source;
+                    int codecId = assertValidId(persistentModuleSource.getCodecId());
+                    encoder.writeSmallInt(codecId);
+                    PersistentModuleSource.Codec<PersistentModuleSource> codec = Cast.uncheckedCast(moduleSourceCodecs.get(codecId));
+                    codec.encode(persistentModuleSource, encoder);
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+        encoder.writeSmallInt(0); // end of sources
+    }
+
+    private int assertValidId(int codecId) {
+        assert codecId >= 0 : "Module source must have a strictly positive source id";
+        return codecId;
     }
 
     @Override
@@ -64,10 +83,10 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
             case ModuleMetadataCacheEntry.TYPE_PRESENT:
                 boolean isChanging = decoder.readBoolean();
                 createTimestamp = decoder.readLong();
-                int size = decoder.readSmallInt();
                 MutableModuleSources sources = new MutableModuleSources();
-                for (int i = 0; i < size; i++) {
-                    sources.add(moduleSourceSerializer.read(decoder));
+                int codecId;
+                while ((codecId=decoder.readSmallInt())>0) {
+                    sources.add(moduleSourceCodecs.get(codecId).decode(decoder));
                 }
                 return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, sources);
             default:
@@ -76,17 +95,26 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
             return false;
         }
 
-        ModuleMetadataCacheEntrySerializer rhs = (ModuleMetadataCacheEntrySerializer) obj;
-        return Objects.equal(moduleSourceSerializer, rhs.moduleSourceSerializer);
+        ModuleMetadataCacheEntrySerializer that = (ModuleMetadataCacheEntrySerializer) o;
+
+        return moduleSourceCodecs.equals(that.moduleSourceCodecs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), moduleSourceSerializer);
+        int result = super.hashCode();
+        result = 31 * result + moduleSourceCodecs.hashCode();
+        return result;
     }
 }

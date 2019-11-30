@@ -20,7 +20,6 @@ import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.hash.HashUtil
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -57,8 +56,6 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def dependency = single(metaData.dependencies)
         dependency.selector == moduleId('group-two', 'artifact-two', 'version-two')
         hasDefaultDependencyArtifact(dependency)
-
-        metaData.contentHash == HashUtil.createHash(pomFile, "MD5")
 
         parser.typeName == 'POM'
         parser.toString() == 'gradle pom parser'
@@ -326,11 +323,11 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         <artifactId>parent</artifactId>
         <version>version-one</version>
     </parent>
-    
+
     <dependencies>
         <dependency>
             <groupId>group-two</groupId>
-            <artifactId>artifact-two</artifactId>   
+            <artifactId>artifact-two</artifactId>
         </dependency>
     </dependencies>
     <dependencyManagement>

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
@@ -48,12 +47,7 @@ public abstract class AbstractModuleDescriptorParser<T extends MutableModuleComp
 
     protected ParseResult<T> parseDescriptor(DescriptorParseContext ivySettings, LocallyAvailableExternalResource resource, boolean validate) throws MetaDataParseException {
         try {
-            ParseResult<T> parseResult = doParseDescriptor(ivySettings, resource, validate);
-            T metadata = parseResult.getResult();
-            if (metadata != null) {
-                metadata.setContentHash(HashUtil.createHash(resource.getFile(), "MD5"));
-            }
-            return parseResult;
+            return doParseDescriptor(ivySettings, resource, validate);
         } catch (MetaDataParseException e) {
             throw e;
         } catch (Exception e) {
