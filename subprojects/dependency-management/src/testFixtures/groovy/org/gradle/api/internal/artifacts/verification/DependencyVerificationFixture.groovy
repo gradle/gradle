@@ -111,16 +111,15 @@ class DependencyVerificationFixture {
             this.metadata = md
         }
 
-        void artifact(String name, String type="jar", String ext="jar", String classy = null, @DelegatesTo(value = ArtifactVerification, strategy = Closure.DELEGATE_FIRST) Closure action) {
+        void artifact(String name, @DelegatesTo(value = ArtifactVerification, strategy = Closure.DELEGATE_FIRST) Closure action) {
             def artifacts = metadata.artifactVerifications.findAll {
-                def ivy = it.artifact.name
-                ivy.name == name && ivy.type == type && ivy.extension == ext && ivy.classifier == classy
+                name == it.artifact.fileName
             }
             if (artifacts.size() > 1) {
                 throw new AssertionError("Expected only one artifact named ${name} for module ${metadata.componentId} but found ${artifacts}")
             }
             ArtifactVerificationMetadata md = artifacts ? artifacts[0] : null
-            assert md: "Artifact file $name:$type:$ext:${classy?:''} not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifact.name.name } }"
+            assert md: "Artifact file $name not found in verification file for module ${metadata.componentId}. Artifact names: ${metadata.artifactVerifications.collect { it.artifact.fileName } }"
             action.delegate = new ArtifactVerification(md)
             action.resolveStrategy = Closure.DELEGATE_FIRST
             action()

@@ -19,7 +19,6 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
@@ -86,10 +85,11 @@ public class DependencyVerifier {
         AtomicReference<VerificationFailure> failure = new AtomicReference<>();
         ComponentVerificationMetadata componentVerification = verificationMetadata.get(foundArtifact.getComponentIdentifier());
         if (componentVerification != null) {
+            String foundArtifactFileName = foundArtifact.getFileName();
             List<ArtifactVerificationMetadata> verifications = componentVerification.getArtifactVerifications();
             for (ArtifactVerificationMetadata verification : verifications) {
-                ComponentArtifactIdentifier verifiedArtifact = verification.getArtifact();
-                if (verifiedArtifact.equals(foundArtifact)) {
+                ModuleComponentArtifactIdentifier verifiedArtifact = verification.getArtifact();
+                if (verifiedArtifact.getFileName().equals(foundArtifactFileName)) {
                     Map<ChecksumKind, String> checksums = verification.getChecksums();
                     for (Map.Entry<ChecksumKind, String> entry : checksums.entrySet()) {
                         verify(entry.getKey(), file, entry.getValue(), f -> failure.set(f));

@@ -23,10 +23,8 @@ import org.gradle.api.internal.artifacts.verification.model.ArtifactVerification
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.xml.SimpleXmlWriter;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -34,13 +32,10 @@ import java.util.List;
 import java.util.Map;
 
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.CLASSIFIER;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.EXT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
-import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.TYPE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
@@ -100,20 +95,11 @@ public class DependencyVerificationsXmlWriter {
         ComponentArtifactIdentifier artifact = verification.getArtifact();
         if (artifact instanceof ModuleComponentArtifactIdentifier) {
             ModuleComponentArtifactIdentifier mcai = (ModuleComponentArtifactIdentifier) artifact;
-            IvyArtifactName name = mcai.getName();
+            String name = mcai.getFileName();
             writer.startElement(ARTIFACT);
-            writer.attribute(NAME, name.getName());
-            writeAttributeIfNotNull(CLASSIFIER, name.getClassifier());
-            writeAttributeIfNotNull(TYPE, name.getType());
-            writeAttributeIfNotNull(EXT, name.getExtension());
+            writer.attribute(NAME, name);
             writeChecksums(verification.getChecksums());
             writer.endElement();
-        }
-    }
-
-    private void writeAttributeIfNotNull(String attributeName, @Nullable String value) throws IOException {
-        if (value != null) {
-            writer.attribute(attributeName, value);
         }
     }
 

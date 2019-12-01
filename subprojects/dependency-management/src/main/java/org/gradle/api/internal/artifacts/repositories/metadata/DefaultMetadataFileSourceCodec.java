@@ -18,11 +18,9 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.serialize.Decoder;
@@ -57,11 +55,7 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
         encoder.writeString(componentIdentifier.getGroup());
         encoder.writeString(componentIdentifier.getModule());
         encoder.writeString(componentIdentifier.getVersion());
-        IvyArtifactName name = artifactId.getName();
-        encoder.writeString(name.getName());
-        encoder.writeString(name.getType());
-        encoder.writeNullableString(name.getExtension());
-        encoder.writeNullableString(name.getClassifier());
+        encoder.writeString(artifactId.getFileName());
         encoder.writeBinary(moduleSource.getSha1().toByteArray());
     }
 
@@ -70,14 +64,14 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
         String group = decoder.readString();
         String module = decoder.readString();
         String version = decoder.readString();
-        IvyArtifactName name = readArtifact(decoder);
+        String name = decoder.readString();
         BigInteger sha1 = new BigInteger(decoder.readBinary());
         DefaultMetadataFileSource source = createSource(sha1, group, module, version, name);
         return source;
     }
 
-    private DefaultMetadataFileSource createSource(BigInteger sha1, String group, String module, String version, IvyArtifactName name) {
-        DefaultModuleComponentArtifactIdentifier artifactId = createArtifactId(group, module, version, name);
+    private DefaultMetadataFileSource createSource(BigInteger sha1, String group, String module, String version, String name) {
+        ModuleComponentArtifactIdentifier artifactId = createArtifactId(group, module, version, name);
         Set<? extends LocallyAvailableResource> search = fileStore.search(artifactId);
         File metadataFile = null;
         for (LocallyAvailableResource locallyAvailableResource : search) {
@@ -92,22 +86,14 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
             sha1);
     }
 
-    private DefaultModuleComponentArtifactIdentifier createArtifactId(String group, String module, String version, IvyArtifactName name) {
-        return new DefaultModuleComponentArtifactIdentifier(
+    private ModuleComponentFileArtifactIdentifier createArtifactId(String group, String module, String version, String name) {
+        return new ModuleComponentFileArtifactIdentifier(
             DefaultModuleComponentIdentifier.newId(
                 moduleIdentifierFactory.module(group, module),
                 version
             ),
             name
         );
-    }
-
-    private IvyArtifactName readArtifact(Decoder decoder) throws IOException {
-        String name = decoder.readString();
-        String type = decoder.readString();
-        String ext = decoder.readNullableString();
-        String classy = decoder.readNullableString();
-        return new DefaultIvyArtifactName(name, type, ext, classy);
     }
 
     @Override
