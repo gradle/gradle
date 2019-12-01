@@ -18,9 +18,17 @@ package org.gradle.internal.build.event;
 
 import org.gradle.api.provider.Provider;
 import org.gradle.build.event.BuildEventsListenerRegistry;
+import org.gradle.internal.operations.BuildOperationListener;
 
 import java.util.List;
 
 public interface BuildEventListenerRegistryInternal extends BuildEventsListenerRegistry {
+    /**
+     * Subscribes the given listener to build operation completion events. Note that no start events are forwarded to the listener.
+     */
+    void onOperationCompletion(Provider<? extends BuildOperationListener> provider);
+
+    void subscribe(Provider<?> provider);
+
     List<Provider<?>> getSubscriptions();
 }

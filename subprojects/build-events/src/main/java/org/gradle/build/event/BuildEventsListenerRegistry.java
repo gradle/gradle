@@ -21,7 +21,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.tooling.events.OperationCompletionListener;
 
 /**
- * Allows a plugin to receive information about the operations that run as part of the current build.
+ * Allows a plugin to receive information about the operations that run within a build.
  *
  * <p>An instance of this registry can be injected into tasks, plugins and other objects by annotating a public constructor or property getter method with {@code javax.inject.Inject}.</p>
  *
@@ -30,7 +30,14 @@ import org.gradle.tooling.events.OperationCompletionListener;
 @Incubating
 public interface BuildEventsListenerRegistry {
     /**
-     * Subscribes the given listener to operation finish events, if not already subscribed. The listener receives events as each operation completes.
+     * Subscribes the given listener to the finish events for tasks, if not already subscribed. The listener receives events as each task completes.
+     *
+     * <p>The events are delivered to the listener one at a time, so the implementation does not need to be thread-safe. Also, events are delivered to the listener concurrently with
+     * task execution and other work, so event handling does not block task execution. This means that a task finish event is delivered to the listener some time "soon" after the task
+     * has completed. The events contain timestamps to allow you collect timing information.
+     * </p>
+     *
+     * @param listener The listener to receive events. This must be a {@link org.gradle.api.services.BuildService} instance, see {@link org.gradle.api.services.BuildServiceRegistry}.
      */
-    void subscribe(Provider<? extends OperationCompletionListener> listener);
+    void onTaskCompletion(Provider<? extends OperationCompletionListener> listener);
 }

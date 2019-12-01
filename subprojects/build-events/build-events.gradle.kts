@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":messaging"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":modelCore"))
     implementation(project(":toolingApi"))
 
     implementation(library("jsr305"))
@@ -38,6 +39,9 @@ dependencies {
 
     integTestImplementation(project(":internalTesting"))
     integTestImplementation(project(":internalIntegTesting"))
+    integTestImplementation(project(":logging")) {
+        because("This isn't declared as part of integtesting's API, but should be as logging's classes are in fact visible on the API")
+    }
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":toolingApiBuilders")) {

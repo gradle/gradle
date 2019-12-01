@@ -134,8 +134,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             import ${BuildEventsListenerRegistry.name}
 
             def registry = project.services.get(BuildEventsListenerRegistry)
-            registry.subscribe(gradle.sharedServices.registerIfAbsent('broken', BrokenListener) { })
-            registry.subscribe(gradle.sharedServices.registerIfAbsent('listener', LoggingListener) { })
+            registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('broken', BrokenListener) { })
+            registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('listener', LoggingListener) { })
 
             task a 
             task b { dependsOn a }
@@ -175,8 +175,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             import ${BuildEventsListenerRegistry.name}
 
             def registry = project.services.get(BuildEventsListenerRegistry)
-            registry.subscribe(gradle.sharedServices.registerIfAbsent('broken', BrokenListener) { })
-            registry.subscribe(gradle.sharedServices.registerIfAbsent('listener', LoggingListener) { })
+            registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('broken', BrokenListener) { })
+            registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('listener', LoggingListener) { })
 
             task a 
             task b { dependsOn a }
@@ -301,7 +301,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
                 void apply(Project project) {
                     def listener = project.gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
-                    listenerRegistry.subscribe(listener)
+                    listenerRegistry.onTaskCompletion(listener)
                 }
             }
         """

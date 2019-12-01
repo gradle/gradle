@@ -56,10 +56,10 @@ class BuildEventsParallelIntegrationTest extends AbstractIntegrationSpec {
             }
             
             def registry = project.services.get(BuildEventsListenerRegistry)
-            registry.subscribe(gradle.sharedServices.registerIfAbsent('listener1', BlockingListener) {
+            registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('listener1', BlockingListener) {
                 parameters.prefix = "handle1_"
             })
-            registry.subscribe(gradle.sharedServices.registerIfAbsent('listener2', BlockingListener) {
+            registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('listener2', BlockingListener) {
                 parameters.prefix = "handle2_"
             })
 
