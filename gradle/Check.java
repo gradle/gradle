@@ -113,7 +113,7 @@ public class Check {
         }
 
         // Run git rev-parse --abbrev-ref --symbolic-full-name @{u}
-        ExecResult result = run(true, "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}");
+        ExecResult result = run(false, "git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}");
 
         if (result.code != 0) {
             // When upstream branch not set or in detached HEAD stage
