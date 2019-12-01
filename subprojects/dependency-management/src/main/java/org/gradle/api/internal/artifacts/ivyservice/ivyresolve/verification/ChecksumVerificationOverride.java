@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ChecksumVerificationOverride implements DependencyVerificationOverride, ArtifactVerificationOperation {
+    private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> MISSING_LAST = Comparator.comparing(e -> e.getValue() == DependencyVerifier.VerificationFailure.MISSING ? 1 : 0);
     private static final Comparator<Map.Entry<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure>> BY_MODULE_ID = Comparator.comparing(e -> e.getKey().getDisplayName());
 
     private final DependencyVerifier verifier;
@@ -81,7 +82,7 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
                 // Sorting entries so that error messages are always displayed in a reproducible order
                 failures.entrySet()
                     .stream()
-                    .sorted(BY_MODULE_ID)
+                    .sorted(MISSING_LAST.thenComparing(BY_MODULE_ID))
                     .forEachOrdered(entry -> {
                         DependencyVerifier.VerificationFailure failure = entry.getValue();
                         if (failure == DependencyVerifier.VerificationFailure.MISSING) {
