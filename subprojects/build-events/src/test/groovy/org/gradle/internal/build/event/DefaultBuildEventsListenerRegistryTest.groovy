@@ -26,7 +26,13 @@ import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent
 import org.gradle.internal.build.event.types.DefaultTaskSkippedResult
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult
 import org.gradle.internal.event.DefaultListenerManager
-import org.gradle.internal.operations.BuildOperationListenerManager
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.DefaultBuildOperationListenerManager
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
@@ -37,14 +43,15 @@ import org.gradle.tooling.events.task.TaskSuccessResult
 class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def factory = new MockBuildEventListenerFactory()
     def listenerManager = new DefaultListenerManager()
-    def registry = new DefaultBuildEventsListenerRegistry([factory], listenerManager, Stub(BuildOperationListenerManager), executorFactory)
+    def buildOperationListenerManager = new DefaultBuildOperationListenerManager()
+    def registry = new DefaultBuildEventsListenerRegistry([factory], listenerManager, buildOperationListenerManager, executorFactory)
 
     def cleanup() {
         // Signal the end of the build, to stop everything
         signalBuildFinished()
     }
 
-    def "listener receives task finish events"() {
+    def "listener can receive task finish events"() {
         def listener = Mock(OperationCompletionListener)
         def provider = Providers.of(listener)
         def success = taskFinishEvent()
@@ -52,7 +59,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         def skipped = skippedTaskFinishEvent()
 
         when:
-        registry.subscribe(provider)
+        registry.onTaskCompletion(provider)
 
         then:
         registry.subscriptions.size() == 1
@@ -73,13 +80,40 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         0 * listener._
     }
 
+    def "listener can receive build operation finish events"() {
+        def listener = Mock(BuildOperationListener)
+        def provider = Providers.of(listener)
+        def descriptor = descriptor()
+        def finishEvent = operationFinishEvent()
+        def broadcaster = buildOperationListenerManager.broadcaster
+
+        when:
+        registry.onOperationCompletion(provider)
+
+        then:
+        registry.subscriptions.size() == 1
+        0 * listener._
+
+        when:
+        async {
+            broadcaster.started(descriptor, startOperationEvent())
+            broadcaster.progress(Stub(OperationIdentifier), operationProgressEvent())
+            broadcaster.finished(descriptor, finishEvent)
+            signalBuildFinished()
+        }
+
+        then:
+        1 * listener.finished(descriptor, finishEvent)
+        0 * listener._
+    }
+
     def "does nothing when listener is already subscribed"() {
         def listener = Mock(OperationCompletionListener)
         def provider = Providers.of(listener)
 
         when:
-        registry.subscribe(provider)
-        registry.subscribe(provider)
+        registry.onTaskCompletion(provider)
+        registry.onTaskCompletion(provider)
 
         then:
         registry.subscriptions.size() == 1
@@ -96,8 +130,8 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         } as OperationCompletionListener
 
         when:
-        registry.subscribe(Providers.of(listener1))
-        registry.subscribe(Providers.of(listener2))
+        registry.onTaskCompletion(Providers.of(listener1))
+        registry.onTaskCompletion(Providers.of(listener2))
         async {
             factory.fire(taskFinishEvent())
             thread.blockUntil.handled
@@ -114,8 +148,8 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         def okListener = Mock(OperationCompletionListener)
 
         when:
-        registry.subscribe(Providers.of(brokenListener))
-        registry.subscribe(Providers.of(okListener))
+        registry.onTaskCompletion(Providers.of(brokenListener))
+        registry.onTaskCompletion(Providers.of(okListener))
         async {
             factory.fire(taskFinishEvent())
             thread.blockUntil.handled
@@ -151,6 +185,22 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
 
     private DefaultTaskFinishedProgressEvent skippedTaskFinishEvent() {
         new DefaultTaskFinishedProgressEvent(123L, Stub(DefaultTaskDescriptor), Stub(DefaultTaskSkippedResult))
+    }
+
+    private OperationStartEvent startOperationEvent() {
+        new OperationStartEvent(123)
+    }
+
+    private OperationProgressEvent operationProgressEvent() {
+        new OperationProgressEvent(123, null)
+    }
+
+    private OperationFinishEvent operationFinishEvent() {
+        new OperationFinishEvent(123, 345, null, null)
+    }
+
+    private BuildOperationDescriptor descriptor() {
+        new BuildOperationDescriptor(Stub(OperationIdentifier), null, "name", "name", "name", null, null, 12)
     }
 
     class MockBuildEventListenerFactory implements BuildEventListenerFactory {
