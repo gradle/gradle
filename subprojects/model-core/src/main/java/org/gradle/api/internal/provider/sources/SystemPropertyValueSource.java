@@ -14,15 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.provider.sources;
 
-public interface InstantExecution {
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ValueSource;
+import org.gradle.api.provider.ValueSourceParameters;
 
-    boolean canExecuteInstantaneously();
+import javax.annotation.Nullable;
 
-    void prepareForBuildLogicExecution();
+public abstract class SystemPropertyValueSource implements ValueSource<String, SystemPropertyValueSource.Parameters> {
 
-    void saveScheduledWork();
+    public interface Parameters extends ValueSourceParameters {
+        Property<String> getPropertyName();
+    }
 
-    void loadScheduledWork();
+    @Nullable
+    @Override
+    public String obtain() {
+        return System.getProperty(getParameters().getPropertyName().get());
+    }
 }

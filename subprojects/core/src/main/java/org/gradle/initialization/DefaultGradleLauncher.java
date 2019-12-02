@@ -135,6 +135,9 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doClassicBuildStages(Stage upTo) {
+        if (stage == null) {
+            instantExecution.prepareForBuildLogicExecution();
+        }
         prepareSettings();
         if (upTo == Stage.LoadSettings) {
             return;
