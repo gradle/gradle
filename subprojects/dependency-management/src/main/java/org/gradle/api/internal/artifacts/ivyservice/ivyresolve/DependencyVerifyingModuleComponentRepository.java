@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSource;
-import org.gradle.api.internal.artifacts.repositories.metadata.MetadataFileSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
@@ -102,28 +101,24 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
             if (result.hasResult()) {
-                result.getMetaData().getSources().withSource(DefaultMetadataFileSource.class, source -> {
-                    if (source.isPresent()) {
-                        MetadataFileSource metadataFileSource = source.get();
-                        ModuleComponentArtifactIdentifier artifact = metadataFileSource.getArtifactId();
-                        if (isExternalArtifactId(artifact)) {
-                            result.getMetaData().getSources().withSource(ModuleDescriptorHashModuleSource.class, hashSource -> {
-                                if (hashSource.isPresent()) {
-                                    boolean changingModule = requestMetaData.isChanging() || hashSource.get().isChangingModule();
-                                    if (!changingModule) {
-                                        File artifactFile = source.get().getArtifactFile();
-                                        if (artifactFile != null) {
-                                            // it's possible that the file is null if it has been removed from the cache
-                                            // for example
-                                            operation.onArtifact(artifact, artifactFile);
-                                        }
+                result.getMetaData().getSources().withSources(DefaultMetadataFileSource.class, metadataFileSource -> {
+                    ModuleComponentArtifactIdentifier artifact = metadataFileSource.getArtifactId();
+                    if (isExternalArtifactId(artifact)) {
+                        result.getMetaData().getSources().withSource(ModuleDescriptorHashModuleSource.class, hashSource -> {
+                            if (hashSource.isPresent()) {
+                                boolean changingModule = requestMetaData.isChanging() || hashSource.get().isChangingModule();
+                                if (!changingModule) {
+                                    File artifactFile = metadataFileSource.getArtifactFile();
+                                    if (artifactFile != null) {
+                                        // it's possible that the file is null if it has been removed from the cache
+                                        // for example
+                                        operation.onArtifact(artifact, artifactFile);
                                     }
                                 }
-                                return null;
-                            });
-                        }
+                            }
+                            return null;
+                        });
                     }
-                    return null;
                 });
             }
         }

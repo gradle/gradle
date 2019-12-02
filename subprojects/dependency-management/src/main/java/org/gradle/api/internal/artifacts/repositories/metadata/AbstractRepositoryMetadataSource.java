@@ -32,6 +32,7 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
+import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -87,7 +88,9 @@ abstract class AbstractRepositoryMetadataSource<S extends MutableModuleComponent
                 S metadata = parseResult.getResult();
                 File metadataArtifactFile = metadataArtifact.getFile();
                 ExternalResourceMetaData metaData = metadataArtifact.getMetaData();
-                metadata.getSources().add(new DefaultMetadataFileSource(artifact.getId(), metadataArtifactFile, findSha1(metaData, metadataArtifactFile)));
+                MutableModuleSources sources = metadata.getSources();
+                sources.add(new DefaultMetadataFileSource(artifact.getId(), metadataArtifactFile, findSha1(metaData, metadataArtifactFile)));
+                context.appendSources(sources);
                 return metadata;
             }
         }

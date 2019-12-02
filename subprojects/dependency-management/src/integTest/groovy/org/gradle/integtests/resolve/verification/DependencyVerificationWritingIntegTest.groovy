@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.resolve.verification
 
-import groovy.transform.NotYetImplemented
+
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
@@ -741,7 +741,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
-    @NotYetImplemented
     @Unroll
     def "writes checksums for parent POMs downloaded in previous build (stop in between = #stop)"() {
         given:
@@ -784,7 +783,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             }
         }
         module("org:parent:1.0") {
-            artifact("parent", "pom", "pom") {
+            artifact("parent-1.0.pom") {
                 declaresChecksums(
                     sha1: "6571866439d59e73d0ec5e1bea5f2708a6fcb9d7",
                     sha512: "44cc79f0b31ee8b355c1c6d2e6be7eaa847f7b4aa9c11a764af4f5c1ab8b95467f22ce9ce7be6955270616fb5d038b9c99bd730dadce00302e4579b5a494e8b2"
