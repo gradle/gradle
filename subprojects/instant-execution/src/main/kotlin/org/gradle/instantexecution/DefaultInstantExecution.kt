@@ -224,8 +224,8 @@ class DefaultInstantExecution internal constructor(
     fun checkFingerprint(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
-                val size = readSmallInt()
-                for (i in 0 until size) {
+                val obtainedValueCount = readSmallInt()
+                for (i in 0 until obtainedValueCount) {
                     val obtainedValue = readObtainedValue()
                     checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
                         return@withHostIsolate reason
