@@ -63,7 +63,6 @@ import java.io.File;
 import java.math.BigInteger;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -77,7 +76,6 @@ import java.util.stream.Collectors;
  */
 public class CachingModuleComponentRepository implements ModuleComponentRepository {
     private static final Logger LOGGER = LoggerFactory.getLogger(CachingModuleComponentRepository.class);
-    private static final Supplier<RuntimeException> UNSUPPORTED_SOURCE = () -> new RuntimeException("Cannot find expected metadata source");
 
     private final ModuleVersionsCache moduleVersionsCache;
     private final ModuleMetadataCache moduleMetadataCache;
@@ -349,7 +347,8 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
     }
 
     private ModuleDescriptorHashModuleSource findCachingModuleSource(ModuleSources sources) {
-        return sources.getSource(ModuleDescriptorHashModuleSource.class).orElseThrow(UNSUPPORTED_SOURCE);
+        return sources.getSource(ModuleDescriptorHashModuleSource.class)
+            .orElseThrow(() -> new RuntimeException("Cannot find expected module source " + ModuleDescriptorHashModuleSource.class.getSimpleName() + " in " + sources));
     }
 
     private class ResolveAndCacheRepositoryAccess implements ModuleComponentRepositoryAccess {

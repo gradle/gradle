@@ -71,6 +71,9 @@ public class DependencyVerifier {
         return buildOperationExecutor.call(new CallableBuildOperation<Optional<VerificationFailure>>() {
             @Override
             public Optional<VerificationFailure> call(BuildOperationContext context) {
+                if (!file.exists()) {
+                    return VerificationFailure.OPT_DELETED;
+                }
                 return doVerifyArtifact(foundArtifact, file);
             }
 
@@ -133,7 +136,9 @@ public class DependencyVerifier {
 
     public static class VerificationFailure {
         public static final VerificationFailure MISSING = new VerificationFailure(null, null, null);
+        public static final VerificationFailure DELETED = new VerificationFailure(null, null, null);
         private static final Optional<VerificationFailure> OPT_MISSING = Optional.of(MISSING);
+        private static final Optional<VerificationFailure> OPT_DELETED = Optional.of(DELETED);
 
         private final ChecksumKind kind;
         private final String expected;
