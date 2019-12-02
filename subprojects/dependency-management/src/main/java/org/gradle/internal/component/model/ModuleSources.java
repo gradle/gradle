@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.component.model;
 
+import org.gradle.internal.Cast;
+
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -24,8 +26,19 @@ public interface ModuleSources {
 
     void withSources(Consumer<ModuleSource> consumer);
 
+    /**
+     * Executes an action on the first source found of the following type, if any.
+     */
     default <T extends ModuleSource, R> R withSource(Class<T> sourceType, Function<Optional<T>, R> action) {
         return action.apply(getSource(sourceType));
+    }
+
+    default <T extends ModuleSource> void withSources(Class<T> sourceType, Consumer<T> consumer) {
+        withSources(src -> {
+            if (sourceType.isAssignableFrom(src.getClass())) {
+                consumer.accept(Cast.uncheckedCast(src));
+            }
+        });
     }
 
     int size();
