@@ -17,7 +17,6 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -31,7 +30,6 @@ import org.gradle.internal.Try;
  *
  * @since 6.1
  */
-@Incubating
 public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> createProviderOf(
