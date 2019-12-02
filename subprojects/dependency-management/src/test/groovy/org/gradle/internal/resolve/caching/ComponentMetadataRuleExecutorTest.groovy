@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
@@ -73,6 +74,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     CachePolicy cachePolicy
 
     ModuleComponentResolveMetadata result
+    ModuleSourcesSerializer modulesSourceSerializer = new ModuleSourcesSerializer([:])
 
     def setup() {
         def cacheBuilder
