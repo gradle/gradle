@@ -61,7 +61,7 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
                 }
                 watchKey.cancel();
                 Path watchRoot = (Path) watchKey.watchable();
-                LOGGER.debug("Stoped watching {}", watchRoot);
+                LOGGER.debug("Stopped watching {}", watchRoot);
                 for (WatchEvent<?> event : watchKey.pollEvents()) {
                     WatchEvent.Kind<?> kind = event.kind();
                     if (kind == OVERFLOW) {
