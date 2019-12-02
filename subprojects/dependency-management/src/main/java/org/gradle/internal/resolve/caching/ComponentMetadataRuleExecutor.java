@@ -85,4 +85,5 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
             return identifier;
         }
     }
+
 }

@@ -157,9 +157,10 @@ class ModuleMetadataSerializerTest extends Specification {
 
     private ModuleMetadataSerializer moduleMetadataSerializer() {
         new ModuleMetadataSerializer(
-            new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
-            mavenMetadataFactory,
-            ivyMetadataFactory
+                new DesugaredAttributeContainerSerializer(AttributeTestUtil.attributesFactory(), TestUtil.objectInstantiator()),
+                mavenMetadataFactory,
+                ivyMetadataFactory,
+                new ModuleSourcesSerializer([:])
         )
     }
 

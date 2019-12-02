@@ -27,14 +27,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
-    private final ModuleSources moduleSources;
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metadata;
 
     private volatile Map<Integer, ModuleComponentResolveMetadata> processedMetadataByRules;
 
     DefaultCachedMetadata(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metadata, BuildCommencedTimeProvider timeProvider) {
-        this.moduleSources = entry.moduleSources;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;
         this.metadata = metadata;
     }
@@ -46,7 +44,7 @@ class DefaultCachedMetadata implements ModuleMetadataCache.CachedMetadata {
 
     @Override
     public ModuleSources getModuleSources() {
-        return moduleSources;
+        return metadata.getSources();
     }
 
     @Override

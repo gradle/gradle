@@ -16,23 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.gradle.internal.Cast;
-import org.gradle.internal.component.model.MutableModuleSources;
-import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.util.Map;
-
 class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetadataCacheEntry> {
-    private final Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> moduleSourceCodecs;
-
-    public ModuleMetadataCacheEntrySerializer(Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs) {
-        this.moduleSourceCodecs = codecs;
-    }
 
     @Override
     public void write(Encoder encoder, ModuleMetadataCacheEntry value) throws Exception {
@@ -44,33 +32,10 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
             case ModuleMetadataCacheEntry.TYPE_PRESENT:
                 encoder.writeBoolean(value.isChanging);
                 encoder.writeLong(value.createTimestamp);
-                writeModuleSources(encoder, value);
                 break;
             default:
                 throw new IllegalArgumentException("Don't know how to serialize meta-data entry: " + value);
         }
-    }
-
-    private void writeModuleSources(Encoder encoder, ModuleMetadataCacheEntry value) throws IOException {
-        value.moduleSources.withSources(source -> {
-            try {
-                if (source instanceof PersistentModuleSource) {
-                    PersistentModuleSource persistentModuleSource = (PersistentModuleSource) source;
-                    int codecId = assertValidId(persistentModuleSource.getCodecId());
-                    encoder.writeSmallInt(codecId);
-                    PersistentModuleSource.Codec<PersistentModuleSource> codec = Cast.uncheckedCast(moduleSourceCodecs.get(codecId));
-                    codec.encode(persistentModuleSource, encoder);
-                }
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        });
-        encoder.writeSmallInt(0); // end of sources
-    }
-
-    private int assertValidId(int codecId) {
-        assert codecId >= 0 : "Module source must have a strictly positive source id";
-        return codecId;
     }
 
     @Override
@@ -83,12 +48,7 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
             case ModuleMetadataCacheEntry.TYPE_PRESENT:
                 boolean isChanging = decoder.readBoolean();
                 createTimestamp = decoder.readLong();
-                MutableModuleSources sources = new MutableModuleSources();
-                int codecId;
-                while ((codecId=decoder.readSmallInt())>0) {
-                    sources.add(moduleSourceCodecs.get(codecId).decode(decoder));
-                }
-                return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, sources);
+                return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp);
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);
         }
@@ -106,15 +66,11 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
             return false;
         }
 
-        ModuleMetadataCacheEntrySerializer that = (ModuleMetadataCacheEntrySerializer) o;
-
-        return moduleSourceCodecs.equals(that.moduleSourceCodecs);
+        return true;
     }
 
     @Override
     public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + moduleSourceCodecs.hashCode();
-        return result;
+        return super.hashCode();
     }
 }

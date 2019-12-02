@@ -16,41 +16,30 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Interner;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashCodec;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
-import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSourceCodec;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
-import org.gradle.api.internal.artifacts.repositories.metadata.MetadataFileSource;
-import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.resource.local.DefaultPathKeyFileStore;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.util.Map;
-
 public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> cache;
     private final ModuleMetadataStore moduleMetadataStore;
     private final ArtifactCacheLockingManager artifactCacheLockingManager;
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
-    private ArtifactIdentifierFileStore artifactIdentifierFileStore;
 
     public PersistentModuleMetadataCache(BuildCommencedTimeProvider timeProvider,
                                          ArtifactCacheLockingManager artifactCacheLockingManager,
@@ -60,12 +49,10 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
                                          MavenMutableModuleMetadataFactory mavenMetadataFactory,
                                          IvyMutableModuleMetadataFactory ivyMetadataFactory,
                                          Interner<String> stringInterner,
-                                         ArtifactIdentifierFileStore artifactIdentifierFileStore) {
+                                         ModuleSourcesSerializer moduleSourcesSerializer) {
         super(timeProvider);
-        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory), moduleIdentifierFactory, stringInterner);
+        moduleMetadataStore = new ModuleMetadataStore(new DefaultPathKeyFileStore(artifactCacheMetadata.getMetaDataStoreDirectory()), new ModuleMetadataSerializer(attributeContainerSerializer, mavenMetadataFactory, ivyMetadataFactory, moduleSourcesSerializer), moduleIdentifierFactory, stringInterner);
         this.artifactCacheLockingManager = artifactCacheLockingManager;
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
-        this.artifactIdentifierFileStore = artifactIdentifierFileStore;
     }
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> getCache() {
@@ -76,11 +63,7 @@ public class PersistentModuleMetadataCache extends AbstractModuleMetadataCache {
     }
 
     private PersistentIndexedCache<ModuleComponentAtRepositoryKey, ModuleMetadataCacheEntry> initCache() {
-        Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs = ImmutableMap.of(
-            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, artifactIdentifierFileStore),
-            ModuleDescriptorHashModuleSource.CODEC_ID, new ModuleDescriptorHashCodec()
-        );
-        return artifactCacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer(codecs));
+        return artifactCacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
     }
 
     @Override
