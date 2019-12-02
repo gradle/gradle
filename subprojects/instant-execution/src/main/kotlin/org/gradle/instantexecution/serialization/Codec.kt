@@ -381,8 +381,12 @@ inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) ->
 
 
 internal
-inline fun <T> ReadContext.decodePreservingSharedIdentity(decode: ReadContext.(Int) -> T): T =
-    decodePreservingIdentity(sharedIdentities, decode)
+inline fun <T : Any> ReadContext.decodePreservingSharedIdentity(decode: ReadContext.(Int) -> T): T =
+    decodePreservingIdentity(sharedIdentities) { id ->
+        decode(id).also {
+            sharedIdentities.putInstance(id, it)
+        }
+    }
 
 
 internal

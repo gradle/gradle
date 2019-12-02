@@ -36,10 +36,8 @@ abstract class AbstractTransformationNodeCodec<T : TransformationNode> : Codec<T
     }
 
     override suspend fun ReadContext.decode(): T =
-        decodePreservingSharedIdentity { id ->
-            val node = doDecode()
-            sharedIdentities.putInstance(id, node)
-            node
+        decodePreservingSharedIdentity {
+            doDecode()
         }
 
     protected

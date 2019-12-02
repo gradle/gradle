@@ -113,13 +113,12 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
     }
 
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
-        decodePreservingSharedIdentity { id ->
+        decodePreservingSharedIdentity {
             val name = readString()
             val implementationType = readClass().uncheckedCast<Class<BuildService<*>>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
             val provider = serviceRegistry.register(name, implementationType, parameters, maxUsages)
-            sharedIdentities.putInstance(id, provider)
             provider
         }
 }
@@ -167,8 +166,8 @@ ValueSourceProviderCodec(
     }
 
     private
-    suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *>? =
-        decodePreservingSharedIdentity { id ->
+    suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
+        decodePreservingSharedIdentity {
             val valueSourceType = readClass()
             val parametersType = readClass()
             val parameters = read()!!
@@ -178,7 +177,6 @@ ValueSourceProviderCodec(
                     parametersType.uncheckedCast(),
                     parameters.uncheckedCast()
                 )
-            sharedIdentities.putInstance(id, provider)
             provider.uncheckedCast()
         }
 }
