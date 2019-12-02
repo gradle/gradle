@@ -52,7 +52,8 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this if you added or removed dependencies.
      */
     int getThirdPartyLibJarsCount() {
-        185
+        // TODO This is decreased now because we don't publish the snapshots for native-platform on all platforms
+        174
     }
 
     int getLibJarsCount() {
