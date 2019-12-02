@@ -73,4 +73,13 @@ public class DefaultMetadataFileSource implements MetadataFileSource {
         result = 31 * result + sha1.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return "MetadataFileSource{" +
+            "artifactId=" + artifactId +
+            ", artifactFile=" + artifactFile +
+            ", sha1=" + sha1 +
+            '}';
+    }
 }

@@ -494,4 +494,104 @@ Please update the file either manually (preferred) or by adding the --write-veri
   - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of '16e066e005a935ac60f06216115436ab97c5da02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
     }
+
+    /**
+     * This test case is NOT about security but detecting tampered metadata files.
+     * In practice, if you update a metadata file in the local cache, it would be unnoticed
+     * because Gradle always uses the binary version instead. So this is about warning the
+     * user that someone did something wrong by thinking that updating a file in our local
+     * cache should change something in terms of resolution.
+     *
+     * Security is not an issue: if someone manages to tamper the local cache, then
+     * it means they have access to the local FS so all bets are off.
+     */
+    @Issue("https://github.com/gradle/gradle/issues/4934")
+    @ToBeFixedForInstantExecution
+    @Unroll
+    def "can detect a tampered metadata file in the local cache (stop in between = #stop)"() {
+        createMetadataFile {
+            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "5474a386e69fd213d375dcaffadf6e291cc9aea0", "pom", "pom")
+        }
+        uncheckedModule("org", "foo")
+
+        given:
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        noExceptionThrown()
+        if (stop) {
+            executer.stop()
+        }
+
+        when:
+        def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
+        def module = new File(group, "foo")
+        def version = new File(module, "1.0")
+        def originHash = new File(version, "5474a386e69fd213d375dcaffadf6e291cc9aea0")
+        def artifactFile = new File(originHash, "foo-1.0.pom")
+        artifactFile.text = "tampered"
+
+        fails ':compileJava'
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha1' checksum of '5474a386e69fd213d375dcaffadf6e291cc9aea0' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
+This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
+
+        where:
+        stop << [true, false]
+    }
+
+    @ToBeFixedForInstantExecution
+    @Unroll
+    def "deleting local artifacts fails verification (stop in between = #stop)"() {
+        createMetadataFile {
+            addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
+            addChecksum("org:foo", "sha1", "5474a386e69fd213d375dcaffadf6e291cc9aea0", "pom", "pom")
+        }
+        uncheckedModule("org", "foo")
+
+        given:
+        javaLibrary()
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        succeeds ':compileJava'
+
+        then:
+        noExceptionThrown()
+        if (stop) {
+            executer.stop()
+        }
+
+        when:
+        def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
+        def module = new File(group, "foo")
+        def version = new File(module, "1.0")
+        def originHash = new File(version, "5474a386e69fd213d375dcaffadf6e291cc9aea0")
+        def artifactFile = new File(originHash, "foo-1.0.pom")
+        artifactFile.delete()
+
+        fails ':compileJava'
+
+        then:
+        failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
+  - Artifact foo-1.0.pom (org:foo:1.0) has been deleted from local cache so verification cannot be performed"""
+
+        where:
+        stop << [true, false]
+    }
 }
