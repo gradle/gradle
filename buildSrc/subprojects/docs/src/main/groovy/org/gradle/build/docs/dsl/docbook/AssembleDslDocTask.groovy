@@ -18,7 +18,9 @@ package org.gradle.build.docs.dsl.docbook
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
@@ -60,45 +62,45 @@ import org.w3c.dom.Element
  * </ul>
  */
 @CacheableTask
-class AssembleDslDocTask extends DefaultTask {
+abstract class AssembleDslDocTask extends DefaultTask {
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    File sourceFile
+    abstract RegularFileProperty getSourceFile();
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    File classMetaDataFile
+    abstract RegularFileProperty getClassMetaDataFile();
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    File pluginsMetaDataFile
+    abstract RegularFileProperty getPluginsMetaDataFile();
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
-    File classDocbookDir
+    abstract DirectoryProperty getClassDocbookDirectory();
 
     @OutputFile
-    File destFile
+    abstract RegularFileProperty getDestFile();
 
     @OutputFile
-    File linksFile
+    abstract RegularFileProperty getLinksFile();
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    FileCollection sources
+    abstract ConfigurableFileCollection getSources();
 
     @TaskAction
     def transform() {
         XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
-        provider.parse(sourceFile)
+        provider.parse(sourceFile.get().asFile)
         transformDocument(provider.document)
-        provider.write(destFile)
+        provider.write(destFile.get().asFile)
     }
 
     private def transformDocument(Document mainDocbookTemplate) {
         ClassMetaDataRepository<ClassMetaData> classRepository = new SimpleClassMetaDataRepository<ClassMetaData>()
-        classRepository.load(classMetaDataFile)
+        classRepository.load(classMetaDataFile.get().asFile)
         ClassMetaDataRepository<ClassLinkMetaData> linkRepository = new SimpleClassMetaDataRepository<ClassLinkMetaData>()
         //for every method found in class meta, create a javadoc link
         classRepository.each {name, ClassMetaData metaData ->
@@ -106,7 +108,7 @@ class AssembleDslDocTask extends DefaultTask {
         }
 
         // workaround to IBM JDK bug
-        def createDslDocModelClosure = this.&createDslDocModel.curry(classDocbookDir, mainDocbookTemplate, classRepository)
+        def createDslDocModelClosure = this.&createDslDocModel.curry(classDocbookDirectory.get().asFile, mainDocbookTemplate, classRepository)
 
         def doc = mainDocbookTemplate
         use(BuildableDOMCategory) {
@@ -120,7 +122,7 @@ class AssembleDslDocTask extends DefaultTask {
             }
         }
 
-        linkRepository.store(linksFile)
+        linkRepository.store(linksFile.get().asFile)
     }
 
     @CompileStatic
@@ -131,7 +133,7 @@ class AssembleDslDocTask extends DefaultTask {
 
     def loadPluginsMetaData() {
         XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
-        provider.parse(pluginsMetaDataFile)
+        provider.parse(pluginsMetaDataFile.get().asFile)
         Map<String, ClassExtensionMetaData> extensions = [:]
         provider.root.plugin.each { Element plugin ->
             def pluginId = plugin.'@id'

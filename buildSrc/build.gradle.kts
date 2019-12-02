@@ -180,6 +180,7 @@ val checkSameDaemonArgs by tasks.registering {
 tasks.build { dependsOn(checkSameDaemonArgs) }
 
 fun Project.applyGroovyProjectConventions() {
+    apply(plugin = "java-gradle-plugin")
     apply(plugin = "groovy")
 
     dependencies {

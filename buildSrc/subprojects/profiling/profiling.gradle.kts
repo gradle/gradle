@@ -5,7 +5,7 @@ dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
     implementation(project(":plugins"))
-    implementation(project(":build"))
+    implementation(project(":docs"))
 }
 
 gradlePlugin {

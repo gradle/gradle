@@ -19,12 +19,11 @@ package org.gradle.build.docs
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -35,7 +34,6 @@ import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-
 /**
  * Transforms userguide source into docbook, replacing custom XML elements.
  *
@@ -47,58 +45,39 @@ import org.w3c.dom.Element
  *
  */
 @CacheableTask
-class UserGuideTransformTask extends DefaultTask {
-
-    @Input
-    String getVersion() { return project.version.toString() }
-
-    def javadocUrl
-    def dsldocUrl
-    def websiteUrl
+abstract class UserGuideTransformTask extends DefaultTask {
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    File sourceFile
+    abstract RegularFileProperty getSourceFile();
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    File linksFile
+    abstract RegularFileProperty getLinksFile();
 
     @OutputFile
-    File destFile
-
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    @Optional
-    FileCollection includes
+    abstract RegularFileProperty getDestFile();
 
     @Input
-    Set<String> tags = new LinkedHashSet()
-
-    @Input String getJavadocUrl() {
-        javadocUrl
-    }
-
-    @Input String getDsldocUrl() {
-        dsldocUrl
-    }
-
-    @Input String getWebsiteUrl() {
-        websiteUrl
-    }
+    abstract Property<String> getJavadocUrl();
+    @Input
+    abstract Property<String> getDsldocUrl();
+    @Input
+    abstract Property<String> getWebsiteUrl();
+    @Input
+    abstract Property<String> getVersion();
 
     @TaskAction
     def transform() {
         XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider()
-        provider.parse(sourceFile)
+        provider.parse(sourceFile.get().asFile)
         transformImpl(provider.document)
-        provider.write(destFile)
+        provider.write(destFile.get().asFile)
     }
 
     private def transformImpl(Document doc) {
         use(BuildableDOMCategory) {
             addVersionInfo(doc)
-            applyConditionalChunks(doc)
             transformApiLinks(doc)
             transformWebsiteLinks(doc)
             fixProgramListings(doc)
@@ -107,7 +86,7 @@ class UserGuideTransformTask extends DefaultTask {
 
     def addVersionInfo(Document doc) {
         Element releaseInfo = doc.createElement('releaseinfo')
-        releaseInfo.appendChild(doc.createTextNode(version.toString()))
+        releaseInfo.appendChild(doc.createTextNode(version.get().toString()))
         doc.documentElement.bookinfo[0]?.appendChild(releaseInfo)
     }
 
@@ -123,7 +102,7 @@ class UserGuideTransformTask extends DefaultTask {
 
     def transformApiLinks(Document doc) {
         ClassMetaDataRepository<ClassLinkMetaData> linkRepository = new SimpleClassMetaDataRepository<ClassLinkMetaData>()
-        linkRepository.load(linksFile)
+        linkRepository.load(linksFile.get().asFile)
 
         findAll(doc, 'apilink').each { Element element ->
             String className = element.'@class'
@@ -140,9 +119,9 @@ class UserGuideTransformTask extends DefaultTask {
 
             String href
             if (style == 'dsldoc') {
-                href = "$dsldocUrl/${className}.html"
+                href = "${dsldocUrl.get()}/${className}.html"
             } else if (style == "javadoc") {
-                def base = javadocUrl
+                def base = javadocUrl.get()
                 def packageName = classMetaData.packageName
                 href = "$base/${packageName.replace('.', '/')}/${className.substring(packageName.length()+1)}.html"
             } else {
@@ -169,18 +148,8 @@ class UserGuideTransformTask extends DefaultTask {
             String url = element.'@url'
             if (url.startsWith('website:')) {
                 url = url.substring(8)
-                if (websiteUrl) {
-                    url = "${websiteUrl}/${url}"
-                }
+                url = "${websiteUrl.get()}/${url}"
                 element.setAttribute('url', url)
-            }
-        }
-    }
-
-    void applyConditionalChunks(Document doc) {
-        doc.documentElement.depthFirst().findAll { it.'@condition' }.each {Element element ->
-            if (!tags.contains(element.'@condition')) {
-                element.parentNode.removeChild(element)
             }
         }
     }

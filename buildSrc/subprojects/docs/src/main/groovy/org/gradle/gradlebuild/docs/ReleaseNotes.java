@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradlebuild
 
-import org.gradle.plugins.jsoup.JsoupCopyExtension
+package org.gradle.gradlebuild.docs;
 
-tasks.withType<Copy>().configureEach {
-    extensions.create<JsoupCopyExtension>("jsoup", this)
+import org.gradle.api.file.RegularFileProperty;
+
+public abstract class ReleaseNotes {
+    public abstract RegularFileProperty getSourceFile();
+    public abstract RegularFileProperty getRenderedFile();
 }

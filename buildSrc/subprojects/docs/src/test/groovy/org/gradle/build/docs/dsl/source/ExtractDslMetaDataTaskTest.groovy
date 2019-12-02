@@ -31,7 +31,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
     }
 
     def cleanup() {
-        task.destFile?.delete()
+        task.destinationFile?.delete()
     }
 
     def extractionIsDeterministic() {
@@ -40,9 +40,9 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        String firstMd5 = task.destFile.bytes.md5()
+        String firstMd5 = task.destinationFile.bytes.md5()
         task.extract()
-        String secondMd5 = task.destFile.bytes.md5()
+        String secondMd5 = task.destinationFile.bytes.md5()
 
         then:
         firstMd5 == secondMd5
@@ -63,7 +63,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClass')
@@ -94,7 +94,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClass')
@@ -148,7 +148,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithMethods')
@@ -192,7 +192,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithConstants')
@@ -209,7 +209,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaInterface = repository.get('org.gradle.test.JavaInterfaceWithConstants')
@@ -226,7 +226,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithFullyQualifiedNames')
@@ -246,7 +246,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithImports')
@@ -260,7 +260,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaEnum = repository.get('org.gradle.test.JavaEnum')
@@ -279,7 +279,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def annotation = repository.get('org.gradle.test.JavaAnnotation')
@@ -293,7 +293,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithInnerTypes')
@@ -331,7 +331,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithParameterizedTypes')
@@ -366,7 +366,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithAnnotation')
@@ -382,7 +382,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithAnnotation')
@@ -396,7 +396,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithAnnotation')
@@ -411,7 +411,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.Java8Interface')
@@ -426,7 +426,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         when:
         task.extract()
-        repository.load(task.destFile)
+        repository.load(task.destinationFile)
 
         then:
         def javaClass = repository.get('org.gradle.test.JavaClassWithStaticImport')

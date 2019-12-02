@@ -22,7 +22,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
@@ -33,7 +33,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository;
 
-import javax.inject.Inject;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -45,50 +44,22 @@ import java.util.Set;
 
 @NonNullApi
 @CacheableTask
-public class GenerateDefaultImportsTask extends DefaultTask {
-    private RegularFileProperty metaDataFile;
-    private RegularFileProperty importsDestFile;
-    private RegularFileProperty mappingDestFile;
-    private Set<String> excludePatterns = new LinkedHashSet<>();
-
-    @Inject
-    public GenerateDefaultImportsTask(ObjectFactory objectFactory) {
-        metaDataFile = objectFactory.fileProperty();
-        importsDestFile = objectFactory.fileProperty();
-        mappingDestFile = objectFactory.fileProperty();
-    }
-
+public abstract class GenerateDefaultImportsTask extends DefaultTask {
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
-    public RegularFileProperty getMetaDataFile() {
-        return metaDataFile;
-    }
+    public abstract RegularFileProperty getMetaDataFile();
 
     @OutputFile
-    public RegularFileProperty getImportsDestFile() {
-        return importsDestFile;
-    }
+    public abstract RegularFileProperty getImportsDestFile();
 
     @OutputFile
-    public RegularFileProperty getMappingDestFile() {
-        return mappingDestFile;
-    }
-
-    @Input
-    public Set<String> getExcludedPackages() {
-        return excludePatterns;
-    }
-
-    public void setExcludedPackages(Set<String> excludedPackages) {
-        this.excludePatterns = excludedPackages;
-    }
+    public abstract RegularFileProperty getMappingDestFile();
 
     /**
      * Package name can end with '.**' to exclude subpackages as well.
      */
-    public void excludePackage(String name) {
-        excludePatterns.add(name);
-    }
+    @Input
+    public abstract SetProperty<String> getExcludedPackages();
 
     @TaskAction
     public void generate() throws IOException {
@@ -97,7 +68,7 @@ public class GenerateDefaultImportsTask extends DefaultTask {
 
         final Set<String> excludedPrefixes = new HashSet<>();
         final Set<String> excludedPackages = new HashSet<>();
-        for (String excludePattern : excludePatterns) {
+        for (String excludePattern : getExcludedPackages().get()) {
             if (excludePattern.endsWith(".**")) {
                 String baseName = excludePattern.substring(0, excludePattern.length() - 3);
                 excludedPrefixes.add(baseName + '.');

@@ -21,6 +21,7 @@ import groovy.time.TimeDuration
 import org.gradle.api.Action
 import org.gradle.api.Transformer
 import org.gradle.api.file.FileTree
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
@@ -38,16 +39,16 @@ import org.gradle.build.docs.model.SimpleClassMetaDataRepository
  * for later use in generating documentation for the DSL, such as by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.
  */
 @CacheableTask
-class ExtractDslMetaDataTask extends SourceTask {
+abstract class ExtractDslMetaDataTask extends SourceTask {
     @OutputFile
-    def File destFile
+    abstract RegularFileProperty getDestinationFile();
 
     /**
      * {@inheritDoc}
      */
     @Override
     @PathSensitive(PathSensitivity.NAME_ONLY)
-    public FileTree getSource() {
+    FileTree getSource() {
         return super.getSource();
     }
 
@@ -70,7 +71,7 @@ class ExtractDslMetaDataTask extends SourceTask {
         repository.each { name, metaData ->
             fullyQualifyAllTypeNames(metaData, resolver)
         }
-        repository.store(destFile)
+        repository.store(destinationFile.get().asFile)
 
         Date stop = new Date()
         TimeDuration elapsedTime = TimeCategory.minus(stop, start)
