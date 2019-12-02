@@ -32,12 +32,12 @@ import java.util.Set;
 public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
 
     private final DefaultOsxFileEventFunctions fileEvents;
-    private DefaultOsxFileEventFunctions.WatcherThread watcher;
+    private DefaultOsxFileEventFunctions.ChangeCollector watcher;
 
-    public DarwinFileWatcherRegistry(Iterable<Path> watchRoots) throws IOException {
+    public DarwinFileWatcherRegistry(Iterable<Path> watchRoots) {
         this.fileEvents = Native.get(DefaultOsxFileEventFunctions.class);
         for (Path watchRoot : watchRoots) {
-            fileEvents.addRecursiveWatch(watchRoot.toFile());
+            fileEvents.addRecursiveWatch(watchRoot.toString());
         }
         this.watcher = fileEvents.startWatch();
     }
@@ -61,12 +61,8 @@ public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
         if (watcher == null) {
             return;
         }
-        try {
-            fileEvents.stopWatch(watcher);
-            watcher = null;
-        } catch (InterruptedException ex) {
-            // TODO ignored for now
-        }
+        fileEvents.stopWatch(watcher);
+        watcher = null;
     }
 
     /**
