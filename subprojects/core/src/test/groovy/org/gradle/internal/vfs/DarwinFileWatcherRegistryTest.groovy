@@ -16,12 +16,14 @@
 
 package org.gradle.internal.vfs
 
-
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import spock.lang.Unroll
 
 import java.nio.file.Paths
 
+@Requires(TestPrecondition.MAC_OS_X)
 class DarwinFileWatcherRegistryTest extends Specification {
     @Unroll
     def "resolves recursive roots #directories to #resolvedRoots"() {
