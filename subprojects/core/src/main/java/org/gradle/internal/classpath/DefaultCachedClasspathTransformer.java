@@ -17,13 +17,13 @@
 package org.gradle.internal.classpath;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTimeJournal;
 import org.gradle.internal.file.JarCache;
 import org.gradle.internal.resource.local.FileAccessTracker;
+import org.gradle.internal.vfs.AdditiveCacheLocations;
 import org.gradle.util.CollectionUtils;
 
 import java.io.Closeable;
@@ -43,11 +43,11 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathTransformerCacheFactory classpathTransformerCacheFactory,
         FileAccessTimeJournal fileAccessTimeJournal,
         JarCache jarCache,
-        WellKnownFileLocations wellKnownFileLocations
+        AdditiveCacheLocations additiveCacheLocations
     ) {
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         FileAccessTracker fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
-        this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, wellKnownFileLocations), fileAccessTracker);
+        this.jarFileTransformer = new FileAccessTrackingJarFileTransformer(new CachedJarFileTransformer(jarCache, additiveCacheLocations), fileAccessTracker);
     }
 
     @Override
@@ -72,11 +72,11 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private class CachedJarFileTransformer implements Transformer<File, File> {
         private final JarCache jarCache;
-        private final WellKnownFileLocations wellKnownFileLocations;
+        private final AdditiveCacheLocations additiveCacheLocations;
 
-        CachedJarFileTransformer(JarCache jarCache, WellKnownFileLocations wellKnownFileLocations) {
+        CachedJarFileTransformer(JarCache jarCache, AdditiveCacheLocations additiveCacheLocations) {
             this.jarCache = jarCache;
-            this.wellKnownFileLocations = wellKnownFileLocations;
+            this.additiveCacheLocations = additiveCacheLocations;
         }
 
         @Override
@@ -92,7 +92,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
                 return false;
             }
             String absolutePath = original.getAbsolutePath();
-            return !wellKnownFileLocations.isImmutable(absolutePath);
+            return !additiveCacheLocations.isInsideAdditiveCache(absolutePath);
         }
     }
 

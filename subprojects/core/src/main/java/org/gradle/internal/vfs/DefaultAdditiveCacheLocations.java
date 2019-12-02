@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.vfs;
 
-import org.gradle.internal.classpath.CachedJarFileStore;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 
 import java.io.File;
 import java.util.List;
 
-public class DefaultWellKnownFileLocations implements WellKnownFileLocations {
+public class DefaultAdditiveCacheLocations implements AdditiveCacheLocations {
     private final FileHierarchySet immutableLocations;
 
-    public DefaultWellKnownFileLocations(List<CachedJarFileStore> fileStores) {
+    public DefaultAdditiveCacheLocations(List<AdditiveCache> fileStores) {
         FileHierarchySet immutableLocations = DefaultFileHierarchySet.of();
-        for (CachedJarFileStore fileStore : fileStores) {
-            for (File file : fileStore.getFileStoreRoots()) {
+        for (AdditiveCache fileStore : fileStores) {
+            for (File file : fileStore.getAdditiveCacheRoots()) {
                 immutableLocations = immutableLocations.plus(file);
             }
         }
@@ -37,7 +36,7 @@ public class DefaultWellKnownFileLocations implements WellKnownFileLocations {
     }
 
     @Override
-    public boolean isImmutable(String path) {
+    public boolean isInsideAdditiveCache(String path) {
         return immutableLocations.contains(path);
     }
 }

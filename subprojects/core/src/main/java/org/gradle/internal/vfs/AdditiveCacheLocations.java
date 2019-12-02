@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.classpath;
+package org.gradle.internal.vfs;
 
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.resource.local.FileAccessTracker;
-import org.gradle.internal.vfs.AdditiveCache;
+/**
+ * Identifies if a path is underneath one of Gradle's "additive caches".
+ *
+ * Over time more files can be added to an additive cache, but existing files
+ * can never be modified. Files in additive caches can only be deleted as part
+ * of cleanup.
+ *
+ * This quasi-immutability about additive caches allows for some
+ * optimizations wrt retaining file system state in-memory.
+ */
+public interface AdditiveCacheLocations {
 
-public interface ClasspathTransformerCacheFactory extends AdditiveCache {
-    PersistentCache createCache(CacheRepository cacheRepository, FileAccessTimeJournal fileAccessTimeJournal);
-
-    FileAccessTracker createFileAccessTracker(FileAccessTimeJournal fileAccessTimeJournal);
+    /**
+     * Checks if a given path is inside one of Gradle's additive caches.
+     */
+    boolean isInsideAdditiveCache(String path);
 }

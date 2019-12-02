@@ -17,7 +17,6 @@
 package org.gradle.internal.vfs;
 
 import com.google.common.collect.Iterables;
-import org.gradle.api.internal.changedetection.state.WellKnownFileLocations;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
@@ -28,13 +27,13 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class RoutingVirtualFileSystem implements VirtualFileSystem {
-    private final WellKnownFileLocations gradleUserHomeFileLocations;
+    private final AdditiveCacheLocations gradleUserHomeFileLocations;
     private final VirtualFileSystem gradleUserHomeVirtualFileSystem;
     private final VirtualFileSystem buildScopedVirtualFileSystem;
     private final BooleanSupplier vfsRetained;
 
     public RoutingVirtualFileSystem(
-        WellKnownFileLocations gradleUserHomeLocations,
+        AdditiveCacheLocations gradleUserHomeLocations,
         VirtualFileSystem gradleUserHomeVirtualFileSystem,
         VirtualFileSystem buildScopedVirtualFileSystem,
         BooleanSupplier vfsRetained
@@ -68,14 +67,14 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
         if (vfsRetained.getAsBoolean()) {
             gradleUserHomeVirtualFileSystem.update(locations, action);
         } else {
-            Iterable<String> immutableLocations = Iterables.filter(locations, gradleUserHomeFileLocations::isImmutable);
+            Iterable<String> immutableLocations = Iterables.filter(locations, gradleUserHomeFileLocations::isInsideAdditiveCache);
             int immutableLocationsSize = Iterables.size(immutableLocations);
             if (immutableLocationsSize == 0) {
                 buildScopedVirtualFileSystem.update(locations, action);
             } else if (immutableLocationsSize == Iterables.size(locations)) {
                 gradleUserHomeVirtualFileSystem.update(locations, action);
             } else {
-                Iterable<String> mutableLocations = Iterables.filter(locations, location -> !gradleUserHomeFileLocations.isImmutable(location));
+                Iterable<String> mutableLocations = Iterables.filter(locations, location -> !gradleUserHomeFileLocations.isInsideAdditiveCache(location));
                 gradleUserHomeVirtualFileSystem.update(immutableLocations, action);
                 buildScopedVirtualFileSystem.update(mutableLocations, action);
             }
@@ -96,7 +95,7 @@ public class RoutingVirtualFileSystem implements VirtualFileSystem {
     private VirtualFileSystem getVirtualFileSystemFor(String location) {
         return vfsRetained.getAsBoolean()
             ? gradleUserHomeVirtualFileSystem
-            : gradleUserHomeFileLocations.isImmutable(location)
+            : gradleUserHomeFileLocations.isInsideAdditiveCache(location)
                 ? gradleUserHomeVirtualFileSystem
                 : buildScopedVirtualFileSystem;
     }
