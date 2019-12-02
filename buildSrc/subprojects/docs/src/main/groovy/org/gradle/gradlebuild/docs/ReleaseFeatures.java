@@ -20,4 +20,5 @@ import org.gradle.api.file.RegularFileProperty;
 
 public abstract class ReleaseFeatures {
     public abstract RegularFileProperty getReleaseFeaturesFile();
+    // TODO: Include copied location?
 }

@@ -19,6 +19,6 @@ package org.gradle.gradlebuild.docs;
 import org.gradle.api.file.RegularFileProperty;
 
 public abstract class ReleaseNotes {
-    public abstract RegularFileProperty getSourceFile();
+    public abstract RegularFileProperty getMarkdownFile();
     public abstract RegularFileProperty getRenderedFile();
 }

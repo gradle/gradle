@@ -68,7 +68,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         applyConventions(project, layout, extension);
 
         generateReleaseNotes(project, layout, tasks, extension);
-        generateReleaseFeatures(project, extension);
+        generateReleaseFeatures(project, layout, tasks, extension);
         generateJavadocs(project, layout, tasks, extension);
         generateDslReference(project, layout, tasks, objects, extension);
         generateUserManual(project, tasks, extension);
@@ -512,17 +512,18 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         });
     }
 
-    private void generateReleaseFeatures(Project project, GradleDocumentationExtension extension) {
+    private void generateReleaseFeatures(Project project, ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        TaskProvider<Sync> copyReleaseFeatures = tasks.register("copyReleaseFeatures", Sync.class, task -> {
+           task.from(extension.getReleaseFeatures().getReleaseFeaturesFile());
+           task.into(layout.getBuildDirectory().dir("generated-release-features"));
+        });
+
         extension.releaseFeatures(releaseFeatures -> {
             releaseFeatures.getReleaseFeaturesFile().convention(extension.getDocumentationSourceRoot().file("release/release-features.txt"));
         });
 
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-        sourceSets.getByName("main", main -> {
-            // TODO:
-            //  sourceSets.main.output.dir generatedResourcesDir, builtBy: [defaultImports, copyReleaseFeatures]
-            // main.getOutput().dir();
-        });
+        sourceSets.getByName("main", main -> main.getResources().srcDirs(copyReleaseFeatures));
     }
 
     private void generateReleaseNotes(Project project, ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
@@ -533,26 +534,33 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
             task.getInputEncoding().convention(Charset.defaultCharset());
             task.getOutputEncoding().convention(Charset.defaultCharset());
 
-            task.getMarkdownFile().convention(extension.getReleaseNotes().getSourceFile());
+            task.getMarkdownFile().convention(extension.getReleaseNotes().getMarkdownFile());
             // TODO: Does this path make sense?
             task.getDestinationFile().convention(layout.getBuildDirectory().file("release-notes-raw/release-notes.html"));
         });
 
-        TaskProvider<JsoupPostProcess> releaseNotesPostProcess = tasks.register("releaseNotes", JsoupPostProcess.class, task -> {
+        Configuration jquery = project.getConfigurations().create("jquery");
+
+        TaskProvider<DecorateReleaseNotes> releaseNotesPostProcess = tasks.register("releaseNotes", DecorateReleaseNotes.class, task -> {
             task.setGroup("release notes");
             task.setDescription("Transforms generated release notes.");
             task.getHtmlFile().convention(releaseNotesMarkdown.flatMap(RenderMarkdown::getDestinationFile));
-            // TODO: Does this path make sense?
-            task.getDestinationFile().convention(layout.getBuildDirectory().file("release-notes/release-notes.html"));
+            // TODO: These should be in the model
+            task.getBaseStylesheetFile().convention(extension.getDocumentationSourceRoot().file("css/base.css"));
+            task.getReleaseNotesJavascriptFile().convention(extension.getDocumentationSourceRoot().file("release/content/script.js"));
+            task.getReleaseNotesStylesheetFile().convention(extension.getDocumentationSourceRoot().file("css/release-notes.css"));
+            task.getJquery().from(jquery);
+
             task.getReplacementTokens().put("version", project.provider(() -> String.valueOf(project.getVersion())));
             task.getReplacementTokens().put("baseVersion", project.provider(() -> String.valueOf(project.getRootProject().getExtensions().getExtraProperties().get("baseVersion"))));
 
-            task.getTransforms().from("src/transforms/release-notes.gradle");
+            // TODO: Does this path make sense?
+            task.getDestinationFile().convention(layout.getBuildDirectory().file("release-notes/release-notes.html"));
         });
 
         extension.releaseNotes(releaseNotes -> {
-            releaseNotes.getSourceFile().convention(extension.getDocumentationSourceRoot().file("release/notes.md"));
-            releaseNotes.getRenderedFile().convention(releaseNotesPostProcess.flatMap(JsoupPostProcess::getDestinationFile));
+            releaseNotes.getMarkdownFile().convention(extension.getDocumentationSourceRoot().file("release/notes.md"));
+            releaseNotes.getRenderedFile().convention(releaseNotesPostProcess.flatMap(DecorateReleaseNotes::getDestinationFile));
         });
     }
 }
