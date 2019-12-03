@@ -69,7 +69,6 @@ abstract class Docbook2Xhtml extends SourceTask {
 
         // TODO: Implement this with the worker API
         def xslClasspath = classpath.plus(project.files(ClasspathUtil.getClasspathForClass(XslTransformer)))
-        println xslClasspath.files
 
         project.copy {
             from(getStylesheetDirectory()) {

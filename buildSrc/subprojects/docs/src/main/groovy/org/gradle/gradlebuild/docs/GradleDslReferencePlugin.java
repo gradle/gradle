@@ -88,18 +88,16 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
         });
 
         extension.dslReference(dslRef -> {
-            ConfigurableFileTree css = objects.fileTree();
-            css.from(extension.getSourceRoot().dir("css"));
-            css.include("*.css");
-            dslRef.getResources().from(css);
-
+            // DSL ref has custom javascript
             ConfigurableFileTree js = objects.fileTree();
             js.from(dslReference.getRoot());
             js.include("*.js");
             dslRef.getResources().from(js);
 
+            dslRef.getResources().from(extension.getCssFiles());
+
             dslRef.getRoot().convention(extension.getSourceRoot().dir("dsl"));
-            dslRef.getStylesheetDirectory().convention(extension.getSourceRoot().dir("stylesheets/"));
+            dslRef.getStylesheetDirectory().convention(extension.getSourceRoot().dir("stylesheets"));
             dslRef.getHighlightStylesheet().convention(dslRef.getStylesheetDirectory().file("custom-highlight/custom-xslthl-config.xml"));
 
             dslRef.getStagingRoot().convention(extension.getStagingRoot().dir("dsl"));

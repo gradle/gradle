@@ -60,6 +60,7 @@ public abstract class GradleDocumentationExtension {
     }
 
     public abstract DirectoryProperty getSourceRoot();
+    public abstract ConfigurableFileCollection getCssFiles();
 
     public abstract ConfigurableFileCollection getDocumentedSource();
     public abstract ConfigurableFileCollection getClasspath();

@@ -79,7 +79,7 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
             Map<String, Object> parameters = new HashMap<>();
             // NOTE: These parameter names _must_ match the setter names in ReleaseNotesTransformer
             parameters.put("baseCss", getBaseCssFile().get().getAsFile());
-            parameters.put("releaseNoteCss", getReleaseNotesCssFile().get().getAsFile());
+            parameters.put("releaseNotesCss", getReleaseNotesCssFile().get().getAsFile());
             parameters.put("releaseNotesJavascript", getReleaseNotesJavascriptFile().get().getAsFile());
             parameters.put("jquery", getJquery().getSingleFile());
 

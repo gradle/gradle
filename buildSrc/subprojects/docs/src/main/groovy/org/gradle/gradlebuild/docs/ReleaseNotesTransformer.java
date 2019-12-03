@@ -109,7 +109,7 @@ public class ReleaseNotesTransformer extends FilterReader {
 
     private void appendFileContentsTo(Element element, String open, File file, String close) {
         try (FileReader reader = new FileReader(file)) {
-            element.append(open).append(CharStreams.toString(reader)).append(close);
+            element.append(open).text(CharStreams.toString(reader)).append(close);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
