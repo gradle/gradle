@@ -132,7 +132,7 @@ public class DefaultFileHierarchySet {
         Node plus(String path) {
             int maxPos = Math.min(prefix.length(), path.length());
             int prefixLen = sizeOfCommonPrefix(path, 0);
-            if (prefixLen == maxPos && prefixLen != 0) {
+            if (prefixLen == maxPos) {
                 if (prefix.length() == path.length()) {
                     // Path == prefix
                     if (children.isEmpty()) {
@@ -145,7 +145,7 @@ public class DefaultFileHierarchySet {
                     if (children.isEmpty()) {
                         return this;
                     }
-                    int startNextSegment = prefix.length() + 1;
+                    int startNextSegment = (prefixLen == 0) ? 0 : prefixLen + 1;
                     List<Node> merged = new ArrayList<Node>(children.size() + 1);
                     boolean matched = false;
                     for (Node child : children) {

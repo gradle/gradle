@@ -46,6 +46,7 @@ class DefaultFileHierarchySetTest extends Specification {
         !set.contains(tmpDir.file("any"))
     }
 
+
     def "creates from collection containing single file"() {
         def dir = tmpDir.createDir("dir")
 
@@ -134,18 +135,24 @@ class DefaultFileHierarchySetTest extends Specification {
         DefaultFileHierarchySet.of(pathList.collect { new File(it) }).contains(target) == result
 
         where:
-        pathList                  | target               | result
-        ['/var', '/home']         | '/usr'               | false
-        ['/var', '/home']         | '/var'               | true
-        ['/var', '/home']         | '/home'              | true
-        ['/var', '/home', '/usr'] | '/home'              | true
-        ['/var', '/home', '/usr'] | '/usr'               | true
-        ['/var', '/home', '/usr'] | '/bin'               | false
-        ['/var/log', '/home/my']  | '/var/log'           | true
-        ['/var/log', '/home/my']  | '/home/my/documents' | true
-        ['/var', '/var/log']      | '/var/log/kern.log'  | true
-        ['/var', '/var/log']      | '/var/other'         | true
-        ['/var', '/var/log']      | '/home'              | false
+        pathList                       | target               | result
+        ['/var', '/home']              | '/usr'               | false
+        ['/var/log', '/var/home', '/'] | '/usr'               | true
+        ['/', '/home']                 | '/'                  | true
+        ['/home', '/']                 | '/'                  | true
+        ['/home', '/']                 | '/home'              | true
+        ['/', '/home']                 | '/home'              | true
+        ['/', '/']                     | '/'                  | true
+        ['/var', '/home']              | '/var'               | true
+        ['/var', '/home']              | '/home'              | true
+        ['/var', '/home', '/usr']      | '/home'              | true
+        ['/var', '/home', '/usr']      | '/usr'               | true
+        ['/var', '/home', '/usr']      | '/bin'               | false
+        ['/var/log', '/home/my']       | '/var/log'           | true
+        ['/var/log', '/home/my']       | '/home/my/documents' | true
+        ['/var', '/var/log']           | '/var/log/kern.log'  | true
+        ['/var', '/var/log']           | '/var/other'         | true
+        ['/var', '/var/log']           | '/home'              | false
     }
 
     def "can add dir to empty set"() {
