@@ -158,36 +158,22 @@ fun dehydrateScriptModels(
     scriptModels: Map<File, KotlinBuildScriptModel>
 ): Pair<CommonKotlinDslScriptModel, Map<File, KotlinDslScriptModel>> {
 
-    val commonClassPath = mutableSetOf<File>()
-    val commonSourcePath = mutableSetOf<File>()
-    val commonImplicitImports = mutableSetOf<String>()
-    var first = true
-    scriptModels.values.forEach { model ->
-        if (first) {
-            commonClassPath.addAll(model.classPath)
-            commonSourcePath.addAll(model.sourcePath)
-            commonImplicitImports.addAll(model.implicitImports)
-            first = false
-        } else {
-            commonClassPath.retainAll(model.classPath)
-            commonSourcePath.retainAll(model.sourcePath)
-            commonImplicitImports.retainAll(model.implicitImports)
-        }
-    }
+    val commonClassPath = commonPrefixOf(scriptModels.values.map { it.classPath })
+    val commonSourcePath = commonPrefixOf(scriptModels.values.map { it.sourcePath })
+    val commonImplicitImports = commonPrefixOf(scriptModels.values.map { it.implicitImports })
+
+    val commonModel = CommonKotlinDslScriptModel(commonClassPath, commonSourcePath, commonImplicitImports)
+
     val dehydratedScriptModels = scriptModels.mapValues { (_, model) ->
         StandardKotlinDslScriptModel(
-            model.classPath.minus(commonClassPath),
-            model.sourcePath.minus(commonSourcePath),
-            model.implicitImports.minus(commonImplicitImports),
+            model.classPath.drop(commonClassPath.size),
+            model.sourcePath.drop(commonSourcePath.size),
+            model.implicitImports.drop(commonImplicitImports.size),
             mapEditorReports(model.editorReports),
             model.exceptions
         )
     }
-    val commonModel = CommonKotlinDslScriptModel(
-        commonClassPath.toList(),
-        commonSourcePath.toList(),
-        commonImplicitImports.toList()
-    )
+
     return commonModel to dehydratedScriptModels
 }
 
@@ -245,6 +231,23 @@ data class KotlinDslScriptsParameter(
     var correlationId: String?,
     var scriptFiles: List<File>
 )
+
+
+internal
+fun <T : Any> commonPrefixOf(lists: List<List<T>>): List<T> {
+    if (lists.isEmpty()) return emptyList()
+    if (lists.size == 1) return lists.first()
+    val maxIndex = lists.map { it.size }.min()!! - 1
+    if (maxIndex < 0) return emptyList()
+    val first = lists.first()
+    val others = lists.drop(1)
+    val common = ArrayList<T>(maxIndex)
+    for (idx in 0..maxIndex) {
+        if (others.all { it[idx] == first[idx] }) common += first[idx]
+        else break
+    }
+    return common
+}
 
 
 private
