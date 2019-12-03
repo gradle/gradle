@@ -32,11 +32,15 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
+import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask;
+import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask;
 import org.gradle.gradlebuild.ProjectGroups;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GradleBuildDocumentationPlugin implements Plugin<Project> {
@@ -46,11 +50,43 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         TaskContainer tasks = project.getTasks();
 
         GradleDocumentationExtension extension = project.getExtensions().create("gradleDocumentation", GradleDocumentationExtension.class);
-        applyConventions(project, layout, extension);
+        applyConventions(project, tasks, layout, extension);
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
+
+        // TODO: This should be wired through the model
+        TaskProvider<ExtractDslMetaDataTask> dslMetaData = tasks.named("dslMetaData", ExtractDslMetaDataTask.class);
+        TaskProvider<GenerateDefaultImportsTask> defaultImports = tasks.register("defaultImports", GenerateDefaultImportsTask.class, task -> {
+            task.getMetaDataFile().convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
+            task.getImportsDestFile().convention(layout.getBuildDirectory().file("generated-imports/default-imports.txt"));
+            task.getMappingDestFile().convention(layout.getBuildDirectory().file("generated-imports/api-mapping.txt"));
+
+            List<String> excludedPackages = new ArrayList<>();
+            // These are part of the API, but not the DSL
+            excludedPackages.add("org.gradle.tooling.**");
+            excludedPackages.add("org.gradle.testfixtures.**");
+
+            // Tweak the imports due to some inconsistencies introduced before we automated the default-imports generation
+            excludedPackages.add("org.gradle.plugins.ide.eclipse.model");
+            excludedPackages.add("org.gradle.plugins.ide.idea.model");
+            excludedPackages.add("org.gradle.api.tasks.testing.logging");
+
+            // TODO - rename some incubating types to remove collisions and then remove these exclusions
+            excludedPackages.add("org.gradle.plugins.binaries.model");
+
+            // Exclude classes that were moved in a different package but the deprecated ones are not removed yet
+            excludedPackages.add("org.gradle.platform.base.test");
+
+            task.getExcludedPackages().convention(excludedPackages);
+        });
+        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+        sourceSets.getByName("main", main -> {
+            // TODO:
+            //  sourceSets.main.output.dir generatedResourcesDir, builtBy: [defaultImports, copyReleaseFeatures]
+//            main.getOutput().dir(defaultImports);
+        });
 
         addUtilityTasks(tasks, extension);
 
@@ -60,15 +96,34 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         generateUserManual(project, tasks, extension);
     }
 
-    private void applyConventions(Project project, ProjectLayout layout, GradleDocumentationExtension extension) {
-        extension.getDocumentationSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));
+    private void applyConventions(Project project, TaskContainer tasks, ProjectLayout layout, GradleDocumentationExtension extension) {
+        TaskProvider<Sync> stageDocs = tasks.register("stageDocs", Sync.class, task -> {
+            // release notes goes in the root of the docs
+            task.from(extension.getReleaseNotes().getRenderedDocumentation());
+
+            // DSL reference goes into dsl/
+            task.from(extension.getDslReference().getRenderedDocumentation(), sub -> sub.into("dsl"));
+
+            // Javadocs reference goes into javadoc/
+            task.from(extension.getJavadocs().getRenderedDocumentation(), sub -> sub.into("javadoc"));
+
+            // TODO: user manual goes into userguide/ (for historical reasons)
+            // task.from(extension.getDslReference().getRenderedDocumentation(), sub -> sub.into("userguide"));
+
+            task.into(extension.getDocumentationRenderedRoot());
+        });
+
+        extension.getSourceRoot().convention(layout.getProjectDirectory().dir("src/docs"));
         extension.getDocumentationRenderedRoot().convention(layout.getBuildDirectory().dir("docs"));
+        extension.getStagingRoot().convention(layout.getBuildDirectory().dir("docs-working"));
+
+        extension.getRenderedDocumentation().from(stageDocs);
 
         Configuration gradleApiRuntime = project.getConfigurations().create("gradleApiRuntime");
         extension.getClasspath().from(gradleApiRuntime);
         // TODO: This should not reach across project boundaries
         for (Project publicProject : ProjectGroups.INSTANCE.getPublicJavaProjects(project)) {
-            extension.getSource().from(publicProject.getExtensions().getByType(SourceSetContainer.class).getByName("main").getAllJava());
+            extension.getDocumentedSource().from(publicProject.getExtensions().getByType(SourceSetContainer.class).getByName("main").getAllJava());
         }
     }
 
@@ -114,18 +169,25 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
 
         tasks.named("test", Test.class).configure(task -> {
-            task.getInputs().file(extension.getReleaseNotes().getRenderedFile()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
+            task.getInputs().file(extension.getReleaseNotes().getRenderedDocumentation()).withPropertyName("releaseNotes").withPathSensitivity(PathSensitivity.NONE);
             task.getInputs().file(extension.getReleaseFeatures().getReleaseFeaturesFile()).withPropertyName("releaseFeatures").withPathSensitivity(PathSensitivity.NONE);
 
             task.getInputs().property("systemProperties", Collections.emptyMap());
             // TODO: This breaks the provider
-            task.systemProperty("org.gradle.docs.releasenotes.rendered", extension.getReleaseNotes().getRenderedFile().get().getAsFile());
+            task.systemProperty("org.gradle.docs.releasenotes.rendered", extension.getReleaseNotes().getRenderedDocumentation().get().getAsFile());
             // TODO: This breaks the provider
             task.systemProperty("org.gradle.docs.releasefeatures", extension.getReleaseFeatures().getReleaseFeaturesFile().get().getAsFile());
         });
     }
 
     private void generateUserManual(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
+        //        def imageFiles = fileTree(userguideSrcDir) {
+//            include "img/*.png"
+//            include "img/*.gif"
+//            include "img/*.jpg"
+//        }
+//        def resourceFiles = imageFiles + cssFiles
+
         tasks.withType(AsciidoctorTask.class).configureEach(task -> {
             if (task.getName().equals("asciidoctor")) {
                 // ignore this task

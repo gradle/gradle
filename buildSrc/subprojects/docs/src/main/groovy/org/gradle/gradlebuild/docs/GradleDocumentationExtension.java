@@ -59,10 +59,12 @@ public abstract class GradleDocumentationExtension {
         javadocs = objects.newInstance(Javadocs.class);
     }
 
-    public abstract DirectoryProperty getDocumentationSourceRoot();
+    public abstract DirectoryProperty getSourceRoot();
 
-    public abstract ConfigurableFileCollection getSource();
+    public abstract ConfigurableFileCollection getDocumentedSource();
     public abstract ConfigurableFileCollection getClasspath();
+
+    public abstract DirectoryProperty getStagingRoot();
 
     public abstract DirectoryProperty getDocumentationRenderedRoot();
     public abstract ConfigurableFileCollection getRenderedDocumentation();

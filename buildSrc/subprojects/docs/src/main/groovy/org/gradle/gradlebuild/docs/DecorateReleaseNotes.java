@@ -57,11 +57,11 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
 
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
-    public abstract RegularFileProperty getReleaseNotesStylesheetFile();
+    public abstract RegularFileProperty getReleaseNotesCssFile();
 
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
-    public abstract RegularFileProperty getBaseStylesheetFile();
+    public abstract RegularFileProperty getBaseCssFile();
 
     @Input
     public abstract MapProperty<String, String> getReplacementTokens();
@@ -77,8 +77,9 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
 
             // The order here is important! tokens are inserted by the transformer
             Map<String, Object> parameters = new HashMap<>();
-            parameters.put("baseStylesheet", getBaseStylesheetFile().get().getAsFile());
-            parameters.put("releaseNotesStylesheet", getReleaseNotesStylesheetFile().get().getAsFile());
+            // NOTE: These parameter names _must_ match the setter names in ReleaseNotesTransformer
+            parameters.put("baseCss", getBaseCssFile().get().getAsFile());
+            parameters.put("releaseNoteCss", getReleaseNotesCssFile().get().getAsFile());
             parameters.put("releaseNotesJavascript", getReleaseNotesJavascriptFile().get().getAsFile());
             parameters.put("jquery", getJquery().getSingleFile());
 

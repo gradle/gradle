@@ -22,10 +22,11 @@ import org.gradle.api.file.RegularFileProperty;
 
 public abstract class DslReference {
     public abstract DirectoryProperty getRoot();
-    public abstract RegularFileProperty getStylesheet();
+    public abstract DirectoryProperty getStylesheetDirectory();
     public abstract RegularFileProperty getHighlightStylesheet();
-
     public abstract ConfigurableFileCollection getResources();
 
-    public abstract DirectoryProperty getRenderedDocumentation();
+    public abstract DirectoryProperty getStagingRoot();
+
+    public abstract ConfigurableFileCollection getRenderedDocumentation();
 }

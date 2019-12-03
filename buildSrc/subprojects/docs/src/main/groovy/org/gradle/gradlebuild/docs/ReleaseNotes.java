@@ -16,9 +16,15 @@
 
 package org.gradle.gradlebuild.docs;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 
 public abstract class ReleaseNotes {
     public abstract RegularFileProperty getMarkdownFile();
-    public abstract RegularFileProperty getRenderedFile();
+    public abstract RegularFileProperty getBaseCssFile();
+    public abstract RegularFileProperty getReleaseNotesCssFile();
+    public abstract RegularFileProperty getReleaseNotesJsFile();
+    public abstract ConfigurableFileCollection getJquery();
+
+    public abstract RegularFileProperty getRenderedDocumentation();
 }

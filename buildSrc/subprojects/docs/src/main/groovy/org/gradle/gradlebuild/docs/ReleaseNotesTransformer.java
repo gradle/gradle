@@ -35,8 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ReleaseNotesTransformer extends FilterReader {
-    private File baseStylesheet;
-    private File releaseNotesStylesheet;
+    private File baseCss;
+    private File releaseNotesCss;
     private File releaseNotesJavascript;
     private File jquery;
 
@@ -64,7 +64,7 @@ public class ReleaseNotesTransformer extends FilterReader {
     }
 
     private Reader transform(Reader in) throws IOException {
-        if (jquery == null || releaseNotesJavascript == null || releaseNotesStylesheet == null || baseStylesheet == null) {
+        if (jquery == null || releaseNotesJavascript == null || baseCss == null || releaseNotesCss == null) {
             throw new GradleException("filter isn't ready to transform");
         }
 
@@ -103,8 +103,8 @@ public class ReleaseNotesTransformer extends FilterReader {
     }
 
     private void addCssToHead(Document document) {
-        appendFileContentsTo(document.head(), "<style>", baseStylesheet, "</style>");
-        appendFileContentsTo(document.head(), "<style>", releaseNotesStylesheet, "</style>");
+        appendFileContentsTo(document.head(), "<style>", baseCss, "</style>");
+        appendFileContentsTo(document.head(), "<style>", releaseNotesCss, "</style>");
     }
 
     private void appendFileContentsTo(Element element, String open, File file, String close) {
@@ -175,12 +175,12 @@ public class ReleaseNotesTransformer extends FilterReader {
         this.jquery = jquery;
     }
 
-    public void setBaseStylesheet(File baseStylesheet) {
-        this.baseStylesheet = baseStylesheet;
+    public void setBaseCss(File baseCss) {
+        this.baseCss = baseCss;
     }
 
-    public void setReleaseNotesStylesheet(File releaseNotesStylesheet) {
-        this.releaseNotesStylesheet = releaseNotesStylesheet;
+    public void setReleaseNotesCss(File releaseNotesCss) {
+        this.releaseNotesCss = releaseNotesCss;
     }
 
     public void setReleaseNotesJavascript(File releaseNotesJavascript) {

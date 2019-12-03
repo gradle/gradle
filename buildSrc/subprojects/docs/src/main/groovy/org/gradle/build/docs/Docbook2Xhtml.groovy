@@ -23,6 +23,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -31,7 +32,6 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
-import org.gradle.internal.logging.ConsoleRenderer
 
 @CacheableTask
 abstract class Docbook2Xhtml extends SourceTask {
@@ -41,36 +41,57 @@ abstract class Docbook2Xhtml extends SourceTask {
         return super.getSource()
     }
 
-    @OutputDirectory
-    abstract DirectoryProperty getDestinationDirectory();
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputDirectory
+    abstract DirectoryProperty getStylesheetDirectory();
 
-    @PathSensitive(PathSensitivity.NONE)
-    @InputFile
-    abstract RegularFileProperty getStylesheetFile();
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    abstract ConfigurableFileCollection getDocbookStylesheets()
 
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
     abstract RegularFileProperty getStylesheetHighlightFile();
 
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    abstract ConfigurableFileCollection getResources();
-
     @Classpath
     abstract ConfigurableFileCollection getClasspath();
+
+    @OutputDirectory
+    abstract DirectoryProperty getDestinationDirectory();
 
     @TaskAction
     def transform() {
         logging.captureStandardOutput(LogLevel.INFO)
         logging.captureStandardError(LogLevel.INFO)
 
+        def destDir = destinationDirectory.get().asFile
+        project.delete(destDir, temporaryDir)
+
         // TODO: Implement this with the worker API
-        def xslClasspath = classpath + ClasspathUtil.getClasspathForClass(XslTransformer)
+        def xslClasspath = classpath.plus(project.files(ClasspathUtil.getClasspathForClass(XslTransformer)))
+        println xslClasspath.files
+
+        project.copy {
+            from(getStylesheetDirectory()) {
+                include "**/*.xml"
+                include "*.xsl"
+            }
+            from(project.zipTree(getDocbookStylesheets().singleFile)) {
+                eachFile {
+                    fcd -> fcd.path = fcd.path.replaceFirst("^docbook-xsl-[0-9\\.]+/", "")
+                }
+            }
+            into(getTemporaryDir())
+        }
+
+        def stylesheetFile = new File(getTemporaryDir(), "dslHtml.xsl")
         def xslthlConfigFile = getStylesheetHighlightFile().get().asFile.toURI()
 
-        def destDir = destinationDirectory.get.asFile
         source.visit { FileVisitDetails fvd ->
             if (fvd.isDirectory()) {
+                return
+            }
+            if (!fvd.getFile().getName().endsWith(".xml")) {
                 return
             }
 
@@ -80,7 +101,7 @@ abstract class Docbook2Xhtml extends SourceTask {
 
             project.javaexec {
                 main = XslTransformer.name
-                args stylesheetFile.get().asFile.absolutePath
+                args stylesheetFile.absolutePath
                 args fvd.file.absolutePath
                 args outFile.absolutePath
                 args destDir.absolutePath
@@ -89,11 +110,6 @@ abstract class Docbook2Xhtml extends SourceTask {
                 systemProperty 'xslthl.config', xslthlConfigFile
                 systemProperty 'org.apache.xerces.xni.parser.XMLParserConfiguration', 'org.apache.xerces.parsers.XIncludeParserConfiguration'
             }
-            logger.lifecycle("$name available at ${new ConsoleRenderer().asClickableFileUrl(outFile)}")
-        }
-        project.copy {
-            from resources
-            into destDir
         }
     }
 }

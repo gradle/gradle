@@ -18,13 +18,11 @@ package org.gradle.build.docs.dsl.docbook
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -42,7 +40,6 @@ import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-
 /**
  * Generates the docbook source for the DSL reference guide.
  *
@@ -63,7 +60,6 @@ import org.w3c.dom.Element
  */
 @CacheableTask
 abstract class AssembleDslDocTask extends DefaultTask {
-
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
     abstract RegularFileProperty getSourceFile();
@@ -85,10 +81,6 @@ abstract class AssembleDslDocTask extends DefaultTask {
 
     @OutputFile
     abstract RegularFileProperty getLinksFile();
-
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    abstract ConfigurableFileCollection getSources();
 
     @TaskAction
     def transform() {

@@ -33,9 +33,6 @@ repositories {
 }
 
 configurations {
-    jquery
-
-
     gradleSamplesElements {
         visible = false
         canBeResolved = false

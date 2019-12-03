@@ -39,7 +39,7 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
         GradleDocumentationExtension extension = project.getExtensions().getByType(GradleDocumentationExtension.class);
         // TODO: Maybe eventually convert this asciidoc too, so everything uses the same markup language.
         generateReleaseNotes(project, layout, tasks, extension);
-        generateReleaseFeatures(project, layout, tasks, extension);
+        generateReleaseFeatures(project, tasks, extension);
     }
 
     private void generateReleaseNotes(Project project, ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
@@ -51,43 +51,49 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
             task.getOutputEncoding().convention(Charset.defaultCharset().name());
 
             task.getMarkdownFile().convention(extension.getReleaseNotes().getMarkdownFile());
-            // TODO: Does this path make sense?
-            task.getDestinationFile().convention(layout.getBuildDirectory().file("release-notes-raw/release-notes.html"));
+            task.getDestinationFile().convention(extension.getStagingRoot().file("release-notes/raw.html"));
         });
-
-        Configuration jquery = project.getConfigurations().create("jquery");
 
         TaskProvider<DecorateReleaseNotes> releaseNotesPostProcess = tasks.register("releaseNotes", DecorateReleaseNotes.class, task -> {
             task.setGroup("release notes");
             task.setDescription("Transforms generated release notes.");
+
             task.getHtmlFile().convention(releaseNotesMarkdown.flatMap(RenderMarkdown::getDestinationFile));
-            // TODO: These should be in the model
-            task.getBaseStylesheetFile().convention(extension.getDocumentationSourceRoot().file("css/base.css"));
-            task.getReleaseNotesJavascriptFile().convention(extension.getDocumentationSourceRoot().file("release/content/script.js"));
-            task.getReleaseNotesStylesheetFile().convention(extension.getDocumentationSourceRoot().file("css/release-notes.css"));
-            task.getJquery().from(jquery);
+            task.getBaseCssFile().convention(extension.getReleaseNotes().getBaseCssFile());
+            task.getReleaseNotesCssFile().convention(extension.getReleaseNotes().getReleaseNotesCssFile());
+            task.getReleaseNotesJavascriptFile().convention(extension.getReleaseNotes().getReleaseNotesJsFile());
+            task.getJquery().from(extension.getReleaseNotes().getJquery());
 
             task.getReplacementTokens().put("version", project.provider(() -> String.valueOf(project.getVersion())));
             task.getReplacementTokens().put("baseVersion", project.provider(() -> String.valueOf(project.getRootProject().getExtensions().getExtraProperties().get("baseVersion"))));
 
-            // TODO: Does this path make sense?
-            task.getDestinationFile().convention(layout.getBuildDirectory().file("release-notes/release-notes.html"));
+            task.getDestinationFile().convention(extension.getStagingRoot().file("release-notes/release-notes.html"));
+        });
+
+
+        Configuration jquery = project.getConfigurations().create("jquery", conf -> {
+            conf.setDescription("JQuery dependencies embedded by release notes.");
         });
 
         extension.releaseNotes(releaseNotes -> {
-            releaseNotes.getMarkdownFile().convention(extension.getDocumentationSourceRoot().file("release/notes.md"));
-            releaseNotes.getRenderedFile().convention(releaseNotesPostProcess.flatMap(DecorateReleaseNotes::getDestinationFile));
+            releaseNotes.getMarkdownFile().convention(extension.getSourceRoot().file("release/notes.md"));
+            releaseNotes.getRenderedDocumentation().convention(releaseNotesPostProcess.flatMap(DecorateReleaseNotes::getDestinationFile));
+            releaseNotes.getBaseCssFile().convention(extension.getSourceRoot().file("css/base.css"));
+            releaseNotes.getReleaseNotesCssFile().convention(extension.getSourceRoot().file("release/content/script.js"));
+            releaseNotes.getReleaseNotesJsFile().convention(extension.getSourceRoot().file("css/release-notes.css"));
+            releaseNotes.getJquery().from(jquery);
         });
     }
 
-    private void generateReleaseFeatures(Project project, ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+    private void generateReleaseFeatures(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
         TaskProvider<Sync> copyReleaseFeatures = tasks.register("copyReleaseFeatures", Sync.class, task -> {
             task.from(extension.getReleaseFeatures().getReleaseFeaturesFile());
-            task.into(layout.getBuildDirectory().dir("generated-release-features"));
+            task.into(extension.getStagingRoot().dir("generated-release-features"));
         });
 
         extension.releaseFeatures(releaseFeatures -> {
-            releaseFeatures.getReleaseFeaturesFile().convention(extension.getDocumentationSourceRoot().file("release/release-features.txt"));
+            releaseFeatures.getReleaseFeaturesFile().convention(extension.getSourceRoot().file("release/release-features.txt"));
+            // TODO: Wire in the output of copyReleaseFeatures as part of the model if we need to still copy it.
         });
 
         SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);

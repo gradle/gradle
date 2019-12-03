@@ -22,18 +22,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.build.docs.Docbook2Xhtml;
 import org.gradle.build.docs.UserGuideTransformTask;
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask;
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask;
-import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class GradleDslReferencePlugin implements Plugin<Project> {
     @Override
@@ -47,56 +41,21 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
     }
 
     private void generateDslReference(Project project, ProjectLayout layout, TaskContainer tasks, ObjectFactory objects, GradleDocumentationExtension extension) {
-        // TODO: Is this needed still?
-        TaskProvider<Sync> css = tasks.register("css", Sync.class, task -> {
-            task.into(layout.getBuildDirectory().dir("css"));
-            task.from(extension.getDocumentationSourceRoot().dir("css"));
-            task.include("*.css");
-            task.include("*.svg");
-        });
-
-//        def imageFiles = fileTree(userguideSrcDir) {
-//            include "img/*.png"
-//            include "img/*.gif"
-//            include "img/*.jpg"
-//        }
-//        def resourceFiles = imageFiles + cssFiles
-
-        Configuration userGuideStyleSheetConf = project.getConfigurations().create("userGuideStyleSheets");
-//        TaskProvider<Sync> userGuideStyleSheets = tasks.register("userguideStyleSheets", Sync.class, task -> {
-//            File stylesheetsDir = new File(srcDocsDir, "stylesheets")
-//            into new File(buildDir, "stylesheets")
-//            from(stylesheetsDir) {
-//                include "**/*.xml"
-//                include "*.xsl"
-//            }
-//            from(cssFiles)
-//            from({zipTree(userGuideStyleSheetConf.singleFile)}) {
-//                // Remove the prefix
-//                eachFile {
-//                    fcd -> fcd.path = fcd.path.replaceFirst("^docbook-xsl-[0-9\\.]+/", "")
-//                }
-//            }
-//        });
-
         DslReference dslReference = extension.getDslReference();
 
         TaskProvider<ExtractDslMetaDataTask> dslMetaData = tasks.register("dslMetaData", ExtractDslMetaDataTask.class, task -> {
-            task.source(extension.getSource());
-            // TODO: Does this path matter?
-            task.getDestinationFile().convention(layout.getBuildDirectory().file("generated-dsl/dsl-meta-data.bin"));
+            task.source(extension.getDocumentedSource());
+            task.getDestinationFile().convention(dslReference.getStagingRoot().file("dsl-meta-data.bin"));
         });
 
         TaskProvider<AssembleDslDocTask> dslDocbook = tasks.register("dslDocbook", AssembleDslDocTask.class, task -> {
-            task.getSources().from(dslReference.getRoot());
             task.getSourceFile().convention(dslReference.getRoot().file("dsl.xml"));
+            task.getPluginsMetaDataFile().convention(dslReference.getRoot().file("plugins.xml"));
             task.getClassDocbookDirectory().convention(dslReference.getRoot());
             task.getClassMetaDataFile().convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
-            task.getPluginsMetaDataFile().convention(dslReference.getRoot().file("plugins.xml"));
 
-            // TODO: Do these paths matter?
-            task.getDestFile().convention(layout.getBuildDirectory().file("generated-dsl/dsl.xml"));
-            task.getLinksFile().convention(layout.getBuildDirectory().file("generated-dsl/api-links.bin"));
+            task.getDestFile().convention(dslReference.getStagingRoot().file("dsl.xml"));
+            task.getLinksFile().convention(dslReference.getStagingRoot().file("api-links.bin"));
         });
 
         TaskProvider<UserGuideTransformTask> dslStandaloneDocbook = tasks.register("dslStandaloneDocbook", UserGuideTransformTask.class, task -> {
@@ -108,69 +67,45 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
             task.getJavadocUrl().convention("../javadoc");
             task.getWebsiteUrl().convention("https://gradle.org");
 
-            // TODO: Do these paths matter?
-            task.getDestFile().convention(layout.getBuildDirectory().file("generated-dsl/dsl-standalone.xml"));
+            task.getDestFile().convention(dslReference.getStagingRoot().file("index.xml"));
         });
 
         Configuration userGuideTask = project.getConfigurations().create("userGuideTask");
+        Configuration userGuideStyleSheetConf = project.getConfigurations().create("userGuideStyleSheets");
 
         TaskProvider<Docbook2Xhtml> dslHtml = tasks.register("dslHtml", Docbook2Xhtml.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generates DSL reference HTML documentation.");
 
             task.source(dslStandaloneDocbook);
-            task.getStylesheetFile().convention(dslReference.getStylesheet());
+            task.getStylesheetDirectory().convention(dslReference.getStylesheetDirectory());
             task.getStylesheetHighlightFile().convention(dslReference.getHighlightStylesheet());
+            task.getDocbookStylesheets().from(userGuideStyleSheetConf);
 
-            task.getResources().from(dslReference.getResources());
             task.getClasspath().from(userGuideTask);
 
-            task.getDestinationDirectory().convention(layout.getBuildDirectory().dir("dsl"));
-        });
-
-        TaskProvider<GenerateDefaultImportsTask> defaultImports = tasks.register("defaultImports", GenerateDefaultImportsTask.class, task -> {
-            task.getMetaDataFile().convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
-            task.getImportsDestFile().convention(layout.getBuildDirectory().file("generated-imports/default-imports.txt"));
-            task.getMappingDestFile().convention(layout.getBuildDirectory().file("generated-imports/api-mapping.txt"));
-
-            List<String> excludedPackages = new ArrayList<>();
-            // These are part of the API, but not the DSL
-            excludedPackages.add("org.gradle.tooling.**");
-            excludedPackages.add("org.gradle.testfixtures.**");
-
-            // Tweak the imports due to some inconsistencies introduced before we automated the default-imports generation
-            excludedPackages.add("org.gradle.plugins.ide.eclipse.model");
-            excludedPackages.add("org.gradle.plugins.ide.idea.model");
-            excludedPackages.add("org.gradle.api.tasks.testing.logging");
-
-            // TODO - rename some incubating types to remove collisions and then remove these exclusions
-            excludedPackages.add("org.gradle.plugins.binaries.model");
-
-            // Exclude classes that were moved in a different package but the deprecated ones are not removed yet
-            excludedPackages.add("org.gradle.platform.base.test");
-
-            task.getExcludedPackages().convention(excludedPackages);
+            task.getDestinationDirectory().convention(dslReference.getStagingRoot().dir("dsl"));
         });
 
         extension.dslReference(dslRef -> {
+            ConfigurableFileTree css = objects.fileTree();
+            css.from(extension.getSourceRoot().dir("css"));
+            css.include("*.css");
             dslRef.getResources().from(css);
+
             ConfigurableFileTree js = objects.fileTree();
             js.from(dslReference.getRoot());
             js.include("*.js");
             dslRef.getResources().from(js);
 
-            dslRef.getRoot().convention(extension.getDocumentationSourceRoot().dir("dsl"));
-            dslRef.getStylesheet().convention(extension.getDocumentationSourceRoot().file("stylesheets/dslHtml.xsl"));
-            dslRef.getHighlightStylesheet().convention(extension.getDocumentationSourceRoot().file("stylesheets/custom-highlight/custom-xslthl-config.xml"));
+            dslRef.getRoot().convention(extension.getSourceRoot().dir("dsl"));
+            dslRef.getStylesheetDirectory().convention(extension.getSourceRoot().dir("stylesheets/"));
+            dslRef.getHighlightStylesheet().convention(dslRef.getStylesheetDirectory().file("custom-highlight/custom-xslthl-config.xml"));
 
-            dslRef.getRenderedDocumentation().convention(dslHtml.flatMap(Docbook2Xhtml::getDestinationDirectory));
-        });
+            dslRef.getStagingRoot().convention(extension.getStagingRoot().dir("dsl"));
 
-        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-        sourceSets.getByName("main", main -> {
-            // TODO:
-            //  sourceSets.main.output.dir generatedResourcesDir, builtBy: [defaultImports, copyReleaseFeatures]
-//            main.getOutput().dir(defaultImports);
+            dslRef.getRenderedDocumentation().from(dslRef.getResources());
+            dslRef.getRenderedDocumentation().from(dslHtml.flatMap(Docbook2Xhtml::getDestinationDirectory));
         });
     }
 }

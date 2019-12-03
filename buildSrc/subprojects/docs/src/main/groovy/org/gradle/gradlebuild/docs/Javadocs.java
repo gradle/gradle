@@ -16,6 +16,7 @@
 
 package org.gradle.gradlebuild.docs;
 
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
@@ -32,5 +33,5 @@ public abstract class Javadocs {
     public abstract SetProperty<String> getIncludes();
     public abstract SetProperty<String> getExcludes();
 
-    public abstract DirectoryProperty getGeneratedJavaDocs();
+    public abstract ConfigurableFileCollection getRenderedDocumentation();
 }

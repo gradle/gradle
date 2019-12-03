@@ -72,7 +72,7 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
             // TODO: This breaks the provider
             options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString(), javadocs.getMavenApi().get().toString());
 
-            task.source(extension.getSource());
+            task.source(extension.getDocumentedSource());
 
             // TODO: This breaks the provider
             task.include(javadocs.getIncludes().get());
@@ -101,7 +101,7 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
                             // Commit http://hg.openjdk.java.net/jdk/jdk/rev/89dc31d7572b broke use of JSZip (https://bugs.openjdk.java.net/browse/JDK-8214856)
                             // fixed in Java 12 by http://hg.openjdk.java.net/jdk/jdk/rev/b4982a22926b
                             // TODO: Remove this script.js workaround when we distribute Gradle using JDK 12 or higher
-                            copySpec.from(extension.getDocumentationSourceRoot().dir("js/javadoc"));
+                            copySpec.from(extension.getSourceRoot().dir("js/javadoc"));
 
                             // This is a work-around for https://bugs.openjdk.java.net/browse/JDK-8211194. Can be removed once that issue is fixed on JDK"s side
                             // Since JDK 11, package-list is missing from javadoc output files and superseded by element-list file, but a lot of external tools still need it
@@ -117,16 +117,16 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
         });
 
         extension.javadocs(javadocs -> {
-            javadocs.getJavadocCss().convention(extension.getDocumentationSourceRoot().file("css/javadoc.css"));
+            javadocs.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc.css"));
             javadocs.getIncludes().convention(PublicApi.INSTANCE.getIncludes());
             javadocs.getExcludes().convention(PublicApi.INSTANCE.getExcludes());
             // TODO: destinationDirectory should be part of Javadoc
-            javadocs.getGeneratedJavaDocs().convention(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
+            javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
         });
 
         CheckstyleExtension checkstyle = project.getExtensions().getByType(CheckstyleExtension.class);
         tasks.register("checkstyleApi", Checkstyle.class, task -> {
-            task.source(extension.getSource());
+            task.source(extension.getDocumentedSource());
             // TODO: This is ugly
             task.setConfig(project.getResources().getText().fromFile(checkstyle.getConfigDirectory().file("checkstyle-api.xml")));
             task.setClasspath(layout.files());
