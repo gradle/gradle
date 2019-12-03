@@ -45,7 +45,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
 import java.util.IdentityHashMap;
@@ -158,15 +158,15 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         this.metadata = metadata.metadata;
     }
 
-    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, ModuleSource source) {
-        super(metadata, source);
+    private RealisedIvyModuleResolveMetadata(RealisedIvyModuleResolveMetadata metadata, ModuleSources sources) {
+        super(metadata, sources);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
         this.dependencies = metadata.dependencies;
         this.excludes = metadata.excludes;
         this.extraAttributes = metadata.extraAttributes;
-        this.metadata = metadata.metadata.withSource(source);
+        this.metadata = metadata.metadata;
     }
 
     RealisedIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata,
@@ -224,8 +224,8 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
     }
 
     @Override
-    public IvyModuleResolveMetadata withSource(ModuleSource source) {
-        return new RealisedIvyModuleResolveMetadata(this, source);
+    public RealisedIvyModuleResolveMetadata withSources(ModuleSources sources) {
+        return new RealisedIvyModuleResolveMetadata(this, sources);
     }
 
     @Nullable

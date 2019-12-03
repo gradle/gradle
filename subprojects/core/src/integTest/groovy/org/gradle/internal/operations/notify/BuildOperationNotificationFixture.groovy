@@ -121,10 +121,14 @@ class BuildOperationNotificationFixture {
                 synchronized void started(${BuildOperationStartedNotification.name} startedNotification) {
             
                     def details = ${BuildOperationTrace.name}.toSerializableModel(startedNotification.notificationOperationDetails)
+                    def detailsType = startedNotification.notificationOperationDetails.getClass()
+                    if (detailsType.interfaces.length > 0) {
+                        detailsType = detailsType.interfaces[0]
+                    }
 
                     ops.put(startedNotification.notificationOperationId, new BuildOpsEntry(id: startedNotification.notificationOperationId?.id,
                             parentId: startedNotification.notificationOperationParentId?.id,
-                            detailsType: startedNotification.notificationOperationDetails.getClass().getInterfaces()[0].getName(),
+                            detailsType: detailsType.name,
                             details: details, 
                             started: startedNotification.notificationOperationStartedTimestamp))
                 }

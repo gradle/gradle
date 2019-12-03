@@ -20,7 +20,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
@@ -66,8 +67,9 @@ public interface MutableModuleComponentResolveMetadata {
     List<String> getStatusScheme();
     void setStatusScheme(List<String> statusScheme);
 
-    ModuleSource getSource();
-    void setSource(ModuleSource source);
+    MutableModuleSources getSources();
+
+    void setSources(ModuleSources moduleSources);
 
     MutableComponentVariant addVariant(MutableComponentVariant variant);
 

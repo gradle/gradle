@@ -17,13 +17,14 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.cache.CacheRepository
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import spock.lang.Unroll
 
 
-class BuildSessionServiceReuseContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class BuildSessionServiceReuseContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def cleanup() {
         gradle.cancel()
     }

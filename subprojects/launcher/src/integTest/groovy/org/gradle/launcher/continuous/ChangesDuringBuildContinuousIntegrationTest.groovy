@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
@@ -29,7 +30,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 // Continuous build will trigger a rebuild when an input file is changed during build execution
 @TestReproducibleArchives
 @Retry(condition = { TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER && cleanProjectDir(instance) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
         def quietPeriod = OperatingSystem.current().isMacOsX() ? 2000 : 250

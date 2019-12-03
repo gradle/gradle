@@ -339,18 +339,19 @@ class UserTypesCodecTest {
         projectStateRegistry = mock(),
         taskNodeFactory = mock(),
         fingerprinterRegistry = mock(),
-        classLoaderHierarchyHasher = mock(),
+        projectFinder = mock(),
         buildOperationExecutor = mock(),
+        classLoaderHierarchyHasher = mock(),
         isolatableFactory = mock(),
         valueSnapshotter = mock(),
         fileCollectionFingerprinterRegistry = mock(),
+        buildServiceRegistry = mock(),
         isolatableSerializerRegistry = mock(),
-        projectFinder = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),
         transformListener = mock(),
-        buildServiceRegistry = mock()
+        valueSourceProviderFactory = mock()
     )
 
     @Test

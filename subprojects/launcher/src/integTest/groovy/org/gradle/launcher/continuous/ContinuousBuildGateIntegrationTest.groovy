@@ -18,13 +18,14 @@ package org.gradle.launcher.continuous
 
 import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.ContinuousExecutionGate
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.filewatch.PendingChangesManager
 import org.gradle.internal.filewatch.SingleFirePendingChangesListener
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 
-class ContinuousBuildGateIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class ContinuousBuildGateIntegrationTest extends AbstractContinuousIntegrationTest {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {

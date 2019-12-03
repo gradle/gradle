@@ -20,8 +20,10 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelClient
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsModelRequest
+import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 
 import java.lang.reflect.Proxy
@@ -126,6 +128,27 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
             spec.scripts.a,
             "Unresolved reference: script_body_compilation_error"
         )
+    }
+
+    def "single request models equal multi requests models"() {
+
+        given:
+        def spec = withMultiProjectBuildWithBuildSrc()
+
+        when:
+        Map<File, KotlinDslScriptModel> singleRequestModels = kotlinDslScriptsModelFor().scriptModels
+
+        and:
+        Map<File, KotlinBuildScriptModel> multiRequestsModels = spec.scripts.values().collectEntries {
+            [(it): kotlinBuildScriptModelFor(projectDir, it)]
+        }
+
+        then:
+        spec.scripts.values().each { script ->
+            assert singleRequestModels[script].classPath == multiRequestsModels[script].classPath
+            assert singleRequestModels[script].sourcePath == multiRequestsModels[script].sourcePath
+            assert singleRequestModels[script].implicitImports == multiRequestsModels[script].implicitImports
+        }
     }
 
     def "multi-scripts model is dehydrated over the wire"() {

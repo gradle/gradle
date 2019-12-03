@@ -39,7 +39,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
@@ -67,19 +67,19 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
         return ServiceRegistryBuilder.builder()
-                .displayName("worker daemon services")
-                .parent(parent)
-                .provider(new WorkerSharedGlobalScopeServices())
-                .provider(new WorkerDaemonServices())
-                .build();
+            .displayName("worker daemon services")
+            .parent(parent)
+            .provider(new WorkerSharedGlobalScopeServices())
+            .provider(new WorkerDaemonServices())
+            .build();
     }
 
     @Override
     public DefaultWorkResult execute(ActionExecutionSpec spec) {
         try {
             ServiceRegistry workServices = new WorkerPublicServicesBuilder(new WorkerProjectServices(spec.getBaseDir(), internalServices))
-                    .withInternalServicesVisible(spec.isInternalServicesRequired())
-                    .build();
+                .withInternalServicesVisible(spec.isInternalServicesRequired())
+                .build();
             Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), workServices);
             return worker.execute(spec);
         } catch (Throwable t) {
@@ -107,17 +107,14 @@ public class WorkerDaemonServer implements WorkerProtocol {
         return "WorkerDaemonServer{}";
     }
 
-    private static class WorkerDaemonServices {
+    private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
+
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
         ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
-        }
-
-        DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-            return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
         ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
@@ -141,7 +138,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
         private final File baseDir;
 
         public WorkerProjectServices(File baseDir, ServiceRegistry... parents) {
-            super("worker file services for "+ baseDir.getAbsolutePath(), parents);
+            super("worker file services for " + baseDir.getAbsolutePath(), parents);
             this.baseDir = baseDir;
             addProvider(new WorkerSharedProjectScopeServices(baseDir));
         }

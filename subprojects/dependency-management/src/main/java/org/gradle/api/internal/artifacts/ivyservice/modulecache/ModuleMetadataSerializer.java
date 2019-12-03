@@ -60,6 +60,7 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -429,6 +430,7 @@ public class ModuleMetadataSerializer {
             metadata.setChanging(decoder.readBoolean());
             metadata.setStatus(decoder.readString());
             metadata.setStatusScheme(readStringList());
+            metadata.setSources(new MutableModuleSources());
         }
 
         private MutableModuleComponentResolveMetadata readMaven(Map<Integer, MavenDependencyDescriptor> deduplicationDependencyCache) throws IOException {

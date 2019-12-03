@@ -28,8 +28,9 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
@@ -42,8 +43,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final boolean changing;
     private final boolean missing;
     private final List<String> statusScheme;
-    @Nullable
-    private final ModuleSource moduleSource;
+    private final ImmutableModuleSources moduleSources;
     private final ImmutableList<? extends ComponentVariant> variants;
     private final HashValue originalContentHash;
     private final ImmutableAttributes attributes;
@@ -56,7 +56,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         changing = metadata.isChanging();
         missing = metadata.isMissing();
         statusScheme = metadata.getStatusScheme();
-        moduleSource = metadata.getSource();
+        moduleSources = ImmutableModuleSources.of(metadata.getSources());
         attributesFactory = metadata.getAttributesFactory();
         schema = metadata.getAttributesSchema();
         originalContentHash = metadata.getContentHash();
@@ -71,7 +71,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         changing = metadata.isChanging();
         missing = metadata.isMissing();
         statusScheme = metadata.getStatusScheme();
-        moduleSource = metadata.getSource();
+        moduleSources = ImmutableModuleSources.of(metadata.getSources());
         attributesFactory = metadata.getAttributesFactory();
         schema = metadata.getAttributesSchema();
         originalContentHash = metadata.getOriginalContentHash();
@@ -86,7 +86,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         changing = metadata.changing;
         missing = metadata.missing;
         statusScheme = metadata.statusScheme;
-        moduleSource = metadata.moduleSource;
+        moduleSources = metadata.moduleSources;
         attributesFactory = metadata.attributesFactory;
         schema = metadata.schema;
         originalContentHash = metadata.originalContentHash;
@@ -95,7 +95,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         platformOwners = metadata.platformOwners;
     }
 
-    public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSource source) {
+    public AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSources sources) {
         this.componentIdentifier = metadata.componentIdentifier;
         this.moduleVersionIdentifier = metadata.moduleVersionIdentifier;
         changing = metadata.changing;
@@ -107,7 +107,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         attributes = metadata.attributes;
         variants = metadata.variants;
         platformOwners = metadata.platformOwners;
-        moduleSource = source;
+        moduleSources = ImmutableModuleSources.of(sources);
     }
 
     private static ImmutableAttributes extractAttributes(AbstractMutableModuleComponentResolveMetadata metadata) {
@@ -145,8 +145,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     }
 
     @Override
-    public ModuleSource getSource() {
-        return moduleSource;
+    public ModuleSources getSources() {
+        return moduleSources;
     }
 
     @Override
@@ -214,7 +214,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             && Objects.equal(moduleVersionIdentifier, that.moduleVersionIdentifier)
             && Objects.equal(componentIdentifier, that.componentIdentifier)
             && Objects.equal(statusScheme, that.statusScheme)
-            && Objects.equal(moduleSource, that.moduleSource)
+            && Objects.equal(moduleSources, that.moduleSources)
             && Objects.equal(attributes, that.attributes)
             && Objects.equal(variants, that.variants)
             && Objects.equal(originalContentHash, that.originalContentHash);
@@ -228,7 +228,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             changing,
             missing,
             statusScheme,
-            moduleSource,
+            moduleSources,
             attributes,
             variants,
             originalContentHash);
