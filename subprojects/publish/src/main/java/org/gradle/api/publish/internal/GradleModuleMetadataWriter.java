@@ -52,7 +52,7 @@ import org.gradle.api.internal.component.SoftwareComponentInternal;
 import org.gradle.api.internal.component.UsageContext;
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId;
 import org.gradle.util.GUtil;
@@ -86,10 +86,12 @@ import java.util.TreeMap;
 public class GradleModuleMetadataWriter {
     private final BuildInvocationScopeId buildInvocationScopeId;
     private final ProjectDependencyPublicationResolver projectDependencyResolver;
+    private final ChecksumService checksumService;
 
-    public GradleModuleMetadataWriter(BuildInvocationScopeId buildInvocationScopeId, ProjectDependencyPublicationResolver projectDependencyResolver) {
+    public GradleModuleMetadataWriter(BuildInvocationScopeId buildInvocationScopeId, ProjectDependencyPublicationResolver projectDependencyResolver, ChecksumService checksumService) {
         this.buildInvocationScopeId = buildInvocationScopeId;
         this.projectDependencyResolver = projectDependencyResolver;
+        this.checksumService = checksumService;
     }
 
     public void generateTo(PublicationInternal publication, Collection<? extends PublicationInternal> publications, Writer writer) throws IOException {
@@ -383,16 +385,20 @@ public class GradleModuleMetadataWriter {
 
         jsonWriter.name("size");
         jsonWriter.value(artifact.getFile().length());
-        jsonWriter.name("sha512");
-        jsonWriter.value(HashUtil.sha512(artifact.getFile()).asHexString());
-        jsonWriter.name("sha256");
-        jsonWriter.value(HashUtil.sha256(artifact.getFile()).asHexString());
-        jsonWriter.name("sha1");
-        jsonWriter.value(HashUtil.sha1(artifact.getFile()).asHexString());
-        jsonWriter.name("md5");
-        jsonWriter.value(HashUtil.createHash(artifact.getFile(), "md5").asHexString());
+        writeChecksums(artifact, jsonWriter);
 
         jsonWriter.endObject();
+    }
+
+    private void writeChecksums(PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
+        jsonWriter.name("sha512");
+        jsonWriter.value(checksumService.sha512(artifact.getFile()).toString());
+        jsonWriter.name("sha256");
+        jsonWriter.value(checksumService.sha256(artifact.getFile()).toString());
+        jsonWriter.name("sha1");
+        jsonWriter.value(checksumService.sha1(artifact.getFile()).toString());
+        jsonWriter.name("md5");
+        jsonWriter.value(checksumService.md5(artifact.getFile()).toString());
     }
 
     private void writeDependencies(UsageContext variant, VersionMappingStrategyInternal versionMappingStrategy, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {

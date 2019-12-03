@@ -17,8 +17,8 @@
 package org.gradle.internal.resource.local;
 
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
 import java.util.List;
@@ -26,10 +26,12 @@ import java.util.List;
 public class LazyLocallyAvailableResourceCandidates implements LocallyAvailableResourceCandidates {
 
     private final Factory<List<File>> filesFactory;
+    private final ChecksumService checksumService;
     private List<File> files;
 
-    public LazyLocallyAvailableResourceCandidates(Factory<List<File>> filesFactory) {
-        this.filesFactory = filesFactory;        
+    public LazyLocallyAvailableResourceCandidates(Factory<List<File>> filesFactory, ChecksumService checksumService) {
+        this.filesFactory = filesFactory;
+        this.checksumService = checksumService;
     }
 
     protected List<File> getFiles() {
@@ -38,17 +40,17 @@ public class LazyLocallyAvailableResourceCandidates implements LocallyAvailableR
         }
         return files;
     }
-    
+
     @Override
     public boolean isNone() {
         return getFiles().isEmpty();
     }
 
     @Override
-    public LocallyAvailableResource findByHashValue(HashValue targetHash) {
-        HashValue thisHash;
+    public LocallyAvailableResource findByHashValue(HashCode targetHash) {
+        HashCode thisHash;
         for (File file : getFiles()) {
-            thisHash = HashUtil.sha1(file);
+            thisHash = checksumService.sha1(file);
             if (thisHash.equals(targetHash)) {
                 return new DefaultLocallyAvailableResource(file, thisHash);
             }

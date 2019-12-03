@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.CacheRepository
@@ -41,7 +40,6 @@ import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.MutableModuleSources
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.HashValue
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -74,7 +72,6 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     CachePolicy cachePolicy
 
     ModuleComponentResolveMetadata result
-    ModuleSourcesSerializer modulesSourceSerializer = new ModuleSourcesSerializer([:])
 
     def setup() {
         def cacheBuilder
@@ -104,10 +101,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
     @Unroll("Cache expiry check refresh = #mustRefresh - #scenario - #ruleClass")
     def "expires entry when cache policy tells us to"() {
         def id = DefaultModuleVersionIdentifier.newId('org', 'foo', '1.0')
-        def hashValue = Mock(HashValue) {
-            asHexString() >> "42"
-            asBigInteger() >> 42G
-        }
+        def hashValue = HashCode.fromInt(42)
         def key = Mock(ModuleComponentResolveMetadata)
         def inputsSnapshot = new StringValueSnapshot("1")
         def hasher = Hashing.newHasher()
@@ -127,7 +121,7 @@ class ComponentMetadataRuleExecutorTest extends Specification {
         }
         def reexecute = mustRefresh || expired
         def moduleSources = new MutableModuleSources()
-        moduleSources.add(new ModuleDescriptorHashModuleSource(hashValue.asBigInteger(), false))
+        moduleSources.add(new ModuleDescriptorHashModuleSource(hashValue, false))
 
         when:
         withRule(ruleClass, ruleServices)

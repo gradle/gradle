@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.local;
 
 import org.gradle.api.Action;
+import org.gradle.internal.hash.ChecksumService;
 
 import java.io.File;
 import java.util.Set;
@@ -25,8 +26,8 @@ public class PathNormalisingKeyFileStore implements FileStore<String>, FileStore
 
     private final DefaultPathKeyFileStore delegate;
 
-    public PathNormalisingKeyFileStore(File baseDir) {
-        this.delegate = new DefaultPathKeyFileStore(baseDir);
+    public PathNormalisingKeyFileStore(File baseDir, ChecksumService checksumService) {
+        this.delegate = new DefaultPathKeyFileStore(checksumService, baseDir);
     }
 
     @Override

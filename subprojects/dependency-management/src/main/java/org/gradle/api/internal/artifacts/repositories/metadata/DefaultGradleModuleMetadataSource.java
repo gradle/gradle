@@ -32,16 +32,16 @@ import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.MutableModuleSources;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
+import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.List;
-
-import static org.gradle.api.internal.artifacts.repositories.metadata.AbstractRepositoryMetadataSource.findSha1;
 
 /**
  * TODO: This class sources Gradle metadata files, but there's no corresponding ModuleComponentResolveMetadata for this metadata yet.
@@ -52,13 +52,15 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
     private final GradleModuleMetadataCompatibilityConverter metadataCompatibilityConverter;
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
     private final boolean listVersions;
+    private final ChecksumService checksumService;
 
     @Inject
-    public DefaultGradleModuleMetadataSource(GradleModuleMetadataParser metadataParser, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory, boolean listVersions) {
+    public DefaultGradleModuleMetadataSource(GradleModuleMetadataParser metadataParser, MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory, boolean listVersions, ChecksumService checksumService) {
         this.metadataParser = metadataParser;
         this.metadataCompatibilityConverter = new GradleModuleMetadataCompatibilityConverter(metadataParser.getAttributesFactory(), metadataParser.getInstantiator());
         this.mutableModuleMetadataFactory = mutableModuleMetadataFactory;
         this.listVersions = listVersions;
+        this.checksumService = checksumService;
     }
 
     @Override
@@ -80,8 +82,16 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
     private void createModuleSources(DefaultModuleComponentArtifactMetadata artifactId, LocallyAvailableExternalResource gradleMetadataArtifact, MutableModuleComponentResolveMetadata metaDataFromResource) {
         MutableModuleSources sources = metaDataFromResource.getSources();
         File file = gradleMetadataArtifact.getFile();
-        sources.add(new ModuleDescriptorHashModuleSource(HashUtil.createHash(file, "MD5").asBigInteger(), metaDataFromResource.isChanging()));
+        sources.add(new ModuleDescriptorHashModuleSource(checksumService.md5(file), metaDataFromResource.isChanging()));
         sources.add(new DefaultMetadataFileSource(artifactId.getId(), file, findSha1(gradleMetadataArtifact.getMetaData(), file)));
+    }
+
+    private HashCode findSha1(ExternalResourceMetaData metaData, File artifact) {
+        HashCode sha1 = metaData.getSha1();
+        if (sha1 == null) {
+            sha1 = checksumService.sha1(artifact);
+        }
+        return sha1;
     }
 
     private static void validateGradleMetadata(MutableModuleComponentResolveMetadata metaDataFromResource) {

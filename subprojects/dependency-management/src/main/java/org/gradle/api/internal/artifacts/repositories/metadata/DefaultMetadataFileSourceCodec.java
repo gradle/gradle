@@ -22,12 +22,12 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.PersistentModuleSource;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
 
 /**
  * A codec for {@link MetadataFileSource}. This codec is particular because of the persistent cache
@@ -63,18 +63,19 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
         String module = decoder.readString();
         String version = decoder.readString();
         String name = decoder.readString();
-        BigInteger sha1 = new BigInteger(decoder.readBinary());
+        byte[] sha1 = decoder.readBinary();
         DefaultMetadataFileSource source = createSource(sha1, group, module, version, name);
         return source;
     }
 
-    private DefaultMetadataFileSource createSource(BigInteger sha1, String group, String module, String version, String name) {
+    private DefaultMetadataFileSource createSource(byte[] sha1, String group, String module, String version, String name) {
         ModuleComponentArtifactIdentifier artifactId = createArtifactId(group, module, version, name);
-        File metadataFile = fileStore.whereIs(artifactId, sha1.toString(16));
+        HashCode hashCode = HashCode.fromBytes(sha1);
+        File metadataFile = fileStore.whereIs(artifactId, hashCode.toString());
         return new DefaultMetadataFileSource(
             artifactId,
             metadataFile,
-            sha1);
+            hashCode);
     }
 
     private ModuleComponentFileArtifactIdentifier createArtifactId(String group, String module, String version, String name) {

@@ -16,15 +16,14 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.internal.component.model.PersistentModuleSource;
-
-import java.math.BigInteger;
+import org.gradle.internal.hash.HashCode;
 
 public class ModuleDescriptorHashModuleSource implements PersistentModuleSource {
     public static final int CODEC_ID = 2;
-    private final BigInteger descriptorHash;
+    private final HashCode descriptorHash;
     private final boolean changingModule;
 
-    public ModuleDescriptorHashModuleSource(BigInteger descriptorHash, boolean changingModule) {
+    public ModuleDescriptorHashModuleSource(HashCode descriptorHash, boolean changingModule) {
         this.descriptorHash = descriptorHash;
         this.changingModule = changingModule;
     }
@@ -34,7 +33,7 @@ public class ModuleDescriptorHashModuleSource implements PersistentModuleSource 
         return "{descriptor: " + descriptorHash + ", changing: " + changingModule + "}";
     }
 
-    public BigInteger getDescriptorHash() {
+    public HashCode getDescriptorHash() {
         return descriptorHash;
     }
 

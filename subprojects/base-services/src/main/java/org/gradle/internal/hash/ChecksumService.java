@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resource.local;
-
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.Resource;
+package org.gradle.internal.hash;
 
 import java.io.File;
 
-/**
- * Represents a file backed local resource.
- */
-public interface LocallyAvailableResource extends Resource {
+public interface ChecksumService {
+    HashCode md5(File file);
 
-    File getFile();
+    HashCode sha1(File file);
 
-    HashCode getSha1();
+    HashCode sha256(File file);
 
-    long getLastModified();
+    HashCode sha512(File file);
 
-    long getContentLength();
+    HashCode hash(File src, String algorithm);
 }

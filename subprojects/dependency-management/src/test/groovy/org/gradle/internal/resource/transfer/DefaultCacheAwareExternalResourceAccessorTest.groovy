@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultEx
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.internal.ProducerGuard
 import org.gradle.internal.hash.HashUtil
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.resource.ExternalResource
 import org.gradle.internal.resource.ExternalResourceName
 import org.gradle.internal.resource.ExternalResourceReadResult
@@ -36,6 +37,7 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceCandidates
 import org.gradle.internal.resource.metadata.ExternalResourceMetaData
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -60,7 +62,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
             supplier.get()
         }
     }
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard, fileRepository)
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def location = new ExternalResourceName("thing")
@@ -109,7 +111,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def remoteResource = Mock(ExternalResource)
         def metaData = Mock(ExternalResourceMetaData)
-        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+        def localResource = new DefaultLocallyAvailableResource(cachedFile, TestUtil.checksumService)
         def cachedResource = Stub(LocallyAvailableExternalResource)
 
         when:
@@ -164,14 +166,14 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def cached = Mock(CachedExternalResource)
         def candidate = tempDir.createFile("candidate-file")
-        def sha1 = HashUtil.createHash(candidate, "sha1")
+        def sha1 = Hashing.sha1().hashBytes(candidate.bytes)
         def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
         def cachedMetaData = Mock(ExternalResourceMetaData)
         def remoteMetaData = Mock(ExternalResourceMetaData)
         def localCandidate = Mock(LocallyAvailableResource)
         def remoteResource = Mock(ExternalResource)
         def location = new ExternalResourceName("thing")
-        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+        def localResource = new DefaultLocallyAvailableResource(cachedFile, TestUtil.checksumService)
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
@@ -251,7 +253,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         given:
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def candidate = tempDir.createFile("candidate-file")
-        def sha1 = HashUtil.createHash(candidate, "sha1")
+        def sha1 = Hashing.sha1().hashBytes(candidate.bytes)
         def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
         def cachedMetaData = Mock(ExternalResourceMetaData)
         def remoteMetaData = Mock(ExternalResourceMetaData)
@@ -259,7 +261,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def remoteResource = Mock(ExternalResource)
         def remoteSha1 = Mock(ExternalResource)
         def location = new ExternalResourceName("thing")
-        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+        def localResource = new DefaultLocallyAvailableResource(cachedFile, TestUtil.checksumService)
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
@@ -280,7 +282,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         cachedMetaData.lastModified >> null
         1 * repository.resource(new ExternalResourceName("thing.sha1"), true) >> remoteSha1
         1 * remoteSha1.withContentIfPresent(_) >> { Transformer t ->
-            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(sha1.asZeroPaddedHexString(40).bytes)))
+            ExternalResourceReadResult.of(1, t.transform(new ByteArrayInputStream(sha1.toString().getBytes("us-ascii"))))
         }
         1 * localCandidates.findByHashValue(sha1) >> localCandidate
         localCandidate.file >> candidate
@@ -302,7 +304,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def remoteResource = Mock(ExternalResource)
         def remoteSha1 = Mock(ExternalResource)
         def location = new ExternalResourceName("thing")
-        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+        def localResource = new DefaultLocallyAvailableResource(cachedFile, TestUtil.checksumService)
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
@@ -347,7 +349,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def remoteResource = Mock(ExternalResource)
         def remoteSha1 = Mock(ExternalResource)
         def location = new ExternalResourceName("thing")
-        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+        def localResource = new DefaultLocallyAvailableResource(cachedFile, TestUtil.checksumService)
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:
@@ -389,7 +391,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def localCandidates = Mock(LocallyAvailableResourceCandidates)
         def cached = Mock(CachedExternalResource)
         def candidate = tempDir.createFile("candidate-file")
-        def sha1 = HashUtil.createHash(candidate, "sha1")
+        def sha1 = Hashing.sha1().hashBytes(candidate.bytes)
         candidate << "some extra stuff"
         def fileStore = Mock(CacheAwareExternalResourceAccessor.ResourceFileStore)
         def cachedMetaData = Mock(ExternalResourceMetaData)
@@ -397,7 +399,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
         def localCandidate = Mock(LocallyAvailableResource)
         def location = new ExternalResourceName("thing")
         def remoteResource = Mock(ExternalResource)
-        def localResource = new DefaultLocallyAvailableResource(cachedFile)
+        def localResource = new DefaultLocallyAvailableResource(cachedFile, TestUtil.checksumService)
         def resultResource = Stub(LocallyAvailableExternalResource)
 
         when:

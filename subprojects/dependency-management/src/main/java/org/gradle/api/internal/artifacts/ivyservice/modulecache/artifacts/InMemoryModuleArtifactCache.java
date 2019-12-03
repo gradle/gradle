@@ -16,11 +16,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
 import com.google.common.collect.Maps;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.util.BuildCommencedTimeProvider;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +40,7 @@ public class InMemoryModuleArtifactCache implements ModuleArtifactCache {
     }
 
     @Override
-    public void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash) {
+    public void store(ArtifactAtRepositoryKey key, File artifactFile, HashCode moduleDescriptorHash) {
         inMemoryCache.put(key, new DefaultCachedArtifact(artifactFile, timeProvider.getCurrentTime(), moduleDescriptorHash));
         if (delegate != null) {
             delegate.store(key, artifactFile, moduleDescriptorHash);
@@ -48,7 +48,7 @@ public class InMemoryModuleArtifactCache implements ModuleArtifactCache {
     }
 
     @Override
-    public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash) {
+    public void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, HashCode descriptorHash) {
         inMemoryCache.put(key, new DefaultCachedArtifact(attemptedLocations, timeProvider.getCurrentTime(), descriptorHash));
         if (delegate != null) {
             delegate.storeMissing(key, attemptedLocations, descriptorHash);

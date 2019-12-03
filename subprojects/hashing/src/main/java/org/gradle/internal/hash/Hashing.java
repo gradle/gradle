@@ -38,6 +38,10 @@ public class Hashing {
 
     private static final HashFunction SHA1 = MessageDigestHashFunction.of("SHA-1");
 
+    private static final HashFunction SHA256 = MessageDigestHashFunction.of("SHA-256");
+
+    private static final HashFunction SHA512 = MessageDigestHashFunction.of("SHA-512");
+
     private static final HashFunction DEFAULT = MD5;
 
     /**
@@ -118,6 +122,20 @@ public class Hashing {
      */
     public static HashFunction sha1() {
         return SHA1;
+    }
+
+    /**
+     * SHA-256 hashing function.
+     */
+    public static HashFunction sha256() {
+        return SHA256;
+    }
+
+    /**
+     * SHA-512 hashing function.
+     */
+    public static HashFunction sha512() {
+        return SHA512;
     }
 
     private static abstract class MessageDigestHashFunction implements HashFunction {

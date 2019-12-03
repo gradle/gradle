@@ -38,7 +38,7 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
             @Override
             public Serializable transform(ModuleComponentResolveMetadata moduleMetadata) {
                 return moduleMetadata.getSources().withSource(ModuleDescriptorHashModuleSource.class, source -> {
-                    return source.map(metadataFileSource -> metadataFileSource.getDescriptorHash().toString(16))
+                    return source.map(metadataFileSource -> metadataFileSource.getDescriptorHash().toString())
                         .orElseThrow(() -> new RuntimeException("Cannot find original content hash"));
                 });
             }

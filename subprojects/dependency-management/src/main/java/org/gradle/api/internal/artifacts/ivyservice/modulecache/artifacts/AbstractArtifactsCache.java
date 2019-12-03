@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.util.BuildCommencedTimeProvider;
 
-import java.math.BigInteger;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -34,7 +34,7 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
     }
 
     @Override
-    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, BigInteger descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
+    public CachedArtifacts cacheArtifacts(ModuleComponentRepository repository, ComponentIdentifier componentId, String context, HashCode descriptorHash, Collection<? extends ComponentArtifactMetadata> artifacts) {
         ArtifactsAtRepositoryKey key = new ArtifactsAtRepositoryKey(repository.getId(), componentId, context);
         ModuleArtifactsCacheEntry entry = new ModuleArtifactsCacheEntry(ImmutableSet.copyOf(artifacts), timeProvider.getCurrentTime(), descriptorHash);
         store(key, entry);
@@ -59,10 +59,10 @@ public abstract class AbstractArtifactsCache implements ModuleArtifactsCache {
 
     protected static class ModuleArtifactsCacheEntry {
         protected final Set<ComponentArtifactMetadata> artifacts;
-        protected final BigInteger moduleDescriptorHash;
+        protected final HashCode moduleDescriptorHash;
         protected final long createTimestamp;
 
-        ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, BigInteger moduleDescriptorHash) {
+        ModuleArtifactsCacheEntry(Set<? extends ComponentArtifactMetadata> artifacts, long createTimestamp, HashCode moduleDescriptorHash) {
             this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>(artifacts);
             this.createTimestamp = createTimestamp;
             this.moduleDescriptorHash = moduleDescriptorHash;
