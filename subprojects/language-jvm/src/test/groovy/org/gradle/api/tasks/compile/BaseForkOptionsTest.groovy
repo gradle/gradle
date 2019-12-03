@@ -19,24 +19,24 @@ package org.gradle.api.tasks.compile
 import spock.lang.Specification
 
 public class BaseForkOptionsTest extends Specification {
-    def "JVM options are filtered properly even with bad input"() {
+    def 'JVM options are filtered properly even with bad input'() {
 	    def options = new BaseForkOptions()
 
-        options.jvmArgs = ["","",""]
+        options.jvmArgs = ['', '', '']
 
         expect:
         options.jvmArgs.isEmpty()
     }
 
-    def "JVM options are preserved if they're not bad"() {
+    def 'JVM options are preserved if they are not bad'() {
         def options = new BaseForkOptions()
 
-        options.jvmArgs = ["x", "", "y"]
+        options.jvmArgs = ['x', '', 'y']
 
         expect:
         options.jvmArgs.size() == 2
-        options.jvmArgs[0] == "x"
-        options.jvmArgs[1] == "y"
+        options.jvmArgs[0] == 'x'
+        options.jvmArgs[1] == 'y'
     }
 }
 
