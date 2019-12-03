@@ -22,6 +22,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class DefaultFileHierarchySetTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -101,6 +102,25 @@ class DefaultFileHierarchySetTest extends Specification {
         expect:
         def set = DefaultFileHierarchySet.of(Arrays.asList(File.listRoots()))
         set.contains(tmpDir.file("any"))
+    }
+
+    @Requires(TestPrecondition.WINDOWS)
+    @Unroll
+    def 'can handle more root dirs'() {
+        expect:
+        DefaultFileHierarchySet.of([new File(path1), new File(path2)]).contains(target) == result
+
+        where:
+        path1      | path2      | target            | result
+        'C:\\'     | 'D:\\'     | 'C:\\'            | true
+        'C:\\'     | 'D:\\'     | 'D:\\'            | true
+        'C:\\'     | 'D:\\'     | 'C:\\any'         | true
+        'C:\\'     | 'D:\\'     | 'D:\\any'         | true
+        'C:\\'     | 'D:\\'     | 'E:\\any'         | false
+        'C:\\'     | 'C:\\any'  | 'C:\\any\\thing'  | true
+        'C:\\'     | 'C:\\any'  | 'E:\\any\\thing'  | false
+        'C:\\any1' | 'D:\\any2' | 'C:\\any1\\thing' | true
+        'C:\\any1' | 'D:\\any2' | 'D:\\any2\\thing' | true
     }
 
     def "can add dir to empty set"() {

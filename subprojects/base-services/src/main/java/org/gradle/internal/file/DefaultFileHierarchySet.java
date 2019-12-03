@@ -167,8 +167,13 @@ public class DefaultFileHierarchySet {
                 }
             }
             String commonPrefix = prefix.substring(0, prefixLen);
-            Node newThis = new Node(prefix.substring(prefixLen + 1), children);
-            Node sibling = new Node(path.substring(prefixLen + 1));
+
+            // On windows the common prefix can be 0
+            // For example, new Node("C:").plus("D:")
+            int newChildrenStartIndex = (prefixLen == 0) ? 0 : prefixLen + 1;
+
+            Node newThis = new Node(prefix.substring(newChildrenStartIndex), children);
+            Node sibling = new Node(path.substring(newChildrenStartIndex));
             return new Node(commonPrefix, ImmutableList.of(newThis, sibling));
         }
 
@@ -182,6 +187,10 @@ public class DefaultFileHierarchySet {
          * which does not check for negative indices or integer overflow.
          */
         boolean isChildOfOrThis(String filePath, int offset) {
+            if (prefix.isEmpty()) {
+                return true;
+            }
+
             int pathLength = filePath.length();
             int prefixLength = prefix.length();
             int endOfThisSegment = prefixLength + offset;
@@ -204,7 +213,7 @@ public class DefaultFileHierarchySet {
                 return true;
             }
 
-            int startNextSegment = offset + prefix.length() + 1;
+            int startNextSegment = prefix.isEmpty() ? offset : offset + prefix.length() + 1;
             for (Node child : children) {
                 if (child.contains(filePath, startNextSegment)) {
                     return true;
