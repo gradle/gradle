@@ -17,7 +17,7 @@
 package org.gradle.gradlebuild.docs;
 
 import com.google.common.io.CharStreams;
-import org.gradle.api.Transformer;
+import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -27,26 +27,49 @@ import org.jsoup.select.Elements;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FilterReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ReleaseNotesTransformer implements Transformer<String, String> {
-    private final File baseStyle;
-    private final File releaseNotesStyle;
-    private final File scriptJs;
-    private final File jquery;
+public class ReleaseNotesTransformer extends FilterReader {
+    private File baseStylesheet;
+    private File releaseNotesStylesheet;
+    private File releaseNotesJavascript;
+    private File jquery;
 
-    public ReleaseNotesTransformer(File baseStyle, File releaseNotesStyle, File scriptJs, File jquery) {
-        this.baseStyle = baseStyle;
-        this.releaseNotesStyle = releaseNotesStyle;
-        this.scriptJs = scriptJs;
-        this.jquery = jquery;
+    public ReleaseNotesTransformer(Reader original) {
+        super(original);
+        this.in = new Reader() {
+            Reader delegate = null;
+
+            @Override
+            public int read(char[] cbuf, int off, int len) throws IOException {
+                if (delegate == null) {
+                    delegate = transform(original);
+                }
+                return delegate.read(cbuf, off, len);
+            }
+
+            @Override
+            public void close() throws IOException {
+                if (delegate != null) {
+                    delegate.close();
+                }
+            }
+        };
+        this.lock = this.in;
     }
 
-    @Override
-    public String transform(String original) {
-        Document document = Jsoup.parse(original);
+    private Reader transform(Reader in) throws IOException {
+        if (jquery == null || releaseNotesJavascript == null || releaseNotesStylesheet == null || baseStylesheet == null) {
+            throw new GradleException("filter isn't ready to transform");
+        }
+
+        Document document = Jsoup.parse(CharStreams.toString(in));
+
         document.outputSettings().indentAmount(2).prettyPrint(true);
         document.prependChild(new DocumentType("html", "", "", ""));
         document.head().
@@ -57,11 +80,10 @@ public class ReleaseNotesTransformer implements Transformer<String, String> {
         addCssToHead(document);
         addJavascriptToHead(document);
 
-        document.body().prepend("<h3 class='releaseinfo'>Version @version@</h3>");
-        document.body().prepend("<h1>Gradle Release Notes</h1>");
-
         wrapH2InSectionTopic(document);
         addAnchorsForHeadings(document);
+        document.body().prepend("<h3 class='releaseinfo'>Version @version@</h3>");
+        document.body().prepend("<h1>Gradle Release Notes</h1>");
         addTOC(document);
         wrapContentInContainer(document);
 
@@ -72,30 +94,52 @@ public class ReleaseNotesTransformer implements Transformer<String, String> {
         rewritten = rewritten.replaceAll("(gradle\\/[a-zA-Z\\-_]+)#(\\d+)", "<a href=\"https://github.com/$1/issues/$2\">$0</a>");
         document.body().html(rewritten);
 
-        return document.toString();
+        return new StringReader(document.toString());
     }
 
     private void addJavascriptToHead(Document document) {
-        document.head().append("<script type='text/javascript'>");
-        appendFileContentsTo(scriptJs, document.head());
-        document.head().append("</script>");
-        document.head().append("<script type='text/javascript'>");
-        appendFileContentsTo(jquery, document.head());
-        document.head().append("</script>");
+        appendFileContentsTo(document.head(), "<script type='text/javascript'>", releaseNotesJavascript, "</script>");
+        appendFileContentsTo(document.head(), "<script type='text/javascript'>", jquery, "</script>");
     }
 
     private void addCssToHead(Document document) {
-        document.head().append("<style>");
-        appendFileContentsTo(baseStyle, document.head());
-        appendFileContentsTo(releaseNotesStyle, document.head());
-        document.head().append("</style>");
+        appendFileContentsTo(document.head(), "<style>", baseStylesheet, "</style>");
+        appendFileContentsTo(document.head(), "<style>", releaseNotesStylesheet, "</style>");
     }
 
-    private void appendFileContentsTo(File file, Element element) {
+    private void appendFileContentsTo(Element element, String open, File file, String close) {
         try (FileReader reader = new FileReader(file)) {
-            element.append(CharStreams.toString(reader));
+            element.append(open).append(CharStreams.toString(reader)).append(close);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    private void wrapH2InSectionTopic(Document document) {
+        Element heading = document.body().select("h2").first();
+
+        List<Element> inSection = new ArrayList<>();
+        inSection.add(heading);
+
+        Element next = heading.nextElementSibling();
+        while (true) {
+            if (next == null || next.tagName().equals("h2")) {
+                Element section = heading.before("<section class='topic'/>").previousElementSibling();
+                Elements inSectionElements = new Elements(inSection);
+                section.html(inSectionElements.outerHtml());
+                inSectionElements.remove();
+
+                if (next == null) {
+                    break;
+                } else {
+                    inSection.clear();
+                    inSection.add(next);
+                    heading = next;
+                }
+            } else {
+                inSection.add(next);
+            }
+            next = next.nextElementSibling();
         }
     }
 
@@ -127,31 +171,19 @@ public class ReleaseNotesTransformer implements Transformer<String, String> {
         }
     }
 
-    private void wrapH2InSectionTopic(Document document) {
-        Element heading = document.body().select("h2").first();
+    public void setJquery(File jquery) {
+        this.jquery = jquery;
+    }
 
-        List<Element> inSection = new ArrayList<>();
-        inSection.add(heading);
+    public void setBaseStylesheet(File baseStylesheet) {
+        this.baseStylesheet = baseStylesheet;
+    }
 
-        Element next = heading.nextElementSibling();
-        while (true) {
-            if (next == null || next.tagName() == "h2") {
-                Element section = heading.before("<section class='topic'/>").previousElementSibling();
-                Elements inSectionElements = new Elements(inSection);
-                section.html(inSectionElements.outerHtml());
-                inSectionElements.remove();
+    public void setReleaseNotesStylesheet(File releaseNotesStylesheet) {
+        this.releaseNotesStylesheet = releaseNotesStylesheet;
+    }
 
-                if (next == null) {
-                    break;
-                } else {
-                    inSection.clear();
-                    inSection.add(next);
-                    heading = next;
-                }
-            } else {
-                inSection.add(next);
-            }
-            next = next.nextElementSibling();
-        }
+    public void setReleaseNotesJavascript(File releaseNotesJavascript) {
+        this.releaseNotesJavascript = releaseNotesJavascript;
     }
 }

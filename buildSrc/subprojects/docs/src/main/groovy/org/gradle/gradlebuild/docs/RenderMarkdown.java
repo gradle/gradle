@@ -38,10 +38,10 @@ public abstract class RenderMarkdown extends DefaultTask {
     public abstract RegularFileProperty getDestinationFile();
 
     @Input
-    public abstract Property<Charset> getInputEncoding();
+    public abstract Property<String> getInputEncoding();
 
     @Input
-    public abstract Property<Charset> getOutputEncoding();
+    public abstract Property<String> getOutputEncoding();
 
     @TaskAction
     public void process() {
@@ -50,10 +50,10 @@ public abstract class RenderMarkdown extends DefaultTask {
         Parser parser = Parser.builder(options).build();
         HtmlRenderer renderer = HtmlRenderer.builder(options).build();
         File markdownFile = getMarkdownFile().get().getAsFile();
-        Charset inputEncoding = getInputEncoding().get();
+        Charset inputEncoding = Charset.forName(getInputEncoding().get());
 
         File destination = getDestinationFile().get().getAsFile();
-        Charset outputEncoding = getOutputEncoding().get();
+        Charset outputEncoding = Charset.forName(getOutputEncoding().get());
         try (InputStreamReader inputStream = new InputStreamReader(new FileInputStream(markdownFile), inputEncoding);
              OutputStreamWriter outputStream = new OutputStreamWriter(new FileOutputStream(destination), outputEncoding)) {
             String html = renderer.render(parser.parseReader(inputStream));
