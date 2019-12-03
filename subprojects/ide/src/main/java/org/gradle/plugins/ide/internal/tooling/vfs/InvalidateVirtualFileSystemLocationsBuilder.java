@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.vfs;
+package org.gradle.plugins.ide.internal.tooling.vfs;
 
 import org.gradle.api.Project;
 import org.gradle.internal.vfs.VirtualFileSystem;

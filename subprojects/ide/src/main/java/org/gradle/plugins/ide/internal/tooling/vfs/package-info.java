@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.vfs
+@NonNullApi
+package org.gradle.plugins.ide.internal.tooling.vfs;
 
-import org.gradle.test.fixtures.AbstractProjectBuilderSpec
-
-class InvalidateVirtualFileSystemLocationsBuilderTest extends AbstractProjectBuilderSpec {
-}
+import org.gradle.api.NonNullApi;

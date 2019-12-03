@@ -26,7 +26,7 @@ import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.plugins.ide.internal.configurer.DefaultUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.configurer.UniqueProjectNameProvider;
-import org.gradle.plugins.ide.vfs.InvalidateVirtualFileSystemLocationsBuilder;
+import org.gradle.plugins.ide.internal.tooling.vfs.InvalidateVirtualFileSystemLocationsBuilder;
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.internal.BuildScopeToolingModelBuilderRegistryAction;
 
