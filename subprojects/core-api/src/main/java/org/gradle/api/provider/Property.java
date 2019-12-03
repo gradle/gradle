@@ -46,6 +46,24 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue {
     void set(@Nullable T value);
 
     /**
+     * @since 6.1
+     */
+    @Incubating
+    void setValue(T value);
+
+    /**
+     * @since 6.1
+     */
+    @Incubating
+    Provider<? extends T> getSource();
+
+    /**
+     * @since 6.1
+     */
+    @Incubating
+    void setSource(Provider<? extends T> provider);
+
+    /**
      * Sets the property to have the same value of the given provider, replacing whatever value the property already had. This property will track the value of the provider and query its value each time the value of the property is queried. When the provider has no value, this property will also have no value.
      *
      * <p>

@@ -54,6 +54,21 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     }
 
     @Override
+    public void setValue(T value) {
+        set(value);
+    }
+
+    @Override
+    public Provider<? extends T> getSource() {
+        return this;
+    }
+
+    @Override
+    public void setSource(Provider<? extends T> provider) {
+        set(provider);
+    }
+
+    @Override
     public void setFromAnyValue(Object object) {
         if (object instanceof Provider) {
             set((Provider<T>) object);

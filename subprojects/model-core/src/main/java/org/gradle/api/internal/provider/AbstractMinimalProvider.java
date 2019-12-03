@@ -53,6 +53,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
+    public T getValue() {
+        return get();
+    }
+
+    @Override
     public T getOrElse(T defaultValue) {
         T value = getOrNull();
         if (value == null) {

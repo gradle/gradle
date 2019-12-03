@@ -75,7 +75,13 @@ public interface Provider<T> {
      * @return the current value of this provider.
      * @throws IllegalStateException if there is no value present
      */
-    T get();
+    T get() throws IllegalStateException;
+
+    /**
+     * @since 6.1
+     */
+    @Incubating
+    T getValue() throws IllegalStateException;
 
     /**
      * Returns the value of this provider if it has a value present. Returns {@code null} a value is not available.
