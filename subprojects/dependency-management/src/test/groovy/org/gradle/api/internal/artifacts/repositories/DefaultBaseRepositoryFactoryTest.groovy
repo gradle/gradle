@@ -65,7 +65,8 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
         artifactIdentifierFileStore, externalResourceFileStore, pomParser, metadataParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
         TestUtil.instantiatorFactory(), Mock(FileResourceRepository), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.valueSnapshotter() as IsolatableFactory, Mock(ObjectFactory),
         CollectionCallbackActionDecorator.NOOP,
-        urlArtifactRepositoryFactory
+        urlArtifactRepositoryFactory,
+        TestUtil.checksumService
     )
 
     def testCreateFlatDirResolver() {

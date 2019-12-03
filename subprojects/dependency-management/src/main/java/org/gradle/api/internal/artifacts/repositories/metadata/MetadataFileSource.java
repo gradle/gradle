@@ -17,9 +17,9 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.model.PersistentModuleSource;
+import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
-import java.math.BigInteger;
 
 /**
  * This module source stores information about the metadata file
@@ -37,7 +37,7 @@ public interface MetadataFileSource extends PersistentModuleSource {
 
     ModuleComponentArtifactIdentifier getArtifactId();
 
-    BigInteger getSha1();
+    HashCode getSha1();
 
     @Override
     default int getCodecId() {

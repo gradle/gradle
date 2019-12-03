@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultEx
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.cache.internal.ProducerGuard;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
 import org.gradle.internal.resource.cached.CachedExternalResourceIndex;
@@ -38,11 +39,11 @@ public class FileTransport extends AbstractRepositoryTransport {
     private final FileResourceRepository repository;
     private final FileCacheAwareExternalResourceAccessor resourceAccessor;
 
-    public FileTransport(String name, FileResourceRepository repository, CachedExternalResourceIndex<String> cachedExternalResourceIndex, TemporaryFileProvider temporaryFileProvider, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ProducerGuard<ExternalResourceName> producerGuard) {
+    public FileTransport(String name, FileResourceRepository repository, CachedExternalResourceIndex<String> cachedExternalResourceIndex, TemporaryFileProvider temporaryFileProvider, BuildCommencedTimeProvider timeProvider, ArtifactCacheLockingManager artifactCacheLockingManager, ProducerGuard<ExternalResourceName> producerGuard, ChecksumService checksumService) {
         super(name);
         this.repository = repository;
         ExternalResourceCachePolicy cachePolicy = new DefaultExternalResourceCachePolicy();
-        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, repository));
+        resourceAccessor = new FileCacheAwareExternalResourceAccessor(new DefaultCacheAwareExternalResourceAccessor(repository, cachedExternalResourceIndex, timeProvider, temporaryFileProvider, artifactCacheLockingManager, cachePolicy, producerGuard, repository, checksumService));
     }
 
     @Override

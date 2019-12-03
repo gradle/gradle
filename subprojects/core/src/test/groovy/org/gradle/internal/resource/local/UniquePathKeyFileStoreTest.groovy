@@ -18,6 +18,7 @@ package org.gradle.internal.resource.local
 
 import org.gradle.api.Action
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
@@ -31,7 +32,7 @@ class UniquePathKeyFileStoreTest extends Specification {
     UniquePathKeyFileStore uniquePathKeyFileStore
 
     def setup() {
-        uniquePathKeyFileStore = new UniquePathKeyFileStore(temporaryFolder.createDir("fsbase"))
+        uniquePathKeyFileStore = new UniquePathKeyFileStore(TestUtil.checksumService, temporaryFolder.createDir("fsbase"))
     }
 
     def "add executes action if file does not exist"() {

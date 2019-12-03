@@ -54,8 +54,8 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.WrappedComponentResolveMetadata;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.reflect.Instantiator;
@@ -110,6 +110,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private final InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory;
     private final InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister;
     private final Instantiator injector;
+    private final ChecksumService checksumService;
 
     private String id;
     private ExternalResourceArtifactResolver cachedArtifactResolver;
@@ -124,7 +125,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
                                        MetadataArtifactProvider metadataArtifactProvider,
                                        @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
                                        @Nullable InstantiatingAction<ComponentMetadataListerDetails> providedVersionLister,
-                                       Instantiator injector) {
+                                       Instantiator injector,
+                                       ChecksumService checksumService) {
         this.name = name;
         this.local = local;
         this.cachingResourceAccessor = cachingResourceAccessor;
@@ -136,6 +138,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         this.componentMetadataSupplierFactory = componentMetadataSupplierFactory;
         this.providedVersionLister = providedVersionLister;
         this.injector = injector;
+        this.checksumService = checksumService;
     }
 
     @Override
@@ -340,8 +343,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private byte[] createChecksumFile(File src, String algorithm, int checksumLength) {
-        HashValue hash = HashUtil.createHash(src, algorithm);
-        String formattedHashString = hash.asZeroPaddedHexString(checksumLength);
+        HashCode hash = checksumService.hash(src, algorithm);
+        String formattedHashString = hash.toString();
         try {
             return formattedHashString.getBytes("US-ASCII");
         } catch (UnsupportedEncodingException e) {

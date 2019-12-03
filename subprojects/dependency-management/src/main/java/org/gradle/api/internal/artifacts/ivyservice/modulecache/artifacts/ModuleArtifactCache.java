@@ -16,11 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.cached.CachedExternalResource;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.math.BigInteger;
 import java.util.List;
 
 public interface ModuleArtifactCache {
@@ -28,20 +28,18 @@ public interface ModuleArtifactCache {
      * Adds a resolution to the index.
      *
      * The incoming file is expected to be in the persistent local. This method will not move/copy the file there. <p>
-     *
-     * @param key The key to cache this resolution under in the index. Cannot be null.
+     *  @param key The key to cache this resolution under in the index. Cannot be null.
      * @param artifactFile The artifact file in the persistent file store. Cannot be null
      * @param moduleDescriptorHash The checksum (SHA1) of the related moduledescriptor.
      */
-    void store(ArtifactAtRepositoryKey key, File artifactFile, BigInteger moduleDescriptorHash);
+    void store(ArtifactAtRepositoryKey key, File artifactFile, HashCode moduleDescriptorHash);
 
     /**
      * Record that the artifact with the given key was missing.
-     *
-     * @param key The key to cache this resolution under in the index.
+     *  @param key The key to cache this resolution under in the index.
      * @param descriptorHash The SHA1 hash of the related moduleDescriptor
      */
-    void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, BigInteger descriptorHash);
+    void storeMissing(ArtifactAtRepositoryKey key, List<String> attemptedLocations, HashCode descriptorHash);
 
     /**
      * Lookup a cached resolution.

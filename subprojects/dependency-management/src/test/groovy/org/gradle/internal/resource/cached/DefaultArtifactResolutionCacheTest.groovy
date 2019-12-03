@@ -17,7 +17,7 @@
 package org.gradle.internal.resource.cached
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
-import org.gradle.internal.hash.HashValue
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.resource.local.FileAccessTracker
 import org.gradle.internal.resource.metadata.DefaultExternalResourceMetaData
 import org.gradle.internal.serialize.BaseSerializerFactory
@@ -70,7 +70,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
 
         where:
         lastModified | contentType | etag   | sha1
-        new Date()   | "something" | "etag" | new HashValue("1234")
+        new Date()   | "something" | "etag" | HashCode.fromInt(123456)
         null         | null        | null   | null
     }
 

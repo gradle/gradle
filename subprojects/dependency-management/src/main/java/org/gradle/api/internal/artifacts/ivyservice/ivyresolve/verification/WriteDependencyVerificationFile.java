@@ -35,7 +35,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -72,11 +72,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private final List<String> checksums;
     private final Map<FileChecksum, String> cachedChecksums = Maps.newConcurrentMap();
     private final Set<ChecksumEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
+    private final ChecksumService checksumService;
 
-    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums) {
+    public WriteDependencyVerificationFile(File buildDirectory, BuildOperationExecutor buildOperationExecutor, List<String> checksums, ChecksumService checksumService) {
         this.buildDirectory = buildDirectory;
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = validateChecksums(checksums);
+        this.checksumService = checksumService;
     }
 
     private List<String> validateChecksums(List<String> checksums) {
@@ -184,7 +186,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         ChecksumEntry entry = buildOperationExecutor.call(new CallableBuildOperation<ChecksumEntry>() {
             @Override
             public ChecksumEntry call(BuildOperationContext context) {
-                return new ChecksumEntry(id, file, kind, createHash(file, kind));
+                if (file.exists()) {
+                    return new ChecksumEntry(id, file, kind, createHash(file, kind));
+                } else {
+                    LOGGER.warn("Cannot compute checksum for " + file + " because it doesn't exist. It may indicate a corrupt or tampered cache.");
+                }
+                return null;
             }
 
             @Override
@@ -192,13 +199,15 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 return BuildOperationDescriptor.displayName("Generate " + kind + " checksum for " + id);
             }
         });
-        synchronized (entriesToBeWritten) {
-            entriesToBeWritten.add(entry);
+        if (entry != null) {
+            synchronized (entriesToBeWritten) {
+                entriesToBeWritten.add(entry);
+            }
         }
     }
 
     private String createHash(File file, ChecksumKind kind) {
-        return cachedChecksums.computeIfAbsent(new FileChecksum(file, kind), key -> HashUtil.createHash(file, kind.getAlgorithm()).asHexString());
+        return cachedChecksums.computeIfAbsent(new FileChecksum(file, kind), key -> checksumService.hash(file, kind.getAlgorithm()).toString());
     }
 
     private static void resolveAllConfigurationsAndForceDownload(Project p) {

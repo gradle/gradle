@@ -24,7 +24,8 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.hash.ChecksumService;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.local.CompositeLocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.FileStoreSearcher;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
@@ -45,12 +46,14 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
     private final File rootCachesDirectory;
     private final LocalMavenRepositoryLocator localMavenRepositoryLocator;
     private final FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore;
+    private final ChecksumService checksumService;
 
     public LocallyAvailableResourceFinderFactory(
-        ArtifactCacheMetadata artifactCacheMetadata, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore) {
+        ArtifactCacheMetadata artifactCacheMetadata, LocalMavenRepositoryLocator localMavenRepositoryLocator, FileStoreSearcher<ModuleComponentArtifactIdentifier> fileStore, ChecksumService checksumService) {
         this.rootCachesDirectory = artifactCacheMetadata.getCacheDir().getParentFile();
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileStore = fileStore;
+        this.checksumService = checksumService;
     }
 
     @Override
@@ -66,7 +69,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
                 return fileStore.search(key.getId());
             }
 
-        }));
+        }, checksumService));
 
         // 1.8
         addForPattern(finders, "artifacts-26/filestore/[organisation]/[module](/[branch])/[revision]/[type]/*/[artifact]-[revision](-[classifier])(.[ext])");
@@ -132,7 +135,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
 
     private void addForPattern(List<LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata>> finders, File baseDir, ResourcePattern pattern) {
         if (baseDir.exists()) {
-            finders.add(new PatternBasedLocallyAvailableResourceFinder(baseDir, pattern));
+            finders.add(new PatternBasedLocallyAvailableResourceFinder(baseDir, pattern, checksumService));
         }
     }
 
@@ -158,7 +161,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
                 }
 
                 @Override
-                public LocallyAvailableResource findByHashValue(HashValue hashValue) {
+                public LocallyAvailableResource findByHashValue(HashCode hashValue) {
                     return null;
                 }
             };

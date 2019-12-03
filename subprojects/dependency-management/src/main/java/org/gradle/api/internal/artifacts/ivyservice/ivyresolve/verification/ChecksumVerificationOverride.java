@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationsXmlReader;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.operations.BuildOperationExecutor;
 
@@ -45,9 +46,11 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
     private final DependencyVerifier verifier;
     private final Map<ModuleComponentArtifactIdentifier, DependencyVerifier.VerificationFailure> failures = Maps.newLinkedHashMapWithExpectedSize(2);
     private final BuildOperationExecutor buildOperationExecutor;
+    private final ChecksumService checksumService;
 
-    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile) {
+    public ChecksumVerificationOverride(BuildOperationExecutor buildOperationExecutor, File verificationsFile, ChecksumService checksumService) {
         this.buildOperationExecutor = buildOperationExecutor;
+        this.checksumService = checksumService;
         try {
             this.verifier = DependencyVerificationsXmlReader.readFromXml(
                 new FileInputStream(verificationsFile)
@@ -59,7 +62,7 @@ public class ChecksumVerificationOverride implements DependencyVerificationOverr
 
     @Override
     public void onArtifact(ModuleComponentArtifactIdentifier artifact, File path) {
-        verifier.verify(buildOperationExecutor, artifact, path, f -> {
+        verifier.verify(buildOperationExecutor, checksumService, artifact, path, f -> {
             synchronized (failures) {
                 failures.put(artifact, f);
             }
