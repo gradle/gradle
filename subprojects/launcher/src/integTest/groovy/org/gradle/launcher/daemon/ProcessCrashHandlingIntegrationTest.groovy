@@ -253,8 +253,11 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
 
                 // We expect AttachConsole to fail with a particular error if the
                 // provided pid is not attached to a console
+                // when pid is not attached to console, GetLastError(pid) returns:
+                // ERROR_GEN_FAILURE on Win7
+                // ERROR_INVALID_HANDLE on Win10
                 if (!AttachConsole(pid)) {
-                    if (GetLastError() == ERROR_GEN_FAILURE) {
+                    if (GetLastError() == ERROR_GEN_FAILURE || GetLastError() == ERROR_INVALID_HANDLE) {
                         printf("none\\n");
                         exit(0);
                     } else {
