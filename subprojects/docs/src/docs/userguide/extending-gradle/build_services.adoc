@@ -114,3 +114,8 @@ them at configuration time. However, sometimes it can make sense to use the serv
 
 You can constrain concurrent execution when you register the service, by using the `Property` object returned from link:{javadocPath}/org/gradle/api/services/BuildServiceSpec.html#getMaxParallelUsages--[BuildServiceSpec.getMaxParallelUsages()].
 When this property has no value, which is the default, Gradle does not constrain access to the service. When this property has a value > 0, Gradle will allow no more than the specified number of tasks to use the service concurrently.
+
+== Receiving information about task execution
+
+A build service can be used to receive events as tasks are executed. To do this, create and register a build service that implements link:{javadocPath}/org/gradle/tooling/events/OperationCompletionListener.html[OperationCompletionListener].
+Then, you can use the methods on the link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html[BuildEventsListenerRegistry] service to start receiving events.
