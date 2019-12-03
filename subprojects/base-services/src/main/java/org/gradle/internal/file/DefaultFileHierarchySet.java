@@ -132,7 +132,7 @@ public class DefaultFileHierarchySet {
         Node plus(String path) {
             int maxPos = Math.min(prefix.length(), path.length());
             int prefixLen = sizeOfCommonPrefix(path, 0);
-            if (prefixLen == maxPos) {
+            if (prefixLen == maxPos && prefixLen != 0) {
                 if (prefix.length() == path.length()) {
                     // Path == prefix
                     if (children.isEmpty()) {
@@ -168,8 +168,6 @@ public class DefaultFileHierarchySet {
             }
             String commonPrefix = prefix.substring(0, prefixLen);
 
-            // On windows the common prefix can be 0
-            // For example, new Node("C:").plus("D:")
             int newChildrenStartIndex = (prefixLen == 0) ? 0 : prefixLen + 1;
 
             Node newThis = new Node(prefix.substring(newChildrenStartIndex), children);
