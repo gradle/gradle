@@ -56,6 +56,7 @@ dependencies {
     smokeTestImplementation(project(":internalIntegTesting"))
     smokeTestImplementation(project(":launcher"))
     smokeTestImplementation(project(":persistentCache"))
+    smokeTestImplementation(project(":jvmServices"))
     smokeTestImplementation(library("commons_io"))
     smokeTestImplementation(library("jgit"))
     smokeTestImplementation(library("gradleProfiler")) {
@@ -72,15 +73,25 @@ dependencies {
     testImplementation(testFixtures(project(":versionControl")))
 }
 
-tasks.register<SmokeTest>("smokeTest") {
+fun SmokeTest.configureForSmokeTest() {
     group = "Verification"
-    description = "Runs Smoke tests"
     testClassesDirs = smokeTest.output.classesDirs
     classpath = smokeTest.runtimeClasspath
     maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
     gradleInstallationForTest.gradleGeneratedApiJarCacheDir.set(
         defaultGradleGeneratedApiJarCacheDirProvider()
     )
+}
+
+tasks.register<SmokeTest>("smokeTest") {
+    description = "Runs Smoke tests"
+    configureForSmokeTest()
+}
+
+tasks.register<SmokeTest>("instantSmokeTest") {
+    description = "Runs Smoke tests with instant execution"
+    configureForSmokeTest()
+    systemProperty("org.gradle.integtest.executer", "instant")
 }
 
 plugins.withType<IdeaPlugin>().configureEach {
