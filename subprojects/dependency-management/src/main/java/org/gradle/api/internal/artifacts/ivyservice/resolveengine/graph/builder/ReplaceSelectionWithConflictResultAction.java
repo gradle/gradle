@@ -31,7 +31,7 @@ class ReplaceSelectionWithConflictResultAction implements Action<ConflictResolut
         result.withParticipatingModules(moduleIdentifier -> {
             // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
             // matching selected configuration. For the select configuration, this mean traversing its dependencies.
-            resolveState.getModule(moduleIdentifier).restart(result.getSelected());
+            resolveState.getModule(moduleIdentifier).replaceWith(result.getSelected());
         });
     }
 

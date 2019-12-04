@@ -70,6 +70,7 @@ class ModuleResolveState implements CandidateModule {
     private VirtualPlatformState platformState;
     private boolean overriddenSelection;
     private Set<VirtualPlatformState> platformOwners;
+    private boolean replaced = false;
 
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
@@ -159,6 +160,7 @@ class ModuleResolveState implements CandidateModule {
     public void select(ComponentState selected) {
         assert this.selected == null;
         this.selected = selected;
+        this.replaced = false;
 
         selectComponentAndEvictOthers(selected);
     }
@@ -173,7 +175,7 @@ class ModuleResolveState implements CandidateModule {
     /**
      * Changes the selected target component for this module.
      */
-    public void changeSelection(ComponentState newSelection) {
+    private void changeSelection(ComponentState newSelection) {
         assert this.selected != null;
         assert newSelection != null;
         assert this.selected != newSelection;
@@ -183,6 +185,7 @@ class ModuleResolveState implements CandidateModule {
         selected.removeOutgoingEdges();
 
         this.selected = newSelection;
+        this.replaced = false;
 
         doRestart(newSelection);
     }
@@ -203,13 +206,14 @@ class ModuleResolveState implements CandidateModule {
         }
 
         selected = null;
+        replaced = false;
     }
 
     /**
      * Overrides the component selection for this module, when this module has been replaced by another.
      */
     @Override
-    public void restart(ComponentState selected) {
+    public void replaceWith(ComponentState selected) {
         if (this.selected != null) {
             clearSelection();
         }
@@ -221,8 +225,14 @@ class ModuleResolveState implements CandidateModule {
             this.overriddenSelection = true;
         }
         this.selected = selected;
+        this.replaced = computeReplaced(selected);
 
         doRestart(selected);
+    }
+
+    private boolean computeReplaced(ComponentState selected) {
+        // This module might be resolved to a different module, through replacedBy
+        return !selected.getId().getModule().equals(getId());
     }
 
     private void doRestart(ComponentState selected) {
@@ -277,9 +287,13 @@ class ModuleResolveState implements CandidateModule {
 
     void removeSelector(SelectorState selector) {
         selectors.remove(selector);
+        boolean alreadyReused = selector.markForReuse();
         mergedConstraintAttributes = ImmutableAttributes.EMPTY;
         for (SelectorState selectorState : selectors) {
             mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
+        }
+        if (!alreadyReused && selectors.size() != 0) {
+            maybeUpdateSelection();
         }
     }
 
@@ -364,21 +378,22 @@ class ModuleResolveState implements CandidateModule {
     }
 
 
-    public boolean maybeUpdateSelection() {
+    public void maybeUpdateSelection() {
+        if (replaced) {
+            // Never update selection for a replaced module
+            return;
+        }
         if (selectors.checkDeferSelection()) {
             // Selection deferred as we know another selector will be added soon
-            return false;
+            return;
         }
         ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
         newSelected.setSelectors(selectors);
         if (selected == null) {
             select(newSelected);
-            return true;
         } else if (newSelected != selected) {
             changeSelection(newSelected);
-            return true;
         }
-        return false;
     }
 
     void maybeCreateVirtualMetadata(ResolveState resolveState) {
