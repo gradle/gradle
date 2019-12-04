@@ -20,8 +20,8 @@ package org.gradle.internal.vfs;
  * Identifies if a path is underneath one of Gradle's "additive caches".
  *
  * Over time more files can be added to an additive cache, but existing files
- * can never be modified. Files in additive caches can only be deleted as part
- * of cleanup.
+ * can never be modified.
+ * Files in additive caches can only be deleted as part of cleanup.
  *
  * This quasi-immutability about additive caches allows for some
  * optimizations wrt retaining file system state in-memory.
