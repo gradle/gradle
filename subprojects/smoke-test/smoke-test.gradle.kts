@@ -25,6 +25,10 @@ plugins {
     `java-library`
 }
 
+gradlebuildJava {
+    moduleType = ModuleType.INTERNAL
+}
+
 val smokeTest: SourceSet by sourceSets.creating {
     compileClasspath += sourceSets.main.get().output
     runtimeClasspath += sourceSets.main.get().output
@@ -44,7 +48,6 @@ configurations {
         get(smokeTest.runtimeClasspathConfigurationName)
     )
 }
-
 
 dependencies {
     smokeTestImplementation(project(":baseServices"))
@@ -69,10 +72,6 @@ dependencies {
     testImplementation(testFixtures(project(":versionControl")))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}
-
 tasks.register<SmokeTest>("smokeTest") {
     group = "Verification"
     description = "Runs Smoke tests"
@@ -84,7 +83,7 @@ tasks.register<SmokeTest>("smokeTest") {
     )
 }
 
-plugins.withType<IdeaPlugin>().configureEach { // lazy as plugin not applied yet
+plugins.withType<IdeaPlugin>().configureEach {
     model.module {
         testSourceDirs = testSourceDirs + smokeTest.groovy.srcDirs
         testResourceDirs = testResourceDirs + smokeTest.resources.srcDirs
@@ -93,7 +92,7 @@ plugins.withType<IdeaPlugin>().configureEach { // lazy as plugin not applied yet
     }
 }
 
-plugins.withType<EclipsePlugin>().configureEach { // lazy as plugin not applied yet
+plugins.withType<EclipsePlugin>().configureEach {
     eclipse.classpath {
         plusConfigurations.add(smokeTestCompileClasspath)
         plusConfigurations.add(smokeTestRuntimeClasspath)
@@ -102,32 +101,32 @@ plugins.withType<EclipsePlugin>().configureEach { // lazy as plugin not applied 
 
 // TODO Copied from instant-execution.gradle.kts, we should have one place to clone this thing and clone it from there locally when needed
 tasks {
-    val santaTracker by registering(RemoteProject::class) {
+
+    register<RemoteProject>("santaTracker") {
         remoteUri.set("https://github.com/gradle/santa-tracker-android.git")
         // From branch agp-3.6.0
         ref.set("3bbbd895de38efafd0dd1789454d4e4cb72d46d5")
     }
 
+    register<RemoteProject>("gradleBuildCurrent") {
+        remoteUri.set(rootDir.absolutePath)
+        ref.set(rootProject.tasks.named<DetermineCommitId>("determineCommitId").flatMap { it.determinedCommitId })
+    }
+
+    val remoteProjects = withType<RemoteProject>()
+
     if (BuildEnvironment.isCiServer) {
-        withType<RemoteProject>().configureEach {
+        remoteProjects.configureEach {
             outputs.upToDateWhen { false }
         }
     }
 
-    withType<SmokeTest>().configureEach {
-        dependsOn(santaTracker)
-        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
-    }
-
     register<Delete>("cleanRemoteProjects") {
-        delete(santaTracker.get().outputDirectory)
+        delete(remoteProjects.map { it.outputDirectory })
     }
 
-    val gradleBuildCurrent by registering(RemoteProject::class) {
-        remoteUri.set(rootDir.absolutePath)
-        ref.set(rootProject.tasks.named<DetermineCommitId>("determineCommitId").flatMap { it.determinedCommitId })
-    }
-    named("smokeTest") {
-        dependsOn(gradleBuildCurrent)
+    withType<SmokeTest>().configureEach {
+        dependsOn(remoteProjects)
+        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
     }
 }
