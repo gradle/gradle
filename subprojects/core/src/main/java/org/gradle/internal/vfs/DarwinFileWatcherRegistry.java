@@ -92,7 +92,7 @@ public class DarwinFileWatcherRegistry implements FileWatcherRegistry {
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatching(Set<Path> directories) throws IOException {
+        public FileWatcherRegistry startWatching(Set<Path> directories) {
             return new DarwinFileWatcherRegistry(resolveRootsToWatch(directories));
         }
     }

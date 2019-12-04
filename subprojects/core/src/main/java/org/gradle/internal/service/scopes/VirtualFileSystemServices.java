@@ -80,6 +80,7 @@ import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.impl.JdkFileWatcherRegistry;
+import org.gradle.internal.vfs.watch.impl.NoopFileWatcherRegistry;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,8 +174,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                     // The Linux watched in the JDK works quite well
                     return new JdkFileWatcherRegistry.Factory();
                 } else {
-                    LOGGER.warn("Using built-in JDK file watcher for {}, performance is probably going to be suboptimal", operatingSystem);
-                    return new JdkFileWatcherRegistry.Factory();
+                    return new NoopFileWatcherRegistry.Factory();
                 }
             }
 
