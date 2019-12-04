@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.UnauthorizedFileVisitDetails;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.gradle.internal.os.OperatingSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -121,8 +122,11 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
             RelativePath childPath = dirDetails != null ? dirDetails.getRelativePath().append(!isDirectory, child.getName()) : rootPath;
             if (attrs == null) {
                 return new UnauthorizedFileVisitDetails(child, childPath);
+            } else if (isDirectory && OperatingSystem.current() == OperatingSystem.WINDOWS) {
+                // Workaround for https://github.com/gradle/gradle/issues/11577
+                return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, true);
             } else {
-                return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, isDirectory, attrs.lastModifiedTime().toMillis(), attrs.size());
+                return new DefaultFileVisitDetails(child, childPath, stopFlag, fileSystem, fileSystem, false, attrs.lastModifiedTime().toMillis(), attrs.size());
             }
         }
 
