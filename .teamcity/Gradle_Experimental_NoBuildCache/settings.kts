@@ -1,4 +1,4 @@
-package Gradle_Experimental
+package Gradle_Experimental_NoBuildCache
 
 import common.JvmCategory
 import common.NoBuildCache
@@ -36,7 +36,7 @@ calling the subProjects() method in this project.
 version = "2019.1"
 project(RootProject(CIBuildModel(
     buildScanTags = listOf("Check"),
-    projectPrefix = "Gradle_Experimental_NoBuildCache",
+    projectPrefix = "Gradle_Experimental_NoBuildCache_",
     parentBuildCache = NoBuildCache,
     childBuildCache = NoBuildCache,
     stages = listOf(
