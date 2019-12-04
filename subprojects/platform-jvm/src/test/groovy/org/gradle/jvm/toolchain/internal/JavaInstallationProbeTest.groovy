@@ -132,11 +132,12 @@ class JavaInstallationProbeTest extends Specification {
 
 
     private static Map<String, String> currentGradle() {
-        ['java.version', 'java.vendor', 'os.arch', 'java.vm.name', 'java.vm.version', 'java.runtime.name'].collectEntries { [it, System.getProperty(it)] }
+        ['java.home', 'java.version', 'java.vendor', 'os.arch', 'java.vm.name', 'java.vm.version', 'java.runtime.name'].collectEntries { [it, System.getProperty(it)] }
     }
 
     private static Map<String, String> openJdkJvm(String version) {
-        ['java.version': "1.${version}.0",
+        ['java.home': "java-home",
+         'java.version': "1.${version}.0",
          'java.vendor': "Oracle Corporation",
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
@@ -146,7 +147,8 @@ class JavaInstallationProbeTest extends Specification {
     }
 
     private static Map<String, String> adoptOpenJDK(String version) {
-        ['java.version': version,
+        ['java.home': "java-home",
+         'java.version': version,
          'java.vendor': "AdoptOpenJDK",
          'os.arch': "x86_64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
@@ -156,7 +158,8 @@ class JavaInstallationProbeTest extends Specification {
     }
 
     private static Map<String, String> oracleJvm(String version) {
-        ['java.version': "1.${version}.0",
+        ['java.home': "java-home",
+         'java.version': "1.${version}.0",
          'java.vendor': "Oracle Corporation",
          'os.arch': "amd64",
          'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",
@@ -166,7 +169,8 @@ class JavaInstallationProbeTest extends Specification {
     }
 
     private static Map<String, String> ibmJvm(String version) {
-        ['java.version': "1.${version}.0",
+        ['java.home': "java-home",
+         'java.version': "1.${version}.0",
          'java.vendor': "IBM Corporation",
          'os.arch': "amd64",
          'java.vm.name': "IBM J9 VM",
@@ -176,7 +180,8 @@ class JavaInstallationProbeTest extends Specification {
     }
 
     private static Map<String, String> zuluJvm(String version) {
-        ['java.version': "1.${version}.0_66",
+        ['java.home': "java-home",
+         'java.version': "1.${version}.0_66",
          'java.vendor': "Azul Systems, Inc.",
          'os.arch': "amd64",
          'java.vm.name': "OpenJDK 64-Bit Server VM",
@@ -186,7 +191,8 @@ class JavaInstallationProbeTest extends Specification {
     }
 
     private static Map<String, String> hpuxJvm(String version) {
-        ['java.version': "1.${version}.0_66",
+        ['java.home': "java-home",
+         'java.version': "1.${version}.0_66",
          'java.vendor': "Hewlett-Packard Co.",
          'os.arch': "ia64",
          'java.vm.name': "Java HotSpot(TM) 64-Bit Server VM",

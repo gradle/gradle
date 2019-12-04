@@ -20,9 +20,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
- * Represents a Java installation, which may include a JRE or a JDK.
+ * Information about a Java installation, which may include a JRE or a JDK or both.
  *
  * @since 6.1
  */
@@ -34,7 +35,18 @@ public interface JavaInstallation {
     JavaVersion getJavaVersion();
 
     /**
-     * Returns the Java home directory of this installation.
+     * Returns the root directory of this installation.
      */
-    File getJavaHome();
+    File getInstallationDirectory();
+
+    /**
+     * Returns a Java executable packaged in this installation that can be used for running applications.
+     * This will be the Java executable from the stand alone JRE, if present, otherwise the Java executable from the JDK.
+     */
+    File getJavaExecutable();
+
+    /**
+     * Returns information about the JDK packaged in this installation, if any.
+     */
+    Optional<JavaDevelopmentKit> getJdk();
 }

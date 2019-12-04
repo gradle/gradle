@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.toolchain;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
 
 import java.io.File;
@@ -27,14 +28,19 @@ import java.io.File;
  *
  * @since 6.1
  */
+@Incubating
 public interface JavaInstallationRegistry {
     /**
      * Returns the Java installation for the current virtual machine.
      */
-    JavaInstallation getThisVirtualMachine();
+    JavaInstallation getInstallationForCurrentVirtualMachine();
 
     /**
-     * Returns information about the given Java installation.
+     * Returns information about the Java installation at the given location.
+     *
+     * <p>Note that this method may return an installation whose Java home directory is not the same as the installation directory. For example, if the given directory
+     * points to a JRE installation contained within a JDK installation (as was the case for Java 8 and earlier), then the {@code JavaInstallation} for outer installation will be returned.
+     * </p>
      */
-    Provider<JavaInstallation> forDirectory(File installationDirectory);
+    Provider<JavaInstallation> installationForDirectory(File installationDirectory);
 }

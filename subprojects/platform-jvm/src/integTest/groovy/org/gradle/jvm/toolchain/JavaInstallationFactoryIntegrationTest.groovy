@@ -16,71 +16,137 @@
 
 package org.gradle.jvm.toolchain
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Assume
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 import javax.inject.Inject
 
 class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can query information about the current JVM"() {
+        taskTypeShowsJavaInstallationDetails()
         buildFile << """
             import ${Inject.name}
 
-            abstract class QueryTask extends DefaultTask {
+            abstract class ShowPlugin implements Plugin<Project> {
                 @Inject
-                abstract JavaInstallationRegistry getFactory()
-                
-                @TaskAction
-                def show() {
-                    def javaInstallation = factory.thisVirtualMachine
-                    println("java home = \${javaInstallation.javaHome}")
-                    println("java version = \${javaInstallation.javaVersion}")
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show", ShowTask) {
+                        installation = registry.installationForCurrentVirtualMachine
+                    }
                 }
             }
-            
-            task show(type: QueryTask)
+
+            apply plugin: ShowPlugin
         """
 
         when:
         run("show")
 
         then:
-        outputContains("java home = ${Jvm.current().javaHome}")
+        outputContains("install dir = ${Jvm.current().javaHome}")
         outputContains("java version = ${Jvm.current().javaVersion}")
+        outputContains("java executable = ${Jvm.current().javaExecutable}")
+        outputContains("JDK? = true")
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
-    def "can query information about another JVM"() {
+    def "plugin can query information about another JDK install"() {
         def jvm = AvailableJavaHomes.differentVersion
-        buildFile << """
-            import ${Inject.name}
 
-            abstract class QueryTask extends DefaultTask {
-                @Inject
-                abstract JavaInstallationRegistry getFactory()
-                
-                @TaskAction
-                def show() {
-                    def javaInstallation = factory.forDirectory(project.file("${jvm.javaHome.toURI()}")).get()
-                    println("java home = \${javaInstallation.javaHome}")
-                    println("java version = \${javaInstallation.javaVersion}")
-                }
+        taskTypeShowsJavaInstallationDetails()
+        buildFile << """
+            task show(type: ShowTask) {
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("${jvm.javaHome.toURI()}"))
             }
-            
-            task show(type: QueryTask)
         """
 
         when:
         run("show")
 
         then:
-        outputContains("java home = ${jvm.javaHome}")
+        outputContains("install dir = ${jvm.javaHome}")
         outputContains("java version = ${jvm.javaVersion}")
+        outputContains("java executable = ${jvm.javaExecutable}")
+        outputContains("JDK? = true")
+    }
+
+    @Unroll
+    def "plugin can query information about JDK #version install"() {
+        def jvm = AvailableJavaHomes.getJdk(version)
+        Assume.assumeTrue(jvm != null)
+
+        taskTypeShowsJavaInstallationDetails()
+        buildFile << """
+            task show(type: ShowTask) {
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("${jvm.javaHome.toURI()}"))
+            }
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("install dir = ${jvm.javaHome}")
+        outputContains("java version = ${jvm.javaVersion}")
+        outputContains("java executable = ${jvm.javaExecutable}")
+        outputContains("JDK? = true")
+
+        where:
+        version << [JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_7]
+    }
+
+    def "plugin can query information about a standalone JRE install alongside a JDK"() {
+        def jvm = AvailableJavaHomes.availableJvms.find { it.standaloneJre != null }
+        Assume.assumeTrue(jvm != null)
+        def jre = jvm.standaloneJre
+
+        taskTypeShowsJavaInstallationDetails()
+        buildFile << """
+            task show(type: ShowTask) {
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("${jre.homeDir.toURI()}"))
+            }
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("install dir = ${jvm.homeDir}")
+        outputContains("java version = ${jvm.javaVersion}")
+        outputContains("java executable = ${jvm.javaExecutable}")
+        outputContains("JDK? = true")
+    }
+
+    def "plugin can query information about an JRE install contained within a JDK install"() {
+        def jvm = AvailableJavaHomes.availableJvms.find { it.embeddedJre != null }
+        Assume.assumeTrue(jvm != null)
+        def jre = jvm.embeddedJre
+
+        taskTypeShowsJavaInstallationDetails()
+        buildFile << """
+            task show(type: ShowTask) {
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("${jre.homeDir.toURI()}"))
+            }
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("install dir = ${jvm.javaHome}")
+        outputContains("java version = ${jvm.javaVersion}")
+        outputContains("java executable = ${jvm.javaExecutable}")
+        outputContains("JDK? = true")
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
@@ -89,22 +155,11 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "notices changes to Java installation between builds"() {
         def jvm = AvailableJavaHomes.differentVersion
 
+        taskTypeShowsJavaInstallationDetails()
         buildFile << """
-            import ${Inject.name}
-
-            abstract class QueryTask extends DefaultTask {
-                @Inject
-                abstract JavaInstallationRegistry getFactory()
-                
-                @TaskAction
-                def show() {
-                    def javaInstallation = factory.forDirectory(project.file("install")).get()
-                    println("java home = \${javaInstallation.javaHome}")
-                    println("java version = \${javaInstallation.javaVersion}")
-                }
+            task show(type: ShowTask) {
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("install"))
             }
-            
-            task show(type: QueryTask)
         """
 
         def javaHome = file("install")
@@ -114,7 +169,7 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         run("show")
 
         then:
-        outputContains("java home = ${jvm.javaHome}")
+        outputContains("install dir = ${jvm.javaHome}")
         outputContains("java version = ${jvm.javaVersion}")
 
         when:
@@ -122,27 +177,18 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         run("show")
 
         then:
-        outputContains("java home = ${Jvm.current().javaHome}")
+        outputContains("install dir = ${Jvm.current().javaHome}")
         outputContains("java version = ${Jvm.current().javaVersion}")
     }
 
     def "reports unrecognized Java installation"() {
         file("install/bin/java").createFile()
 
+        taskTypeShowsJavaInstallationDetails()
         buildFile << """
-            import ${Inject.name}
-
-            abstract class QueryTask extends DefaultTask {
-                @Inject
-                abstract JavaInstallationRegistry getFactory()
-                
-                @TaskAction
-                def show() {
-                    factory.forDirectory(project.file("install")).get()
-                }
+            task show(type: ShowTask) {
+                installation = services.get(JavaInstallationRegistry).installationForDirectory(project.file("install"))
             }
-            
-            task show(type: QueryTask)
         """
 
         when:
@@ -152,5 +198,25 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         // TODO - improve the error message for common failures
         failure.assertHasDescription("Execution failed for task ':show'.")
         failure.assertHasCause("Could not determine the details of Java installation in directory ${file("install")}.")
+    }
+
+    def taskTypeShowsJavaInstallationDetails() {
+        buildFile << """
+            import ${Inject.name}
+
+            abstract class ShowTask extends DefaultTask {
+                @Internal
+                abstract Property<JavaInstallation> getInstallation()
+                
+                @TaskAction
+                def show() {
+                    def javaInstallation = installation.get()
+                    println("install dir = \${javaInstallation.installationDirectory}")
+                    println("java version = \${javaInstallation.javaVersion}")
+                    println("java executable = \${javaInstallation.javaExecutable}")
+                    println("JDK? = \${javaInstallation.jdk.present}")
+                }
+            }
+        """
     }
 }
