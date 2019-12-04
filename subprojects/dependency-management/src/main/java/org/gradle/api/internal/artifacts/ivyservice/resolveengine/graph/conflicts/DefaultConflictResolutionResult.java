@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 class DefaultConflictResolutionResult implements ConflictResolutionResult {
 
@@ -40,8 +41,15 @@ class DefaultConflictResolutionResult implements ConflictResolutionResult {
     private final ComponentState selected;
 
     public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, Object selected) {
-        this.participatingModules = participatingModules;
         this.selected = findComponent(selected);
+        this.participatingModules = participatingModules.stream().sorted((first, second) -> {
+            if (this.selected.getId().getModule().equals(first)) {
+                return -1;
+            } else if (this.selected.getId().getModule().equals(second)) {
+                return 1;
+            }
+            return 0;
+        }).collect(Collectors.toList());
     }
 
     @Override
