@@ -27,8 +27,8 @@ import java.io.File
 
 internal
 class ScriptCacheRepository(
-        private val cacheScopeMapping: CacheScopeMapping,
-        private val cacheRepository: CacheRepository
+    private val cacheScopeMapping: CacheScopeMapping,
+    private val cacheRepository: CacheRepository
 ) : AdditiveCache {
 
     fun cache(key: String): CacheBuilder =
@@ -41,6 +41,6 @@ class ScriptCacheRepository(
         )
 
     private
-    fun cacheRootFor(prefix : String) : File =
+    fun cacheRootFor(prefix: String): File =
         cacheScopeMapping.getBaseDirectory(null, prefix, VersionStrategy.CachePerVersion)
 }
