@@ -1,5 +1,6 @@
 package projects
 
+import Gradle_Check.configurations.FunctionalTestsPass
 import configurations.FunctionalTest
 import configurations.PerformanceTestCoordinator
 import configurations.SanityCheck
@@ -64,7 +65,10 @@ class StageProject(model: CIBuildModel, stage: Stage, rootProjectUuid: String, d
                 functionalTestProject
             }
 
-        functionalTestProjects.forEach(this::subProject)
+        functionalTestProjects.forEach { functionalTestProject ->
+            this@StageProject.subProject(functionalTestProject)
+            this@StageProject.buildType(FunctionalTestsPass(model, functionalTestProject))
+        }
 
         val deferredTestsForThisStage = if (stage.omitsSlowProjects) emptyList() else deferredFunctionalTests.toList().flatMap { it(stage) }
         if (deferredTestsForThisStage.isNotEmpty()) {
