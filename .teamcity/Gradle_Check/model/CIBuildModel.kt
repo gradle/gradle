@@ -94,17 +94,7 @@ data class CIBuildModel(
                 TestCoverage(16, TestType.quick, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
                 TestCoverage(17, TestType.quick, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
                 TestCoverage(18, TestType.platform, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(19, TestType.platform, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor))),
-        Stage(StageNames.WINDOWS_10_EVALUATION_QUICK,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            functionalTests = listOf(
-                TestCoverage(20, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
-        Stage(StageNames.WINDOWS_10_EVALUATION_PLATFORM,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            functionalTests = listOf(
-                TestCoverage(21, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
+                TestCoverage(19, TestType.platform, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor)))
     ),
 
     val subProjects: List<GradleSubproject> = listOf(

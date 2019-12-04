@@ -215,9 +215,7 @@ class CIConfigIntegrationTests {
             "Gradle_Check_Stage_MasterAccept_Trigger" to "createBuildReceipt updateBranchStatus",
             "Gradle_Check_Stage_ReleaseAccept_Trigger" to "createBuildReceipt",
             "Gradle_Check_Stage_HistoricalPerformance_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_Experimental_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_ExperimentalWindows10quick_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_ExperimentalWindows10platform_Trigger" to "createBuildReceipt"),
+            "Gradle_Check_Stage_Experimental_Trigger" to "createBuildReceipt"),
             triggerNameToTasks)
     }
 
