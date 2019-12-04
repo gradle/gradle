@@ -21,11 +21,14 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.jvm.Jvm;
+import org.gradle.jvm.toolchain.JavaDevelopmentKit;
 import org.gradle.jvm.toolchain.JavaInstallation;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Optional;
 
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
     private final JavaInstallationProbe installationProbe;
@@ -37,22 +40,20 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     }
 
     @Override
-    public JavaInstallation getThisVirtualMachine() {
-        DefaultJavaInstallation installation = new DefaultJavaInstallation();
-        installationProbe.current(installation);
-        return installation;
+    public JavaInstallation getInstallationForCurrentVirtualMachine() {
+        // TODO - should probably return a provider too
+        return new DefaultJavaInstallation(installationProbe.current());
     }
 
     @Override
-    public Provider<JavaInstallation> forDirectory(File javaHomeDir) {
+    public Provider<JavaInstallation> installationForDirectory(File javaHomeDir) {
+        // TODO - should be a value source and so a build input if queried during configuration time
         return providerFactory.provider(() -> {
-            DefaultJavaInstallation installation = new DefaultJavaInstallation();
             try {
-                installationProbe.checkJdk(javaHomeDir).configure(installation);
+                return new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir));
             } catch (Exception e) {
                 throw new JavaInstallationDiscoveryException(String.format("Could not determine the details of Java installation in directory %s.", javaHomeDir), e);
             }
-            return installation;
         });
     }
 
@@ -63,43 +64,36 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         }
     }
 
-    // This is effectively immutable. The setters are only used by the probe
-    private static class DefaultJavaInstallation implements LocalJavaInstallation, JavaInstallation {
-        private JavaVersion javaVersion;
-        private File javaHome;
+    private static class DefaultJavaInstallation implements JavaInstallation {
+        private final Jvm jvm;
+
+        public DefaultJavaInstallation(JavaInstallationProbe.ProbeResult probeResult) {
+            this.jvm = Jvm.discovered(probeResult.getJavaHome(), probeResult.getImplementationJavaVersion(), probeResult.getJavaVersion());
+        }
 
         @Override
         public JavaVersion getJavaVersion() {
-            return javaVersion;
+            return jvm.getJavaVersion();
         }
 
         @Override
-        public void setJavaVersion(JavaVersion javaVersion) {
-            this.javaVersion = javaVersion;
+        public File getInstallationDirectory() {
+            return jvm.getJavaHome();
         }
 
         @Override
-        public File getJavaHome() {
-            return javaHome;
+        public File getJavaExecutable() {
+            return jvm.getJavaExecutable();
         }
 
         @Override
-        public void setJavaHome(File javaHome) {
-            this.javaHome = javaHome;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return null;
-        }
-
-        @Override
-        public void setDisplayName(String displayName) {
-        }
-
-        @Override
-        public String getName() {
-            return null;
+        public Optional<JavaDevelopmentKit> getJdk() {
+            if (jvm.isJdk()) {
+                return Optional.of(new JavaDevelopmentKit() {
+                });
+            } else {
+                return Optional.empty();
+            }
         }
     }
 }

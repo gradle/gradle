@@ -24,7 +24,13 @@ import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InstalledJvmLocator {
 
@@ -65,8 +71,7 @@ public class InstalledJvmLocator {
             }
         }
         if (!installs.containsKey(currentJvm.getJavaHome())) {
-            // TODO - this isn't quite right
-            boolean isJdk = currentJvm.getJre() == null || !currentJvm.getJre().getHomeDir().equals(currentJvm.getJavaHome());
+            boolean isJdk = currentJvm.isJdk();
             installs.put(currentJvm.getJavaHome(), new JvmInstallation(currentJvm.getJavaVersion(), System.getProperty("java.version"), currentJvm.getJavaHome(), isJdk, toArch(System.getProperty("os.arch"))));
         }
 
