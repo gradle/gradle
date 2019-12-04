@@ -32,6 +32,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
         runner.targetVersions = ["6.0-20190823180744+0000"]
     }
 
+    @Ignore
     def "resolve large dependency graph from file repo"() {
         runner.testProject = TEST_PROJECT_NAME
 
