@@ -37,7 +37,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     def "source file changes are recognized"() {
         buildFile << """
             apply plugin: "application"
-            
+
             application.mainClassName = "Main"
         """
 
@@ -83,7 +83,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     @ToBeFixedForInstantExecution
-    def "build script changes get recognized"() {
+    def "Groovy build script changes get recognized"() {
         when:
         buildFile.text = """
             println "Hello from the build!"
@@ -95,6 +95,25 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         when:
         buildFile.text = """
             println "Hello from the modified build!"
+        """
+        withRetention().run "help"
+        then:
+        outputContains "Hello from the modified build!"
+    }
+
+    @ToBeFixedForInstantExecution
+    def "Kotlin build script changes get recognized"() {
+        when:
+        buildKotlinFile.text = """
+            println("Hello from the build!")
+        """
+        withRetention().run "help"
+        then:
+        outputContains "Hello from the build!"
+
+        when:
+        buildKotlinFile.text = """
+            println("Hello from the modified build!")
         """
         withRetention().run "help"
         then:
@@ -124,7 +143,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     def "source file changes are recognized when retention has just been enabled"() {
         buildFile << """
             apply plugin: "application"
-            
+
             application.mainClassName = "Main"
         """
 
@@ -149,7 +168,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     def "source file changes are recognized when retention has just been disabled"() {
         buildFile << """
             apply plugin: "application"
-            
+
             application.mainClassName = "Main"
         """
 

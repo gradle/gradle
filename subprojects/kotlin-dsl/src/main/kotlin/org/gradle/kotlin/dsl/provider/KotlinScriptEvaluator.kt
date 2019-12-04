@@ -81,6 +81,10 @@ interface KotlinScriptEvaluator {
 
 
 internal
+const val scriptCacheKeyPrefix = "gradle-kotlin-dsl"
+
+
+internal
 class StandardKotlinScriptEvaluator(
     private val classPathProvider: KotlinScriptClassPathProvider,
     private val classloadingCache: KotlinScriptClassloadingCache,
@@ -254,7 +258,7 @@ class StandardKotlinScriptEvaluator(
 
         private
         val cacheKeyPrefix =
-            CacheKeyBuilder.CacheKeySpec.withPrefix("gradle-kotlin-dsl")
+            CacheKeyBuilder.CacheKeySpec.withPrefix(scriptCacheKeyPrefix)
 
         override fun compilationClassPathOf(classLoaderScope: ClassLoaderScope): ClassPath =
             classPathProvider.compilationClassPathOf(classLoaderScope)

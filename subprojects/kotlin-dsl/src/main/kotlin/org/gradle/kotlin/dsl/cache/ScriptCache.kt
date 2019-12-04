@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.Project
 
-import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheKeyBuilder
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
 
@@ -27,6 +26,7 @@ import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.internal.id.UniqueId
 import org.gradle.internal.scopeids.id.BuildInvocationScopeId
 import org.gradle.internal.time.Time.startTimer
+import org.gradle.kotlin.dsl.provider.ScriptCacheRepository
 
 import org.gradle.kotlin.dsl.support.serviceOf
 
@@ -37,7 +37,7 @@ internal
 class ScriptCache(
 
     private
-    val cacheRepository: CacheRepository,
+    val scriptCacheRepository: ScriptCacheRepository,
 
     private
     val cacheKeyBuilder: CacheKeyBuilder,
@@ -54,7 +54,7 @@ class ScriptCache(
     ): File {
         val cacheKey = cacheKeyFor(cacheKeySpec)
 
-        return cacheRepository.cache(cacheKey)
+        return scriptCacheRepository.cache(cacheKey)
             .withProperties(cacheProperties)
             .withInitializer {
                 initializeCacheDir(

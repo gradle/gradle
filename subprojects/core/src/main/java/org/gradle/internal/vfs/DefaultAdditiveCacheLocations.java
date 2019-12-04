@@ -23,20 +23,20 @@ import java.io.File;
 import java.util.List;
 
 public class DefaultAdditiveCacheLocations implements AdditiveCacheLocations {
-    private final FileHierarchySet immutableLocations;
+    private final FileHierarchySet additiveCacheRoots;
 
     public DefaultAdditiveCacheLocations(List<AdditiveCache> fileStores) {
-        FileHierarchySet immutableLocations = DefaultFileHierarchySet.of();
+        FileHierarchySet additiveCacheRoots = DefaultFileHierarchySet.of();
         for (AdditiveCache fileStore : fileStores) {
             for (File file : fileStore.getAdditiveCacheRoots()) {
-                immutableLocations = immutableLocations.plus(file);
+                additiveCacheRoots = additiveCacheRoots.plus(file);
             }
         }
-        this.immutableLocations = immutableLocations;
+        this.additiveCacheRoots = additiveCacheRoots;
     }
 
     @Override
     public boolean isInsideAdditiveCache(String path) {
-        return immutableLocations.contains(path);
+        return additiveCacheRoots.contains(path);
     }
 }
