@@ -97,10 +97,14 @@ public class DependencyVerifyingModuleComponentRepository implements ModuleCompo
             delegate.listModuleVersions(dependency, result);
         }
 
+        private boolean hasUsableResult(BuildableModuleComponentMetaDataResolveResult result) {
+            return result.hasResult() && result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved;
+        }
+
         @Override
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result);
-            if (result.hasResult()) {
+            if (hasUsableResult(result)) {
                 result.getMetaData().getSources().withSources(DefaultMetadataFileSource.class, metadataFileSource -> {
                     ModuleComponentArtifactIdentifier artifact = metadataFileSource.getArtifactId();
                     if (isExternalArtifactId(artifact)) {
