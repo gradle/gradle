@@ -263,7 +263,7 @@ public class DirectorySnapshotter {
             if (predicate == null) {
                 return true;
             }
-            boolean allowed = predicate.test(path, internedName, isDirectory, attrs, relativePath);
+            boolean allowed = predicate.test(path, internedName, isDirectory, relativePath);
             if (!allowed) {
                 hasBeenFiltered.set(true);
             }
