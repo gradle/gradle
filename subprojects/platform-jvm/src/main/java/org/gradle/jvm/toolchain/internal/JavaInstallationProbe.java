@@ -48,7 +48,7 @@ public class JavaInstallationProbe {
     private final LoadingCache<File, EnumMap<SysProp, String>> cache = CacheBuilder.newBuilder().build(new CacheLoader<File, EnumMap<SysProp, String>>() {
         @Override
         public EnumMap<SysProp, String> load(File javaHome) throws Exception {
-            if(Jvm.current().getJavaHome().equals(javaHome)) {
+            if (Jvm.current().getJavaHome().equals(javaHome)) {
                 return getCurrentJvmMetadata();
             }
             return getMetadataInternal(javaHome);
@@ -58,6 +58,7 @@ public class JavaInstallationProbe {
     private final ExecActionFactory factory;
 
     private enum SysProp {
+        JAVA_HOME("java.home"),
         VERSION("java.version"),
         VENDOR("java.vendor"),
         ARCH("os.arch"),
@@ -105,6 +106,7 @@ public class JavaInstallationProbe {
             if (error != null) {
                 throw new IllegalStateException("Unable to configure Java installation, probing failed with the following message: " + error);
             }
+            install.setJavaHome(new File(metadata.get(SysProp.JAVA_HOME)));
             JavaVersion javaVersion = JavaVersion.toVersion(metadata.get(SysProp.VERSION));
             install.setJavaVersion(javaVersion);
             String jdkName = computeJdkName(installType, metadata);
