@@ -598,6 +598,26 @@ samples {
         }
     }
 
+    jvmComponentsWithAdditionalTestTypes {
+        sampleDirectory = file("src/samples/jvm-components-with-additional-test-types")
+        displayName = "JVM Components With Additional Test Types"
+        description = "Demonstrate how to add additional test types to JVM components - e.g. integration tests"
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/java-application") { into("application") }
+            from("$templateDir/java-junit4-test-for-application") { into("application") }
+            from("$templateDir/java-junit4-integration-test-for-application") { into("application") }
+            from("$templateDir/java-list-library") { into("library") }
+            from("$templateDir/java-junit4-test-for-list-library") { into("library") }
+            from("$templateDir/java-junit4-integration-test-for-list-library") { into("library") }
+            from("$templateDir/java-utilities-library") { into("library") }
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
+    }
+
     jvmMultiProjectBuild {
         sampleDirectory = file("src/samples/jvm-multi-project-build")
         description = "Demonstrate how transitive dependencies works as part of a multi-project build"
