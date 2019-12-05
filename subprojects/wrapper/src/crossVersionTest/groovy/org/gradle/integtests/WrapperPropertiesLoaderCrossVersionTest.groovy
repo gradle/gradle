@@ -22,9 +22,11 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.GradleVersion
 import org.junit.Assume
+import spock.lang.Ignore
 import spock.lang.Issue
 
 @SuppressWarnings("IntegrationTestFixtures")
+@Ignore
 class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
