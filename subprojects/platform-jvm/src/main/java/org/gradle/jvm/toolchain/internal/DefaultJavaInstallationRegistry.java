@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.exceptions.Contextual;
@@ -33,24 +35,27 @@ import java.util.Optional;
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
     private final JavaInstallationProbe installationProbe;
     private final ProviderFactory providerFactory;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultJavaInstallationRegistry(JavaInstallationProbe installationProbe, ProviderFactory providerFactory) {
+    public DefaultJavaInstallationRegistry(JavaInstallationProbe installationProbe, ProviderFactory providerFactory, FileCollectionFactory fileCollectionFactory) {
         this.installationProbe = installationProbe;
         this.providerFactory = providerFactory;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
     public JavaInstallation getInstallationForCurrentVirtualMachine() {
         // TODO - should probably return a provider too
-        return new DefaultJavaInstallation(installationProbe.current());
+        return new DefaultJavaInstallation(installationProbe.current(), fileCollectionFactory);
     }
 
     @Override
     public Provider<JavaInstallation> installationForDirectory(File javaHomeDir) {
         // TODO - should be a value source and so a build input if queried during configuration time
+        // TODO - provider should advertise the type of value it produces
         return providerFactory.provider(() -> {
             try {
-                return new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir));
+                return new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir), fileCollectionFactory);
             } catch (Exception e) {
                 throw new JavaInstallationDiscoveryException(String.format("Could not determine the details of Java installation in directory %s.", javaHomeDir), e);
             }
@@ -67,10 +72,12 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     private static class DefaultJavaInstallation implements JavaInstallation {
         private final Jvm jvm;
         private final String implementationName;
+        private final FileCollectionFactory fileCollectionFactory;
 
-        public DefaultJavaInstallation(JavaInstallationProbe.ProbeResult probeResult) {
+        public DefaultJavaInstallation(JavaInstallationProbe.ProbeResult probeResult, FileCollectionFactory fileCollectionFactory) {
             this.jvm = Jvm.discovered(probeResult.getJavaHome(), probeResult.getImplementationJavaVersion(), probeResult.getJavaVersion());
             this.implementationName = probeResult.getImplementationName();
+            this.fileCollectionFactory = fileCollectionFactory;
         }
 
         @Override
@@ -105,6 +112,16 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
                     @Override
                     public File getJavadocExecutable() {
                         return jvm.getJavadocExecutable();
+                    }
+
+                    @Override
+                    public FileCollection getToolsClasspath() {
+                        File toolsJar = jvm.getToolsJar();
+                        if (toolsJar != null) {
+                            return fileCollectionFactory.fixed(toolsJar);
+                        } else {
+                            return fileCollectionFactory.empty();
+                        }
                     }
                 });
             } else {
