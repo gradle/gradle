@@ -225,7 +225,7 @@ public class GroovyCompileOptions extends AbstractOptions {
     /**
      * Whether the Groovy compiler generate metadata for reflection on method parameter names on JDK 8 and above.
      *
-     * @since 6.0
+     * @since 6.1
      */
     @Incubating
     @Input
@@ -237,7 +237,7 @@ public class GroovyCompileOptions extends AbstractOptions {
      * Sets whether metadata for reflection on method parameter names should be generated.
      * Defaults to {@code false}
      *
-     * @since 6.0
+     * @since 6.1
      */
     @Incubating
     public void setParameters(boolean parameters) {
