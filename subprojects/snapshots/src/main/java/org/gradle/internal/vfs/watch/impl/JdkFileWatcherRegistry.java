@@ -18,17 +18,14 @@ package org.gradle.internal.vfs.watch.impl;
 
 import com.sun.nio.file.SensitivityWatchEventModifier;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
-import java.util.Set;
 
 import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
@@ -40,14 +37,15 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
 
     private final WatchService watchService;
 
-    public JdkFileWatcherRegistry(WatchService watchService, Iterable<Path> watchRoots) throws IOException {
+    public JdkFileWatcherRegistry(WatchService watchService) {
         this.watchService = watchService;
-        for (Path watchRoot : watchRoots) {
-            LOGGER.debug("Started watching {}", watchRoot);
-            watchRoot.register(watchService,
-                new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
-                SensitivityWatchEventModifier.HIGH);
-        }
+    }
+
+    @Override
+    public void registerWatchPoint(Path path) throws IOException {
+        path.register(watchService,
+            new WatchEvent.Kind[]{ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY, OVERFLOW},
+            SensitivityWatchEventModifier.HIGH);
     }
 
     @Override
@@ -61,11 +59,11 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
                 }
                 watchKey.cancel();
                 Path watchRoot = (Path) watchKey.watchable();
-                LOGGER.debug("Stopped watching {}", watchRoot);
+                LOGGER.debug("Stop watching {}", watchRoot);
                 for (WatchEvent<?> event : watchKey.pollEvents()) {
                     WatchEvent.Kind<?> kind = event.kind();
                     if (kind == OVERFLOW) {
-                        LOGGER.warn("Too many modifications for path {} since last build, dropping all VFS state", watchRoot);
+                        LOGGER.info("Too many modifications for path {} since last build, dropping all VFS state", watchRoot);
                         handler.handleOverflow();
                         overflow = true;
                         break;
@@ -92,13 +90,5 @@ public class JdkFileWatcherRegistry implements FileWatcherRegistry {
     @Override
     public void close() throws IOException {
         watchService.close();
-    }
-
-    public static class Factory implements FileWatcherRegistryFactory {
-        @Override
-        public FileWatcherRegistry startWatching(Set<Path> directories) throws IOException {
-            WatchService watchService = FileSystems.getDefault().newWatchService();
-            return new JdkFileWatcherRegistry(watchService, directories);
-        }
     }
 }

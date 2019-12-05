@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs.watch;
+package org.gradle.internal.vfs.watch.impl;
+
+import org.gradle.internal.vfs.watch.FileWatcherRegistry;
+import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 
-public interface FileWatcherRegistryFactory {
-    FileWatcherRegistry createRegistry() throws IOException;
+public class JdkFileWatcherRegistryFactory implements FileWatcherRegistryFactory {
+    @Override
+    public FileWatcherRegistry createRegistry() throws IOException {
+        return new JdkFileWatcherRegistry(FileSystems.getDefault().newWatchService());
+    }
 }
