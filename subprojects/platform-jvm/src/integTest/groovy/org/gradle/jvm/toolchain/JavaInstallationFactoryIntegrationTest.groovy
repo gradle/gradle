@@ -32,22 +32,7 @@ import javax.inject.Inject
 class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
     def "plugin can query information about the current JVM"() {
         taskTypeShowsJavaInstallationDetails()
-        buildFile << """
-            import ${Inject.name}
-
-            abstract class ShowPlugin implements Plugin<Project> {
-                @Inject
-                abstract JavaInstallationRegistry getRegistry()
-
-                void apply(Project project) {
-                    project.tasks.register("show", ShowTask) {
-                        installation = registry.installationForCurrentVirtualMachine
-                    }
-                }
-            }
-
-            apply plugin: ShowPlugin
-        """
+        pluginShowsCurrentJvm()
 
         when:
         run("show")
@@ -59,6 +44,30 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("JDK? = true")
         outputContains("javac executable = ${Jvm.current().javacExecutable}")
         outputContains("javadoc executable = ${Jvm.current().javadocExecutable}")
+    }
+
+    @Requires(TestPrecondition.JDK8)
+    def "plugin can query tools classpath for the current JVM on Java 8"() {
+        taskTypeShowsJavaInstallationDetails()
+        pluginShowsCurrentJvm()
+
+        when:
+        run("show")
+
+        then:
+        outputContains("tools classpath = [${Jvm.current().toolsJar}]")
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "plugin can query tools classpath for the current JVM on Java 9+"() {
+        taskTypeShowsJavaInstallationDetails()
+        pluginShowsCurrentJvm()
+
+        when:
+        run("show")
+
+        then:
+        outputContains("tools classpath = []")
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
@@ -208,6 +217,25 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         // TODO - improve the error message for common failures
         failure.assertHasDescription("Execution failed for task ':show'.")
         failure.assertHasCause("Could not determine the details of Java installation in directory ${file("install")}.")
+    }
+
+    def pluginShowsCurrentJvm() {
+        buildFile << """
+            import ${Inject.name}
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show", ShowTask) {
+                        installation = registry.installationForCurrentVirtualMachine
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
     }
 
     def taskTypeShowsJavaInstallationDetails() {

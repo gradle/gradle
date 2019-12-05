@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 
@@ -36,4 +37,9 @@ public interface JavaDevelopmentKit {
      * Returns the javadoc executable for this JDK.
      */
     File getJavadocExecutable();
+
+    /**
+     * Returns the classpath required to compile against the tools APIs of this JDK. This will be empty when no additional files are required.
+     */
+    FileCollection getToolsClasspath();
 }
