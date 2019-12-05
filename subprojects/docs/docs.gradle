@@ -598,6 +598,21 @@ samples {
         }
     }
 
+    jvmMultiProjectBuild {
+        sampleDirectory = file("src/samples/jvm-multi-project-build")
+        description = "Demonstrate how transitive dependencies works as part of a multi-project build"
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/java-application") { into("application") }
+            from("$templateDir/java-list-library") { into("list") }
+            from("$templateDir/java-utilities-library") { into("utilities") }
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
+    }
+
     javaBasicApplication {
         sampleDirectory = file("src/samples/java/basic-application")
         description = "Demonstrate how to build a basic Java application"
@@ -618,20 +633,6 @@ samples {
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/java-list-library")
             from("$templateDir/java-utilities-library")
-        }
-        archiveContent.from sourceFiles
-        exemplar.source {
-            from(sourceFiles) { into('groovy') }
-            from(sourceFiles) { into('kotlin') }
-        }
-    }
-    javaTransitiveDependencies {
-        sampleDirectory = file("src/samples/java/transitive-dependencies")
-        description = "Demonstrate how transitive dependencies work with Java projects"
-        def sourceFiles = installSourceFromTemplate(it) {
-            from("$templateDir/java-application") { into("application") }
-            from("$templateDir/java-list-library") { into("list") }
-            from("$templateDir/java-utilities-library") { into("utilities") }
         }
         archiveContent.from sourceFiles
         exemplar.source {
