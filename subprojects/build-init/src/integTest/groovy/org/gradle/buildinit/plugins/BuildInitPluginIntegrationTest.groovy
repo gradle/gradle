@@ -51,9 +51,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
         runInitWith scriptDsl
 
         then:
-        dslFixture.assertGradleFilesGenerated()
-        targetDir.file(".gitignore").assertIsFile()
-        targetDir.file(".gitattributes").assertIsFile()
+        commonFilesGenerated(scriptDsl)
 
         and:
         dslFixture.buildFile.assertContents(

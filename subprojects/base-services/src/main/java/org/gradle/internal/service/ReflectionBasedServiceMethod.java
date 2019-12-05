@@ -36,4 +36,9 @@ class ReflectionBasedServiceMethod extends AbstractServiceMethod {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
+    @Override
+    public String toString() {
+        return javaMethod.toString();
+    }
 }

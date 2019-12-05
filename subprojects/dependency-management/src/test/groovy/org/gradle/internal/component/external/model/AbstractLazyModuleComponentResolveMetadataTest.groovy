@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
-import org.gradle.internal.component.model.ModuleSource
 import spock.lang.Specification
 
 import static org.gradle.internal.component.external.model.DefaultModuleComponentSelector.newSelector
@@ -51,25 +50,6 @@ abstract class AbstractLazyModuleComponentResolveMetadataTest extends Specificat
     def "returns null for unknown configuration"() {
         expect:
         metadata.getConfiguration("conf") == null
-    }
-
-    def "can make a copy with different source"() {
-        given:
-        configuration("compile")
-        def source = Stub(ModuleSource)
-
-        def metadata = getMetadata()
-        // Prime the configuration
-        metadata.getConfiguration("compile")
-
-        when:
-        def copy = metadata.withSource(source)
-
-        then:
-        copy.source == source
-        copy.configurationNames == metadata.configurationNames
-        copy.getConfiguration("compile").is(metadata.getConfiguration("compile"))
-        copy.dependencies.is(metadata.dependencies)
     }
 
     def configuration(String name, List<String> extendsFrom = []) {

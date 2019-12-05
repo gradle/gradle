@@ -19,6 +19,8 @@ package org.gradle.tooling.internal.provider;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
+import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.BuildOperationListenerManager;
@@ -38,9 +40,9 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
     private final ListenerManager listenerManager;
     private final BuildOperationListenerManager buildOperationListenerManager;
     private final List<Object> listeners = new ArrayList<Object>();
-    private final List<? extends SubscribableBuildActionRunnerRegistration> registrations;
+    private final List<? extends BuildEventListenerFactory> registrations;
 
-    public SubscribableBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager, List<? extends SubscribableBuildActionRunnerRegistration> registrations) {
+    public SubscribableBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, ListenerManager listenerManager, BuildOperationListenerManager buildOperationListenerManager, List<? extends BuildEventListenerFactory> registrations) {
         this.delegate = delegate;
         this.listenerManager = listenerManager;
         this.buildOperationListenerManager = buildOperationListenerManager;
@@ -49,8 +51,7 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        boolean subscribable = action instanceof SubscribableBuildAction;
-        if (subscribable) {
+        if (action instanceof SubscribableBuildAction) {
             BuildEventConsumer eventConsumer = requestContext.getEventConsumer();
             SubscribableBuildAction subscribableBuildAction = (SubscribableBuildAction) action;
             registerListenersForClientSubscriptions(subscribableBuildAction.getClientSubscriptions(), eventConsumer);
@@ -68,8 +69,8 @@ public class SubscribableBuildActionExecuter implements BuildActionExecuter<Buil
         }
     }
 
-    private void registerListenersForClientSubscriptions(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer eventConsumer) {
-        for (SubscribableBuildActionRunnerRegistration registration : registrations) {
+    private void registerListenersForClientSubscriptions(BuildEventSubscriptions clientSubscriptions, BuildEventConsumer eventConsumer) {
+        for (BuildEventListenerFactory registration : registrations) {
             for (Object listener : registration.createListeners(clientSubscriptions, eventConsumer)) {
                 registerListener(listener);
             }

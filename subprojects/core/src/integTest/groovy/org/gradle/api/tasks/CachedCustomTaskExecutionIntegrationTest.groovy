@@ -777,7 +777,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3358")
-    @ToBeFixedForInstantExecution
     def "re-ran task is stored in cache"() {
         file("input.txt").text = "input"
         buildFile << defineProducerTask()

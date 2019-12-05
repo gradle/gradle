@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
-import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -50,7 +49,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 conf("org:databind:2.7.9") {
                   force = true
                 }
-                conf("org:kotlin:2.9.4.1")        
+                conf("org:kotlin:2.9.4.1")
             }
         """
 
@@ -101,9 +100,9 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             dependencies {
                 conf("org:core:2.9.4")
                 conf("org:databind:2.7.9")
-                conf("org:kotlin:2.9.4.1")        
+                conf("org:kotlin:2.9.4.1")
             }
-            
+
             configurations {
                 conf.resolutionStrategy.force("org:databind:2.7.9")
             }
@@ -155,9 +154,9 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             dependencies {
                 conf("org:core:2.9.4")
                 conf("org:databind:2.7.9")
-                conf("org:kotlin:2.9.4.1")        
+                conf("org:kotlin:2.9.4.1")
             }
-            
+
             configurations {
                 conf.resolutionStrategy.dependencySubstitution {
                     substitute module("org:databind") with module("org:databind:2.7.9")
@@ -326,9 +325,9 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         buildFile << """
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.9.4")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind:2.7.9") {
@@ -368,9 +367,9 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             }
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.9.4")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind:2.9.4")
@@ -411,7 +410,7 @@ include 'other'
                     force = true
                 }
             }
-            
+
             project(':other') {
                 configurations {
                     conf
@@ -518,9 +517,9 @@ include 'other'
         buildFile << """
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.7.9")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind:2.7.9") {
@@ -557,9 +556,9 @@ include 'other'
             }
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.7.9")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind:2.9.4")
@@ -899,21 +898,28 @@ include 'other'
                     forced()
                 }
                 module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
-                    module('org:core:2.7.9')
+                    module('org:annotations:2.7.9') {
+                        module("org:platform:2.7.9")
+                    }
+                    module('org:core:2.7.9') {
+                        module("org:platform:2.7.9")
+                    }
+                    module("org:platform:2.7.9")
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
                     forced()
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
+                    module("org:platform:2.7.9")
                 }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedPlatform' : 'enforced-platform-runtime'
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedRuntimeElements' : 'enforced-platform-runtime'
                 module("org:platform:2.7.9:$expectedVariant") {
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
                     constraint('org:annotations:2.7.9')
                     constraint('org:kotlin:2.7.9')
                     noArtifacts()
+                    module("org:platform:2.7.9")
                 }
             }
         }
@@ -930,8 +936,9 @@ include 'other'
     @RequiredFeatures([
             @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
     ])
-    @Unroll("can force a published platform version by forcing the platform itself via a constraint")
-    def "can force a published platform version by forcing the platform itself via a constraint"() {
+    def "cannot force a published platform version by forcing the platform itself via a constraint"() {
+        // This fails. Users can use enforcedPlatform() dependencies instead - see test above.
+        // The ability to define enforcedPlatform() constraints only exists to allow the enforcing of virtual platforms.
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
                 path "databind:$v -> core:$v"
@@ -951,7 +958,10 @@ include 'other'
         given:
         buildFile << """
             dependencies {
-                $dependencies
+                conf("org:core:2.9.4")
+                conf("org:databind:2.7.9")
+                conf("org:kotlin:2.9.4.1")
+                constraints { conf enforcedPlatform("org:platform:2.7.9") }
             }
         """
 
@@ -960,43 +970,10 @@ include 'other'
 
         when:
         allowAllRepositoryInteractions()
-        run ':checkDeps'
+        fails ':checkDeps'
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org:core:2.9.4", "org:core:2.7.9") {
-                    forced()
-                }
-                module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
-                    module('org:core:2.7.9')
-                }
-                edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
-                    forced()
-                    module('org:core:2.7.9')
-                    module('org:annotations:2.7.9')
-                }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedPlatform' : 'enforced-platform-runtime'
-                constraint("org:platform:2.7.9", "org:platform:2.7.9:$expectedVariant") {
-                    noArtifacts()
-                    forced()
-                    constraint('org:core:2.7.9')
-                    constraint('org:annotations:2.7.9')
-                    constraint('org:databind:2.7.9')
-                    constraint('org:kotlin:2.7.9')
-                }
-            }
-            virtualConfiguration('org:platform:2.7.9')
-        }
-
-        where: "order of dependencies doesn't matter"
-        dependencies << [
-                'conf("org:core:2.9.4")',
-                'conf("org:databind:2.7.9")',
-                'conf("org:kotlin:2.9.4.1")',
-                'constraints { conf enforcedPlatform("org:platform:2.7.9") }',
-        ].permutations()*.join("\n")
+        failureCauseContains("Inconsistency between attributes of a constraint and a dependency, on attribute 'org.gradle.category' : dependency requires 'platform' while constraint required 'enforced-platform'")
     }
 
     @RequiredFeatures([
@@ -1132,21 +1109,9 @@ include 'other'
         repo.group(platformGroup) {
             module(platformName) {
                 version(platformVersion) {
-                    variant("platform") {
-                        attribute('org.gradle.category', 'platform')
-                        members.each { member ->
-                            constraint(member)
-                        }
-                        noArtifacts = true
-                    }
-                    // this is used only in BOMs
+                    asPlatform()
                     members.each { member ->
                         constraint(member)
-                    }
-
-                    withModule(MavenHttpModule) {
-                        // make it a BOM
-                        hasPackaging('pom')
                     }
                 }
             }

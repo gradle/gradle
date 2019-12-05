@@ -32,7 +32,6 @@ dependencies {
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":launcher")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 

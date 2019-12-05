@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
@@ -41,10 +40,9 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.component.model.VariantResolveMetadata;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -55,7 +53,6 @@ import java.util.stream.Collectors;
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
 
 public abstract class AbstractMutableModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
-    public static final HashValue EMPTY_CONTENT = HashUtil.createHash("", "MD5");
     private static final String DEFAULT_STATUS = "integration";
 
     private final ImmutableAttributesFactory attributesFactory;
@@ -65,8 +62,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     private boolean changing;
     private boolean missing;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
-    private ModuleSource moduleSource;
-    private HashValue contentHash = EMPTY_CONTENT;
+    private MutableModuleSources moduleSources;
     private /*Mutable*/AttributeContainerInternal componentLevelAttributes;
     private final AttributesSchemaInternal schema;
 
@@ -74,7 +70,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
     private List<MutableComponentVariant> newVariants;
     private ImmutableList<? extends ComponentVariant> variants;
-    private Set<ComponentIdentifier> owners;
+    private Set<VirtualComponentIdentifier> owners;
 
     protected AbstractMutableModuleComponentResolveMetadata(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId, ModuleComponentIdentifier componentIdentifier, AttributesSchemaInternal schema) {
         this.attributesFactory = attributesFactory;
@@ -83,6 +79,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.componentLevelAttributes = defaultAttributes(attributesFactory);
         this.schema = schema;
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
+        this.moduleSources = new MutableModuleSources();
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -91,12 +88,11 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         this.changing = metadata.isChanging();
         this.missing = metadata.isMissing();
         this.statusScheme = metadata.getStatusScheme();
-        this.moduleSource = metadata.getSource();
-        this.contentHash = metadata.getOriginalContentHash();
+        this.moduleSources = MutableModuleSources.of(metadata.getSources());
         this.variants = metadata.getVariants();
         this.attributesFactory = metadata.getAttributesFactory();
         this.schema = metadata.getAttributesSchema();
-        this.componentLevelAttributes = attributesFactory.mutable((AttributeContainerInternal) metadata.getAttributes());
+        this.componentLevelAttributes = attributesFactory.mutable(metadata.getAttributes());
         this.variantMetadataRules = new VariantMetadataRules(attributesFactory, moduleVersionId);
         this.variantMetadataRules.setVariantDerivationStrategy(metadata.getVariantMetadataRules().getVariantDerivationStrategy());
     }
@@ -166,23 +162,13 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public HashValue getContentHash() {
-        return contentHash;
+    public MutableModuleSources getSources() {
+        return moduleSources;
     }
 
     @Override
-    public void setContentHash(HashValue contentHash) {
-        this.contentHash = contentHash;
-    }
-
-    @Override
-    public ModuleSource getSource() {
-        return moduleSource;
-    }
-
-    @Override
-    public void setSource(ModuleSource source) {
-        this.moduleSource = source;
+    public void setSources(ModuleSources sources) {
+        this.moduleSources = MutableModuleSources.of(sources);
     }
 
     @Override
@@ -256,7 +242,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public void belongsTo(ComponentIdentifier platform) {
+    public void belongsTo(VirtualComponentIdentifier platform) {
         if (owners == null) {
             owners = Sets.newLinkedHashSet();
         }
@@ -264,7 +250,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
     }
 
     @Override
-    public Set<? extends ComponentIdentifier> getPlatformOwners() {
+    public Set<? extends VirtualComponentIdentifier> getPlatformOwners() {
         return owners;
     }
 

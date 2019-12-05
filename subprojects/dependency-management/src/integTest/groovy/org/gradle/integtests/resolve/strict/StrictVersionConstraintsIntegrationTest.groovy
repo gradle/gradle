@@ -42,7 +42,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                    version { strictly '1.0' }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -87,7 +87,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -137,7 +137,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 constraints {
                     conf('org:c') { version { strictly '1.0' } }
                 }
-            }    
+            }
         """
 
         when:
@@ -195,7 +195,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 constraints {
                     conf('org:c') { version { strictly '1.0' } }
                 }
-            }    
+            }
         """
 
         when:
@@ -252,7 +252,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:a:1.0')
                 conf('org:c:2.0')
-            }    
+            }
         """
 
         when:
@@ -270,7 +270,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:c' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:c' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:c:2.0'
    Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:c:{strictly 1.0}'
    Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b:1.0' --> 'org:c:2.0'"""
@@ -305,7 +305,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:a:1.0')
                 conf('org:x:1.0')
-            }    
+            }
         """
 
         when:
@@ -379,7 +379,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -424,7 +424,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -476,7 +476,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 }
                 conf('org:bar:1.0')
                 conf(project(':foo'))
-            }           
+            }
         """
 
         when:
@@ -527,7 +527,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:x1:1.0')
                 conf('org:x2:1.0')
-            }           
+            }
         """
 
         when:
@@ -548,7 +548,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:x1:1.0' --> 'org:bar:1.0' --> 'org:foo:2.0'
    Constraint path ':test:unspecified' --> 'org:x1:1.0' --> 'org:foo:{strictly 1.0}'"""
     }
@@ -577,10 +577,10 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:x1:1.0')
                 conf('org:x2:1.0')
-                constraints { 
+                constraints {
                     conf('org:foo') { version { strictly '1.0' } }
                 }
-            }           
+            }
         """
 
         when:

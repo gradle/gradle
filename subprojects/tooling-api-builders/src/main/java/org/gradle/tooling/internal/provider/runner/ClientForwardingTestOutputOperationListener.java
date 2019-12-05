@@ -26,9 +26,9 @@ import org.gradle.internal.operations.OperationProgressEvent;
 import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.test.Destination;
 import org.gradle.tooling.internal.protocol.events.InternalTestOutputDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTestOutputDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultTestOutputEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTestOutputResult;
+import org.gradle.internal.build.event.types.DefaultTestOutputDescriptor;
+import org.gradle.internal.build.event.types.DefaultTestOutputEvent;
+import org.gradle.internal.build.event.types.DefaultTestOutputResult;
 
 /**
  * Test listener that forwards the test output events.

@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import com.google.common.base.Objects;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
 
 class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetadataCacheEntry> {
-    private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
 
     @Override
     public void write(Encoder encoder, ModuleMetadataCacheEntry value) throws Exception {
@@ -36,7 +32,6 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
             case ModuleMetadataCacheEntry.TYPE_PRESENT:
                 encoder.writeBoolean(value.isChanging);
                 encoder.writeLong(value.createTimestamp);
-                moduleSourceSerializer.write(encoder, value.moduleSource);
                 break;
             default:
                 throw new IllegalArgumentException("Don't know how to serialize meta-data entry: " + value);
@@ -53,25 +48,29 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
             case ModuleMetadataCacheEntry.TYPE_PRESENT:
                 boolean isChanging = decoder.readBoolean();
                 createTimestamp = decoder.readLong();
-                ModuleSource moduleSource = moduleSourceSerializer.read(decoder);
-                return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, moduleSource);
+                return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp);
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);
         }
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (!super.equals(obj)) {
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
             return false;
         }
 
-        ModuleMetadataCacheEntrySerializer rhs = (ModuleMetadataCacheEntrySerializer) obj;
-        return Objects.equal(moduleSourceSerializer, rhs.moduleSourceSerializer);
+        return true;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), moduleSourceSerializer);
+        return super.hashCode();
     }
 }

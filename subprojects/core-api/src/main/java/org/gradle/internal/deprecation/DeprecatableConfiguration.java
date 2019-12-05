@@ -72,4 +72,12 @@ public interface DeprecatableConfiguration extends Configuration {
      * @return this configuration
      */
     DeprecatableConfiguration deprecateForResolution(String... alternativesForResolving);
+
+    default boolean canSafelyBeResolved() {
+        if (!isCanBeResolved()) {
+            return false;
+        }
+        List<String> resolutionAlternatives = getResolutionAlternatives();
+        return resolutionAlternatives == null;
+    }
 }

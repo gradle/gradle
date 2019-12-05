@@ -303,10 +303,6 @@ class StandardKotlinScriptEvaluator(
         }
 
         private
-        fun prepareClassLoaderScope() = classLoaderScope
-            .createChild(childScopeId)
-            .local(DefaultClassPath.of(location))
-            .apply { accessorsClassPath?.let(::local) }
-            .lock()
+        fun prepareClassLoaderScope() = classLoaderScope.createLockedChild(childScopeId, DefaultClassPath.of(location).plus(accessorsClassPath ?: ClassPath.EMPTY), null, null)
     }
 }

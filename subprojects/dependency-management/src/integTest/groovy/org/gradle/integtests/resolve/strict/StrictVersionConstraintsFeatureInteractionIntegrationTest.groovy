@@ -46,15 +46,15 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     withModule('org:bar') { ComponentMetadataDetails details ->
                         details.allVariants {
                             withDependencies {
-                                it.each { 
-                                    it.version { strictly(it.requiredVersion) } 
+                                it.each {
+                                    it.version { strictly(it.requiredVersion) }
                                 }
                             }
                         }
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -110,15 +110,15 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     withModule('org:bar') { ComponentMetadataDetails details ->
                         details.allVariants {
                             withDependencies {
-                                it.each { 
-                                    it.version { require it.strictVersion } 
+                                it.each {
+                                    it.version { require it.strictVersion }
                                 }
                             }
                         }
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -173,7 +173,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -212,7 +212,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             project(':foo') {
                 configurations.create('conf')
                 artifacts { add('conf', file('foo.jar')) }
-                dependencies { 
+                dependencies {
                     conf('org:bar:2.0') { force = true }
                 }
             }
@@ -223,7 +223,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     }
                 }
                 conf(project(path: ':foo', configuration: 'conf'))
-            }           
+            }
         """
 
         when:
@@ -236,7 +236,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:bar' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:bar' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'test:foo:unspecified' --> 'org:bar:2.0'
    Constraint path ':test:unspecified' --> 'org:bar:{strictly 1.0}'"""
     }
@@ -254,7 +254,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             project(':foo') {
                 configurations.create('conf')
                 artifacts { add('conf', file('foo.jar')) }
-                dependencies { 
+                dependencies {
                     conf('org:bar:2.0')
                 }
             }
@@ -265,7 +265,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     }
                 }
                 conf(project(path: ':foo', configuration: 'conf'))
-            }           
+            }
         """
 
         when:
@@ -309,7 +309,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                    version { strictly '1.0' }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -350,10 +350,10 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
 
         buildFile << """
             import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.*
-            
+
             def VERSIONED_COMPARATOR = new DefaultVersionComparator()
             def VERSION_SCHEME = new DefaultVersionSelectorScheme(VERSIONED_COMPARATOR, new VersionParser())
-            
+
             configurations.all {
                 resolutionStrategy {
                     dependencySubstitution.all {
@@ -364,7 +364,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     }
                 }
             }
-            
+
             dependencies {
                 constraints {
                     conf('org:foo') {
@@ -372,7 +372,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -424,7 +424,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -473,7 +473,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
                    version { strictly '1.0' }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:

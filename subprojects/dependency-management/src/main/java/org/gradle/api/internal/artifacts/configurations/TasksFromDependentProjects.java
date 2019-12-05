@@ -46,9 +46,11 @@ class TasksFromDependentProjects extends AbstractTaskDependency {
         Project thisProject = context.getTask().getProject();
         Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
         for (Task nextTask : tasksWithName) {
-            boolean isDependency = checker.isDependent(thisProject, configurationName, nextTask.getProject());
-            if (isDependency) {
-                context.add(nextTask);
+            if (context.getTask() != nextTask) {
+                boolean isDependency = checker.isDependent(thisProject, configurationName, nextTask.getProject());
+                if (isDependency) {
+                    context.add(nextTask);
+                }
             }
         }
     }

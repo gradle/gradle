@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl;
@@ -38,6 +39,7 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
     private final NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser;
     private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierParser;
+    private final PlatformSupport platformSupport;
 
     private MutableModuleComponentResolveMetadata mutableMetadata;
     private ComponentMetadataDetails details;
@@ -45,12 +47,14 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
     public WrappingComponentMetadataContext(ModuleComponentResolveMetadata metadata, Instantiator instantiator,
                                             NotationParser<Object, DirectDependencyMetadataImpl> dependencyMetadataNotationParser,
                                             NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser,
-                                            NotationParser<Object, ComponentIdentifier> componentIdentifierParser) {
+                                            NotationParser<Object, ComponentIdentifier> componentIdentifierParser,
+                                            PlatformSupport platformSupport) {
         this.metadata = metadata;
         this.instantiator = instantiator;
         this.dependencyMetadataNotationParser = dependencyMetadataNotationParser;
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
         this.componentIdentifierParser = componentIdentifierParser;
+        this.platformSupport = platformSupport;
     }
 
     @Override
@@ -68,7 +72,7 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
     public ComponentMetadataDetails getDetails() {
         createMutableMetadataIfNeeded();
         if (details == null) {
-            details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierParser);
+            details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierParser, platformSupport);
 
         }
         return details;

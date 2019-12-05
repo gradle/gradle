@@ -30,7 +30,7 @@ plugins {
     gradlebuild.`build-types`
     gradlebuild.`ci-reporting`
     gradlebuild.security
-    id("org.gradle.ci.tag-single-build") version("0.73")
+    id("org.gradle.ci.tag-single-build") version("0.74")
 }
 
 defaultTasks("assemble")

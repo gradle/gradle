@@ -22,12 +22,13 @@ import org.apache.tools.zip.ZipOutputStream
 import org.gradle.internal.IoActions
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 abstract class AbstractModule implements Module {
     /**
      Last modified date for writeZipped to be able to create zipFiles with identical hashes
      */
-    private static Date lmd = new Date()
+    private static Date lmd = new Date(0)
 
     private boolean hasModuleMetadata
 
@@ -45,6 +46,8 @@ abstract class AbstractModule implements Module {
             writeZipped(tmpFile, cl)
         } else {
             writeContents(tmpFile, cl)
+            // normalize line endings
+            tmpFile.setText(TextUtil.normaliseLineSeparators(tmpFile.getText("utf-8")), "utf-8")
         }
 
         def hashAfter = getHash(tmpFile, "sha1")

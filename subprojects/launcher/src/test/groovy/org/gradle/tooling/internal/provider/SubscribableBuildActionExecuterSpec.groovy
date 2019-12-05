@@ -19,13 +19,15 @@ package org.gradle.tooling.internal.provider
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.build.event.BuildEventSubscriptions
+import org.gradle.internal.build.event.BuildEventListenerFactory
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
-import spock.lang.Specification
 import org.gradle.tooling.events.OperationType
+import spock.lang.Specification
 
 class SubscribableBuildActionExecuterSpec extends Specification {
 
@@ -35,7 +37,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
         def listenerManager = Mock(ListenerManager)
         def buildOperationListenerManager = Mock(BuildOperationListenerManager)
         def buildAction = Stub(SubscribableBuildAction) {
-            getClientSubscriptions() >> new BuildClientSubscriptions(EnumSet.allOf(OperationType))
+            getClientSubscriptions() >> new BuildEventSubscriptions(EnumSet.allOf(OperationType))
         }
         def consumer = Stub(BuildEventConsumer)
         def buildRequestContext = Stub(BuildRequestContext) {
@@ -46,7 +48,7 @@ class SubscribableBuildActionExecuterSpec extends Specification {
 
         def listener1 = Stub(BuildOperationListener)
         def listener2 = Stub(BuildOperationListener)
-        def registration = Stub(SubscribableBuildActionRunnerRegistration) {
+        def registration = Stub(BuildEventListenerFactory) {
             createListeners(_, consumer) >> [listener1, listener2]
         }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.launcher.daemon.logging.DaemonMessages
@@ -23,7 +24,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.TextUtil
 
-class ContinuousBuildCancellationIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class ContinuousBuildCancellationIntegrationTest extends AbstractContinuousIntegrationTest {
 
     TestFile setupJavaProject() {
         buildFile.text = "apply plugin: 'java'"

@@ -96,7 +96,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         NONE          | statusForReusedOutput
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
     def "source file hierarchy moved with #pathSensitive as input is loaded from cache: #expectSkipped"() {
         given:
         file("src/data/input.txt").text = "input"

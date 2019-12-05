@@ -161,39 +161,43 @@ public class SimpleMarkupWriter extends Writer {
 
     private void writeCDATA(char[] cdata, int offset, int count) throws IOException {
         int end = offset + count;
-        for (int i = offset; i < end; i++) {
-            writeCDATA(cdata[i]);
+        for (int i = offset; i < end;) {
+            int codePoint = Character.codePointAt(cdata, i);
+            i += Character.charCount(codePoint);
+            writeCDATA(codePoint);
         }
     }
 
     private void writeCDATA(CharSequence cdata) throws IOException {
         int len = cdata.length();
-        for (int i = 0; i < len; i++) {
-            writeCDATA(cdata.charAt(i));
+        for (int i = 0; i < len;) {
+            int codePoint = Character.codePointAt(cdata, i);
+            i += Character.charCount(codePoint);
+            writeCDATA(codePoint);
         }
     }
 
-    private void writeCDATA(char ch) throws IOException {
+    private void writeCDATA(int ch) throws IOException {
         if (needsCDATAEscaping(ch)) {
             writeRaw("]]><![CDATA[>");
         } else if (!XmlValidation.isLegalCharacter(ch)) {
             writeRaw('?');
-        } else if (XmlValidation.isRestrictedCharacter(ch)) {
+        } else if (ch <= 0xffff && XmlValidation.isRestrictedCharacter((char) ch) || Character.charCount(ch) == 2) {
             writeRaw("]]>");
             writeCharacterReference(ch);
             writeRaw("<![CDATA[");
         } else {
-            writeRaw(ch);
+            writeRaw((char) ch);
         }
     }
 
-    private void writeCharacterReference(char ch) throws IOException {
+    private void writeCharacterReference(int ch) throws IOException {
         writeRaw("&#x");
         writeRaw(Integer.toHexString(ch));
         writeRaw(";");
     }
 
-    private boolean needsCDATAEscaping(char ch) {
+    private boolean needsCDATAEscaping(int ch) {
         switch (ch) {
             case ']':
                 squareBrackets++;
@@ -270,20 +274,24 @@ public class SimpleMarkupWriter extends Writer {
 
     private void writeXmlEncoded(char[] message, int offset, int count) throws IOException {
         int end = offset + count;
-        for (int i = offset; i < end; i++) {
-            writeXmlEncoded(message[i]);
+        for (int i = offset; i < end;) {
+            int codePoint = Character.codePointAt(message, i);
+            i += Character.charCount(codePoint);
+            writeXmlEncoded(codePoint);
         }
     }
 
     private void writeXmlAttributeEncoded(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
-        for (int i = 0; i < len; i++) {
-            writeXmlAttributeEncoded(message.charAt(i));
+        for (int i = 0; i < len;) {
+            int codePoint = Character.codePointAt(message, i);
+            i += Character.charCount(codePoint);
+            writeXmlAttributeEncoded(codePoint);
         }
     }
 
-    private void writeXmlAttributeEncoded(char ch) throws IOException {
+    private void writeXmlAttributeEncoded(int ch) throws IOException {
         if (ch == 9) {
             writeRaw("&#9;");
         } else if (ch == 10) {
@@ -298,12 +306,14 @@ public class SimpleMarkupWriter extends Writer {
     private void writeXmlEncoded(CharSequence message) throws IOException {
         assert message != null;
         int len = message.length();
-        for (int i = 0; i < len; i++) {
-            writeXmlEncoded(message.charAt(i));
+        for (int i = 0; i < len;) {
+            int codePoint = Character.codePointAt(message, i);
+            i += Character.charCount(codePoint);
+            writeXmlEncoded(codePoint);
         }
     }
 
-    private void writeXmlEncoded(char ch) throws IOException {
+    private void writeXmlEncoded(int ch) throws IOException {
         if (ch == '<') {
             writeRaw("&lt;");
         } else if (ch == '>') {
@@ -314,10 +324,10 @@ public class SimpleMarkupWriter extends Writer {
             writeRaw("&quot;");
         } else if (!XmlValidation.isLegalCharacter(ch)) {
             writeRaw('?');
-        } else if (XmlValidation.isRestrictedCharacter(ch)) {
+        } else if (ch <= 0xffff && XmlValidation.isRestrictedCharacter((char) ch) || Character.charCount(ch) == 2) {
             writeCharacterReference(ch);
         } else {
-            writeRaw(ch);
+            writeRaw((char) ch);
         }
     }
 }

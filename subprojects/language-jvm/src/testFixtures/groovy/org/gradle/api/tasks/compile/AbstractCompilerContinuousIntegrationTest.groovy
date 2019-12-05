@@ -16,10 +16,10 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 
-abstract class AbstractCompilerContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+abstract class AbstractCompilerContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
         executer.withWorkerDaemonsExpirationDisabled()

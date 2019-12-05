@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
+import org.gradle.instantexecution.DefaultInstantExecution
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
@@ -267,6 +268,10 @@ sealed class IsolateOwner {
     class OwnerGradle(override val delegate: Gradle) : IsolateOwner() {
         override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
     }
+
+    class OwnerHost(override val delegate: DefaultInstantExecution.Host) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = delegate.getService(type)
+    }
 }
 
 
@@ -354,6 +359,11 @@ inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: Write
 
 
 internal
+inline fun WriteContext.encodePreservingSharedIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) =
+    encodePreservingIdentityOf(sharedIdentities, reference, encode)
+
+
+internal
 inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: Any, encode: WriteContext.(Any) -> Unit) {
     val id = identities.getId(reference)
     if (id != null) {
@@ -366,9 +376,17 @@ inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, 
 
 
 internal
-inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> T): T {
-    return decodePreservingIdentity(isolate.identities, decode)
-}
+inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> T): T =
+    decodePreservingIdentity(isolate.identities, decode)
+
+
+internal
+inline fun <T : Any> ReadContext.decodePreservingSharedIdentity(decode: ReadContext.(Int) -> T): T =
+    decodePreservingIdentity(sharedIdentities) { id ->
+        decode(id).also {
+            sharedIdentities.putInstance(id, it)
+        }
+    }
 
 
 internal

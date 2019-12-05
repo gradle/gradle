@@ -25,6 +25,8 @@ enum class StageNames(override val stageName: String, override val description: 
     READY_FOR_RELEASE("Ready for Release", "Once a day: Rerun tests in more environments", "ReleaseAccept"),
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL("Experimental", "On demand: Run experimental tests", "Experimental"),
+    WINDOWS_10_EVALUATION_QUICK("Experimental Windows10 Quick", "On demand checks to test Windows 10 agents (quick tests)", "ExperimentalWindows10quick"),
+    WINDOWS_10_EVALUATION_PLATFORM("Experimental Windows10 Platform", "On demand checks to test Windows 10 agents (platform tests)", "ExperimentalWindows10platform"),
 }
 
 data class CIBuildModel(
@@ -92,8 +94,19 @@ data class CIBuildModel(
                 TestCoverage(16, TestType.quick, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
                 TestCoverage(17, TestType.quick, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
                 TestCoverage(18, TestType.platform, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(19, TestType.platform, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor))
-        )
+                TestCoverage(19, TestType.platform, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor))),
+        Stage(StageNames.WINDOWS_10_EVALUATION_QUICK,
+            trigger = Trigger.never,
+            runsIndependent = true,
+            disablesBuildCache = true,
+            functionalTests = listOf(
+                TestCoverage(20, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
+        Stage(StageNames.WINDOWS_10_EVALUATION_PLATFORM,
+            trigger = Trigger.never,
+            runsIndependent = true,
+            disablesBuildCache = true,
+            functionalTests = listOf(
+                TestCoverage(21, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
     ),
 
     val subProjects: List<GradleSubproject> = listOf(
@@ -102,8 +115,9 @@ data class CIBuildModel(
         GradleSubproject("baseServicesGroovy", functionalTests = false),
         GradleSubproject("bootstrap", unitTests = false, functionalTests = false),
         GradleSubproject("buildCache"),
-        GradleSubproject("buildCacheHttp"),
-        GradleSubproject("buildCachePackaging"),
+        GradleSubproject("buildCacheHttp", unitTests = false),
+        GradleSubproject("buildCachePackaging", functionalTests = false),
+        GradleSubproject("buildEvents"),
         GradleSubproject("buildProfile"),
         GradleSubproject("buildOption", functionalTests = false),
         GradleSubproject("buildInit"),
@@ -121,10 +135,10 @@ data class CIBuildModel(
         GradleSubproject("hashing", functionalTests = false),
         GradleSubproject("ide", crossVersionTests = true),
         GradleSubproject("ideNative"),
-        GradleSubproject("idePlay"),
+        GradleSubproject("idePlay", unitTests = false),
         GradleSubproject("instantExecution"),
         GradleSubproject("instantExecutionReport", unitTests = false, functionalTests = false),
-        GradleSubproject("integTest", crossVersionTests = true),
+        GradleSubproject("integTest", unitTests = false, crossVersionTests = true),
         GradleSubproject("internalIntegTesting"),
         GradleSubproject("internalPerformanceTesting"),
         GradleSubproject("internalTesting", functionalTests = false),
@@ -151,7 +165,7 @@ data class CIBuildModel(
         GradleSubproject("platformNative"),
         GradleSubproject("platformPlay", containsSlowTests = true),
         GradleSubproject("pluginDevelopment"),
-        GradleSubproject("pluginUse", crossVersionTests = true),
+        GradleSubproject("pluginUse"),
         GradleSubproject("plugins"),
         GradleSubproject("processServices"),
         GradleSubproject("publish"),
@@ -182,10 +196,10 @@ data class CIBuildModel(
 
         GradleSubproject("apiMetadata", unitTests = false, functionalTests = false),
         GradleSubproject("kotlinDsl", unitTests = true, functionalTests = true),
-        GradleSubproject("kotlinDslProviderPlugins", unitTests = true, functionalTests = true),
+        GradleSubproject("kotlinDslProviderPlugins", unitTests = true, functionalTests = false),
         GradleSubproject("kotlinDslToolingModels", unitTests = false, functionalTests = false),
         GradleSubproject("kotlinDslToolingBuilders", unitTests = true, functionalTests = true, crossVersionTests = true),
-        GradleSubproject("kotlinDslPlugins", unitTests = true, functionalTests = true),
+        GradleSubproject("kotlinDslPlugins", unitTests = false, functionalTests = true),
         GradleSubproject("kotlinDslTestFixtures", unitTests = true, functionalTests = false),
         GradleSubproject("kotlinDslIntegTests", unitTests = false, functionalTests = true),
         GradleSubproject("kotlinCompilerEmbeddable", unitTests = false, functionalTests = false),
@@ -361,7 +375,7 @@ interface StageName {
         get() = stageName.replace(" ", "").replace("-", "")
 }
 
-data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false) {
+data class Stage(val stageName: StageName, val specificBuilds: List<SpecificBuild> = emptyList(), val performanceTests: List<PerformanceTestType> = emptyList(), val functionalTests: List<TestCoverage> = emptyList(), val trigger: Trigger = Trigger.never, val functionalTestsDependOnSpecificBuilds: Boolean = false, val runsIndependent: Boolean = false, val omitsSlowProjects: Boolean = false, val dependsOnSanityCheck: Boolean = false, val disablesBuildCache: Boolean = false) {
     val id = stageName.id
 }
 

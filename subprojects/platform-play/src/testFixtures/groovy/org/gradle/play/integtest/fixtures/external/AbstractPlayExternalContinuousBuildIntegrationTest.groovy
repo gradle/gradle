@@ -16,13 +16,13 @@
 
 package org.gradle.play.integtest.fixtures.external
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.java9AddJavaSqlModuleArgs
 
-abstract class AbstractPlayExternalContinuousBuildIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+abstract class AbstractPlayExternalContinuousBuildIntegrationTest extends AbstractContinuousIntegrationTest {
     abstract PlayApp getPlayApp()
     abstract RunningPlayApp getRunningApp()
 

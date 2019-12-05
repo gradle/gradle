@@ -46,10 +46,6 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
         return contentHash;
     }
 
-    public FileMetadata getMetadata() {
-        return metadata;
-    }
-
     @Override
     public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
         if (!(other instanceof RegularFileSnapshot)) {
@@ -65,7 +61,12 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(String absolutePath, int offset, CaseSensitivity caseSensitivity) {
+    public void accept(NodeVisitor visitor) {
+        visitor.visitNode(this);
+    }
+
+    @Override
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
         return Optional.empty();
     }
 }

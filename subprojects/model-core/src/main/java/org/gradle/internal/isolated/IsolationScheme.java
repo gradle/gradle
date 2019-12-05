@@ -41,11 +41,21 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
      */
     @Nullable
     public <T extends IMPLEMENTATION, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType) {
+        return parameterTypeFor(implementationType, 0);
+    }
+
+    /**
+     * Determines the parameters type found at the given type argument index for the given implementation.
+     *
+     * @return The parameters type, or {@code null} when the implementation takes no parameters.
+     */
+    @Nullable
+    public <T extends IMPLEMENTATION, P extends PARAMS> Class<P> parameterTypeFor(Class<T> implementationType, int typeArgumentIndex) {
         if (implementationType == interfaceType) {
             return null;
         }
         ParameterizedType superType = (ParameterizedType) TypeToken.of(implementationType).getSupertype(interfaceType).getType();
-        Class<P> parametersType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[0]).getRawType());
+        Class<P> parametersType = Cast.uncheckedNonnullCast(TypeToken.of(superType.getActualTypeArguments()[typeArgumentIndex]).getRawType());
         if (parametersType == paramsType) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Could not create the parameters for ");

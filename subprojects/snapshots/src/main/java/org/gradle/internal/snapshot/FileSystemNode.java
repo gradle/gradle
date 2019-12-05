@@ -26,26 +26,29 @@ public interface FileSystemNode {
     /**
      * Gets a snapshot from the current node with relative path filePath.substring(offset).
      *
-     * When calling this method, the caller needs to make sure the the snapshot is a child of this node or this node.
-     * That means that filePath.substring(offset) does not include the {@link #getPathToParent()}.
-     * Therefore, when filePath.length + 1 == offset, then this node will be returned.
+     * When calling this method, the caller needs to make sure the the snapshot is a child of this node.
+     * Must not include the {@link #getPathToParent()}..
      */
-    Optional<MetadataSnapshot> getSnapshot(String absolutePath, int offset, CaseSensitivity caseSensitivity);
+    Optional<MetadataSnapshot> getSnapshot(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
+
+    /**
+     * The snapshot information at this node.
+     *
+     * {@link Optional#empty()} if no information is available.
+     */
+    Optional<MetadataSnapshot> getSnapshot();
 
     /**
      * Stores information to the virtual file system that we have learned about.
      *
      * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
-     * @param absolutePath the path to update, starting from offset. Must not include the {@link #getPathToParent()}.
      */
-    FileSystemNode store(String absolutePath, int offset, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot);
+    FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot);
 
     /**
      * Invalidates part of the node.
-     *
-     * @param absolutePath the path to invalidate, starting from the offset. Must not include the {@link #getPathToParent()}.
      */
-    Optional<FileSystemNode> invalidate(String absolutePath, int offset, CaseSensitivity caseSensitivity);
+    Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
 
     /**
      * The path to the parent snapshot or the root of the file system.
@@ -56,4 +59,10 @@ public interface FileSystemNode {
      * Creates a new node with the same children, but a different path to the parent.
      */
     FileSystemNode withPathToParent(String newPathToParent);
+
+    void accept(NodeVisitor visitor);
+
+    interface NodeVisitor {
+        void visitNode(FileSystemNode node);
+    }
 }

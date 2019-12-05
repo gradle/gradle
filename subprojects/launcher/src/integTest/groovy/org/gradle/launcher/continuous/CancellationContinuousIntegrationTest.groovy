@@ -16,11 +16,12 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
-class CancellationContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class CancellationContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
         buildFile.text = "apply plugin: 'java'"

@@ -40,7 +40,7 @@ public class SynchronizedDispatchConnection<T> implements RemoteConnection<T> {
     @Override
     public void dispatch(final T message) {
         if (!(message instanceof OutputMessage)) {
-            LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message.getClass());
+            LOGGER.debug("thread {}: dispatching {}", Thread.currentThread().getId(), message);
         }
         synchronized (lock) {
             if (dispatching) {

@@ -72,7 +72,7 @@ class TestManagedExecutor extends AbstractExecutorService implements ManagedExec
     }
 
     void stop(int timeoutValue, TimeUnit timeoutUnits) throws IllegalStateException {
-        throw new UnsupportedOperationException()
+        stop()
     }
 
     void shutdown() {

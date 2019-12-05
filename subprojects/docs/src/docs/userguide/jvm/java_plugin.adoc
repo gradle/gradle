@@ -23,7 +23,7 @@ You can find a comprehensive introduction and overview to the Java Plugin in the
 ====
 As indicated above, this plugin adds basic building blocks for working with JVM projects.
 Its feature set has been superseded by other plugins, offering more features based on your project type.
-Instead of applying it directly to your project, you should look into the `java-library` or `java-application` plugins or one of the supported alternative JVM language.
+Instead of applying it directly to your project, you should look into the `java-library` or `application` plugins or one of the supported alternative JVM language.
 ====
 
 [[sec:java_usage]]
@@ -507,7 +507,7 @@ This gives you the following benefits
 * Incremental builds are much faster.
 * The smallest possible number of class files are changed.
   Classes that don't need to be recompiled remain unchanged in the output directory.
-  An example scenario when this is really useful is using JRebel - the fewer output classes are changed the quicker the JVM can use refreshed classes.
+  An example scenario when this is really useful is using JRebel — the fewer output classes are changed the quicker the JVM can use refreshed classes.
 
 To help you understand how incremental compilation works, the following provides a high-level overview:
 

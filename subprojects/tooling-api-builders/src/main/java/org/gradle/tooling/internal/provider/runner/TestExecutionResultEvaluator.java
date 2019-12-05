@@ -33,7 +33,7 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalTestDescriptor;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction;
-import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor;
+import org.gradle.internal.build.event.types.DefaultTestDescriptor;
 
 import java.util.Collection;
 import java.util.Map;

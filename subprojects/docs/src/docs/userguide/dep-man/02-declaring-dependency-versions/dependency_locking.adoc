@@ -69,7 +69,7 @@ include::sample[dir="userguide/dependencyManagement/dependencyLocking/unlockingS
 include::sample[dir="userguide/dependencyManagement/dependencyLocking/unlockingSingleConfiguration/kotlin",files="build.gradle.kts[tags=locking-one]"]
 ====
 
-== Locking buildscript classpath configuration
+=== Locking buildscript classpath configuration
 
 If you apply plugins to your build, you may want to leverage dependency locking there as well.
 In order to lock the <<plugins.adoc#sec:applying_plugins_buildscript,`classpath` configuration>> used for script plugins, do the following:
@@ -142,6 +142,24 @@ The complete validation is as follows:
 * Existing entries in the lock state must be matched in the build
 ** A version mismatch or missing resolved module causes a build failure
 * Resolution result must not contain extra dependencies compared to the lock state
+
+=== Fine tuning dependency locking behaviour with lock mode
+
+While the default lock mode behaves as described above, two other modes are available:
+
+Strict mode::
+In this mode, in addition to the validations above, dependency locking will fail if a configuration marked as _locked_ does not have lock state associated with it.
+
+Lenient mode::
+In this mode, dependency locking will still pin dynamic versions but otherwise changes to the dependency resolution are no longer errors.
+
+The lock mode can be controlled from the `dependencyLocking` block as shown below:
+
+.Setting the lock mode
+====
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockModeSelection/groovy",files="build.gradle[tags=lock-mode]"]
+include::sample[dir="userguide/dependencyManagement/dependencyLocking/lockModeSelection/kotlin",files="build.gradle.kts[tags=lock-mode]"]
+====
 
 == Selectively updating lock state entries
 

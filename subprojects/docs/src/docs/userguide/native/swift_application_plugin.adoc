@@ -91,7 +91,7 @@ Aggregates tasks that assemble the specific variant of this application.
 [[sec:swift_application_lifecycle_tasks]]
 === Lifecycle Tasks
 
-The Swift Application Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> - which the Swift Application Plugin applies automatically:
+The Swift Application Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> — which the Swift Application Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Depends on: `linkDebug`

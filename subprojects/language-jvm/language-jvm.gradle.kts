@@ -37,7 +37,6 @@ dependencies {
     testFixturesImplementation(library("guava"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(testFixtures(project(":launcher")))
 }
 
 gradlebuildJava {
