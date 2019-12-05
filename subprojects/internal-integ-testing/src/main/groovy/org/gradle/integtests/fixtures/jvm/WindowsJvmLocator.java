@@ -27,13 +27,13 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Uses windows registry to find installed Sun/Oracle JVMs
+ * Uses the Windows registry to find installed Sun/Oracle and AdoptOpenJDK JVMs
  */
-class WindowsOracleJvmLocator {
+class WindowsJvmLocator {
     private final WindowsRegistry windowsRegistry;
     private final SystemInfo systemInfo;
 
-    WindowsOracleJvmLocator(WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
+    WindowsJvmLocator(WindowsRegistry windowsRegistry, SystemInfo systemInfo) {
         this.windowsRegistry = windowsRegistry;
         this.systemInfo = systemInfo;
     }
@@ -41,11 +41,28 @@ class WindowsOracleJvmLocator {
     public Collection<JvmInstallation> findJvms() {
         JvmInstallation.Arch defaultArch = systemInfo.getArchitecture() == SystemInfo.Architecture.i386 ? JvmInstallation.Arch.i386 : JvmInstallation.Arch.x86_64;
         List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
+        findJvms(windowsRegistry, "SOFTWARE\\JavaSoft\\JDK", jvms, true, defaultArch);
         findJvms(windowsRegistry, "SOFTWARE\\JavaSoft\\Java Development Kit", jvms, true, defaultArch);
         findJvms(windowsRegistry, "SOFTWARE\\JavaSoft\\Java Runtime Environment", jvms, false, defaultArch);
         findJvms(windowsRegistry, "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Development Kit", jvms, true, JvmInstallation.Arch.i386);
         findJvms(windowsRegistry, "SOFTWARE\\Wow6432Node\\JavaSoft\\Java Runtime Environment", jvms, false, JvmInstallation.Arch.i386);
+        findAdoptOpenJdk(windowsRegistry, "SOFTWARE\\AdoptOpenJDK\\JDK", jvms, defaultArch);
         return jvms;
+    }
+
+    private void findAdoptOpenJdk(WindowsRegistry windowsRegistry, String sdkSubkey, List<JvmInstallation> jvms, JvmInstallation.Arch arch) {
+        List<String> versions;
+        try {
+            versions = windowsRegistry.getSubkeys(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, sdkSubkey);
+        } catch (MissingRegistryEntryException e) {
+            // Ignore
+            return;
+        }
+
+        for (String version : versions) {
+            String javaHome = windowsRegistry.getStringValue(WindowsRegistry.Key.HKEY_LOCAL_MACHINE, sdkSubkey + '\\' + version + "\\hotspot\\MSI", "Path");
+            jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, new File(javaHome), true, arch));
+        }
     }
 
     private void findJvms(WindowsRegistry windowsRegistry, String sdkSubkey, Collection<JvmInstallation> jvms, boolean jdk, JvmInstallation.Arch arch) {

@@ -59,7 +59,7 @@ public class InstalledJvmLocator {
         if (operatingSystem.isMacOsX()) {
             jvms = new OsXInstalledJvmLocator(TestFiles.execHandleFactory()).findJvms();
         } else if (operatingSystem.isWindows()) {
-            jvms = new WindowsOracleJvmLocator(windowsRegistry, systemInfo).findJvms();
+            jvms = new WindowsJvmLocator(windowsRegistry, systemInfo).findJvms();
         } else if (operatingSystem.isLinux()) {
             jvms = new UbuntuJvmLocator(fileCanonicalizer).findJvms();
         } else {
