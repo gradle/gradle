@@ -99,13 +99,6 @@ asciidoctorj {
     noDefaultRepositories = true
 }
 
-ext {
-    // TODO: get rid of these
-    docsDir = new File(buildDir, "docs")
-    samplesDir = new File(buildDir, "gradle-samples")
-    distDocsDir = new File(buildDir, 'distDocs')
-}
-
 gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
@@ -331,19 +324,18 @@ tasks.register("publishedSamples") {
 
 configurations {
     gradleSamplesElements {
-        outgoing.artifact(samplesDir) {
+        // TODO: This is an implementation detail of the samples plugin.
+        outgoing.artifact(new File(buildDir, "gradle-samples")) {
             builtBy 'publishedSamples'
         }
     }
     gradleFullDocsElements {
         // TODO: This breaks the provider
         outgoing.artifact(project.gradleDocumentation.getDocumentationRenderedRoot().get().asFile) {
-            builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
+            builtBy 'docs'
         }
     }
     gradleGettingStartedElements {
-        outgoing.artifact(distDocsDir) {
-            builtBy 'distDocs'
-        }
+        outgoing.artifact(file("src/docs/README"))
     }
 }
