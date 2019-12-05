@@ -47,10 +47,10 @@ class DependencyVerificationIntegrityCheckIntegTest extends AbstractDependencyVe
 
         where:
         kind     | jar                                                                                                                                | pom
-        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"                                                                                                 | "ace8bd734dd558c3babc395567682a31"
-        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"                                                                                         | "5474a386e69fd213d375dcaffadf6e291cc9aea0"
-        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"                                                                 | "70a3ea14d9fbec67ffaf8a01395051e677384155d4cc6eb358b5f77de72373f3"
-        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "2b356766005f7805b69cc84875e32354440d745f0f46c76960ab631c1a15a0e30ba0698b38f1405fd716666f39f92e40ec328e3da20e9554b522aac6d8a0c2a"
+        "md5"    | "ea8b622874eaa501476e0ebbe0c562ed"                                                                                                 | "9ecdc5a5aaf0fb15d0e1c5d1760d477c"
+        "sha1"   | "16e066e005a935ac60f06216115436ab97c5da02"                                                                                         | "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02"
+        "sha256" | "20ae575ede776e5e06ee6b168652d11ee23069e92de110fdec13fbeaa5cf3bbc"                                                                 | "f331cce36f6ce9ea387a2c8719fabaf67dc5a5862227ebaa13368ff84eb69481"
+        "sha512" | "734fce768f0e1a3aec423cb4804e5cdf343fd317418a5da1adc825256805c5cad9026a3e927ae43ecc12d378ce8f45cc3e16ade9114c9a147fda3958d357a85b" | "3d890ff72a2d6fcb2a921715143e6489d8f650a572c33070b7f290082a07bfc4af0b64763bcf505e1c07388bc21b7d5707e50a3952188dc604814e09387fbbfe"
     }
 
     def "doesn't try to verify checksums for changing dependencies"() {
@@ -146,7 +146,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         failure.assertHasCause("""Dependency verification failed for configuration ':compileClasspath':
   - On artifact bar-1.0.jar (org:bar:1.0): expected a 'sha1' checksum of 'also invalid' but was '42077067b52edb41c658839ab62a616740417814'
   - On artifact foo-1.0.jar (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '16e066e005a935ac60f06216115436ab97c5da02'
-  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was 'd3da530c8e6ceba9788fb704f58e707b519a71e9'
+  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha1' checksum of 'invalid' but was '6db079f8f24050d849647e029da573999776b635'
   - Artifact bar-1.0.pom (org:bar:1.0) checksum is missing from verification metadata.
   - Artifact baz-1.0.pom (org:baz:1.0) checksum is missing from verification metadata.
 This can indicate that a dependency has been compromised. Please verify carefully the checksums.""")
@@ -157,9 +157,9 @@ This can indicate that a dependency has been compromised. Please verify carefull
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
-            addChecksum("org:foo:1.0", "sha1", "5474a386e69fd213d375dcaffadf6e291cc9aea0", "pom", "pom")
+            addChecksum("org:foo:1.0", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
             addChecksum("org:bar:1.0", "sha1", "invalid")
-            addChecksum("org:bar:1.0", "sha1", "6163158ad5891fa5e09b5ac8744ae9509f08ffec", "pom", "pom")
+            addChecksum("org:bar:1.0", "sha1", "302ecc047ad29b30546a6419fbd5bd58755ff2a0", "pom", "pom")
         }
 
         given:
@@ -460,7 +460,7 @@ Please update the file either manually (preferred) or by adding the --write-veri
     def "can detect a tampered file in the local cache"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
-            addChecksum("org:foo", "sha1", "5474a386e69fd213d375dcaffadf6e291cc9aea0", "pom", "pom")
+            addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
         }
         uncheckedModule("org", "foo")
 
@@ -511,7 +511,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
     def "can detect a tampered metadata file in the local cache (stop in between = #stop)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
-            addChecksum("org:foo", "sha1", "5474a386e69fd213d375dcaffadf6e291cc9aea0", "pom", "pom")
+            addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
         }
         uncheckedModule("org", "foo")
 
@@ -536,7 +536,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
         def module = new File(group, "foo")
         def version = new File(module, "1.0")
-        def originHash = new File(version, "5474a386e69fd213d375dcaffadf6e291cc9aea0")
+        def originHash = new File(version, "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02")
         def artifactFile = new File(originHash, "foo-1.0.pom")
         artifactFile.text = "tampered"
 
@@ -544,7 +544,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
 
         then:
         failure.assertHasCause """Dependency verification failed for configuration ':compileClasspath':
-  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha1' checksum of '5474a386e69fd213d375dcaffadf6e291cc9aea0' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
+  - On artifact foo-1.0.pom (org:foo:1.0): expected a 'sha1' checksum of '85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02' but was '93d6c93d9a76d27ec3462e7b57de5df1eb45bc7b'
 This can indicate that a dependency has been compromised. Please verify carefully the checksums."""
 
         where:
@@ -556,7 +556,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
     def "deleting local artifacts fails verification (stop in between = #stop)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
-            addChecksum("org:foo", "sha1", "5474a386e69fd213d375dcaffadf6e291cc9aea0", "pom", "pom")
+            addChecksum("org:foo", "sha1", "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02", "pom", "pom")
         }
         uncheckedModule("org", "foo")
 
@@ -581,7 +581,7 @@ This can indicate that a dependency has been compromised. Please verify carefull
         def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
         def module = new File(group, "foo")
         def version = new File(module, "1.0")
-        def originHash = new File(version, "5474a386e69fd213d375dcaffadf6e291cc9aea0")
+        def originHash = new File(version, "85a7b8a2eb6bb1c4cdbbfe5e6c8dc3757de22c02")
         def artifactFile = new File(originHash, "foo-1.0.pom")
         artifactFile.delete()
 
