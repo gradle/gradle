@@ -1,3 +1,4 @@
+import common.JvmCategory
 import common.JvmVendor
 import common.JvmVersion
 import common.NoBuildCache
@@ -14,6 +15,7 @@ import model.StageNames
 import model.SubprojectSplit
 import model.TestCoverage
 import model.TestType
+import model.Trigger
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -308,6 +310,40 @@ class CIConfigIntegrationTests {
         assertEquals("Gradle_Check_QuickFeedbackCrossVersion_1_buildCache", testCoverage.asConfigurationId(CIBuildModel(), "buildCache"))
 
         assertEquals("Gradle_Check_QuickFeedbackCrossVersion_1_0", testCoverage.asConfigurationId(CIBuildModel()))
+    }
+
+    @Test
+    fun canDeactivateBuildCacheForSpecificStage() {
+        val m = CIBuildModel(
+            projectPrefix = "Gradle_BuildCacheDeactivatedForStage_",
+            stages = listOf(
+                Stage(StageNames.WINDOWS_10_EVALUATION_QUICK,
+                    trigger = Trigger.never,
+                    runsIndependent = true,
+                    functionalTests = listOf(
+                        TestCoverage(20, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
+                Stage(StageNames.WINDOWS_10_EVALUATION_PLATFORM,
+                    trigger = Trigger.never,
+                    runsIndependent = true,
+                    disablesBuildCache = true,
+                    functionalTests = listOf(
+                        TestCoverage(21, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
+            )
+        )
+        val p = RootProject(m)
+        assertTrue(p.subProjects.size == 2)
+
+        val buildStepsWithCache = (p.subProjectsOrder[0] as StageProject)
+            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items[0] as GradleBuildStep) }
+        buildStepsWithCache.forEach {
+            assertTrue(it.gradleParams!!.contains("--build-cache"))
+        }
+
+        val buildStepsWithoutCache = (p.subProjectsOrder[1] as StageProject)
+            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items[0] as GradleBuildStep) }
+        buildStepsWithoutCache.forEach {
+            assertFalse(it.gradleParams!!.contains("--build-cache"))
+        }
     }
 
     private fun containsSrcFileWithString(srcRoot: File, content: String, exceptions: List<String>): Boolean {

@@ -23,8 +23,5 @@ abstract class DependencyVerificationXmlTags {
     static final String NAME = "name";
     static final String VERSION = "version";
     static final String ARTIFACT = "artifact";
-    static final String CLASSIFIER = "classifier";
-    static final String TYPE = "type";
-    static final String EXT = "ext";
     static final String VALUE = "value";
 }

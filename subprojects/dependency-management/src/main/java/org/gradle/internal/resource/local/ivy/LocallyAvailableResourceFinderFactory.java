@@ -65,6 +65,7 @@ public class LocallyAvailableResourceFinderFactory implements Factory<LocallyAva
             public Set<? extends LocallyAvailableResource> search(ModuleComponentArtifactMetadata key) {
                 return fileStore.search(key.getId());
             }
+
         }));
 
         // 1.8
