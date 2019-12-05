@@ -19,6 +19,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CachingFileHasher;
 import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashFunction;
@@ -27,13 +28,15 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
 
-public class DefaultChecksumService implements ChecksumService {
+public class DefaultChecksumService implements ChecksumService, Stoppable {
+    private final CrossBuildFileHashCache fileStore;
     private final CachingFileHasher md5;
     private final CachingFileHasher sha1;
     private final CachingFileHasher sha256;
     private final CachingFileHasher sha512;
 
     public DefaultChecksumService(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
+        this.fileStore = fileStore;
         md5 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "md5", Hashing.md5());
         sha1 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha1", Hashing.sha1());
         sha256 = createCache(stringInterner, fileStore, fileSystem, fileTimeStampInspector, "sha256", Hashing.sha256());
@@ -88,4 +91,8 @@ public class DefaultChecksumService implements ChecksumService {
         return hasher.hash(file);
     }
 
+    @Override
+    public void stop() {
+        fileStore.close();
+    }
 }
