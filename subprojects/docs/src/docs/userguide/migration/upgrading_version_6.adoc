@@ -33,6 +33,12 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+=== Potential breaking changes
+
+==== Updates to default integration versions
+
+- PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].
+
 ////
 
 Template for new sections
