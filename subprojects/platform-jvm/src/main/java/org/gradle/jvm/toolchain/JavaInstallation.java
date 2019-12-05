@@ -25,6 +25,8 @@ import java.util.Optional;
 /**
  * Information about a Java installation, which may include a JRE or a JDK or both.
  *
+ * <p>You can obtain an instance of this type using {@link JavaInstallationRegistry}.</p>
+ *
  * @since 6.1
  */
 @Incubating
@@ -44,6 +46,11 @@ public interface JavaInstallation {
      * This will be the Java executable from the stand alone JRE, if present, otherwise the Java executable from the JDK.
      */
     File getJavaExecutable();
+
+    /**
+     * Returns a name that identifies the implementation of this installation.
+     */
+    String getImplementationName();
 
     /**
      * Returns information about the JDK packaged in this installation, if any.

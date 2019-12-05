@@ -57,6 +57,8 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("java version = ${Jvm.current().javaVersion}")
         outputContains("java executable = ${Jvm.current().javaExecutable}")
         outputContains("JDK? = true")
+        outputContains("javac executable = ${Jvm.current().javacExecutable}")
+        outputContains("javadoc executable = ${Jvm.current().javadocExecutable}")
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
@@ -78,6 +80,8 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("java version = ${jvm.javaVersion}")
         outputContains("java executable = ${jvm.javaExecutable}")
         outputContains("JDK? = true")
+        outputContains("javac executable = ${jvm.javacExecutable}")
+        outputContains("javadoc executable = ${jvm.javadocExecutable}")
     }
 
     @Unroll
@@ -100,6 +104,8 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("java version = ${jvm.javaVersion}")
         outputContains("java executable = ${jvm.javaExecutable}")
         outputContains("JDK? = true")
+        outputContains("javac executable = ${jvm.javacExecutable}")
+        outputContains("javadoc executable = ${jvm.javadocExecutable}")
 
         where:
         version << [JavaVersion.VERSION_1_5, JavaVersion.VERSION_1_6, JavaVersion.VERSION_1_7]
@@ -121,10 +127,12 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         run("show")
 
         then:
-        outputContains("install dir = ${jvm.homeDir}")
+        outputContains("install dir = ${jvm.javaHome}")
         outputContains("java version = ${jvm.javaVersion}")
         outputContains("java executable = ${jvm.javaExecutable}")
         outputContains("JDK? = true")
+        outputContains("javac executable = ${jvm.javacExecutable}")
+        outputContains("javadoc executable = ${jvm.javadocExecutable}")
     }
 
     def "plugin can query information about an JRE install contained within a JDK install"() {
@@ -147,6 +155,8 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
         outputContains("java version = ${jvm.javaVersion}")
         outputContains("java executable = ${jvm.javaExecutable}")
         outputContains("JDK? = true")
+        outputContains("javac executable = ${jvm.javacExecutable}")
+        outputContains("javadoc executable = ${jvm.javadocExecutable}")
     }
 
     @IgnoreIf({ AvailableJavaHomes.differentVersion == null })
@@ -214,7 +224,13 @@ class JavaInstallationFactoryIntegrationTest extends AbstractIntegrationSpec {
                     println("install dir = \${javaInstallation.installationDirectory}")
                     println("java version = \${javaInstallation.javaVersion}")
                     println("java executable = \${javaInstallation.javaExecutable}")
+                    println("implementation name = \${javaInstallation.implementationName}")
                     println("JDK? = \${javaInstallation.jdk.present}")
+                    if (javaInstallation.jdk.present) {
+                        println("javac executable = \${javaInstallation.jdk.get().javacExecutable}")
+                        println("javadoc executable = \${javaInstallation.jdk.get().javadocExecutable}")
+                        println("tools classpath = \${javaInstallation.jdk.get().toolsClasspath.files}")
+                    }
                 }
             }
         """

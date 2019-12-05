@@ -66,9 +66,11 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
 
     private static class DefaultJavaInstallation implements JavaInstallation {
         private final Jvm jvm;
+        private final String implementationName;
 
         public DefaultJavaInstallation(JavaInstallationProbe.ProbeResult probeResult) {
             this.jvm = Jvm.discovered(probeResult.getJavaHome(), probeResult.getImplementationJavaVersion(), probeResult.getJavaVersion());
+            this.implementationName = probeResult.getImplementationName();
         }
 
         @Override
@@ -87,9 +89,23 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         }
 
         @Override
+        public String getImplementationName() {
+            return implementationName;
+        }
+
+        @Override
         public Optional<JavaDevelopmentKit> getJdk() {
             if (jvm.isJdk()) {
                 return Optional.of(new JavaDevelopmentKit() {
+                    @Override
+                    public File getJavacExecutable() {
+                        return jvm.getJavacExecutable();
+                    }
+
+                    @Override
+                    public File getJavadocExecutable() {
+                        return jvm.getJavadocExecutable();
+                    }
                 });
             } else {
                 return Optional.empty();
