@@ -30,7 +30,6 @@ import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ivy.IvyDependencyDescriptor
 import org.gradle.internal.component.external.model.ivy.MutableIvyModuleResolveMetadata
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -74,7 +73,6 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         metadata.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
         metadata.dependencies.empty
-        metadata.contentHash == HashUtil.createHash(file, "MD5")
         !hasGradleMetadataRedirectionMarker
 
         artifact()
@@ -609,8 +607,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         given:
         def file = temporaryFolder.createFile("ivy.xml")
         file.text = """
-           <ivy-module version="2.0" 
-                    xmlns:m="http://ant.apache.org/ivy/maven" 
+           <ivy-module version="2.0"
+                    xmlns:m="http://ant.apache.org/ivy/maven"
                     xmlns:e="http://ant.apache.org/ivy/extra"
                     xmlns:arbitrary="http://anything.org">
                 <info organisation="myorg"

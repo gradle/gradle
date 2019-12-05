@@ -52,25 +52,25 @@ class DependencyVerificationsXmlReaderTest extends Specification {
 <verification-metadata>
    <components>
       <component group="org" name="foo" version="1.0">
-         <artifact name="foo" type="jar" ext="jar">
+         <artifact name="foo-1.0.jar">
             <sha1 value="abc"/>
             <sha256 value="bcd"/>
          </artifact>
       </component>
       <component group="org" name="foo" version="1.1">
-         <artifact name="foo" type="jar" ext="jar">
+         <artifact name="foo-1.1.jar">
             <md5 value="1234"/>
          </artifact>
-         <artifact name="foo" type="zip" ext="zip">
+         <artifact name="foo-1.1.zip">
             <sha1 value="5678"/>
          </artifact>
       </component>
       <component group="org" name="bar" version="1.2">
-         <artifact name="bar" type="jar" ext="jar">
+         <artifact name="bar-1.2.jar">
             <sha1 value="9876"/>
             <sha512 value="123def"/>
          </artifact>
-         <artifact name="bar" type="jar" ext="jar" classifier="classy">
+         <artifact name="bar-1.2-classy.jar">
             <sha512 value="5678abcd"/>
          </artifact>
       </component>

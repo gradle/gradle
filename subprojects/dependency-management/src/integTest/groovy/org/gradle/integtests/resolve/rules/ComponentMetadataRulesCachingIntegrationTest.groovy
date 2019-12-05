@@ -44,6 +44,7 @@ task resolve {
     }
 }
 """
+        executer.withArgument("-Ddebug.modulesource=true")
     }
 
     @ToBeFixedForInstantExecution
@@ -66,7 +67,7 @@ class CachedRule implements ComponentMetadataRule {
                     deps.each {
                        println "See dependency: \$it"
                     }
-                }               
+                }
             }
     }
 }
@@ -168,7 +169,7 @@ class CachedRuleA implements ComponentMetadataRule {
     CachedRuleA(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
     }
-    
+
     void execute(ComponentMetadataContext context) {
             println 'Rule A executed'
             context.details.changing = true
@@ -184,7 +185,7 @@ class CachedRuleB implements ComponentMetadataRule {
     CachedRuleB(RepositoryResourceAccessor accessor) {
         this.accessor = accessor
     }
-    
+
     public void execute(ComponentMetadataContext context) {
             println 'Rule B executed - saw changing ' + context.details.changing
     }
@@ -235,7 +236,7 @@ class AttributeCachedRule implements ComponentMetadataRule {
     AttributeCachedRule(Attribute attribute) {
         this.targetAttribute = attribute
     }
-    
+
     void execute(ComponentMetadataContext context) {
         println 'Attribute rule executed'
     }
@@ -295,7 +296,7 @@ class AttributeCachedRule implements ComponentMetadataRule {
         this.objects = objects
         this.targetAttribute = attribute
     }
-    
+
     void execute(ComponentMetadataContext context) {
         println 'Attribute rule executed'
         context.details.withVariant('api') {
@@ -375,7 +376,7 @@ dependencies {
 
         def cachedRule = file('buildSrc/src/main/groovy/rule/CachedRule.groovy')
         cachedRule.text = """
-package rule 
+package rule
 
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.CacheableRule
@@ -418,7 +419,7 @@ dependencies {
             }
         }
         cachedRule.text = """
-package rule 
+package rule
 
 import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.CacheableRule
