@@ -1,4 +1,4 @@
-= Java Basic Library Sample
+= Java Library Sample
 
 ifndef::env-github[]
 [.download]
@@ -10,7 +10,7 @@ NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com
 
 NOTE: If you are new to Gradle and wish to follow a more detailed tutorial for building Java libraries, we suggest you have an look at the https://guides.gradle.org/building-java-libraries/[Building Java Libraries guide].
 
-This sample shows how a simple Java library can be built with Gradle.
+This sample shows how a Java library can be built with Gradle.
 The library has no dependencies and the build has minimal configuration.
 
 ====
