@@ -37,6 +37,13 @@ public class StackTraceFilter {
                 filtered.add(element);
             }
         }
+        // If none of the lines match the filter, keep the original stacktrace
+        // It might happen when test method was inherited from a base class.
+        // In that case, "derived" test class never appears in the stacktrace,
+        // and it is better to show the stacktrace as is rather than truncate it completely.
+        if (filtered.isEmpty()) {
+            return stackTrace;
+        }
         return Lists.reverse(filtered);
     }
 
