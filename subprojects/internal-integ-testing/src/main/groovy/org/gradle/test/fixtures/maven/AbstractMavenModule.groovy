@@ -35,6 +35,8 @@ import org.gradle.test.fixtures.gradle.GradleFileModuleAdapter
 import org.gradle.test.fixtures.gradle.VariantMetadataSpec
 
 import java.text.SimpleDateFormat
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 abstract class AbstractMavenModule extends AbstractModule implements MavenModule {
     private final TestFile rootDir
@@ -480,6 +482,12 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return new Date(updateFormat.parse("20100101120000").time + publishCount * 1000)
     }
 
+    String getFormattedPublishTimestamp() {
+        publishTimestamp.toLocalDateTime()
+            .atZone(ZoneId.of("GMT"))
+            .format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss z").withLocale(Locale.ENGLISH))
+    }
+
     private void publishModuleMetadata() {
         def defaultArtifacts = getArtifact([:]).collect {
             new FileSpec(it.file.name, it.file.name)
@@ -524,8 +532,6 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             }
         }
         boolean writeRedirect = gradleMetadataRedirect
-        def sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z", Locale.ENGLISH)
-        sdf.setTimeZone(TimeZone.getTimeZone("GMT"))
         publish(pomFileForPublish) { Writer writer ->
             def pomPackaging = packaging ?: type
             new MarkupBuilder(writer).project {
@@ -538,7 +544,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 artifactId(artifactId)
                 version(version)
                 packaging(pomPackaging)
-                description("Published on ${sdf.format(publishTimestamp)}")
+                description("Published on ${formattedPublishTimestamp}")
                 if (parentPom) {
                     parent {
                         groupId(parentPom.groupId)
