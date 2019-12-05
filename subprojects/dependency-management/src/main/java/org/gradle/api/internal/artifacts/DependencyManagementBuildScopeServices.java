@@ -39,11 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.cache.internal.CacheScopeMapping;
-import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.initialization.layout.ProjectCacheDir;
-import org.gradle.internal.hash.ChecksumService;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DefaultChecksumService;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.InMemoryModuleMetadataCache;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleComponentResolveMetadataSerializer;
@@ -86,9 +81,6 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceA
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.CrossBuildFileHashCache;
-import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -116,10 +108,10 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.PreferJavaRuntimeVariant;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.file.FileAccessTimeJournal;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
@@ -142,7 +134,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
-import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -455,12 +446,6 @@ class DependencyManagementBuildScopeServices {
                                                                                       final BuildCommencedTimeProvider timeProvider,
                                                                                       SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer) {
         return new ComponentMetadataSupplierRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
-    }
-
-    ChecksumService createchecksumService(StringInterner stringInterner, CacheScopeMapping cacheScopeMapping, ProjectCacheDir projectCacheDir, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
-        File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "checksums", VersionStrategy.SharedCache);
-        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
-        return new DefaultChecksumService(stringInterner, crossBuildCache, fileSystem, fileTimeStampInspector);
     }
 
 }
