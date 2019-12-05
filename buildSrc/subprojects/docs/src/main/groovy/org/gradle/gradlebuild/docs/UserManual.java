@@ -19,13 +19,32 @@ package org.gradle.gradlebuild.docs;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 
+/**
+ * Configuration for user manual documentation
+ */
 public abstract class UserManual {
+    /**
+     * The root of the user manual documentation.  This is the source of the adoc files.
+     */
     public abstract DirectoryProperty getRoot();
+
+    /**
+     * Source of snippets that can be inserted into the user manual
+     */
     public abstract DirectoryProperty getSnippets();
 
+    /**
+     * Working directory for staging directory for intermediate user manual files
+     */
     public abstract DirectoryProperty getStagingRoot();
 
+    /**
+     * Additional resources to include in the final docs
+     */
     public abstract ConfigurableFileCollection getResources();
 
+    /**
+     * A collection of the final rendered user manual
+     */
     public abstract ConfigurableFileCollection getRenderedDocumentation();
 }

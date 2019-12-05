@@ -22,5 +22,8 @@ import org.gradle.api.file.RegularFileProperty;
  * Configuration for release features.
  */
 public abstract class ReleaseFeatures {
+    /**
+     * Source of release features/highlights
+     */
     public abstract RegularFileProperty getReleaseFeaturesFile();
 }
