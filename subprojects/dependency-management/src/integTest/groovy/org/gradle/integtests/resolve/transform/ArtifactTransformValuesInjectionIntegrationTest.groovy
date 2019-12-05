@@ -34,6 +34,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.matchesRegexp
@@ -159,6 +160,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         "MapProperty<String, Number>" | "[a: 1, b: 2]" | "[a:1, b:2]" | "[:]"
     }
 
+    @ToBeFixedForInstantExecution
     def "transform parameters are validated for input output annotations"() {
         settingsFile << """
             include 'a', 'b'
@@ -289,6 +291,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause("Cannot query parameters for artifact transform without parameters.")
     }
 
+    @ToBeFixedForInstantExecution
     def "transform parameters type cannot use caching annotations"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -331,6 +334,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "transform parameters type cannot use annotation @#annotation.simpleName"() {
         settingsFile << """
             include 'a', 'b'
@@ -414,7 +418,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         then:
         failure.assertHasDescription('A problem occurred evaluating root project')
         failure.assertHasCause('Could not create an instance of type MakeGreen$Parameters.')
-        failure.assertHasCause('Could not generate a decorated class for interface MakeGreen$Parameters.')
+        failure.assertHasCause('Could not generate a decorated class for type MakeGreen.Parameters.')
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method Parameters.getBad().")
 
         where:
@@ -563,6 +567,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "transform can receive dependencies via abstract getter of type #targetType"() {
         settingsFile << """
             include 'a', 'b', 'c'
@@ -728,7 +733,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("Cannot register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifact annotation on property MakeGreen.getInput() of type ${typeName}. Allowed property types: java.io.File, org.gradle.api.provider.Provider<org.gradle.api.file.FileSystemLocation>.")
 
         where:
@@ -765,7 +770,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project")
-        failure.assertHasCause("Cannot register artifact transform MakeGreen (from {color=blue} to {color=green})")
+        failure.assertHasCause("Could not register artifact transform MakeGreen (from {color=blue} to {color=green})")
         failure.assertHasCause("Cannot use @InputArtifactDependencies annotation on property MakeGreen.getDependencies() of type ${propertyType.name}. Allowed property types: org.gradle.api.file.FileCollection.")
 
         where:
@@ -864,7 +869,7 @@ abstract class MakeGreen implements TransformAction<TransformParameters.None> {
         fails('broken')
         failure.assertHasDescription("A problem occurred evaluating root project")
         failure.assertHasCause("Could not create task of type 'MyTask'.")
-        failure.assertHasCause("Could not generate a decorated class for class MyTask.")
+        failure.assertHasCause("Could not generate a decorated class for type MyTask.")
         failure.assertHasCause("Cannot use @${annotation.simpleName} annotation on method MyTask.getThing().")
 
         where:

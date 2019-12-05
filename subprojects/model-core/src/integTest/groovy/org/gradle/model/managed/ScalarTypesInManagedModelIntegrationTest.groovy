@@ -15,11 +15,14 @@
  */
 
 package org.gradle.model.managed
+
 import org.gradle.api.artifacts.Configuration
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "values of primitive types and boxed primitive types are widened as usual when using groovy"() {
         when:
         buildScript '''
@@ -58,6 +61,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "can view property with scalar type as ModelElement"() {
         given:
         buildScript '''
@@ -128,6 +132,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 - Method setLongProperty(long) is not a valid method: it should take parameter with type 'Long'"""
     }
 
+    @ToBeFixedForInstantExecution
     def "values of primitive types are boxed as usual when using java"() {
         when:
         file('buildSrc/src/main/java/Rules.java') << '''
@@ -181,6 +186,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "check"
     }
 
+    @ToBeFixedForInstantExecution
     def "can set/get properties of all supported scalar types using Groovy"() {
         when:
         buildScript '''
@@ -267,6 +273,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "check"
     }
 
+    @ToBeFixedForInstantExecution
     def "can set/get properties of all supported scalar types using Java"() {
         given:
         file('buildSrc/src/main/java/Rules.java') << '''
@@ -390,6 +397,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds "model"
     }
 
+    @ToBeFixedForInstantExecution
     def "can read and write to managed property of scalar type when using Groovy"() {
         given:
         def i = 0
@@ -458,6 +466,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "can read and write to managed property of scalar type when using Java"() {
         given:
         def i = 0
@@ -537,6 +546,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot mutate managed property of scalar type when view is immutable"() {
         given:
         def i = 0
@@ -611,6 +621,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "read-only backing set preserves order of insertion"() {
         given: "a managed type that uses a Set of strings"
         buildScript '''
@@ -649,6 +660,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "read-write backing set preserves order of insertion"() {
         given: "a managed type that uses a read-write Set of strings"
         buildScript '''
@@ -689,6 +701,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "read-write backing set retains null value"() {
         buildScript '''
             @Managed
@@ -721,6 +734,7 @@ class ScalarTypesInManagedModelIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'check'
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot mutate read-write scalar collection when not target of a rule"() {
         given: "a managed type that uses a read-write Set of strings"
         buildScript '''

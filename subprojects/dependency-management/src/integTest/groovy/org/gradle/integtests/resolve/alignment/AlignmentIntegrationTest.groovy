@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.alignment
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -341,7 +342,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     }
 
     @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+        // Platforms cannot be published with plain Ivy
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
     def "can align thanks to a published platform"() {
         repository {
@@ -358,21 +360,25 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             // they include, by constraints
             'org:platform' {
                 '2.7.9' {
+                    asPlatform()
                     constraint("org:databind:2.7.9")
                     constraint("org:core:2.7.9")
                     constraint("org:annotations:2.7.9")
                 }
                 '2.9.0' {
+                    asPlatform()
                     constraint("org:databind:2.9.0")
                     constraint("org:core:2.9.0")
                     constraint("org:annotations:2.9.0")
                 }
                 '2.9.4' {
+                    asPlatform()
                     constraint("org:databind:2.9.4")
                     constraint("org:core:2.9.4")
                     constraint("org:annotations:2.9.0")
                 }
                 '2.9.4.1' {
+                    asPlatform()
                     // versions here are intentionally lower
                     constraint("org:databind:2.9.4")
                     constraint("org:core:2.9.4")
@@ -387,10 +393,10 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 conf 'org:core:2.9.4'
                 conf 'org:databind:2.7.9'
                 conf 'org:kt:2.9.4.1'
-                
+
                 components.all(DeclarePlatform)
             }
-            
+
             class DeclarePlatform implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -408,6 +414,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             module('annotations') tries('2.7.9', '2.9.0') alignsTo('2.9.4') byPublishedPlatform()
             module('kt') alignsTo('2.9.4.1') byPublishedPlatform()
 
+            doesNotGetPlatform("org", "platform", "2.7.9") // because of conflict resolution
             doesNotGetPlatform("org", "platform", "2.9.0") // because of conflict resolution
         }
         run ':checkDeps'
@@ -415,12 +422,25 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:core:2.9.4')
-                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:core:2.9.4') {
+                    edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                }
+                edge('org:databind:2.7.9', 'org:databind:2.9.4') {
+                    edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                }
                 module('org:kt:2.9.4.1') {
+                    module("org:platform:2.9.4.1") {
+                        noArtifacts()
+                        constraint("org:core:2.9.4")
+                        constraint("org:databind:2.9.4")
+                        constraint("org:annotations:2.9.4")
+                        module("org:platform:2.9.4.1")
+                    }
                     module('org:databind:2.9.4') {
                         module('org:core:2.9.4')
-                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4') {
+                            edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                        }
                     }
                 }
             }
@@ -498,7 +518,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             path 'org3:bar:1.0 -> org4:b:1.1 -> org4:a:1.1'
         }
 
-        buildFile << """          
+        buildFile << """
             dependencies {
                 conf 'org:xml:1.0'
                 conf 'org2:foo:1.0'
@@ -555,7 +575,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 conf 'org:xml:1.0'
                 conf 'org:json:1.1'
             }
-            
+
             configurations.conf.resolutionStrategy {
                 componentSelection {
                     withModule('org:xml') {
@@ -650,7 +670,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     }
 
     @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+        // Platforms cannot be published with plain Ivy
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
     def "can belong to 2 different published platforms"() {
         given:
@@ -662,6 +683,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
                 // Groovy "belongs to" the Groovy platform
                 "org.apache.groovy:platform:$groovyVersion" {
+                    asPlatform()
                     constraint("org.apache.groovy:core:$groovyVersion")
                     constraint("org.apache.groovy:json:$groovyVersion")
                     constraint("org.apache.groovy:xml:$groovyVersion")
@@ -680,6 +702,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
             // Groovy also belongs to the "Spring" platform, which uses a different versioning scheme
             'org.springframework:spring-platform:1.0' {
+                asPlatform()
                 constraint('org.apache.groovy:core:2.4')
                 constraint('org.springframework:core:1.1')
             }
@@ -722,13 +745,28 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.apache.groovy:xml:2.4", "org.apache.groovy:xml:2.5") {
-                    // TODO CC: determine why the constraints are not found.
-//                    byConstraint("belongs to platform org.apache.groovy:platform:2.4")
-//                    byConstraint("belongs to platform org.springframwork:spring-platform2:1.0")
-                    module("org.apache.groovy:core:2.5")
+                    module("org.apache.groovy:core:2.5") {
+                        module("org.apache.groovy:platform:2.5") {
+                            noArtifacts()
+                            module("org.apache.groovy:platform:2.5")          // The way the rule is defined, it is applied to the platform itself.
+                            module("org.springframework:spring-platform:1.0") // This is not good practice, but we keep this to describe the current behavior.
+                            constraint("org.apache.groovy:core:2.5")
+                            constraint("org.apache.groovy:json:2.5")
+                            constraint("org.apache.groovy:xml:2.5")
+                        }
+                        module("org.springframework:spring-platform:1.0") {
+                            noArtifacts()
+                            constraint("org.apache.groovy:core:2.4", "org.apache.groovy:core:2.5")
+                            constraint("org.springframework:core:1.1")
+                        }
+                    }
+                    module("org.apache.groovy:platform:2.5")
+                    module("org.springframework:spring-platform:1.0")
                 }
                 module("org.apache.groovy:json:2.5") {
                     module("org.apache.groovy:core:2.5")
+                    module("org.apache.groovy:platform:2.5")
+                    module("org.springframework:spring-platform:1.0")
                 }
                 edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
                     byConflictResolution("between versions 1.1 and 1.0")
@@ -738,7 +776,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     }
 
     @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+        // Platforms cannot be published with plain Ivy
+        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
     def "belonging to both a virtual and a published platforms resolves with alignment"() {
         given:
@@ -762,6 +801,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
             // Groovy also belongs to the "Spring" platform, which uses a different versioning scheme
             'org.springframework:spring-platform:1.0' {
+                asPlatform()
                 constraint('org.apache.groovy:core:2.4')
                 constraint('org.springframework:core:1.1')
             }
@@ -804,13 +844,18 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.apache.groovy:xml:2.4", "org.apache.groovy:xml:2.5") {
-                    // TODO CC: determine why the constraints are not found.
-//                    byConstraint("belongs to platform org.apache.groovy:platform:2.4")
-//                    byConstraint("belongs to platform org.springframwork:spring-platform2:1.0")
-                    module("org.apache.groovy:core:2.5")
+                    module("org.apache.groovy:core:2.5") {
+                        module("org.springframework:spring-platform:1.0") {
+                            noArtifacts()
+                            constraint("org.apache.groovy:core:2.4", "org.apache.groovy:core:2.5")
+                            constraint("org.springframework:core:1.1")
+                        }
+                    }
+                    module("org.springframework:spring-platform:1.0")
                 }
                 module("org.apache.groovy:json:2.5") {
                     module("org.apache.groovy:core:2.5")
+                    module("org.springframework:spring-platform:1.0")
                 }
                 edge("org.springframework:core:1.0", "org.springframework:core:1.1") {
                     byConflictResolution("between versions 1.1 and 1.0")
@@ -824,6 +869,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
+    @ToBeFixedForInstantExecution
     def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -886,10 +932,10 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
     }
 
     @RequiredFeatures([
-        // We only need to test one flavor
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
+        // Platforms cannot be published with plain Ivy
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     ])
+    @ToBeFixedForInstantExecution
     def "published platform can be found in a different repository"() {
         // Disable daemon, so that the second run executes with the file cache
         // and therefore make sure that we read the "missing" status from disk
@@ -912,21 +958,25 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             // they include, by constraints
             'org:platform' {
                 '2.7.9' {
+                    asPlatform()
                     constraint("org:databind:2.7.9")
                     constraint("org:core:2.7.9")
                     constraint("org:annotations:2.7.9")
                 }
                 '2.9.0' {
+                    asPlatform()
                     constraint("org:databind:2.9.0")
                     constraint("org:core:2.9.0")
                     constraint("org:annotations:2.9.0")
                 }
                 '2.9.4' {
+                    asPlatform()
                     constraint("org:databind:2.9.4")
                     constraint("org:core:2.9.4")
                     constraint("org:annotations:2.9.0")
                 }
                 '2.9.4.1' {
+                    asPlatform()
                     // versions here are intentionally lower
                     constraint("org:databind:2.9.4")
                     constraint("org:core:2.9.4")
@@ -942,15 +992,15 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
                 remove(repo)
                 addFirst(repo)
             }
-            
+
             dependencies {
                 conf 'org:core:2.9.4'
                 conf 'org:databind:2.7.9'
                 conf 'org:kt:2.9.4.1'
-                
+
                 components.all(DeclarePlatform)
             }
-            
+
             class DeclarePlatform implements ComponentMetadataRule {
                 void execute(ComponentMetadataContext ctx) {
                     ctx.details.with {
@@ -972,6 +1022,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
             module('annotations') tries('2.7.9', '2.9.0') alignsTo('2.9.4') byPublishedPlatform()
             module('kt') alignsTo('2.9.4.1') byPublishedPlatform()
 
+            doesNotGetPlatform("org", "platform", "2.7.9") // because of conflict resolution
             doesNotGetPlatform("org", "platform", "2.9.0") // because of conflict resolution
         }
         run ':checkDeps'
@@ -979,12 +1030,25 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         then:
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:core:2.9.4')
-                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:core:2.9.4') {
+                    edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                }
+                edge('org:databind:2.7.9', 'org:databind:2.9.4') {
+                    edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                }
                 module('org:kt:2.9.4.1') {
+                    module("org:platform:2.9.4.1") {
+                        noArtifacts()
+                        constraint("org:core:2.9.4")
+                        constraint("org:databind:2.9.4")
+                        constraint("org:annotations:2.9.4")
+                        module("org:platform:2.9.4.1")
+                    }
                     module('org:databind:2.9.4') {
                         module('org:core:2.9.4')
-                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4') {
+                            edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                        }
                     }
                 }
             }
@@ -998,12 +1062,25 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         then: "no more network requests should be issued"
         resolve.expectGraph {
             root(":", ":test:") {
-                module('org:core:2.9.4')
-                edge('org:databind:2.7.9', 'org:databind:2.9.4')
+                module('org:core:2.9.4') {
+                    edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                }
+                edge('org:databind:2.7.9', 'org:databind:2.9.4') {
+                    edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                }
                 module('org:kt:2.9.4.1') {
+                    module("org:platform:2.9.4.1") {
+                        noArtifacts()
+                        constraint("org:core:2.9.4")
+                        constraint("org:databind:2.9.4")
+                        constraint("org:annotations:2.9.4")
+                        module("org:platform:2.9.4.1")
+                    }
                     module('org:databind:2.9.4') {
                         module('org:core:2.9.4')
-                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4')
+                        edge('org:annotations:2.9.0', 'org:annotations:2.9.4') {
+                            edge("org:platform:2.9.4", "org:platform:2.9.4.1")
+                        }
                     }
                 }
             }
@@ -1065,7 +1142,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
               constraints {
                   conf "org:platform:1.1"
               }
-            
+
               conf 'org:foo:1.0'
             }
         '''
@@ -1112,7 +1189,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
               constraints {
                   conf "org:platform:1.1"
               }
-            
+
               conf 'start:start:1.0'
             }
         '''

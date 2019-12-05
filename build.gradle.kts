@@ -30,7 +30,7 @@ plugins {
     gradlebuild.`build-types`
     gradlebuild.`ci-reporting`
     gradlebuild.security
-    id("org.gradle.ci.tag-single-build") version("0.73")
+    id("org.gradle.ci.tag-single-build") version("0.74")
 }
 
 defaultTasks("assemble")
@@ -76,6 +76,11 @@ buildTypes {
     // Run the integration tests using the parallel executer
     create("parallelTest") {
         tasks("parallelIntegTest")
+    }
+
+    // Run the integration tests using instant execution
+    create("instantTest") {
+        tasks("instantIntegTest")
     }
 
     create("performanceTests") {
@@ -172,7 +177,6 @@ allprojects {
 }
 
 apply(plugin = "gradlebuild.cleanup")
-apply(plugin = "gradlebuild.available-java-installations")
 apply(plugin = "gradlebuild.buildscan")
 apply(from = "gradle/versioning.gradle")
 apply(from = "gradle/dependencies.gradle")

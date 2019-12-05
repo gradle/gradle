@@ -109,7 +109,7 @@ public class WorkerSharedProjectScopeServices {
 
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
         return new DefaultObjectFactory(
-                instantiatorFactory.injectAndDecorate(services),
+                instantiatorFactory.decorate(services),
                 namedObjectInstantiator,
                 fileResolver,
                 directoryFileTreeFactory,

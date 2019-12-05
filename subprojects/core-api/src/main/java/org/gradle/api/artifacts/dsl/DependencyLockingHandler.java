@@ -46,4 +46,20 @@ public interface DependencyLockingHandler {
      */
     @Incubating
     void unlockAllConfigurations();
+
+    /**
+     * Allows to query the lock mode currently configured
+     *
+     * @since 6.1
+     */
+    @Incubating
+    LockMode getLockMode();
+
+    /**
+     * Sets the lock mode
+     *
+     * @since 6.1
+     */
+    @Incubating
+    void setLockMode(LockMode mode);
 }

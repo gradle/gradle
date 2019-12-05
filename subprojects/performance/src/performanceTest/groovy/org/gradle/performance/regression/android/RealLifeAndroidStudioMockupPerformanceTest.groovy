@@ -26,8 +26,9 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         given:
 
         experiment(testProject) {
-            minimumBaseVersion = "4.3.1"
-            targetVersions = ["6.0-20190823180744+0000"]
+            // AGP 3.5 requires 5.4.1+
+            minimumBaseVersion = "5.4.1"
+            targetVersions = ["6.1-20191105125831+0000"]
             action('org.gradle.performance.android.SyncAction') {
                 jvmArguments = ["-Xms5g", "-Xmx5g"]
             }

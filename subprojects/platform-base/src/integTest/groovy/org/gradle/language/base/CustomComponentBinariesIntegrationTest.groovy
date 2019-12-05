@@ -18,6 +18,7 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
@@ -97,6 +98,7 @@ class CustomComponentBinariesIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can register binaries using @ComponentBinaries rule"() {
         when:
         buildFile << withSimpleComponentBinaries()
@@ -146,6 +148,7 @@ Binaries
 """)
     }
 
+    @ToBeFixedForInstantExecution
     def "links components sourceSets to binaries"() {
         when:
         buildFile << withSimpleComponentBinaries()
@@ -184,6 +187,7 @@ Binaries
         "assemble"        | "assemble task"
     }
 
+    @ToBeFixedForInstantExecution
     def "can access lifecycle task of binary via BinarySpec.buildTask"(){
         when:
         buildFile << withSimpleComponentBinaries()

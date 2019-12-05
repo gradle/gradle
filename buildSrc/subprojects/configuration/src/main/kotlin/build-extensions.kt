@@ -56,20 +56,14 @@ fun Project.testLibraries(name: String): List<String> =
 
 val Project.maxParallelForks: Int
     get() {
-        return ifProperty("maxParallelForks",
-            findProperty("maxParallelForks")?.let { Integer.valueOf(it.toString(), 10) }) ?: 4
+        return findProperty("maxParallelForks")?.toString()?.toInt() ?: 4
     }
 
 
 val Project.useAllDistribution: Boolean
     get() {
-        return ifProperty("useAllDistribution", true) ?: false
+        return findProperty("useAllDistribution")?.toString()?.toBoolean() ?: false
     }
-
-
-private
-fun <T> Project.ifProperty(name: String, then: T): T? =
-    then.takeIf { rootProject.findProperty(name) == true }
 
 
 fun TaskOutputs.doNotCacheIfSlowInternetConnection() {

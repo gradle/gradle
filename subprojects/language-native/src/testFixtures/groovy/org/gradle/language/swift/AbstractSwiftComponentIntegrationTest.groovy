@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.AbstractNativeLanguageComponentIntegrationTest
 import org.gradle.nativeplatform.OperatingSystemFamily
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -26,6 +27,8 @@ import org.hamcrest.CoreMatchers
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLanguageComponentIntegrationTest {
+
+    @ToBeFixedForInstantExecution
     def "sources are built with Swift tools"() {
         given:
         makeSingleProject()
@@ -80,6 +83,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    @ToBeFixedForInstantExecution
     def "can build Swift 3 source code on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -108,6 +112,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
+    @ToBeFixedForInstantExecution
     def "can build Swift 4 source code on Swift 5 compiler"() {
         given:
         makeSingleProject()
@@ -136,6 +141,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
+    @ToBeFixedForInstantExecution
     def "throws exception with meaningful message when building Swift 4 source code on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -165,6 +171,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
+    @ToBeFixedForInstantExecution
     def "throws exception with meaningful message when building Swift 5 source code on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -194,6 +201,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    @ToBeFixedForInstantExecution
     def "throws exception with meaningful message when building Swift 5 source code on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -223,6 +231,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
+    @ToBeFixedForInstantExecution
     def "throws exception with meaningful message when building Swift 3 source code on Swift 5 compiler"() {
         given:
         makeSingleProject()
@@ -252,6 +261,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_3)
+    @ToBeFixedForInstantExecution
     def "can compile Swift 3 component on Swift 3 compiler"() {
         given:
         makeSingleProject()
@@ -276,6 +286,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4)
+    @ToBeFixedForInstantExecution
     def "can compile Swift 4 component on Swift 4 compiler"() {
         given:
         makeSingleProject()
@@ -300,6 +311,7 @@ abstract class AbstractSwiftComponentIntegrationTest extends AbstractNativeLangu
     }
 
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_5)
+    @ToBeFixedForInstantExecution
     def "can compile Swift 5 component on Swift 5 compiler"() {
         given:
         makeSingleProject()

@@ -25,7 +25,7 @@ public interface CurrentSnapshotResult extends SnapshotResult {
      * Get the snapshots of the outputs of the finished work execution.
      */
     // TODO This shouldn't be represented as a map of CurrentFileCollectionFingerprint objects,
-    //      but of FileSystemLocationSnapshot objects
+    //      but of CompleteFileSystemLocationSnapshot objects
     @Override
     ImmutableSortedMap<String, CurrentFileCollectionFingerprint> getFinalOutputs();
 

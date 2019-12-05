@@ -16,6 +16,7 @@
 
 package org.gradle.workers.internal
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
@@ -137,6 +138,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "produces a sensible error when a parameter can't be serialized to the worker in #isolationMode"() {
         def workAction = fixture.workActionThatCreatesFiles.writeToBuildSrc()
         def alternateExecution = fixture.alternateWorkAction.writeToBuildSrc()
@@ -308,7 +310,7 @@ class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorI
         fails("runInWorker")
 
         then:
-        failure.assertHasCause("Could not create worker parameters: must use a sub-type of WorkParameters as parameter type. Use WorkParameters.None for executions without parameters.")
+        failure.assertHasCause("Could not create the parameters for BadWorkAction: must use a sub-type of WorkParameters as the parameters type. Use WorkParameters.None as the parameters type for implementations that do not take parameters.")
     }
 
     String getUnrecognizedOptionError() {

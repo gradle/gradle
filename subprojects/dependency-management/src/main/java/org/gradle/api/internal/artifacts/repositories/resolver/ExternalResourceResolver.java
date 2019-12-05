@@ -52,7 +52,8 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultModuleDescriptorArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.WrappedComponentResolveMetadata;
 import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.hash.Hasher;
@@ -247,7 +248,6 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         for (MetadataSource<?> source : metadataSources.sources()) {
             MutableModuleComponentResolveMetadata value = source.create(name, componentResolvers, moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
             if (value != null) {
-                value.setSource(artifactResolver.getSource());
                 result.resolved(value.asImmutable());
                 return;
             }
@@ -261,7 +261,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
     protected Set<ModuleComponentArtifactMetadata> findOptionalArtifacts(ModuleComponentResolveMetadata module, String type, String classifier) {
         ModuleComponentArtifactMetadata artifact = module.artifact(type, "jar", classifier);
-        if (createArtifactResolver(module.getSource()).artifactExists(artifact, new DefaultResourceAwareResolveResult())) {
+        if (createArtifactResolver(module.getSources()).artifactExists(artifact, new DefaultResourceAwareResolveResult())) {
             return ImmutableSet.of(artifact);
         }
         return Collections.emptySet();
@@ -285,7 +285,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         return new DefaultExternalResourceArtifactResolver(repository, locallyAvailableResourceFinder, ivyPatterns, artifactPatterns, artifactFileStore, cachingResourceAccessor);
     }
 
-    protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
+    protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSources moduleSources) {
         return createArtifactResolver();
     }
 
@@ -319,8 +319,10 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private void publishChecksums(ExternalResourceName destination, File content) {
         publishChecksum(destination, content, "sha1", 40);
 
-        publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
-        publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+        if (!ExternalResourceResolver.disableExtraChecksums()) {
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-256", 64);
+            publishPossiblyUnsupportedChecksum(destination, content, "sha-512", 128);
+        }
     }
 
     private void publishPossiblyUnsupportedChecksum(ExternalResourceName destination, File content, String algorithm, int length) {
@@ -407,8 +409,15 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
 
         @Override
         public void resolveArtifacts(ComponentResolveMetadata component, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result) {
-            T moduleMetaData = getSupportedMetadataType().cast(component);
+            T moduleMetaData = getSupportedMetadataType().cast(unwrap(component));
             resolveModuleArtifacts(moduleMetaData, variant, result);
+        }
+
+        private ComponentResolveMetadata unwrap(ComponentResolveMetadata original) {
+            if (original instanceof WrappedComponentResolveMetadata) {
+                return ((WrappedComponentResolveMetadata) original).unwrap();
+            }
+            return original;
         }
 
         protected abstract void resolveModuleArtifacts(T module, ConfigurationMetadata variant, BuildableComponentArtifactsResolveResult result);
@@ -441,7 +450,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
 
         }
 
@@ -492,9 +501,9 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
 
         @Override
-        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
+        public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactResolveResult result) {
             try {
-                ExternalResourceArtifactResolver resolver = createArtifactResolver(moduleSource);
+                ExternalResourceArtifactResolver resolver = createArtifactResolver(moduleSources);
                 ModuleComponentArtifactMetadata moduleArtifact = (ModuleComponentArtifactMetadata) artifact;
                 LocallyAvailableExternalResource artifactResource = resolver.resolveArtifact(moduleArtifact, result);
                 if (artifactResource == null) {
@@ -584,4 +593,9 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             result.listed(versions);
         }
     }
+
+    public static boolean disableExtraChecksums() {
+        return Boolean.getBoolean("org.gradle.internal.publish.checksums.insecure");
+    }
+
 }

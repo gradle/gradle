@@ -303,6 +303,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         private final HashCode sourceHashCode;
         private final M metadata;
         private Class<? extends T> scriptClass;
+        private ClassLoaderScope scope;
 
         public ClassesDirCompiledScript(boolean isEmpty, boolean hasMethods, Class<T> scriptBaseClass, File scriptCacheDir, ClassLoaderScope targetScope, ScriptSource source, HashCode sourceHashCode, M metadata) {
             this.isEmpty = isEmpty;
@@ -331,17 +332,23 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         }
 
         @Override
+        public void onReuse() {
+            if (scriptClass != null) {
+                // Recreate the script scope and ClassLoader, so that things that use scopes are notified that the scope exists
+                scope.onReuse();
+                assert scriptClass.getClassLoader() == scope.getLocalClassLoader();
+            }
+        }
+
+        @Override
         public Class<? extends T> loadClass() {
             if (scriptClass == null) {
                 if (isEmpty && !hasMethods) {
                     throw new UnsupportedOperationException("Cannot load script that does nothing.");
                 }
                 try {
-                    ClassPath scriptClassPath = DefaultClassPath.of(scriptCacheDir);
-                    ClassLoaderScope scriptScope = targetScope.createChild("groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName())
-                        .local(scriptClassPath)
-                        .lock(parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
-                    ClassLoader loader = scriptScope.getLocalClassLoader();
+                    scope = prepareClassLoaderScope();
+                    ClassLoader loader = scope.getLocalClassLoader();
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {
                     File expectedClassFile = new File(scriptCacheDir, source.getClassName() + ".class");
@@ -352,6 +359,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 }
             }
             return scriptClass;
+        }
+
+        private ClassLoaderScope prepareClassLoaderScope() {
+            ClassPath scriptClassPath = DefaultClassPath.of(scriptCacheDir);
+            String scopeName = "groovy-dsl:" + source.getFileName() + ":" + scriptBaseClass.getSimpleName();
+            return targetScope.createLockedChild(scopeName, scriptClassPath, sourceHashCode, parent -> new ScriptClassLoader(source, parent, scriptClassPath, sourceHashCode));
         }
     }
 
@@ -377,14 +390,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
             // Generated script class name must be unique - take advantage of this to avoid delegation
             if (name.startsWith(scriptSource.getClassName())) {
-                Class<?> cl = findLoadedClass(name);
-                if (cl == null) {
-                    cl = findClass(name);
+                // Synchronized to avoid multiple threads attempting to define the same class on a lookup miss
+                synchronized (this) {
+                    Class<?> cl = findLoadedClass(name);
+                    if (cl == null) {
+                        cl = findClass(name);
+                    }
+                    if (resolve) {
+                        resolveClass(cl);
+                    }
+                    return cl;
                 }
-                if (resolve) {
-                    resolveClass(cl);
-                }
-                return cl;
             }
             return super.loadClass(name, resolve);
         }

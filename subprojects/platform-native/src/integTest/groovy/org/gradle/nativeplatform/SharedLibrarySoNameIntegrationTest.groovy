@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -39,6 +40,7 @@ model {
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "library soname is file name when installName is not set"() {
         when:
         succeeds "helloSharedLibrary"
@@ -48,6 +50,7 @@ model {
         sharedLibrary.soName == sharedLibrary.file.name
     }
 
+    @ToBeFixedForInstantExecution
     def "library soname uses specified installName"() {
         given:
         buildFile << """
@@ -63,6 +66,7 @@ tasks.withType(LinkSharedLibrary) {
         sharedLibrary("build/libs/hello/shared/hello").soName == "hello-install-name"
     }
 
+    @ToBeFixedForInstantExecution
     def "library soname defaults when installName is null"() {
         given:
         buildFile << """

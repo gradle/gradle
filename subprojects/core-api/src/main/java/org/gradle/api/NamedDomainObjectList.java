@@ -21,13 +21,15 @@ import org.gradle.api.specs.Spec;
 import java.util.List;
 
 /**
- * <p>A specialisation of {@link org.gradle.api.NamedDomainObjectCollection} that also implements {@link java.util.List}.</p>
+ * <p>A specialization of {@link org.gradle.api.NamedDomainObjectCollection} that also implements {@link java.util.List}.</p>
  *
  * <p>All object equality is determined in terms of object names. That is, calling {@code remove()} with an object that is NOT equal to
  * an existing object in terms of {@code equals}, but IS in terms of name equality will result in the existing collection item with
  * the equal name being removed.</p>
  *
- * @param <T> The type of element in the set
+ * <p>You can create an instance of this type using the factory method {@link org.gradle.api.model.ObjectFactory#namedDomainObjectList(Class)}.</p>
+ *
+ * @param <T> The type of objects in the list
  */
 public interface NamedDomainObjectList<T> extends NamedDomainObjectCollection<T>, List<T> {
     /**

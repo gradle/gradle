@@ -26,15 +26,15 @@ public interface FileSystemSnapshotVisitor {
      *
      * @return Whether the subtree should be visited.
      */
-    boolean preVisitDirectory(DirectorySnapshot directorySnapshot);
+    boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot);
 
     /**
      * Called for each regular/missing/unavailable file.
      */
-    void visitFile(FileSystemLocationSnapshot fileSnapshot);
+    void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot);
 
     /**
      * Called when leaving a directory.
      */
-    void postVisitDirectory(DirectorySnapshot directorySnapshot);
+    void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot);
 }

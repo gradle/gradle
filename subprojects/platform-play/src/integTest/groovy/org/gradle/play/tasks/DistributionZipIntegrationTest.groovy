@@ -17,8 +17,10 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.archive.ZipTestFixture
-import static org.gradle.play.integtest.fixtures.Repositories.*
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -33,6 +35,7 @@ class DistributionZipIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "can add to default distribution" () {
         buildFile << """
             model {

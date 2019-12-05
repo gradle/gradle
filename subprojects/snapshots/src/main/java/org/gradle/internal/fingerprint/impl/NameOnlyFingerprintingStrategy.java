@@ -19,8 +19,8 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
@@ -42,7 +42,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
     }
 
     @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+    public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
         return snapshot.getName();
     }
 
@@ -55,7 +55,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
                 private boolean root = true;
 
                 @Override
-                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         FileSystemLocationFingerprint fingerprint = isRoot() ? IgnoredPathFileSystemLocationFingerprint.DIRECTORY : new DefaultFileSystemLocationFingerprint(directorySnapshot.getName(), directorySnapshot);
@@ -66,7 +66,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
                 }
 
                 @Override
-                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                     String absolutePath = fileSnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
                         builder.put(
@@ -80,7 +80,7 @@ public class NameOnlyFingerprintingStrategy extends AbstractFingerprintingStrate
                 }
 
                 @Override
-                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 }
             });
         }

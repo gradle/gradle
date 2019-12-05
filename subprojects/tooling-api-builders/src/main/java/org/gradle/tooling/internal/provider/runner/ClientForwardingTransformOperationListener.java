@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.internal.artifacts.transform.ExecuteScheduledTransformationStepBuildOperationDetails;
 import org.gradle.api.internal.artifacts.transform.TransformationNode;
 import org.gradle.execution.plan.Node;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -28,10 +29,9 @@ import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
-import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.DefaultOperationFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultOperationStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultTransformDescriptor;
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultTransformDescriptor;
 
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +49,7 @@ class ClientForwardingTransformOperationListener extends SubtreeFilteringBuildOp
     private final Map<TransformationNode, DefaultTransformDescriptor> descriptors = new ConcurrentHashMap<>();
     private final OperationDependenciesResolver operationDependenciesResolver;
 
-    ClientForwardingTransformOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
+    ClientForwardingTransformOperationListener(ProgressEventConsumer eventConsumer, BuildEventSubscriptions clientSubscriptions, BuildOperationListener delegate,
                                                OperationDependenciesResolver operationDependenciesResolver) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.TRANSFORM, ExecuteScheduledTransformationStepBuildOperationDetails.class);
         this.operationDependenciesResolver = operationDependenciesResolver;

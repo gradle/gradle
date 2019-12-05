@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver
@@ -39,15 +40,15 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def componentArtifact = Stub(ComponentArtifactMetadata) {
             getId() >> componentArtifactId
         }
-        def moduleSource = Mock(ModuleSource)
+        def moduleSources = ImmutableModuleSources.of(Mock(ModuleSource))
         def artifactResolveResult = Mock(BuildableArtifactResolveResult)
         def failure = new RuntimeException("foo")
 
         when:
-        delegate.resolveArtifact(componentArtifact, moduleSource, artifactResolveResult) >> { throw failure }
+        delegate.resolveArtifact(componentArtifact, moduleSources, artifactResolveResult) >> { throw failure }
 
         and:
-        artifactResolver.resolveArtifact(componentArtifact, moduleSource, artifactResolveResult)
+        artifactResolver.resolveArtifact(componentArtifact, moduleSources, artifactResolveResult)
 
         then:
         1 * artifactResolveResult.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->

@@ -43,6 +43,9 @@ import org.gradle.plugins.ide.idea.GenerateIdeaProject
 import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.util.GradleVersion
+import org.junit.Assume
+import spock.lang.Issue
+
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
@@ -208,5 +211,71 @@ apply plugin: SomePlugin
         then:
         version previous requireGradleDistribution() withTasks 'assemble' inDirectory(file("producer")) run()
         version current requireGradleDistribution() withTasks 't' run()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11330")
+    def "a subclass of JavaCompile with getSources receives the correct incremental changes"() {
+        // There is no use to make the test work pre-5.0, since the regression was introduced in 6.0
+        Assume.assumeTrue(previous.version.baseVersion >= GradleVersion.version("5.0"))
+        given:
+        file("producer/build.gradle") << """
+            apply plugin: 'java'
+            dependencies {
+                compile gradleApi()
+            }
+        """
+
+        file("producer/src/main/java/MyCompileTask.java") << """
+            import org.gradle.api.file.FileTree;
+            import org.gradle.api.tasks.InputFiles;
+            import org.gradle.api.tasks.PathSensitive;
+            import org.gradle.api.tasks.PathSensitivity;
+            import org.gradle.api.tasks.SkipWhenEmpty;
+            import org.gradle.api.tasks.compile.JavaCompile;
+            import java.util.List;
+            import java.util.ArrayList;
+            
+            public class MyCompileTask extends JavaCompile {
+                private List<Object> sources = new ArrayList<>();
+            
+                @PathSensitive(PathSensitivity.RELATIVE)
+                @InputFiles
+                @SkipWhenEmpty
+                public FileTree getSources() {
+                    return getProject().files(sources).getAsFileTree();        
+                }
+                
+                public void addSource(Object source) {
+                    sources.add(source);
+                }
+            }
+        """
+
+        buildFile << """
+            buildscript {
+                dependencies { classpath fileTree(dir: "producer/build/libs", include: '*.jar') }
+            }
+            
+            apply plugin: 'java'
+    
+            task myJavaCompile(type: MyCompileTask) {
+                def sourceSet = sourceSets.main
+                def sourceDirectorySet = sourceSet.java
+                addSource(sourceDirectorySet)
+                classpath = sourceSet.compileClasspath
+                destinationDir = file('build/classes/my-java/main')            
+            }
+        """
+
+        file("src/main/java/MyClass.java") << """
+            public class MyClass {
+            }
+        """
+        version previous requireGradleDistribution() withTasks 'assemble' inDirectory(file("producer")) run()
+
+        when:
+        version current requireGradleDistribution() withTasks 'myJavaCompile' run()
+        then:
+        file('build/classes/my-java/main/MyClass.class').isFile()
     }
 }

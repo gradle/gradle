@@ -17,10 +17,12 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.HostPlatform
 import org.gradle.nativeplatform.fixtures.app.SwiftApp
 
 class SwiftMissingToolchainIntegrationTest extends AbstractIntegrationSpec implements HostPlatform {
+    @ToBeFixedForInstantExecution
     def "user receives reasonable error message when no tool chains are available"() {
         given:
         buildFile << """

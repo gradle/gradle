@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.apache.commons.io.FileUtils
+import org.gradle.cache.internal.DefaultGeneratedGradleJarCache
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -79,10 +80,10 @@ abstract class AbstractSmokeTest extends Specification {
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.2"
         // https://developer.android.com/studio/releases/gradle-plugin
-        static androidGradle = Versions.of("3.4.2", "3.5.1", "3.6.0-beta01")
+        static androidGradle = Versions.of("3.4.2", "3.5.2", "3.6.0-beta03")
 
         // https://search.maven.org/search?q=g:org.jetbrains.kotlin%20AND%20a:kotlin-project&core=gav
-        static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50')
+        static kotlin = Versions.of('1.3.21', '1.3.31', '1.3.41', '1.3.50', '1.3.61')
 
         // https://plugins.gradle.org/plugin/org.gretty
         static gretty = "2.3.1"
@@ -163,7 +164,17 @@ abstract class AbstractSmokeTest extends Specification {
             .withProjectDir(testProjectDir.root)
             .forwardOutput()
             .withArguments(tasks.toList() + outputParameters() + repoMirrorParameters()) as DefaultGradleRunner
-        gradleRunner.withJvmArguments("-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError")
+        gradleRunner.withJvmArguments(
+            ["-Xmx8g", "-XX:MaxMetaspaceSize=1024m", "-XX:+HeapDumpOnOutOfMemoryError"] + buildContextParameters()
+        )
+    }
+
+    private static List<String> buildContextParameters() {
+        def generatedApiJarCacheDir = IntegrationTestBuildContext.INSTANCE.gradleGeneratedApiJarCacheDir
+        if (generatedApiJarCacheDir == null) {
+            return []
+        }
+        return ["-D${DefaultGeneratedGradleJarCache.BASE_DIR_OVERRIDE_PROPERTY}=${generatedApiJarCacheDir.absolutePath}" as String]
     }
 
     private static List<String> outputParameters() {
@@ -189,11 +200,15 @@ abstract class AbstractSmokeTest extends Specification {
     }
 
     protected void replaceVariablesInBuildFile(Map binding) {
-        String text = buildFile.text
+        replaceVariablesInFile(binding, buildFile)
+    }
+
+    protected void replaceVariablesInFile(Map binding, File file) {
+        String text = file.text
         binding.each { String var, String value ->
             text = text.replaceAll("\\\$${var}".toString(), value)
         }
-        buildFile.text = text
+        file.text = text
     }
 
     protected static String jcenterRepository() {

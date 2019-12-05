@@ -1,0 +1,43 @@
+= Java Transitive Dependencies Sample
+
+ifndef::env-github[]
+[.download]
+- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
+endif::[]
+
+NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+The `application` project has an implementation dependency on the `utilities` project:
+
+====
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+====
+
+Which in turn has an API dependency on the `list` project:
+
+====
+include::sample[dir="groovy",files="utilities/build.gradle[]"]
+include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
+====
+
+To build the projects, you simply needs to build the application:
+
+====
+[.testable-sample,dir="groovy"]
+=====
+[.sample-command]
+----
+$ ./gradlew :application:run
+
+> Task :application:run
+Hello, World!
+
+BUILD SUCCESSFUL in 998ms
+6 actionable tasks: 6 executed
+----
+=====
+====
+
+For more information, see link:{userManualPath}/introduction_dependency_management.html[dependency management chapters].

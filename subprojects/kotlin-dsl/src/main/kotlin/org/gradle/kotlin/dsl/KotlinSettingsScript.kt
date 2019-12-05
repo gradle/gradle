@@ -110,6 +110,10 @@ abstract class KotlinSettingsScript(
  * Standard implementation of the API exposed to all types of [Settings] scripts,
  * precompiled and otherwise.
  */
+@Deprecated(
+    "Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0",
+    replaceWith = ReplaceWith("Settings", "org.gradle.api.initialization.Settings")
+)
 abstract class SettingsScriptApi(
     override val delegate: Settings
 ) : SettingsDelegate() {

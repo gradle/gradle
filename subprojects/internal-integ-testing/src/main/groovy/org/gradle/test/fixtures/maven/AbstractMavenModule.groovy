@@ -524,6 +524,8 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
             }
         }
         boolean writeRedirect = gradleMetadataRedirect
+        def sdf = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z", Locale.ENGLISH)
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT"))
         publish(pomFileForPublish) { Writer writer ->
             def pomPackaging = packaging ?: type
             new MarkupBuilder(writer).project {
@@ -536,7 +538,7 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
                 artifactId(artifactId)
                 version(version)
                 packaging(pomPackaging)
-                description("Published on ${publishTimestamp}")
+                description("Published on ${sdf.format(publishTimestamp)}")
                 if (parentPom) {
                     parent {
                         groupId(parentPom.groupId)

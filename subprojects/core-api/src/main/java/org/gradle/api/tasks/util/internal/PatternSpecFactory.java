@@ -42,14 +42,14 @@ import java.util.Map;
 public class PatternSpecFactory {
     public static final PatternSpecFactory INSTANCE = new PatternSpecFactory();
     private final List<String> previousDefaultExcludes = Lists.newArrayList();
-    private final Map<Boolean, Spec<FileTreeElement>> defaultExcludeSpecs = new HashMap<Boolean, Spec<FileTreeElement>>(2);
+    private final Map<Boolean, Spec<FileTreeElement>> defaultExcludeSpecs = new HashMap<>(2);
 
     public Spec<FileTreeElement> createSpec(PatternSet patternSet) {
         return Specs.intersect(createIncludeSpec(patternSet), Specs.negate(createExcludeSpec(patternSet)));
     }
 
     public Spec<FileTreeElement> createIncludeSpec(PatternSet patternSet) {
-        List<Spec<FileTreeElement>> allIncludeSpecs = new ArrayList<Spec<FileTreeElement>>(1 + patternSet.getIncludeSpecs().size());
+        List<Spec<FileTreeElement>> allIncludeSpecs = new ArrayList<>(1 + patternSet.getIncludeSpecs().size());
 
         if (!patternSet.getIncludes().isEmpty()) {
             allIncludeSpecs.add(createSpec(patternSet.getIncludes(), true, patternSet.isCaseSensitive()));
@@ -61,7 +61,7 @@ public class PatternSpecFactory {
     }
 
     public Spec<FileTreeElement> createExcludeSpec(PatternSet patternSet) {
-        List<Spec<FileTreeElement>> allExcludeSpecs = new ArrayList<Spec<FileTreeElement>>(2 + patternSet.getExcludeSpecs().size());
+        List<Spec<FileTreeElement>> allExcludeSpecs = new ArrayList<>(2 + patternSet.getExcludeSpecs().size());
 
         if (!patternSet.getExcludes().isEmpty()) {
             allExcludeSpecs.add(createSpec(patternSet.getExcludes(), false, patternSet.isCaseSensitive()));
@@ -94,8 +94,8 @@ public class PatternSpecFactory {
     private Spec<FileTreeElement> updateDefaultExcludeCache(List<String> defaultExcludes, boolean caseSensitive) {
         previousDefaultExcludes.clear();
         previousDefaultExcludes.addAll(defaultExcludes);
-        defaultExcludeSpecs.put(caseSensitive, createSpec(defaultExcludes, false, true));
-        defaultExcludeSpecs.put(caseSensitive, createSpec(defaultExcludes, false, false));
+        defaultExcludeSpecs.put(true, createSpec(defaultExcludes, false, true));
+        defaultExcludeSpecs.put(false, createSpec(defaultExcludes, false, false));
         return defaultExcludeSpecs.get(caseSensitive);
     }
 

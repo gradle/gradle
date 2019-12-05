@@ -17,11 +17,14 @@
 package org.gradle.normalization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
 @Unroll
 class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractIntegrationSpec {
+
+    @ToBeFixedForInstantExecution
     def "can ignore files on runtime classpath in #tree (using runtime API: #useRuntimeApi)"() {
         def project = new ProjectWithRuntimeClasspathNormalization(useRuntimeApi).withFilesIgnored()
 
@@ -74,6 +77,7 @@ class ConfigureRuntimeClasspathNormalizationIntegrationTest extends AbstractInte
         'nested jars' | 'ignoredResourceInNestedJar' | 'notIgnoredResourceInNestedJar' | false
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure ignore rules per project (using runtime API: #useRuntimeApi)"() {
         def projectWithIgnores = new ProjectWithRuntimeClasspathNormalization('a', useRuntimeApi).withFilesIgnored()
         def projectWithoutIgnores = new ProjectWithRuntimeClasspathNormalization('b', useRuntimeApi)

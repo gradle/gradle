@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 @Unroll
@@ -52,6 +53,7 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         //this exposes an issue we used to have with in-memory cache.
     }
 
+    @ToBeFixedForInstantExecution
     def "incremental task after previous failure #description"() {
         file("src/input.txt") << "input"
         buildFile << """

@@ -107,19 +107,19 @@ class JUnitXmlResultWriterSpec extends Specification {
 
     def "encodes xml"() {
         TestClassResult result = new TestClassResult(1, "com.foo.FooTest", startTime)
-        result.add(new TestMethodResult(1, "some test", FAILURE, 200, 300).addFailure("<> encoded!", "<non ascii: \u0302>", "<Exception>"))
-        provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
-        provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: ż") }
+        result.add(new TestMethodResult(1, "some \ud8d3\ude01 test", FAILURE, 200, 300).addFailure("<> encoded!\ud8d3\ude02", "<non ascii:\ud8d3\ude02 \u0302>", "<Exception\ud8d3\ude29>"))
+        provider.writeAllOutput(_, StdErr, _) >> { args -> args[2].write("with \ud8d3\ude31CDATA end token: ]]> some ascii: ż") }
+        provider.writeAllOutput(_, StdOut, _) >> { args -> args[2].write("with CDATA end token: ]]> some ascii: \ud8d3\udd20ż") }
 
         when:
         def xml = getXml(result)
 
         then:
         //attribute and text is encoded:
-        xml.contains('message="&lt;&gt; encoded!" type="&lt;Exception&gt;">&lt;non ascii: \u0302&gt;')
+        xml.contains('message="&lt;&gt; encoded!&#x44e02;" type="&lt;Exception&#x44e29;&gt;">&lt;non ascii:&#x44e02; \u0302&gt;')
         //output encoded:
-        xml.contains('<system-out><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-out>')
-        xml.contains('<system-err><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-err>')
+        xml.contains('<system-out><![CDATA[with CDATA end token: ]]]]><![CDATA[> some ascii: ]]>&#x44d20;<![CDATA[ż]]></system-out>')
+        xml.contains('<system-err><![CDATA[with ]]>&#x44e31;<![CDATA[CDATA end token: ]]]]><![CDATA[> some ascii: ż]]></system-err>')
     }
 
     def "writes results with no tests"() {

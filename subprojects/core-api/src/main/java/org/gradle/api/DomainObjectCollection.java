@@ -27,14 +27,14 @@ import java.util.Collection;
  * <p>The filtered collections returned by the filtering methods, such as {@link #matching(Closure)}, return collections that are <em>live</em>. That is, they reflect
  * changes made to the source collection that they were created from. This is true for filtered collections made from filtered collections etc.</p>
  * <p>
- * You can also add actions which are executed as elements are added to the collection. Actions added to filtered collections will be fired if an addition/removal
+ * You can also add actions that are executed as elements are added to the collection. Actions added to filtered collections will be fired if an addition/removal
  * occurs for the source collection that matches the filter.</p>
  * <p>
  * {@code DomainObjectCollection} instances are not <em>thread-safe</em> and undefined behavior may result from the invocation of any method on a collection that is being mutated by another
  * thread; this includes direct invocations, passing the collection to a method that might perform invocations, and using an existing iterator to examine the collection.
  * </p>
  *
- * @param <T> The type of domain objects in this collection.
+ * @param <T> The type of objects in this collection.
  */
 public interface DomainObjectCollection<T> extends Collection<T> {
     /**

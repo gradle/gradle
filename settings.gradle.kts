@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.0")
+    id("com.gradle.enterprise").version("3.1")
 }
 
 apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
@@ -61,6 +61,7 @@ include("maven")
 include("codeQuality")
 include("antlr")
 include("toolingApi")
+include("buildEvents")
 include("toolingApiBuilders")
 include("docs")
 include("integTest")

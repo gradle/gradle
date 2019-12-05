@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.Rule
@@ -27,6 +28,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     JDWPUtil debugClient = new JDWPUtil()
 
+    @ToBeFixedForInstantExecution
     def "debug is disabled by default"(String taskName) {
         setup:
         sampleProject"""
@@ -41,6 +43,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
+    @ToBeFixedForInstantExecution
     def "debug session fails without debugger"(String taskName) {
         setup:
         sampleProject"""
@@ -58,6 +61,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
+    @ToBeFixedForInstantExecution
     def "can debug Java exec with socket listen type debugger (server = false)"(String taskName) {
         setup:
         sampleProject"""    
@@ -105,6 +109,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
+    @ToBeFixedForInstantExecution
     def "debug options overrides debug property"(String taskName) {
         setup:
         sampleProject"""    
@@ -123,6 +128,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
         taskName << ['runJavaExec', 'runProjectJavaExec', 'test']
     }
 
+    @ToBeFixedForInstantExecution
     def "if custom debug argument is passed to the build then debug options is ignored"(String taskName) {
         setup:
         sampleProject"""    

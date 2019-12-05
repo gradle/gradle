@@ -66,6 +66,13 @@ This value must contain an array with zero or more elements. Each element must b
 - `files`: optional. When missing the variant is assumed to have no files. Must not be present when `available-at` is present.
 - `capabilities`: optional. When missing the variant is assumed to declared no specific capability.
 
+The following statements must hold for the variants:
+
+- Variant name must be unique per module
+- Each variant must have at least one attribute
+- Two variants cannot have the same attributes and capabilities
+- If there is at least one dependency in any variant, at least one must carry version information
+
 ### `attributes` value
 
 This value, nested in `variants` or elements of `dependencies` or `dependencyConstraints` nodes, must contain an object with a value for each attribute.

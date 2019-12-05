@@ -15,6 +15,7 @@
  */
 package org.gradle.testing
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
@@ -173,6 +174,7 @@ test.testLogging {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     def "shows standard stream also for testNG"() {
         given:
         ignoreWhenJUnitPlatform()

@@ -15,7 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class EclipseWtpEarAndWebAndEjbProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "generates configuration files for an ear project and ejb and web projects it bundles"() {
         settingsFile << "include 'ear', 'web', 'java'"
 

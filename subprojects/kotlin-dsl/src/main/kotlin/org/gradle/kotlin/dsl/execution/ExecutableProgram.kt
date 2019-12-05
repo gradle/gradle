@@ -78,7 +78,7 @@ abstract class ExecutableProgram {
             programKind: ProgramKind,
             programTarget: ProgramTarget,
             accessorsClassPath: ClassPath?
-        ): Class<*>
+        ): CompiledScript
 
         fun handleScriptException(
             exception: Throwable,
@@ -97,7 +97,7 @@ abstract class ExecutableProgram {
             scriptTemplateId: String,
             sourceHash: HashCode,
             accessorsClassPath: ClassPath?
-        ): Class<*>
+        ): CompiledScript
 
         fun loadScriptResource(resourcePath: String): String =
             javaClass.getResourceAsStream(resourcePath).bufferedReader().useToRun {

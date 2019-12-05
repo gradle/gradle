@@ -22,8 +22,8 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.OutputFilesRepository;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
@@ -67,19 +67,19 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
         for (FileSystemSnapshot outputFileFingerprint : outputFileFingerprints) {
             outputFileFingerprint.accept(new FileSystemSnapshotVisitor() {
                 @Override
-                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     recordOutputSnapshot(directorySnapshot);
                     return false;
                 }
 
                 @Override
-                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                     if (fileSnapshot.getType() == FileType.RegularFile) {
                         recordOutputSnapshot(fileSnapshot);
                     }
                 }
 
-                private void recordOutputSnapshot(FileSystemLocationSnapshot directorySnapshot) {
+                private void recordOutputSnapshot(CompleteFileSystemLocationSnapshot directorySnapshot) {
                     String outputFilePath = directorySnapshot.getAbsolutePath();
                     File outputFile = new File(outputFilePath);
                     outputFiles.put(outputFilePath, Boolean.TRUE);
@@ -95,7 +95,7 @@ public class DefaultOutputFilesRepository implements OutputFilesRepository, Clos
                 }
 
                 @Override
-                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 }
             });
         }

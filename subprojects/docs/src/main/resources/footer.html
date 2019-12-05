@@ -99,6 +99,10 @@
     }
 
     var currentChapterFileName = window.location.pathname.substr(window.location.pathname.lastIndexOf("/") + 1);
+    if (currentChapterFileName === "index.html") {
+        currentChapterFileName = window.location.pathname.substr(0, window.location.pathname.lastIndexOf("/"));
+        currentChapterFileName = currentChapterFileName.substr(currentChapterFileName.lastIndexOf("/") + 1) + "/index.html";
+    }
     [].forEach.call(document.querySelectorAll(".docs-navigation a[href$='" + currentChapterFileName + "']"), function (link) {
         // Add "active" to all links same as current URL
         link.classList.add("active");
@@ -123,6 +127,14 @@
             return false;
         }, false);
     });
+
+    // HACK: Add another relative layers to href for all samples
+    var pathname = window.location.pathname;
+    if (!pathname.endsWith("samples/index.html") && !pathname.endsWith("samples/") && pathname.lastIndexOf("samples/") > -1) {
+        [].forEach.call(document.querySelectorAll(".docs-navigation a[href^='../']"), function (link) {
+            link.setAttribute("href", "../" + link.getAttribute("href"));
+        });
+    }
 
     function postProcessCodeBlocks() {
         // Assumptions:

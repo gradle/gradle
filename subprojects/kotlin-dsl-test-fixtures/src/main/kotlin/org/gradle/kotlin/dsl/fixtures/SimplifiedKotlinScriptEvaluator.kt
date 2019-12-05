@@ -18,37 +18,26 @@ package org.gradle.kotlin.dsl.fixtures
 
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
-
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
-
 import org.gradle.configuration.DefaultImportsReader
-
 import org.gradle.groovy.scripts.ScriptSource
-
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
-
 import org.gradle.internal.resource.StringTextResource
-
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-
+import org.gradle.kotlin.dsl.execution.CompiledScript
 import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.execution.ProgramTarget
-
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
-
 import org.gradle.plugin.management.internal.PluginRequests
-
 import java.io.File
-
 import java.net.URLClassLoader
 
 
@@ -133,10 +122,10 @@ class SimplifiedKotlinScriptEvaluator(
         override fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry =
             serviceRegistry
 
-        override fun cachedClassFor(programId: ProgramId): Class<*>? =
+        override fun cachedClassFor(programId: ProgramId): CompiledScript? =
             null
 
-        override fun cache(specializedProgram: Class<*>, programId: ProgramId) = Unit
+        override fun cache(specializedProgram: CompiledScript, programId: ProgramId) = Unit
 
         override fun cachedDirFor(
             scriptHost: KotlinScriptHost<*>,
@@ -159,10 +148,11 @@ class SimplifiedKotlinScriptEvaluator(
         override fun startCompilerOperation(description: String): AutoCloseable =
             mock()
 
-        override fun loadClassInChildScopeOf(classLoaderScope: ClassLoaderScope, childScopeId: String, location: File, className: String, accessorsClassPath: ClassPath?): Class<*> =
-            classLoaderFor(scriptRuntimeClassPath + DefaultClassPath.of(location))
-                .also { classLoaders += it }
-                .loadClass(className)
+        override fun loadClassInChildScopeOf(classLoaderScope: ClassLoaderScope, childScopeId: String, location: File, className: String, accessorsClassPath: ClassPath?): CompiledScript =
+            DummyCompiledScript(
+                classLoaderFor(scriptRuntimeClassPath + DefaultClassPath.of(location))
+                    .also { classLoaders += it }
+                    .loadClass(className))
 
         override fun applyPluginsTo(scriptHost: KotlinScriptHost<*>, pluginRequests: PluginRequests) = Unit
 
@@ -180,6 +170,18 @@ class SimplifiedKotlinScriptEvaluator(
 
         override val implicitImports: List<String>
             get() = ImplicitImports(DefaultImportsReader()).list
+    }
+}
+
+
+class DummyCompiledScript(override val programFor: Class<*>) : CompiledScript {
+    override fun onReuse() {
+    }
+
+    override fun equals(other: Any?) = when {
+        other === this -> true
+        other == null || other.javaClass != this.javaClass -> false
+        else -> programFor == (other as DummyCompiledScript).programFor
     }
 }
 

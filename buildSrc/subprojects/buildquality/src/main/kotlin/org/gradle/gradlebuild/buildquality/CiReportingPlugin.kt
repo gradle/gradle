@@ -71,6 +71,7 @@ open class CiReportingPlugin : Plugin<Project> {
         is FindBrokenInternalLinks -> listOf(reportFile.get().asFile to project.name)
         is DistributionTest -> listOf(
             gradleInstallationForTest.gradleUserHomeDir.dir("worker-1/test-kit-daemon").get().asFile to "all-logs",
+            gradleInstallationForTest.gradleUserHomeDir.dir("worker-1/kotlin-compiler-daemon").get().asFile to "all-logs",
             gradleInstallationForTest.daemonRegistry.get().asFile to "all-logs"
         )
         else -> emptyList()

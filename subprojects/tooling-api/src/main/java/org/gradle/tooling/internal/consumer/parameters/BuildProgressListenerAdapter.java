@@ -553,7 +553,7 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
     }
 
-    private static TaskOperationResult toTaskResult(InternalTaskResult result) {
+    public static TaskOperationResult toTaskResult(InternalTaskResult result) {
         if (result instanceof InternalTaskSuccessResult) {
             InternalTaskSuccessResult successResult = (InternalTaskSuccessResult) result;
             if (result instanceof InternalJavaCompileTaskOperationResult) {

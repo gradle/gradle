@@ -44,7 +44,10 @@ class InstantExecutionReport(
     val logger: Logger,
 
     private
-    val maxProblems: Int
+    val maxProblems: Int,
+
+    private
+    val failOnProblems: Boolean
 ) {
 
     private
@@ -71,6 +74,7 @@ class InstantExecutionReport(
 
         return fatalError?.withSuppressed(errors())
             ?: instantExecutionExceptionForErrors()
+            ?: instantExecutionExceptionForProblems()
     }
 
     private
@@ -102,6 +106,11 @@ class InstantExecutionReport(
             ?.let { errors -> InstantExecutionErrorsException().withSuppressed(errors) }
 
     private
+    fun instantExecutionExceptionForProblems(): Throwable? =
+        if (failOnProblems) InstantExecutionProblemsException()
+        else null
+
+    private
     fun Throwable.withSuppressed(errors: List<PropertyProblem.Error>) = apply {
         errors.forEach {
             addSuppressed(it.exception)
@@ -114,7 +123,7 @@ class InstantExecutionReport(
 
     private
     fun logSummary() {
-        logger.lifecycle(summary())
+        logger.warn(summary())
     }
 
     private

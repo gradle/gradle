@@ -24,6 +24,7 @@ import org.gradle.instantexecution.serialization.ClassLoaderRole
 import org.gradle.instantexecution.serialization.ScopeLookup
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.event.ListenerManager
+import org.gradle.internal.hash.HashCode
 
 
 internal
@@ -71,32 +72,39 @@ class InstantExecutionClassLoaderScopeRegistryListener : ClassLoaderScopeRegistr
     }
 
     override fun rootScopeCreated(rootScopeId: ClassLoaderScopeId) {
-        val root = ClassLoaderScopeSpec(null, rootScopeId.name)
-        if (scopeSpecs.containsKey(rootScopeId)) {
-            throw IllegalStateException("Duplicate scope $rootScopeId")
+        // Currently, receives duplicate events from other builds in the build tree, eg the root build receives events from buildSrc
+        if (!scopeSpecs.containsKey(rootScopeId)) {
+            val root = ClassLoaderScopeSpec(null, rootScopeId.name)
+            scopeSpecs[rootScopeId] = root
         }
-        scopeSpecs[rootScopeId] = root
     }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId) {
-        val parent = scopeSpecs.getValue(parentId)
-        val child = ClassLoaderScopeSpec(parent, childId.name)
-        if (!scopeSpecs.containsKey(childId)) {
-            scopeSpecs[childId] = child
+        // Currently, buildSrc does not see some of the root build scopes
+        val parent = scopeSpecs[parentId]
+        if (parent != null) {
+            if (!scopeSpecs.containsKey(childId)) {
+                val child = ClassLoaderScopeSpec(parent, childId.name)
+                scopeSpecs[childId] = child
+            }
         }
     }
 
-    override fun localClasspathAdded(scopeId: ClassLoaderScopeId, localClassPath: ClassPath) {
-        scopeSpecs.getValue(scopeId).localClassPath += localClassPath
-    }
-
-    override fun exportClasspathAdded(scopeId: ClassLoaderScopeId, exportClassPath: ClassPath) {
-        scopeSpecs.getValue(scopeId).exportClassPath += exportClassPath
-    }
-
-    override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader) {
-        val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
-        loaders[classLoader] = Pair(scopeSpecs.getValue(scopeId), ClassLoaderRole(local))
+    override fun classloaderCreated(scopeId: ClassLoaderScopeId, classLoaderId: ClassLoaderId, classLoader: ClassLoader, classPath: ClassPath, implementationHash: HashCode?) {
+        val spec = scopeSpecs[scopeId]
+        if (spec != null) {
+            // TODO - a scope can currently potentially have multiple export and local ClassLoaders but we're assuming one here
+            //  Rather than fix the assumption here, it would be better to rework the scope implementation so that it produces no more than one export and one local ClassLoader
+            val local = scopeId is ClassLoaderScopeIdentifier && scopeId.localId() == classLoaderId
+            if (local) {
+                spec.localClassPath = classPath
+                spec.localImplementationHash = implementationHash
+            } else {
+                spec.exportClassPath = classPath
+                spec.exportImplementationHash = implementationHash
+            }
+            loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
+        }
     }
 }
 
@@ -107,5 +115,15 @@ class ClassLoaderScopeSpec(
     val name: String
 ) {
     var localClassPath = ClassPath.EMPTY
+    var localImplementationHash: HashCode? = null
     var exportClassPath = ClassPath.EMPTY
+    var exportImplementationHash: HashCode? = null
+
+    override fun toString(): String {
+        return if (parent != null) {
+            "$parent:$name"
+        } else {
+            name
+        }
+    }
 }

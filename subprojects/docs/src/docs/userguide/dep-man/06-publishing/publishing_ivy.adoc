@@ -181,7 +181,7 @@ The result is that the following artifacts will be published for each project:
 * The Gradle Module Metadata file: `project1-1.0.module`.
 * The Ivy module metadata file: `ivy-1.0.xml`.
 * The primary JAR artifact for the Java component: `project1-1.0.jar`.
-* The Javadoc and sources JAR artifacts of the Java component (because we configured `publishJavadoc()` and `publishSources()`): `project1-1.0-javadoc.jar`, `project1-1.0-source.jar`.
+* The Javadoc and sources JAR artifacts of the Java component (because we configured `withJavadocJar()` and `withSourcesJar()`): `project1-1.0-javadoc.jar`, `project1-1.0-source.jar`.
 
 [[sec:pub_ivy:legacy_migration]]
 == Migrating from legacy Ivy publication

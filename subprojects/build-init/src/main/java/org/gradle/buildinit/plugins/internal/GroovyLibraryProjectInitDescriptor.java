@@ -36,6 +36,12 @@ public class GroovyLibraryProjectInitDescriptor extends GroovyProjectInitDescrip
     }
 
     @Override
+    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
+        buildScriptBuilder
+            .plugin("Apply the java-library plugin for API and implementation separation.", "java-library");
+    }
+
+    @Override
     protected TemplateOperation sourceTemplateOperation(TemplateFactory templateFactory) {
         return templateFactory.fromSourceTemplate("groovylibrary/Library.groovy.template", "main");
     }

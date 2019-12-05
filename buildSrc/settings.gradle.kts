@@ -80,8 +80,6 @@ gradle.settingsEvaluated {
     }
 
     if (!JavaVersion.current().isJava9Compatible) {
-        throw GradleException("JDK 9+ is required to perform this build. It's currently ${getBuildJavaHome()}.")
+        throw GradleException("JDK 9+ is required to perform this build. It's currently Java ${JavaVersion.current()} at ${getBuildJavaHome()}.")
     }
 }
-
-enableFeaturePreview("GROOVY_COMPILATION_AVOIDANCE")

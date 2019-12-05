@@ -110,8 +110,8 @@ import org.gradle.initialization.BuildOperatingFiringSettingsPreparer;
 import org.gradle.initialization.BuildOperationSettingsProcessor;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.ClassLoaderScopeListeners;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
-import org.gradle.initialization.ClassLoaderScopeRegistryListener;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultSettingsFinder;
@@ -445,19 +445,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
     protected ClassLoaderScopeRegistry createClassLoaderScopeRegistry(
         ClassLoaderRegistry classLoaderRegistry,
         ClassLoaderCache classLoaderCache,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        ClassLoaderScopeListeners listeners
     ) {
         return new DefaultClassLoaderScopeRegistry(
             classLoaderRegistry,
             classLoaderCache,
-            classLoaderScopeRegistryListenerFor(listenerManager)
+            listenerManager,
+            listeners
         );
-    }
-
-    private ClassLoaderScopeRegistryListener classLoaderScopeRegistryListenerFor(ListenerManager listenerManager) {
-        return listenerManager.hasListeners(ClassLoaderScopeRegistryListener.class)
-            ? listenerManager.getBroadcaster(ClassLoaderScopeRegistryListener.class)
-            : ClassLoaderScopeRegistryListener.NULL;
     }
 
     protected ProjectTaskLister createProjectTaskLister() {

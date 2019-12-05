@@ -227,6 +227,26 @@ Gradle keeps track of which artifacts in the dependency cache are accessed.
 Using this information, the cache is periodically (at most every 24 hours) scanned for artifacts that have not been used for more than 30 days.
 Obsolete artifacts are then deleted to ensure the cache does not grow indefinitely.
 
+[[sub:cache_copy]]
+==== Copy and reuse the cache
+
+As of Gradle 6.1, the dependency cache, both the file and metadata parts, are fully encoded using relative path.
+This means that it is perfectly possible to copy a cache around and see Gradle benefit from it.
+
+The path that can be copied is `$GRADLE_HOME/caches/modules-<version>`.
+The only constraint is placing it using the same structure at the destination, where the value of `GRADLE_HOME` can be different.
+
+Note that creating the cache and consuming it must be done using compatible Gradle version, as shown in the table below.
+If multiple incompatible Gradle versions are in play, all should be used when seeding the cache.
+
+.Dependency cache versions
+[%header%autowidth,compact]
+|===
+| Module cache version  | File cache version    | Metadata cache version    | Gradle version(s)
+
+| `modules-2`           | `files-2.1`           | `metadata-2.90`           | Gradle 6.1
+|===
+
 [[sec:programmatic_api]]
 == Accessing the resolution result programmatically
 

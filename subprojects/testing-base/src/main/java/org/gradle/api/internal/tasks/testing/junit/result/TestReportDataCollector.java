@@ -16,9 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.junit.result;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.tasks.testing.*;
+import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.api.tasks.testing.TestOutputListener;
+import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.internal.serialize.PlaceholderException;
 
 import java.io.PrintWriter;
@@ -36,7 +41,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     private final Map<String, TestClassResult> results;
     private final TestOutputStore.Writer outputWriter;
     private final Map<TestDescriptor, TestMethodResult> currentTestMethods = new HashMap<TestDescriptor, TestMethodResult>();
-    private final List<TestOutputEvent> rootOutputEvents = Lists.newArrayList();
+    private final ListMultimap<Object, TestOutputEvent> pendingOutputEvents = ArrayListMultimap.create();
     private long internalIdCounter = 1;
 
     public TestReportDataCollector(Map<String, TestClassResult> results, TestOutputStore.Writer outputWriter) {
@@ -50,6 +55,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
 
     @Override
     public void afterSuite(TestDescriptor suite, TestResult result) {
+        List<TestOutputEvent> outputEvents = pendingOutputEvents.removeAll(((TestDescriptorInternal) suite).getId());
         if (result.getResultType() == TestResult.ResultType.FAILURE && !result.getExceptions().isEmpty()) {
             //there are some exceptions attached to the suite. Let's make sure they are reported to the user.
             //this may happen for example when suite initialisation fails and no tests are executed
@@ -58,11 +64,8 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             for (Throwable throwable : result.getExceptions()) {
                 methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
             }
-            if (((TestDescriptorInternal)suite).isRoot() && !rootOutputEvents.isEmpty()) {
-                for (TestOutputEvent outputEvent : rootOutputEvents) {
-                    outputWriter.onOutput(classResult.getId(), methodResult.getId(), outputEvent);
-                }
-                rootOutputEvents.clear();
+            for (TestOutputEvent outputEvent : outputEvents) {
+                outputWriter.onOutput(classResult.getId(), methodResult.getId(), outputEvent);
             }
             methodResult.completed(result);
             classResult.add(methodResult);
@@ -80,7 +83,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     @Override
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         String className = testDescriptor.getClassName();
-        String classDisplayName = TestDescriptorInternal.class.cast(testDescriptor).getClassDisplayName();
+        String classDisplayName = ((TestDescriptorInternal) testDescriptor).getClassDisplayName();
         TestMethodResult methodResult = currentTestMethods.remove(testDescriptor).completed(result);
         for (Throwable throwable : result.getExceptions()) {
             methodResult.addFailure(failureMessage(throwable), stackTrace(throwable), exceptionClassName(throwable));
@@ -130,15 +133,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
     public void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent) {
         String className = testDescriptor.getClassName();
         if (className == null) {
-            if (((TestDescriptorInternal)testDescriptor).isRoot()) {
-                rootOutputEvents.add(outputEvent);
-            }
-            //this means that we receive an output before even starting any class (or too late).
-            //we don't have a place for such output in any of the reports so skipping.
-            //Unfortunately, this happens pretty often with current level of TestNG support
-            //because output events emitted by constructor, beforeTest, beforeClass
-            // are sent before test start event is started and there is no parent class event emitted by TestNG.
-            //In short, the TestNG support could be better. See also TestNGOutputEventsIntegrationTest
+            pendingOutputEvents.put(((TestDescriptorInternal) testDescriptor).getId(), outputEvent);
             return;
         }
         TestClassResult classResult = results.get(className);
@@ -146,7 +141,7 @@ public class TestReportDataCollector implements TestListener, TestOutputListener
             //it's possible that we receive an output for a suite here
             //in this case we will create the test result for a suite that normally would not be created
             //feels like this scenario should modelled more explicitly
-            classResult = new TestClassResult(internalIdCounter++, className, TestDescriptorInternal.class.cast(testDescriptor).getClassDisplayName(), 0);
+            classResult = new TestClassResult(internalIdCounter++, className, ((TestDescriptorInternal) testDescriptor).getClassDisplayName(), 0);
             results.put(className, classResult);
         }
 

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
@@ -29,11 +28,6 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
     public MavenUniqueSnapshotExternalResourceArtifactResolver(ExternalResourceArtifactResolver delegate, MavenUniqueSnapshotModuleSource snapshot) {
         this.delegate = delegate;
         this.snapshot = snapshot;
-    }
-
-    @Override
-    public ModuleSource getSource() {
-        return snapshot;
     }
 
     @Override

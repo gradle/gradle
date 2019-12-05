@@ -20,6 +20,7 @@ import groovy.lang.Closure
 
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.initialization.dsl.ScriptHandler
 
@@ -58,6 +59,12 @@ abstract class ScriptHandlerDelegate : ScriptHandler {
 
     override fun getConfigurations(): ConfigurationContainer =
         delegate.configurations
+
+    override fun dependencyLocking(configureClosure: Closure<Any>) =
+        delegate.dependencyLocking(configureClosure)
+
+    override fun getDependencyLocking(): DependencyLockingHandler =
+        delegate.dependencyLocking
 
     override fun getClassLoader(): ClassLoader =
         delegate.classLoader

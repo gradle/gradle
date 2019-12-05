@@ -15,7 +15,10 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class EclipseWtpEmptyProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "generates configuration files for an empty project"() {
         settingsFile << "rootProject.name = 'empty'"
 

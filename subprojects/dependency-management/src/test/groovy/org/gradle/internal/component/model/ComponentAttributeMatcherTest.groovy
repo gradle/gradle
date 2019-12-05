@@ -18,6 +18,7 @@ package org.gradle.internal.component.model
 
 import com.google.common.collect.LinkedListMultimap
 import com.google.common.collect.Multimap
+import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
@@ -26,6 +27,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
 import static org.gradle.util.AttributeTestUtil.attributes
+import static org.gradle.util.TestUtil.objectFactory
 
 class ComponentAttributeMatcherTest extends Specification {
 
@@ -414,6 +416,98 @@ class ComponentAttributeMatcherTest extends Specification {
         matcher.match(schema, [c1, c2], requested, null) == [c1]
     }
 
+    def "can match when producer uses desugared attribute of type Named"() {
+        def matcher = new ComponentAttributeMatcher()
+        def key1 = Attribute.of("a", NamedTestAttribute)
+        def key2 = Attribute.of("a", String)
+        schema.attribute(key1)
+
+        def requested = attrs().attribute(key1, objectFactory().named(NamedTestAttribute, "name1"))
+        def c1 = attrs().attribute(key2, "name1")
+        def c2 = attrs().attribute(key2, "name2")
+
+        expect:
+        matcher.match(schema, [c1, c2], requested, null) == [c1]
+    }
+
+    def "can match when consumer uses desugared attribute of type Named"() {
+        def matcher = new ComponentAttributeMatcher()
+        def key1 = Attribute.of("a", String)
+        def key2 = Attribute.of("a", NamedTestAttribute)
+        schema.attribute(key1)
+
+        def requested = attrs().attribute(key1, "name1")
+        def c1 = attrs().attribute(key2, objectFactory().named(NamedTestAttribute, "name1"))
+        def c2 = attrs().attribute(key2, objectFactory().named(NamedTestAttribute, "name2"))
+
+        expect:
+        matcher.match(schema, [c1, c2], requested, null) == [c1]
+    }
+
+    def "can match when producer uses desugared attribute of type Enum"() {
+        def matcher = new ComponentAttributeMatcher()
+        def key1 = Attribute.of("a", EnumTestAttribute)
+        def key2 = Attribute.of("a", String)
+        schema.attribute(key1)
+
+        def requested = attrs().attribute(key1, EnumTestAttribute.NAME1)
+        def c1 = attrs().attribute(key2, "NAME1")
+        def c2 = attrs().attribute(key2, "NAME2")
+
+        expect:
+        matcher.match(schema, [c1, c2], requested, null) == [c1]
+    }
+
+    def "can match when consumer uses desugared attribute of type Enum"() {
+        def matcher = new ComponentAttributeMatcher()
+        def key1 = Attribute.of("a", String)
+        def key2 = Attribute.of("a", EnumTestAttribute)
+        schema.attribute(key1)
+
+        def requested = attrs().attribute(key1, "NAME1")
+        def c1 = attrs().attribute(key2, EnumTestAttribute.NAME1)
+        def c2 = attrs().attribute(key2, EnumTestAttribute.NAME2)
+
+        expect:
+        matcher.match(schema, [c1, c2], requested, null) == [c1]
+    }
+
+    def "cannot match when producer uses desugared attribute of unsupported type"() {
+        def matcher = new ComponentAttributeMatcher()
+        def key1 = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
+        def key2 = Attribute.of("a", String)
+        schema.attribute(key1)
+
+        def requested = attrs().attribute(key1, new NotSerializableInGradleMetadataAttribute("name1"))
+        def c1 = attrs().attribute(key2, "name1")
+        def c2 = attrs().attribute(key2, "name2")
+
+        when:
+        matcher.match(schema, [c1, c2], requested, null)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type org.gradle.internal.component.model.ComponentAttributeMatcherTest${'$'}NotSerializableInGradleMetadataAttribute but found a value of type java.lang.String."
+    }
+
+    def "cannot match when consumer uses desugared attribute of unsupported type"() {
+        def matcher = new ComponentAttributeMatcher()
+        def key1 = Attribute.of("a", String)
+        def key2 = Attribute.of("a", NotSerializableInGradleMetadataAttribute)
+        schema.attribute(key1)
+
+        def requested = attrs().attribute(key1, "name1")
+        def c1 = attrs().attribute(key2, new NotSerializableInGradleMetadataAttribute("name1"))
+        def c2 = attrs().attribute(key2, new NotSerializableInGradleMetadataAttribute("name2"))
+
+        when:
+        matcher.match(schema, [c1, c2], requested, null)
+
+        then:
+        IllegalArgumentException e = thrown()
+        e.message == "Unexpected type for attribute 'a' provided. Expected a value of type java.lang.String but found a value of type org.gradle.internal.component.model.ComponentAttributeMatcherTest${'$'}NotSerializableInGradleMetadataAttribute."
+    }
+
     def "matching fails when attribute has incompatible types in consumer and producer"() {
         def matcher = new ComponentAttributeMatcher()
         def key1 = Attribute.of("a", String)
@@ -502,6 +596,16 @@ class ComponentAttributeMatcherTest extends Specification {
 
     private AttributeContainerInternal attrs() {
         factory.mutable()
+    }
+
+    interface NamedTestAttribute extends Named { }
+    enum EnumTestAttribute { NAME1, NAME2 }
+    static class NotSerializableInGradleMetadataAttribute implements Serializable {
+        String name
+
+        NotSerializableInGradleMetadataAttribute(String name) {
+            this.name = name
+        }
     }
 
     private static class TestSchema implements AttributeSelectionSchema {

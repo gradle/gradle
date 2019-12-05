@@ -18,7 +18,6 @@ package org.gradle.instantexecution
 
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.junit.Test
-import spock.lang.Ignore
 
 class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
@@ -40,6 +39,10 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
             class Thing {
             }
         """
+        // Ignored by the Java source set excludes
+        file("src/main/java/Gizmo.groovy") << """
+            class Gizmo { def foo() {} }
+        """
 
         expect:
         instantRun "build"
@@ -51,8 +54,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         jarFile.isFile()
 
         when:
-        classFile.delete()
-        jarFile.delete()
+        file("build").delete()
         instantRun "build"
 
         then:
@@ -122,8 +124,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         jarFile.isFile()
 
         when:
-        classFile.delete()
-        jarFile.delete()
+        file("build").delete()
         instantRun "assemble"
 
         then:
@@ -162,21 +163,16 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         and:
         file("b/build/classes/java/main/b/B.class").delete()
         def jarFile = file("b/build/libs/b.jar")
-        jarFile.delete()
+        jarFile.isFile()
 
         and:
+        file("build").delete()
         instantRun ":b:assemble"
 
         then:
         new ZipTestFixture(jarFile).assertContainsFile("b/B.class")
     }
 
-    /**
-     * TODO: Understand why it fails due to:
-     * ':processResources' is not up-to-date because:
-     *   Input property 'rootSpec$1' file /.../src/main/resources has been removed.
-     */
-    @Ignore("wip")
     def "processResources on single project Java build honors up-to-date check"() {
         given:
         buildFile << """
@@ -188,7 +184,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         instantRun ":processResources"
 
         and:
-        instantRun ":processResources" /*, "--info" */
+        instantRun ":processResources"
 
         then:
         file("build/resources/main/answer.txt").text == "42"
@@ -286,9 +282,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        classFile.delete()
-        testClassFile.delete()
-        testResults.delete()
+        file("build").delete()
         instantRun "check"
 
         then:
@@ -321,10 +315,10 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def jarFile = file("build/libs/someapp.jar")
-        jarFile.delete()
+        jarFile.isFile()
 
         when:
-        classFile.delete()
+        file("build").delete()
         instantRun "assemble"
 
         then:

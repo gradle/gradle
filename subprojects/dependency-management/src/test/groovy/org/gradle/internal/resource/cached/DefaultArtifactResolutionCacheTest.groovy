@@ -42,7 +42,7 @@ class DefaultArtifactResolutionCacheTest extends Specification {
     DefaultCachedExternalResourceIndex<String> index
 
     def setup() {
-        index = new DefaultCachedExternalResourceIndex("index", BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager, fileAccessTracker)
+        index = new DefaultCachedExternalResourceIndex("index", BaseSerializerFactory.STRING_SERIALIZER, timeProvider, cacheLockingManager, fileAccessTracker, tmp.testDirectory.toPath())
     }
 
     @Unroll

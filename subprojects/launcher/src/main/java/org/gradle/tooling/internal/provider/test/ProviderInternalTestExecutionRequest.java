@@ -21,6 +21,8 @@ import org.gradle.tooling.internal.protocol.test.InternalDebugOptions;
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @since 2.7-rc-1
@@ -29,5 +31,14 @@ public interface ProviderInternalTestExecutionRequest {
     Collection<InternalTestDescriptor> getTestExecutionDescriptors();
     Collection<String> getTestClassNames();
     Collection<InternalJvmTestRequest> getInternalJvmTestRequests(Collection<InternalJvmTestRequest> defaults);
-    InternalDebugOptions getDebugOptions();
+
+    /**
+     * @since 5.6
+     */
+    InternalDebugOptions getDebugOptions(InternalDebugOptions defaults);
+
+    /**
+     * @since 6.1
+     */
+    Map<String, List<InternalJvmTestRequest>> getTaskAndTests(Map<String, List<InternalJvmTestRequest>> defaults);
 }

@@ -31,8 +31,8 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.internal.protocol.events.InternalBinaryPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalScriptPluginIdentifier;
-import org.gradle.tooling.internal.provider.events.DefaultBinaryPluginIdentifier;
-import org.gradle.tooling.internal.provider.events.DefaultScriptPluginIdentifier;
+import org.gradle.internal.build.event.types.DefaultBinaryPluginIdentifier;
+import org.gradle.internal.build.event.types.DefaultScriptPluginIdentifier;
 
 import javax.annotation.Nullable;
 import java.io.File;

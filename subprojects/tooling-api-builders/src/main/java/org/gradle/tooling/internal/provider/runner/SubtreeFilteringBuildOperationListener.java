@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import com.google.common.collect.Sets;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -26,7 +27,6 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
-import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
 
 import java.util.Set;
 
@@ -49,7 +49,7 @@ abstract class SubtreeFilteringBuildOperationListener<D> implements BuildOperati
     private final Set<Object> skipEvents = Sets.newConcurrentHashSet();
     private final boolean enabled;
 
-    SubtreeFilteringBuildOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate, OperationType operationType, Class<D> detailsClass) {
+    SubtreeFilteringBuildOperationListener(ProgressEventConsumer eventConsumer, BuildEventSubscriptions clientSubscriptions, BuildOperationListener delegate, OperationType operationType, Class<D> detailsClass) {
         this.eventConsumer = eventConsumer;
         this.delegate = delegate;
         this.detailsClass = detailsClass;

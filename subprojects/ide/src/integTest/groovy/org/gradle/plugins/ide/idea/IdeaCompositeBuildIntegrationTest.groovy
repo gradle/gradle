@@ -17,11 +17,13 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIml
 import static org.gradle.plugins.ide.fixtures.IdeaFixtures.parseIpr
 
 class IdeaCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "includes module for each project in each build"() {
         given:
         settingsFile << """

@@ -16,6 +16,7 @@
 import accessors.groovy
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
+import org.gradle.gradlebuild.test.integrationtests.defaultGradleGeneratedApiJarCacheDirProvider
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.versioning.DetermineCommitId
 import org.gradle.testing.performance.generator.tasks.RemoteProject
@@ -51,8 +52,12 @@ dependencies {
     smokeTestImplementation(project(":testKit"))
     smokeTestImplementation(project(":internalIntegTesting"))
     smokeTestImplementation(project(":launcher"))
+    smokeTestImplementation(project(":persistentCache"))
     smokeTestImplementation(library("commons_io"))
     smokeTestImplementation(library("jgit"))
+    smokeTestImplementation(library("gradleProfiler")) {
+        because("Using build mutators to change a Java file")
+    }
     smokeTestImplementation(testLibrary("spock"))
 
     val allTestRuntimeDependencies: DependencySet by rootProject.extra
@@ -74,6 +79,9 @@ tasks.register<SmokeTest>("smokeTest") {
     testClassesDirs = smokeTest.output.classesDirs
     classpath = smokeTest.runtimeClasspath
     maxParallelForks = 1 // those tests are pretty expensive, we shouldn"t execute them concurrently
+    gradleInstallationForTest.gradleGeneratedApiJarCacheDir.set(
+        defaultGradleGeneratedApiJarCacheDirProvider()
+    )
 }
 
 plugins.withType<IdeaPlugin>().configureEach { // lazy as plugin not applied yet
@@ -97,7 +105,7 @@ tasks {
     val santaTracker by registering(RemoteProject::class) {
         remoteUri.set("https://github.com/gradle/santa-tracker-android.git")
         // From branch agp-3.6.0
-        ref.set("036aad22af993d2f564a6a15d6a7b9706ba37d8e")
+        ref.set("3bbbd895de38efafd0dd1789454d4e4cb72d46d5")
     }
 
     if (BuildEnvironment.isCiServer) {

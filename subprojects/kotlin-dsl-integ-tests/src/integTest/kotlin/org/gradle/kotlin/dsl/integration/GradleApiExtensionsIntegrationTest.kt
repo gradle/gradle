@@ -22,6 +22,7 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Task
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.TaskCollection
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.kotlin.dsl.support.normaliseLineSeparators
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -38,6 +39,7 @@ import java.util.jar.JarFile
 class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `Kotlin chooses withType extension specialized to container type`() {
 
         withBuildScript("""

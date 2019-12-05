@@ -97,12 +97,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
         if (pluginVersion == TestedVersions.androidGradle.latest()) {
-            expectDeprecationWarnings(result,
-                "Property 'outputScope' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'lintOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'deviceProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'testData' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            )
+            expectNoDeprecationWarnings(result)
         }
 
         where:
@@ -128,6 +123,12 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             </manifest>""".stripIndent()
 
         writeActivity(app, appPackage, appActivity)
+        file("${app}/src/main/java/UsesLibraryActivity.java") << """
+            public class UsesLibraryActivity {
+                public void consume(${libPackage}.${libraryActivity} activity) {
+                }
+            }
+        """
         file("${app}/src/main/AndroidManifest.xml") << """<?xml version="1.0" encoding="utf-8"?>
             <manifest xmlns:android="http://schemas.android.com/apk/res/android"
                 package="${appPackage}">
@@ -194,18 +195,22 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
         if (pluginVersion == TestedVersions.androidGradle.latest()) {
-            expectDeprecationWarnings(result,
-                "Property 'excludeListProvider' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'packageNameSupplier' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-                "Property 'lintOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.",
-            )
+            expectNoDeprecationWarnings(result)
         }
+
+        when: 'abi change on library'
+        writeActivity(library, libPackage, libraryActivity, true)
+        result = runner('build', '-x', 'lint').build()
+
+        then: 'dependent sources are recompiled'
+        result.task(':library:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
+        result.task(':app:compileReleaseJavaWithJavac').outcome == TaskOutcome.SUCCESS
 
         where:
         pluginVersion << TestedVersions.androidGradle
     }
 
-    private String activityDependency() {
+    private static String activityDependency() {
         """
             dependencies {
                 compile 'joda-time:joda-time:2.7'
@@ -213,7 +218,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """
     }
 
-    private String buildscript(String pluginVersion) {
+    private static String buildscript(String pluginVersion) {
         """
             buildscript {
                 ${jcenterRepository()}
@@ -228,10 +233,10 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent()
     }
 
-    private writeActivity(String basedir, String packageName, String className) {
+    private writeActivity(String basedir, String packageName, String className, changed = false) {
         String resourceName = className.toLowerCase()
 
-        file("${basedir}/src/main/java/${packageName.replaceAll('\\.', '/')}/HelloActivity.java") << """
+        file("${basedir}/src/main/java/${packageName.replaceAll('\\.', '/')}/${className}.java").text = """
             package ${packageName};
 
             import org.joda.time.LocalTime;
@@ -240,7 +245,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
             import android.os.Bundle;
             import android.widget.TextView;
 
-            public class HelloActivity extends Activity {
+            public class ${className} extends Activity {
 
                 @Override
                 public void onCreate(Bundle savedInstanceState) {
@@ -256,9 +261,10 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
                     textView.setText("The current local time is: " + currentTime);
                 }
 
+                ${changed ? "public void doStuff() {}" : ""}
             }""".stripIndent()
 
-        file("${basedir}/src/main/res/layout/${resourceName}_layout.xml") << '''<?xml version="1.0" encoding="utf-8"?>
+        file("${basedir}/src/main/res/layout/${resourceName}_layout.xml").text =  '''<?xml version="1.0" encoding="utf-8"?>
             <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:orientation="vertical"
                 android:layout_width="fill_parent"

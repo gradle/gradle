@@ -33,4 +33,5 @@ public interface ModuleComponentArtifactIdentifier extends ComponentArtifactIden
      * Returns a file base name that can be used for this artifact.
      */
     String getFileName();
+
 }

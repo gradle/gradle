@@ -26,7 +26,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -38,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -46,6 +46,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ShadowedCapability;
+import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -67,7 +68,7 @@ import java.util.Set;
  * Represents a node in the dependency graph.
  */
 public class NodeState implements DependencyGraphNode {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeState.class);
     private final Long resultId;
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = Lists.newArrayList();
@@ -491,10 +492,10 @@ public class NodeState implements DependencyGraphNode {
      * @param discoveredEdges the collection of edges for this component
      */
     private void visitOwners(Collection<EdgeState> discoveredEdges) {
-        ImmutableList<? extends ComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
+        ImmutableList<? extends VirtualComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
             PendingDependenciesVisitor visitor = resolveState.newPendingDependenciesVisitor();
-            for (ComponentIdentifier owner : owners) {
+            for (VirtualComponentIdentifier owner : owners) {
                 if (owner instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
                     final ModuleComponentSelector cs = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
@@ -515,7 +516,6 @@ public class NodeState implements DependencyGraphNode {
         ComponentResolveMetadata metadata = potentialEdge.metadata;
         VirtualPlatformState virtualPlatformState = null;
         if (metadata == null || metadata instanceof LenientPlatformResolveMetadata) {
-
             virtualPlatformState = potentialEdge.component.getModule().getPlatformState();
             virtualPlatformState.participatingModule(component.getModule());
         }
@@ -1037,13 +1037,16 @@ public class NodeState implements DependencyGraphNode {
         clearIncomingEdges();
     }
 
-    void forEachCapability(Action<? super Capability> action) {
+    void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {
         List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
         // If there's more than one node selected for the same component, we need to add
         // the implicit capability to the list, in order to make sure we can discover conflicts
-        // between variants of the same module. Note that the fact the implicit capability is
-        // in general not included is not a bug but a performance optimization
-        if (capabilities.isEmpty() && component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+        // between variants of the same module.
+        // We also need too add the implicit capability if it was seen before as an explicit
+        // capability in order to detect the conflict between the two.
+        // Note that the fact that the implicit capability is not included in other cases
+        // is not a bug but a performance optimization.
+        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution() || capabilitiesConflictHandler.hasSeenCapability(component.getImplicitCapability()))) {
             action.execute(component.getImplicitCapability());
         } else {
             // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list

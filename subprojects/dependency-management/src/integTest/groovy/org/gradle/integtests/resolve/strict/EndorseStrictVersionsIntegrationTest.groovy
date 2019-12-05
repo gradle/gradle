@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.strict
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -49,7 +50,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                     endorseStrictVersions()
                 }
                 conf('org:bar')
-            }           
+            }
         """
 
         when:
@@ -108,7 +109,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                     endorseStrictVersions()
                 }
                 conf('org:bar')
-            }           
+            }
         """
 
         when:
@@ -168,7 +169,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                     endorseStrictVersions()
                 }
                 conf('org:foo')
-            }           
+            }
         """
 
         when:
@@ -189,12 +190,13 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo'
    Constraint path ':test:unspecified' --> 'org:platform-a:1.0' --> 'org:foo:{strictly 1.0}'
    Constraint path ':test:unspecified' --> 'org:platform-b:1.0' --> 'org:foo:{strictly 2.0}'"""
     }
 
+    @ToBeFixedForInstantExecution
     def "a module from which strict versions are endorsed can itself be influenced by strict versions endorsed form elsewhere"() {
         given:
         repository {
@@ -219,7 +221,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
                 conf('org:baz:1.0') {
                     endorseStrictVersions()
                 }
-            }           
+            }
         """
 
         when:
@@ -279,7 +281,7 @@ class EndorseStrictVersionsIntegrationTest extends AbstractModuleDependencyResol
         buildFile << """
             dependencies {
                 conf('org:baz:1.0')
-            }           
+            }
         """
 
         when:

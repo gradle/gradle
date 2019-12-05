@@ -22,6 +22,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":bootstrap"))
     implementation(project(":jvmServices"))
+    implementation(project(":buildEvents"))
     implementation(project(":toolingApi"))
 
     implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
@@ -66,22 +67,12 @@ dependencies {
     integTestRuntimeOnly(project(":languageNative")) {
         because("for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
-
-    testFixturesApi(project(":baseServices")) {
-        because("Test fixtures export the Action class")
-    }
-    testFixturesImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":internalIntegTesting"))
 }
 
-val availableJavaInstallations = rootProject.availableJavaInstallations
-
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
-val javaInstallationForTest = availableJavaInstallations.javaInstallationForTest
-if (!javaInstallationForTest.javaVersion.isJava9Compatible) {
-    dependencies {
-        integTestRuntimeOnly(files(javaInstallationForTest.toolsJar))
-    }
+val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
+dependencies {
+    integTestRuntimeOnly(files(toolsJar))
 }
 
 gradlebuildJava {

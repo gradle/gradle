@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.transform
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -133,6 +134,7 @@ ${artifactTransform("FileSizer")}
         output.count("Transforming test-1.3.jar.txt to test-1.3.jar.txt.txt") == 1
     }
 
+    @ToBeFixedForInstantExecution
     def "disambiguates A -> B -> C and D -> C by selecting the later iff attributes match"() {
         def m1 = mavenRepo.module("test", "test", "1.3").publish()
         m1.artifactFile.text = "1234"

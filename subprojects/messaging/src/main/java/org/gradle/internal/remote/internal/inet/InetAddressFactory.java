@@ -18,6 +18,7 @@ package org.gradle.internal.remote.internal.inet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
@@ -35,20 +36,6 @@ public class InetAddressFactory {
     private InetAddress wildcardBindingAddress;
     private InetAddresses inetAddresses;
     private boolean initialized;
-    private String hostName;
-
-    public String getHostname() {
-        synchronized (lock) {
-            if (hostName == null) {
-                try {
-                    hostName = InetAddress.getLocalHost().getHostName();
-                } catch (UnknownHostException e) {
-                    hostName = getCommunicationAddresses().get(0).toString();
-                }
-            }
-            return hostName;
-        }
-    }
 
     /**
      * Determines if the IP address can be used for communication with this machine
@@ -141,7 +128,7 @@ public class InetAddressFactory {
         }
     }
 
-
+    @Nullable
     private InetAddress findOpenshiftAddresses() {
         for (String key : System.getenv().keySet()) {
             if (key.startsWith("OPENSHIFT_") && key.endsWith("_IP")) {

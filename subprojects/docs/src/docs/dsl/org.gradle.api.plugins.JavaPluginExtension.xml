@@ -46,10 +46,13 @@
                 <td>disableAutoTargetJvm</td>
             </tr>
             <tr>
-                <td>publishJavadoc</td>
+                <td>withJavadocJar</td>
             </tr>
             <tr>
-                <td>publishSources</td>
+                <td>withSourcesJar</td>
+            </tr>
+            <tr>
+                <td>registerFeature</td>
             </tr>
         </table>
     </section>

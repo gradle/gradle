@@ -21,6 +21,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 public interface ClassLoaderCache {
 
@@ -51,10 +52,9 @@ public interface ClassLoaderCache {
      * Adds or replaces a classloader. This should be called to register specialized classloaders that belong to the hierarchy, so they can be cleaned up as required.
      *
      * @param id the ID of the classloader.
-     * @param classLoader the classloader.
      * @return the classloader.
      */
-    <T extends ClassLoader> T put(ClassLoaderId id, T classLoader);
+    ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<ClassLoader, ClassLoader> factoryFunction, @Nullable HashCode implementationHash);
 
     /**
      * Discards the given classloader.

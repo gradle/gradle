@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.work.Incremental
 import spock.lang.Issue
@@ -83,6 +84,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4166")
+    @ToBeFixedForInstantExecution
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             abstract class MyTask extends DefaultTask {
@@ -277,6 +279,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         succeeds("myTask")
     }
 
+    @ToBeFixedForInstantExecution
     def "empty providers can be queried for incremental changes"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
@@ -480,6 +483,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
         outputDir.assertIsEmptyDir()
     }
 
+    @ToBeFixedForInstantExecution
     def "outputs are cleaned out on rebuild (output type: #type)"() {
         file("buildSrc").deleteDir()
         buildFile.text = """

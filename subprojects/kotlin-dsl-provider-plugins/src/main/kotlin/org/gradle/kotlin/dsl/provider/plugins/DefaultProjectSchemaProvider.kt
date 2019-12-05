@@ -35,9 +35,7 @@ import org.gradle.kotlin.dsl.accessors.ProjectSchemaEntry
 import org.gradle.kotlin.dsl.accessors.ProjectSchemaProvider
 import org.gradle.kotlin.dsl.accessors.SchemaType
 import org.gradle.kotlin.dsl.accessors.TypedProjectSchema
-import org.jetbrains.kotlin.utils.addToStdlib.firstNotNullResult
 import java.lang.reflect.Modifier
-import kotlin.reflect.KClass
 import kotlin.reflect.KVisibility
 
 
@@ -56,7 +54,7 @@ class DefaultProjectSchemaProvider : ProjectSchemaProvider {
 }
 
 
-private
+internal
 data class TargetTypedSchema(
     val extensions: List<ProjectSchemaEntry<TypeOf<*>>>,
     val conventions: List<ProjectSchemaEntry<TypeOf<*>>>,
@@ -65,7 +63,7 @@ data class TargetTypedSchema(
 )
 
 
-private
+internal
 fun targetSchemaFor(target: Any, targetType: TypeOf<*>): TargetTypedSchema {
 
     val extensions = mutableListOf<ProjectSchemaEntry<TypeOf<*>>>()
@@ -126,42 +124,86 @@ fun accessibleContainerSchema(collectionSchema: NamedDomainObjectCollectionSchem
 
 private
 fun NamedDomainObjectSchema.toFirstKotlinPublicOrSelf() =
-    publicType.concreteClass.kotlin.let { kotlinType ->
+    publicType.concreteClass.let { schemaType ->
         // Because a public Java class might not correspond necessarily to a
         // public Kotlin type due to Kotlin `internal` semantics, we check
         // whether the public Java class is also the first public Kotlin type,
         // otherwise we compute a new schema entry with the correct Kotlin type.
-        val firstPublicKotlinType = kotlinType.firstKotlinPublicOrSelf
+        val firstPublicKotlinType = schemaType.firstPublicKotlinAccessorTypeOrSelf
         when {
-            firstPublicKotlinType === kotlinType -> this
+            firstPublicKotlinType === schemaType -> this
             else -> ProjectSchemaNamedDomainObjectSchema(
                 name,
-                firstPublicKotlinType.asTypeOf()
+                TypeOf.typeOf(firstPublicKotlinType)
             )
         }
     }
 
 
-private
-val KClass<*>.firstKotlinPublicOrSelf
-    get() = firstKotlinPublicOrNull ?: this
+internal
+val Class<*>.firstPublicKotlinAccessorTypeOrSelf: Class<*>
+    get() = firstPublicKotlinAccessorType ?: this
 
 
 private
-val KClass<*>.firstKotlinPublicOrNull: KClass<*>?
-    get() = takeIf { isJavaPublic && isKotlinVisible && visibility == KVisibility.PUBLIC }
-        ?: (java.superclass as Class<*>?)?.kotlin?.firstKotlinPublicOrNull
-        ?: java.interfaces.firstNotNullResult { it.kotlin.firstKotlinPublicOrNull }
+val Class<*>.firstPublicKotlinAccessorType: Class<*>?
+    get() = accessorTypePrecedenceSequence().find { it.isKotlinPublic }
+
+
+internal
+fun Class<*>.accessorTypePrecedenceSequence(): Sequence<Class<*>> = sequence {
+
+    // First, all the classes in the hierarchy, subclasses before superclasses
+    val classes = ancestorClassesIncludingSelf.toList()
+    yieldAll(classes)
+
+    // Then all supported interfaces sorted by subtyping (subtypes before supertypes)
+    val interfaces = mutableListOf<Class<*>>()
+    classes.forEach { `class` ->
+        `class`.interfaces.forEach { `interface` ->
+            when (val indexOfSupertype = interfaces.indexOfFirst { it.isAssignableFrom(`interface`) }) {
+                -1 -> interfaces.add(`interface`)
+                else -> if (interfaces[indexOfSupertype] != `interface`) {
+                    interfaces.add(indexOfSupertype, `interface`)
+                }
+            }
+        }
+    }
+    yieldAll(interfaces)
+}
+
+
+internal
+val Class<*>.ancestorClassesIncludingSelf: Sequence<Class<*>>
+    get() = sequence {
+
+        yield(this@ancestorClassesIncludingSelf)
+
+        var superclass: Class<*>? = superclass
+        while (superclass != null) {
+            val thisSuperclass: Class<*> = superclass
+            val nextSuperclass = thisSuperclass.superclass
+            if (nextSuperclass != null) { // skip java.lang.Object
+                yield(thisSuperclass)
+            }
+            superclass = nextSuperclass
+        }
+    }
 
 
 private
-val KClass<*>.isJavaPublic
-    get() = Modifier.isPublic(java.modifiers)
+val Class<*>.isKotlinPublic: Boolean
+    get() = isKotlinVisible && kotlin.visibility == KVisibility.PUBLIC
 
 
 private
-val KClass<*>.isKotlinVisible: Boolean
-    get() = !java.isLocalClass && !java.isAnonymousClass && !java.isSynthetic
+val Class<*>.isKotlinVisible: Boolean
+    get() = isPublic && !isLocalClass && !isAnonymousClass && !isSynthetic
+
+
+private
+val Class<*>.isPublic
+    get() = Modifier.isPublic(modifiers)
 
 
 private
@@ -234,8 +276,3 @@ val typeOfTaskContainer = typeOf<TaskContainer>()
 internal
 inline fun <reified T> typeOf(): TypeOf<T> =
     object : TypeOf<T>() {}
-
-
-private
-fun KClass<out Any>.asTypeOf() =
-    TypeOf.typeOf(java)

@@ -16,12 +16,14 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import spock.lang.Ignore
 import spock.lang.Unroll
 
 @TestReproducibleArchives
-class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class ArchivesContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
     def "creating zips"() {
         given:
         def sourceDir = file("src")
@@ -69,6 +71,7 @@ class ArchivesContinuousIntegrationTest extends Java7RequiringContinuousIntegrat
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "using compressed files as inputs - #source - readonly #readonly"() {
         given:
         def packDir = file("pack").createDir()

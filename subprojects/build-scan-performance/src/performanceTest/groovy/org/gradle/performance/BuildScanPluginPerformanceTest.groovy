@@ -179,8 +179,8 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
         void beforeExperiment(BuildExperimentSpec experimentSpec, File projectDir) {
 
             def projectTestDir = new TestFile(projectDir)
-            def rootBuildScript = projectTestDir.file('build.gradle')
-            rootBuildScript.text = """
+            def settingsScript = projectTestDir.file('settings.gradle')
+            settingsScript.text = """
                     buildscript {
                         repositories {
                             maven {
@@ -196,14 +196,14 @@ class BuildScanPluginPerformanceTest extends AbstractBuildScanPluginPerformanceT
                         }
 
                         dependencies {
-                            classpath "com.gradle:build-scan-plugin:${buildScanPluginVersion}"
+                            classpath "com.gradle:gradle-enterprise-gradle-plugin:${buildScanPluginVersion}"
                         }
                     }
-                    
+
                     if (System.getProperty('enableScan')) {
-                        apply plugin: 'com.gradle.build-scan'
+                        apply plugin: 'com.gradle.enterprise'
                     }
-                    """ + rootBuildScript.text
+                    """ + settingsScript.text
         }
     }
 }

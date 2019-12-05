@@ -20,7 +20,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.util.Configurable;
 
 /**
- * <p>A named domain object container is a specialisation of {@link NamedDomainObjectSet} that adds the ability to create
+ * <p>A named domain object container is a specialization of {@link NamedDomainObjectSet} that adds the ability to create
  * instances of the element type.</p>
  *
  * <p>Implementations may use different strategies for creating new object instances.</p>
@@ -28,10 +28,9 @@ import org.gradle.util.Configurable;
  * <p>Note that a container is an implementation of {@link java.util.SortedSet}, which means that the container is guaranteed
  * to only contain elements with unique names within this container. Furthermore, items are ordered by their name.</p>
  *
- * @param <T> The type of domain objects in this container.
- * @see NamedDomainObjectSet
- * @see Project#container(Class) Creating a container.
- * @see Project#container(Class, NamedDomainObjectFactory) Creating a container with a custom factory.
+ * <p>You can create an instance of this type using the factory method {@link org.gradle.api.model.ObjectFactory#domainObjectContainer(Class)}.</p>
+ *
+ * @param <T> The type of objects in this container.
  */
 public interface NamedDomainObjectContainer<T> extends NamedDomainObjectSet<T>, Configurable<NamedDomainObjectContainer<T>> {
 

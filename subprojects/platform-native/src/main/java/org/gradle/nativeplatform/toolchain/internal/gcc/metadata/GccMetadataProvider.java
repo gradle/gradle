@@ -20,6 +20,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal;
@@ -143,7 +144,7 @@ public class GccMetadataProvider extends AbstractMetadataProvider<GccMetadata> {
                     if (isCygwin) {
                         include = mapCygwinPath(cygpathExe, include);
                     }
-                    builder.add(new File(include));
+                    builder.add(FileUtils.normalize(new File(include)));
                 }
             }
             return builder.build();

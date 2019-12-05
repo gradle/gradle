@@ -40,4 +40,9 @@ public interface HashFunction {
      * Hash the given string using the hash function.
      */
     HashCode hashString(CharSequence string);
+
+    /**
+     * Returns the number of hexadecimal digits needed to represent the hash.
+     */
+    int getHexDigits();
 }

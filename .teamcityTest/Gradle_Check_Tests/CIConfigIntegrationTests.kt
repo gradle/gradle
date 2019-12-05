@@ -1,3 +1,4 @@
+import common.JvmCategory
 import common.JvmVendor
 import common.JvmVersion
 import common.NoBuildCache
@@ -7,12 +8,14 @@ import configurations.StagePasses
 import jetbrains.buildServer.configs.kotlin.v2018_2.Project
 import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
+import model.GradleSubproject
 import model.SpecificBuild
 import model.Stage
 import model.StageNames
 import model.SubprojectSplit
 import model.TestCoverage
 import model.TestType
+import model.Trigger
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -89,7 +92,7 @@ class CIConfigIntegrationTests {
                 }
 
                 // hacky way to consider deferred tests
-                val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 4 else 0
+                val deferredTestCount = if (stage.stageName == StageNames.READY_FOR_NIGHTLY) 5 else 0
                 assertEquals(
                     stage.specificBuilds.size + functionalTestCount + stage.performanceTests.size + (if (prevStage != null) 1 else 0) + deferredTestCount,
                     it.dependencies.items.size, stage.stageName.stageName)
@@ -214,7 +217,9 @@ class CIConfigIntegrationTests {
             "Gradle_Check_Stage_MasterAccept_Trigger" to "createBuildReceipt updateBranchStatus",
             "Gradle_Check_Stage_ReleaseAccept_Trigger" to "createBuildReceipt",
             "Gradle_Check_Stage_HistoricalPerformance_Trigger" to "createBuildReceipt",
-            "Gradle_Check_Stage_Experimental_Trigger" to "createBuildReceipt"),
+            "Gradle_Check_Stage_Experimental_Trigger" to "createBuildReceipt",
+            "Gradle_Check_Stage_ExperimentalWindows10quick_Trigger" to "createBuildReceipt",
+            "Gradle_Check_Stage_ExperimentalWindows10platform_Trigger" to "createBuildReceipt"),
             triggerNameToTasks)
     }
 
@@ -226,6 +231,23 @@ class CIConfigIntegrationTests {
                 it.name in knownSubProjectNames,
                 "Not defined: $it"
             )
+        }
+    }
+
+    @Test
+    fun testsAreCorrectlyConfiguredForAllSubProjects() {
+        CIBuildModel().subProjects.filter {
+            !listOf(
+                "soak", // soak test
+                "distributions", // build distributions
+                "docs", // sanity check
+                "architectureTest" // sanity check
+            ).contains(it.name)
+        }.forEach {
+            val dir = getSubProjectFolder(it)
+            assertEquals(it.unitTests, File(dir, "src/test").isDirectory, "${it.name}'s unitTests is wrong!")
+            assertEquals(it.functionalTests, File(dir, "src/integTest").isDirectory, "${it.name}'s functionalTests is wrong!")
+            assertEquals(it.crossVersionTests, File(dir, "src/crossVersionTest").isDirectory, "${it.name}'s crossVersionTests is wrong!")
         }
     }
 
@@ -290,6 +312,40 @@ class CIConfigIntegrationTests {
         assertEquals("Gradle_Check_QuickFeedbackCrossVersion_1_0", testCoverage.asConfigurationId(CIBuildModel()))
     }
 
+    @Test
+    fun canDeactivateBuildCacheForSpecificStage() {
+        val m = CIBuildModel(
+            projectPrefix = "Gradle_BuildCacheDeactivatedForStage_",
+            stages = listOf(
+                Stage(StageNames.WINDOWS_10_EVALUATION_QUICK,
+                    trigger = Trigger.never,
+                    runsIndependent = true,
+                    functionalTests = listOf(
+                        TestCoverage(20, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
+                Stage(StageNames.WINDOWS_10_EVALUATION_PLATFORM,
+                    trigger = Trigger.never,
+                    runsIndependent = true,
+                    disablesBuildCache = true,
+                    functionalTests = listOf(
+                        TestCoverage(21, TestType.platform, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor)))
+            )
+        )
+        val p = RootProject(m)
+        assertTrue(p.subProjects.size == 2)
+
+        val buildStepsWithCache = (p.subProjectsOrder[0] as StageProject)
+            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items[0] as GradleBuildStep) }
+        buildStepsWithCache.forEach {
+            assertTrue(it.gradleParams!!.contains("--build-cache"))
+        }
+
+        val buildStepsWithoutCache = (p.subProjectsOrder[1] as StageProject)
+            .subProjects[0].buildTypes.map { ((it as FunctionalTest).steps.items[0] as GradleBuildStep) }
+        buildStepsWithoutCache.forEach {
+            assertFalse(it.gradleParams!!.contains("--build-cache"))
+        }
+    }
+
     private fun containsSrcFileWithString(srcRoot: File, content: String, exceptions: List<String>): Boolean {
         srcRoot.walkTopDown().forEach {
             if (it.extension == "groovy" || it.extension == "java") {
@@ -308,6 +364,8 @@ class CIConfigIntegrationTests {
         assertFalse(subprojectFolders.isEmpty())
         return subprojectFolders
     }
+
+    private fun getSubProjectFolder(subProject: GradleSubproject): File = File("../subprojects/${subProject.asDirectoryName()}")
 
     private fun printTree(project: Project, indent: String = "") {
         println(indent + project.id + " (Project)")

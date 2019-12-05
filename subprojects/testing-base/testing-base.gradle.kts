@@ -22,6 +22,7 @@ plugins {
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
+    implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":workerProcesses"))
@@ -47,10 +48,9 @@ dependencies {
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":baseServices")))
-    testImplementation(testFixtures(project(":launcher")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
-    
+
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":modelCore"))
     testFixturesImplementation(project(":internalTesting"))

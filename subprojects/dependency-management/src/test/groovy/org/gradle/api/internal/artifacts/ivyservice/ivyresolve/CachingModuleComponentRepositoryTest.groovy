@@ -37,7 +37,7 @@ import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ConfigurationMetadata
-import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
@@ -81,14 +81,14 @@ class CachingModuleComponentRepositoryTest extends Specification {
         }
 
         def descriptorHash = 1234G
-        def moduleSource = Stub(CachingModuleComponentRepository.CachingModuleSource) {
+        def moduleSource = Stub(ModuleDescriptorHashModuleSource) {
             getDescriptorHash() >> descriptorHash
         }
 
         ArtifactAtRepositoryKey atRepositoryKey = new ArtifactAtRepositoryKey("repo-id", artifactId)
 
         when:
-        repo.remoteAccess.resolveArtifact(artifact, moduleSource, result)
+        repo.remoteAccess.resolveArtifact(artifact, ImmutableModuleSources.of(moduleSource), result)
 
         then:
         1 * artifactAtRepositoryCache.store(atRepositoryKey, file, descriptorHash)
@@ -129,8 +129,6 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
     def "does not use cache when artifacts for type can be determined locally"() {
         def component = Mock(ComponentResolveMetadata)
-        def source = Mock(ModuleSource)
-        def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def artifactType = ArtifactType.JAVADOC
         def result = new DefaultBuildableArtifactSetResolveResult()
 
@@ -138,8 +136,6 @@ class CachingModuleComponentRepositoryTest extends Specification {
         repo.localAccess.resolveArtifactsWithType(component, artifactType, result)
 
         then:
-        1 * component.getSource() >> cachingSource
-        1 * component.withSource(source) >> component
         realLocalAccess.resolveArtifactsWithType(component, artifactType, result) >> {
             result.resolved([Mock(ComponentArtifactMetadata)])
         }
@@ -149,16 +145,12 @@ class CachingModuleComponentRepositoryTest extends Specification {
     def "does not use cache when component artifacts can be determined locally"() {
         def component = Mock(ComponentResolveMetadata)
         def variant = Mock(ConfigurationMetadata)
-        def source = Mock(ModuleSource)
-        def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
         def result = new DefaultBuildableComponentArtifactsResolveResult()
 
         when:
         repo.localAccess.resolveArtifacts(component, variant, result)
 
         then:
-        1 * component.getSource() >> cachingSource
-        1 * component.withSource(source) >> component
         realLocalAccess.resolveArtifacts(component, variant, result) >> {
             result.resolved(Stub(ComponentArtifacts))
         }

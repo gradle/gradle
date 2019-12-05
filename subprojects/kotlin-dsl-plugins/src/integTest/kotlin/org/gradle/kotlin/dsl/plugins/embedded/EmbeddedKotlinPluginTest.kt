@@ -24,6 +24,7 @@ import org.gradle.api.logging.Logger
 
 import com.nhaarman.mockito_kotlin.inOrder
 import com.nhaarman.mockito_kotlin.mock
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import org.hamcrest.CoreMatchers.containsString
 
@@ -34,6 +35,7 @@ import org.junit.Test
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `applies the kotlin plugin`() {
 
         withBuildScript("""
@@ -52,6 +54,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `adds stdlib and reflect as compile only dependencies`() {
 
         withBuildScript("""
@@ -85,6 +88,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript("""
@@ -171,6 +175,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can add embedded dependencies to custom configuration`() {
 
         withBuildScript("""
@@ -197,6 +202,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    @ToBeFixedForInstantExecution
     fun `can be used with embedded artifact-only repository`() {
 
         withDefaultSettings()

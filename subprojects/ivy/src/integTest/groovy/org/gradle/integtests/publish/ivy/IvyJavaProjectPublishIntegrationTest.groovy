@@ -16,6 +16,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class IvyJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -24,6 +25,7 @@ class IvyJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
+    @ToBeFixedForInstantExecution
     public void "can publish jar and meta-data to ivy repository"() {
         given:
         file("settings.gradle") << "rootProject.name = 'publishTest' "

@@ -64,6 +64,7 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
             .fileComment("For more details take a look at the Scala plugin chapter in the Gradle")
             .fileComment("User Manual available at " + documentationRegistry.getDocumentationFor("scala_plugin"))
             .plugin("Apply the scala plugin to add support for Scala", "scala")
+            .plugin("Apply the java-library plugin for API and implementation separation.", "java-library")
             .implementationDependency("Use Scala " + scalaVersion + " in our library project",
                 "org.scala-lang:scala-library:" + scalaLibraryVersion)
             .testImplementationDependency("Use Scalatest for testing our library",

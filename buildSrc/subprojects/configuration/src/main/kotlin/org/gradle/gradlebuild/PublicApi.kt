@@ -9,6 +9,7 @@ object PublicApi {
     val includes = listOf("org/gradle/*",
         "org/gradle/api/**",
         "org/gradle/authentication/**",
+        "org/gradle/build/**",
         "org/gradle/buildinit/**",
         "org/gradle/caching/**",
         "org/gradle/concurrent/**",

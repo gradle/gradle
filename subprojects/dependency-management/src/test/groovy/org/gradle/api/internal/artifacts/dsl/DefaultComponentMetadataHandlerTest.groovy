@@ -27,8 +27,8 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.MetadataResolutionContext
-import org.gradle.api.internal.artifacts.configurations.dynamicversion.CachePolicy
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer
 import org.gradle.api.specs.Specs
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
@@ -60,15 +60,15 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
     // For testing ComponentMetadataHandler capabilities
     def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
-    CachePolicy cachePolicy = Mock()
     def stringInterner = SimpleMapInterner.notThreadSafe()
-    def handler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.valueSnapshotter(), executor)
+    def handler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.valueSnapshotter(), executor, DependencyManagementTestUtil.platformSupport())
     RuleActionAdapter adapter = Mock(RuleActionAdapter)
-    def mockedHandler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), adapter, moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.valueSnapshotter(), executor)
+    def mockedHandler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), adapter, moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.valueSnapshotter(), executor, DependencyManagementTestUtil.platformSupport())
     def ruleAction = Stub(RuleAction)
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
     MetadataResolutionContext context = Mock()
+    ModuleSourcesSerializer moduleSourcesSerializer = new ModuleSourcesSerializer([:])
 
     def 'setup'() {
         TestComponentMetadataRule.instanceCount = 0

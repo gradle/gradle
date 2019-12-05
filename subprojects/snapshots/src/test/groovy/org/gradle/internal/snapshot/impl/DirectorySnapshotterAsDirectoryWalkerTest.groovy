@@ -26,8 +26,8 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
-import org.gradle.internal.snapshot.DirectorySnapshot
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.SnapshottingFilter
 
@@ -95,7 +95,7 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
             private boolean root = true
 
             @Override
-            boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 if (!root) {
                     visited << directorySnapshot.absolutePath
                 }
@@ -104,12 +104,12 @@ class DirectorySnapshotterAsDirectoryWalkerTest extends AbstractDirectoryWalkerT
             }
 
             @Override
-            void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                 visited << fileSnapshot.absolutePath
             }
 
             @Override
-            void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             }
         })
         return visited

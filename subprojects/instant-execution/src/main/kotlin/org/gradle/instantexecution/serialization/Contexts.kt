@@ -26,6 +26,8 @@ import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 
@@ -102,10 +104,21 @@ class DefaultWriteContext(
                 writeScope(scope.parent)
                 writeString(scope.name)
                 writeClassPath(scope.localClassPath)
+                writeHashCode(scope.localImplementationHash)
                 writeClassPath(scope.exportClassPath)
             } else {
                 writeBoolean(false)
             }
+        }
+    }
+
+    private
+    fun writeHashCode(hashCode: HashCode?) {
+        if (hashCode == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            writeBinary(hashCode.toByteArray())
         }
     }
 
@@ -143,6 +156,9 @@ class DefaultReadContext(
 
     private
     val decoder: Decoder,
+
+    private
+    val instantiatorFactory: InstantiatorFactory,
 
     private
     val constructors: BeanConstructors,
@@ -186,7 +202,7 @@ class DefaultReadContext(
         get() = getIsolate()
 
     override fun beanStateReaderFor(beanType: Class<*>): BeanStateReader =
-        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors) }
+        beanStateReaders.computeIfAbsent(beanType) { type -> BeanPropertyReader(type, constructors, instantiatorFactory) }
 
     override fun readClass(): Class<*> {
         val id = readSmallInt()
@@ -221,18 +237,26 @@ class DefaultReadContext(
             val parent = readScope()
             val name = readString()
             val localClassPath = readClassPath()
+            val localImplementationHash = readHashCode()
             val exportClassPath = readClassPath()
-            parent
-                .createChild(name)
-                .local(localClassPath)
-                .export(exportClassPath)
-                .lock()
+            if (localImplementationHash != null && exportClassPath.isEmpty) {
+                parent.createLockedChild(name, localClassPath, localImplementationHash, null)
+            } else {
+                parent.createChild(name).local(localClassPath).export(exportClassPath).lock()
+            }
         } else {
             isolate.owner.service(ClassLoaderScopeRegistry::class.java).coreAndPluginsScope
         }
         Workarounds.maybeSetDefaultStaticStateIn(newScope)
         scopes.putInstance(id, newScope)
         return newScope
+    }
+
+    private
+    fun readHashCode() = if (readBoolean()) {
+        HashCode.fromBytes(readBinary())
+    } else {
+        null
     }
 
     override fun getProject(path: String): ProjectInternal =

@@ -17,6 +17,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
 
@@ -33,6 +34,7 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         localMaven = "maven { url '${mavenRepo.uri}' }"
     }
 
+    @ToBeFixedForInstantExecution
     def "generates configuration files for an non-java ear project"() {
         settingsFile << "rootProject.name = 'ear'"
 
@@ -79,6 +81,7 @@ class EclipseWtpEarProjectIntegrationTest extends AbstractEclipseIntegrationSpec
         component.lib('lib2-impl-2.0.jar').assertDeployedAt('/')
     }
 
+    @ToBeFixedForInstantExecution
     def "ear deployment location can be configured via libDirName"() {
         settingsFile << "rootProject.name = 'ear'"
 

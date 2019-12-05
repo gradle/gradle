@@ -30,6 +30,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
     private final String type;
     private final String extension;
     private final String classifier;
+    private final int hashCode;
 
     public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
         String name = publishArtifact.getName();
@@ -42,6 +43,10 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
 
     public static DefaultIvyArtifactName forFile(File file, @Nullable String classifier) {
         String fileName = file.getName();
+        return forFileName(fileName, classifier);
+    }
+
+    public static DefaultIvyArtifactName forFileName(String fileName, @Nullable String classifier) {
         String name = Files.getNameWithoutExtension(fileName);
         String extension = Files.getFileExtension(fileName);
         return new DefaultIvyArtifactName(name, extension, extension, classifier);
@@ -56,6 +61,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         this.type = type;
         this.extension = extension;
         this.classifier = classifier;
+        this.hashCode = computeHashCode();
     }
 
     @Override
@@ -75,7 +81,15 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
 
     @Override
     public int hashCode() {
-        return name.hashCode() ^ type.hashCode() ^ (extension == null ? 0 : extension.hashCode()) ^ (classifier == null ? 0 : classifier.hashCode());
+        return hashCode;
+    }
+
+    private int computeHashCode() {
+        int result = name.hashCode();
+        result = 31 * result + type.hashCode();
+        result = 31 * result + (extension != null ? extension.hashCode() : 0);
+        result = 31 * result + (classifier != null ? classifier.hashCode() : 0);
+        return result;
     }
 
     @Override

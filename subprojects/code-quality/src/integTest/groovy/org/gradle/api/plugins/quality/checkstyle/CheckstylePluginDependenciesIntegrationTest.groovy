@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CheckstylePluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -24,6 +25,7 @@ class CheckstylePluginDependenciesIntegrationTest extends AbstractIntegrationSpe
         badCode()
     }
 
+    @ToBeFixedForInstantExecution
     def "allows configuring tool dependencies explicitly"() {
         expect:
         succeeds("dependencies", "--configuration", "checkstyle")

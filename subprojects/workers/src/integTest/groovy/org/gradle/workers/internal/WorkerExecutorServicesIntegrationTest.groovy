@@ -36,7 +36,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
         fails("runInWorker")
 
         and:
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of interface org.gradle.api.internal.file.FileOperations, or no service of type interface org.gradle.api.internal.file.FileOperations")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type FileOperations, or no service of type FileOperations")
 
         where:
         isolationMode << ISOLATION_MODES
@@ -161,7 +161,9 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
             objectFactory.setProperty(String)
             objectFactory.mapProperty(String, String)
             objectFactory.named(Foo, "foo")
+            objectFactory.domainObjectSet(Foo)
             objectFactory.domainObjectContainer(Foo)
+            objectFactory.polymorphicDomainObjectContainer(Foo)
         """
         fixture.withWorkActionClassInBuildScript()
 

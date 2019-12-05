@@ -18,6 +18,7 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.junit.runner.RunWith
@@ -140,6 +141,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         noExceptionThrown()
     }
 
+    @ToBeFixedForInstantExecution
     def "compiling project variant doesn't imply execution of other variants build tasks"() {
         def projectDir = new FileTreeBuilder(testDirectory)
         given:
@@ -174,6 +176,7 @@ class VariantAwareResolutionWithConfigurationAttributesIntegrationTest extends A
         notExecuted ':compileJavaPaidRelease'
     }
 
+    @ToBeFixedForInstantExecution
     def "consuming subproject variant builds the project with the appropriate tasks"() {
         given:
         subproject('core') {

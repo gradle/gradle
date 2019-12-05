@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.suppliers
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.RequiredFeatures
@@ -128,6 +129,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     void "caches version listing using #lister lister"() {
         ListerInteractions listerInteractions
         switch (lister) {
@@ -188,6 +190,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         'file on repository' | [testA: [1, 2, 3]]
     }
 
+    @ToBeFixedForInstantExecution
     void "can recover from broken lister"() {
         withBrokenLister()
         given:
@@ -223,6 +226,7 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
+    @ToBeFixedForInstantExecution
     def "can recover from --offline mode"() {
         withLister(['testA': [1, 2, 3]])
 

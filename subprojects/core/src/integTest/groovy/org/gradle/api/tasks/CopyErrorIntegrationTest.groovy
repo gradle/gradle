@@ -16,6 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.PreconditionVerifier
@@ -30,7 +31,9 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Rule public PreconditionVerifier verifier = new PreconditionVerifier()
 
     @Test
+    @ToBeFixedForInstantExecution
     void givesReasonableErrorMessageWhenPathCannotBeConverted() {
+
         file('src/thing.txt').createFile()
 
         testFile('build.gradle') << '''

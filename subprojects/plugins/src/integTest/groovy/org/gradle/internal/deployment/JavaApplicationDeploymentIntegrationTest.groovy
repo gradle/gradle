@@ -16,11 +16,11 @@
 
 package org.gradle.internal.deployment
 
-import org.gradle.launcher.continuous.Java7RequiringContinuousIntegrationTest
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 
-class JavaApplicationDeploymentIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class JavaApplicationDeploymentIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile messageSrc
 
     def setup() {

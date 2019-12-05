@@ -36,7 +36,6 @@ import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
@@ -104,11 +103,9 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
 
     @Override
     public String getRepositoryName() {
-        ModuleSource moduleSource = metadata.getSource();
-        if (moduleSource instanceof RepositoryChainModuleSource) {
-            return ((RepositoryChainModuleSource) moduleSource).getRepositoryName();
-        }
-        return null;
+        return metadata.getSources().withSource(RepositoryChainModuleSource.class, source -> source
+            .map(RepositoryChainModuleSource::getRepositoryName)
+            .orElse(null));
     }
 
     @Override

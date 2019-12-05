@@ -21,9 +21,11 @@ import org.gradle.api.specs.Spec;
 import java.util.Set;
 
 /**
- * <p>A {@code DomainObjectSet} is a specialisation of {@link DomainObjectCollection} that guarantees {@link Set} semantics.</p>
+ * <p>A {@code DomainObjectSet} is a specialization of {@link DomainObjectCollection} that guarantees {@link Set} semantics.</p>
  *
- * @param <T> The type of domain objects in this set.
+ * <p>You can create an instance of this type using the factory method {@link org.gradle.api.model.ObjectFactory#domainObjectSet(Class)}.</p>
+ *
+ * @param <T> The type of objects in this set.
  */
 public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {
 

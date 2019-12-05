@@ -19,6 +19,7 @@ package org.gradle.initialization
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationNotificationsFixture
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 
@@ -29,6 +30,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
     @SuppressWarnings("GroovyUnusedDeclaration")
     final operationNotificationsFixture = new BuildOperationNotificationsFixture(executer, temporaryFolder)
 
+    @ToBeFixedForInstantExecution
     def "requested and filtered tasks are exposed"() {
         settingsFile << """
         include "a"
@@ -87,6 +89,7 @@ class CalculateTaskGraphBuildOperationIntegrationTest extends AbstractIntegratio
         operation().failure.contains("Task 'someNonexistent' not found in root project")
     }
 
+    @ToBeFixedForInstantExecution
     def "build path for calculated task graph is exposed"() {
         settingsFile << """
             includeBuild "b"

@@ -394,6 +394,42 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("bean.value = [b]")
     }
 
+    def "restores task fields whose value is Serializable and has only a writeObject method"() {
+        buildFile << """
+            class SomeBean implements Serializable {
+                String value
+
+                private void writeObject(java.io.ObjectOutputStream oos) {
+                    value = "42"
+                    oos.defaultWriteObject()
+                }
+            }
+
+            class SomeTask extends DefaultTask {
+                private final SomeBean bean = new SomeBean()
+
+                @TaskAction
+                void run() {
+                    println "bean.value = " + bean.value
+                }
+            }
+
+            task ok(type: SomeTask)
+        """
+
+        when:
+        instantRun "ok"
+
+        then: "bean is serialized before task runs"
+        outputContains("bean.value = 42")
+
+        when:
+        instantRun "ok"
+
+        then:
+        outputContains("bean.value = 42")
+    }
+
     @Unroll
     def "restores task fields whose value is service of type #type"() {
         buildFile << """
@@ -694,20 +730,40 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
     def "restores task abstract properties"() {
         buildFile << """
+            interface Bean {
+                @Internal
+                Property<String> getValue() 
+
+                @Internal
+                Property<String> getUnused() 
+            }
 
             abstract class SomeTask extends DefaultTask {
+                @Nested
+                abstract Bean getBean()
+
+                @Nested
+                abstract Bean getUnusedBean()
 
                 @Internal
                 abstract Property<String> getValue()
 
+                @Internal
+                abstract Property<String> getUnused()
+
                 @TaskAction
                 void run() {
                     println "this.value = " + value.getOrNull()
+                    println "this.unused = " + unused.getOrNull()
+                    println "this.bean.value = " + bean.value.getOrNull()
+                    println "this.bean.unused = " + bean.unused.getOrNull()
+                    println "this.unusedBean.value = " + unusedBean.value.getOrNull()
                 }
             }
 
             task ok(type: SomeTask) {
                 value = "42"
+                bean.value = "42"
             }
         """
 
@@ -717,6 +773,10 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         outputContains("this.value = 42")
+        outputContains("this.unused = null")
+        outputContains("this.bean.value = 42")
+        outputContains("this.bean.unused = null")
+        outputContains("this.unusedBean.value = null")
     }
 
     def "task can reference itself"() {

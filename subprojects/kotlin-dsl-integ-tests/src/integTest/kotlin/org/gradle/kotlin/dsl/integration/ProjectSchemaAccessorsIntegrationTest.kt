@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.integration
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.fixtures.FoldersDsl
 import org.gradle.kotlin.dsl.fixtures.FoldersDslExpression
@@ -95,6 +96,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can access extension of internal type made public`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -288,6 +290,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `multiple generic extension targets`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -342,6 +345,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `conflicting extensions across build scripts with same body`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -390,6 +394,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `conflicting extensions across build runs`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -439,6 +444,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can configure publishing extension`() {
 
         withBuildScript("""
@@ -472,6 +478,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can access NamedDomainObjectContainer extension via generated accessor`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -534,6 +541,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can access extensions registered by declared plugins via jit accessor`() {
 
         withBuildScript("""
@@ -694,6 +702,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `accessors tasks applied in a mixed Groovy-Kotlin multi-project build`() {
 
         withDefaultSettings().appendText("""
@@ -889,6 +898,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `convention accessors honor HasPublicType`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

@@ -17,7 +17,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-import org.gradle.api.Incubating;
 import org.gradle.api.attributes.HasConfigurableAttributes;
 import org.gradle.api.capabilities.MutableCapabilitiesMetadata;
 
@@ -57,6 +56,5 @@ public interface VariantMetadata extends HasConfigurableAttributes<VariantMetada
      * @param action the action that performs the files adjustment
      * @since 6.0
      */
-    @Incubating
     void withFiles(Action<? super MutableVariantFilesMetadata> action);
 }

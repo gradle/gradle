@@ -21,11 +21,16 @@ import org.gradle.cache.PersistentIndexedCache
 import org.gradle.internal.Factory
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.resource.local.FileAccessTracker
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.Serializer
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.BuildCommencedTimeProvider
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
+
+import java.nio.file.Path
 
 class DefaultModuleArtifactCacheTest extends Specification {
 
@@ -37,8 +42,9 @@ class DefaultModuleArtifactCacheTest extends Specification {
     CachedArtifact cachedArtifact = Stub(CachedArtifact)
     FileAccessTracker fileAccessTracker = Stub(FileAccessTracker)
     String persistentCacheFile = "cacheFile"
+    Path commonRootPath = folder.createDir("common").toPath()
 
-    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager, fileAccessTracker)
+    @Subject DefaultModuleArtifactCache index = new DefaultModuleArtifactCache(persistentCacheFile, timeProvider, cacheLockingManager, fileAccessTracker, commonRootPath)
 
     def "storing null artifactFile not supported"() {
         given:
@@ -118,6 +124,42 @@ class DefaultModuleArtifactCacheTest extends Specification {
         fromCache == cachedArtifact
         !fromCache.isMissing()
         fromCache.cachedFile == cachedArtifact.cachedFile
+    }
+
+    def "value serializer can relativize path"() {
+        given:
+        Serializer<CachedArtifact> valueSerializer = new DefaultModuleArtifactCache.CachedArtifactSerializer(commonRootPath)
+        def encoder = Mock(Encoder)
+        def cachedArtifact = Mock(CachedArtifact)
+
+        when:
+        valueSerializer.write(encoder, cachedArtifact)
+
+        then:
+        2 * cachedArtifact.isMissing() >> false
+        1 * cachedArtifact.cachedAt >> 42L
+        1 * cachedArtifact.getDescriptorHash() >> BigInteger.valueOf(42L)
+        1 * cachedArtifact.getCachedFile() >> commonRootPath.resolve("file.txt").toFile()
+
+        1 * encoder.writeString("file.txt")
+    }
+
+    def "value serializer can expand relative path"() {
+        given:
+        Serializer<CachedArtifact> valueSerializer = new DefaultModuleArtifactCache.CachedArtifactSerializer(commonRootPath)
+        def decoder = Mock(Decoder)
+        def fileName = "file.txt"
+
+        when:
+        def cachedArtifact = valueSerializer.read(decoder)
+
+        then:
+        1 * decoder.readBoolean() >> false
+        1 * decoder.readLong() >> 42L
+        1 * decoder.readBinary() >> BigInteger.valueOf(42L).toByteArray()
+        1 * decoder.readString() >> fileName
+
+        cachedArtifact.getCachedFile() == commonRootPath.resolve(fileName).toFile()
     }
 
     def createEntryInPersistentCache() {

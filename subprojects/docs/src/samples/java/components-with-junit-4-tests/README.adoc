@@ -1,0 +1,43 @@
+= Java Components with JUnit 4 Tests Sample
+
+ifndef::env-github[]
+[.download]
+- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
+- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
+endif::[]
+
+NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to test Java projects using JUnit 4 in Gradle.
+
+Applications can be configured as follow:
+
+====
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+====
+
+Libraries can be configured as follow:
+
+====
+include::sample[dir="groovy",files="library/build.gradle[]"]
+include::sample[dir="kotlin",files="library/build.gradle.kts[]"]
+====
+
+To test the projects:
+
+====
+[.testable-sample,dir="groovy"]
+=====
+[.sample-command]
+----
+$ ./gradlew test
+
+BUILD SUCCESSFUL in 7s
+7 actionable tasks: 7 executed
+----
+=====
+====
+
+For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].
+You can also get started quickly using the link:{userManualPath}/build_init_plugin.html#sec:java_application[Build Init Plugin].

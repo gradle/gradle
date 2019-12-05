@@ -91,12 +91,10 @@ class DistributionTestingPlugin : Plugin<Project> {
         gradleInstallationForTest.apply {
             val intTestImage: Sync by project.tasks
             gradleUserHomeDir.set(projectDirectory.dir("intTestHomeDir"))
-            gradleGeneratedApiJarCacheDir.set(providers.provider {
-                projectDirectory.dir("intTestHomeDir/generatedApiJars/${project.version}/${project.name}-$classpathHash")
-            })
+            gradleGeneratedApiJarCacheDir.set(defaultGradleGeneratedApiJarCacheDirProvider())
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
             gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
-            gradleSamplesDir.set(layout.projectDirectory.dir("subprojects/docs/src/samples"))
+            gradleSnippetsDir.set(layout.projectDirectory.dir("subprojects/docs/src/snippets"))
             toolingApiShadedJarDir.set(dirWorkaround {
                 // TODO Refactor to not reach into tasks of another project
                 val toolingApiShadedJar: ShadedJar by project.rootProject.project(":toolingApi").tasks
@@ -111,14 +109,6 @@ class DistributionTestingPlugin : Plugin<Project> {
             distZipVersion = project.version.toString()
         }
     }
-
-    private
-    val DistributionTest.classpathHash
-        get() = project.classPathHashOf(classpath)
-
-    private
-    fun Project.classPathHashOf(files: FileCollection) =
-        serviceOf<ClasspathHasher>().hash(DefaultClassPath.of(files))
 
     private
     fun DistributionTest.setJvmArgsOfTestJvm() {
@@ -149,3 +139,25 @@ class DistributionTestingPlugin : Plugin<Project> {
         }
     }
 }
+
+
+fun DistributionTest.defaultGradleGeneratedApiJarCacheDirProvider(): Provider<Directory> =
+    project.rootProject.providers.provider { defaultGeneratedGradleApiJarCacheDir() }
+
+
+/**
+ * Computes a project and classpath specific `intTestHomeDir/generatedApiJars` directory.
+ */
+private
+fun DistributionTest.defaultGeneratedGradleApiJarCacheDir(): Directory =
+    project.rootProject.layout.projectDirectory.dir("intTestHomeDir/generatedApiJars/${project.version}/${project.name}-$classpathHash")
+
+
+private
+val DistributionTest.classpathHash
+    get() = project.classPathHashOf(classpath)
+
+
+private
+fun Project.classPathHashOf(files: FileCollection) =
+    serviceOf<ClasspathHasher>().hash(DefaultClassPath.of(files))

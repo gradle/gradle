@@ -95,9 +95,13 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     public boolean stdOutIsAttachedToTerminal() {
-        ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
-        ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
-        return consoleMetaData != null && consoleMetaData.isStdOut();
+        try {
+            ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
+            ConsoleMetaData consoleMetaData = consoleDetector.getConsole();
+            return consoleMetaData != null && consoleMetaData.isStdOut();
+        } catch (RuntimeException e) {
+            return false;
+        }
     }
 
     /**

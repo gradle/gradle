@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 
@@ -24,6 +25,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
+    @ToBeFixedForInstantExecution
     def "Source set defined on dependencies"() {
         setup:
         buildFile << """
@@ -49,6 +51,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 
+    @ToBeFixedForInstantExecution
     def "Source sets defined on source folders"() {
         setup:
         buildFile << """
@@ -67,6 +70,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         classpath.sourceDir('src/test/java').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 
+    @ToBeFixedForInstantExecution
     def "Source set information is customizable in whenMerged block"() {
         setup:
         buildFile << """
@@ -99,6 +103,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'main,test,integTest')
     }
 
+    @ToBeFixedForInstantExecution
     def "Source dirs have default output locations"() {
         setup:
         buildFile << """
@@ -131,6 +136,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         classpath.sourceDir('src/int_test/java').assertOutputLocation('bin/integTest')
     }
 
+    @ToBeFixedForInstantExecution
     def "Source folder output location can be customized in whenMerged block"() {
         setup:
         buildFile << """
@@ -154,6 +160,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         classpath.sourceDir('src/main/resources').assertOutputLocation('out/res')
     }
 
+    @ToBeFixedForInstantExecution
     def "Overlapping default and source folder output paths are deduplicated"() {
         setup:
         buildFile << """

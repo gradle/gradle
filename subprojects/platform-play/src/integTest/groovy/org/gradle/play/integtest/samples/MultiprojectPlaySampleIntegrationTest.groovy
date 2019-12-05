@@ -15,11 +15,15 @@
  */
 
 package org.gradle.play.integtest.samples
+
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.junit.Rule
 
-import static org.gradle.integtests.fixtures.UrlValidator.*
+import static org.gradle.integtests.fixtures.UrlValidator.assertBinaryUrlContent
+import static org.gradle.integtests.fixtures.UrlValidator.assertUrlContent
+import static org.gradle.integtests.fixtures.UrlValidator.assertUrlContentContains
 
 class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegrationTest {
     @Rule
@@ -47,6 +51,7 @@ class MultiprojectPlaySampleIntegrationTest extends AbstractPlaySampleIntegratio
         return new File(playSample.dir, "modules/${module}/public/${asset}")
     }
 
+    @ToBeFixedForInstantExecution
     def "can run module subproject independently" () {
         when:
         executer.usingInitScript(initScript)

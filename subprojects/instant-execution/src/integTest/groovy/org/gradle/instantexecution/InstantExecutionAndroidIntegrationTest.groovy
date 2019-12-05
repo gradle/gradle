@@ -17,9 +17,10 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
-
+@LeaksFileHandles("TODO: AGP (intentionally) does not get a ‘build finished’ event and so does not close some files")
 class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAndroidIntegrationTest {
 
     @Rule
@@ -71,16 +72,14 @@ class InstantExecutionAndroidIntegrationTest extends AbstractInstantExecutionAnd
 
     def "android 3.6 minimal build clean assembleDebug"() {
         when:
-        executer.expectDeprecationWarning() // Coming from Android plugin
         instantRun("assembleDebug")
 
         then:
         instantExecution.assertStateStored()
 
         when:
-        executer.expectDeprecationWarning() // Coming from Android plugin
+        executer.expectDeprecationWarning("Internal API constructor DefaultDomainObjectSet(Class<T>) has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use ObjectFactory.domainObjectSet(Class<T>) instead.")
         run 'clean'
-        // Instant execution avoid registering the listener inside Android plugin
         instantRun("assembleDebug")
 
         then:

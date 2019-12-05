@@ -42,7 +42,7 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         with(classpath.sourceCollections[0]) {
             it instanceof Configuration
             it.state == Configuration.State.UNRESOLVED
-            it.dependencies.size() == 2
+            it.dependencies.size() == 3
             it.dependencies.any { d ->
                 d.group == "org.scala-lang" &&
                 d.name == "scala-compiler" &&
@@ -51,6 +51,11 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
             it.dependencies.any { d ->
                 d.group == "org.scala-sbt" &&
                 d.name == "compiler-bridge_2.10" &&
+                d.version == DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
+            }
+            it.dependencies.any { d ->
+                d.group == "org.scala-sbt" &&
+                d.name == "compiler-interface" &&
                 d.version == DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
             }
         }

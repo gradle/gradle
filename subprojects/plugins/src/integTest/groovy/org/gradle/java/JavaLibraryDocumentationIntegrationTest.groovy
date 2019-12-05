@@ -45,16 +45,16 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
                         }
                     }
                 }
-                
+
                 dependencies { // also get my own!
                     javadoc project(':a')
                     sources project(':a')
                 }
-                
+
                 dependencies {
                     api project(':b')
                 }
-                
+
                 task collectJavadoc(type: Copy) {
                     from configurations.javadoc
                     into "$buildDir/javadocs"
@@ -109,7 +109,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << '''
             subprojects {
-                java { publishJavadoc() }
+                java { withJavadocJar() }
             }
         '''
         then:
@@ -126,7 +126,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         when:
         buildFile << '''
             subprojects {
-                java { publishSources() }
+                java { withSourcesJar() }
             }
         '''
         then:
@@ -138,7 +138,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             subprojects {
                 java {
-                    publishSources()
+                    withSourcesJar()
                 }
                 configurations {
                     sourcesElements.extendsFrom api, implementation
@@ -163,7 +163,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             subprojects {
                 java {
-                    publishJavadoc()
+                    withJavadocJar()
                 }
                 configurations {
                     javadocElements.extendsFrom api

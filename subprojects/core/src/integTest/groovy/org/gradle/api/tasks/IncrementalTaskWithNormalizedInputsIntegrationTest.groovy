@@ -120,7 +120,7 @@ class IncrementalTaskWithNormalizedInputsIntegrationTest extends AbstractIntegra
             task ${INCREMENTAL_TASK_NAME}(type: IncrementalTask) {}
         """
     }
-    
+
     private static String asFileList(List<? extends File> inputs) {
         inputs.collect { "'${TextUtil.escapeString(it.absolutePath)}'" }.join(", ")
     }

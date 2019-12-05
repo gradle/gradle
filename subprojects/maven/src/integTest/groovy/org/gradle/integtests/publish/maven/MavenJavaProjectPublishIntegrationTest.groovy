@@ -16,6 +16,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import spock.lang.Issue
 
@@ -27,6 +28,7 @@ class MavenJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3513")
+    @ToBeFixedForInstantExecution
     def "can publish jar and meta-data to maven repository"() {
         given:
         using m2
@@ -85,6 +87,7 @@ uploadArchives {
         assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("commons-beanutils:commons-beanutils:1.8.3", new MavenDependencyExclusion("*", "commons-logging"))
     }
 
+    @ToBeFixedForInstantExecution
     def "compile only dependencies are not included in published pom"() {
         given:
         using m2
@@ -124,6 +127,7 @@ uploadArchives {
         mavenModule.parsedPom.scopes.size() == 0
     }
 
+    @ToBeFixedForInstantExecution
     void "defaultDependencies are included in published pom file"() {
         given:
         using m2
@@ -159,6 +163,7 @@ uploadArchives {
         mavenModule.parsedPom.scopes.compile?.expectDependency('commons-collections:commons-collections:3.2.2')
     }
 
+    @ToBeFixedForInstantExecution
     void "dependency mutations are reflected in published pom file"() {
         given:
         using m2

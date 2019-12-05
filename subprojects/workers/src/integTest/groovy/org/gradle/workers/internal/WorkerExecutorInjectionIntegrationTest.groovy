@@ -35,7 +35,7 @@ class WorkerExecutorInjectionIntegrationTest extends AbstractWorkerExecutorInteg
 
         and:
         failure.assertHasCause("Could not create an instance of type InjectingExecution.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of $forbiddenType, or no service of type $forbiddenType")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type $forbiddenType.simpleName, or no service of type $forbiddenType.simpleName")
 
         where:
         forbiddenType << [Project]

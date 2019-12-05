@@ -19,6 +19,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
+import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.MutationGuards
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
@@ -34,6 +35,7 @@ import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -78,38 +80,42 @@ class TestUtil {
     }
 
     static DomainObjectCollectionFactory domainObjectCollectionFactory() {
-        return new DefaultDomainObjectCollectionFactory(instantiatorFactory(), services(), CollectionCallbackActionDecorator.NOOP, MutationGuards.identity())
+        return services().get(DomainObjectCollectionFactory)
     }
 
     static ObjectFactory objectFactory() {
-        return objFactory(TestFiles.resolver().newResolver(new File(".").absoluteFile), TestFiles.fileCollectionFactory())
+        return services().get(ObjectFactory)
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
         def fileResolver = TestFiles.resolver(baseDir)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
-        return objFactory(fileResolver, fileCollectionFactory)
+        return createServices(fileResolver, fileCollectionFactory).get(ObjectFactory)
     }
 
-    private static ObjectFactory objFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        def services = new DefaultServiceRegistry(services())
-        def factory = new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
+    private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        def services = new DefaultServiceRegistry()
         services.register {
-            it.add(ObjectFactory, factory)
+            it.add(ProviderFactory, new DefaultProviderFactory())
+            it.add(InstantiatorFactory, instantiatorFactory())
+            it.add(TestCrossBuildInMemoryCacheFactory)
+            it.add(NamedObjectInstantiator)
+            it.add(CollectionCallbackActionDecorator, CollectionCallbackActionDecorator.NOOP)
+            it.add(MutationGuard, MutationGuards.identity())
+            it.add(DefaultDomainObjectCollectionFactory)
+            it.addProvider(new Object() {
+                ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+                    return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory)
+                }
+            })
             it.add(ProjectLayout, new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), fileCollectionFactory))
         }
-        return factory
+        return services
     }
 
     static ServiceRegistry services() {
         if (services == null) {
-            services = new DefaultServiceRegistry()
-            services.register {
-                it.add(DefaultProviderFactory)
-                it.add(InstantiatorFactory, instantiatorFactory())
-                it.add(TestCrossBuildInMemoryCacheFactory)
-                it.add(NamedObjectInstantiator)
-            }
+            services = createServices(TestFiles.resolver().newResolver(new File(".").absoluteFile), TestFiles.fileCollectionFactory())
         }
         return services
     }

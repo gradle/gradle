@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 
 class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
+
     def "task can use Path to represent input and output locations on annotated properties"() {
         buildFile << """
             import java.nio.file.Path

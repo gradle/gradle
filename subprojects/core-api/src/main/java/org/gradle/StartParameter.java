@@ -96,6 +96,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean writeDependencyLocks;
+    private List<String> writeDependencyVerifications = emptyList();
     private List<String> lockedDependenciesToUpdate = emptyList();
 
     /**
@@ -249,6 +250,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.writeDependencyLocks = writeDependencyLocks;
+        p.writeDependencyVerifications = writeDependencyVerifications;
         p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
         return p;
     }
@@ -844,6 +846,32 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
         this.lockedDependenciesToUpdate = Lists.newArrayList(lockedDependenciesToUpdate);
         this.writeDependencyLocks = true;
+    }
+
+    /**
+     * Indicates if a dependency verification metadata file should be written at the
+     * end of this build. If the list is not empty, then it means we need to generate
+     * or update the dependency verification file with the checksums specified in the
+     * list.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public List<String> getWriteDependencyVerifications() {
+        return writeDependencyVerifications;
+    }
+
+    /**
+     * Tells if a dependency verification metadata file should be written at the end
+     * of this build.
+     *
+     * @param checksums the list of checksums to generate
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public void setWriteDependencyVerifications(List<String> checksums) {
+        this.writeDependencyVerifications = checksums;
     }
 
     /**

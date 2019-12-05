@@ -29,9 +29,12 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Bean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BrokenConstructor
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceContainerPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileCollectionBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
@@ -178,6 +181,16 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.names == ["one"] as Set
     }
 
+    def canConstructInstanceOfInterfaceWithDomainObjectSetGetter() {
+        def bean = create(InterfaceDomainSetPropertyBean)
+
+        expect:
+        bean.prop.toString() == "[]"
+        bean.prop.empty
+        bean.prop.add(Stub(NamedBean))
+        bean.prop.size() == 1
+    }
+
     def canConstructInstanceOfInterfaceWithNestedGetter() {
         def projectDir = tmpDir.testDirectory
         def bean = create(InterfaceNestedBean)
@@ -263,6 +276,21 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         InterfaceListPropertyBean      | _
         InterfaceSetPropertyBean       | _
         InterfaceMapPropertyBean       | _
+    }
+
+    def "can construct instance of class without running its constructor to use for deserialization"() {
+        def bean = createForSerialization(BrokenConstructor)
+
+        expect:
+        !bean.value.present
+        bean.bean != null
+    }
+
+    def canConstructInstanceOfInterfaceWithReadOnlyMethodsWithCovariantReturnTypeWhereOverriddenTypesAreNotSupported() {
+        def bean = create(AbstractCovariantReadOnlyPropertyBean)
+
+        expect:
+        bean.prop.toString() == "property 'prop'"
     }
 
     def canConstructInstanceOfInterfaceWithDefaultMethodsOnly() {

@@ -29,6 +29,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
@@ -104,8 +105,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         RegularFileProperty.class,
         DirectoryProperty.class,
         Property.class,
-        NamedDomainObjectContainer.class
+        NamedDomainObjectContainer.class,
+        DomainObjectSet.class
     );
+    private static final Object[] NO_PARAMS = new Object[0];
 
     private final CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClasses;
     private final ImmutableSet<Class<? extends Annotation>> disabledAnnotations;
@@ -139,7 +142,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     }
 
     private <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
-        return new TypeToken<Provider<T>>() {}.where(new TypeParameter<T>() {}, providerType);
+        return new TypeToken<Provider<T>>() {
+        }.where(new TypeParameter<T>() {
+        }, providerType);
     }
 
     @Override
@@ -185,7 +190,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
         validators.add(new InjectionAnnotationValidator(enabledAnnotations, allowedTypesForAnnotation));
 
-        final Class<?> generatedClass;
+        Class<?> generatedClass;
         try {
             ClassInspectionVisitor inspectionVisitor = start(type);
 
@@ -213,7 +218,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             throw e;
         } catch (Throwable e) {
             TreeFormatter formatter = new TreeFormatter();
-            formatter.node("Could not generate a decorated class for ");
+            formatter.node("Could not generate a decorated class for type ");
             formatter.appendType(type);
             formatter.append(".");
             throw new ClassGenerationException(formatter.toString(), e);
@@ -240,7 +245,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
 
-    protected abstract <T> T newInstance(Constructor<T> constructor, ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
+    protected abstract InstantiationStrategy createUsingConstructor(Constructor<?> constructor);
+
+    protected abstract InstantiationStrategy createForSerialization(Class<?> generatedType, Class<?> baseClass);
 
     private void inspectType(Class<?> type, List<ClassValidator> validators, List<ClassGenerationHandler> generationHandlers, UnclaimedPropertyHandler unclaimedHandler) {
         ClassDetails classDetails = ClassInspector.inspect(type);
@@ -368,6 +375,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
             for (final Constructor<?> constructor : generatedClass.getDeclaredConstructors()) {
                 if (!constructor.isSynthetic()) {
+                    constructor.setAccessible(true);
                     builder.add(new GeneratedConstructorImpl(constructor));
                 }
             }
@@ -390,16 +398,36 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return constructors;
         }
 
+        @Override
+        public SerializationConstructor<Object> getSerializationConstructor(Class<? super Object> baseClass) {
+            return new SerializationConstructorImpl(baseClass);
+        }
+
+        private class SerializationConstructorImpl implements SerializationConstructor<Object> {
+            private final InstantiationStrategy strategy;
+
+            public SerializationConstructorImpl(Class<?> baseClass) {
+                this.strategy = createForSerialization(generatedClass, baseClass);
+            }
+
+            @Override
+            public Object newInstance(ServiceLookup services, InstanceGenerator nested) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+                return strategy.newInstance(services, nested, null, NO_PARAMS);
+            }
+        }
+
         private class GeneratedConstructorImpl implements GeneratedConstructor<Object> {
             private final Constructor<?> constructor;
+            private final InstantiationStrategy strategy;
 
             public GeneratedConstructorImpl(Constructor<?> constructor) {
                 this.constructor = constructor;
+                this.strategy = createUsingConstructor(constructor);
             }
 
             @Override
             public Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException {
-                return AbstractClassGenerator.this.newInstance(constructor, services, nested, displayName, params);
+                return strategy.newInstance(services, nested, displayName, params);
             }
 
             @Override
@@ -420,11 +448,6 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             @Override
             public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
                 return annotationsTriggeringServiceInjection.contains(serviceAnnotation);
-            }
-
-            @Override
-            public Class<?> getGeneratedClass() {
-                return constructor.getDeclaringClass();
             }
 
             @Override
@@ -579,6 +602,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                 mainGetter = metadata;
             } else if (mainGetter.getReturnType().equals(Boolean.TYPE) && !metadata.getReturnType().equals(Boolean.TYPE)) {
                 // Prefer non-boolean over boolean
+                mainGetter = metadata;
+            } else if (mainGetter.getReturnType().isAssignableFrom(metadata.getReturnType())) {
+                // Prefer the most specialized type
                 mainGetter = metadata;
             }
         }
@@ -1225,6 +1251,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         void attachDuringConstruction(PropertyMetadata property);
 
         ClassGenerationVisitor builder();
+    }
+
+    protected interface InstantiationStrategy {
+        Object newInstance(ServiceLookup services, InstanceGenerator nested, @Nullable Describable displayName, Object[] params) throws InvocationTargetException, IllegalAccessException, InstantiationException;
     }
 
     protected interface ClassGenerationVisitor {

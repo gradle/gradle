@@ -18,6 +18,7 @@ package org.gradle.language
 
 import groovy.io.FileType
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
 import org.gradle.test.fixtures.file.TestFile
@@ -68,6 +69,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs = new CompilationOutputsFixture(objectFileDir)
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles changed source file only"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -86,6 +88,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles all source files that include changed header file"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -104,6 +107,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFiles allSources
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles only source file that includes changed header file"() {
         given:
         sourceFile << """
@@ -126,6 +130,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         outputs.recompiledFile sourceFile
     }
 
+    @ToBeFixedForInstantExecution
     def "does not recompile when fallback mechanism is used and empty directory added to include directory"() {
         given:
         file("src/main/headers/empty/directory").mkdirs()
@@ -143,6 +148,7 @@ abstract class AbstractNativeLanguageIncrementalCompileIntegrationTest extends A
         skipped compileTask
     }
 
+    @ToBeFixedForInstantExecution
     def "does not recompile when included header has the same name as a directory"() {
         given:
         buildFile << """
@@ -181,6 +187,7 @@ model {
         skipped compileTask
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles when included header has the same name as a directory and the directory becomes a file"() {
         given:
         buildFile << """
@@ -223,6 +230,7 @@ model {
 
     }
 
+    @ToBeFixedForInstantExecution
     def "source is always recompiled if it includes header via complex macro"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
@@ -275,6 +283,7 @@ model {
         skipped compileTask
     }
 
+    @ToBeFixedForInstantExecution
     def "source is recompiled when headers form a cycle and one is changed"() {
         given:
         def headerFile1 = file("src/main/headers/bar.h")
@@ -318,6 +327,7 @@ model {
         skipped compileTask
     }
 
+    @ToBeFixedForInstantExecution
     def "source is not recompiled when preprocessor removed header is changed"() {
         given:
         def notIncluded = file("src/main/headers/notIncluded.h")
@@ -361,6 +371,7 @@ model {
         executedAndNotSkipped compileTask
     }
 
+    @ToBeFixedForInstantExecution
     def "source is compiled when preprocessor removed header does not exist"() {
         given:
         sourceFile << """
@@ -393,6 +404,7 @@ model {
         skipped compileTask
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles source file when transitively included header file is changed"() {
         given:
         def transitiveHeaderFile = file("src/main/headers/transitive.h") << """
@@ -422,6 +434,7 @@ model {
         outputs.recompiledFile sourceFile
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles source file when an included header file is renamed"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -439,6 +452,7 @@ model {
         failure.assertHasDescription("Execution failed for task '${compileTask}'.")
     }
 
+    @ToBeFixedForInstantExecution
     def "does not recompile any sources when unused header file is changed"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -458,6 +472,7 @@ model {
         outputs.noneRecompiled()
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles when include path is changed so that replacement header file occurs before previous header"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -491,6 +506,7 @@ model {
         outputs.recompiledFiles allSources
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles when replacement header file is added before previous header to existing include path"() {
         given:
         buildFile << """
@@ -524,6 +540,7 @@ model {
         outputs.recompiledFiles allSources
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles when replacement header file with different content is added to source directory"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -542,6 +559,7 @@ model {
         outputs.recompiledFiles allSources + [commonHeaderFile]
     }
 
+    @ToBeFixedForInstantExecution
     def "does not recompile when replacement header file with same content is added to source directory"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -560,6 +578,7 @@ model {
         outputs.recompiledFiles sharedHeaderFile, commonHeaderFile
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles all source files and removes stale outputs when compiler arg changes"() {
         given:
         def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
@@ -597,6 +616,7 @@ model {
         objectFileFor(extraSource).assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     def "recompiles all source files when generated object files are removed"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -613,6 +633,7 @@ model {
         outputs.recompiledFiles allSources
     }
 
+    @ToBeFixedForInstantExecution
     def "removes output file when source file is renamed"() {
         given:
         outputs.snapshot { run "mainExecutable" }
@@ -630,6 +651,7 @@ model {
         objectFileFor(sourceFile).assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     def "removes output file when source file is removed"() {
         given:
         def extraSource = file("src/main/${app.sourceType}/extra.${app.sourceExtension}")
@@ -654,6 +676,7 @@ model {
         outputs.noneRecompiled()
     }
 
+    @ToBeFixedForInstantExecution
     def "removes output files when all source files are removed"() {
         given:
         run "mainExecutable"
@@ -698,6 +721,7 @@ model {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "incremental compile is not effected by other compile tasks"() {
         given:
         buildFile << """

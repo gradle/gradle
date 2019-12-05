@@ -43,7 +43,7 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     @Deprecated
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type), CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)");
+        DeprecationLogger.nagUserOfDeprecated("Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)", "Please use ObjectFactory.polymorphicDomainObjectContainer(Class<T>) instead.");
     }
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {

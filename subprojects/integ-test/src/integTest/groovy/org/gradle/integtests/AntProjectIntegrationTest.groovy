@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
@@ -25,6 +26,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 class AntProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
+    @ToBeFixedForInstantExecution
     void antTargetsAndGradleTasksCanDependOnEachOther() {
         testFile('build.xml') << """
 <project>
@@ -53,6 +55,7 @@ task ant(dependsOn: target1)
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canImportMultipleBuildFilesWithDifferentBaseDirs() {
         testFile('project1/build.xml') << """
 <project>
@@ -87,6 +90,7 @@ task ant(dependsOn: [target1, target2])
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void handlesAntImportsOk() {
         testFile('imported.xml') << """
 <project>
@@ -141,6 +145,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void reportsAntTaskExecutionFailure() {
         testFile('build.xml') << """
 <project>
@@ -159,6 +164,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void targetDependenciesAreOrderedBasedOnDeclarationSequence() {
         testFile('build.xml') << """
 <project>
@@ -185,6 +191,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void targetDependenciesOrderDoesNotCreateCycle() {
         testFile('build.xml') << """
 <project>
@@ -227,6 +234,7 @@ ant.importBuild('build.xml')
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canApplyJavaPluginWithAntBuild() {
         testFile('build.xml') << """
 <project>
@@ -250,6 +258,7 @@ task ant(dependsOn: 'ant-target1')
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canRenameAntDelegateTask() {
         testFile('build.xml') << """
 <project>

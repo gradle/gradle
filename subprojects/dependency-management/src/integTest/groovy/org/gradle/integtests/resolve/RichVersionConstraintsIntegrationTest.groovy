@@ -41,7 +41,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         buildFile << """
             dependencies {
                 conf('org:foo:1.0!!')
-            }           
+            }
         """
 
         when:
@@ -57,6 +57,39 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo:{strictly 1.0}", "org:foo:1.0")
+            }
+        }
+    }
+
+    void "can declare a strict dependency constraint onto an external component"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo')
+                constraints {
+                    conf('org:foo:1.0!!')
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo", "org:foo:1.0")
+                constraint("org:foo:{strictly 1.0}", "org:foo:1.0")
             }
         }
     }
@@ -218,7 +251,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -261,7 +294,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             dependencies {
                 conf('org:foo:1.0!!')
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -308,7 +341,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -359,7 +392,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                 }
                 conf('org:bar:1.0')
             }
-                          
+
         """
 
         when:
@@ -414,7 +447,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             dependencies {
                 conf('org:foo:17')
                 conf project(path: 'other', configuration: 'conf')
-            }                       
+            }
         """
         file("other/build.gradle") << """
             $repositoryDeclaration
@@ -428,7 +461,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                         strictly '15'
                     }
                 }
-            }       
+            }
         """
         settingsFile << "\ninclude 'other'"
 
@@ -444,7 +477,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:17'
    Dependency path ':test:unspecified' --> 'test:other:unspecified' --> 'org:foo:{strictly 15}'""")
 
@@ -469,7 +502,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                         strictly '15'
                     }
                 }
-            }                       
+            }
         """
         settingsFile << "\ninclude 'other'"
 
@@ -487,7 +520,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:{strictly 17}'
    Dependency path ':test:unspecified' --> 'org:foo:{strictly 15}'""")
 
@@ -510,7 +543,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
             dependencies {
                 conf('org:foo:17')
                 conf('org:bar:1')
-            }                       
+            }
         """
         settingsFile << "\ninclude 'other'"
 
@@ -531,7 +564,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:17'
    Dependency path ':test:unspecified' --> 'org:bar:1' --> 'org:foo:{strictly 15}'""")
 
@@ -554,7 +587,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                     }
                 }
                 conf project(path: 'other', configuration: 'conf')
-            }                       
+            }
         """
         file("other/build.gradle") << """
             $repositoryDeclaration
@@ -568,7 +601,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                         strictly '[17,18]'
                     }
                 }
-            }       
+            }
         """
         settingsFile << "\ninclude 'other'"
 
@@ -628,7 +661,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:15'
    Dependency path ':test:unspecified' --> 'org:foo:{strictly [0,1]}'""")
     }
@@ -646,7 +679,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                       reject '1.1'
                    }
                 }
-            }           
+            }
         """
 
         when:
@@ -689,7 +722,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                       reject '1.1'
                    }
                 }
-            }           
+            }
         """
 
         when:
@@ -743,7 +776,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                    }
                 }
                 conf 'org:bar:1.0'
-            }           
+            }
         """
 
         when:
@@ -763,7 +796,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:{require 1.0; reject 1.1}'
    Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:1.1'""")
     }
@@ -783,7 +816,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                       reject '[1.2, 1.5]'
                    }
                 }
-            }           
+            }
         """
 
         when:
@@ -818,7 +851,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                       reject '1.1', '1.2'
                    }
                 }
-            }           
+            }
         """
 
         when:
@@ -859,7 +892,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                       reject $rejectString
                    }
                 }
-            }           
+            }
         """
 
         when:
@@ -921,7 +954,7 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
                       rejectAll()
                    }
                 }
-            }           
+            }
         """
 
         when:

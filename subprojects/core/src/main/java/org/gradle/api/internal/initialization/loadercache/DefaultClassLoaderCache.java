@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, SessionLifecycleListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultClassLoaderCache.class);
@@ -59,7 +60,16 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
     }
 
     @Override
-    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, HashCode implementationHash) {
+    public ClassLoader get(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash) {
+        return doGet(id, classPath, parent, filterSpec, implementationHash, this::createClassLoader);
+    }
+
+    @Override
+    public ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<ClassLoader, ClassLoader> factoryFunction, @Nullable HashCode implementationHash) {
+        return doGet(id, classPath, parent, null, implementationHash, spec -> factoryFunction.apply(spec.parent));
+    }
+
+    private ClassLoader doGet(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, @Nullable FilteringClassLoader.Spec filterSpec, @Nullable HashCode implementationHash, Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {
         if (implementationHash == null) {
             implementationHash = classpathHasher.hash(classPath);
         }
@@ -69,7 +79,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
             usedInThisBuild.add(id);
             CachedClassLoader cachedLoader = byId.get(id);
             if (cachedLoader == null || !cachedLoader.is(spec)) {
-                CachedClassLoader newLoader = getAndRetainLoader(classPath, spec, id);
+                CachedClassLoader newLoader = getAndRetainLoader(spec, id, factoryFunction);
                 byId.put(id, newLoader);
 
                 if (cachedLoader != null) {
@@ -83,19 +93,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
         }
     }
 
-    @Override
-    public <T extends ClassLoader> T put(ClassLoaderId id, T classLoader) {
-        synchronized (lock) {
-            remove(id);
-            ClassLoaderSpec spec = new UnmanagedClassLoaderSpec(classLoader);
-            CachedClassLoader cachedClassLoader = new CachedClassLoader(classLoader, spec, null);
-            cachedClassLoader.retain(id);
-            byId.put(id, cachedClassLoader);
-            bySpec.put(spec, cachedClassLoader);
-            usedInThisBuild.add(id);
-        }
-        return classLoader;
-    }
 
     @Override
     public void remove(ClassLoaderId id) {
@@ -108,22 +105,26 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
         }
     }
 
-    private CachedClassLoader getAndRetainLoader(ClassPath classPath, ManagedClassLoaderSpec spec, ClassLoaderId id) {
+    private CachedClassLoader getAndRetainLoader(ManagedClassLoaderSpec spec, ClassLoaderId id, Function<ManagedClassLoaderSpec, ClassLoader> factoryFunction) {
         CachedClassLoader cachedLoader = bySpec.get(spec);
         if (cachedLoader == null) {
             ClassLoader classLoader;
             CachedClassLoader parentCachedLoader = null;
             if (spec.isFiltered()) {
-                parentCachedLoader = getAndRetainLoader(classPath, spec.unfiltered(), id);
+                parentCachedLoader = getAndRetainLoader(spec.unfiltered(), id, factoryFunction);
                 classLoader = classLoaderFactory.createFilteringClassLoader(parentCachedLoader.classLoader, spec.filterSpec);
             } else {
-                classLoader = classLoaderFactory.createChildClassLoader(spec.name, spec.parent, classPath, spec.implementationHash);
+                classLoader = factoryFunction.apply(spec);
             }
             cachedLoader = new CachedClassLoader(classLoader, spec, parentCachedLoader);
             bySpec.put(spec, cachedLoader);
         }
 
         return cachedLoader.retain(id);
+    }
+
+    private ClassLoader createClassLoader(ManagedClassLoaderSpec spec) {
+        return classLoaderFactory.createChildClassLoader(spec.name, spec.parent, spec.classPath, spec.implementationHash);
     }
 
     @VisibleForTesting
@@ -164,14 +165,6 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable, Ses
     }
 
     private static abstract class ClassLoaderSpec {
-    }
-
-    private static class UnmanagedClassLoaderSpec extends ClassLoaderSpec {
-        private final ClassLoader loader;
-
-        public UnmanagedClassLoaderSpec(ClassLoader loader) {
-            this.loader = loader;
-        }
     }
 
     private static class ManagedClassLoaderSpec extends ClassLoaderSpec {

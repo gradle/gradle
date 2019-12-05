@@ -36,6 +36,7 @@ import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.util.TestUtil
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -92,6 +93,11 @@ class UserTypesCodecTest {
         )
 
         assertThat(
+            decodedSerializable.transientShort,
+            equalTo(SerializableWriteObjectBean.EXPECTED_SHORT)
+        )
+
+        assertThat(
             decodedSerializable.transientInt,
             equalTo(SerializableWriteObjectBean.EXPECTED_INT)
         )
@@ -99,6 +105,16 @@ class UserTypesCodecTest {
         assertThat(
             decodedSerializable.transientString,
             equalTo(SerializableWriteObjectBean.EXPECTED_STRING)
+        )
+
+        assertThat(
+            decodedSerializable.transientFloat,
+            equalTo(SerializableWriteObjectBean.EXPECTED_FLOAT)
+        )
+
+        assertThat(
+            decodedSerializable.transientDouble,
+            equalTo(SerializableWriteObjectBean.EXPECTED_DOUBLE)
         )
 
         assertThat(
@@ -112,6 +128,14 @@ class UserTypesCodecTest {
     fun `can handle Serializable writeReplace readResolve`() {
         assertThat(
             roundtrip(SerializableWriteReplaceBean()).value,
+            equalTo<Any>("42")
+        )
+    }
+
+    @Test
+    fun `can handle Serializable with only writeObject`() {
+        assertThat(
+            roundtrip(SerializableWriteObjectOnlyBean()).value,
             equalTo<Any>("42")
         )
     }
@@ -170,14 +194,32 @@ class UserTypesCodecTest {
         }
     }
 
+    class SerializableWriteObjectOnlyBean(var value: Any? = null) : Serializable {
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            value = "42"
+            objectOutputStream.defaultWriteObject()
+        }
+    }
+
     class SerializableWriteObjectBean(val value: Any) : Serializable {
 
         companion object {
 
+            const val EXPECTED_SHORT: Short = Short.MAX_VALUE
+
             const val EXPECTED_INT: Int = 42
 
             const val EXPECTED_STRING: String = "42"
+
+            const val EXPECTED_FLOAT: Float = 1.618f
+
+            const val EXPECTED_DOUBLE: Double = Math.PI
         }
+
+        @Transient
+        var transientShort: Short? = null
 
         @Transient
         var transientInt: Int? = null
@@ -185,20 +227,32 @@ class UserTypesCodecTest {
         @Transient
         var transientString: String? = null
 
+        @Transient
+        var transientFloat: Float? = null
+
+        @Transient
+        var transientDouble: Double? = null
+
         private
         fun writeObject(objectOutputStream: ObjectOutputStream) {
             objectOutputStream.run {
                 defaultWriteObject()
+                writeShort(EXPECTED_SHORT.toInt())
                 writeInt(EXPECTED_INT)
                 writeUTF(EXPECTED_STRING)
+                writeFloat(EXPECTED_FLOAT)
+                writeDouble(EXPECTED_DOUBLE)
             }
         }
 
         private
         fun readObject(objectInputStream: ObjectInputStream) {
             objectInputStream.defaultReadObject()
+            transientShort = objectInputStream.readShort()
             transientInt = objectInputStream.readInt()
             transientString = objectInputStream.readUTF()
+            transientFloat = objectInputStream.readFloat()
+            transientDouble = objectInputStream.readDouble()
         }
     }
 
@@ -268,6 +322,7 @@ class UserTypesCodecTest {
         DefaultReadContext(
             codec = codecs().userTypesCodec,
             decoder = KryoBackedDecoder(inputStream),
+            instantiatorFactory = TestUtil.instantiatorFactory(),
             constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
             logger = mock()
         )
@@ -284,17 +339,19 @@ class UserTypesCodecTest {
         projectStateRegistry = mock(),
         taskNodeFactory = mock(),
         fingerprinterRegistry = mock(),
-        classLoaderHierarchyHasher = mock(),
+        projectFinder = mock(),
         buildOperationExecutor = mock(),
+        classLoaderHierarchyHasher = mock(),
         isolatableFactory = mock(),
         valueSnapshotter = mock(),
         fileCollectionFingerprinterRegistry = mock(),
+        buildServiceRegistry = mock(),
         isolatableSerializerRegistry = mock(),
-        projectFinder = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),
-        transformListener = mock()
+        transformListener = mock(),
+        valueSourceProviderFactory = mock()
     )
 
     @Test

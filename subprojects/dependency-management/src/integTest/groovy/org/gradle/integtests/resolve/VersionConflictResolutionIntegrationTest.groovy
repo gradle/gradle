@@ -17,6 +17,7 @@ package org.gradle.integtests.resolve
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -32,6 +33,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
 
+    @ToBeFixedForInstantExecution
     void "strict conflict resolution should fail due to conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -73,6 +75,7 @@ project(':tool') {
         failure.assertThatCause(containsString('Conflict(s) found for the following module(s):'))
     }
 
+    @ToBeFixedForInstantExecution
     void "strict conflict resolution should pass when no conflicts"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
 
@@ -639,6 +642,7 @@ task checkDeps {
     }
 
     @Issue("GRADLE-2555")
+    @ToBeFixedForInstantExecution
     void "batched up conflicts with conflicted parent and child"() {
         /*
         Dependency tree:
@@ -1580,6 +1584,41 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @NotYetImplemented
+    def "evicted hard dependency shouldn't add constraint on version"() {
+        given:
+        mavenRepo.module("org", "a", "1").publish()
+        mavenRepo.module("org", "a", "4").publish()
+        mavenRepo.module("org", "b", "1").dependsOn('org', 'a', '4').publish() // this will be evicted
+        mavenRepo.module('org', 'b', '2').publish()
+        mavenRepo.module('org', 'c', '1').dependsOn('org', 'd', '1').publish()
+        mavenRepo.module('org', 'd', '1').dependsOn('org', 'b', '2').publish()
+
+        buildFile << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+            configurations {
+                conf
+            }
+            dependencies {
+                conf 'org:a:1', 'org:b:1', 'org:c:1'
+            }
+            task checkDeps {
+                doLast {
+                    def files = configurations.conf*.name.sort()
+                    assert files == ['a-1.jar', 'b-2.jar', 'c-1.jar', 'd-1.jar']
+                }
+            }
+        """
+
+        when:
+        run 'checkDeps'
+
+        then:
+        noExceptionThrown()
+    }
+
+    @NotYetImplemented
     def "doesn't include evicted version from branch which has been deselected"() {
         given:
         mavenRepo.module('org', 'a', '1').dependsOn('org', 'b', '2').publish()
@@ -1614,6 +1653,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def 'order of dependency declaration does not effect transitive dependency versions'() {
         given:
         def foo11 = mavenRepo.module('org', 'foo', '1.1').publish()
@@ -1664,6 +1704,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle-private#1268")
+    @ToBeFixedForInstantExecution
     def "shouldn't fail if root component is also added through cycle, and that failOnVersionConflict() is used"() {
         settingsFile << """
             include "testlib", "common"
@@ -1698,6 +1739,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Issue("gradle/gradle#6403")
+    @ToBeFixedForInstantExecution
     def "shouldn't fail when forcing a dynamic version in resolution strategy"() {
 
         given:
@@ -1732,6 +1774,7 @@ task checkDeps(dependsOn: configurations.compile) {
     }
 
     @Unroll('optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)')
+    @ToBeFixedForInstantExecution
     def 'optional dependency marked as no longer pending reverts to pending if hard edge disappears (remover has constraint: #dependsOptional, root has constraint: #constraintsOptional)'() {
         given:
         def optional = mavenRepo.module('org', 'optional', '1.0').publish()
@@ -1782,6 +1825,7 @@ dependencies {
     }
 
     @Issue("gradle/gradle#8944")
+    @ToBeFixedForInstantExecution
     def 'verify that cleaning up constraints no longer causes a ConcurrentModificationException'() {
         given:
         // Direct dependency with transitive to be substituted by project

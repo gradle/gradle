@@ -29,7 +29,8 @@ import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.snapshot.DirectorySnapshot
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -70,7 +71,7 @@ class BuildCacheCommandFactoryTest extends Specification {
 
         def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), new FileMetadata(15, 234))
         def fileSnapshots = ImmutableMap.of(
-            "outputDir", new DirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), new FileMetadata(46, 123))), HashCode.fromInt(456)),
+            "outputDir", new CompleteDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), new FileMetadata(46, 123))), HashCode.fromInt(456)),
             "outputFile", outputFileSnapshot)
 
         when:
@@ -78,18 +79,17 @@ class BuildCacheCommandFactoryTest extends Specification {
 
         then:
         1 * originFactory.createReader(entity) >> originReader
+        1 * virtualFileSystem.update([outputDir.absolutePath, outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, input, originReader) >> new BuildCacheEntryPacker.UnpackResult(originMetadata, 123L, fileSnapshots)
 
         then:
-        1 * virtualFileSystem.updateWithKnownSnapshot(outputDir.absolutePath, _ as DirectorySnapshot) >> { args ->
-            DirectorySnapshot snapshot = args[1]
+        1 * virtualFileSystem.updateWithKnownSnapshot(_ as CompleteDirectorySnapshot) >> { CompleteFileSystemLocationSnapshot snapshot  ->
             assert snapshot.absolutePath == outputDir.absolutePath
             assert snapshot.name == outputDir.name
         }
-        1 * virtualFileSystem.updateWithKnownSnapshot(outputFileSnapshot.absolutePath, _ as RegularFileSnapshot) >> { args ->
-            RegularFileSnapshot snapshot = args[1]
+        1 * virtualFileSystem.updateWithKnownSnapshot(_ as RegularFileSnapshot) >> { CompleteFileSystemLocationSnapshot snapshot ->
             assert snapshot.absolutePath == outputFileSnapshot.absolutePath
             assert snapshot.name == outputFileSnapshot.name
             assert snapshot.hash == outputFileSnapshot.hash
@@ -115,6 +115,7 @@ class BuildCacheCommandFactoryTest extends Specification {
 
         then:
         1 * originFactory.createReader(entity) >> originReader
+        1 * virtualFileSystem.update([outputFile.absolutePath], _)
 
         then:
         1 * packer.unpack(entity, input, originReader) >> {
@@ -151,7 +152,7 @@ class BuildCacheCommandFactoryTest extends Specification {
 
     def entity(TestCacheableTree... trees) {
         return Stub(CacheableEntity) {
-            visitOutputTrees(_) >> { CacheableEntity.CacheableTreeVisitor visitor ->
+            visitOutputTrees(_ as CacheableEntity.CacheableTreeVisitor) >> { CacheableEntity.CacheableTreeVisitor visitor ->
                 trees.each { visitor.visitOutputTree(it.name, it.type, it.root) }
             }
         }

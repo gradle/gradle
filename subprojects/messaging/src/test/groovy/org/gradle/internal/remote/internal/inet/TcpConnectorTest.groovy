@@ -26,6 +26,8 @@ import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.Serializers
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.Issue
@@ -281,6 +283,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     }
 
     @Issue("GRADLE-2316")
+    @Requires(TestPrecondition.NOT_MAC_OS_X) // https://github.com/gradle/gradle-private/issues/2832
     def "detects self connect when outgoing connection binds to same port"() {
         given:
         def socketChannel = SocketChannel.open()

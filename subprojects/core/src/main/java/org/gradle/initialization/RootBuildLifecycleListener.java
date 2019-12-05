@@ -16,6 +16,8 @@
 
 package org.gradle.initialization;
 
+import org.gradle.api.internal.GradleInternal;
+
 /**
  * A listener that is notified when a root build is started and completed. No more than one root build may run at a given time.
  *
@@ -27,10 +29,10 @@ public interface RootBuildLifecycleListener {
     /**
      * Called at the start of the root build, immediately after the creation of the root build services.
      */
-    void afterStart();
+    void afterStart(GradleInternal gradle);
 
     /**
      * Called at the completion of the root build, immediately before destruction of the root build services.
      */
-    void beforeComplete();
+    void beforeComplete(GradleInternal gradle);
 }

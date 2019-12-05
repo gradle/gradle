@@ -58,11 +58,8 @@ import static org.gradle.cache.FileLockManager.LockMode.Exclusive;
 @ThreadSafe
 public class DefaultCacheAccess implements CacheCoordinator {
     private final static Logger LOG = LoggerFactory.getLogger(DefaultCacheAccess.class);
-    private final static Runnable NO_OP = new Runnable() {
-        @Override
-        public void run() {
-            // Empty initial operation to trigger onStartWork calls
-        }
+    private final static Runnable NO_OP = () -> {
+        // Empty initial operation to trigger onStartWork calls
     };
 
     private final String cacheDisplayName;
@@ -93,18 +90,8 @@ public class DefaultCacheAccess implements CacheCoordinator {
         this.executorFactory = executorFactory;
         this.operations = new CacheAccessOperationsStack();
 
-        Action<FileLock> onFileLockAcquireAction = new Action<FileLock>() {
-            @Override
-            public void execute(FileLock fileLock) {
-                afterLockAcquire(fileLock);
-            }
-        };
-        Action<FileLock> onFileLockReleaseAction = new Action<FileLock>() {
-            @Override
-            public void execute(FileLock fileLock) {
-                beforeLockRelease(fileLock);
-            }
-        };
+        Action<FileLock> onFileLockAcquireAction = this::afterLockAcquire;
+        Action<FileLock> onFileLockReleaseAction = this::beforeLockRelease;
 
         switch (lockOptions.getMode()) {
             case Shared:
@@ -285,12 +272,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
             if (entry == null) {
                 final File cacheFile = new File(baseDir, parameters.getCacheName() + ".bin");
                 LOG.debug("Creating new cache for {}, path {}, access {}", parameters.getCacheName(), cacheFile, this);
-                Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = new Factory<BTreePersistentIndexedCache<K, V>>() {
-                    @Override
-                    public BTreePersistentIndexedCache<K, V> create() {
-                        return doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
-                    }
-                };
+                Factory<BTreePersistentIndexedCache<K, V>> indexedCacheFactory = () -> doCreateCache(cacheFile, parameters.getKeySerializer(), parameters.getValueSerializer());
 
                 MultiProcessSafePersistentIndexedCache<K, V> indexedCache = new DefaultMultiProcessSafePersistentIndexedCache<K, V>(indexedCacheFactory, fileAccess);
                 CacheDecorator decorator = parameters.getCacheDecorator();
@@ -300,7 +282,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
                         useCache(NO_OP);
                     }
                 }
-                entry = new IndexedCacheEntry<K, V>(parameters, indexedCache);
+                entry = new IndexedCacheEntry<>(parameters, indexedCache);
                 caches.put(parameters.getCacheName(), entry);
                 if (fileLock != null) {
                     indexedCache.afterLockAcquire(stateAtOpen);
@@ -315,7 +297,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
     }
 
     <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
-        return new BTreePersistentIndexedCache<K, V>(cacheFile, keySerializer, valueSerializer);
+        return new BTreePersistentIndexedCache<>(cacheFile, keySerializer, valueSerializer);
     }
 
     /**
@@ -443,7 +425,7 @@ public class DefaultCacheAccess implements CacheCoordinator {
         }
 
         void assertCompatibleCacheParameters(PersistentIndexedCacheParameters<K, V> parameters) {
-            List<String> faultMessages = new ArrayList<String>();
+            List<String> faultMessages = new ArrayList<>();
 
             checkCacheNameMatch(faultMessages, parameters.getCacheName());
             checkCompatibleKeySerializer(faultMessages, parameters.getKeySerializer());

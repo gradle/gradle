@@ -18,11 +18,13 @@ package org.gradle.model
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.platform.base.ComponentSpec
 import spock.lang.Issue
 
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "provides basic meta-data for map"() {
         when:
         buildScript '''
@@ -61,6 +63,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         output.contains "to-string: ModelMap<Thing> 'things'"
     }
 
+    @ToBeFixedForInstantExecution
     def "can view as ModelElement"() {
         when:
         buildScript '''
@@ -285,6 +288,7 @@ class ModelMapIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot create 'components.main' with type '$FunctionalSourceSet.name' as this is not a subtype of '$ComponentSpec.name'.")
     }
 
+    @ToBeFixedForInstantExecution
     def "withType() returns empty collection for type not implementing ModelMap's base interface"() {
         buildFile << """
         apply plugin: ComponentModelBasePlugin

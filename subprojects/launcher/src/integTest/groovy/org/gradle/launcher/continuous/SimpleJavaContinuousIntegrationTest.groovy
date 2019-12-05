@@ -16,13 +16,14 @@
 
 package org.gradle.launcher.continuous
 
-
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 // NB: there's nothing specific about Java support and continuous.
 //     this spec just lays out some more practical use cases than the other targeted tests.
-class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
         buildFile << """
@@ -40,6 +41,7 @@ class SimpleJavaContinuousIntegrationTest extends Java7RequiringContinuousIntegr
         executed(":build")
     }
 
+    @ToBeFixedForInstantExecution
     def "can build when source dir is removed"() {
         when:
         file("src/main/java/Thing.java") << "class Thing {}"

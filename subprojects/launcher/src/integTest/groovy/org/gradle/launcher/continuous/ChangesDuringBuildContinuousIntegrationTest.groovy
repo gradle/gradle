@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.TestPrecondition
@@ -24,16 +26,18 @@ import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RetryConditions.cleanProjectDir
 import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
+
 // Continuous build will trigger a rebuild when an input file is changed during build execution
 @TestReproducibleArchives
 @Retry(condition = { TestPrecondition.LINUX && TestPrecondition.JDK8_OR_EARLIER && cleanProjectDir(instance) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
-class ChangesDuringBuildContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class ChangesDuringBuildContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def setup() {
         def quietPeriod = OperatingSystem.current().isMacOsX() ? 2000 : 250
         waitAtEndOfBuildForQuietPeriod(quietPeriod)
     }
 
+    @ToBeFixedForInstantExecution
     def "should trigger rebuild when java source file is changed during build execution"() {
         given:
         def inputFile = file("src/main/java/Thing.java")
@@ -126,6 +130,7 @@ jar.dependsOn postCompile
         changingInput << ['a', 'b', 'c', 'd']
     }
 
+    @ToBeFixedForInstantExecution
     def "new build should be triggered when input files to tasks are changed during the task is executing"(changingInput) {
         given:
         ['a', 'b', 'c', 'd'].each { file(it).createDir() }

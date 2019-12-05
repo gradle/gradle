@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.test.googletest
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -112,6 +113,7 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
         app.googleTestTests.writeSources(file("src/helloTest"))
     }
 
+    @ToBeFixedForInstantExecution
     def "buildDependentsHello assemble and check all hello binaries"() {
         given:
         useConventionalSourceLocations()
@@ -124,6 +126,7 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
         executed ':helloSharedLibrary', ':helloStaticLibrary', ':helloTestGoogleTestExe', ':runHelloTestGoogleTestExe'
     }
 
+    @ToBeFixedForInstantExecution
     def "buildDependentsHelloSharedLibrary assemble and check hello shared library"() {
         given:
         useConventionalSourceLocations()
@@ -137,6 +140,7 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
         notExecuted ':helloTestGoogleTestExe', ':runHelloTestGoogleTestExe'
     }
 
+    @ToBeFixedForInstantExecution
     def "buildDependentsHelloStaticLibrary assemble and check hello static library"() {
         given:
         useConventionalSourceLocations()
@@ -149,6 +153,7 @@ class GoogleTestDependentComponentsIntegrationSpec extends AbstractInstalledTool
         executed ':helloStaticLibrary', ':helloTestGoogleTestExe', ':runHelloTestGoogleTestExe'
     }
 
+    @ToBeFixedForInstantExecution
     def "buildDependentsHelloTestCUnitExe assemble and run test suite"() {
         given:
         useConventionalSourceLocations()

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 
 abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
@@ -341,6 +342,7 @@ abstract class AbstractIncrementalTasksIntegrationTest extends AbstractIntegrati
         executesNonIncrementally()
     }
 
+    @ToBeFixedForInstantExecution
     def "incremental task is informed of 'out-of-date' files since previous successful execution"() {
         given:
         previousExecution()

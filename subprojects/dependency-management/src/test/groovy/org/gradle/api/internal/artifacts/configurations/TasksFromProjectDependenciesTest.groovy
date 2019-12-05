@@ -47,6 +47,7 @@ class TasksFromProjectDependenciesTest extends AbstractProjectBuilderSpec {
 
         then:
         1 * context.add(project1.tasks["buildNeeded"])
+        1 * context.getTask()
         0 * context._
     }
 

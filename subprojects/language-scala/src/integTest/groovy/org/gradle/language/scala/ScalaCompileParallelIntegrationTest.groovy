@@ -17,6 +17,7 @@
 package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -97,6 +98,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
+    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "multiple independent builds are multi-process safe" () {
         given:
         def projects = (1..MAX_PARALLEL_COMPILERS)

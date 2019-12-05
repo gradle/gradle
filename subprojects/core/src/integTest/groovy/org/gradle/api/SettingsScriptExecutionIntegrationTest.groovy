@@ -17,6 +17,7 @@ package org.gradle.api
 
 import org.gradle.api.internal.FeaturePreviewsActivationFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
@@ -84,6 +85,7 @@ class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "notices changes to settings scripts that do not change the file length"() {
         settingsFile.text = "println 'counter: __'"
         long before = settingsFile.length()

@@ -17,6 +17,7 @@ package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
@@ -181,6 +182,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")
     @Unroll
+    @ToBeFixedForInstantExecution
     "can clean test after extracting class file with #framework"() {
         when:
         ignoreWhenJUnitPlatform()
@@ -359,6 +361,7 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "tests are re-executed when set of candidate classes change"() {
         given:
         buildFile << """

@@ -29,6 +29,9 @@ dependencies {
     implementation(project(":persistentCache"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
+    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(project(":toolingApi"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
@@ -39,6 +42,9 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testLibrary("mockito_kotlin2"))
+
+    testRuntimeOnly(project(":runtimeApiInfo"))
+    testRuntimeOnly(kotlin("reflect"))
 
     integTestImplementation(project(":toolingApi"))
 
@@ -54,8 +60,6 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-
-    testRuntimeOnly(kotlin("reflect"))
 }
 
 gradlebuildJava {
@@ -76,13 +80,13 @@ tasks {
     val santaTrackerJava by registering(RemoteProject::class) {
         remoteUri.set(gitUri)
         // From agp-3.6.0-java branch
-        ref.set("b71104d9f644a21f8056deea4d3703fac58c3a72")
+        ref.set("174705275e434adc843e8e9b28106a5e3ffd6733")
     }
 
     val santaTrackerKotlin by registering(RemoteProject::class) {
         remoteUri.set(gitUri)
         // From agp-3.6.0 branch
-        ref.set("036aad22af993d2f564a6a15d6a7b9706ba37d8e")
+        ref.set("3bbbd895de38efafd0dd1789454d4e4cb72d46d5")
     }
 
     if (BuildEnvironment.isCiServer) {
@@ -100,5 +104,9 @@ tasks {
     register<Delete>("cleanRemoteProjects") {
         delete(santaTrackerJava.get().outputDirectory)
         delete(santaTrackerKotlin.get().outputDirectory)
+    }
+
+    instantIntegTest {
+        enabled = false
     }
 }

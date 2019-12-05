@@ -272,21 +272,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 path == file("a/src/main/java").absolutePath
                 children.size() == 3
                 with(children[0]) {
-                    path == "A.java"
-                    hash != null
-                }
-                with(children[1]) {
-                    path == "B.java"
-                    hash != null
-                }
-                with(children[2]) {
                     path == "a"
                     children.size() == 2
                     with(children[0]) {
-                        path == "A.java"
-                        hash != null
-                    }
-                    with(children[1]) {
                         path == "a"
                         children.size() == 1
                         with(children[0]) {
@@ -294,6 +282,18 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                             hash != null
                         }
                     }
+                    with(children[1]) {
+                        path == "A.java"
+                        hash != null
+                    }
+                }
+                with(children[1]) {
+                    path == "A.java"
+                    hash != null
+                }
+                with(children[2]) {
+                    path == "B.java"
+                    hash != null
                 }
             }
         }

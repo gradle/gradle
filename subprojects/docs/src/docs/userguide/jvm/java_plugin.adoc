@@ -23,7 +23,7 @@ You can find a comprehensive introduction and overview to the Java Plugin in the
 ====
 As indicated above, this plugin adds basic building blocks for working with JVM projects.
 Its feature set has been superseded by other plugins, offering more features based on your project type.
-Instead of applying it directly to your project, you should look into the `java-library` or `java-application` plugins or one of the supported alternative JVM language.
+Instead of applying it directly to your project, you should look into the `java-library` or `application` plugins or one of the supported alternative JVM language.
 ====
 
 [[sec:java_usage]]
@@ -357,7 +357,7 @@ Runtime classpath for running tests. Used by task `test`.
 `archives`::
 Artifacts (e.g. jars) produced by this project. Used by task `uploadArchives`.
 
-`default` extends `runtime`::
+`default` extends `runtimeClasspath`::
 The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
 
 The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
@@ -420,11 +420,11 @@ Java version compatibility to use when compiling Java source. Default value: ver
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
 Java version to generate classes for. Default value: `__sourceCompatibility__`.
 
-`publishJavadoc()`::
-Automatically package Javadoc during publishing and publish a variant `javadocElements` with an artifact `-javadoc.jar`.
+`withJavadocJar()`::
+Automatically packages Javadoc and creates a variant `javadocElements` with an artifact `-javadoc.jar`, which will be part of the publication.
 
-`publishSources()`::
-Automatically package source code during publishing and publish a variant `sourceElements` with an artifact `-sources.jar`.
+`withSourcesJar()`::
+Automatically packages source code and creates a variant `sourceElements` with an artifact `-sources.jar`, which will be part of the publication.
 
 == Convention properties
 
@@ -507,7 +507,7 @@ This gives you the following benefits
 * Incremental builds are much faster.
 * The smallest possible number of class files are changed.
   Classes that don't need to be recompiled remain unchanged in the output directory.
-  An example scenario when this is really useful is using JRebel - the fewer output classes are changed the quicker the JVM can use refreshed classes.
+  An example scenario when this is really useful is using JRebel — the fewer output classes are changed the quicker the JVM can use refreshed classes.
 
 To help you understand how incremental compilation works, the following provides a high-level overview:
 

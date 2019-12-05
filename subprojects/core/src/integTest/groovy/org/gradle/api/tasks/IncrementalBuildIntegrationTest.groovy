@@ -16,6 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -105,6 +106,7 @@ public class TransformerTask extends DefaultTask {
 '''
     }
 
+    @ToBeFixedForInstantExecution
     def "skips task when output file is up-to-date"() {
         writeTransformerTask()
 
@@ -565,6 +567,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "skips tasks when input properties have not changed"() {
         buildFile << '''
 public class GeneratorTask extends DefaultTask {
@@ -693,6 +696,7 @@ task b(type: DirTransformerTask) {
         result.assertTasksNotSkipped(":b")
     }
 
+    @ToBeFixedForInstantExecution
     def "can use up-to-date predicate to force task to execute"() {
         def inputFileName = 'src.txt'
 
@@ -824,6 +828,7 @@ task b(dependsOn: a)
         result.assertTasksSkipped(":a", ":b")
     }
 
+    @ToBeFixedForInstantExecution
     def "can share artifacts between builds"() {
         writeTransformerTask()
 
@@ -1066,6 +1071,7 @@ task generate(type: TransformerTask) {
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
+    @ToBeFixedForInstantExecution
     def "task loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1100,6 +1106,7 @@ task generate(type: TransformerTask) {
         output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
+    @ToBeFixedForInstantExecution
     def "task with custom action loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1148,6 +1155,7 @@ task generate(type: TransformerTask) {
     }
 
     @Issue("gradle/gradle#1168")
+    @ToBeFixedForInstantExecution
     def "task is not up-to-date when it has overlapping outputs"() {
         buildFile << """
             apply plugin: 'base'
@@ -1240,6 +1248,7 @@ task generate(type: TransformerTask) {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/1224')
+    @ToBeFixedForInstantExecution
     def 'can change input properties dynamically'() {
         given:
         file('inputDir1').createDir()
@@ -1272,6 +1281,7 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
+    @ToBeFixedForInstantExecution
     def "private inputs can be overridden in subclass"() {
         given:
         buildFile << '''
@@ -1331,6 +1341,7 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
+    @ToBeFixedForInstantExecution
     def "private inputs in superclass are respected"() {
         given:
         buildFile << '''
