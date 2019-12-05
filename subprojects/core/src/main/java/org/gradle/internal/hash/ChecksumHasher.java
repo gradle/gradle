@@ -13,13 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
+package org.gradle.internal.hash;
 
 import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.HashFunction;
 
 import java.io.File;
 import java.io.IOException;
