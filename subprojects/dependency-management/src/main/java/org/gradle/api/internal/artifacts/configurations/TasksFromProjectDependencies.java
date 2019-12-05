@@ -47,7 +47,7 @@ class TasksFromProjectDependencies extends AbstractTaskDependency {
             projectAccessListener.beforeResolvingProjectDependency((ProjectInternal) projectDependency.getDependencyProject());
 
             Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
-            if (nextTask != null) {
+            if (nextTask != null && context.getTask() != nextTask) {
                 context.add(nextTask);
             }
         }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -78,6 +79,7 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
 
     @Unroll
     @Issue("https://github.com/gradle/gradle/issues/4166")
+    @ToBeFixedForInstantExecution
     def "file in input dir appears in task inputs for #inputAnnotation"() {
         buildFile << """
             class MyTask extends DefaultTask {

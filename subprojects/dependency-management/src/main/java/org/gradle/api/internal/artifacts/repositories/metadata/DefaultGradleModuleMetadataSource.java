@@ -19,6 +19,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
@@ -30,12 +31,17 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.MutableModuleSources;
+import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.List;
+
+import static org.gradle.api.internal.artifacts.repositories.metadata.AbstractRepositoryMetadataSource.findSha1;
 
 /**
  * TODO: This class sources Gradle metadata files, but there's no corresponding ModuleComponentResolveMetadata for this metadata yet.
@@ -58,15 +64,24 @@ public class DefaultGradleModuleMetadataSource extends AbstractMetadataSource<Mu
     @Override
     public MutableModuleComponentResolveMetadata create(String repositoryName, ComponentResolvers componentResolvers, ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, ExternalResourceArtifactResolver artifactResolver, BuildableModuleComponentMetaDataResolveResult result) {
         DefaultIvyArtifactName moduleMetadataArtifact = new DefaultIvyArtifactName(moduleComponentIdentifier.getModule(), "module", "module");
-        LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, moduleMetadataArtifact), result);
+        DefaultModuleComponentArtifactMetadata artifactId = new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, moduleMetadataArtifact);
+        LocallyAvailableExternalResource gradleMetadataArtifact = artifactResolver.resolveArtifact(artifactId, result);
         if (gradleMetadataArtifact != null) {
             MutableModuleComponentResolveMetadata metaDataFromResource = mutableModuleMetadataFactory.createForGradleModuleMetadata(moduleComponentIdentifier);
             metadataParser.parse(gradleMetadataArtifact, metaDataFromResource);
             validateGradleMetadata(metaDataFromResource);
+            createModuleSources(artifactId, gradleMetadataArtifact, metaDataFromResource);
             metadataCompatibilityConverter.process(metaDataFromResource);
             return metaDataFromResource;
         }
         return null;
+    }
+
+    private void createModuleSources(DefaultModuleComponentArtifactMetadata artifactId, LocallyAvailableExternalResource gradleMetadataArtifact, MutableModuleComponentResolveMetadata metaDataFromResource) {
+        MutableModuleSources sources = metaDataFromResource.getSources();
+        File file = gradleMetadataArtifact.getFile();
+        sources.add(new ModuleDescriptorHashModuleSource(HashUtil.createHash(file, "MD5").asBigInteger(), metaDataFromResource.isChanging()));
+        sources.add(new DefaultMetadataFileSource(artifactId.getId(), file, findSha1(gradleMetadataArtifact.getMetaData(), file)));
     }
 
     private static void validateGradleMetadata(MutableModuleComponentResolveMetadata metaDataFromResource) {

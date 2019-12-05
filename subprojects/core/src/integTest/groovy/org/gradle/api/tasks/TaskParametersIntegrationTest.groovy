@@ -53,7 +53,6 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Unable to store input properties for task ':foo'. Property 'b' with value 'xxx' cannot be serialized.")
     }
 
-    @ToBeFixedForInstantExecution
     def "deals gracefully with not serializable contents of GStrings"() {
         buildFile << """
             task foo {

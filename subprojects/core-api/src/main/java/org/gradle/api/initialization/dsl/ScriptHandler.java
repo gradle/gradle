@@ -15,6 +15,8 @@
  */
 package org.gradle.api.initialization.dsl;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -102,6 +104,25 @@ public interface ScriptHandler {
      * @return The configuration of this handler.
      */
     ConfigurationContainer getConfigurations();
+
+    /**
+     * Configures dependency locking
+     *
+     * @param configureClosure the configuration action
+     * @since 6.1
+     */
+    @Incubating
+    void dependencyLocking(Closure configureClosure);
+
+    /**
+     * Provides access to configuring dependency locking
+     *
+     * @return the {@link DependencyLockingHandler}
+     *
+     * @since 6.1
+     */
+    @Incubating
+    DependencyLockingHandler getDependencyLocking();
 
     /**
      * Returns the {@code ClassLoader} which contains the classpath for this script.

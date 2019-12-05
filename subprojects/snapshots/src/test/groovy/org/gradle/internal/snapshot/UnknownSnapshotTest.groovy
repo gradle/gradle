@@ -16,167 +16,110 @@
 
 package org.gradle.internal.snapshot
 
-import org.spockframework.mock.EmptyOrDummyResponse
-import org.spockframework.mock.IDefaultResponse
-import org.spockframework.mock.IMockInvocation
-import spock.lang.Specification
+import spock.lang.Unroll
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-class UnknownSnapshotTest extends Specification {
-    def "returns empty when queried at root"() {
-        def node = new UnknownSnapshot("some/prefix", createChildren("myFile.txt"))
+@Unroll
+class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<UnknownSnapshot> {
 
-        when:
-        def snapshot = node.getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1, CASE_SENSITIVE)
-        then:
-        !snapshot.present
-        0 * _
+    @Override
+    protected UnknownSnapshot createInitialRootNode(String pathToParent, List<FileSystemNode> children) {
+        return new UnknownSnapshot(pathToParent, children)
     }
 
-    def "queries child when queried for path in child"() {
-        given:
-        def children = createChildren(childNames)
-        def first = children.get(0)
-        def node = new UnknownSnapshot("some/prefix", children)
-        def relativePath = "${first.pathToParent}/someString"
-        def result = Mock(MetadataSnapshot)
+    @Override
+    protected boolean isSameNodeType(FileSystemNode node) {
+        return node instanceof UnknownSnapshot
+    }
+
+    @Override
+    boolean isAllowEmptyChildren() {
+        return false
+    }
+
+    def "invalidate #vfsSpec.searchedPath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+        setupTest(vfsSpec)
 
         when:
-        def snapshot = node.getSnapshot(relativePath, 0, CASE_SENSITIVE)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
-        snapshot.get() == result
-        _ * first.getSnapshot(relativePath, first.pathToParent.length() + 1, CASE_SENSITIVE) >> Optional.of(result)
+        resultRoot.children == childrenWithSelectedChildRemoved()
+        isSameNodeType(resultRoot)
+        interaction { noMoreInteractions() }
 
         where:
-        childNames << [["first", "second", "third"]]
+        vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() > 1 }
     }
 
-    def "finds no snapshot when no child has a similar pathToParent"() {
-        given:
-        def children = createChildren(childNames)
-        def first = children.get(0)
-        def node = new UnknownSnapshot("some/prefix", children)
-        def relativePath = "${first.pathToParent}1/someString"
+    def "invalidating the only child by #vfsSpec.searchedPath removes the node (#vfsSpec)"() {
+        setupTest(vfsSpec)
 
         when:
-        def snapshot = node.getSnapshot(relativePath, 0, CASE_SENSITIVE)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE)
         then:
-        !snapshot.present
-        0 * _.getSnapshot(_)
+        !resultRoot.present
+        interaction { noMoreInteractions() }
 
         where:
-        childNames << [["first"], ["first", "second"], ["first", "second", "third"]]
+        vfsSpec << (IS_PREFIX_OF_CHILD + SAME_PATH).findAll { it.childPaths.size() == 1 }
     }
 
-    def "invalidating unknown child does nothing"() {
-        given:
-        def children = createChildren(childNames)
-        def node = new UnknownSnapshot("some/prefix", children)
-        def relativePath = "first/outside"
+    def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
+        setupTest(vfsSpec)
+        def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def result = node.invalidate(relativePath, 0, CASE_SENSITIVE)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
-        0 * _.invalidate(_)
-        result.get() == node
-
-        where:
-        childNames << [["first/within"], ["first/within", "second"], ["first/within", "second", "third"]]
-    }
-
-    def "invalidating only child returns empty"() {
-        given:
-        def children = createChildren("first")
-        def node = new UnknownSnapshot("some/prefix", children)
-        def childToInvalidate = children.get(0)
-        def relativePath = childToInvalidate.pathToParent
-
-        when:
-        def result = node.invalidate(relativePath, 0, CASE_SENSITIVE)
-        then:
-        0 * _.invalidate(_)
-        !result.present
-    }
-
-    def "invalidating known child removes it"() {
-        given:
-        def children = createChildren(childNames)
-        def node = new UnknownSnapshot("some/prefix", children)
-        def childToInvalidate = children.get(0)
-        def relativePath = childToInvalidate.pathToParent
-        def snapshot = Mock(MetadataSnapshot)
-        def remainingChildren = children.findAll { it != childToInvalidate }
-
-        when:
-        def result = node.invalidate(relativePath, 0, CASE_SENSITIVE).get()
-        remainingChildren.each {
-            assert result.getSnapshot(it.pathToParent, 0, CASE_SENSITIVE).get() == snapshot
-        }
-        then:
-        0 * _.invalidate(_)
+        resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
+        isSameNodeType(resultRoot)
         interaction {
-            remainingChildren.each {
-                _ * it.getSnapshot(it.pathToParent, it.pathToParent.length() + 1, CASE_SENSITIVE) >> Optional.of(snapshot)
-            }
+            invalidateDescendantOfSelectedChild(invalidatedChild)
+            noMoreInteractions()
         }
-
-        when:
-        def removedSnapshot = result.getSnapshot(childToInvalidate.pathToParent, 0, CASE_SENSITIVE)
-        then:
-        0 * _.getSnapshot(_)
-        !removedSnapshot.present
 
         where:
-        childNames << [["first", "fourth"], ["first", "second"], ["first", "second", "third"], ["first", "second", "third", "fourth"]]
+        vfsSpec << CHILD_IS_PREFIX
     }
 
-    def "invalidating location within child works"() {
-        given:
-        def children = createChildren(childNames)
-        def node = new UnknownSnapshot("some/prefix", children)
-        def childWithChildToInvalidate = children.get(0)
-        def invalidatedChild = Mock(FileSystemNode, defaultResponse: new RespondWithPathToParent(childWithChildToInvalidate.pathToParent))
+    def "invalidate #vfsSpec.searchedPath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+        setupTest(vfsSpec)
 
         when:
-        def result = node.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", 0, CASE_SENSITIVE).get()
-
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
         then:
-        1 * childWithChildToInvalidate.invalidate("${childWithChildToInvalidate.pathToParent}/deeper", childWithChildToInvalidate.pathToParent.length() + 1, CASE_SENSITIVE) >> Optional.of(invalidatedChild)
-        0 * _.invalidate(_)
-        !result.getSnapshot(invalidatedChild.pathToParent, 0, CASE_SENSITIVE).present
-
+        resultRoot.children == childrenWithSelectedChildRemoved()
+        isSameNodeType(resultRoot)
+        interaction {
+            invalidateDescendantOfSelectedChild(null)
+            noMoreInteractions()
+        }
 
         where:
-        childNames << [["first/more"], ["first/some", "second/other"], ["first/even/deeper", "second", "third/whatever"], ["first/more/stuff", "second", "third", "fourth"]]
+        vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() > 1 }
     }
 
-    private List<FileSystemNode> createChildren(String... pathsToParent) {
-        createChildren(pathsToParent as List)
+    def "invalidate #vfsSpec.searchedPath removes the child #vfsSpec.selectedChildPath and the node with it (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE)
+        then:
+        !resultRoot.present
+        interaction {
+            invalidateDescendantOfSelectedChild(null)
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << CHILD_IS_PREFIX.findAll { it.childPaths.size() == 1 }
     }
 
-    private List<FileSystemNode> createChildren(Iterable<String> pathsToParent) {
-        pathsToParent.sort()
-        List<FileSystemNode> result = []
-        pathsToParent.each {
-            result.add(Mock(FileSystemNode, defaultResponse: new RespondWithPathToParent(it)))
-        }
-        return result
-    }
+    def "returns empty for snapshot"() {
+        def node = new UnknownSnapshot("some/prefix", createChildren(["myFile.txt"]))
 
-    private static class RespondWithPathToParent implements IDefaultResponse {
-        private final String pathToParent
-
-        RespondWithPathToParent(String pathToParent) {
-            this.pathToParent = pathToParent
-        }
-
-        @Override
-        Object respond(IMockInvocation invocation) {
-            if (invocation.getMethod().name == "getPathToParent") {
-                return pathToParent
-            }
-            return EmptyOrDummyResponse.INSTANCE.respond(invocation)
-        }
+        expect:
+        !node.getSnapshot().present
     }
 }

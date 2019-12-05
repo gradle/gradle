@@ -6,8 +6,8 @@ For example, an external Maven dependency has a variant which should be used whe
 A project dependency has even more variants, for example the classes of the project which are used for compilation are available as classes directories (`org.gradle.usage=java-api, org.gradle.libraryelements=classes`) or as JARs (`org.gradle.usage=java-api, org.gradle.libraryelements=jar`).
 
 The variants of a dependency may differ in its transitive dependencies or in the artifact itself.
-For example, the `java-api` and `java-runtime` variants of a Maven dependency only differ in the transitive dependencies and both use the same artifact - the JAR file.
-For a project dependency, the `java-api,classes` and the `java-api,jars` variants have the same transitive dependencies and different artifacts - the classes directories and the JAR files respectively.
+For example, the `java-api` and `java-runtime` variants of a Maven dependency only differ in the transitive dependencies and both use the same artifact — the JAR file.
+For a project dependency, the `java-api,classes` and the `java-api,jars` variants have the same transitive dependencies and different artifacts — the classes directories and the JAR files respectively.
 
 Gradle identifies a variant of a dependency uniquely by its set of <<variant_model.adoc#sec:abm_configuration_attributes,attributes>>.
 The `java-api` variant of a dependency is the variant identified by the `org.gradle.usage` attribute with value `java-api`.

@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":compositeBuilds"))
     implementation(project(":toolingApi"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy")) // for 'Closure'
     implementation(library("guava"))

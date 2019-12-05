@@ -342,3 +342,30 @@ fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
 
 inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
     readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }
+
+
+fun WriteContext.writeShort(value: Short) {
+    BaseSerializerFactory.SHORT_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readShort(): Short =
+    BaseSerializerFactory.SHORT_SERIALIZER.read(this)
+
+
+fun WriteContext.writeFloat(value: Float) {
+    BaseSerializerFactory.FLOAT_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readFloat(): Float =
+    BaseSerializerFactory.FLOAT_SERIALIZER.read(this)
+
+
+fun WriteContext.writeDouble(value: Double) {
+    BaseSerializerFactory.DOUBLE_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readDouble(): Double =
+    BaseSerializerFactory.DOUBLE_SERIALIZER.read(this)

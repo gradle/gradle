@@ -31,7 +31,7 @@ import java.lang.reflect.Field
 /**
  * Captures a white list of listeners.
  *
- * Only for gradle-profiler --benchmark-config-time for now.
+ * Only for gradle-profiler --measure-config-time for now.
  *
  * Makes assumptions on the manager implementation.
  */
@@ -42,9 +42,8 @@ class BuildOperationListenersCodec {
 
         private
         val classNameWhitelist = setOf(
-            // Remove whitelisting this listener class when https://github.com/gradle/gradle-profiler/pull/140 has been merged
-            "org.gradle.trace.buildops.BuildOperationTrace${'$'}RecordingListener",
-            "org.gradle.trace.buildops.BuildOperationTrace${'$'}TimeToFirstTaskRecordingListener"
+            "org.gradle.trace.buildops.BuildOperationTrace${'$'}TimeToFirstTaskRecordingListener",
+            "org.gradle.trace.buildops.BuildOperationTrace${'$'}BuildOperationDurationRecordingListener"
         )
     }
 

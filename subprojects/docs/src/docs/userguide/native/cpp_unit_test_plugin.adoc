@@ -86,7 +86,7 @@ Run the installed executable.
 [[sec:cpp_unit_test_lifecycle_tasks]]
 === Lifecycle Tasks
 
-The {cpp} Unit Test Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> - which the {cpp} Unit Test Plugin applies automatically:
+The {cpp} Unit Test Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> — which the {cpp} Unit Test Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Aggregate task that assembles the debug variant of the tested component for the current host (if present) in the project.

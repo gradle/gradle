@@ -35,7 +35,7 @@ You can readily extend Gradle to provide your own task types or even build model
 IDE support::
 Several major IDEs allow you to import Gradle builds and interact with them: Android Studio, IntelliJ IDEA, Eclipse, and NetBeans. Gradle also has support for generating the solution files required to load a project into Visual Studio.
 Insight::
-https://scans.gradle.com/[Build scans] provide extensive information about a build run that you can use to identify build issues. They are particularly good at helping you to identify problems with a build's performance. You can also share build scans with others, which is particularly useful if you need ask for advice in fixing an issue with the build.
+https://scans.gradle.com/[Build scans] provide extensive information about a build run that you can use to identify build issues. They are particularly good at helping you to identify problems with a build's performance. You can also share build scans with others, which is particularly useful if you need to ask for advice in fixing an issue with the build.
 
 [[five_things]]
 == Five things you need to know about Gradle

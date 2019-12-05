@@ -36,10 +36,16 @@ class FunctionalTest(model: CIBuildModel, uuid: String, name: String, descriptio
     params {
         param("env.JAVA_HOME", "%${testCoverage.os}.${testCoverage.buildJvmVersion}.openjdk.64bit%")
         when (testCoverage.os) {
-            Os.linux -> param("env.ANDROID_HOME", "/opt/android/sdk")
-            // Use fewer parallel forks on macOs, since the agents are not very powerful.
-            Os.macos -> param("maxParallelForks", "2")
-            else -> {
+            Os.linux -> {
+                param("env.ANDROID_HOME", "/opt/android/sdk")
+            }
+            Os.macos -> {
+                param("env.ANDROID_HOME", "/opt/android/sdk")
+                // Use fewer parallel forks on macOs, since the agents are not very powerful.
+                param("maxParallelForks", "2")
+            }
+            Os.windows -> {
+                param("env.ANDROID_HOME", """C:\Program Files\android\sdk""")
             }
         }
     }

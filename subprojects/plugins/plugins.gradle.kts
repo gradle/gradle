@@ -59,7 +59,6 @@ dependencies {
     testImplementation(project(":native"))
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":core")))
-    testImplementation(testFixtures(project(":launcher")))
     testImplementation(testFixtures(project(":dependencyManagement")))
     testImplementation(testFixtures(project(":resourcesHttp")))
     testImplementation(testFixtures(project(":platformNative")))

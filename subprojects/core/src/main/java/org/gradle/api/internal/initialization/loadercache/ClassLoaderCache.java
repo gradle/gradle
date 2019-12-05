@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.initialization.loadercache;
 
-import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
@@ -55,7 +54,7 @@ public interface ClassLoaderCache {
      * @param id the ID of the classloader.
      * @return the classloader.
      */
-    ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<Pair<ClassPath, ClassLoader>, ClassLoader> factoryFunction);
+    ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<ClassLoader, ClassLoader> factoryFunction, @Nullable HashCode implementationHash);
 
     /**
      * Discards the given classloader.

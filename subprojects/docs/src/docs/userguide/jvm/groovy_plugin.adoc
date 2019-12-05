@@ -285,7 +285,7 @@ This gives you the following benefits:
 * Incremental builds are much faster.
 * If only a small set of Groovy source files are changed, only the affected source files will be recompiled.
   Classes that don't need to be recompiled remain unchanged in the output directory.
-  For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files - only the changed ones need to be recompiled.
+  For example, if you only change a few Groovy test classes, you don't need to recompile all Groovy test source files — only the changed ones need to be recompiled.
 
 To understand how incremental compilation works, see <<java_plugin.adoc#sec:incremental_compile,Incremental Java compilation>> for a detailed overview.
 Note that there're several differences from Java incremental compilation:
@@ -299,7 +299,7 @@ Note that there're several differences from Java incremental compilation:
 
 Also see <<java_plugin.adoc#sec:incremental_compilation_known_issues,Known issues for incremental Java compilation>>.
 
-* Changes to resources won't trigger a recompilation, this might result in some incorrectness - for example https://mrhaki.blogspot.com/2013/01/groovy-goodness-adding-extra-methods.html[Extension Modules].
+* Changes to resources won't trigger a recompilation, this might result in some incorrectness — for example https://mrhaki.blogspot.com/2013/01/groovy-goodness-adding-extra-methods.html[Extension Modules].
 
 [[sec:groovy_cross_compilation]]
 == Compiling and testing for Java 6 or Java 7

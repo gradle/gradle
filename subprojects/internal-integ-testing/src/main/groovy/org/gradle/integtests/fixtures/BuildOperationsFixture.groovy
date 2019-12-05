@@ -125,7 +125,7 @@ class BuildOperationsFixture {
 
     BuildOperationRecord only(Pattern displayName) {
         def records = all(displayName)
-        assert records.size() == 1 : "Error matching pattern: $displayName"
+        assert records.size() == 1: "Error matching pattern: $displayName"
         records.first()
     }
 
@@ -335,7 +335,7 @@ class BuildOperationsFixture {
             return null
         } else {
             // Class.simpleName returns "" for certain anonymous classes and unhelpful things like "Details" for our op interfaces
-            String clsName = detailsType.interfaces.first().name
+            String clsName = detailsType.interfaces.length == 0 ? detailsType.name : detailsType.interfaces.first().name
             clsName.substring(clsName.lastIndexOf('.') + 1)
         }
     }

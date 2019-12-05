@@ -32,18 +32,14 @@ internal
 object TransformationNodeReferenceCodec : Codec<TransformationNode> {
     override suspend fun WriteContext.encode(value: TransformationNode) {
         val id = sharedIdentities.getId(value)
-        if (id == null) {
-            throw IllegalStateException("Node $value has not been encoded yet.")
-        }
+            ?: throw IllegalStateException("Node $value has not been encoded yet.")
         writeSmallInt(id)
     }
 
     override suspend fun ReadContext.decode(): TransformationNode {
         val id = readSmallInt()
         val instance = sharedIdentities.getInstance(id)
-        if (instance == null) {
-            throw IllegalStateException("Node with id $id has not been decoded yet.")
-        }
+            ?: throw IllegalStateException("Node with id $id has not been decoded yet.")
         return instance as TransformationNode
     }
 }

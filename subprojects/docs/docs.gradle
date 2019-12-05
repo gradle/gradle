@@ -36,7 +36,7 @@ plugins {
     id 'gradlebuild.jsoup'
     id 'javascript-base'
     id 'org.asciidoctor.convert'
-    id 'org.gradle.samples' version "0.15.23"
+    id 'org.gradle.samples' version "0.15.24"
 }
 
 repositories {
@@ -130,6 +130,7 @@ ext {
     userguideDir = new File(docsDir, 'userguide')
     distDocsDir = new File(buildDir, 'distDocs')
     docbookSrc = new File(project.buildDir, 'src')
+    snippetsSrcDir = file('src/snippets')
     samplesSrcDir = file('src/samples')
 }
 
@@ -257,8 +258,8 @@ def userguideFlattenSources = tasks.register("userguideFlattenSources", Sync) {
     from("src/docs/css") {
         into("css")
     }
-    from("src/samples") {
-        into("samples")
+    from("src/snippets") {
+        into("snippets")
     }
     from("src/docs/userguide") {
         include("img/**")
@@ -369,8 +370,8 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
     inputs.dir(file("src/main/resources"))
         .withPropertyName("resources")
         .withPathSensitivity(PathSensitivity.RELATIVE)
-    inputs.dir(samplesSrcDir)
-        .withPropertyName("samples")
+    inputs.dir(snippetsSrcDir)
+        .withPropertyName("snippets")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 
     attributes stylesdir    : 'css/',
@@ -394,8 +395,8 @@ tasks.withType(CacheableAsciidoctorTask).configureEach {
         docsUrl             : 'https://docs.gradle.org',
         guidesUrl           : 'https://guides.gradle.org',
         gradleVersion       : version,
-        samplesPath         : "samples",
-        'samples-dir'       : 'src/samples'  // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+        samplesPath         : "snippets",
+        'samples-dir'       : 'src/snippets'  // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
 }
 
 def userguideMultiPage = tasks.register("userguideMultiPage", CacheableAsciidoctorTask) {
@@ -561,18 +562,19 @@ samples.configureEach { sample ->
     sample.gradleVersion = project.provider { project.version.toString() }
 }
 
-def templateDir = file("src/samples/next-gen/templates")
+def templateDir = file("src/samples/templates")
 def installSourceFromTemplate(Sample sample, Closure action) {
     def installTask = tasks.register("install${sample.name.capitalize()}SourceFromTemplates", Sync, action)
     installTask.configure {
+        into(temporaryDir) // TODO: Validate this
         destinationDir = temporaryDir
     }
-    return project.files(installTask)
+    return project.files(installTask).builtBy(installTask) // TODO: Validate this
 }
 
 samples {
     androidApplication {
-        sampleDirectory = file("src/samples/next-gen/android-application")
+        sampleDirectory = file("src/samples/android-application")
         description = "Demonstrate how to build an Android application"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/java-android-application")
@@ -584,7 +586,7 @@ samples {
         }
     }
     springBoot {
-        sampleDirectory = file("src/samples/next-gen/spring-boot")
+        sampleDirectory = file("src/samples/spring-boot")
         description = "Demonstrate a simple Spring Boot application in Gradle"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/spring-boot")
@@ -597,10 +599,10 @@ samples {
     }
 
     javaBasicApplication {
-        sampleDirectory = file("src/samples/next-gen/java/basic-application")
+        sampleDirectory = file("src/samples/java/basic-application")
         description = "Demonstrate how to build a basic Java application"
         def sourceFiles = installSourceFromTemplate(it) {
-            from("$templateDir/java-basic-application")
+            from("$templateDir/java-application")
             from("$templateDir/java-list-library")
             from("$templateDir/java-utilities-library")
         }
@@ -611,7 +613,7 @@ samples {
         }
     }
     javaBasicLibrary {
-        sampleDirectory = file("src/samples/next-gen/java/basic-library")
+        sampleDirectory = file("src/samples/java/basic-library")
         description = "Demonstrate how to build a basic Java library"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/java-list-library")
@@ -624,10 +626,10 @@ samples {
         }
     }
     javaTransitiveDependencies {
-        sampleDirectory = file("src/samples/next-gen/java/transitive-dependencies")
+        sampleDirectory = file("src/samples/java/transitive-dependencies")
         description = "Demonstrate how transitive dependencies work with Java projects"
         def sourceFiles = installSourceFromTemplate(it) {
-            from("$templateDir/java-basic-application") { into("application") }
+            from("$templateDir/java-application") { into("application") }
             from("$templateDir/java-list-library") { into("list") }
             from("$templateDir/java-utilities-library") { into("utilities") }
         }
@@ -638,10 +640,10 @@ samples {
         }
     }
     javaComponentsWithSpockTests {
-        sampleDirectory = file("src/samples/next-gen/java/components-with-spock-tests")
+        sampleDirectory = file("src/samples/java/components-with-spock-tests")
         description = "Demonstrate how to test Java components using Spock framework"
         def sourceFiles = installSourceFromTemplate(it) {
-            from("$templateDir/java-basic-application") { into("application") }
+            from("$templateDir/java-application") { into("application") }
             from("$templateDir/groovy-spock-test-for-application") { into("application") }
             from("$templateDir/java-list-library") { into("library") }
             from("$templateDir/groovy-spock-test-for-list-library") { into("library") }
@@ -654,11 +656,11 @@ samples {
         }
     }
     javaComponentsWithJUnit4Tests {
-        sampleDirectory = file("src/samples/next-gen/java/components-with-junit-4-tests")
+        sampleDirectory = file("src/samples/java/components-with-junit-4-tests")
         displayName = "Java Components With JUnit 4 Tests"
         description = "Demonstrate how to test Java components using JUnit 4"
         def sourceFiles = installSourceFromTemplate(it) {
-            from("$templateDir/java-basic-application") { into("application") }
+            from("$templateDir/java-application") { into("application") }
             from("$templateDir/java-junit4-test-for-application") { into("application") }
             from("$templateDir/java-list-library") { into("library") }
             from("$templateDir/java-junit4-test-for-list-library") { into("library") }
@@ -671,7 +673,7 @@ samples {
         }
     }
     javaLibraryPublishing {
-        sampleDirectory = file("src/samples/next-gen/java/library-publishing")
+        sampleDirectory = file("src/samples/java/library-publishing")
         description = "Demonstrate how to publish a Java library to a binary repository"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/java-list-library")
@@ -685,48 +687,73 @@ samples {
     }
 
     groovyBasicApplication {
-        sampleDirectory = file("src/samples/next-gen/groovy/basic-application")
+        sampleDirectory = file("src/samples/groovy/basic-application")
         description = "Demonstrate how to build a basic Groovy application"
-        archiveContent.from installSourceFromTemplate(it) {
-            from("$templateDir/groovy-basic-application")
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/groovy-application")
             from("$templateDir/groovy-list-library")
             from("$templateDir/groovy-utilities-library")
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
         }
     }
     groovyBasicLibrary {
-        sampleDirectory = file("src/samples/next-gen/groovy/basic-library")
+        sampleDirectory = file("src/samples/groovy/basic-library")
         description = "Demonstrate how to build a basic Groovy library"
-        archiveContent.from installSourceFromTemplate(it) {
+        def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/groovy-list-library")
             from("$templateDir/groovy-utilities-library")
         }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
     }
     groovyTransitiveDependencies {
-        sampleDirectory = file("src/samples/next-gen/groovy/transitive-dependencies")
+        sampleDirectory = file("src/samples/groovy/transitive-dependencies")
         description = "Demonstrate how transitive dependencies work with Groovy projects"
-        archiveContent.from installSourceFromTemplate(it) {
-            from("$templateDir/groovy-basic-application") { into("application") }
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/groovy-application") { into("application") }
             from("$templateDir/groovy-list-library") { into("list") }
             from("$templateDir/groovy-utilities-library") { into("utilities") }
         }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
     }
     groovyComponentsWithSpockTests {
-        sampleDirectory = file("src/samples/next-gen/groovy/components-with-spock-tests")
+        sampleDirectory = file("src/samples/groovy/components-with-spock-tests")
         description = "Demonstrate how to test Groovy components using Spock framework"
-        archiveContent.from installSourceFromTemplate(it) {
-            from("$templateDir/groovy-basic-application") { into("application") }
+        def sourceFiles = installSourceFromTemplate(it) {
+            from("$templateDir/groovy-application") { into("application") }
             from("$templateDir/groovy-spock-test-for-application") { into("application") }
             from("$templateDir/groovy-list-library") { into("library") }
             from("$templateDir/groovy-spock-test-for-list-library") { into("library") }
             from("$templateDir/groovy-utilities-library") { into("library") }
         }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
+        }
     }
     groovyLibraryPublishing {
-        sampleDirectory = file("src/samples/next-gen/groovy/library-publishing")
+        sampleDirectory = file("src/samples/groovy/library-publishing")
         description = "Demonstrate how to publish a Groovy library to a binary repository"
-        archiveContent.from installSourceFromTemplate(it) {
+        def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/groovy-list-library")
             from("$templateDir/groovy-utilities-library")
+        }
+        archiveContent.from sourceFiles
+        exemplar.source {
+            from(sourceFiles) { into('groovy') }
+            from(sourceFiles) { into('kotlin') }
         }
     }
 }

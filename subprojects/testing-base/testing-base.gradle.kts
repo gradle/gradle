@@ -48,7 +48,6 @@ dependencies {
     testImplementation(testFixtures(project(":platformBase")))
     testImplementation(testFixtures(project(":logging")))
     testImplementation(testFixtures(project(":baseServices")))
-    testImplementation(testFixtures(project(":launcher")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 

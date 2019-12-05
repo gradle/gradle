@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization.loadercache
 
-import org.gradle.internal.Pair
+
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.classpath.ClassPath
@@ -26,6 +26,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import java.util.function.Function
 
 class DefaultClassLoaderCacheTest extends Specification {
 
@@ -188,14 +190,14 @@ class DefaultClassLoaderCacheTest extends Specification {
         def classPath = classPath("root")
 
         when:
-        def result = cache.createIfAbsent(id1, classPath, parent) { Pair<ClassPath, ClassLoader> spec -> loader }
+        def result = cache.createIfAbsent(id1, classPath, parent, { ClassLoader spec -> loader } as Function, null)
 
         then:
         result == loader
         cache.size() == 1
 
         when:
-        def result2 = cache.createIfAbsent(id1, classPath, parent) { throw new RuntimeException() }
+        def result2 = cache.createIfAbsent(id1, classPath, parent, { throw new RuntimeException() } as Function, null)
 
         then:
         result2 == loader

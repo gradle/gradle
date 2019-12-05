@@ -22,20 +22,33 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_P
 
 class VirtualFileSystemPartialInvalidationIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final INCUBATING_MESSAGE = "Partial virtual file system invalidation is an incubating feature"
+
     def "incubating message is shown for partial invalidation"() {
         buildFile << """
             apply plugin: "java"
         """
-        def incubatingMessage = "Partial virtual file system invalidation is an incubating feature"
 
         when:
-        run("assemble", "-D${VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY}")
+        run "assemble", "-D${VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY}"
         then:
-        outputContains(incubatingMessage)
+        outputContains(INCUBATING_MESSAGE)
 
         when:
-        run("assemble")
+        run "assemble"
         then:
-        outputDoesNotContain(incubatingMessage)
+        outputDoesNotContain(INCUBATING_MESSAGE)
+    }
+
+    def "incubating message is shown when partial invalidation is enabled via gradle.properties"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        file("gradle.properties") << """systemProp.${VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY}=true"""
+
+        when:
+        run "assemble"
+        then:
+        outputContains(INCUBATING_MESSAGE)
     }
 }

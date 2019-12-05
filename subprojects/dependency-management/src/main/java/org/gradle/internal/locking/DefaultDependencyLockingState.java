@@ -34,8 +34,8 @@ public class DefaultDependencyLockingState implements DependencyLockingState {
         strictlyValidate = false;
         constraints = emptySet();
     }
-    public DefaultDependencyLockingState(boolean partialUpdate, Set<ModuleComponentIdentifier> constraints) {
-        strictlyValidate = !partialUpdate;
+    public DefaultDependencyLockingState(boolean strictlyValidate, Set<ModuleComponentIdentifier> constraints) {
+        this.strictlyValidate = strictlyValidate;
         this.constraints = constraints;
     }
 

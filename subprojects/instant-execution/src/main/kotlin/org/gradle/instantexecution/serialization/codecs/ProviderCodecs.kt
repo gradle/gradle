@@ -27,9 +27,12 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
+import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.internal.BuildServiceProvider
@@ -38,35 +41,43 @@ import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.decodePreservingIdentity
-import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
+import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
 
 
 private
 suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
-    if (value.isValueProducedByTask && value is AbstractMappingProvider<*, *> || value is BuildServiceProvider<*, *>) {
-        // Need to serialize the transformation and its source, as the value is not available until execution time
-        writeBoolean(true)
-        BeanCodec().run { encode(value) }
-    } else {
-        // Can serialize the value and discard the provider
-        writeBoolean(false)
-        write(unpack(value))
+    when {
+        value is BuildServiceProvider<*, *> || value is ValueSourceProvider<*, *> -> {
+            writeByte(1)
+            write(value)
+        }
+        value.isValueProducedByTask && value is AbstractMappingProvider<*, *> -> {
+            // Need to serialize the transformation and its source, as the value is not available until execution time
+            writeByte(2)
+            BeanCodec().run { encode(value) }
+        }
+        else -> {
+            // Can serialize the value and discard the provider
+            writeByte(3)
+            write(unpack(value))
+        }
     }
 }
 
 
 private
 suspend fun ReadContext.readProvider(): ProviderInternal<Any> =
-    if (readBoolean()) {
-        BeanCodec().run { decode() }!!.uncheckedCast()
-    } else {
-        when (val value = read()) {
-            is BrokenValue -> DefaultProvider<Any> { value.rethrow() }.uncheckedCast()
-            else -> Providers.ofNullable(value)
-        }
+    when (readByte()) {
+        1.toByte() -> read()!!.uncheckedCast()
+        2.toByte() -> BeanCodec().run { decode() }!!.uncheckedCast()
+        else ->
+            when (val value = read()) {
+                is BrokenValue -> DefaultProvider<Any> { value.rethrow() }.uncheckedCast()
+                else -> Providers.ofNullable(value)
+            }
     }
 
 
@@ -93,7 +104,7 @@ ProviderCodec : Codec<ProviderInternal<*>> {
 class
 BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInternal) : Codec<BuildServiceProvider<*, *>> {
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
-        encodePreservingIdentityOf(sharedIdentities, value) {
+        encodePreservingSharedIdentityOf(value) {
             writeString(value.getName())
             writeClass(value.getImplementationType())
             write(value.getParameters())
@@ -101,17 +112,73 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
         }
     }
 
-    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? {
-        return decodePreservingIdentity(sharedIdentities) { id ->
+    override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? =
+        decodePreservingSharedIdentity {
             val name = readString()
-            val implementationType = readClass() as Class<BuildService<*>>
+            val implementationType = readClass().uncheckedCast<Class<BuildService<*>>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
             val provider = serviceRegistry.register(name, implementationType, parameters, maxUsages)
-            sharedIdentities.putInstance(id, provider)
             provider
         }
+}
+
+
+class
+ValueSourceProviderCodec(
+    private val valueSourceProviderFactory: ValueSourceProviderFactory
+) : Codec<ValueSourceProvider<*, *>> {
+
+    override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
+        when (val obtainedValue = value.obtainedValueOrNull) {
+            null -> {
+                // source has **NOT** been used as build logic input:
+                // serialize the source
+                writeBoolean(true)
+                encodeValueSource(value)
+            }
+            else -> {
+                // source has been used as build logic input:
+                // serialize the value directly as it will be part of the
+                // cached state fingerprint.
+                // Currently not necessary due to the unpacking that happens
+                // to the TypeSanitizingProvider put around the ValueSourceProvider.
+                TODO("build logic input")
+            }
+        }
     }
+
+    override suspend fun ReadContext.decode(): ValueSourceProvider<*, *>? =
+        when (readBoolean()) {
+            true -> decodeValueSource()
+            false -> throw IllegalStateException()
+        }
+
+    private
+    suspend fun WriteContext.encodeValueSource(value: ValueSourceProvider<*, *>) {
+        encodePreservingSharedIdentityOf(value) {
+            value.run {
+                writeClass(valueSourceType)
+                writeClass(parametersType)
+                write(parameters)
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.decodeValueSource(): ValueSourceProvider<*, *> =
+        decodePreservingSharedIdentity {
+            val valueSourceType = readClass()
+            val parametersType = readClass()
+            val parameters = read()!!
+            val provider =
+                valueSourceProviderFactory.instantiateValueSourceProvider<Any, ValueSourceParameters>(
+                    valueSourceType.uncheckedCast(),
+                    parametersType.uncheckedCast(),
+                    parameters.uncheckedCast()
+                )
+            provider.uncheckedCast()
+        }
 }
 
 

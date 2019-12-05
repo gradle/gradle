@@ -45,7 +45,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -237,8 +237,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
         this.derivedVariants = ImmutableList.copyOf(derivedVariants);
     }
 
-    private RealisedMavenModuleResolveMetadata(RealisedMavenModuleResolveMetadata metadata, ModuleSource source) {
-        super(metadata, source);
+    private RealisedMavenModuleResolveMetadata(RealisedMavenModuleResolveMetadata metadata, ModuleSources sources) {
+        super(metadata, sources);
         this.objectInstantiator = metadata.objectInstantiator;
         packaging = metadata.packaging;
         relocated = metadata.relocated;
@@ -257,8 +257,8 @@ public class RealisedMavenModuleResolveMetadata extends AbstractRealisedModuleCo
     }
 
     @Override
-    public RealisedMavenModuleResolveMetadata withSource(ModuleSource source) {
-        return new RealisedMavenModuleResolveMetadata(this, source);
+    public RealisedMavenModuleResolveMetadata withSources(ModuleSources sources) {
+        return new RealisedMavenModuleResolveMetadata(this, sources);
     }
 
     @Override

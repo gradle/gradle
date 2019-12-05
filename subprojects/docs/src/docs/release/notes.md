@@ -13,7 +13,12 @@ Include only their name, impactful features should be called out separately belo
 [Emmanuel Guérin](https://github.com/emmanuelguerin),
 [Nicholas Gates](https://github.com/gatesn),
 [Bjørn Mølgård Vester](https://github.com/bjornvester),
-and [Johnny Lim](https://github.com/izeye).
+[Johnny Lim](https://github.com/izeye),
+[Benjamin Muskalla](https://github.com/bmuskalla),
+[Ian Kerins](https://github.com/isker)
+[Vladimir Sitnikov](https://github.com/vlsi),
+[Michael Ernst](https://github.com/mernst),
+and [Nelson Osacky](https://github.com/runningcode).
 
 ## Upgrade Instructions
 

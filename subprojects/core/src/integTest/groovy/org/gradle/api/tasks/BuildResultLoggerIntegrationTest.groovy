@@ -46,7 +46,6 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "task outcome statistics are reported"() {
         when:
         run "adHocTask", "executedTask"

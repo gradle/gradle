@@ -16,29 +16,82 @@
 
 package org.gradle.internal.snapshot
 
-import com.google.common.collect.ImmutableList
 import org.gradle.internal.file.FileType
-import org.gradle.internal.hash.HashCode
-import spock.lang.Specification
+import spock.lang.Unroll
 
-class PartialDirectorySnapshotTest extends Specification {
-    def "can obtain metadata from Directory"() {
-        def metadataSnapshot = new PartialDirectorySnapshot("some/prefix", ImmutableList.of())
-        expect:
-        metadataSnapshot.getSnapshot("/absolute/path", "/absolute/path".length() + 1, caseSensitivity).get() == metadataSnapshot
-        !metadataSnapshot.getSnapshot("another/path", 0, caseSensitivity).present
+import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 
-        where:
-        caseSensitivity << CaseSensitivity.values()
+@Unroll
+class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<PartialDirectorySnapshot> {
+
+    @Override
+    protected PartialDirectorySnapshot createInitialRootNode(String pathToParent, List<FileSystemNode> children) {
+        return new PartialDirectorySnapshot(pathToParent, children)
     }
 
-    def "invalidating something in a directory retains the directory information"() {
-        def metadataSnapshot = new PartialDirectorySnapshot("some/prefix", ImmutableList.of(new RegularFileSnapshot("/absolute/some/prefix/whatever", "whatever", HashCode.fromInt(1234), new FileMetadata(2, 3))))
+    @Override
+    protected boolean isSameNodeType(FileSystemNode node) {
+        node instanceof PartialDirectorySnapshot
+    }
 
-        expect:
-        metadataSnapshot.invalidate("whatever", 0, caseSensitivity).get().getSnapshot("/absolute/some/prefix", "/absolute/some/prefix".length() + 1, caseSensitivity).get().type == FileType.Directory
+    @Override
+    boolean isAllowEmptyChildren() {
+        return true
+    }
+
+    def "invalidate #vfsSpec.searchedPath removes child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
+        then:
+        resultRoot.children == childrenWithSelectedChildRemoved()
+        isSameNodeType(resultRoot)
+        interaction { noMoreInteractions() }
 
         where:
-        caseSensitivity << CaseSensitivity.values()
+        vfsSpec << IS_PREFIX_OF_CHILD + SAME_PATH
+    }
+
+    def "invalidate #vfsSpec.searchedPath invalidates children of #vfsSpec.selectedChildPath (#vfsSpec)"() {
+        setupTest(vfsSpec)
+        def invalidatedChild = mockChild(selectedChild.pathToParent)
+
+        when:
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
+        then:
+        resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
+        isSameNodeType(resultRoot)
+        interaction {
+            invalidateDescendantOfSelectedChild(invalidatedChild)
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << CHILD_IS_PREFIX
+    }
+
+    def "invalidate #vfsSpec.searchedPath removes empty invalidated child #vfsSpec.selectedChildPath (#vfsSpec)"() {
+        setupTest(vfsSpec)
+
+        when:
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
+        then:
+        resultRoot.children == childrenWithSelectedChildRemoved()
+        isSameNodeType(resultRoot)
+        interaction {
+            invalidateDescendantOfSelectedChild(null)
+            noMoreInteractions()
+        }
+
+        where:
+        vfsSpec << CHILD_IS_PREFIX
+    }
+
+    def "returns Directory for snapshot"() {
+        def node = new PartialDirectorySnapshot("some/prefix", [])
+
+        expect:
+        node.getSnapshot().get().type == FileType.Directory
     }
 }

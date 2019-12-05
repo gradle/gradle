@@ -94,7 +94,7 @@ class DistributionTestingPlugin : Plugin<Project> {
             gradleGeneratedApiJarCacheDir.set(defaultGradleGeneratedApiJarCacheDirProvider())
             daemonRegistry.set(layout.buildDirectory.dir("daemon"))
             gradleHomeDir.set(dirWorkaround { intTestImage.destinationDir })
-            gradleSamplesDir.set(layout.projectDirectory.dir("subprojects/docs/src/samples"))
+            gradleSnippetsDir.set(layout.projectDirectory.dir("subprojects/docs/src/snippets"))
             toolingApiShadedJarDir.set(dirWorkaround {
                 // TODO Refactor to not reach into tasks of another project
                 val toolingApiShadedJar: ShadedJar by project.rootProject.project(":toolingApi").tasks

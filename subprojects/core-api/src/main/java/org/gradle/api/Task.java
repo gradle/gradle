@@ -95,9 +95,6 @@ import java.util.Set;
  *
  * <li>A {@link Task}.</li>
  *
- * <li>A closure. The closure may take a {@code Task} as parameter. It may return any of the types listed here. Its
- * return value is recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
- *
  * <li>A {@link TaskDependency} object.</li>
  *
  * <li>A {@link org.gradle.api.tasks.TaskReference} object.</li>
@@ -114,7 +111,8 @@ import java.util.Set;
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
- * <li>A Groovy {@code Closure} or Kotlin function. The closure or function may return any of the types listed here. Its return value is
+ * <li>A Groovy {@code Closure} or Kotlin function. The closure may take a {@code Task} as parameter. 
+ * The closure or function may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
  * <li>Anything else is treated as an error.</li>

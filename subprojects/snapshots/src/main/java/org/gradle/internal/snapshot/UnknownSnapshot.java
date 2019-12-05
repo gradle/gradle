@@ -33,7 +33,7 @@ public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
     }
 
     @Override
-    protected Optional<MetadataSnapshot> getMetadata() {
+    public Optional<MetadataSnapshot> getSnapshot() {
         return Optional.empty();
     }
 
@@ -51,5 +51,4 @@ public class UnknownSnapshot extends AbstractIncompleteSnapshotWithChildren {
     protected FileSystemNode withIncompleteChildren() {
         return this;
     }
-
 }

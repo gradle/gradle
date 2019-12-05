@@ -108,7 +108,9 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("slf4j_api"))
     testFixturesImplementation(library("inject"))
-
+    testFixturesImplementation(library("guava")) {
+        because("Groovy compiler reflects on private field on TextUtil")
+    }
     crossVersionTestRuntimeOnly(project(":maven"))
 }
 

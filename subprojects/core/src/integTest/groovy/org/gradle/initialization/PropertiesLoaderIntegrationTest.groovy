@@ -53,7 +53,6 @@ task assertCodDisabled {
         succeeds ':assertCodDisabled'
     }
 
-    @ToBeFixedForInstantExecution
     def "system property set on command line takes precedence over properties file"() {
         given:
         file('gradle.properties') << """
@@ -109,7 +108,6 @@ task assertCodDisabled {
         succeeds ':assertCodDisabled'
     }
 
-    @ToBeFixedForInstantExecution
     def "system property set on command line takes precedence over jvm args"() {
         given:
         executer.requireGradleDistribution()

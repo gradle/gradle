@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -23,10 +24,9 @@ import org.gradle.internal.operations.OperationStartEvent;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
-import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.DefaultOperationFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultOperationStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultWorkItemDescriptor;
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultWorkItemDescriptor;
 import org.gradle.workers.internal.ExecuteWorkItemBuildOperationType;
 
 import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildOperationListener.toOperationResult;
@@ -38,7 +38,7 @@ import static org.gradle.tooling.internal.provider.runner.ClientForwardingBuildO
  */
 class ClientForwardingWorkItemOperationListener extends SubtreeFilteringBuildOperationListener<ExecuteWorkItemBuildOperationType.Details> {
 
-    ClientForwardingWorkItemOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate) {
+    ClientForwardingWorkItemOperationListener(ProgressEventConsumer eventConsumer, BuildEventSubscriptions clientSubscriptions, BuildOperationListener delegate) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.WORK_ITEM, ExecuteWorkItemBuildOperationType.Details.class);
     }
 

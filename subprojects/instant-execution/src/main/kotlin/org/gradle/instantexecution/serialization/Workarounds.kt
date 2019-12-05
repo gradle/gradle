@@ -46,10 +46,14 @@ object Workarounds {
                 try {
                     val clazz = loader.loadClass(type)
                     fields.forEach { (name, value) ->
-                        clazz.getDeclaredField(name)
-                            .apply { isAccessible = true }
-                            .takeIf { it.get(null) == null }
-                            ?.set(null, value())
+                        try {
+                            clazz.getDeclaredField(name)
+                                .apply { isAccessible = true }
+                                .takeIf { it.get(null) == null }
+                                ?.set(null, value())
+                        } catch (ex: NoSuchFieldException) {
+                            // n/a
+                        }
                     }
                 } catch (ex: ClassNotFoundException) {
                     // n/a

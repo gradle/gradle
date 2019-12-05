@@ -28,20 +28,26 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
     def "service is created once per build on first use and stopped at the end of the build"() {
         serviceImplementation()
         buildFile << """
+            abstract class Consumer extends DefaultTask {
+                @Internal
+                abstract Property<CountingService> getCounter()
+                
+                @TaskAction
+                def go() {
+                    counter.get().increment()
+                }
+            }
+
             def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
                 parameters.initial = 10
             }
             
-            task first {
-                doFirst {
-                    provider.get().increment()
-                }
+            task first(type: Consumer) {
+                counter = provider
             }
 
-            task second {
-                doFirst {
-                    provider.get().increment()
-                }
+            task second(type: Consumer) {
+                counter = provider
             }
         """
 
@@ -76,6 +82,47 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertNotOutput("service:")
+    }
+
+    def "can use service from task doFirst() or doLast() action"() {
+        serviceImplementation()
+        buildFile << """
+            def provider = gradle.sharedServices.registerIfAbsent("counter", CountingService) {
+                parameters.initial = 10
+            }
+            
+            task first {
+                doFirst {
+                    provider.get().increment()
+                }
+            }
+
+            task second {
+                doLast {
+                    provider.get().increment()
+                }
+            }
+        """
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("service: value is 12")
+        outputContains("service: closed with value 12")
+
+        when:
+        run("first", "second")
+
+        then:
+        output.count("service:") == 4
+        outputContains("service: created with value = 10")
+        outputContains("service: value is 11")
+        outputContains("service: value is 12")
+        outputContains("service: closed with value 12")
     }
 
     def "tasks can use mapped value of service"() {

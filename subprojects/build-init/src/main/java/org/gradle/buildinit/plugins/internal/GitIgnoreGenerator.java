@@ -16,13 +16,23 @@
 
 package org.gradle.buildinit.plugins.internal;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileResolver;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.Spliterator;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class GitIgnoreGenerator implements BuildContentGenerator {
     private final FileResolver fileResolver;
@@ -34,19 +44,50 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
     @Override
     public void generate(InitSettings settings) {
         File file = fileResolver.resolve(".gitignore");
-        try {
-            PrintWriter writer = new PrintWriter(new FileWriter(file));
-            try {
-                writer.println("# Ignore Gradle project-specific cache directory");
-                writer.println(".gradle");
-                writer.println();
-                writer.println("# Ignore Gradle build output directory");
-                writer.println("build");
-            } finally {
-                writer.close();
+        Set<String> gitignoresToAppend = getGitignoresToAppend(file);
+        if (!gitignoresToAppend.isEmpty()) {
+            boolean shouldAppendNewLine = file.exists();
+            try (PrintWriter writer = new PrintWriter(new FileWriter(file, true))) {
+                if (shouldAppendNewLine) {
+                    writer.println();
+                }
+                Spliterator<String> it = gitignoresToAppend.spliterator();
+                if (it.tryAdvance(e -> withComment(e).forEach(writer::println))) {
+                    StreamSupport.stream(it, false).forEach(e -> withSeparator(withComment(e)).forEach(writer::println));
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
+    }
+
+    private static Set<String> getGitignoresToAppend(File gitignoreFile) {
+        Set<String> result = Sets.newLinkedHashSet(Arrays.asList(".gradle", "build"));
+        if (gitignoreFile.exists()) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))){
+                result.removeAll(reader.lines().filter(it -> result.contains(it)).collect(Collectors.toSet()));
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return result;
+    }
+
+    private static List<String> withComment(String entry) {
+        List<String> result = Lists.newArrayList();
+        if (entry.startsWith(".gradle")) {
+            result.add("# Ignore Gradle project-specific cache directory");
+        } else if (entry.startsWith("build")) {
+            result.add("# Ignore Gradle build output directory");
+        }
+        result.add(entry);
+
+        return result;
+    }
+
+    private static List<String> withSeparator(List<String> entry) {
+        List<String> result = Lists.newArrayList("");
+        result.addAll(entry);
+        return result;
     }
 }

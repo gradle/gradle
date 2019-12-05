@@ -22,6 +22,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 
 
 object BrokenValueCodec : Codec<BrokenValue> {
+
     override suspend fun WriteContext.encode(value: BrokenValue) {
         maybeEncode(value.failure.cause)
         writeNullableString(value.failure.message)

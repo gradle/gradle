@@ -92,17 +92,14 @@ class CollectingVisitor : FileCollectionStructureVisitor {
     }
 
     override fun visitGenericFileTree(fileTree: FileTreeInternal) {
-        // TODO - should serialize a spec for the tree instead of its current elements
         elements.addAll(fileTree)
     }
 
     override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
-        // TODO - should serialize a spec for the tree instead of its current elements
         elements.add(fileTree)
     }
 
     override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
-        // TODO - should serialize a spec for the tree instead of its current elements
         elements.addAll(fileTree)
     }
 }
