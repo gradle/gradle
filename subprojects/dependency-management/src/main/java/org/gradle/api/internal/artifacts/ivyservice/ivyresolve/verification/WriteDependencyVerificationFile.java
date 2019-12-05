@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
@@ -52,7 +51,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -70,7 +68,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private final File buildDirectory;
     private final BuildOperationExecutor buildOperationExecutor;
     private final List<String> checksums;
-    private final Map<FileChecksum, String> cachedChecksums = Maps.newConcurrentMap();
     private final Set<ChecksumEntry> entriesToBeWritten = Sets.newLinkedHashSetWithExpectedSize(512);
     private final ChecksumService checksumService;
 
@@ -170,9 +167,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 });
             }
         });
-        // We don't need this anymore and because we're going to sort
-        // elements to be added for reproducibility, we're freeing memory just in case
-        cachedChecksums.clear();
     }
 
     @Override
@@ -207,7 +201,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private String createHash(File file, ChecksumKind kind) {
-        return cachedChecksums.computeIfAbsent(new FileChecksum(file, kind), key -> checksumService.hash(file, kind.getAlgorithm()).toString());
+        return checksumService.hash(file, kind.getAlgorithm()).toString();
     }
 
     private static void resolveAllConfigurationsAndForceDownload(Project p) {
@@ -226,46 +220,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
 
     private static void resolveAndDownloadExternalFiles(Configuration cnf) {
         cnf.getIncoming().artifactView(MODULE_COMPONENT_FILES).getFiles().getFiles();
-    }
-
-    private static class FileChecksum {
-        private final File file;
-        private final ChecksumKind kind;
-        private final int hashCode;
-
-        private FileChecksum(File file, ChecksumKind kind) {
-            this.file = file;
-            this.kind = kind;
-            this.hashCode = precomputeHash();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            FileChecksum that = (FileChecksum) o;
-
-            if (!file.equals(that.file)) {
-                return false;
-            }
-            return kind == that.kind;
-        }
-
-        @Override
-        public int hashCode() {
-            return hashCode;
-        }
-
-        private int precomputeHash() {
-            int result = file.hashCode();
-            result = 31 * result + kind.hashCode();
-            return result;
-        }
     }
 
     private static class ChecksumEntry implements Comparable<ChecksumEntry> {
