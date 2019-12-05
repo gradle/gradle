@@ -18,20 +18,33 @@ package org.gradle.gradlebuild.docs;
 
 import groovy.lang.Closure;
 import org.asciidoctor.gradle.AsciidoctorTask;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.file.ConfigurableFileTree;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.build.docs.dsl.source.GenerateApiMapping;
+import org.gradle.build.docs.dsl.source.GenerateDefaultImports;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GradleUserManualPlugin implements Plugin<Project> {
@@ -39,12 +52,55 @@ public class GradleUserManualPlugin implements Plugin<Project> {
     public void apply(Project project) {
         ProjectLayout layout = project.getLayout();
         TaskContainer tasks = project.getTasks();
+        ObjectFactory objects = project.getObjects();
 
         GradleDocumentationExtension extension = project.getExtensions().getByType(GradleDocumentationExtension.class);
-        generateUserManual(project, tasks, layout, extension);
+        generateDefaultImports(project, tasks, extension);
+        generateUserManual(project, tasks, objects, layout, extension);
     }
 
-    private void generateUserManual(Project project, TaskContainer tasks, ProjectLayout layout, GradleDocumentationExtension extension) {
+    // TODO: This doesn't really make sense to be part of the user manual generation, but it's so tied up into it
+    // it's left here for a future project.
+    private void generateDefaultImports(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
+        // TODO: This should be configured via the extension vs hardcoded in the plugin
+        List<String> excludedPackages = new ArrayList<>();
+        // These are part of the API, but not the DSL
+        excludedPackages.add("org.gradle.tooling.**");
+        excludedPackages.add("org.gradle.testfixtures.**");
+
+        // Tweak the imports due to some inconsistencies introduced before we automated the default-imports generation
+        excludedPackages.add("org.gradle.plugins.ide.eclipse.model");
+        excludedPackages.add("org.gradle.plugins.ide.idea.model");
+        excludedPackages.add("org.gradle.api.tasks.testing.logging");
+
+        // TODO - rename some incubating types to remove collisions and then remove these exclusions
+        excludedPackages.add("org.gradle.plugins.binaries.model");
+
+        // Exclude classes that were moved in a different package but the deprecated ones are not removed yet
+        excludedPackages.add("org.gradle.platform.base.test");
+
+        Provider<Directory> generatedDirectory = extension.getUserManual().getStagingRoot().dir("generated");
+
+        TaskProvider<GenerateApiMapping> apiMapping = tasks.register("apiMapping", GenerateApiMapping.class, task -> {
+            task.getMetaDataFile().convention(extension.getDslReference().getGeneratedMetaDataFile());
+            task.getMappingDestFile().convention(generatedDirectory.map(dir -> dir.file("api-mapping.txt")));
+            task.getExcludedPackages().convention(excludedPackages);
+        });
+        TaskProvider<GenerateDefaultImports> defaultImports = tasks.register("defaultImports", GenerateDefaultImports.class, task -> {
+            task.getMetaDataFile().convention(extension.getDslReference().getGeneratedMetaDataFile());
+            task.getImportsDestFile().convention(generatedDirectory.map(dir -> dir.file("default-imports.txt")));
+            task.getExcludedPackages().convention(excludedPackages);
+        });
+        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
+        sourceSets.getByName("main", main -> {
+            main.getOutput().dir(Collections.singletonMap("builtBy", Arrays.asList(apiMapping, defaultImports)), generatedDirectory);
+        });
+
+        extension.getUserManual().getResources().from(apiMapping);
+        extension.getUserManual().getResources().from(defaultImports);
+    }
+
+    private void generateUserManual(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {
         tasks.withType(AsciidoctorTask.class).configureEach(task -> {
             if (task.getName().equals("asciidoctor")) {
                 // ignore this task
@@ -67,7 +123,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             inputs.files(extension.getUserManual().getSnippets())
                     .withPropertyName("snippets")
                     .withPathSensitivity(PathSensitivity.RELATIVE);
-
 
             Map<String, Object> attributes = new HashMap<>();
             // TODO: Break the paths assumed here
@@ -104,27 +159,22 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.attributes(attributes);
         });
 
-        // TODO: change generatedResourcesDir to a provider
-        // def generatedResourcesDir = gradlebuildJava.generatedResourcesDir
-
         TaskProvider<Sync> userguideFlattenSources = tasks.register("stageUserguideSource", Sync.class, task -> {
             task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
 
-            // Flatten adocs into a single directory
             task.from(extension.getUserManual().getRoot(), sub -> {
                 sub.include("**/*.adoc");
+                // Flatten adocs into a single directory
                 sub.eachFile(fcd -> fcd.setRelativePath(RelativePath.parse(true, fcd.getName())));
             });
 
-            // include images (TODO: maybe these should be counted as "resources")
-            task.from(extension.getUserManual().getRoot(), sub -> {
-                sub.include("**/*.png");
-                sub.include("**/*.gif");
-                sub.include("**/*.gif");
-                sub.into("img");
-            });
             task.from(extension.getUserManual().getSnippets(), sub -> sub.into("snippets"));
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
+            task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
+                sub.include("**/*.png", "**/*.gif", "**/*.jpg");
+                sub.into("img");
+            });
+            task.from(extension.getUserManual().getResources());
 
             task.into(extension.getUserManual().getStagingRoot().dir("raw"));
             // TODO: ???
@@ -176,6 +226,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                     ((PatternSet)this.getDelegate()).include("**/*.adoc");
                     ((PatternSet)this.getDelegate()).exclude("javaProject*Layout.adoc");
                     ((PatternSet)this.getDelegate()).exclude("userguide_single.adoc");
+                    ((PatternSet)this.getDelegate()).exclude("snippets/**/*.adoc");
                     return null;
                 }
             });
@@ -206,17 +257,12 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
 
             task.rename("userguide_single.pdf", "userguide.pdf");
-// TODO: is this needed?
-//            from resourceFiles
         });
 
         extension.userManual(userManual -> {
             userManual.getRoot().convention(extension.getSourceRoot().dir("userguide"));
             userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
-            // TODO:
-            //  userManual.getRenderedGettingStartedPage().convention(gettingStarted.flatMap(t -> t.getou));
             userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
-
             userManual.getRenderedDocumentation().from(userguide);
         });
     }

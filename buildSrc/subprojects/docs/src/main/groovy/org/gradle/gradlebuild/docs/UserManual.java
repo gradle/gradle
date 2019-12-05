@@ -21,15 +21,11 @@ import org.gradle.api.file.DirectoryProperty;
 
 public abstract class UserManual {
     public abstract DirectoryProperty getRoot();
-
     public abstract DirectoryProperty getSnippets();
-
 
     public abstract DirectoryProperty getStagingRoot();
 
-    public abstract DirectoryProperty getRenderedGettingStartedPage();
-    public abstract DirectoryProperty getRenderedMultiPage();
-    public abstract DirectoryProperty getRenderedSinglePage();
+    public abstract ConfigurableFileCollection getResources();
 
     public abstract ConfigurableFileCollection getRenderedDocumentation();
 }

@@ -108,6 +108,8 @@ public class GradleDslReferencePlugin implements Plugin<Project> {
 
             dslRef.getStagingRoot().convention(extension.getStagingRoot().dir("dsl"));
 
+            dslRef.getGeneratedMetaDataFile().convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
+
             dslRef.getRenderedDocumentation().from(dslRef.getResources());
             dslRef.getRenderedDocumentation().from(dslHtml.flatMap(Docbook2Xhtml::getDestinationDirectory));
         });

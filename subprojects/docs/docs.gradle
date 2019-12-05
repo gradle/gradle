@@ -104,8 +104,6 @@ ext {
     docsDir = new File(buildDir, "docs")
     samplesDir = new File(buildDir, "gradle-samples")
     distDocsDir = new File(buildDir, 'distDocs')
-    snippetsSrcDir = file('src/snippets')
-    samplesSrcDir = file('src/samples')
 }
 
 gradleDocumentation {
@@ -117,7 +115,7 @@ gradleDocumentation {
 }
 
 // Sample stuff:
-
+def samplesSrcDir = file('src/samples')
 def asciidoctorTaskConfigurator = { AsciidoctorTask task ->
     task.attributes stylesdir: file('src/docs/css/').absolutePath,
             stylesheet: 'manual.css',
@@ -126,6 +124,7 @@ def asciidoctorTaskConfigurator = { AsciidoctorTask task ->
             sectlinks: true,
             linkattrs: true
 }
+
 
 tasks.withType(AsciidoctorTask).configureEach {
     if (name == 'asciidocSampleIndex') {
@@ -337,7 +336,8 @@ configurations {
         }
     }
     gradleFullDocsElements {
-        outgoing.artifact(docsDir) {
+        // TODO: This breaks the provider
+        outgoing.artifact(project.gradleDocumentation.getDocumentationRenderedRoot().get().asFile) {
             builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
         }
     }

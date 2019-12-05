@@ -49,6 +49,8 @@ public abstract class DslReference {
      */
     public abstract DirectoryProperty getStagingRoot();
 
+    public abstract RegularFileProperty getGeneratedMetaDataFile();
+
     /**
      * The fully rendered documentation with all of its necessary resources.
      */

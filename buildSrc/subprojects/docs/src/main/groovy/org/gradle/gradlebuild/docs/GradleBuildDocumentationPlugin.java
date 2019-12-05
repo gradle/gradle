@@ -31,14 +31,10 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask;
-import org.gradle.build.docs.dsl.source.GenerateDefaultImportsTask;
 import org.gradle.gradlebuild.ProjectGroups;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 public class GradleBuildDocumentationPlugin implements Plugin<Project> {
     @Override
@@ -55,45 +51,9 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleUserManualPlugin.class));
 
-        generateDefaultImports(project, layout, tasks);
-
         addUtilityTasks(tasks, extension);
 
         checkDocumentation(layout, tasks, extension);
-    }
-
-    private void generateDefaultImports(Project project, ProjectLayout layout, TaskContainer tasks) {
-        // TODO: This should be wired through the model
-        TaskProvider<ExtractDslMetaDataTask> dslMetaData = tasks.named("dslMetaData", ExtractDslMetaDataTask.class);
-        TaskProvider<GenerateDefaultImportsTask> defaultImports = tasks.register("defaultImports", GenerateDefaultImportsTask.class, task -> {
-            task.getMetaDataFile().convention(dslMetaData.flatMap(ExtractDslMetaDataTask::getDestinationFile));
-            task.getImportsDestFile().convention(layout.getBuildDirectory().file("generated-imports/default-imports.txt"));
-            task.getMappingDestFile().convention(layout.getBuildDirectory().file("generated-imports/api-mapping.txt"));
-
-            List<String> excludedPackages = new ArrayList<>();
-            // These are part of the API, but not the DSL
-            excludedPackages.add("org.gradle.tooling.**");
-            excludedPackages.add("org.gradle.testfixtures.**");
-
-            // Tweak the imports due to some inconsistencies introduced before we automated the default-imports generation
-            excludedPackages.add("org.gradle.plugins.ide.eclipse.model");
-            excludedPackages.add("org.gradle.plugins.ide.idea.model");
-            excludedPackages.add("org.gradle.api.tasks.testing.logging");
-
-            // TODO - rename some incubating types to remove collisions and then remove these exclusions
-            excludedPackages.add("org.gradle.plugins.binaries.model");
-
-            // Exclude classes that were moved in a different package but the deprecated ones are not removed yet
-            excludedPackages.add("org.gradle.platform.base.test");
-
-            task.getExcludedPackages().convention(excludedPackages);
-        });
-        SourceSetContainer sourceSets = project.getExtensions().getByType(SourceSetContainer.class);
-        sourceSets.getByName("main", main -> {
-            // TODO:
-            //  sourceSets.main.output.dir generatedResourcesDir, builtBy: [defaultImports, copyReleaseFeatures]
-//            main.getOutput().dir(defaultImports);
-        });
     }
 
     private void applyConventions(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {

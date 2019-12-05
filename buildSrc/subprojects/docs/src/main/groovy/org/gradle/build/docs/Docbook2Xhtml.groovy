@@ -32,6 +32,9 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
+import org.gradle.internal.work.WorkerLeaseService
+
+import javax.inject.Inject
 
 @CacheableTask
 abstract class Docbook2Xhtml extends SourceTask {
@@ -59,6 +62,9 @@ abstract class Docbook2Xhtml extends SourceTask {
     @OutputDirectory
     abstract DirectoryProperty getDestinationDirectory();
 
+    @Inject
+    abstract WorkerLeaseService getWorkerLeaseService();
+
     @TaskAction
     def transform() {
         logging.captureStandardOutput(LogLevel.INFO)
@@ -67,7 +73,6 @@ abstract class Docbook2Xhtml extends SourceTask {
         def destDir = destinationDirectory.get().asFile
         project.delete(destDir, temporaryDir)
 
-        // TODO: Implement this with the worker API
         def xslClasspath = classpath.plus(project.files(ClasspathUtil.getClasspathForClass(XslTransformer)))
 
         project.copy {
@@ -86,29 +91,32 @@ abstract class Docbook2Xhtml extends SourceTask {
         def stylesheetFile = new File(getTemporaryDir(), "dslHtml.xsl")
         def xslthlConfigFile = getStylesheetHighlightFile().get().asFile.toURI()
 
-        source.visit { FileVisitDetails fvd ->
-            if (fvd.isDirectory()) {
-                return
-            }
-            if (!fvd.getFile().getName().endsWith(".xml")) {
-                return
-            }
+        // TODO: Implement this with the worker API
+        workerLeaseService.withoutProjectLock({
+            source.visit { FileVisitDetails fvd ->
+                if (fvd.isDirectory()) {
+                    return
+                }
+                if (!fvd.getFile().getName().endsWith(".xml")) {
+                    return
+                }
 
-            String newFileName = fvd.file.name.replaceAll('.xml$', '.html')
-            File outFile = fvd.relativePath.replaceLastName(newFileName).getFile(destDir)
-            outFile.parentFile.mkdirs()
+                String newFileName = fvd.file.name.replaceAll('.xml$', '.html')
+                File outFile = fvd.relativePath.replaceLastName(newFileName).getFile(destDir)
+                outFile.parentFile.mkdirs()
 
-            project.javaexec {
-                main = XslTransformer.name
-                args stylesheetFile.absolutePath
-                args fvd.file.absolutePath
-                args outFile.absolutePath
-                args destDir.absolutePath
-                jvmArgs '-Xmx1024m'
-                classpath = xslClasspath
-                systemProperty 'xslthl.config', xslthlConfigFile
-                systemProperty 'org.apache.xerces.xni.parser.XMLParserConfiguration', 'org.apache.xerces.parsers.XIncludeParserConfiguration'
+                project.javaexec {
+                    main = XslTransformer.name
+                    args stylesheetFile.absolutePath
+                    args fvd.file.absolutePath
+                    args outFile.absolutePath
+                    args destDir.absolutePath
+                    jvmArgs '-Xmx1024m'
+                    classpath = xslClasspath
+                    systemProperty 'xslthl.config', xslthlConfigFile
+                    systemProperty 'org.apache.xerces.xni.parser.XMLParserConfiguration', 'org.apache.xerces.parsers.XIncludeParserConfiguration'
+                }
             }
-        }
+        } as Runnable)
     }
 }
