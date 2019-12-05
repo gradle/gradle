@@ -92,9 +92,9 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         second.componentId.module == "foo"
         second.componentId.version == "1.1"
         second.artifactVerifications.size() == 2
-        second.artifactVerifications[0].artifact.fileName == "foo-1.1.jar"
+        second.artifactVerifications[0].artifactName == "foo-1.1.jar"
         second.artifactVerifications[0].checksums[ChecksumKind.md5] == "1234"
-        second.artifactVerifications[1].artifact.fileName == "foo-1.1.zip"
+        second.artifactVerifications[1].artifactName == "foo-1.1.zip"
         second.artifactVerifications[1].checksums[ChecksumKind.sha1] == "5678"
 
         def third = verifier.verificationMetadata[2]
@@ -102,10 +102,10 @@ class DependencyVerificationsXmlReaderTest extends Specification {
         third.componentId.module == "bar"
         third.componentId.version == "1.2"
         third.artifactVerifications.size() == 2
-        third.artifactVerifications[0].artifact.fileName == "bar-1.2.jar"
+        third.artifactVerifications[0].artifactName == "bar-1.2.jar"
         third.artifactVerifications[0].checksums[ChecksumKind.sha1] == "9876"
         third.artifactVerifications[0].checksums[ChecksumKind.sha512] == "123def"
-        third.artifactVerifications[1].artifact.fileName == "bar-1.2-classy.jar"
+        third.artifactVerifications[1].artifactName == "bar-1.2-classy.jar"
         third.artifactVerifications[1].checksums[ChecksumKind.sha512] == "5678abcd"
     }
 
