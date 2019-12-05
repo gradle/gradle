@@ -39,6 +39,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
+import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.VersionStrategy;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DefaultChecksumService;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
@@ -139,6 +142,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.BuildCommencedTimeProvider;
 import org.gradle.util.internal.SimpleMapInterner;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -453,8 +457,10 @@ class DependencyManagementBuildScopeServices {
         return new ComponentMetadataSupplierRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
     }
 
-    ChecksumService createchecksumService(StringInterner stringInterner, CrossBuildFileHashCache fileStore, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
-        return new DefaultChecksumService(stringInterner, fileStore, fileSystem, fileTimeStampInspector);
+    ChecksumService createchecksumService(StringInterner stringInterner, CacheScopeMapping cacheScopeMapping, ProjectCacheDir projectCacheDir, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, FileSystem fileSystem, GlobalScopeFileTimeStampInspector fileTimeStampInspector) {
+        File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "checksums", VersionStrategy.SharedCache);
+        CrossBuildFileHashCache crossBuildCache = new CrossBuildFileHashCache(cacheDir, cacheRepository, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
+        return new DefaultChecksumService(stringInterner, crossBuildCache, fileSystem, fileTimeStampInspector);
     }
 
 }
