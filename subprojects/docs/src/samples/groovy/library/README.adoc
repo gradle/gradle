@@ -1,4 +1,4 @@
-= Groovy Basic Library Sample
+= Groovy Library Sample
 
 ifndef::env-github[]
 [.download]
@@ -10,7 +10,7 @@ NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com
 
 NOTE: If you are new to Gradle and wish to follow a more detailed tutorial for building Groovy libraries, we suggest you have an look at the https://guides.gradle.org/building-groovy-libraries/[Building Groovy Libraries guide].
 
-This sample shows how a simple Groovy library can be built with Gradle.
+This sample shows how a Groovy library can be built with Gradle.
 The library has no dependencies aside from the Groovy runtime and the build has minimal configuration.
 
 ====

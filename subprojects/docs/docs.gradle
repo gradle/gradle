@@ -585,11 +585,11 @@ samples {
             from(sourceFiles) { into("kotlin") }
         }
     }
-    springBoot {
-        sampleDirectory = file("src/samples/spring-boot")
-        description = "Demonstrate a simple Spring Boot application in Gradle"
+    springBootWebApplication {
+        sampleDirectory = file("src/samples/spring-boot-web-application")
+        description = "Demonstrate how to build a Spring Boot Web application"
         def sourceFiles = installSourceFromTemplate(it) {
-            from("$templateDir/spring-boot")
+            from("$templateDir/spring-boot-web-application")
         }
         archiveContent.from sourceFiles
         exemplar.source {
@@ -598,9 +598,9 @@ samples {
         }
     }
 
-    javaBasicApplication {
-        sampleDirectory = file("src/samples/java/basic-application")
-        description = "Demonstrate how to build a basic Java application"
+    javaApplication {
+        sampleDirectory = file("src/samples/java/application")
+        description = "Demonstrate how to build a Java application"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/java-application")
             from("$templateDir/java-list-library")
@@ -612,9 +612,9 @@ samples {
             from(sourceFiles) { into('kotlin') }
         }
     }
-    javaBasicLibrary {
-        sampleDirectory = file("src/samples/java/basic-library")
-        description = "Demonstrate how to build a basic Java library"
+    javaLibrary {
+        sampleDirectory = file("src/samples/java/library")
+        description = "Demonstrate how to build a Java library"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/java-list-library")
             from("$templateDir/java-utilities-library")
@@ -686,9 +686,9 @@ samples {
         }
     }
 
-    groovyBasicApplication {
-        sampleDirectory = file("src/samples/groovy/basic-application")
-        description = "Demonstrate how to build a basic Groovy application"
+    groovyApplication {
+        sampleDirectory = file("src/samples/groovy/application")
+        description = "Demonstrate how to build a Groovy application"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/groovy-application")
             from("$templateDir/groovy-list-library")
@@ -700,9 +700,9 @@ samples {
             from(sourceFiles) { into('kotlin') }
         }
     }
-    groovyBasicLibrary {
-        sampleDirectory = file("src/samples/groovy/basic-library")
-        description = "Demonstrate how to build a basic Groovy library"
+    groovyLibrary {
+        sampleDirectory = file("src/samples/groovy/library")
+        description = "Demonstrate how to build a Groovy library"
         def sourceFiles = installSourceFromTemplate(it) {
             from("$templateDir/groovy-list-library")
             from("$templateDir/groovy-utilities-library")
