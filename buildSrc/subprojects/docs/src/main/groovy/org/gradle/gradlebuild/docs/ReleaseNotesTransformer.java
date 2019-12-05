@@ -72,7 +72,6 @@ public class ReleaseNotesTransformer extends FilterReader {
         }
 
         Document document = Jsoup.parse(CharStreams.toString(in));
-
         document.outputSettings().indentAmount(2).prettyPrint(true);
         document.prependChild(new DocumentType("html", "", "", ""));
         document.head().
@@ -112,7 +111,7 @@ public class ReleaseNotesTransformer extends FilterReader {
 
     private void appendFileContentsTo(Element element, String open, File file, String close) {
         try (FileReader reader = new FileReader(file)) {
-            element.append(open).text(CharStreams.toString(reader)).append(close);
+            element.append(open + CharStreams.toString(reader) + close);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
