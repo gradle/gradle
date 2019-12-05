@@ -37,7 +37,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     def "source file changes are recognized"() {
         buildFile << """
             apply plugin: "application"
-            
+
             application.mainClassName = "Main"
         """
 
@@ -124,7 +124,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     def "source file changes are recognized when retention has just been enabled"() {
         buildFile << """
             apply plugin: "application"
-            
+
             application.mainClassName = "Main"
         """
 
@@ -149,7 +149,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     def "source file changes are recognized when retention has just been disabled"() {
         buildFile << """
             apply plugin: "application"
-            
+
             application.mainClassName = "Main"
         """
 
@@ -217,7 +217,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
     }
 
     private static void waitForChangesToBePickedUp() {
-        // With the JDK file watcher we only get notified every 2 seconds about changes
-        Thread.sleep(2100)
+        Thread.sleep(20)
     }
 }

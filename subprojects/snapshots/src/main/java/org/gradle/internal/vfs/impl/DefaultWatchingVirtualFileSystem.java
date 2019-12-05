@@ -25,13 +25,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
 public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingVirtualFileSystem, Closeable {
@@ -58,8 +59,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
             throw new IllegalStateException("Watch service already started");
         }
         try {
-            watchRegistry = watcherRegistryFactory.createRegistry();
-            Set<Path> visited = new HashSet<>();
+            Set<Path> watchRoots = new HashSet<>();
             getRoot().visitSnapshots(snapshot -> {
                 Path path = Paths.get(snapshot.getAbsolutePath());
 
@@ -68,34 +68,32 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                     return;
                 }
 
-                try {
-                    // For existing files and directories we watch the parent directory,
-                    // so we learn if the entry itself disappears or gets modified.
-                    // In case of a missing file we need to find the closest existing
-                    // ancestor to watch so we can learn if the missing file respawns.
-                    Path ancestor = path;
-                    while (true) {
-                        ancestor = ancestor.getParent();
-                        if (ancestor == null) {
-                            break;
-                        }
-                        if (Files.exists(ancestor)) {
-                            watch(ancestor, visited);
-                            break;
-                        }
+                // For existing files and directories we watch the parent directory,
+                // so we learn if the entry itself disappears or gets modified.
+                // In case of a missing file we need to find the closest existing
+                // ancestor to watch so we can learn if the missing file respawns.
+                Path ancestor = path;
+                while (true) {
+                    ancestor = ancestor.getParent();
+                    if (ancestor == null) {
+                        break;
                     }
+                    if (Files.exists(ancestor)) {
+                        watchRoots.add(ancestor);
+                        break;
+                    }
+                }
 
-                    // For directory entries we watch the directory itself,
-                    // so we learn about new children spawning. If the directory
-                    // has children, it would be watched through them already.
-                    // This is here to make sure we also watch empty directories.
-                    if (snapshot.getType() == FileType.Directory) {
-                        watch(path, visited);
-                    }
-                } catch (IOException ex) {
-                    throw new UncheckedIOException(ex);
+                // For directory entries we watch the directory itself,
+                // so we learn about new children spawning. If the directory
+                // has children, it would be watched through them already.
+                // This is here to make sure we also watch empty directories.
+                if (snapshot.getType() == FileType.Directory) {
+                    watchRoots.add(path);
                 }
             });
+            LOGGER.warn("Watching {} directories", watchRoots.size());
+            watchRegistry = watcherRegistryFactory.startWatching(watchRoots);
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             invalidateAll();
@@ -103,29 +101,25 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         }
     }
 
-    private void watch(Path directory, Set<Path> visited) throws IOException {
-        if (!visited.add(directory)) {
-            return;
-        }
-        LOGGER.warn("Start watching {}", directory);
-        watchRegistry.registerWatchPoint(directory);
-    }
-
     @Override
     public void stopWatching() {
         if (watchRegistry == null) {
             return;
         }
+
+        AtomicInteger count = new AtomicInteger();
+        AtomicBoolean overflow = new AtomicBoolean();
         try {
             watchRegistry.stopWatching(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
-                    update(Collections.singleton(path.toString()), () -> {
-                    });
+                    count.incrementAndGet();
+                    update(Collections.singleton(path.toString()), () -> {});
                 }
 
                 @Override
                 public void handleOverflow() {
+                    overflow.set(true);
                     invalidateAll();
                 }
             });
@@ -134,6 +128,11 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
             invalidateAll();
         } finally {
             close();
+        }
+        if (!overflow.get()) {
+            LOGGER.warn("Invalidated {} VFS paths due to changes since last build", count);
+        } else {
+            LOGGER.warn("Invalidated all VFS paths after {} changes due to overflow", count);
         }
     }
 
