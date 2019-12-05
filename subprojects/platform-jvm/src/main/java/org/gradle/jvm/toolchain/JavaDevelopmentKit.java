@@ -18,6 +18,8 @@ package org.gradle.jvm.toolchain;
 
 import org.gradle.api.Incubating;
 
+import java.io.File;
+
 /**
  * Information about a Java development kit.
  *
@@ -25,4 +27,13 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public interface JavaDevelopmentKit {
+    /**
+     * Returns the java compiler executable for this JDK.
+     */
+    File getJavacExecutable();
+
+    /**
+     * Returns the javadoc executable for this JDK.
+     */
+    File getJavadocExecutable();
 }

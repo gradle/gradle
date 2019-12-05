@@ -109,6 +109,11 @@ public class JavaInstallationProbe {
             return JavaVersion.toVersion(metadata.get(SysProp.VERSION));
         }
 
+        public String getImplementationName() {
+            assertOk();
+            return computeJdkName(installType, metadata);
+        }
+
         public InstallType getInstallType() {
             return installType;
         }
