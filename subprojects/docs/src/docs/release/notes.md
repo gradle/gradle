@@ -10,6 +10,7 @@ Include only their name, impactful features should be called out separately belo
 
 [Mark Nordhoff](https://github.com/MarkNordhoff),
 [Kazuki Matsuda](https://github.com/kazuki-ma),
+[Andrew Malyhin](https://github.com/katoquro),
 [Emmanuel Guérin](https://github.com/emmanuelguerin),
 [Nicholas Gates](https://github.com/gatesn),
 [Bjørn Mølgård Vester](https://github.com/bjornvester),
@@ -41,6 +42,12 @@ Note that priming the cache and consuming it needs to use the same Gradle versio
 See [the documentation](userguide/dependency_resolution.html#sub:cache_copy) for details on this.
 
 This is one step in helping out ephemeral CI setups where host images can be seeded with dependency cache content, reducing the amout of downloads during the build.
+
+## Groovy compilation support for method parameter names with JDK8+ 
+
+Gradle now supports compiling Groovy code with [method parameter names](https://docs.oracle.com/javase/tutorial/reflect/member/methodparameterreflection.html).
+
+This was contributed by [Andrew Malyhin](https://github.com/katoquro).
 
 ## Features for Gradle tooling providers
 
