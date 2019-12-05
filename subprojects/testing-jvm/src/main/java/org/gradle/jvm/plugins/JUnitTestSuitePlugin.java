@@ -47,6 +47,7 @@ import org.gradle.testing.base.plugins.TestingModelBasePlugin;
  * @since 2.11
  */
 @Incubating
+@Deprecated
 public class JUnitTestSuitePlugin implements Plugin<Project> {
 
     @Override

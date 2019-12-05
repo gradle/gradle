@@ -58,6 +58,7 @@ import static org.gradle.util.CollectionUtils.single;
  * Registers "scala" language support with the {@link org.gradle.language.scala.ScalaLanguageSourceSet}.
  */
 @Incubating
+@Deprecated
 public class ScalaLanguagePlugin implements Plugin<Project> {
 
     @Override

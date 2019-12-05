@@ -27,6 +27,7 @@ import org.gradle.platform.base.PlatformAwareComponentSpec;
  */
 @Incubating
 @HasInternalProtocol
+@Deprecated
 public interface JvmLibrarySpec extends LibrarySpec, JvmComponentSpec, PlatformAwareComponentSpec {
     /**
      * The public API of this library.

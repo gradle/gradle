@@ -75,6 +75,7 @@ import static org.gradle.internal.IoActions.withResource;
  * @see org.gradle.jvm.plugins.JvmComponentPlugin
  */
 @Incubating
+@Deprecated
 public class ApiJar extends SourceTask {
 
     private Set<String> exportedPackages;

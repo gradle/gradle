@@ -91,6 +91,7 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * container.
  */
 @Incubating
+@Deprecated
 public class JvmComponentPlugin implements Plugin<Project> {
 
     @Override

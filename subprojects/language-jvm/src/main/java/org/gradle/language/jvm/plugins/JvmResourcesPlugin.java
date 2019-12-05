@@ -46,6 +46,7 @@ import static org.gradle.util.CollectionUtils.first;
  * Plugin for packaging JVM resources. Applies the {@link org.gradle.language.base.plugins.ComponentModelBasePlugin}. Registers "resources" language support with the {@link
  * org.gradle.language.jvm.JvmResourceSet}.
  */
+@Deprecated
 public class JvmResourcesPlugin implements Plugin<Project> {
 
     @Override

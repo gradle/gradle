@@ -77,6 +77,7 @@ import static org.gradle.util.CollectionUtils.first;
  * @since 3.4
  */
 @Incubating
+@Deprecated
 public class JavaLanguagePlugin implements Plugin<Project> {
 
     @Override
