@@ -110,8 +110,18 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         TaskProvider<Sync> userguideFlattenSources = tasks.register("stageUserguideSource", Sync.class, task -> {
             task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
 
+            // Flatten adocs into a single directory
             task.from(extension.getUserManual().getRoot(), sub -> {
+                sub.include("**/*.adoc");
                 sub.eachFile(fcd -> fcd.setRelativePath(RelativePath.parse(true, fcd.getName())));
+            });
+
+            // include images (TODO: maybe these should be counted as "resources")
+            task.from(extension.getUserManual().getRoot(), sub -> {
+                sub.include("**/*.png");
+                sub.include("**/*.gif");
+                sub.include("**/*.gif");
+                sub.into("img");
             });
             task.from(extension.getUserManual().getSnippets(), sub -> sub.into("snippets"));
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
@@ -191,7 +201,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Stages rendered user manual documentation.");
 
-            // TODO: task.from(userguideSinglePage);
+            task.from(userguideSinglePage);
             task.from(userguideMultiPage);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
 
