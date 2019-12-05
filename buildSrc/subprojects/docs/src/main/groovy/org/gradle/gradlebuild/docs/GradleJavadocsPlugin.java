@@ -34,6 +34,11 @@ import org.gradle.gradlebuild.PublicApi;
 
 import java.io.File;
 
+/**
+ * Generates Javadocs in a particular way.
+ *
+ * TODO: We should remove the workarounds here and migrate some of the changes here into the Javadoc task proper.
+ */
 public class GradleJavadocsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
@@ -45,6 +50,9 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
     }
 
     private void generateJavadocs(Project project, ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+        // TODO: Staging directory should be a part of the Javadocs extension
+        // TODO: Pull out more of this configuration into the extension if it makes sense
+        // TODO: in a typical project, this may need to be the regular javadoc task vs javadocAll
         TaskProvider<Javadoc> javadocAll = tasks.register("javadocAll", Javadoc.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generate Javadocs for all API classes");

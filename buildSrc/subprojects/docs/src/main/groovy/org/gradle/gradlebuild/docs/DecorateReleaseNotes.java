@@ -40,29 +40,52 @@ import java.util.Map;
  */
 @CacheableTask
 public abstract class DecorateReleaseNotes extends DefaultTask {
+    /**
+     * The rendered HTML release notes that need decoration.
+     */
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getHtmlFile();
 
+    /**
+     * The decorated HTML file
+     */
     @OutputFile
     public abstract RegularFileProperty getDestinationFile();
 
+    /**
+     * JQuery used by the added decoration
+     */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
     public abstract ConfigurableFileCollection getJquery();
 
+    /**
+     * The release notes javascript to embed in the HTML
+     */
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getReleaseNotesJavascriptFile();
 
+    /**
+     * The release notes CSS to embed in the HTML
+     */
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getReleaseNotesCssFile();
 
+    /**
+     * The base docs CSS to embed in the HTML
+     */
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getBaseCssFile();
 
+    /**
+     * Key-value pairs that are replaced in the generated HTML.
+     *
+     * This uses Ant style replacement tokens.
+     */
     @Input
     public abstract MapProperty<String, String> getReplacementTokens();
 
@@ -74,6 +97,9 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
             copySpec.from(getHtmlFile());
             copySpec.into(destinationFile.getParentFile());
             copySpec.rename(s -> destinationFile.getName());
+
+            // TODO: Maybe this could be simplified by not using the copy infrastructure and just
+            // calling the FilterReader ourselves.  We're just taking one file and turning it into another.
 
             // The order here is important! tokens are inserted by the transformer
             Map<String, Object> parameters = new HashMap<>();

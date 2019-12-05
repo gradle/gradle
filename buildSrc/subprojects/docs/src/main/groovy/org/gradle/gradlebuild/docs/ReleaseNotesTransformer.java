@@ -34,6 +34,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Deeply opinionated file filter that adds elements to the release notes HTML page.
+ */
 public class ReleaseNotesTransformer extends FilterReader {
     private File baseCss;
     private File releaseNotesCss;

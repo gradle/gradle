@@ -24,24 +24,7 @@ import org.gradle.api.model.ObjectFactory;
 import javax.inject.Inject;
 
 /**
- * ext {
- *     srcDocsDir = file('src/docs') -> documentationSourceRoot
- *     userguideSrcDir = new File(srcDocsDir, 'userguide')
- *     userguideIntermediateOutputDir = new File(buildDir, 'userguideIntermediate')
- *     userguideSinglePageOutputDir = new File(buildDir, 'userguideSinglePage')
- *
- *     dslSrcDir = new File(srcDocsDir, 'dsl')
- *
- *     docsDir = file("$buildDir/docs") -> documentationRenderedRoot
- *
- *     userguideDir = new File(docsDir, 'userguide')
- *
- *     samplesDir = new File(buildDir, "gradle-samples")
- *     distDocsDir = new File(buildDir, 'distDocs')
- *     docbookSrc = new File(project.buildDir, 'src')
- *     snippetsSrcDir = file('src/snippets')
- *     samplesSrcDir = file('src/samples')
- * }
+ * Common root for all Gradle documentation configuration.
  */
 public abstract class GradleDocumentationExtension {
     private final ReleaseNotes releaseNotes;
@@ -59,17 +42,43 @@ public abstract class GradleDocumentationExtension {
         javadocs = objects.newInstance(Javadocs.class);
     }
 
+    /**
+     * The root directory of all documentation inputs
+     */
     public abstract DirectoryProperty getSourceRoot();
+
+    /**
+     * Collection of CSS files to include in generated documentation.
+     */
     public abstract ConfigurableFileCollection getCssFiles();
 
+    /**
+     * The source code to be documented.
+     */
     public abstract ConfigurableFileCollection getDocumentedSource();
+
+    /**
+     * The runtime classpath of the source code to be documented.
+     */
     public abstract ConfigurableFileCollection getClasspath();
 
+    /**
+     * A working directory to be used to stage documentation as its generated.
+     * All of the sections of the documentation have working directories off of this one.
+     */
     public abstract DirectoryProperty getStagingRoot();
 
+    /**
+     * The final location to place all rendered documentation.
+     */
     public abstract DirectoryProperty getDocumentationRenderedRoot();
+
+    /**
+     * The collection of rendered documentation.  This is everything laid out as it would be deployed/packaged.
+     */
     public abstract ConfigurableFileCollection getRenderedDocumentation();
 
+    // These are all helper methods for configuring the parts of the documentation (DSL ref, javadoc, user manual, etc).
     public ReleaseNotes getReleaseNotes() {
         return releaseNotes;
     }

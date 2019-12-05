@@ -30,16 +30,28 @@ import java.util.Collections;
  */
 @CacheableTask
 public abstract class RenderMarkdown extends DefaultTask {
+    /**
+     * The source markdown file.
+     */
     @PathSensitive(PathSensitivity.NONE)
     @InputFile
     public abstract RegularFileProperty getMarkdownFile();
 
+    /**
+     * The rendered HTML file
+     */
     @OutputFile
     public abstract RegularFileProperty getDestinationFile();
 
+    /**
+     * Encoding of input file
+     */
     @Input
     public abstract Property<String> getInputEncoding();
 
+    /**
+     * Encoding of output file
+     */
     @Input
     public abstract Property<String> getOutputEncoding();
 

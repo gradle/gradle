@@ -17,21 +17,45 @@
 package org.gradle.gradlebuild.docs;
 
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 
 import java.net.URI;
 
+/**
+ * Configuration for generating Javadocs
+ */
 public abstract class Javadocs {
+    /**
+     * Link to Java API to use when generating Javadoc
+     */
     public abstract Property<URI> getJavaApi();
+    /**
+     * Link to Groovy API to use when generating Javadoc
+     */
     public abstract Property<URI> getGroovyApi();
+    /**
+     * Link to Maven API to use when generating Javadoc
+     */
     public abstract Property<URI> getMavenApi();
+
+    /**
+     * The CSS file to style Javadocs with
+     */
     public abstract RegularFileProperty getJavadocCss();
 
+    /**
+     * Packages to include in the documentation
+     */
     public abstract SetProperty<String> getIncludes();
+    /**
+     * Packages to exclude in the documentation
+     */
     public abstract SetProperty<String> getExcludes();
 
+    /**
+     * A collection of the final rendered Javaodcs
+     */
     public abstract ConfigurableFileCollection getRenderedDocumentation();
 }

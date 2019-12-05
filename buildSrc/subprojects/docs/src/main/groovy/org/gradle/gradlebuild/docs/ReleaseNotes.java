@@ -20,11 +20,35 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
 
 public abstract class ReleaseNotes {
+    /**
+     * The source markdown file for the release notes.
+     */
     public abstract RegularFileProperty getMarkdownFile();
+
+    /**
+     * The base CSS file used by all documentation.
+     */
     public abstract RegularFileProperty getBaseCssFile();
+
+    /**
+     * The release notes specific CSS file
+     */
     public abstract RegularFileProperty getReleaseNotesCssFile();
+
+    /**
+     * The Javascript embedded in the release notes
+     */
     public abstract RegularFileProperty getReleaseNotesJsFile();
+
+    /**
+     * The Jquery file to include in the release notes.
+     */
     public abstract ConfigurableFileCollection getJquery();
 
+    // TODO: Need staging root property too
+
+    /**
+     * The collection of rendered documentation.
+     */
     public abstract RegularFileProperty getRenderedDocumentation();
 }

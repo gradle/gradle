@@ -18,7 +18,6 @@ package org.gradle.gradlebuild.docs;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
 
 public abstract class UserManual {
     public abstract DirectoryProperty getRoot();

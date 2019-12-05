@@ -29,6 +29,8 @@ import java.nio.charset.Charset;
 
 /**
  * Opinionated plugin that generates the release notes for a Gradle release.
+ *
+ * TODO: Maybe eventually convert this asciidoc too, so everything uses the same markup language.
  */
 public class GradleReleaseNotesPlugin implements Plugin<Project> {
     @Override
@@ -37,7 +39,7 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
         TaskContainer tasks = project.getTasks();
 
         GradleDocumentationExtension extension = project.getExtensions().getByType(GradleDocumentationExtension.class);
-        // TODO: Maybe eventually convert this asciidoc too, so everything uses the same markup language.
+
         generateReleaseNotes(project, layout, tasks, extension);
         generateReleaseFeatures(project, tasks, extension);
     }
@@ -86,6 +88,7 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
     }
 
     private void generateReleaseFeatures(Project project, TaskContainer tasks, GradleDocumentationExtension extension) {
+        // TODO: I don't know if this is really necessary since we don't modify the release features in any way.
         TaskProvider<Sync> copyReleaseFeatures = tasks.register("copyReleaseFeatures", Sync.class, task -> {
             task.from(extension.getReleaseFeatures().getReleaseFeaturesFile());
             task.into(extension.getStagingRoot().dir("generated-release-features"));

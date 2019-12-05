@@ -18,7 +18,9 @@ package org.gradle.gradlebuild.docs;
 
 import org.gradle.api.file.RegularFileProperty;
 
+/**
+ * Configuration for release features.
+ */
 public abstract class ReleaseFeatures {
     public abstract RegularFileProperty getReleaseFeaturesFile();
-    // TODO: Include copied location?
 }

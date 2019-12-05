@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
@@ -47,6 +48,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         tasks.withType(AsciidoctorTask.class).configureEach(task -> {
             if (task.getName().equals("asciidoctor")) {
                 // ignore this task
+                task.setEnabled(false);
                 return;
             }
 
@@ -108,7 +110,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         TaskProvider<Sync> userguideFlattenSources = tasks.register("stageUserguideSource", Sync.class, task -> {
             task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
 
-            task.from(extension.getUserManual().getRoot());
+            task.from(extension.getUserManual().getRoot(), sub -> {
+                sub.eachFile(fcd -> fcd.setRelativePath(RelativePath.parse(true, fcd.getName())));
+            });
             task.from(extension.getUserManual().getSnippets(), sub -> sub.into("snippets"));
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
 
@@ -187,16 +191,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setGroup("documentation");
             task.setDescription("Stages rendered user manual documentation.");
 
+            // TODO: task.from(userguideSinglePage);
             task.from(userguideMultiPage);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
-//            dependsOn userguideMultiPage, userguideSinglePage
-//
+
+            task.rename("userguide_single.pdf", "userguide.pdf");
+// TODO: is this needed?
 //            from resourceFiles
-//            from userguideIntermediateOutputDir
-//            from userguideSinglePageOutputDir
-//
-//            into userguideDir
-//            rename "userguide_single.pdf", "userguide.pdf"
         });
 
         extension.userManual(userManual -> {

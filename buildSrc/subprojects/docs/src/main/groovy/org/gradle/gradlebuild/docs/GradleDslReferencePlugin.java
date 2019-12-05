@@ -29,6 +29,12 @@ import org.gradle.build.docs.UserGuideTransformTask;
 import org.gradle.build.docs.dsl.docbook.AssembleDslDocTask;
 import org.gradle.build.docs.dsl.source.ExtractDslMetaDataTask;
 
+/**
+ * Generates DSL reference material using Docbook and some homegrown class parsing.
+ *
+ * TODO: It would be nice to replace the Docbook portion of this with Asciidoc so that it could be
+ * generated in the same way as the user manual with cross-links between them.
+ */
 public class GradleDslReferencePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

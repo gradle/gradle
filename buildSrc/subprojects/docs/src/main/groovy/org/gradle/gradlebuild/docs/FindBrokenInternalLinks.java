@@ -42,6 +42,11 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
 
+/**
+ * Checks adoc files for broken links.
+ *
+ * TODO: This is currently broken.
+ */
 @CacheableTask
 public abstract class FindBrokenInternalLinks extends DefaultTask {
     private final Pattern linkPattern = Pattern.compile("<<([^,>]+)[^>]*>>");
