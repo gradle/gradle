@@ -28,7 +28,7 @@ import java.util.List;
  */
 public interface AdditiveCache {
     /**
-     * Returns the root directories of the store.
+     * Returns the root directories of the additive cache.
      */
     List<File> getAdditiveCacheRoots();
 }

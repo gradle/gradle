@@ -30,19 +30,19 @@ import java.io.IOException;
  * All other files are cached in the local cache. Closing this cache only closes the local delegate, not the global one.
  */
 public class SplitClasspathEntrySnapshotCache implements ClasspathEntrySnapshotCache, Closeable {
-    private final AdditiveCacheLocations fileLocations;
+    private final AdditiveCacheLocations additiveCacheLocations;
     private final ClasspathEntrySnapshotCache globalCache;
     private final ClasspathEntrySnapshotCache localCache;
 
-    public SplitClasspathEntrySnapshotCache(AdditiveCacheLocations fileLocations, ClasspathEntrySnapshotCache globalCache, ClasspathEntrySnapshotCache localCache) {
-        this.fileLocations = fileLocations;
+    public SplitClasspathEntrySnapshotCache(AdditiveCacheLocations additiveCacheLocations, ClasspathEntrySnapshotCache globalCache, ClasspathEntrySnapshotCache localCache) {
+        this.additiveCacheLocations = additiveCacheLocations;
         this.globalCache = globalCache;
         this.localCache = localCache;
     }
 
     @Override
     public ClasspathEntrySnapshot get(File file, HashCode hash) {
-        if (fileLocations.isInsideAdditiveCache(file.getPath())) {
+        if (additiveCacheLocations.isInsideAdditiveCache(file.getPath())) {
             return globalCache.get(file, hash);
         } else {
             return localCache.get(file, hash);
@@ -51,7 +51,7 @@ public class SplitClasspathEntrySnapshotCache implements ClasspathEntrySnapshotC
 
     @Override
     public ClasspathEntrySnapshot get(File entry, Factory<ClasspathEntrySnapshot> factory) {
-        if (fileLocations.isInsideAdditiveCache(entry.getPath())) {
+        if (additiveCacheLocations.isInsideAdditiveCache(entry.getPath())) {
             return globalCache.get(entry, factory);
         } else {
             return localCache.get(entry, factory);

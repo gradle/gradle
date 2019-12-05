@@ -61,11 +61,19 @@ public class CompileServices extends AbstractPluginServiceRegistry {
             UserHomeScopedCompileCaches userHomeScopedCompileCaches,
             VirtualFileSystem virtualFileSystem
         ) {
-            return new DefaultGeneralCompileCaches(virtualFileSystem, userHomeScopedCompileCaches, cacheRepository, gradle, inMemoryCacheDecoratorFactory, additiveCacheLocations, interner);
+            return new DefaultGeneralCompileCaches(
+                additiveCacheLocations,
+                cacheRepository,
+                gradle,
+                inMemoryCacheDecoratorFactory,
+                interner,
+                userHomeScopedCompileCaches,
+                virtualFileSystem
+            );
         }
     }
 
-    private class UserHomeScopeServices {
+    private static class UserHomeScopeServices {
         DefaultUserHomeScopedCompileCaches createCompileCaches(CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, VirtualFileSystem virtualFileSystem, StringInterner interner) {
             return new DefaultUserHomeScopedCompileCaches(virtualFileSystem, cacheRepository, inMemoryCacheDecoratorFactory, interner);
         }

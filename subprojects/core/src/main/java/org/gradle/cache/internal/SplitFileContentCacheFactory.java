@@ -48,23 +48,23 @@ public class SplitFileContentCacheFactory implements FileContentCacheFactory, Cl
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, Calculator<? extends V> calculator, Serializer<V> serializer) {
         FileContentCache<V> globalCache = globalFactory.newCache(name, normalizedCacheSize, calculator, serializer);
         FileContentCache<V> localCache = localFactory.newCache(name, normalizedCacheSize, calculator, serializer);
-        return new SplitFileContentCache<V>(globalCache, localCache, additiveCacheLocations);
+        return new SplitFileContentCache<>(globalCache, localCache, additiveCacheLocations);
     }
 
     private static final class SplitFileContentCache<V> implements FileContentCache<V> {
         private final FileContentCache<V> globalCache;
         private final FileContentCache<V> localCache;
-        private final AdditiveCacheLocations additiveCacheLocations1;
+        private final AdditiveCacheLocations additiveCacheLocations;
 
-        private SplitFileContentCache(FileContentCache<V> globalCache, FileContentCache<V> localCache, AdditiveCacheLocations additiveCacheLocations1) {
+        private SplitFileContentCache(FileContentCache<V> globalCache, FileContentCache<V> localCache, AdditiveCacheLocations additiveCacheLocations) {
             this.globalCache = globalCache;
             this.localCache = localCache;
-            this.additiveCacheLocations1 = additiveCacheLocations1;
+            this.additiveCacheLocations = additiveCacheLocations;
         }
 
         @Override
         public V get(File file) {
-            if (additiveCacheLocations1.isInsideAdditiveCache(file.getPath())) {
+            if (additiveCacheLocations.isInsideAdditiveCache(file.getPath())) {
                 return globalCache.get(file);
             } else {
                 return localCache.get(file);
