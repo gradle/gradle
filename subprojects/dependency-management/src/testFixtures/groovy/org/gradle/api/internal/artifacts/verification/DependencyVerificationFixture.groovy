@@ -134,17 +134,31 @@ class DependencyVerificationFixture {
         }
 
         void declaresChecksum(String checksum, String algorithm = "sha1") {
-            def expectedChecksum = metadata.checksums.get(ChecksumKind.valueOf(algorithm))
+            def expectedChecksum = metadata.checksums.find { it.kind == ChecksumKind.valueOf(algorithm) }.value
             assert expectedChecksum == checksum : "On ${metadata.artifactName}, expected a ${algorithm} checksum of ${checksum} but was ${expectedChecksum}"
         }
 
-        void declaresChecksums(Map<String, String> checksums, boolean strict = true) {
+        void declaresChecksums(List<String> checksums, String algorithm = "sha1") {
+            def expectedChecksum = metadata.checksums.find { it.kind == ChecksumKind.valueOf(algorithm) }
+            Set<String> allChecksums = [expectedChecksum.value] as Set<String>
+            if (expectedChecksum.alternatives) {
+                allChecksums.addAll(expectedChecksum.alternatives)
+            }
+
+            assert allChecksums == checksums as Set : "On ${metadata.artifactName}, expected ${algorithm} checksums of ${checksums} but was ${allChecksums}"
+        }
+
+        void declaresChecksums(Map<String, ?> checksums, boolean strict = true) {
             checksums.forEach { algo, value ->
-                declaresChecksum(value, algo)
+                if (value instanceof CharSequence) {
+                    declaresChecksum(value.toString(), algo)
+                } else {
+                    declaresChecksums((List) value, algo)
+                }
             }
             if (strict) {
                 def expectedChecksums = checksums.keySet()
-                def actualChecksums = metadata.checksums.keySet()*.name() as Set
+                def actualChecksums = metadata.checksums*.kind*.name() as Set
                 assert expectedChecksums == actualChecksums
             }
         }
@@ -153,7 +167,7 @@ class DependencyVerificationFixture {
     static class Builder {
         private final DependencyVerifierBuilder builder = new DependencyVerifierBuilder()
 
-        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar") {
+        void addChecksum(String id, String algo, String checksum, String type="jar", String ext="jar", String origin = null) {
             def parts = id.split(":")
             def group = parts[0]
             def name = parts[1]
@@ -169,7 +183,8 @@ class DependencyVerificationFixture {
                     ext
                 ),
                 ChecksumKind.valueOf(algo),
-                checksum
+                checksum,
+                origin
             )
         }
 

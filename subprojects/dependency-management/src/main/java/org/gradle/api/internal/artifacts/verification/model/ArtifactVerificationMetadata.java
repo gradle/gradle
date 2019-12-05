@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.verification.model;
 
-import java.util.Map;
+import java.util.List;
 
 public interface ArtifactVerificationMetadata {
     String getArtifactName();
 
-    Map<ChecksumKind, String> getChecksums();
+    List<Checksum> getChecksums();
 }

@@ -15,17 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.verification.model;
 
-import com.google.common.collect.ImmutableMap;
-
-import java.util.Map;
+import java.util.List;
 
 public class ImmutableArtifactVerificationMetadata implements ArtifactVerificationMetadata {
     private final String artifactName;
-    private final Map<ChecksumKind, String> checksums;
+    private final List<Checksum> checksums;
 
-    public ImmutableArtifactVerificationMetadata(String artifactName, Map<ChecksumKind, String> checksums) {
+    public ImmutableArtifactVerificationMetadata(String artifactName, List<Checksum> checksums) {
         this.artifactName = artifactName;
-        this.checksums = ImmutableMap.copyOf(checksums);
+        this.checksums = checksums;
     }
 
     @Override
@@ -34,7 +32,7 @@ public class ImmutableArtifactVerificationMetadata implements ArtifactVerificati
     }
 
     @Override
-    public Map<ChecksumKind, String> getChecksums() {
+    public List<Checksum> getChecksums() {
         return checksums;
     }
 

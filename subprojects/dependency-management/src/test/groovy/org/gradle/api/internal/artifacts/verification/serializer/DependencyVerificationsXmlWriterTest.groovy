@@ -112,12 +112,65 @@ class DependencyVerificationsXmlWriterTest extends Specification {
 """
     }
 
-    void declareChecksum(String id, String algorithm, String checksum) {
-        def (group, name, version) = id.split(":")
-        declareChecksumOfArtifact(group, name, version, "jar", "jar", null, algorithm, checksum)
+    void "can declare origin of a checksum"() {
+        declareChecksum("org:foo:1.0", "sha1", "abc", "from test")
+        declareChecksum("org:bar:1.0", "sha1", "abc", "from test")
+        declareChecksum("org:bar:1.0", "md5", "abc", "other")
+
+        when:
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <sha1 value="abc" origin="from test"/>
+         </artifact>
+      </component>
+      <component group="org" name="bar" version="1.0">
+         <artifact name="bar-1.0.jar">
+            <md5 value="abc" origin="other"/>
+            <sha1 value="abc" origin="from test"/>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
     }
 
-    private declareChecksumOfArtifact(String group, String name, version, String type, String ext, String classifier, String algorithm, String checksum) {
+    void "can declare more than one checksum of the same kind"() {
+        declareChecksum("org:foo:1.0", "sha1", "abc")
+        declareChecksum("org:foo:1.0", "sha1", "def")
+        declareChecksum("org:foo:1.0", "sha1", "123")
+
+        when:
+        serialize()
+
+        then:
+        contents == """<?xml version="1.0" encoding="UTF-8"?>
+<verification-metadata>
+   <components>
+      <component group="org" name="foo" version="1.0">
+         <artifact name="foo-1.0.jar">
+            <sha1 value="abc">
+               <also-trust value="def"/>
+               <also-trust value="123"/>
+            </sha1>
+         </artifact>
+      </component>
+   </components>
+</verification-metadata>
+"""
+    }
+
+    void declareChecksum(String id, String algorithm, String checksum, String origin = null) {
+        def (group, name, version) = id.split(":")
+        declareChecksumOfArtifact(group, name, version, "jar", "jar", null, algorithm, checksum, origin)
+    }
+
+    private declareChecksumOfArtifact(String group, String name, version, String type, String ext, String classifier, String algorithm, String checksum, String origin = null) {
         builder.addChecksum(
             new DefaultModuleComponentArtifactIdentifier(
                 DefaultModuleComponentIdentifier.newId(
@@ -130,7 +183,8 @@ class DependencyVerificationsXmlWriterTest extends Specification {
                 classifier
             ),
             ChecksumKind.valueOf(algorithm),
-            checksum
+            checksum,
+            origin
         )
     }
 
