@@ -17,16 +17,16 @@ package org.gradle.integtests
 
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.GradleVersion
 import org.junit.Assume
-import spock.lang.Ignore
 import spock.lang.Issue
 
 @SuppressWarnings("IntegrationTestFixtures")
-@Ignore
+@TargetVersions("3.1+")
 class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
