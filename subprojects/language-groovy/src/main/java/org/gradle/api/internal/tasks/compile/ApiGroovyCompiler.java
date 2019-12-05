@@ -163,6 +163,13 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setTargetDirectory(spec.getDestinationDir());
         canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
 
+        VersionNumber version = parseGroovyVersion();
+        if (version.compareTo(VersionNumber.parse("2.5")) >= 0) {
+            configuration.setParameters(spec.getGroovyCompileOptions().isParameters());
+        } else if (spec.getGroovyCompileOptions().isParameters()) {
+            throw new GradleException("Using Groovy compiler flag '--parameters' requires Groovy 2.5+ but found Groovy " + version);
+        }
+
         IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec);
         customizer.addToConfiguration(configuration);
 
@@ -180,7 +187,6 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
         ClassLoader classPathLoader;
-        VersionNumber version = parseGroovyVersion();
         if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
             // using a transforming classloader is only required for older buggy Groovy versions
             classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), DefaultClassPath.of(spec.getCompileClasspath()));
