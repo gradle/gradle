@@ -40,11 +40,13 @@ import javax.xml.parsers.SAXParserFactory;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
@@ -89,6 +91,7 @@ public class DependencyVerificationsXmlReader {
         private boolean inComponents;
         private ModuleComponentIdentifier currentComponent;
         private ModuleComponentArtifactIdentifier currentArtifact;
+        private ChecksumKind currentChecksum;
 
         public VerifiersHandler(DependencyVerifierBuilder builder) {
             this.builder = builder;
@@ -108,9 +111,11 @@ public class DependencyVerificationsXmlReader {
                 assertValidComponent();
                 currentArtifact = createArtifactId(attributes);
             } else {
-                if (currentArtifact != null) {
-                    ChecksumKind kind = ChecksumKind.valueOf(qName);
-                    builder.addChecksum(currentArtifact, kind, getAttribute(attributes, VALUE));
+                if (currentChecksum != null && ALSO_TRUST.equals(qName)) {
+                    builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), null);
+                } else if (currentArtifact != null) {
+                    currentChecksum = ChecksumKind.valueOf(qName);
+                    builder.addChecksum(currentArtifact, currentChecksum, getAttribute(attributes, VALUE), getNullableAttribute(attributes, ORIGIN));
                 }
             }
         }
@@ -143,6 +148,7 @@ public class DependencyVerificationsXmlReader {
                 currentComponent = null;
             } else if (ARTIFACT.equals(qName)) {
                 currentArtifact = null;
+                currentChecksum = null;
             }
         }
 
@@ -167,6 +173,14 @@ public class DependencyVerificationsXmlReader {
         private String getAttribute(Attributes attributes, String name) {
             String value = attributes.getValue(name);
             assertContext(value != null, "Missing attribute: " + name);
+            return stringInterner.intern(value);
+        }
+
+        private String getNullableAttribute(Attributes attributes, String name) {
+            String value = attributes.getValue(name);
+            if (value == null) {
+                return null;
+            }
             return stringInterner.intern(value);
         }
 

@@ -24,4 +24,6 @@ abstract class DependencyVerificationXmlTags {
     static final String VERSION = "version";
     static final String ARTIFACT = "artifact";
     static final String VALUE = "value";
+    static final String ORIGIN = "origin";
+    static final String ALSO_TRUST = "also-trust";
 }

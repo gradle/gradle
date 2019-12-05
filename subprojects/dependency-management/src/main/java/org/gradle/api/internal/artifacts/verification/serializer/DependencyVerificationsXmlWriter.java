@@ -15,11 +15,10 @@
  */
 package org.gradle.api.internal.artifacts.verification.serializer;
 
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.verification.DependencyVerifier;
 import org.gradle.api.internal.artifacts.verification.model.ArtifactVerificationMetadata;
-import org.gradle.api.internal.artifacts.verification.model.ChecksumKind;
+import org.gradle.api.internal.artifacts.verification.model.Checksum;
 import org.gradle.api.internal.artifacts.verification.model.ComponentVerificationMetadata;
 import org.gradle.internal.xml.SimpleXmlWriter;
 
@@ -27,13 +26,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ALSO_TRUST;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ARTIFACT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENT;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.COMPONENTS;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.GROUP;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.NAME;
+import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.ORIGIN;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VALUE;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERIFICATION_METADATA;
 import static org.gradle.api.internal.artifacts.verification.serializer.DependencyVerificationXmlTags.VERSION;
@@ -71,16 +72,13 @@ public class DependencyVerificationsXmlWriter {
     }
 
     private void writeVerification(ComponentVerificationMetadata verification) throws IOException {
-        ComponentIdentifier component = verification.getComponentId();
-        if (component instanceof ModuleComponentIdentifier) {
-            ModuleComponentIdentifier mci = (ModuleComponentIdentifier) component;
-            writer.startElement(COMPONENT);
-            writer.attribute(GROUP, mci.getGroup());
-            writer.attribute(NAME, mci.getModule());
-            writer.attribute(VERSION, mci.getVersion());
-            writeArtifactVerifications(verification.getArtifactVerifications());
-            writer.endElement();
-        }
+        ModuleComponentIdentifier mci = verification.getComponentId();
+        writer.startElement(COMPONENT);
+        writer.attribute(GROUP, mci.getGroup());
+        writer.attribute(NAME, mci.getModule());
+        writer.attribute(VERSION, mci.getVersion());
+        writeArtifactVerifications(verification.getArtifactVerifications());
+        writer.endElement();
     }
 
     private void writeArtifactVerifications(List<ArtifactVerificationMetadata> verifications) throws IOException {
@@ -97,12 +95,24 @@ public class DependencyVerificationsXmlWriter {
         writer.endElement();
     }
 
-    private void writeChecksums(Map<ChecksumKind, String> checksums) throws IOException {
-        for (Map.Entry<ChecksumKind, String> entry : checksums.entrySet()) {
-            String kind = entry.getKey().name();
-            String value = entry.getValue();
+    private void writeChecksums(List<Checksum> checksums) throws IOException {
+        for (Checksum checksum : checksums) {
+            String kind = checksum.getKind().name();
+            String value = checksum.getValue();
             writer.startElement(kind);
             writer.attribute(VALUE, value);
+            String origin = checksum.getOrigin();
+            if (origin != null) {
+                writer.attribute(ORIGIN, origin);
+            }
+            Set<String> alternatives = checksum.getAlternatives();
+            if (alternatives != null) {
+                for (String alternative : alternatives) {
+                    writer.startElement(ALSO_TRUST);
+                    writer.attribute(VALUE, alternative);
+                    writer.endElement();
+                }
+            }
             writer.endElement();
         }
     }
