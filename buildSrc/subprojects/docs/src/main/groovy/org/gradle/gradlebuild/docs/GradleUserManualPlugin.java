@@ -18,11 +18,8 @@ package org.gradle.gradlebuild.docs;
 
 import groovy.lang.Closure;
 import org.asciidoctor.gradle.AsciidoctorTask;
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
@@ -39,7 +36,6 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.build.docs.dsl.source.GenerateApiMapping;
 import org.gradle.build.docs.dsl.source.GenerateDefaultImports;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
